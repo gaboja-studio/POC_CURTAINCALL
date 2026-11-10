@@ -147,6 +147,7 @@ namespace CurtainCall.Tightrope
         Transform generated;
         bool rebuildRequested;
         readonly Dictionary<Collider, int> ropeSurfaces = new();
+        readonly Dictionary<BoxCollider, Vector3> originalRopeSizes = new();
         readonly RaycastHit[] supportHits = new RaycastHit[32];
 
         /// <summary>씬에 놓인 코스. 없으면 null.</summary>
@@ -178,6 +179,8 @@ namespace CurtainCall.Tightrope
 
         public int LaneCount => Layout.LaneCount;
         public float LaneSpacing => Layout.LaneSpacing;
+        public float RopeWalkWidth => GameSettings.Tightrope.Course.RopeWalkWidth;
+        public float RopeHeightTolerance => GameSettings.Tightrope.Course.RopeHeightTolerance;
 
         /// <summary>도착 거리(m, 출발선에서).</summary>
         public float FinishDistance => Layout.FinishDistance;
@@ -237,9 +240,9 @@ namespace CurtainCall.Tightrope
         public bool IsOnRope(Vector3 position, float radius, out int lane)
         {
             lane = NoLane;
-            if (Mathf.Abs(position.y - RopeHeightAt(position)) > Shape.RopeHeightTolerance) return false;
+            if (Mathf.Abs(position.y - RopeHeightAt(position)) > RopeHeightTolerance) return false;
             if (!TryGetRopePoint(position, out int nearest, out float distance) || !IsLaneUsable(nearest, distance)) return false;
-            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > Shape.RopeWalkWidth * 0.5f + radius) return false;
+            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > RopeWalkWidth * 0.5f + radius) return false;
             lane = nearest;
             return true;
         }
@@ -262,7 +265,7 @@ namespace CurtainCall.Tightrope
             // 최근접 중심선의 높이로 먼저 거르면 다른 높이의 인접 줄에서 오판한다.
             float radius = Mathf.Max(0.01f, mover.BodyRadius);
             Vector3 origin = feet + Vector3.up * (radius + 0.1f);
-            float distance = Shape.RopeHeightTolerance + 0.1f;
+            float distance = RopeHeightTolerance + 0.1f;
             int count = Physics.SphereCastNonAlloc(origin, radius, Vector3.down, supportHits,
                 distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             // 드문 밀집 배치에서도 버퍼에 먼저 들어온 줄을 실제 바닥으로 잘못 고르지 않는다.
@@ -285,9 +288,9 @@ namespace CurtainCall.Tightrope
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
                 // 외줄은 얇은 지지면이라 캡슐이 모서리에 걸치면 법선이 가파르다.
                 // 실제 위쪽 접촉만 받아 중앙에 인계하며, 옆면/아랫면은 허용하지 않는다.
-                float requiredNormal = useSceneGeometry && candidate != NoLane ? .05f : minimumNormal;
+                float requiredNormal = candidate != NoLane ? .05f : minimumNormal;
                 if (hit.normal.y < requiredNormal) continue;
-                if (candidate != NoLane && Mathf.Abs(feet.y - hit.point.y) > Shape.RopeHeightTolerance) continue;
+                if (candidate != NoLane && Mathf.Abs(feet.y - hit.point.y) > RopeHeightTolerance) continue;
                 if (hit.distance > closest + 0.001f) continue;
                 // 겹친 바닥과 줄의 높이가 같다면 안전한 일반 바닥을 우선한다.
                 if (Mathf.Abs(hit.distance - closest) <= 0.001f && lane == NoLane) continue;
@@ -302,19 +305,10 @@ namespace CurtainCall.Tightrope
         /// 거리는 넘긴 위치로 판단하므로, 착지 예상 지점에서 보려면 앞뒤로 옮긴 위치를 넘긴다. 옆줄 이동 가능 구간은 <see cref="IsLaneChangeAllowed"/>로 따로 본다.
         /// </summary>
         public int FindLandingLane(Vector3 position, int direction)
-        {
-            if (HasIndependentRopes) return FindSceneLandingLane(position, direction);
-            if (direction == 0) return NoLane;
-            float distance = GetDistance(position);
-            float side = GetSide(position);
-            int from = Layout.FindNearestLane(side, distance);
-            if (from == NoLane) from = Layout.GetLaneSlotAt(side);
-            int target = from + Math.Sign(direction);
-            return IsLaneUsable(target, distance) ? target : NoLane;
-        }
+            => TryFindLaneLanding(position, ForwardAt(position), direction, out int lane, out _) ? lane : NoLane;
 
         /// <summary>그 거리가 옆줄 이동 가능 구간 안인지.</summary>
-        public bool IsLaneChangeAllowed(float distance) => Layout.IsLaneChangeAllowed(distance);
+        public bool IsLaneChangeAllowed(float distance) => true; // 모든 실재 줄은 공통 최대 거리로 판단한다.
 
         /// <summary>그 거리에 줄이 놓여 있고 막히지 않았는지(줄 전체 막힘 + 불타는 구간 등 구간 막힘).</summary>
         public bool IsLaneUsable(int lane, float distance) =>
@@ -390,7 +384,7 @@ namespace CurtainCall.Tightrope
             float halfWidth = (LaneCount - 1) * LaneSpacing * 0.5f + Shape.SideMargin;
             bool onPlatform = distance >= -Shape.StartPlatformLength + 0.3f && distance <= -0.3f
                 && Mathf.Abs(side) <= halfWidth - 0.3f
-                && Mathf.Abs(position.y - transform.position.y) <= Shape.RopeHeightTolerance;
+                && Mathf.Abs(position.y - transform.position.y) <= RopeHeightTolerance;
             if (onPlatform)
                 return new Pose(transform.position + Right * side + Forward * distance, Quaternion.LookRotation(Forward, Vector3.up));
             bool byCourse = distance >= -Shape.StartPlatformLength && distance < FinishDistance
@@ -469,6 +463,9 @@ namespace CurtainCall.Tightrope
             if (current == this) current = null;
             GameSettings.Tightrope.Changed -= HandleSettingsChanged;
             ReleaseModelGrounding();
+            foreach (var pair in originalRopeSizes)
+                if (pair.Key != null) pair.Key.size = pair.Value;
+            originalRopeSizes.Clear();
         }
 
         /// <summary>세팅이 바뀌면 다음 프레임에 다시 읽는다. 잠겨 있으면 풀릴 때 읽는다.</summary>
@@ -492,6 +489,7 @@ namespace CurtainCall.Tightrope
                 rebuildRequested = false;
                 ReloadSettings();
             }
+            if (useSceneGeometry) ApplyCommonRopeWidths();
             ApplyLaneSpacing();
             CheckLocalFall();
             GroundPlayerModels();
@@ -531,16 +529,14 @@ namespace CurtainCall.Tightrope
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.HasDismountSupport(player)) return;
             if (!player.TryGetComponent(out PlayerMover mover) || !IsBelowFallDepth(mover)) return;
 
-            if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)
-                balance.ForceFall(); // 이미 추락했으면 무시된다. Fell → RequestState(Fallen)
-            else
-                player.RequestState(PlayerState.Fallen);
+            if (!player.IsDroppingFromSupport) player.RequestNaturalFall();
         }
 
         bool IsBelowFallDepth(PlayerMover mover)
         {
             if (mover == null) return false;
             if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return false;
+            if (mover.IsPlannedLaneFlight) return false; // 목마 분리 점프 등 유효한 옆줄 착지 궤적은 낙하 실패가 아니다.
             // 복합 코스의 낮은 줄 착지/그네·대포 인계는 옆의 높은 줄 바닥선으로
             // 사망시키지 않는다. 실제 허공 추락은 기존 깊이 판정을 계속 사용한다.
             if (useSceneGeometry && (!mover.Simulated || TryGetSupportingRope(mover, out _))) return false;
@@ -590,7 +586,22 @@ namespace CurtainCall.Tightrope
                 UpdateLocalStartPose();
             }
             else PlaceSpawnPoints();
+            if (Application.isPlaying && useSceneGeometry) ApplyCommonRopeWidths();
             Rebuilt?.Invoke();
+        }
+
+        void ApplyCommonRopeWidths()
+        {
+            foreach (var surface in sceneRopes)
+            {
+                if (surface is not BoxCollider box) continue;
+                float scale = box.transform.TransformVector(Vector3.right).magnitude;
+                if (scale <= .0001f) continue;
+                if (!originalRopeSizes.ContainsKey(box)) originalRopeSizes.Add(box, box.size);
+                var size = box.size;
+                size.x = RopeWalkWidth / scale;
+                if (box.size != size) box.size = size;
+            }
         }
 
         /// <summary>
@@ -640,7 +651,7 @@ namespace CurtainCall.Tightrope
         CourseLayout CreateLayout()
         {
             var c = Shape;
-            return new(c.LaneCount, c.LaneSpacing, c.FinishDistance, c.LaneEndDistances, c.LaneChangeZones);
+            return new(c.LaneCount, c.LaneSpacing, c.FinishDistance, c.LaneEndDistances);
         }
 
         void PlaceSpawnPoints()
@@ -752,20 +763,7 @@ namespace CurtainCall.Tightrope
                 foreach (var span in GetUsableSpans(lane))
                     Gizmos.DrawLine(GetLanePosition(lane, span.x), GetLanePosition(lane, span.y));
 
-                // 옆줄 이동 가능 구간은 줄 옆에 초록 선
-                Gizmos.color = Color.green;
-                foreach (var zone in l.GetLaneChangeZones())
-                {
-                    float from = Mathf.Max(0f, Mathf.Min(zone.x, zone.y));
-                    float to = Mathf.Min(l.GetLaneEnd(lane), Mathf.Max(zone.x, zone.y));
-                    foreach (var span in GetUsableSpans(lane))
-                    {
-                        float visibleFrom = Mathf.Max(from, span.x), visibleTo = Mathf.Min(to, span.y);
-                        if (visibleTo > visibleFrom)
-                            Gizmos.DrawLine(GetLanePosition(lane, visibleFrom) + Vector3.up * 0.05f + right * 0.15f,
-                                GetLanePosition(lane, visibleTo) + Vector3.up * 0.05f + right * 0.15f);
-                    }
-                }
+
             }
 
             Gizmos.color = finishColor;

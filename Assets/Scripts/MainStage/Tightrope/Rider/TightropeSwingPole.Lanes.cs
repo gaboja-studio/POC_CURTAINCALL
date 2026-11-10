@@ -46,8 +46,8 @@ namespace CurtainCall.Tightrope
         }
         TightropeSwingPole LocalPole => coordinator != null ? this : ForPlayer(NetworkPlayer.Local);
 
-        bool OwnHeld(NetworkPlayer player) => Active && mode == PoleMode.Holding && player != null && holder == player.OwnerClientId;
-        bool OwnFlight(NetworkPlayer player) => Active && flightMover != null && player != null && player == flightPlayer;
+        bool OwnHeld(NetworkPlayer player) => player != null && common != null && sharedIndex >= 0 && common.HeldBy(player.OwnerClientId) == sharedIndex;
+        bool OwnFlight(NetworkPlayer player) => player != null && common != null && common.IsFlyingFrom(sharedIndex, player.OwnerClientId);
         public bool IsHeld(NetworkPlayer player)
         {
             foreach (var pole in Root.poles) if (pole.OwnHeld(player)) return true;
@@ -61,8 +61,7 @@ namespace CurtainCall.Tightrope
         public bool IsCrossing(NetworkPlayer player)
         {
             foreach (var pole in Root.poles)
-                if (pole.OwnHeld(player) || pole.OwnFlight(player) || (pole.Active && player != null
-                    && pole.flights.TryGetValue(player.OwnerClientId, out double until) && pole.Clock <= until)) return true;
+                if (pole.OwnHeld(player) || pole.OwnFlight(player)) return true;
             return false;
         }
         string LatestFeedback()

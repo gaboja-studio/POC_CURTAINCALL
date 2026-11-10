@@ -60,7 +60,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void SwingingBar_DoesNotDragSawAwayFromFixedTorsoPlane(float angle)
         {
             Vector3 center = pole.HangingPosition(0) + Vector3.up * GameSettings.Base.Character.CapsuleHeight * 0.5f;
-            Assert.That(pole.HoldSeconds, Is.Zero, "새 봉의 기본은 시간 제한 없음");
+            Assert.That(pole.HoldSeconds, Is.EqualTo(30f), "모든 봉은 30초");
             AssertVector(hazard.transform.position, center);
             pole.PresentSwing(angle);
             Assert.IsTrue(saw.AlignToPole());

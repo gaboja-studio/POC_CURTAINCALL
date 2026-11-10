@@ -7,10 +7,8 @@ namespace CurtainCall.StartLobby
     /// </summary>
     public abstract class LobbyInteractable : MonoBehaviour
     {
-        [Tooltip("이 거리(m, 수평) 안에 들어오면 쓸 수 있다.")]
-        [SerializeField, Min(0.1f)] float reach = 1.8f;
 
-        public float Reach => reach;
+        public float Reach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         /// <summary>안내 문구. <paramref name="usable"/>가 false면 회색으로 이유만 보인다.</summary>
         public abstract string Prompt(out bool usable);

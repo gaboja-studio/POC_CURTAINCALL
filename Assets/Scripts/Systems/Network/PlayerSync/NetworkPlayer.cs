@@ -426,6 +426,9 @@ namespace CurtainCall.Network.PlayerSync
         public override void OnNetworkSpawn()
         {
             all.Add(this);
+            ResetFallTracking();
+            mover.Teleported += ResetFallTracking;
+            CurtainCall.Tightrope.PiggybackSystem.EnsureExists();
             ApplyOwnership(IsOwner);
             slot.OnValueChanged += HandleSlotChanged;
             jump.OnValueChanged += HandleJumpChanged;
@@ -470,6 +473,7 @@ namespace CurtainCall.Network.PlayerSync
             if (IsOwner)
             {
                 Local = this;
+                CurtainCall.Tightrope.PiggybackSystem.EnsureExists();
                 LocalSpawned?.Invoke(this);
             }
         }
@@ -477,6 +481,7 @@ namespace CurtainCall.Network.PlayerSync
         public override void OnNetworkDespawn()
         {
             all.Remove(this);
+            mover.Teleported -= ResetFallTracking;
             slot.OnValueChanged -= HandleSlotChanged;
             jump.OnValueChanged -= HandleJumpChanged;
             state.OnValueChanged -= HandleStateChanged;
@@ -496,6 +501,7 @@ namespace CurtainCall.Network.PlayerSync
         void Update()
         {
             if (!IsSpawned) return;
+            if (IsOwner || IsServer) CurtainCall.Tightrope.PiggybackSystem.EnsureExists();
 
             if (!IsOwner)
             {
@@ -539,7 +545,7 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         /// <summary>내 캐릭터의 균형이 무너지면(줄 밖 착지 포함) 호스트에 추락을 요청한다. 내 화면의 래그돌은 바로 시작된다.</summary>
-        void RequestFall() => RequestState(PlayerState.Fallen);
+        void RequestFall() => RequestNaturalFall();
 
         void HandleStateChanged(PlayerState previous, PlayerState current)
         {
@@ -599,6 +605,7 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>내 캐릭터가 순간이동하면 다른 화면에서도 보간 없이 옮긴다.</summary>
         void SendTeleport()
         {
+            if (IsOwner && IsSpawned) ResetFallTeleportRpc(transform.position, RestartVersion);
             if (networkTransform != null && networkTransform.IsSpawned && networkTransform.CanCommitToTransform)
                 networkTransform.Teleport(transform.position, transform.rotation, transform.localScale);
         }

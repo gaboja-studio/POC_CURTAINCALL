@@ -27,7 +27,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string toolId = "";
         [SerializeField, Min(1)] int requiredHits = 1;
         [SerializeField, Min(.1f)] float cooperationWindow = .75f;
-        [SerializeField, Min(.5f)] float reach = 1.6f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] string password = "0000";
         [SerializeField] bool passwordPending, passwordExplicit;
         [SerializeField, TextArea] string monitorText = "";
@@ -116,13 +116,13 @@ namespace CurtainCall.WaitingRoom
             }
         }
         /// <summary>손이 닿는 가장 가까운 열쇠 구멍 번호. 없으면 -1.</summary>
-        public int SlotAt(Vector3 feet) => SlotAt(feet, out _);
-        int SlotAt(Vector3 feet, out float distance)
+        public int SlotAt(Vector3 feet, Component actor = null) => SlotAt(feet, out _, actor);
+        int SlotAt(Vector3 feet, out float distance, Component actor = null)
         {
             int best = -1; distance = -1f;
             for (int i = 0; i < keySlots.Length; i++)
             {
-                float d = keySlots[i] != null ? ExplorationReach.From(transform, keySlots[i].position, feet, reach, true) : -1f;
+                float d = keySlots[i] != null ? ExplorationReach.From(transform, keySlots[i].position, feet, CommonReach, true, actor: actor) : -1f;
                 if (d >= 0f && (best < 0 || d < distance)) { best = i; distance = d; }
             }
             return best;
@@ -143,11 +143,11 @@ namespace CurtainCall.WaitingRoom
         void Start(){if(IsKeyPickup && GetComponent<CurtainCall.ItemArt.ExplorationKeyVisual>()==null)gameObject.AddComponent<CurtainCall.ItemArt.ExplorationKeyVisual>();}
         void OnEnable() { ExplorationTargets.Add(this); ShopReach.Add(this); }
         void OnDisable() { ExplorationTargets.Remove(this); ShopReach.Remove(this); ClosePanel(); }
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (!IsAvailable) return -1;
-            if (HasKeySlots) { SlotAt(feet, out float distance); return distance; }
-            return ExplorationReach.From(transform, PresentationPoint, feet, reach, true);
+            if (HasKeySlots) { SlotAt(feet, out float distance, actor); return distance; }
+            return ExplorationReach.From(transform, PresentationPoint, feet, CommonReach, true, actor: actor);
         }
         public bool MatchesPassword(string value) => !passwordPending && ExplorationPuzzleRules.IsFourDigits(password) && value == password;
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= (kind == ExplorationGateKind.Breakable ? requiredHits : 1);
@@ -220,8 +220,9 @@ namespace CurtainCall.WaitingRoom
             if (panelView != null && NeedsPassword && ExplorationState.Instance != null && lastPanelMessage != ExplorationState.Instance.LastMessage)
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }
             if (ExplorationState.Instance == null || !ExplorationState.Instance.CanReachLocal(this) || !ConditionsMet
-                || (NeedsPassword && Opened) || (Keyboard.current != null && (Keyboard.current.escapeKey.wasPressedThisFrame
-                || (Time.frameCount > openedFrame + 1 && Keyboard.current.fKey.wasPressedThisFrame)))) ClosePanel();
+                || (NeedsPassword && Opened) || (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                || (Time.frameCount > openedFrame + 1 && CurtainCall.Network.PlayerSync.NetworkPlayer.Local != null
+                    && CurtainCall.Network.PlayerSync.NetworkPlayer.Local.GetComponent<PlayerInputReader>()?.WasPressedThisFrame("Interact") == true)) ClosePanel();
         }
     }
 }

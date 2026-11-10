@@ -53,7 +53,7 @@ namespace CurtainCall.Control.Editor.Tests
             var draft = Draft();
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
-            Assert.AreEqual(11, entries.Count); // 2026-10-30: UV 등(마우스 우클릭) 포함
+            Assert.AreEqual(12, entries.Count); // T 방향 전환 포함
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -129,7 +129,7 @@ namespace CurtainCall.Control.Editor.Tests
             string saved = PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey);
             draft.FindAction("Common/Move").ApplyBindingOverride(1, "");
             draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/s");
-            Assert.AreEqual(11, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
+            Assert.AreEqual(12, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
             Assert.IsFalse(InputBindingPreferences.TryApply(draft, out var error));
             StringAssert.Contains("할당되지 않은", error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey));
@@ -192,6 +192,19 @@ namespace CurtainCall.Control.Editor.Tests
             InputBindingPreferences.ResetDefaults();
             Assert.That(reader.BindingLabel("Interact", "F"), Is.EqualTo("F"));
             Assert.That(reader.BindingLabel("missing", "fallback"), Is.EqualTo("fallback"));
+        }
+
+        [Test]
+        public void TurnAround_DefaultsToT_AndExistingReadersUseItsSavedBinding()
+        {
+            var reader = CreateReader();
+            var draft = Draft();
+            var action = draft.FindAction("Common/TurnAround", true);
+            Assert.That(action.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/t"));
+            Assert.That(InputBindingPreferences.TryRebind(draft, action.bindings[0].id, "<Keyboard>/u", out _), Is.True);
+            Assert.That(InputBindingPreferences.TryApply(draft, out string error), Is.True, error);
+            Assert.That(reader.BindingLabel("TurnAround", "T"), Is.EqualTo("U"));
+            Assert.That(Draft().FindAction("Common/TurnAround").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/u"));
         }
 
         PlayerInputReader CreateReader()

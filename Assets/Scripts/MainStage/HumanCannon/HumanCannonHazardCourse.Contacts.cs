@@ -15,12 +15,12 @@ namespace CurtainCall.HumanCannon
         readonly HashSet<int> ownerTouching = new(), ownerTouchingNow = new();
         readonly HashSet<(int, ulong)> remoteTouching = new();
         readonly Dictionary<ulong, uint> contactSequences = new();
-        readonly Dictionary<ulong, float> remoteCutAt = new();
+
         uint contactSequence;
         void ClearOwnerContacts()
-        { ownerTouching.Clear(); ownerTouchingNow.Clear(); remoteTouching.Clear(); contactSequences.Clear(); remoteCutAt.Clear(); }
+        { ownerTouching.Clear(); ownerTouchingNow.Clear(); remoteTouching.Clear(); contactSequences.Clear(); }
         void ForgetOwnerContacts(ulong actor)
-        { remoteTouching.RemoveWhere(k => k.Item2 == actor); contactSequences.Remove(actor); remoteCutAt.Remove(actor); if (NetworkPlayer.Local?.OwnerClientId == actor) { ownerTouching.Clear(); ownerTouchingNow.Clear(); } }
+        { remoteTouching.RemoveWhere(k => k.Item2 == actor); contactSequences.Remove(actor); if (NetworkPlayer.Local?.OwnerClientId == actor) { ownerTouching.Clear(); ownerTouchingNow.Clear(); } }
 
         void OwnerContacts(double elapsed, float speed)
         {
@@ -83,16 +83,12 @@ namespace CurtainCall.HumanCannon
             if (NetworkPlayer.ServerCanChangeState != null && !NetworkPlayer.ServerCanChangeState(player, PlayerState.Fallen)) return false;
             contactSequences[sender] = sequence;
             if (!remoteTouching.Add(key)) return true;
-            bool evaluated = !remoteCutAt.TryGetValue(sender, out float last) || Time.unscaledTime - last >= .1f;
             BodyPart cut = BodyPart.None;
-            if (evaluated) {
-                remoteCutAt[sender] = Time.unscaledTime;
-                NotifyContact(player, hazard, feet);
-                string obstacle=CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(hazard,"OB_");
-                if (hazard.KillsOnContact) player.ServerKill(CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard,obstacle); else cut = player.ServerCut(1,obstacle,CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard);
-                if (cut != BodyPart.None) NotifyHit(player, hazard, cut, feet);
-            }
-            NotifyResolved(player, hazard, cut, feet, evaluated);
+            NotifyContact(player, hazard, feet);
+            string obstacle=CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(hazard,"OB_");
+            if (hazard.KillsOnContact) player.ServerKill(CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard,obstacle); else cut = player.ServerHazardCut(obstacle,CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard);
+            if (cut != BodyPart.None) NotifyHit(player, hazard, cut, feet);
+            NotifyResolved(player, hazard, cut, feet, true);
             return true;
         }
         void NotifyContact(NetworkPlayer player, HumanCannonHazard hazard, Vector3 feet)

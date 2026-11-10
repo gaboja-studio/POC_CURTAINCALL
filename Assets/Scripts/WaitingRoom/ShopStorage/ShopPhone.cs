@@ -13,7 +13,7 @@ namespace CurtainCall.WaitingRoom
     public sealed class ShopPhone : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("수화기에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.5f)] float reach = 1.8f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] bool showLegacyUi = true;
         public bool IsOpen => open;
 
@@ -47,14 +47,13 @@ namespace CurtainCall.WaitingRoom
             var keyboard = Keyboard.current;
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             // 창을 연 채로 밀려나거나 순간이동(공연 전환)하면 닫는다.
-            bool away = !ShopReach.TryLocalFeet(out var feet) || Flat(feet - transform.position) > reach + .5f;
+            bool away = !ShopReach.TryLocalFeet(out var feet) || Flat(feet - transform.position) > CommonReach + .5f;
             if (escape || away || WaitingRoomShop.Instance == null) SetOpen(false);
         }
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
-            float distance = Flat(feet - transform.position);
-            return distance <= reach ? distance : -1f;
+            return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact()

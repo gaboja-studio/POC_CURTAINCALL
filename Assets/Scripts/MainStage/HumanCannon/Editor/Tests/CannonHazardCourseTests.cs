@@ -77,7 +77,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(14));
             Assert.That(poles, Has.Length.EqualTo(4));
             foreach (var pole in poles)
-                Assert.That(pole.HoldSeconds, Is.EqualTo(pole.LinkedGate != null ? 40f : 0f), pole.name);
+                Assert.That(pole.HoldSeconds, Is.EqualTo(30f), pole.name);
             foreach (var hazard in hazards)
             {
                 Assert.That(Field<Transform>(hazard, "visual"), Is.Not.Null, hazard.name);

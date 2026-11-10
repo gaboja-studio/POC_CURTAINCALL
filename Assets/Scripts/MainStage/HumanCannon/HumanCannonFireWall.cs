@@ -32,8 +32,7 @@ namespace CurtainCall.HumanCannon
         [Min(1f), SerializeField] float halfWidth = 18f;
         [Tooltip("바닥 위 불꽃 판정 높이(m).")]
         [Min(1f), SerializeField] float height = 24f;
-        [Tooltip("기획의 접촉 사망 설계안을 시험한다. 속도·판정은 실제 플레이에서 조정한다.")]
-        [SerializeField] bool killOnContact = true;
+
         [Tooltip("현재 코스에서 불꽃벽 사용. 끄면 예고·전진·접촉 피해·표시를 모두 보류한다.")]
         [SerializeField] bool available = true;
         [Tooltip("생존자 전원이 해당 구간 시작선(stageLines)을 넘어 내려서면 그때부터 속도에 곱하는 배율. 순서대로 커진다.")]
@@ -53,7 +52,8 @@ namespace CurtainCall.HumanCannon
             return stage;
         }
         public float SpeedAt(double now) { int stage = CurrentStage(now); return speed * (stage > 0 ? stageSpeedMultipliers[stage - 1] : 1f); }
-        public bool KillOnContact => killOnContact;
+        public CurtainCall.Damage.HazardDamageKind DamageKind => CurtainCall.Damage.HazardDamageKind.FatalFire;
+        public bool KillOnContact => CurtainCall.Damage.CommonDamageRules.IsFatal(DamageKind);
         public double ArmedAt { get; private set; } = -1;
         public bool Finished { get; private set; }
         public bool Armed => ArmedAt >= 0;

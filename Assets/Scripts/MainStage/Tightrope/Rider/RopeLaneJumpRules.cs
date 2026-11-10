@@ -8,10 +8,10 @@ namespace CurtainCall.Tightrope
 {
     /// <summary>
     /// 내 캐릭터의 옆줄 점프(Q/E 홀드 + Space)에 코스 규칙을 붙인다.
-    /// 1) 뛸 수 있는지: 뛰는 지점과 착지 예상 지점이 모두 옆줄 이동 가능 구간 안, 착지 예상 거리에 그 방향 옆 줄이 있고 막히지 않음(불타는 구간 포함).
+    /// 1) 뛸 수 있는지: 선택 방향의 실제 줄이 공통 최대 거리 안에 있고 막히지 않음(불타는 구간 포함).
     ///    하나라도 아니면 입력을 무시한다(아무 일도 없음).
     /// 2) 착지 자리: 도착 줄의 착지 자리에 다른 플레이어가 있으면 그 뒤쪽(코스 진행 반대쪽)으로 착지 지점을 당긴다. 뒤에 또 있으면 맨 뒤 사람 뒤로.
-    ///    당긴 자리가 그 줄을 쓸 수 없는 곳(줄 시작 전·막힌 구간·이동 불가 구간)이면 원래 자리로 뛰고 착지하는 순간 추락한다(2026-10-02 결정).
+    ///    당긴 자리가 줄 밖이거나 최대 거리 밖이면 점프를 시작하지 않는다.
     ///    목마 합체가 되는 경우는 목마 기능(006)이 합체로 바꾼다.
     /// 3) 손잡기: 착지 지점이 같은 줄 동료와 앞뒤로 가까우면(세팅 손잡기 거리) 착지 충격·흔들림을 줄인다(<see cref="PlayerBalance.SetLaneLandingReduction"/>).
     /// 판정은 조작하는 소유자 화면에서만 하고(뛰는 순간 한 번), 결과 움직임·추락은 007 공유를 그대로 쓴다.
@@ -32,9 +32,10 @@ namespace CurtainCall.Tightrope
         int landingLane = TightropeCourse.NoLane;
         float landingDistance;
         Func<int, bool> previousFilter;
-        Func<int, float> previousShift;
+        Func<int, Vector3?> previousTarget;
+        Action<int> previousStarting;
 
-        static bool IsGameplayActive => TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
+        static bool IsGameplayActive => TightropeCourse.Current != null && TightropeCourse.Current.IsTraversalActive;
 
         void OnEnable()
         {
@@ -61,9 +62,11 @@ namespace CurtainCall.Tightrope
             if (mover == null) return;
 
             previousFilter = mover.LaneJumpFilter;
-            previousShift = mover.LaneLandingShift;
+            previousTarget = mover.LaneLandingTarget;
+            previousStarting = mover.LaneJumpStarting;
             mover.LaneJumpFilter = CanLaneJump;
-            mover.LaneLandingShift = GetLandingShift;
+            mover.LaneLandingTarget = GetLandingTarget;
+            mover.LaneJumpStarting = PrepareLanding;
             mover.AirborneChanged += HandleAirborne;
             // 동료 자리로 뛰는 것을 막던 임시 동작 대신 뒤쪽 착지로 처리한다
             blockOntoPlayerBefore = mover.BlockLaneJumpOntoPlayer;
@@ -75,9 +78,10 @@ namespace CurtainCall.Tightrope
             if (mover != null)
             {
                 bool ownsFilter = mover.LaneJumpFilter == CanLaneJump;
-                bool ownsShift = mover.LaneLandingShift == GetLandingShift;
+                bool ownsShift = mover.LaneLandingTarget == GetLandingTarget;
                 if (ownsFilter) mover.LaneJumpFilter = previousFilter;
-                if (ownsShift) mover.LaneLandingShift = previousShift;
+                if (ownsShift) mover.LaneLandingTarget = previousTarget;
+                if (mover.LaneJumpStarting == PrepareLanding) mover.LaneJumpStarting = previousStarting;
                 mover.AirborneChanged -= HandleAirborne;
                 if (ownsFilter && ownsShift && !mover.BlockLaneJumpOntoPlayer)
                     mover.BlockLaneJumpOntoPlayer = blockOntoPlayerBefore;
@@ -86,7 +90,8 @@ namespace CurtainCall.Tightrope
             mover = null;
             balance = null;
             previousFilter = null;
-            previousShift = null;
+            previousTarget = null;
+            previousStarting = null;
             ClearLanding();
         }
 
@@ -120,18 +125,25 @@ namespace CurtainCall.Tightrope
         public bool CanLaneJump(int direction)
         {
             var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive || mover == null) return true;
+            if (course == null || !course.IsTraversalActive || mover == null) return true;
 
-            Vector3 position = mover.transform.position;
-            float from = course.GetDistance(position);
-            float to = course.GetDistance(mover.GetLaneLandingPosition(direction));
-            if (!course.IsLaneChangeAllowed(from) || !course.IsLaneChangeAllowed(to)) return false;
-
-            // 옆 위치는 지금 그대로, 앞뒤만 착지 예상 거리로 옮겨 그 거리의 옆 줄을 찾는다
-            Vector3 along = position + ForwardFor(course, position) * (to - from);
-            return course.FindLandingLane(along,
-                course.AuthoredLaneDirection(position, mover.CourseForward, direction)) != TightropeCourse.NoLane;
+            return TryGetLanding(direction, out _, out _);
         }
+
+        bool TryGetRawLanding(int direction, out int lane, out Vector3 point)
+        {
+            lane = TightropeCourse.NoLane;
+            point = default;
+            var course = TightropeCourse.Current;
+            if (course == null || mover == null) return false;
+            var source = mover.transform.position;
+            source.y = LandingHeight();
+            return course.TryFindLaneLanding(source, mover.CourseForward, direction, out lane, out point);
+        }
+
+        Vector3? GetLandingTarget(int direction)
+            => TryGetLanding(direction, out int lane, out float distance) && lane != TightropeCourse.NoLane
+                ? TightropeCourse.Current.GetLanePosition(lane, distance) : null;
 
         /// <summary>
         /// 내 캐릭터가 지금 그 방향으로 옆줄 점프할 때 착지할 코스 거리. 착지 자리에 다른 플레이어가 있으면 그 뒤쪽 거리.
@@ -144,26 +156,15 @@ namespace CurtainCall.Tightrope
             var course = TightropeCourse.Current;
             lane = TightropeCourse.NoLane;
             distance = 0f;
-            if (course == null || !course.IsGameplayActive || mover == null) return true;
+            if (course == null || !course.IsTraversalActive || mover == null) return true;
 
-            Vector3 landing = mover.GetLaneLandingPosition(direction);
-            landing.y = LandingHeight();
-            distance = course.GetDistance(landing);
+            if (!TryGetRawLanding(direction, out lane, out Vector3 landing)) return false;
+            Vector3 forward = ForwardFor(course, landing);
+            distance = Vector3.Dot(landing - course.GetLanePosition(lane, 0f), forward);
             float side = course.GetSide(landing);
             float originalDistance = distance;
-            Vector3 forward = ForwardFor(course, mover.transform.position);
+            if (FindLaneLinkTarget(direction) != null) return true;
 
-            // 합체 가능한 동료와 겹치면 원래 도착점을 유지한다. 실제 합체 요청은 착지 순간 보낸다.
-            var target = FindLaneLinkTarget(direction);
-            if (target != null)
-            {
-                Vector3 originalAlong = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
-                lane = course.FindLandingLane(originalAlong,
-                    course.AuthoredLaneDirection(mover.transform.position, mover.CourseForward, direction));
-                return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
-            }
-
-            // 자리를 차지한 사람이 없을 때까지 그 사람들 뒤로 당긴다. 한 번에 한 명 이상 뒤로 가므로 인원수만큼이면 끝난다
             int count = PlayerMover.All.Count;
             for (int i = 0; i <= count; i++)
             {
@@ -171,11 +172,13 @@ namespace CurtainCall.Tightrope
                 if (!TryFindBehindBlockers(course, point, side, distance, out float behind)) break;
                 distance = behind;
             }
-
-            Vector3 along = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
-            lane = course.FindLandingLane(along,
-                course.AuthoredLaneDirection(mover.transform.position, mover.CourseForward, direction));
-            return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
+            var source = mover.transform.position;
+            source.y = LandingHeight();
+            if (!course.TryGetRopePoint(source, out int sourceLane, out float sourceDistance)) return false;
+            float reach = GameSettings.Tightrope.RopeMovement.LaneJumpReach;
+            return course.IsLaneUsable(lane, distance)
+                && Vector3.ProjectOnPlane(course.GetLanePosition(lane, distance) - course.GetLanePosition(sourceLane, sourceDistance), Vector3.up).sqrMagnitude
+                    <= (reach + .001f) * (reach + .001f);
         }
 
         static Vector3 ForwardFor(TightropeCourse course, Vector3 position) => course.HasIndependentRopes
@@ -190,7 +193,7 @@ namespace CurtainCall.Tightrope
             behind = distance;
             bool found = false;
             float gap = GameSettings.Base.Character.PlayerGap;
-            Vector3 forward = ForwardFor(course, mover.transform.position);
+            Vector3 forward = ForwardFor(course, landing);
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             bool reversing = Vector3.Dot(mover.CourseForward, forward) < 0;
 
@@ -223,7 +226,7 @@ namespace CurtainCall.Tightrope
         public bool IsHandholdLanding(int lane, float distance)
         {
             var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive || mover == null || lane == TightropeCourse.NoLane) return false;
+            if (course == null || !course.IsTraversalActive || mover == null || lane == TightropeCourse.NoLane) return false;
 
             foreach (var other in PlayerMover.All)
             {
@@ -241,7 +244,7 @@ namespace CurtainCall.Tightrope
             lane = TightropeCourse.NoLane;
             from = to = 0f;
             var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive || mover == null
+            if (course == null || !course.IsTraversalActive || mover == null
                 || other == null || other == mover || other.PassThrough) return false;
             Vector3 position = other.transform.position;
             if (Mathf.Abs(position.y - LandingHeight()) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) return false;
@@ -261,16 +264,7 @@ namespace CurtainCall.Tightrope
             if (!IsGameplayActive || system == null || mover == null) return null;
             var local = NetworkPlayer.Local;
             bool topRelease = system.GetBelow(local) != null && system.GetAbove(local) == null;
-            if (!topRelease)
-            {
-                var other = mover.FindPlayerAtLaneLanding(direction);
-                var target = other != null ? other.GetComponent<NetworkPlayer>() : null;
-                if (TightropeCatchSystem.Current != null && TightropeCatchSystem.Current.IsReady(target)) return null;
-                return system.CanLaneLink(local, target) ? target : null;
-            }
-
-            Vector3 landing = mover.GetLaneLandingPosition(direction);
-            landing.y = LandingHeight();
+            if (!TryGetRawLanding(direction, out _, out Vector3 landing)) return null;
             foreach (var other in PlayerMover.All)
             {
                 if (other == mover || other.PassThrough) continue;
@@ -280,7 +274,7 @@ namespace CurtainCall.Tightrope
                 if (offset.magnitude >= mover.BodyRadius + other.BodyRadius) continue;
                 var target = other.GetComponent<NetworkPlayer>();
                 if (TightropeCatchSystem.Current != null && TightropeCatchSystem.Current.IsReady(target)) continue;
-                if (system.CanLaneLink(local, target, true)) return target;
+                if (system.CanLaneLink(local, target, topRelease)) return target;
             }
             return null;
         }
@@ -294,26 +288,14 @@ namespace CurtainCall.Tightrope
             return below.transform.position.y; // 머리 위 출발도 도착 줄 높이의 동료를 찾는다
         }
 
-        float GetLandingShift(int direction)
+        void PrepareLanding(int direction)
         {
             ClearLanding();
-            var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive || mover == null) return 0f;
-
-            float original = course.GetDistance(mover.GetLaneLandingPosition(direction));
-            if (!TryGetLanding(direction, out int lane, out float distance))
-            {
-                failOnLanding = true;
-                return 0f;
-            }
-
-            // 균형은 착지 알림을 먼저 받으므로 감소율은 뛰는 순간 넣어 둔다(착지하면 균형이 0으로 되돌린다)
+            if (!TryGetLanding(direction, out int lane, out float distance)) return;
             laneLinkTarget = FindLaneLinkTarget(direction);
             landingLane = lane;
             landingDistance = distance;
             RefreshLandingHelp();
-            float shift = distance - original;
-            return Vector3.Dot(mover.CourseForward, ForwardFor(course, mover.transform.position)) < 0 ? -shift : shift;
         }
 
         void RefreshLandingHelp()

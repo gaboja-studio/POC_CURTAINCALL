@@ -33,14 +33,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void TearDown() => Object.DestroyImmediate(root);
 
         [Test]
-        public void OptionalHorizontalBoostPreservesUpwardCapAndSwingGeometry()
+        public void LegacyHorizontalBoostAndUpwardCapCannotOverrideSharedLaunch()
         {
-            typeof(HumanCannonPole).GetField("maxReleaseUpwardSpeed",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(pole,5.2f);
+            Assert.IsNull(typeof(HumanCannonPole).GetField("maxReleaseUpwardSpeed",BindingFlags.Instance|BindingFlags.NonPublic));
             var original=pole.ReleaseVelocity(30,100);var point=pole.HangingPosition(30);
-            typeof(HumanCannonPole).GetField("horizontalReleaseMultiplier",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(pole,1.08f);
+            Assert.IsNull(typeof(HumanCannonPole).GetField("horizontalReleaseMultiplier",BindingFlags.Instance|BindingFlags.NonPublic));
             var boosted=pole.ReleaseVelocity(30,100);
             Assert.That(Vector3.ProjectOnPlane(boosted,Vector3.up).magnitude,
-                Is.EqualTo(Vector3.ProjectOnPlane(original,Vector3.up).magnitude*1.08f).Within(.001f));
+                Is.EqualTo(Vector3.ProjectOnPlane(original,Vector3.up).magnitude).Within(.001f));
             Assert.That(boosted.y,Is.EqualTo(original.y).Within(.001f));
             Assert.That(pole.HangingPosition(30),Is.EqualTo(point));
         }
@@ -55,19 +55,17 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Vector3 release = pole.ReleaseVelocity(angle, 120);
                 pole.PresentSwing(angle);
                 Near(bar.position, feet + Vector3.up * 1.5f);
-                Vector3 pivot = (fixedLeft + fixedRight) * 0.5f;
-                Near(bar.position, pivot + PoleSwingMotion.Offset(angle, 8, pole.Forward));
-                Assert.That(Vector3.Distance(pivot, bar.position), Is.EqualTo(8).Within(0.001f));
-                Assert.That(Mathf.Abs(Vector3.Dot(bar.position - fixedGrip, pole.Forward)), Is.GreaterThan(6f),
-                    "몸만 1.5m 흔드는 대신 봉도 8m 줄 반경으로 크게 이동한다.");
+                Vector3 pivot = fixedGrip + Vector3.up * 1.5f;
+                Near(bar.position, pivot + PoleSwingMotion.Offset(angle, 1.5f, pole.Forward));
+                Assert.That(Vector3.Distance(pivot, bar.position), Is.EqualTo(1.5f).Within(0.001f));
                 Near(grip.position, fixedGrip);
                 Near(leftAnchor.position, fixedLeft); Near(rightAnchor.position, fixedRight);
                 Near(pole.HangingPosition(angle), feet);
                 Near(pole.ReleaseVelocity(angle, 120), release);
                 AssertCable(leftCable, leftAnchor);
                 AssertCable(rightCable, rightAnchor);
-                Assert.That(leftCable.localScale.y, Is.EqualTo(8).Within(0.001f));
-                Assert.That(rightCable.localScale.y, Is.EqualTo(8).Within(0.001f));
+                Assert.That(leftCable.localScale.y, Is.GreaterThan(0f));
+                Assert.That(rightCable.localScale.y, Is.GreaterThan(0f));
             }
         }
 
@@ -95,9 +93,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 - pole.HangingPosition(angle - speed * deltaTime)) / (2 * deltaTime);
             Vector3 tangent = pole.ReleaseVelocity(angle, speed) - Vector3.up * 6;
             Assert.That(Vector3.Distance(tangent, finiteDifference), Is.LessThan(0.02f));
-            Vector3 pivot = (leftAnchor.position + rightAnchor.position) * 0.5f;
+            Vector3 pivot = grip.position + Vector3.up * 1.5f;
             Assert.That(Vector3.Dot(tangent, pole.BarPosition(angle) - pivot), Is.EqualTo(0).Within(0.001f));
-            Assert.That(tangent.magnitude, Is.EqualTo(8 * Mathf.Abs(speed) * Mathf.Deg2Rad).Within(0.001f));
+            Assert.That(tangent.magnitude, Is.EqualTo(1.5f * Mathf.Abs(speed) * Mathf.Deg2Rad).Within(0.001f));
         }
 
         [Test]
@@ -112,17 +110,17 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void CeilingGeometry_ControlsGravityAndVelocityWithoutChangingGrip()
+        public void CeilingGeometryCannotChangeSharedGravityAndVelocity()
         {
-            Assert.That(pole.SwingLength, Is.EqualTo(8).Within(0.001f));
+            Assert.That(pole.SwingLength, Is.EqualTo(1.5f).Within(0.001f));
             float expectedAngle = 30, expectedSpeed = 0;
-            PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f, 9.81f, 8, 300, 80, 180, 0.4f);
+            PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f, 9.81f, 1.5f, 300, 80, 180, 0.4f);
             float angle = 30, speed = 0;
             pole.Step(ref angle, ref speed, 0, 0.1f, 9.81f);
             Assert.That(angle, Is.EqualTo(expectedAngle).Within(0.0001f));
             Assert.That(speed, Is.EqualTo(expectedSpeed).Within(0.0001f));
             Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
-            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (8 * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
+            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (1.5f * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
         }
 
         void AssertCable(Transform cable, Transform anchor)

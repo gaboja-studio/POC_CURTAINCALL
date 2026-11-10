@@ -36,6 +36,10 @@ namespace CurtainCall.Settings
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
         [SerializeField] InputSettings input = new();
+        [Header("공통 상호작용")]
+        [SerializeField] InteractionSettings interaction = new();
+        [Header("공통 공중 조절")]
+        [SerializeField] AirControlSettings airControl = new();
         [Header("균형 공통")]
         [SerializeField] BalanceSettings balance = new();
         [Header("HUD 배치")]
@@ -57,6 +61,8 @@ namespace CurtainCall.Settings
         public ItemCarrySettings ItemCarry => itemCarry;
         public CharacterSettings Character => character;
         public InputSettings Input => input;
+        public InteractionSettings Interaction => interaction;
+        public AirControlSettings AirControl => airControl;
         public BalanceSettings Balance => balance;
         public HudLayoutSettings HudLayout => hudLayout;
         public PresentationSettings Presentation => presentation;
@@ -292,7 +298,7 @@ namespace CurtainCall.Settings
 
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
-            public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
+            public float JumpHeight => jumpHeight;
             public float TurnSpeed => turnSpeed;
             public float Gravity => gravity;
             public float CapsuleHeight => capsuleHeight;
@@ -305,10 +311,34 @@ namespace CurtainCall.Settings
             public float CrouchHeightRatio => crouchHeightRatio;
         }
 
+        [Serializable]
+        public sealed class InteractionSettings
+        {
+            [SerializeField, Min(.1f), Tooltip("일반 물체 잡기·탑승·버튼·도구 접촉의 공통 거리(m). 대상의 기준점/외곽에서 측정한다.")]
+            float distance = 2.5f;
+            public float Distance => Mathf.Max(.1f, distance);
+        }
+
+        [Serializable]
+        public sealed class AirControlSettings
+        {
+            [SerializeField, Min(0f), Tooltip("봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 발사 속도와 별개다.")]
+            float speed = 3f;
+            [SerializeField, Min(.001f)] float responseSeconds = .1f;
+            [SerializeField, Min(0f), Tooltip("봉 도약 직후 반동을 주던 W/S가 공중 조절로 겹치지 않는 유예.")]
+            float pumpReleaseGrace = .15f;
+            public float Speed => Mathf.Max(0f, speed);
+            public float ResponseSeconds => Mathf.Max(.001f, responseSeconds);
+            public float PumpReleaseGrace => Mathf.Max(0f, pumpReleaseGrace);
+        }
+
         /// <summary>입력 판정.</summary>
         [Serializable]
         public sealed class InputSettings
         {
+            [Tooltip("착지 직전 점프 입력을 받아두는 공통 시간(초). 일반 바닥과 외줄에 동일하게 적용한다.")]
+            [SerializeField, Min(0f)] float jumpInputBuffer = .15f;
+            public float JumpInputBuffer => Mathf.Max(0f, jumpInputBuffer);
             [Tooltip("상호작용 키를 이 시간(초) 이상 누르면 '길게'(목마 해제 등). 기획 값이 없어 튜닝값 0.5.")]
             [SerializeField, Min(0.05f)] float longPressTime = 0.5f;
 
@@ -441,6 +471,14 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class BodyDamageSettings
         {
+            [Header("공통 위험물·낙하")]
+            [SerializeField, Min(0f)] float hazardHitCooldown = 1f;
+            [SerializeField, Min(0f)] float fallInjuryHeight = 3f;
+            [SerializeField, Min(0f)] float fallDeathHeight = 5f;
+            public float HazardHitCooldown => Mathf.Max(0f, hazardHitCooldown);
+            public float FallInjuryHeight => Mathf.Max(0f, fallInjuryHeight);
+            public float FallDeathHeight => Mathf.Max(FallInjuryHeight, fallDeathHeight);
+
             [Tooltip("[폐기 예정] 외줄 묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 기획상 재시작이 없어 외줄 재시작이 사라지면 지운다. 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구, 모두 복구 = 전원 온전한 몸.")]
             [SerializeField] BodyRestartRecovery restartRecovery = BodyRestartRecovery.KeepSurvivors;
 
@@ -451,7 +489,7 @@ namespace CurtainCall.Settings
             [Tooltip("두 다리를 잃었을 때(기어가기) 점프 높이 배율(×). 기어갈 때 점프 허용은 아래 '기어갈 때 제자리 점프'. 임시값 0.5.")]
             [SerializeField, Range(0f, 1f)] float twoLegJumpHeight = 0.5f;
 
-            [Header("탐색 중 부상 패널티 (대기실·백스테이지·탈출로 묘기 밖)")]
+            [Header("모든 씬 공통 부상 이동·상호작용")]
             [Tooltip("다리 1개를 잃었을 때 이동 속도 배율(×). 두 다리는 기어가기 배율을 쓴다. 수치는 대기실 담당 미정 — 임시값 0.8.")]
             [SerializeField, Range(0f, 1f)] float exploreOneLegMoveSpeed = 0.8f;
 
@@ -502,6 +540,8 @@ namespace CurtainCall.Settings
             public float TwoLegJumpHeight => twoLegJumpHeight;
             public float ExploreOneLegMoveSpeed => exploreOneLegMoveSpeed;
             public float ExploreOneArmReach => exploreOneArmReach;
+            public float MoveMultiplier(int lostLegs) => lostLegs <= 0 ? 1f : lostLegs == 1 ? exploreOneLegMoveSpeed : crawlSpeedMultiplier;
+            public float ReachMultiplier(int lostArms) => lostArms <= 0 ? 1f : exploreOneArmReach;
 
             /// <summary>잃은 다리 개수(0~2)에 맞는 점프 높이 배율.</summary>
             public float JumpHeightForLostLegs(int lostLegs) =>

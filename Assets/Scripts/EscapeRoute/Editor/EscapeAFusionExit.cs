@@ -170,7 +170,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
         static void AFusionPole(Transform p, HumanCannonPole source, string name, Vector3 grip, Vector3 forward, float ceiling)
         {
             var pole = OriginalPole(p, source, name, grip, forward, ceiling);
-            TuneFlowPole(p, pole, grip, 5, 38, 7.2f);
+            TuneFlowPole(p, pole, grip, 5);
         }
 
         static void AFusionLandingFloor(Transform p, string name, float x1, float x2, float z1, float z2, float y)

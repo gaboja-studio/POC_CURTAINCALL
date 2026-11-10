@@ -70,7 +70,7 @@ namespace CurtainCall.Tightrope
                 support.transform.SetParent(root, false);
                 support.transform.localPosition = new Vector3(Layout.GetLaneSide(lane), -shape.RopeThickness * .5f, (span.x + span.y) * .5f);
                 var collider = support.AddComponent<BoxCollider>();
-                collider.size = new Vector3(shape.RopeWalkWidth, shape.RopeThickness, span.y - span.x);
+                collider.size = new Vector3(RopeWalkWidth, shape.RopeThickness, span.y - span.x);
                 ropeSurfaces.Add(collider, lane);
 
                 float start = 0f;

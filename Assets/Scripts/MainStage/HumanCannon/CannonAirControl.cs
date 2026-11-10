@@ -15,7 +15,7 @@ namespace CurtainCall.HumanCannon
         {
             poleCorrection = Vector3.zero;
             inheritedPump = Mathf.Abs(pumpInput) > .1f ? Mathf.Sign(pumpInput) : 0f;
-            pumpGrace = .15f;
+            pumpGrace = CurtainCall.Settings.GameSettings.Base.AirControl.PumpReleaseGrace;
         }
 
         public void SetInput(Vector2 value, int frame)
@@ -56,7 +56,7 @@ namespace CurtainCall.HumanCannon
             pumpGrace = Mathf.Max(0f, pumpGrace - dt);
             Vector3 target = ConsumeVelocity(frame, blocked, viewForward, speed);
             poleCorrection = blocked ? Vector3.zero : Vector3.ClampMagnitude(
-                Vector3.Lerp(poleCorrection, target, 1f - Mathf.Exp(-dt / .1f)), Mathf.Max(0f, speed));
+                Vector3.Lerp(poleCorrection, target, 1f - Mathf.Exp(-dt / CurtainCall.Settings.GameSettings.Base.AirControl.ResponseSeconds)), Mathf.Max(0f, speed));
             Vector3 horizontal = Vector3.ProjectOnPlane(launchVelocity, Vector3.up);
             return Vector3.ClampMagnitude(horizontal + poleCorrection, Mathf.Max(0f, speedLimit)) - horizontal;
         }

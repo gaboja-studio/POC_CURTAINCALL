@@ -85,7 +85,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             shape.FindPropertyRelative("laneCount").intValue = 1;
             shape.FindPropertyRelative("finishDistance").floatValue = length;
             shape.FindPropertyRelative("laneEndDistances").arraySize = 0;
-            shape.FindPropertyRelative("laneChangeZones").arraySize = 0;
             shape.FindPropertyRelative("swingGapEnabled").boolValue = false;
             shape.FindPropertyRelative("relayGapEnabled").boolValue = false;
             shape.FindPropertyRelative("trapezeEnabled").boolValue = false;

@@ -3,13 +3,12 @@ using CurtainCall.Settings;
 using CurtainCall.Tightrope.Control;
 using CurtainCall.Tightrope;
 using CurtainCall.Network.PlayerSync;
-using CurtainCall.Cameras;
 using UnityEngine;
 
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
 {
     /// <summary>
-    /// 외줄타기 조작 규칙. 이동 → 시선 기준 줄 앞뒤, 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
+    /// 외줄타기 조작 규칙. 이동 → 진입 방향 기준 줄 앞뒤(T로 180도 전환), 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
     /// 좌우 보조 방향(Q/E) → 누르는 동안만 옆줄 이동 방향 지정(단독으로는 동작 없음),
     /// 방향을 누른 채 기본 액션 → 옆줄 점프(제자리 점프 대신). 방향은 뛴 순간 고정되고 착지까지 바뀌지 않는다.
     /// 상호작용 짧게 → 목마 연결 시도, 길게 → 목마 해제(실제 처리는 목마 기능). 달리기(LShift)·앉기(LCtrl) → 동작 미정, 누른 순간 로그만.
@@ -20,33 +19,8 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
     public class TightropeControlScheme : PlayerControlScheme
     {
         readonly ConditionalWeakTable<PlayerControlContext, TightropeJumpBuffer> jumps = new();
-        sealed class ViewBasis { public int Sign = 1; }
-        static readonly ConditionalWeakTable<PlayerMover, ViewBasis> viewBases = new();
-
-        // Keep the rope's physical axis stable; only interpret controls relative to the current view.
-        // Hysteresis prevents W/S and Q/E flickering when the camera looks across the rope.
-        public static int ResolveViewSign(Vector3 view, Vector3 rope, int previous)
-        {
-            view.y = rope.y = 0;
-            if (view.sqrMagnitude < .0001f || rope.sqrMagnitude < .0001f) return previous < 0 ? -1 : 1;
-            float dot = Vector3.Dot(view.normalized, rope.normalized);
-            return Mathf.Abs(dot) < .15f ? (previous < 0 ? -1 : 1) : dot < 0 ? -1 : 1;
-        }
-
-        public static int LocalViewSign(PlayerMover mover)
-        {
-            var view = CameraViewDirector.Current;
-            var course = TightropeCourse.Current;
-            if (mover == null || course == null || view == null
-                || !view.UsesMouseLook || view.LocalPlayer == null || view.LocalPlayer.gameObject != mover.gameObject) return 1;
-            var basis = viewBases.GetValue(mover, _ => new ViewBasis());
-            return basis.Sign = ResolveViewSign(view.ViewForward, mover.CourseForward, basis.Sign);
-        }
-
-        int ViewSign(PlayerControlContext context)
-        {
-            return LocalViewSign(context.Mover);
-        }
+        // 기존 목마/균형 표시 호출도 시점과 무관한 진행 방향을 사용한다.
+        public static int LocalViewSign(PlayerMover mover) => 1;
 
         public override void Enter(PlayerControlContext context)
         {
@@ -71,7 +45,6 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
         public override void Exit(PlayerControlContext context)
         {
-            if (context.Mover != null) viewBases.Remove(context.Mover);
             CancelCatch(context);
             ClearBuffer(context);
             context.HeldDirection = 0;
@@ -99,6 +72,13 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 context.Balance?.SetCorrectionInput(0f);
                 return;
             }
+            if (CurtainCall.HumanCannon.HumanCannonPoleSystem.Current != null
+                && CurtainCall.HumanCannon.HumanCannonPoleSystem.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.TryHandleInput(context, input))
             {
                 ClearBuffer(context);
@@ -118,7 +98,10 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 context.Balance?.SetCorrectionInput(0f);
                 return;
             }
-            int viewSign = ViewSign(context);
+            if (input.TurnAroundPressed && context.Mover != null
+                && context.Mover.ControlEnabled)
+                context.Mover.ReverseCourseDirection();
+            const int viewSign = 1;
             context.HeldDirection = input.AuxDirection * viewSign;
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
             ApplyMovementSettings(context);

@@ -28,7 +28,7 @@ namespace CurtainCall.WaitingRoom
         float laneIntroAt;
         readonly System.Collections.Generic.HashSet<ulong> mountHints = new();
         // 추락 복귀는 늘 소구간 출발대다(사용자 2026-11-03: 줄 위 체크포인트는 외줄 UI가 다시 켜지지 않아 제거).
-        // 도착대 투명 벽(이 화면 전용). 도착한 내 캐릭터만 도착대 밖으로 못 나가게 막는다(사용자 2026-11-04: 되돌리기 대신 벽).
+        // 튜토리얼 도착자만 대기시킨다. 이후 재연습에서는 도착대와 줄 사이를 자유롭게 왕복한다.
         GameObject finishWalls;
         int lessonReturnedRound = -1;
         string lastQuest = "";
@@ -327,7 +327,8 @@ namespace CurtainCall.WaitingRoom
 
         void TrackPersonalProgress(PlayerMover mover)
         {
-            bool block = course != null && Stage != null && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
+            bool block = !practice && course != null && Stage != null
+                && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
             if (block && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
             {
                 // 한 번의 도약/다음 봉 잡기가 끝나면 연습을 마친다. 공연의 연속 봉 코스를 재현하지 않는다.
@@ -339,7 +340,7 @@ namespace CurtainCall.WaitingRoom
             if (finishWalls != null && finishWalls.activeSelf != block) finishWalls.SetActive(block);
         }
 
-        /// <summary>도착대 네 둘레의 보이지 않는 벽. 앞쪽(줄 쪽) 벽은 도착선 바로 앞이라 도착 판정 위치와 겹치지 않는다.</summary>
+        /// <summary>튜토리얼 도착대 네 둘레의 보이지 않는 벽. 재연습에서는 생성하지 않는다.</summary>
         GameObject BuildFinishWalls()
         {
             const float Height = 4f, Thickness = .3f;

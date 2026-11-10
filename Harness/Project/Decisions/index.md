@@ -1,5 +1,7 @@
 # Project Decisions
 
+- [common-poles.md](common-poles.md) — 봉·스위치 봉·연습 봉의 조작/물리/인원/시간을 바꿀 때 읽는 공통 규칙
+
 이 POC에서 사람이 확정한 결정. 상황에 맞는 파일 1개만 연다. AI 추천안은 여기가 아니라 Task의 Open Decisions에 둔다.
 
 - [performance-background-density.md](performance-background-density.md) — 최초 공연장의 밀도·분위기·압도감 유지, 플랫폼별 기둥 반복과 접합 불량 정리. 공연장 철골 배치를 조정할 때
@@ -9,7 +11,7 @@
 - [escape-control-baseline.md](escape-control-baseline.md) — A 우선 완성·B/C M2 이후 일정, 공통 1인 개발환경·인간대포 기본 조작·외줄 전환·그네 기준
 - [escape-completion.md](escape-completion.md) — 전원 도착·리타이어까지 기다린 뒤 도착자가 한 명 이상이면 성공. 탈출 참가자 집계·종료 시점을 연결할 때
 - [escape-entry.md](escape-entry.md) — 합류 타이머 없이4인 집결·뒤 문 봉쇄·로딩 전환·계단 끝부터 자유 3인칭(1인칭은 대체됨). 대기실에서 탈출로 입장을 연결할 때
-- [platform-movement-camera.md](platform-movement-camera.md) — 모든 공간 일반 플랫폼: 점프·낙하 중 공중 방향 전환·이동, 기본 자유 3인칭, 대포 비행도 자유 3인칭, 대기실·탈출로 카메라 벽 충돌(2026-11-01). 플랫폼 이동·점프·카메라를 붙이거나 바꿀 때
+- [platform-movement-camera.md](platform-movement-camera.md) — 모든 공간 일반 플랫폼: 점프·낙하 중 공중 방향 전환·이동, 기본 자유 3인칭, 대포 비행도 자유 3인칭, 모든 씬 일반 플레이 카메라 벽 충돌(2026-11-10). 플랫폼 이동·점프·카메라를 붙이거나 바꿀 때
 
 - [branch-strategy.md](branch-strategy.md) — 브랜치·PR 흐름, UI 제작→연결 직접 pull 예외, 병합 방식, PM 전용 영역. 브랜치를 만들거나 PR 대상을 정할 때
 - [pr-issue-format.md](pr-issue-format.md) — PR·이슈 제목과 본문 형식, JIRA·이슈 번호 규칙. PR·이슈를 만들거나 .github 템플릿을 고칠 때
@@ -19,19 +21,19 @@
 - [voice-chat.md](voice-chat.md) — 음성 채팅(2026-10-20): Vivox, 상시 마이크+음소거 키, 생존자 거리 감쇠 2m~20m·사망자(Fallen·Retired) 거리 무관, 서로 안 들림, Start 흐름 확정 씬만(백스테이지는 M2에서 대기실로 통합). 음성 기능·음량·사망 상태를 다룰 때
 - [ui-authoring.md](ui-authoring.md) — UI는 보이는 상태로 저장해 씬 뷰로 보며 고치고 게임 중 표시·숨김은 스크립트, 고정 문구·배치는 씬/프리팹, 바뀌는 문구·아이콘은 설정 에셋. UI 프리팹·씬·문구를 다룰 때
 - [asset-placement.md](asset-placement.md) — 코드는 Assets/Scripts/, 씬은 Assets/Scenes/(테스트는 Scenes/Tests/), 불러와 쓰는 에셋은 Resources. 스크립트·씬·프리팹 위치를 정할 때
-- [tightrope-rules.md](tightrope-rules.md) — 외줄타기 조작·협동/단독 옆줄(콜라이더 합체·1m 50% 감소)·목마 올라타기·목마 점프·추락 시 매달림(M2). 외줄·목마·입력을 구현할 때
+- [tightrope-rules.md](tightrope-rules.md) — 2026-11-09~10 외줄 공통화: 양방향 왕복·튜토리얼 도착 대기 예외, 탈출로 점프·판정, 같은 높이 옆줄 3m, T 방향, 모든 바닥 목마, 공통 3m/5m 낙하 피해. 외줄·목마·입력을 구현할 때
 - [prototype-verification.md](prototype-verification.md) — AI는 컴파일만 검사, 플레이 테스트는 작업자에게 받음. 프로토타입 Task를 검사·제출할 때
 - [tightrope-course-rules.md](tightrope-course-rules.md) — 외줄 상세 규칙: 코스·진행·톱날·M2 매달림·동료 F 2초 구조. 2026-10-29 구조 판정 완화·구조자 균형 보호 포함. 코스·구조 규칙을 구현할 때
 - [tightrope-balance.md](tightrope-balance.md) — 외줄 균형(기획 문서 rope_balance 기준): 초록 ±40·빨강 2초 추락(M2: 먼저 매달림), 자연 흔들림·기울기 가속·목마 배율·위층 전달·목마 중 추락(위 전원 추락·아래 반동)·착지/옆줄 충격, 수치는 세팅. 균형·게이지·추락을 구현하거나 튜닝할 때
 - [player-control-architecture.md](player-control-architecture.md) — 플레이어 조작 3층(키→공통 역할 입력 에셋, 콘텐츠별 조작 규칙=전략, 동작 부품). 입력·조작을 추가하거나 콘텐츠별 키 동작을 바꿀 때
 - [feature-with-network.md](feature-with-network.md) — 007 이후 기능 Task는 기능+동기화를 같이, 007 공개 기능 사용 가능, 009·010 축소. 기능 Task를 계획하거나 네트워크 코드를 다른 기능에서 쓸 때
-- [injury-rules.md](injury-rules.md) — 공통 부상 규칙(2026-10-13 부상 기획 + M2): 절단 순서 고정(인간 대포 추락은 2곳), 잃은 팔다리 수 0~4, 사망=4곳·즉사 추락·외팔로 쉬는 시간 잡힘, 묘기 재시작 없이 관전 후 외팔 부활, 신체 복구는 쉬는 시간·밤 언제든·1~3부위·부위당 50토큰(+25)·역순·공동 자금, 탐색 중/공연 중 패널티, 팔 개수 무관 기물 기본 2칸·배낭 삭제. 절단·사망·부활·복구·패널티를 다룰 때 (body-damage.md보다 우선)
+- [injury-rules.md](injury-rules.md) — 공통 부상 규칙(2026-10-13 부상 기획 + M2): 절단 순서 고정·공통 낙하 3m 이상 2곳/5m 이상 사망·일반 낙하 신발 적용(2026-11-10), 잃은 팔다리 수 0~4, 사망=4곳·즉사 추락·외팔로 쉬는 시간 잡힘, 묘기 재시작 없이 관전 후 외팔 부활, 신체 복구는 쉬는 시간·밤 언제든·1~3부위·부위당 50토큰(+25)·역순·공동 자금, 탐색 중/공연 중 패널티, 팔 개수 무관 기물 기본 2칸·배낭 삭제. 절단·사망·부활·복구·패널티를 다룰 때 (body-damage.md보다 우선)
 - [reward-rules.md](reward-rules.md) — 공동 자금·성공 시 전 생존자 완주 정산·행동 환호와 단계 배율2/1.5/1(2026-11-04), 상한·완주 보너스100/150/200·야유·관심 감소·복구비·기물 가격. 보상·정산·경제를 다룰 때
 - [item-durability.md](item-durability.md) — 기물7종 새제품 내구도·성공 시 차감·마지막 효과 완료 후 파괴·슬롯 제거(2026-10-28 확정), 세부 타이머·판정 순서 미정. 기물 사용·인벤토리·탐색 판정을 만들 때
 - [run-rules.md](run-rules.md) — 런 공통 규칙: 쉬는 시간 시작 즉시 시계·A/B 삭제(M2, 구현은 아직 A/B)·생존 1명까지 계속·전원 사망 실패(2026-10-16 공통화)·재접속·최소 인원·더미 우선. 공용 종료/런 계약을 정할 때
 - [control-keys.md](control-keys.md) — 공통 조작키(2026-10-15 확인): 단독 hold/조합 pressed toggle·F(매달린 동료 2초 끌어올리기 포함)·카메라/UI, 위기/QTE 예시 구분. 입력·조작 규칙을 추가할 때
 - [blood-effect.md](blood-effect.md) — 절단 혈흔 파티클(3인칭·팀원은 부위, 1인칭은 화면 앞), Resources 게임 설정 전체 끄기(설정 화면 항목 숨김)·개인 그래픽 토글(2026-11-01). 부상 연출·혈흔 설정을 바꿀 때
-- [body-damage.md](body-damage.md) — (사망·재시작·수리·복구·추락은 injury-rules.md로 대체) 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
+- [body-damage.md](body-damage.md) — 이전 신체 손상 결정과 연출. 현재 이동·접근 패널티·낙하·사망·복구는 injury-rules.md의 공통 규칙이 우선한다.
 - [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/`의 기존 해당 설정에서 관리. 이동·달리기·점프·외줄 속도 조정용 새 스크립트/씬별 우회 배율 금지(2026-10-30). 수치를 만들거나 옮길 때
 - [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
 - [claude-mods.md](claude-mods.md) — 팀 공용 Claude Code 모드는 저장소 마켓플레이스(curtaincall)로 배포·version 올려 업데이트, 진행 패널의 todo 색·버튼·권한 규칙. 모드를 고치거나 배포·끄는 법을 안내할 때

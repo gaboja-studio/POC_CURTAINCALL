@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom
         string ToolName { get; }
         string Label { get; }
         /// <summary>내 발 위치에서 닿는 거리. 닿지 않으면 음수.</summary>
-        float Reach(Vector3 feet);
+        float Reach(Vector3 feet, Component actor = null);
         /// <summary>판정 화면: <paramref name="attemptNumber"/>번째 시도(1부터)가 성공하는가.</summary>
         bool Resolve(int attemptNumber, System.Random rng);
         /// <summary>요청자에게 보낼 결과 문구.</summary>

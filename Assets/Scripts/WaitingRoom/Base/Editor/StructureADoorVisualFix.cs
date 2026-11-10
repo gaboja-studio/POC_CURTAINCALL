@@ -181,7 +181,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
             var wall = Undo.AddComponent<BreakableWall>(root.gameObject); var so = new SerializedObject(wall);
             so.FindProperty("targetId").stringValue = PipeBoxId; so.FindProperty("label").stringValue = "배관함";
-            so.FindProperty("requiredHits").intValue = 3; so.FindProperty("reach").floatValue = 1.7f;
+            so.FindProperty("requiredHits").intValue = 3;
             var list = so.FindProperty("pieces"); list.arraySize = pieces.Count;
             for (int i = 0; i < pieces.Count; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = pieces[i];
             so.ApplyModifiedProperties();

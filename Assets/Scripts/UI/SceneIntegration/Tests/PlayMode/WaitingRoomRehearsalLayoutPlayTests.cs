@@ -225,10 +225,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(1, opened);
                 Assert.IsFalse(Blocked(course, 1, 16f), "점유 복제 상태로 실제 줄이 열림");
                 Assert.IsTrue((bool)Call(RelayGate, "IsLaneConnected", opened));
-                Assert.IsTrue((bool)Call(RelayGate, "IsUnlimitedHold", 0), "30초 제한만 제외한다");
-                var state = Priv(((Array)Priv(RelayGate, "stations")).GetValue(0), "State");
-                Invoke(state, "Tick", (double)Priv(RelayGate, "Clock") + 31d, 3f);
-                Assert.AreEqual(LocalId, Call(RelayGate, "HolderAt", 0), "30초 뒤에도 점유 유지");
+                Assert.IsFalse((bool)Call(RelayGate, "IsUnlimitedHold", 0), "연습도 공통 30초 제한");
+                Assert.That((float)Call(RelayGate, "HoldRemaining", 0), Is.InRange(28f,30f));
                 ReleaseRelayPole(0); yield return null; yield return null;
                 Assert.IsFalse((bool)Call(RelayGate, "IsLaneConnected", opened), "놓으면 공연처럼 즉시 연결이 끊긴다");
                 Assert.IsTrue(Blocked(course, 1, 16f));
@@ -357,8 +355,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         static object RelayGate => Static("CurtainCall.Tightrope.TightropeRelayGate", "Current");
-        static uint PoleRevision(object gate, int index) =>
-            (uint)Priv(Priv(((Array)Priv(gate, "stations")).GetValue(index), "State"), "Revision");
+        static object CommonPoles => Static("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+        static int CommonRelayIndex(object gate, int index) => (int)Call(CommonPoles,"IndexOf",Call(gate,"PhysicalPole",index));
+        static void CommonPoleRequest(ulong actor, int index, string action)
+        {
+            var common=CommonPoles;
+            uint revision=(uint)Get(Call(common,"State",index),"Revision");
+            Invoke(common,"HandleRequest",actor,NestedEnum(common,"PoleAction",action),index,revision,0,0u,0u,0f,0u,-1d);
+        }
 
         /// <summary>공연 해제봉과 같은 F 잡기 요청(호스트 처리)으로 해제봉을 잡는다.</summary>
         IEnumerator HoldRelayPole(Component course, int index, int lane, float distance)
@@ -373,7 +377,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 + " airborne=" + Get(mover, "IsAirborne") + " position=" + LocalPlayer.transform.position.ToString("F2");
             System.IO.File.WriteAllText(AuditDirectory + "/trigger-diagnostic.txt", diagnostic);
             yield return AuditCapture("trigger-before-grab");
-            Invoke(gate, "SubmitGrab", LocalId, index, PoleRevision(gate, index));
+            CommonPoleRequest(LocalId, CommonRelayIndex(gate,index), "PlatformGrab");
             yield return null; yield return null;
             Assert.AreEqual(LocalId, (ulong)Call(gate, "HolderAt", index), $"해제봉 {index + 1}을 잡아야 한다: " + diagnostic);
             Assert.IsTrue((bool)Call(gate, "IsHeld", LocalPlayer), "공연 해제봉처럼 봉에 매달린다");
@@ -382,7 +386,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static void ReleaseRelayPole(int index)
         {
             var gate = RelayGate;
-            Invoke(gate, "ServerHandle", LocalId, NestedEnum(gate, "Operation", "Release"), index, PoleRevision(gate, index));
+            CommonPoleRequest(LocalId, CommonRelayIndex(gate,index), "Release");
         }
 
     }

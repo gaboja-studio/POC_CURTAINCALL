@@ -16,7 +16,7 @@ namespace CurtainCall.Tightrope
         TightropeSettings.CourseSettings shownShape;
         readonly List<Material> viewMaterials = new();
         Material orange, green;
-        public Transform PoleVisual => crossbar;
+        public Transform PoleVisual => physicalPole != null ? physicalPole.VisualBar : crossbar;
         public Vector3 GripPoint(NetworkPlayer player)
         {
             var pole = ForPlayer(player);
@@ -59,6 +59,8 @@ namespace CurtainCall.Tightrope
             crossbar.localPosition = grip;
             SetRod(leftRod, pivot + Vector3.left * width * .5f, grip + Vector3.left * width * .5f);
             SetRod(rightRod, pivot + Vector3.right * width * .5f, grip + Vector3.right * width * .5f);
+            bool commonArt = physicalPole.VisualBar != null;
+            crossbar.gameObject.SetActive(!commonArt); leftRod.gameObject.SetActive(!commonArt); rightRod.gameObject.SetActive(!commonArt);
             crossbar.GetComponent<Renderer>().sharedMaterial = OwnCanLetGo ? green : orange;
             TightropeArtFit.Tint(crossbar, OwnCanLetGo ? Color.green : new Color(1f, .55f, .08f));
             Vector3 predicted = PredictLanding(true);

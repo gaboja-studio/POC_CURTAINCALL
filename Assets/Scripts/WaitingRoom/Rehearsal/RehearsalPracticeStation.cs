@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class RehearsalPracticeStation : MonoBehaviour, IShopTarget, IShopPresentation
     {
-        const float ReachDistance = 2.5f;
+        static float ReachDistance => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         Renderer rope;
         Vector3 point;
 
@@ -23,14 +23,14 @@ namespace CurtainCall.WaitingRoom
         void OnDisable() => ShopReach.Remove(this);
         void Update() => ShopReach.Pump();
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (!IsAvailable || rope == null) return -1f;
             var b = rope.bounds;
-            // 줄 아래 바닥(가로 범위)에서 가장 가까운 점까지의 수평 거리.
-            point = new Vector3(Mathf.Clamp(feet.x, b.min.x, b.max.x), feet.y + 1f, Mathf.Clamp(feet.z, b.min.z, b.max.z));
-            float distance = new Vector2(feet.x - point.x, feet.z - point.z).magnitude;
-            return distance <= ReachDistance ? distance : -1f;
+            var center = actor != null ? CurtainCall.Player.PlayerInteraction.Center(actor)
+                : feet + Vector3.up * (CurtainCall.Settings.GameSettings.Base.Character.CapsuleHeight * .5f);
+            point = b.ClosestPoint(center);
+            return ExplorationReach.From(VisualRoot, point, feet, ReachDistance, actor: actor);
         }
 
         public void Interact()

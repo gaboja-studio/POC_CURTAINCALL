@@ -12,8 +12,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     {
         [TestCase(BodyPart.None, 1f)]
         [TestCase(BodyPart.LeftLeg, 0.8f)]
-        [TestCase(BodyPart.LeftLeg | BodyPart.RightLeg, 0.8f)]
-        public void FinalInjuredSpeedKeepsEightyPercentAndRestoresCommonRules(BodyPart lost, float expected)
+        [TestCase(BodyPart.LeftLeg | BodyPart.RightLeg, 0.5f)]
+        public void InjuredSpeedIsCommonBeforeAndAfterLeavingRope(BodyPart lost, float expected)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
             var go = new GameObject("Injury floor test");
@@ -36,8 +36,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                     "건강할 때의 외줄 흔들림과 부상 증가분을 함께 적용한다.");
                 effects.SetPolicy(null);
                 typeof(BodyDamageEffects).GetMethod("Update", flags).Invoke(effects, null);
-                Assert.That(mover.SpeedMultiplier, Is.EqualTo(condition.LostLegCount >= 2
-                    ? GameSettings.Base.BodyDamage.CrawlSpeedMultiplier : 1f));
+                Assert.That(mover.SpeedMultiplier, Is.EqualTo(GameSettings.Base.BodyDamage.MoveMultiplier(condition.LostLegCount)));
                 Assert.That(balance.SwayMultiplier, Is.EqualTo(1f), "외줄 정책 해제 시 다른 콘텐츠에 배율을 남기지 않는다.");
             }
             finally { Object.DestroyImmediate(go); Object.DestroyImmediate(policy); }

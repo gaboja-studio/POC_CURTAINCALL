@@ -15,6 +15,8 @@ MonoBehaviour:
   baseSettings: {fileID: 11400000, guid: 83e0f3bf71fe246479b4e65d31320546, type: 2}
   tightrope: {fileID: 11400000, guid: fcccd7ee5d461433ea8ef0aba34fb392, type: 2}
   humanCannon: {fileID: 11400000, guid: 52c881da1ede6f041a1486250b65cff9, type: 2}
+  poles: {fileID: 11400000, guid: 910cda7b5c4d005478f029a3da497172, type: 2}
+  trampoline: {fileID: 11400000, guid: 8de76a76c7050ce4dbf621207458d87d, type: 2}
   waitingRoom: {fileID: 11400000, guid: f5d60d1bdfa0cdd4082851f111f4e8f5, type: 2}
   exploration: {fileID: 11400000, guid: 63fa02d662356074485804d445703e08, type: 2}
   escapeRoute: {fileID: 11400000, guid: 54d5bb8505ad4fc46a48c6511c0d8867, type: 2}

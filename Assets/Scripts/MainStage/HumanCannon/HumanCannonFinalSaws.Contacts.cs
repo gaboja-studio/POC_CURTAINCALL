@@ -60,7 +60,7 @@ namespace CurtainCall.HumanCannon
         void OwnerContacts(double now)
         {
             ownerContacts ??= new OwnerContactChannel("CurtainCall.HumanCannon.FinalSaws.Contact.v2",
-                () => TotalSawCount, _ => startedAt, ContactAt, (player, _) => player.ServerCut());
+                () => TotalSawCount, _ => startedAt, ContactAt, (player, _) => player.ServerHazardCut());
             ownerContacts.Tick(session, now, HasStarted
                 && (HumanCannonDestination.Current == null || !HumanCannonDestination.Current.IsResolved));
         }
@@ -100,7 +100,7 @@ namespace CurtainCall.HumanCannon
                 var key = (index, player.OwnerClientId);
                 touchingNow.Add(key);
                 // 접촉마다 공통 순서로 한 부위만 자른다. 외줄의 부위별 절단 규칙은 가져오지 않는다.
-                if (!touching.Contains(key)) player.ServerCut();
+                if (!touching.Contains(key)) player.ServerHazardCut();
                 return;
             }
         }

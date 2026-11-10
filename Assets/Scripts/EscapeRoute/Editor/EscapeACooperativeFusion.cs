@@ -66,7 +66,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var hatch = BMass(p, "복귀 대포 발사구 잠금 덮개", new Vector3(69.5f, -19.1f, -24), new Vector3(23, .6f, 11), wornSteel);
             var wireEntry = GameObject.Find("A04B_WireExitGrip").GetComponent<HumanCannonPole>();
             var entryData = new SerializedObject(wireEntry);
-            entryData.FindProperty("maxReleaseUpwardSpeed").floatValue = 5.2f;
             entryData.ApplyModifiedProperties();
             // The control is independent: the same radial F interaction works from the wire, ground or air.
             var control = BMass(p, "목마 상부 클러치", new Vector3(50.4f, -20.55f, -24), new Vector3(.4f, .4f, .25f), wornSteel, false);
@@ -138,7 +137,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var source = GameObject.Find("A04B_FloorExitGrip").GetComponent<HumanCannonPole>();
             var helper = AFusedPole(p, source, "A06_HelperAscentClutch", new Vector3(126.5f, -6.5f, 106), Vector3.forward);
             var poleData = new SerializedObject(helper);
-            poleData.FindProperty("maxSwingAngle").floatValue = 12;
             poleData.ApplyModifiedProperties();
             // A visible bulkhead joins the core to the north envelope. Hold the original pole to raise it.
             var shutter = BMass(p, "동료 유지 상승 통로 셔터", new Vector3(130, 1, 110.25f), new Vector3(.6f, 26, 16.5f), wornSteel);

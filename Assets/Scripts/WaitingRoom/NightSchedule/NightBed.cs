@@ -17,7 +17,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Transform body;
 
         [Tooltip("침대 가장자리에서 닿는 수평 거리(m).")]
-        [SerializeField, Min(.3f)] float reach = 1.2f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         Bounds footprint;
         bool inReach;
@@ -57,13 +57,10 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>밤 정비 때만 닿는다. 낮에는 다른 대상의 F를 가로채지 않는다.</summary>
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (!IsNight(out _)) return -1f;
-            float dx = Mathf.Max(0f, Mathf.Abs(feet.x - footprint.center.x) - footprint.extents.x);
-            float dz = Mathf.Max(0f, Mathf.Abs(feet.z - footprint.center.z) - footprint.extents.z);
-            float d = Mathf.Sqrt(dx * dx + dz * dz);
-            return d <= reach ? d : -1f;
+            return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact()

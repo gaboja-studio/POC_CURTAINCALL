@@ -47,7 +47,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     Check(pole.name + " local " + field, reference != null && reference.gameObject.scene == scene);
                 }
                 Check(pole.name + " original art", pole.transform.Find("SwingVisual/AppliedPoleBar") != null);
-                Check(pole.name + " authored dynamics", pole.HoldSeconds == 0 && data.FindProperty("maxSwingAngle").floatValue == 50);
+                Check(pole.name + " shared dynamics", pole.HoldSeconds == CurtainCall.Settings.GameSettings.Poles.HoldSeconds);
                 Check(pole.name + " finite bar", Vector3.Distance(pole.Grip.position, pole.BarPosition(0)) < .01f);
             }
             foreach (var hazard in hazards)

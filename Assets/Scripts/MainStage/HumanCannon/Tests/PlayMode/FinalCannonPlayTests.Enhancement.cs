@@ -311,7 +311,7 @@ namespace CurtainCall.HumanCannon.Tests
             foreach (Behaviour wind in Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonWindZone"), FindObjectsSortMode.None))
                 wind.enabled = false;
             foreach (Component fire in Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonFireWall"), FindObjectsSortMode.None))
-                HazardSet(fire, "killOnContact", false);
+                HazardSet(fire, "available", false);
         }
 
         void PoleEnhancementInput(float move, bool release = false)

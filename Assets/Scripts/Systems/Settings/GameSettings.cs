@@ -23,6 +23,11 @@ namespace CurtainCall.Settings
         [Tooltip("인간대포 세팅(일반 점프 높이·이번 빌드 톱날 배치 비율·사선 각도).")]
         [SerializeField] HumanCannonSettings humanCannon;
 
+        [Tooltip("모든 씬 공통 봉 조작·2인 연결·반동·도약·외형.")]
+        [SerializeField] PoleSettings poles;
+        [Tooltip("모든 씬 공통 트램펄린 반동·운반·운반자 조건.")]
+        [SerializeField] TrampolineSettings trampoline;
+
         [Tooltip("대기실 세팅(상점·소품실·서비스·밤 정비).")]
         [SerializeField] WaitingRoomSettings waitingRoom;
 
@@ -36,6 +41,8 @@ namespace CurtainCall.Settings
         static BaseGameSettings fallbackBase;
         static TightropeSettings fallbackTightrope;
         static HumanCannonSettings fallbackHumanCannon;
+        static PoleSettings fallbackPoles;
+        static TrampolineSettings fallbackTrampoline;
         static WaitingRoomSettings fallbackWaitingRoom;
         static ExplorationSettings fallbackExploration;
         static EscapeRouteSettings fallbackEscapeRoute;
@@ -65,6 +72,10 @@ namespace CurtainCall.Settings
 
         /// <summary>인간대포 묘기 세팅.</summary>
         public static HumanCannonSettings HumanCannon => Linked(Current.humanCannon, ref fallbackHumanCannon);
+
+        /// <summary>일반 봉과 스위치 봉의 씬 공통 설정.</summary>
+        public static PoleSettings Poles => Linked(Current.poles, ref fallbackPoles);
+        public static TrampolineSettings Trampoline => Linked(Current.trampoline, ref fallbackTrampoline);
 
         /// <summary>대기실 세팅.</summary>
         public static WaitingRoomSettings WaitingRoom => Linked(Current.waitingRoom, ref fallbackWaitingRoom);

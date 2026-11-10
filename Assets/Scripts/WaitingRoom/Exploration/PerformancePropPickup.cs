@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom
     {
         [SerializeField] PerformancePropDiscovery owner;
         [Tooltip("F가 닿는 거리(m). 큰 기물이라 일반 대상보다 넓다.")]
-        [SerializeField, Min(.5f)] float reach = 3f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         bool inReach;
 
@@ -35,7 +35,7 @@ namespace CurtainCall.WaitingRoom
         void OnEnable() => ShopReach.Add(this);
         void OnDisable() { ShopReach.Remove(this); inReach = false; }
 
-        public float Reach(Vector3 feet) => IsAvailable ? ExplorationReach.From(transform, PresentationPoint, feet, reach) : -1f;
+        public float Reach(Vector3 feet, Component actor = null) => IsAvailable ? ExplorationReach.From(transform, PresentationPoint, feet, CommonReach, actor: actor) : -1f;
 
         public void Interact() { if (IsAvailable) owner.Acquire(); }
 

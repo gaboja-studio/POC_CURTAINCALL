@@ -31,7 +31,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             uint serial = 10;
             try {
                 for (int phase = 0; phase < 3; phase++) {
-                    if (phase > 0) yield return new WaitForSeconds((float)Get(settings, "hitCooldown") + .1f);
+                    if (phase > 0) yield return new WaitForSeconds((float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage"), "HazardHitCooldown") + .1f);
                     Call(mover, "SetStartPose", player.transform.position + Vector3.up * 8, Quaternion.identity, true);
                     if (phase == 0) Call(saws, "SetVertical", true, 0, 700, 0f, -1f);
                     else {

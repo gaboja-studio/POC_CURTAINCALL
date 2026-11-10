@@ -1,0 +1,1234 @@
+﻿path,line,owner,type,name,kind,value,tooltip
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,11,RabbitSurfaceStates,SurfaceState,state,serialized,,
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,12,RabbitSurfaceStates,Material,cleanCostume,serialized,,
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,13,RabbitSurfaceStates,Material,cleanTrim,serialized,,
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,14,RabbitSurfaceStates,Material,light,serialized,,
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,15,RabbitSurfaceStates,Material,heavy,serialized,,
+Assets/Scripts/CharacterArt/RabbitSurfaceStates.cs,16,RabbitSurfaceStates,Material,variantClean,serialized,,
+Assets/Scripts/EscapeRoute/EscapeBankPilot.cs,7,EscapeBankPilot,EscapeCuttableCable[],strands,serialized,,
+Assets/Scripts/EscapeRoute/EscapeBankPilot.cs,8,EscapeBankPilot,Renderer,litLens,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,18,EscapeCampaignContent,GameObject,content,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,19,EscapeCampaignContent,GameObject[],sceneRoots,serialized,Array.Empty<GameObject>(),
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,20,EscapeCampaignContent,GameObject[],activeRoots,serialized,Array.Empty<GameObject>(),
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,21,EscapeCampaignContent,GameObject[],campaignDisabledObjects,serialized,Array.Empty<GameObject>(),
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,22,EscapeCampaignContent,Behaviour[],campaignDisabledBehaviours,serialized,Array.Empty<Behaviour>(),
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,23,EscapeCampaignContent,BoxCollider,arrivalArea,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,24,EscapeCampaignContent,EscapeExitSaw,exitSaw,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,25,EscapeCampaignContent,Vector3,campaignPosition,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,26,EscapeCampaignContent,Vector3,campaignEuler,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,29,EscapeCampaignContent,Vector3,hazardPathPosition,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,30,EscapeCampaignContent,Vector3,hazardPathEuler,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,31,EscapeCampaignContent,Vector3,hazardPathScale,serialized,Vector3.one,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,32,EscapeConveyorProcession,Carrier[],carriers,serialized,Array.Empty<Carrier>(),
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,33,EscapeConveyorProcession,Transform,saw,serialized,,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,34,EscapeConveyorProcession,float,trackLength,serialized,36f,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,35,EscapeConveyorProcession,float,cutAt,serialized,18f,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,36,EscapeConveyorProcession,float,speed,serialized,2.25f,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,37,EscapeConveyorProcession,float,playbackSpeed,serialized,1f,
+Assets/Scripts/EscapeRoute/EscapeConveyorProcession.cs,38,EscapeConveyorProcession,Vector3,intake,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeLocks.cs,38,EscapeCooperativeLocks,Checkpoint[],checkpoints,serialized,Array.Empty<Checkpoint>(),
+Assets/Scripts/EscapeRoute/EscapeCooperativeLocks.cs,40,EscapeCooperativeLocks,float,controlDistance,serialized,EscapeSwitchInteraction.DefaultRadius,"""버튼 중심의 구형 상호작용 반경(m). 모든 방향에 같은 거리를 사용한다."""
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,19,EscapeCooperativeRopes,Collider[],ropeSupports,serialized,Array.Empty<Collider>(),
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,20,EscapeCooperativeRopes,Renderer[],ropeVisuals,serialized,Array.Empty<Renderer>(),
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,21,EscapeCooperativeRopes,LineRenderer[],warningArcs,serialized,Array.Empty<LineRenderer>(),
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,22,EscapeCooperativeRopes,float,warningSeconds,serialized,2f,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,23,EscapeCooperativeRopes,Transform,button,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,24,EscapeCooperativeRopes,GameObject,returnGate,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,25,EscapeCooperativeRopes,CourseControlSwitcher,switcher,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,26,EscapeCooperativeRopes,HumanCannonTrampoline,trampoline,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,27,EscapeCooperativeRopes,Collider,dropBounds,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,28,EscapeCooperativeRopes,Collider,lowerWorkerBounds,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,29,EscapeCooperativeRopes,GameObject,lowerEntryGate,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,30,EscapeCooperativeRopes,Transform,overflowReturnPoint,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,31,EscapeCooperativeRopes,float,visibleSeconds,serialized,4f,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,32,EscapeCooperativeRopes,float,hiddenSeconds,serialized,3f,
+Assets/Scripts/EscapeRoute/EscapeCooperativeRopes.cs,34,EscapeCooperativeRopes,float,buttonDistance,serialized,EscapeSwitchInteraction.DefaultRadius,"""버튼 중심의 구형 상호작용 반경(m). 모든 방향에 같은 거리를 사용한다."""
+Assets/Scripts/EscapeRoute/EscapeCooperativeSpan.cs,10,EscapeCooperativeSpan,Transform,leftLeaf,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeSpan.cs,10,EscapeCooperativeSpan,Transform,rightLeaf,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCooperativeSpan.cs,11,EscapeCooperativeSpan,Collider[],deckColliders,serialized,System.Array.Empty<Collider>(),
+Assets/Scripts/EscapeRoute/EscapeCooperativeSpan.cs,12,EscapeCooperativeSpan,float,deploySeconds,serialized,1.4f,
+Assets/Scripts/EscapeRoute/EscapeCooperativeSpan.cs,13,EscapeCooperativeSpan,float,raisedAngle,serialized,68,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,11,EscapeCuttableCable,Vector3[],localPoints,serialized,"{ Vector3.zero, Vector3.up * 4 }",
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,12,EscapeCuttableCable,float,radius,serialized,.07f,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,13,EscapeCuttableCable,int,curveSubdivisions,serialized,4,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,14,EscapeCuttableCable,int,radialSegments,serialized,8,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,15,EscapeCuttableCable,Material,insulationMaterial,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,15,EscapeCuttableCable,Material,copperMaterial,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,16,EscapeCuttableCable,bool,requiredForExit,serialized,true,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,17,EscapeCuttableCable,ParticleSystem,cutSparks,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,18,EscapeCuttableCable,AudioSource,cutAudio,serialized,,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,19,EscapeCuttableCable,float,snapSeconds,serialized,.9f,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,20,EscapeCuttableCable,float,breakGap,serialized,.55f,
+Assets/Scripts/EscapeRoute/EscapeCuttableCable.cs,21,EscapeCuttableCable,float,droopDistance,serialized,.7f,
+Assets/Scripts/EscapeRoute/EscapeDevelopmentSession.cs,21,EscapeDevelopmentSession,bool,suppressFallConsequences,serialized,,"""이 개발 씬에서만 추락 부상·낙사·균형 붕괴를 임시 해제한다. 톱·화염 등 직접 피해는 유지한다."""
+Assets/Scripts/EscapeRoute/EscapeDevelopmentSession.cs,23,EscapeDevelopmentSession,bool,allowRopeBalanceFalls,serialized,,"""낙사 방지 중에도 외줄 균형 붕괴와 구조 시간 만료를 적용한다."""
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,20,EscapeEndingPresentation,EscapeCampaignContent,content,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,21,EscapeEndingPresentation,EscapeExitSaw,exitSaw,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,22,EscapeEndingPresentation,BoxCollider,arrivalArea,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,23,EscapeEndingPresentation,CanvasGroup,title,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,24,EscapeEndingPresentation,CinemachineCamera,endingCamera,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,25,EscapeEndingPresentation,float,revealDelay,serialized,1f,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,26,EscapeEndingPresentation,float,fadeSeconds,serialized,1.8f,
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,27,EscapeEndingPresentation,float,endingSeconds,serialized,6f,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,17,EscapeEntrance,BoxCollider,assemblyArea,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,18,EscapeEntrance,GameObject,forwardBarrier,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,18,EscapeEntrance,GameObject,returnBarrier,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,19,EscapeEntrance,TMP_Text,worldLabel,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,19,EscapeEntrance,TMP_Text,hudLabel,serialized,,
+Assets/Scripts/EscapeRoute/EscapeEntrance.cs,20,EscapeEntrance,GameObject,hudRoot,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,carryRoot,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,handle,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,blade,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,cableSocket,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,doorPanel,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,14,EscapeExitSaw,Transform,recoveryAnchor,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,15,EscapeExitSaw,int,deviceId,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,17,EscapeExitSaw,bool,scaleWithCrew,serialized,,"""현재 접속 인원당 한 대만 제공한다. 들고 있는 장치는 인원 감소로 숨기지 않는다."""
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,20,EscapeExitSaw,BoxCollider,loadCollider,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,21,EscapeExitSaw,GameObject,intactCable,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,21,EscapeExitSaw,GameObject,severedCable,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,22,EscapeExitSaw,Renderer,indicator,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,23,EscapeExitSaw,ParticleSystem,sparks,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,24,EscapeExitSaw,AudioSource,motor,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,25,EscapeExitSaw,float,grabDistance,serialized,2.5f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,26,EscapeExitSaw,float,carryHandleHeight,serialized,1.05f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,27,EscapeExitSaw,float,carryMoveSpeed,serialized,3f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,28,EscapeExitSaw,float,bladeRadius,serialized,.5f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,29,EscapeExitSaw,float,bladeHalfThickness,serialized,.12f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,30,EscapeExitSaw,float,cableRadius,serialized,.08f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,31,EscapeExitSaw,Vector3,bladeAxis,serialized,Vector3.forward,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,32,EscapeExitSaw,float,cutSeconds,serialized,3f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,33,EscapeExitSaw,float,doorLift,serialized,8.5f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,34,EscapeExitSaw,float,doorSpeed,serialized,5f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,35,EscapeExitSaw,Transform,leftDoorHinge,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,35,EscapeExitSaw,Transform,rightDoorHinge,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,11,EscapeExitSaw,EscapeCuttableCable[],cables,serialized,Array.Empty<EscapeCuttableCable>(),
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,12,EscapeExitSaw,Transform,muzzle,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,13,EscapeExitSaw,GameObject,projectileVisual,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,14,EscapeExitSaw,float,shotInterval,serialized,2f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,15,EscapeExitSaw,float,projectileSpeed,serialized,18f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,17,EscapeExitSaw,float,projectileLifetime,serialized,2.5f,"""0이면 시간/사거리 제한 없이 지형에 닿을 때 소멸한다."""
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,18,EscapeExitSaw,float,projectileRadius,serialized,.55f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,19,EscapeExitSaw,float,projectileHalfThickness,serialized,.12f,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,20,EscapeExitSaw,AudioSource,launchAudio,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,21,EscapeExitSaw,ParticleSystem,launchFlash,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,22,EscapeExitSaw,Transform,recoilVisual,serialized,,
+Assets/Scripts/EscapeRoute/EscapeExitSaw.Projectiles.cs,23,EscapeExitSaw,float,recoilDistance,serialized,.08f,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,9,EscapeFacilityMotion,AnimationClip,motion,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,10,EscapeFacilityMotion,float,playbackSpeed,serialized,1f,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,11,EscapeFacilityMotion,EscapeCooperativeSpan,bridge,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,12,EscapeFacilityMotion,HumanCannonHazardCue,flame,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,13,EscapeFacilityMotion,EscapeExitSaw,exit,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,14,EscapeFacilityMotion,ParticleSystem,brakeSparks,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,15,EscapeFacilityMotion,ParticleSystem,pressureRelease,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,16,EscapeFacilityMotion,Transform,flywheel,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,17,EscapeFacilityMotion,Transform,hoistCable,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFacilityMotion.cs,17,EscapeFacilityMotion,Transform,bridgeAnchor,serialized,,
+Assets/Scripts/EscapeRoute/EscapeFallVoid.cs,10,EscapeFallVoid,Rect,footprint,serialized,"new(20, -82, 126, 100)","""월드 X/Z 범위"""
+Assets/Scripts/EscapeRoute/EscapeFallVoid.cs,11,EscapeFallVoid,float,fallHeight,serialized,-30,"""이 월드 높이 아래로 떨어지면 낙사"""
+Assets/Scripts/EscapeRoute/EscapeFallVoid.cs,12,EscapeFallVoid,Transform,coordinateSpace,serialized,,"""시설을 통째 배치했을 때 원본 좌표계. 비어 있으면 기존 월드 좌표."""
+Assets/Scripts/EscapeRoute/EscapeInspectionCamera.cs,17,EscapeInspectionCamera,float,speed,serialized,12f,
+Assets/Scripts/EscapeRoute/EscapeInspectionCamera.cs,18,EscapeInspectionCamera,float,sensitivity,serialized,.1f,
+Assets/Scripts/EscapeRoute/EscapeInspectionCamera.cs,20,EscapeInspectionCamera,Key,reviewKey,serialized,Key.Digit0,"""자유 이동을 켜고 끄는 키. 0키 사용(2026-11-02 사용자)."""
+Assets/Scripts/EscapeRoute/EscapeInspectionCamera.cs,22,EscapeInspectionCamera,string,farFromWallNotice,serialized,"""벽·천장에서 조금 떨어진 뒤 {key} 키를 눌러 주세요.""","""벽·천장에 너무 가까워 끌 수 없을 때 안내. {key} = 검토 비행 키"""
+Assets/Scripts/EscapeRoute/EscapeMechanismFeedback.cs,11,EscapeMechanismFeedback,EscapeCooperativeLocks,locks,serialized,,
+Assets/Scripts/EscapeRoute/EscapeMechanismFeedback.cs,12,EscapeMechanismFeedback,EscapeCooperativeRopes,ropes,serialized,,
+Assets/Scripts/EscapeRoute/EscapeMechanismFeedback.cs,13,EscapeMechanismFeedback,ToastView,toast,serialized,,
+Assets/Scripts/EscapeRoute/EscapeMechanismFeedback.cs,14,EscapeMechanismFeedback,Renderer[],returnIndicators,serialized,System.Array.Empty<Renderer>(),
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,27,EscapePursuitFire,BoxCollider,trigger,serialized,,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,28,EscapePursuitFire,EscapeCooperativeSpan,ignitionBridge,serialized,,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,29,EscapePursuitFire,Bay[],bays,serialized,Array.Empty<Bay>(),
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,30,EscapePursuitFire,float,startDelay,serialized,20,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,31,EscapePursuitFire,float,stepSeconds,serialized,12,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,32,EscapePursuitFire,float,warnSeconds,serialized,3,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,33,EscapePursuitFire,float,burstSeconds,serialized,3,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,34,EscapePursuitFire,float,safeExitX,serialized,400,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,35,EscapePursuitFire,Transform,coordinateSpace,serialized,,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,36,EscapePursuitFire,float,burstEmissionMultiplier,serialized,2.5f,
+Assets/Scripts/EscapeRoute/EscapePursuitFire.cs,37,EscapePursuitFire,float,steadyEmissionMultiplier,serialized,.45f,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,11,EscapeRecoveryHoist,Transform,trolley,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,12,EscapeRecoveryHoist,Transform,hook,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,13,EscapeRecoveryHoist,Transform,drum,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,14,EscapeRecoveryHoist,Transform,cable,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,15,EscapeRecoveryHoist,Transform,dock,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,16,EscapeRecoveryHoist,Transform,payload,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,17,EscapeRecoveryHoist,Transform,barrel,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,18,EscapeRecoveryHoist,Transform,muzzle,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,19,EscapeRecoveryHoist,Transform,destination,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,20,EscapeRecoveryHoist,float,cableLength,serialized,7.05f,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,21,EscapeRecoveryHoist,float,drumRadius,serialized,.51f,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,22,EscapeRecoveryHoist,float,stroke,serialized,1.15f,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,23,EscapeRecoveryHoist,float,period,serialized,8f,
+Assets/Scripts/EscapeRoute/EscapeRecoveryHoist.cs,24,EscapeRecoveryHoist,float,playbackSpeed,serialized,1f,
+Assets/Scripts/EscapeRoute/EscapeRopeBalanceDisplay.cs,14,EscapeRopeBalanceDisplay,PerformanceHUDView,view,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRouteReviewLabels.cs,13,EscapeRouteReviewLabels,bool,showReviewLabelsInPlayMode,serialized,,"""플레이 중에도 Label_로 시작하는 제작 라벨을 표시한다. 변경 후 컴포넌트를 다시 켜면 적용된다."""
+Assets/Scripts/EscapeRoute/EscapeRouteTimer.cs,19,EscapeRouteTimer,EscapeCampaignContent,content,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRouteTimer.cs,20,EscapeRouteTimer,BoxCollider,startArea,serialized,,
+Assets/Scripts/EscapeRoute/EscapeRouteTimer.cs,21,EscapeRouteTimer,float,durationSeconds,serialized,480,
+Assets/Scripts/EscapeRoute/EscapeRouteTimer.cs,22,EscapeRouteTimer,TimerDisplay,display,serialized,,
+Assets/Scripts/EscapeRoute/EscapeSceneArrival.cs,17,EscapeSceneArrival,BoxCollider,assemblyArea,serialized,,
+Assets/Scripts/EscapeRoute/EscapeSceneArrival.cs,19,EscapeSceneArrival,BoxCollider,firstPersonArea,serialized,,"""계단 끝 구역. 들어서면 접근 시점을 해제한다(이름은 이전 1인칭 전환 구역에서 유지)."""
+Assets/Scripts/EscapeRoute/EscapeSceneArrival.cs,20,EscapeSceneArrival,GameObject,forwardBarrier,serialized,,
+Assets/Scripts/EscapeRoute/EscapeSceneArrival.cs,20,EscapeSceneArrival,GameObject,returnBarrier,serialized,,
+Assets/Scripts/EscapeRoute/EscapeSceneArrival.cs,21,EscapeSceneArrival,CameraViewPreset,approachView,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,9,EscapeShaftMachine,Transform,movingPart,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,10,EscapeShaftMachine,Transform,linkage,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,11,EscapeShaftMachine,bool,disposal,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,12,EscapeShaftMachine,float,dropDepth,serialized,48f,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,13,EscapeShaftMachine,ParticleSystem,receiverVent,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,14,EscapeShaftMachine,Transform,freightPlatform,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,14,EscapeShaftMachine,Transform,freightLoad,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,14,EscapeShaftMachine,Transform,freightLines,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,15,EscapeShaftMachine,Transform,headSheave,serialized,,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,16,EscapeShaftMachine,float,freightRise,serialized,6f,
+Assets/Scripts/EscapeRoute/EscapeShaftMachine.cs,17,EscapeShaftMachine,float,playbackSpeed,serialized,1f,
+Assets/Scripts/EscapeRoute/EscapeWorkLightDistance.cs,10,EscapeWorkLightDistance,Light[],fixtures,serialized,Array.Empty<Light>(),
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,9,CannonBarrelPresentation,GameObject,animationRoot,serialized,,
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,10,CannonBarrelPresentation,Transform,barrelPivot,serialized,,
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,11,CannonBarrelPresentation,AnimationClip,active,serialized,,
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,12,CannonBarrelPresentation,AnimationClip,inactive,serialized,,
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,13,CannonBarrelPresentation,AnimationClip,fireDisable,serialized,,
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelPresentation.cs,14,CannonBarrelPresentation,AnimationClip,recover,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonCourseSections.cs,31,HumanCannonCourseSections,Boundaries,boundaries,serialized,"new(18f, 72f, 90f, 141.5f, 5f)",
+Assets/Scripts/MainStage/HumanCannon/HumanCannonCourseSections.cs,32,HumanCannonCourseSections,TMP_FontAsset,font,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonDestination.cs,16,HumanCannonDestination,HumanCannonLandingZone,destination,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonDestination.cs,17,HumanCannonDestination,int,difficultyLevel,serialized,1,"""공용 보상표 난이도. 별도 호응·보상 수치를 만들지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,16,HumanCannonFinalSaws,BoxCollider,entryZone,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,17,HumanCannonFinalSaws,Transform[],horizontalOrigins,serialized,Array.Empty<Transform>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,18,HumanCannonFinalSaws,Transform[],horizontalViews,serialized,Array.Empty<Transform>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,19,HumanCannonFinalSaws,Transform,verticalStart,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,19,HumanCannonFinalSaws,Transform,verticalEnd,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,19,HumanCannonFinalSaws,Transform,verticalView,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,19,HumanCannonFinalSaws,Transform,warningView,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,20,HumanCannonFinalSaws,Transform,secondaryVerticalView,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,20,HumanCannonFinalSaws,Transform,secondaryWarningView,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,22,HumanCannonFinalSaws,float,warningSeconds,serialized,2.5f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,23,HumanCannonFinalSaws,float,travelSeconds,serialized,4f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,24,HumanCannonFinalSaws,float,horizontalSpeed,serialized,2f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,25,HumanCannonFinalSaws,float,horizontalHalfWidth,serialized,8f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,26,HumanCannonFinalSaws,float,horizontalRadius,serialized,1f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,27,HumanCannonFinalSaws,float,verticalRadius,serialized,1.2f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,28,HumanCannonFinalSaws,float,halfThickness,serialized,0.1f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,29,HumanCannonFinalSaws,float[],verticalLanes,serialized,"{ -6, -2, 2, 6 }",
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,31,HumanCannonFinalSaws,bool,lateralPasses,serialized,,"""예고 후 오는 두 톱도 바닥과 평행하게 눕혀 서로 다른 앞뒤 위치에서 좌우 왕복한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinishCelebration.cs,14,HumanCannonFinishCelebration,ParticleSystem[],bursts,serialized,Array.Empty<ParticleSystem>(),"""폭죽마다 붙인 색종이·불꽃 파티클. 반복하지 않고 시작 시 재생하지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,8,HumanCannonFireWall,Transform,start,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,9,HumanCannonFireWall,Transform,boundary,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,10,HumanCannonFireWall,Transform,visual,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,12,HumanCannonFireWall,Transform,effect,serialized,,"""선택 불꽃 파티클 벽. 있으면 빨간 상자 대신 보인다. 바닥(전선)에 두고 X 배율로 판정 폭을 맞춘다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,14,HumanCannonFireWall,float,warningEmission,serialized,0.35f,"""예고 중 파티클 방출 비율. 전진 중은 1."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,16,HumanCannonFireWall,float,appearSeconds,serialized,6f,"""켜진 순간부터 불꽃이 작게 시작해 최대 크기까지 커지는 시간(초). 0이면 바로 최대 크기."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,18,HumanCannonFireWall,float,appearStartScale,serialized,0.1f,"""나타나는 순간의 불꽃 크기·상승 속도 비율. 이후 1까지 커진다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,28,HumanCannonFireWall,float,warningSeconds,serialized,30f,"""시험용 불꽃 예고 시간(초). 마지막 대포 출발 여부와 무관하다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,30,HumanCannonFireWall,float,speed,serialized,0.7f,"""시험용 전진 속도(m/s). 최종 밸런스가 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,32,HumanCannonFireWall,float,halfWidth,serialized,18f,"""공중/지상 압박 범위의 좌우 반폭(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,34,HumanCannonFireWall,float,height,serialized,24f,"""바닥 위 불꽃 판정 높이(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,36,HumanCannonFireWall,bool,killOnContact,serialized,true,"""기획의 접촉 사망 설계안을 시험한다. 속도·판정은 실제 플레이에서 조정한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,38,HumanCannonFireWall,bool,available,serialized,true,"""현재 코스에서 불꽃벽 사용. 끄면 예고·전진·접촉 피해·표시를 모두 보류한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,40,HumanCannonFireWall,float[],stageSpeedMultipliers,serialized,System.Array.Empty<float>(),"""생존자 전원이 해당 구간 시작선(stageLines)을 넘어 내려서면 그때부터 속도에 곱하는 배율. 순서대로 커진다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFireWall.cs,42,HumanCannonFireWall,Transform[],stageLines,serialized,System.Array.Empty<Transform>(),"""구간 시작선. 불의 진행 방향으로 이 지점을 넘어 선 사람을 해당 구간 도착으로 본다. 배율과 같은 수."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.cs,13,HumanCannonGroundMarkers,Material,markerMaterial,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.cs,15,HumanCannonGroundMarkers,Collider[],courseFloors,serialized,System.Array.Empty<Collider>(),"""착지 성공 판정과 별개로 발밑 표시에 사용할 코스 바닥. 이 목록은 게임 규칙을 바꾸지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.cs,16,HumanCannonGroundMarkers,float,radius,serialized,0.65f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.cs,17,HumanCannonGroundMarkers,float,maxDistance,serialized,100f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.Feedback.cs,10,HumanCannonGroundMarkers,bool,showSafeLandingFeedback,serialized,,"""발밑의 실제 안전 착지면에 정렬됐을 때 초록 테두리. 낙하 궤적의 도착 예측은 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonGroundMarkers.Feedback.cs,12,HumanCannonGroundMarkers,BoxCollider[],feedbackRopes,serialized,System.Array.Empty<BoxCollider>(),"""짧은 착지 강조를 표시할 실제 외줄 충돌체. 크기/충돌/성공 판정은 바꾸지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,12,HumanCannonHazard,CannonHazardKind,kind,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,13,HumanCannonHazard,Transform,visual,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,15,HumanCannonHazard,HumanCannonHazardCue,cue,serialized,,"""선택적 공유 시각 예고/직선 통과. 없으면 기존 왕복 동작을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,16,HumanCannonHazard,Vector3,boxSize,serialized,Vector3.one,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,18,HumanCannonHazard,bool,horizontalBlade,serialized,,"""톱날을 바닥과 평행하게 눕힌다. 외형과 접촉 판정에 같은 회전을 적용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,19,HumanCannonHazard,Vector3,travel,serialized,"new Vector3(4, 0, 0)",
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,20,HumanCannonHazard,float,periodSeconds,serialized,8f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,21,HumanCannonHazard,float,phase,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,22,HumanCannonHazard,float,radius,serialized,0.65f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,23,HumanCannonHazard,float,bladeHalfLength,serialized,1.3f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,24,HumanCannonHazard,float,bladeHalfThickness,serialized,0.12f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,25,HumanCannonHazard,float,rotationSpeed,serialized,60f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,27,HumanCannonHazard,bool,authoredPath,serialized,,"""공용 대각선 각도와 톱 밀도를 적용하지 않고 작성한 레일(travel)과 항상 켜진 상태를 그대로 쓴다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,29,HumanCannonHazard,bool,fireSeversLimbs,serialized,,"""이 씬의 일반 화염 접촉은 즉사 대신 기존 사지 절단을 적용한다. 추격 화염벽은 별도 시스템이다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,31,HumanCannonHazard,bool,showRail,serialized,true,"""이동 경로(파란 레일)를 보여 준다. 끄면 플레이 중에도 레일을 숨기고 톱만 보인다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazardCourse.cs,14,HumanCannonHazardCourse,HumanCannonHazard[],hazards,serialized,Array.Empty<HumanCannonHazard>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazardCourse.cs,15,HumanCannonHazardCourse,HumanCannonWindZone[],windZones,serialized,Array.Empty<HumanCannonWindZone>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazardCourse.cs,16,HumanCannonHazardCourse,int,difficulty,serialized,1,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazardCourse.cs,18,HumanCannonHazardCourse,bool,useAuthoredHazardCount,serialized,,"""탈출로처럼 개별 설계한 장치는 공용 톱 밀도와 무관하게 모두 사용한다. 원본 묘기는 기본 false."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonInjurySettings.cs,13,HumanCannonInjurySettings,float,oneLegMove,serialized,0.8f,"""다리 하나 손실 시 지상 이동 배율. 운반 중에도 적용하며 최소 0.8을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonInjurySettings.cs,15,HumanCannonInjurySettings,float,oneLegAir,serialized,0.8f,"""다리 하나 손실 시 WASD 공중 보정 배율. 최소 0.8. 발사/반동 속도에는 적용하지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonInjurySettings.cs,17,HumanCannonInjurySettings,float,twoLegAir,serialized,0.8f,"""두 다리 손실 시 WASD 공중 보정 배율. 외팔도 같은 값이며 최소 0.8을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonInjurySettings.cs,19,HumanCannonInjurySettings,float,oneArmInteractionSeconds,serialized,0.6f,"""외팔 상태에서 F 잡기/대포 탑승 요청 후 호스트 확정까지 시간(초). 시험값 0.6."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonLandingZone.cs,13,HumanCannonLandingZone,BoxCollider[],additionalSurfaces,serialized,System.Array.Empty<BoxCollider>(),"""리프트 구멍을 피해 나눈 안전 바닥. 비우면 이 오브젝트의 BoxCollider만 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonOutline.cs,16,HumanCannonOutline,Material,outlineMaterial,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonOutline.cs,18,HumanCannonOutline,bool,fadeWithDistance,serialized,,"""외줄타기 톱처럼 멀어질수록 외곽선을 줄인다. 작은 톱니가 고정 픽셀 외곽선에 덮여 검게 보이는 것을 막는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonOutline.cs,19,HumanCannonOutline,float,fadeFullDistance,serialized,5f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonOutline.cs,20,HumanCannonOutline,float,fadeHiddenDistance,serialized,14f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,10,HumanCannonPole,Transform,grip,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,11,HumanCannonPole,HumanCannonSawGate,linkedGate,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,12,HumanCannonPole,int,riderCapacity,serialized,1,"""함께 매달릴 수 있는 인원. 기존 톱 관문 봉은 1명을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,13,HumanCannonPole,float,riderSpacing,serialized,0.8f,"""봉 위 고정 손잡이 자리 간격(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,15,HumanCannonPole,Transform,visualBar,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,15,HumanCannonPole,Transform,leftCable,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,15,HumanCannonPole,Transform,rightCable,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,15,HumanCannonPole,Transform,leftAnchor,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,15,HumanCannonPole,Transform,rightAnchor,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,16,HumanCannonPole,float,hangLength,serialized,1.5f,"""봉에서 발까지 거리(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,17,HumanCannonPole,float,grabDistance,serialized,2f,"""봉 중심의 구형 잡기 거리(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,18,HumanCannonPole,bool,requireClearGrabPath,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,21,HumanCannonPole,float,holdSeconds,serialized,,"""잡은 뒤 최대 유지 시간(초). 0이면 스스로 놓거나 사망할 때까지 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,22,HumanCannonPole,float,warningSeconds,serialized,2f,"""놓기/제한 시간 만료/사망 뒤 지상 관문 톱 재동작 예고(초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,23,HumanCannonPole,float,swingAcceleration,serialized,300f,"""W/S 반동 가속(도/초²)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,24,HumanCannonPole,float,maxSwingAngle,serialized,80f,"""최대 반동 각도(도)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,25,HumanCannonPole,float,maxSwingSpeed,serialized,180f,"""최대 각속도(도/초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,26,HumanCannonPole,float,swingDamping,serialized,0.4f,"""반동 감쇠(1/초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,28,HumanCannonPole,bool,continuousSwingInput,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,29,HumanCannonPole,float,releaseUpwardSpeed,serialized,6f,"""손을 놓을 때 접선 속도에 더하는 상승 속도(m/s)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,30,HumanCannonPole,float,horizontalReleaseMultiplier,serialized,1f,"""봉 도약 수평 반동 배율. 1은 원본이며 공용 수평 속도 상한은 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,31,HumanCannonPole,float,maxReleaseUpwardSpeed,serialized,,"""이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,32,HumanCannonPole,float,airControlSpeed,serialized,3f,"""봉 도약 뒤 WASD 수평 조절(m/s)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPole.cs,33,HumanCannonPole,float,releaseHorizontalSpeedLimit,serialized,,"""이 봉의 도약 수평 속도 상한(m/s). 0이면 공용 설정을 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,10,HumanCannonPoleLoop,Transform,carriage,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,11,HumanCannonPoleLoop,Vector3,localCenter,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,12,HumanCannonPoleLoop,float,straightLength,serialized,12f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,13,HumanCannonPoleLoop,float,radius,serialized,4f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,14,HumanCannonPoleLoop,float,metersPerSecond,serialized,4f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,15,HumanCannonPoleLoop,float,phase01,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,16,HumanCannonPoleLoop,float,yawOffsetDegrees,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,17,HumanCannonPoleLoop,bool,reverseDirection,serialized,,"""레일 진행을 반대로 한다. 위치뿐 아니라 바라보는 방향과 이탈 관성도 함께 뒤집는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,20,HumanCannonPoleLoop,bool,wallFed,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,21,HumanCannonPoleLoop,float,exitStraightLength,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleLoop.cs,22,HumanCannonPoleLoop,float,unloadingDistance,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,13,HumanCannonPoleSaw,HumanCannonPole,pole,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,14,HumanCannonPoleSaw,HumanCannonHazard,hazard,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,16,HumanCannonPoleSaw,float,bodyCenterHeight,serialized,,"""반동하지 않는 발 위치에서 몸통 중심까지 높이(m). 0이면 기본 캐릭터 캡슐 높이의 절반."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,18,HumanCannonPoleSaw,bool,acrossMap,serialized,,"""봉의 X 위치와 무관하게 코스 중앙을 기준으로 좌우 왕복한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,19,HumanCannonPoleSaw,float,mapCenterX,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.cs,15,HumanCannonPoleSystem,HumanCannonPole[],poles,serialized,Array.Empty<HumanCannonPole>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.cs,16,HumanCannonPoleSystem,bool,useGrabFacing,serialized,,"""봉을 잡을 때 바라본 쪽을 각 좌석의 앞쪽으로 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.cs,18,HumanCannonPoleSystem,bool,allowPlatformJumpGrab,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.cs,19,HumanCannonPoleSystem,bool,independentInteraction,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,15,HumanCannonRouteSystem,HumanCannonTransport[],transports,serialized,Array.Empty<HumanCannonTransport>(),"""0 출발 이동장치, 1 쉼터 승강기, 2 쉼터 재출발 이동장치."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,16,HumanCannonRouteSystem,HumanCannonLandingZone,shelter,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,18,HumanCannonRouteSystem,float,boardingSeconds,serialized,1.5f,"""한 사람이 탑승 조건을 유지한 뒤 자동 출발하기까지 대기(초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,20,HumanCannonRouteSystem,float,returnDelaySeconds,serialized,2f,"""도착한 발판이 빈 뒤 출발점으로 돌아가기까지 대기(초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,22,HumanCannonRouteSystem,HumanCannonFireWall[],fires,serialized,Array.Empty<HumanCannonFireWall>(),"""구간별 불꽃 2개. 쿠션/최종 구간의 불꽃은 없다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,24,HumanCannonRouteSystem,int,shelterStationIndex,serialized,3,"""첫 쉼터 대포의 stations 인덱스. 시작 3대 다음은 쉼터 3대."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,26,HumanCannonRouteSystem,int,shelterStationCount,serialized,3,"""쉼터 구간 불꽃에 대응하는 대포 수. 뒤의 최종 대포는 불꽃을 작동시키지 않는다. 탑승 제한은 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonRouteSystem.cs,28,HumanCannonRouteSystem,float,fallHeight,serialized,-10f,"""코스 밖 추락 사망 높이(m). 지상 담당의 틈새 추락에도 공용 사망 처리를 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,16,HumanCannonSawGate,Transform,sawVisual,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,18,HumanCannonSawGate,Transform[],leftParts,serialized,System.Array.Empty<Transform>(),"""왼쪽으로 함께 밀리는 톱 묶음·철망·충돌 벽."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,20,HumanCannonSawGate,Transform[],rightParts,serialized,System.Array.Empty<Transform>(),"""오른쪽으로 함께 밀리는 톱 묶음·철망·충돌 벽."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,21,HumanCannonSawGate,float,openGap,serialized,7f,"""열린 가운데 틈 폭(m). 트램펄린 폭에 좌우 1m씩 더한 값."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,22,HumanCannonSawGate,float,stopSeconds,serialized,0.5f,"""봉을 잡아 톱이 멈춘 뒤 갈라지기 시작할 때까지(초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,23,HumanCannonSawGate,float,openSeconds,serialized,1f,"""좌우로 갈라지는 데 걸리는 시간(초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,24,HumanCannonSawGate,float,dropGravity,serialized,20f,"""바닥 밖 톱의 낙하 가속(m/s²). 조각마다 ±20% 다르다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,25,HumanCannonSawGate,float,dropStagger,serialized,0.6f,"""바닥 밖 조각이 떨어지기 시작하는 시점 차이의 최대(초). 조각마다 0~이 값 사이."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,26,HumanCannonSawGate,float,contactPadding,serialized,0.15f,"""톱 접촉 여유(m)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,27,HumanCannonSawGate,float,spinSpeed,serialized,180f,"""톱 외형 회전 속도(도/초)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,28,HumanCannonSawGate,float,shakeAmplitude,serialized,0.06f,"""열릴 때 문짝이 덜컹거리는 최대 폭(m). 멈춤 중에는 절반."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSawGate.cs,30,HumanCannonSawGate,ParticleSystem[],dragSparks,serialized,System.Array.Empty<ParticleSystem>(),"""갈라지는 동안 바닥에 끌리며 튀는 스파크."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,9,HumanCannonStation,Transform,boardingPoint,serialized,,"""탑승 거리의 기준점. 비우면 대포 원점."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,11,HumanCannonStation,Transform,seat,serialized,,"""탑승한 캐릭터의 발 위치·방향. 비우면 대포 원점."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,13,HumanCannonStation,Transform,muzzle,serialized,,"""발사 시작 위치. forward가 수평 발사 방향이다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,15,HumanCannonStation,float,boardingDistance,serialized,2f,"""임시 탑승 거리(m). 상호작용 거리 배율을 곱한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,17,HumanCannonStation,float,forwardSpeed,serialized,8f,"""임시 수평 발사 속도(m/s). 최종 밸런스 값이 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,19,HumanCannonStation,float,upwardSpeed,serialized,12f,"""임시 위쪽 발사 속도(m/s). 최종 밸런스 값이 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,21,HumanCannonStation,float,airControlSpeed,serialized,3f,"""비행 중 시선 기준 WASD 수평 보정 속도(m/s). 키를 놓으면 보정은 사라진다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,24,HumanCannonStation,bool,animateBarrel,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,26,HumanCannonSystem,HumanCannonStation[],stations,serialized,Array.Empty<HumanCannonStation>(),"""대포 목록. 네 화면에서 같은 씬·같은 순서여야 한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,28,HumanCannonSystem,float,flightFloorHeight,serialized,-10f,"""비행이 코스 밖으로 종료되는 높이. 깊은 시설 씬만 별도로 지정한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,29,HumanCannonSystem,Transform,flightCoordinateSpace,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,31,HumanCannonSystem,bool,useThirdPersonView,serialized,,"""이 공간의 일반 이동과 비행에 마우스 회전 3인칭을 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,33,HumanCannonSystem,CurtainCall.Cameras.CameraViewPreset,airborneView,serialized,,"""선택한 공간의 공중 3인칭 구도. 비우면 기존 시점을 사용하며 조작/탄도는 바꾸지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.Injuries.cs,13,HumanCannonSystem,HumanCannonInjurySettings,injuries,serialized,new(),"""기존 코스 전체에 적용하는 부상 시험값. 공통 설정/외줄 정책은 수정하지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,15,HumanCannonTrampoline,Transform,handle,serialized,,"""외곽 손잡이. 플레이어 발 위치 기준으로 잡기 거리를 검사한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,16,HumanCannonTrampoline,float,carryHandleHeight,serialized,,"""운반 중 손잡이를 붙일 발 위 높이(월드 m). 0이면 기존 발 위치 기준을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,18,HumanCannonTrampoline,float,surfaceHeight,serialized,0.5f,"""중앙 반동 면의 높이(m, 장치 원점 기준)."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,20,HumanCannonTrampoline,Vector2,halfSize,serialized,"new Vector2(2f, 2f)","""중앙 반동 면의 로컬 좌우/앞뒤 반폭(m). 운반 회전을 따라 판정한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,22,HumanCannonTrampoline,bool,circularSurface,serialized,,"""원형 천의 반동 판정. 기존 씬은 기본값인 사각형을 유지한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,23,HumanCannonTrampoline,bool,usePropOutline,serialized,,"""CC 원형 본체와 손잡이 외곽으로 접촉을 검사한다. 구형 더미는 기존 bounds를 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,24,HumanCannonTrampoline,bool,requireCarrierForBounce,serialized,,"""협동 구간 전용: 다른 단원이 손잡이를 잡고 있을 때만 반동한다. 기본값은 바닥에 놓아도 반동."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,26,HumanCannonTrampoline,Vector2,loadHalfSize,serialized,,"""운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,28,HumanCannonTrampoline,float,grabDistance,serialized,4f,"""손잡이 잡기 거리(m). 공용 상호작용 거리 배율 적용."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,30,HumanCannonTrampoline,float,upwardSpeed,serialized,12f,"""수직 반동 속도(m/s). 자동 전진은 멈추고 WASD 조절은 유지한다. 다리 부상으로 감소하지 않는다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,32,HumanCannonTrampoline,float,groundBounceAirControlSpeed,serialized,3f,"""땅에서 점프해 첫 반동을 시작한 플레이어의 WASD 수평 조절 속도(m/s). 트램폴린 운반 이동도 같은 기본 속도를 쓴다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs,34,HumanCannonTrampoline,bool,resetPoseOnRestart,serialized,true,"""테스트용 모두 재시작 시 트램폴린도 최초 위치로 돌린다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,8,HumanCannonTransport,Transform,platform,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,9,HumanCannonTransport,Transform,start,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,10,HumanCannonTransport,Transform,destination,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,12,HumanCannonTransport,Transform,via,serialized,,"""선택 경유점. 있으면 시작→경유점→도착을 같은 속도로 꺾어 이동한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,14,HumanCannonTransport,Vector2,halfSize,serialized,"new(3f, 4f)","""발판의 좌우·앞뒤 반폭(m). 플레이어와 트램폴린 전체가 올라와야 출발한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,16,HumanCannonTransport,float,travelSeconds,serialized,5f,"""시험용 이동 시간(초). 최종 밸런스가 아니다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,18,HumanCannonTransport,Transform,leftHinge,serialized,,"""좌우 바닥의 바깥쪽 경첩. 두 장이 아래로 대칭 회전한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,18,HumanCannonTransport,Transform,rightHinge,serialized,,"""좌우 바닥의 바깥쪽 경첩. 두 장이 아래로 대칭 회전한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,19,HumanCannonTransport,Collider[],trapColliders,serialized,System.Array.Empty<Collider>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,20,HumanCannonTransport,float,doorOpenSeconds,serialized,0.35f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,21,HumanCannonTransport,float,emptyResetSeconds,serialized,1.2f,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,23,HumanCannonTransport,bool,overloadTrap,serialized,true,"""켜면 2명 이상 탑승 시 바닥이 열린다. 끄면 바닥은 닫힌 채 출발만 막고, 과승·트램폴린 없음은 발판을 빨간색으로 표시한다."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,24,HumanCannonTransport,Renderer[],boardingIndicators,serialized,System.Array.Empty<Renderer>(),
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTransport.cs,26,HumanCannonTransport,float,barrierHeight,serialized,3f,"""이동·복귀 중 다른 플레이어가 발판에 올라타지 못하게 둘레에 켜는 투명 벽 높이(m). 0이면 벽 없음."""
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,8,HumanCannonWindZone,BoxCollider,area,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,9,HumanCannonWindZone,HumanCannonHazardCue,cue,serialized,,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,10,HumanCannonWindZone,Vector3,direction,serialized,Vector3.right,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,11,HumanCannonWindZone,bool,affectsGround,serialized,true,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,12,HumanCannonWindZone,bool,affectsAir,serialized,true,
+Assets/Scripts/MainStage/HumanCannon/HumanCannonWindZone.cs,13,HumanCannonWindZone,LineRenderer[],streams,serialized,System.Array.Empty<LineRenderer>(),
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,17,BodyDamageDebug,InputAction,cutLeftArm,serialized,"new(""왼팔 자르기"", InputActionType.Button, ""<Keyboard>/1"")","""왼팔 자르기. 기본 1."""
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,20,BodyDamageDebug,InputAction,cutRightArm,serialized,"new(""오른팔 자르기"", InputActionType.Button, ""<Keyboard>/2"")","""오른팔 자르기. 기본 2."""
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,23,BodyDamageDebug,InputAction,cutLeftLeg,serialized,"new(""왼다리 자르기"", InputActionType.Button, ""<Keyboard>/3"")","""왼다리 자르기. 기본 3."""
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,26,BodyDamageDebug,InputAction,cutRightLeg,serialized,"new(""오른다리 자르기"", InputActionType.Button, ""<Keyboard>/4"")","""오른다리 자르기. 기본 4."""
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,29,BodyDamageDebug,InputAction,cutSawOrder,serialized,"new(""톱날 순서로 자르기"", InputActionType.Button, ""<Keyboard>/5"")","""가로 톱날 순서로 자르기(다리 → 남은 다리 → 팔, 좌우 랜덤). 기본 5."""
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,31,BodyDamageDebug,bool,visible,serialized,true,
+Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageDebug.cs,32,BodyDamageDebug,float,scale,serialized,1.5f,
+Assets/Scripts/MainStage/Tightrope/Fire/FireView.cs,15,FireView,Transform,chaseEffect,serialized,,
+Assets/Scripts/MainStage/Tightrope/Fire/FireView.cs,17,FireView,Material,segmentFlameMaterial,serialized,,
+Assets/Scripts/MainStage/Tightrope/Fire/FireView.cs,19,FireView,float,burnHoldSeconds,serialized,2f,"""발화 후 줄이 사라진 자리에서 불꽃이 최대로 타는 시간(초)."""
+Assets/Scripts/MainStage/Tightrope/Outline/TightropeOutline.cs,22,TightropeOutline,float,width,serialized,2f,
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,37,PiggybackSystem,bool,showDebug,serialized,true,"""테스트 표시: 화면 왼쪽 아래에 목마 연결 상태와 마지막 결과를 쓴다."""
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelayGate.View.cs,27,TightropeRelayGate,bool,showPoleLabels,serialized,,"""봉 위에 상태 문구(N번 출발·교대 봉 · 유지 시간 · 통로 연결 인원)를 띄운다. 끄면 케이블 꼭대기에 유지 시간 LED 전광판을 상시 띄운다."""
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelayGate.View.cs,29,TightropeRelayGate,bool,showConnectionCables,serialized,,"""봉 케이블 꼭대기에서 연결되는 통로 쪽으로 대각선 연결 케이블을 그린다. 표시 전용이며 판정과 무관하다."""
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelayGate.View.cs,31,TightropeRelayGate,bool,showStandPads,serialized,,"""봉 아래 줄 위에 서는 자리 판(출발 봉 청록·교대 봉 초록)을 표시한다. 꺼도 판정 위치는 그대로다."""
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.View.cs,16,TightropeTrapeze,bool,showPoleLabels,serialized,,"""공중그네 봉 위에 봉 이름·잡기 안내·유지 시간 문구를 띄운다. 꺼도 봉 색과 HUD 안내는 유지한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.CannonExit.cs,11,CourseControlSwitcher,bool,allowCannonPoleExit,serialized,,"""이 씬의 외줄 끝에서만 원본 인간대포 그네로 F 인계를 허용한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.CannonExit.cs,13,CourseControlSwitcher,float,cannonPoleExitDistance,serialized,2f,"""줄 양끝에서 원본 그네 잡기를 허용할 진행 거리(m). 실제 손 도달 범위는 원본 봉이 검사한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,23,CourseControlSwitcher,PlayerControlScheme,ropeScheme,serialized,,"""줄 위 조작 규칙. 비우면 기본 외줄 규칙(TightropeControlScheme)."""
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,26,CourseControlSwitcher,PlayerControlScheme,platformScheme,serialized,,"""플랫폼 조작 규칙. 비우면 공용 플레이어의 시작 → 씬 → 기본 이동 규칙을 그대로 사용한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCampaignBridge.cs,18,TightropeCampaignBridge,int,difficulty,serialized,1,
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.Art.cs,8,TightropeCourse,TightropeArtProfile,artProfile,serialized,,
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,58,TightropeCourse,Transform[],spawnPoints,serialized,,"""자리 번호 0, 1, 2… 순서의 출발 위치. 코스가 줄 위치에 맞춰 옮긴다. 같은 오브젝트의 PlayerSpawnPoints에도 같은 순서로 넣는다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,62,TightropeCourse,bool,useSceneGeometry,serialized,,"""이미 제작된 줄 충돌체를 사용한다. 공연장 생성·스폰 이동·외줄 전용 그네 자동 추가를 하지 않는다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,63,TightropeCourse,TightropeSettings.CourseSettings,sceneShape,serialized,new(),
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,65,TightropeCourse,Collider[],sceneRopes,serialized,Array.Empty<Collider>(),"""줄 번호 순서의 지지 충돌체. 각 줄은 연속된 충돌체 하나를 사용한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,67,TightropeCourse,BoxCollider[],piggybackDismountPlatforms,serialized,Array.Empty<BoxCollider>(),"""실제 착지 시 목마를 안전하게 해제할 발판. 지정하지 않으면 기존 목마 규칙을 사용한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,134,TightropeCourse,Color,ropeColor,serialized,"new(0.85f, 0.75f, 0.55f)",
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,135,TightropeCourse,Color,platformColor,serialized,"new(0.45f, 0.45f, 0.5f)",
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,136,TightropeCourse,Color,finishColor,serialized,"new(0.3f, 0.8f, 0.4f)",
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,137,TightropeCourse,Color,netColor,serialized,"new(0.2f, 0.2f, 0.25f)",
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.Presentation.cs,12,TightropeCourse,bool,showSectionSigns,serialized,,"""코스 오른쪽에 'N구간 · 이름 / 시작 거리' 표지판을 띄운다. 꺼도 표지판은 만들어 두고 숨기기만 한다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.SceneRopes.cs,8,TightropeCourse,bool,independentSceneRopes,serialized,,"""각 줄을 독립된 위치/방향의 구간으로 사용한다. 네트워크 줄 번호는 sceneRopes 배열 순서다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.SceneRopes.cs,10,TightropeCourse,bool,bidirectionalSceneTraversal,serialized,,
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeFinishCelebration.cs,16,TightropeFinishCelebration,ParticleSystem[],bursts,serialized,Array.Empty<ParticleSystem>(),"""폭죽마다 붙인 색종이·불꽃 파티클. 반복하지 않고 시작 시 재생하지 않는다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,16,TightropeRunDebug,Key,fallKey,serialized,Key.K,"""내 캐릭터를 바로 추락시킨다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,19,TightropeRunDebug,Key,finishKey,serialized,Key.L,"""내 캐릭터를 도착 플랫폼으로 옮긴다(도착 판정 확인용)."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,22,TightropeRunDebug,Key,toggleKey,serialized,Key.O,"""화면 표시를 켜고 끈다."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,25,TightropeRunDebug,bool,logLandings,serialized,true,"""내 캐릭터가 착지할 때마다 균형 값·충격·흔들림 배율을 Console에 남긴다(반동 조사용)."""
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,27,TightropeRunDebug,bool,visible,serialized,,
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,28,TightropeRunDebug,float,scale,serialized,1.5f,
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,31,TightropeRunDebug,float,markerSize,serialized,0.25f,"""좌우 착지 가능한 줄 위에 띄울 표시기 크기(m)."""
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,72,TightropeSaws,GameObject,horizontalPrefab,serialized,,"""가로 톱날 모델. 보이는 지름 크기로 만들고, 회전축이 위(+Y)인 프리팹."""
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,75,TightropeSaws,GameObject,verticalPrefab,serialized,,"""수직 톱날 모델. 기본 축은 +Y이며 런타임에 오른쪽(+X)으로 눕힌다."""
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,78,TightropeSaws,GameObject,platePrefab,serialized,,"""발판 모델. 발판 크기로 만든 프리팹."""
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,81,TightropeSaws,GameObject,cooperativeGatePrefab,serialized,,"""협동 관문 외형. 비우면 기존 도형과 판정을 유지한다."""
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,82,TightropeSaws,GameObject,cooperativePlatePrefab,serialized,,
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,84,TightropeSaws,Color,plateColor,serialized,"new(1f, 0.8f, 0.2f)",
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,85,TightropeSaws,Color,platePressedColor,serialized,"new(0.3f, 0.9f, 0.3f)",
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.Paths.cs,9,TightropeSaws,bool,showSawPaths,serialized,,"""톱날 이동 경로를 빨간 레이저 선으로 표시한다. 꺼도 경로 계산은 유지하고 그리기만 생략한다."""
+Assets/Scripts/MainStage/Tightrope/UI/TightropeUIFocus.cs,15,TightropeUIFocus,TMP_InputField[],fields,serialized,Array.Empty<TMP_InputField>(),
+Assets/Scripts/Systems/BackstageHud/BackstageHudPreview.cs,9,BackstageHudPreview,BackstageHUDView,backstage,serialized,,
+Assets/Scripts/Systems/BackstageHud/BackstageHudPreview.cs,10,BackstageHudPreview,LobbyRoomInfoView,lobby,serialized,,
+Assets/Scripts/Systems/BackstageHud/BackstageHudPreview.cs,11,BackstageHudPreview,InventorySlotsView,standalone,serialized,,
+Assets/Scripts/Systems/BackstageHud/BackstageHudPreview.cs,12,BackstageHudPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/BackstageHud/BackstageHudPreview.cs,13,BackstageHudPreview,Sprite[],items,serialized,,
+Assets/Scripts/Systems/BasicPanels/BasicPanelsPreview.cs,8,BasicPanelsPreview,CurtainCallMenuPanels,panels,serialized,,
+Assets/Scripts/Systems/BasicPanels/BasicPanelsPreview.cs,9,BasicPanelsPreview,Font,previewFont,serialized,,
+Assets/Scripts/Systems/Camera/CameraCursorExclusion.cs,9,CameraCursorExclusion,Rect,screenRect,serialized,"new(10f, 10f, 340f, 320f)",
+Assets/Scripts/Systems/Camera/CameraOcclusionFade.cs,38,CameraOcclusionFade,Material,transparentTemplate,serialized,,"""URP Lit 투명 머티리얼. 빌드에서 투명 셰이더 변형이 빠지지 않게 참조만 둔다(값은 쓰지 않음)."""
+Assets/Scripts/Systems/Camera/CameraSpectator.cs,37,CameraSpectator,Color,dimColor,serialized,"new(0.55f, 0f, 0f, 0.28f)","""좌우 가장자리 딤 색. 알파가 가장자리 최대 진하기(낮게 둘수록 덜 방해된다)."""
+Assets/Scripts/Systems/Camera/CameraSpectator.cs,39,CameraSpectator,float,dimWidth,serialized,0.22f,"""딤이 덮는 폭(화면 너비 비율, 한쪽)."""
+Assets/Scripts/Systems/Camera/CameraSpectator.cs,41,CameraSpectator,float,dimFadeIn,serialized,0.4f,"""딤이 나타나는 시간(초)."""
+Assets/Scripts/Systems/Camera/CameraViewDirector.cs,27,CameraViewDirector,CameraViewSettings,settings,serialized,,
+Assets/Scripts/Systems/Camera/CameraViewZone.cs,11,CameraViewZone,CameraViewPreset,preset,serialized,,
+Assets/Scripts/Systems/Camera/CameraViewZone.cs,12,CameraViewZone,int,priority,serialized,10,
+Assets/Scripts/Systems/Camera/CameraViewZone.cs,14,CameraViewZone,float,exitPadding,serialized,,"""이미 진입한 뒤에는 이 거리만큼 구역 밖으로 완전히 나갈 때까지 좁은 시점을 유지한다(m). 진입 범위는 그대로다."""
+Assets/Scripts/Systems/Campaign/CampaignFlowTestUI.cs,16,CampaignFlowTestUI,Rect,_panelRect,serialized,"new Rect(360, 10, 400, 560)",
+Assets/Scripts/Systems/Captions/CaptionPreview.cs,11,CaptionPreview,CaptionView,captions,serialized,,
+Assets/Scripts/Systems/Captions/CaptionPreview.cs,12,CaptionPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Captions/CaptionPreview.cs,13,CaptionPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeBinding.cs,11,C1CheerGaugeBinding,C1CheerGaugeView,view,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugePreview.cs,10,C1CheerGaugePreview,C1CheerGaugeView,view,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugePreview.cs,11,C1CheerGaugePreview,C1CheerGaugeBinding,binding,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugePreview.cs,12,C1CheerGaugePreview,Font,controlFont,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,14,C1CheerGaugeView,UnityEngine.UI.Image[],fills,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,15,C1CheerGaugeView,UnityEngine.UI.Image[],highlights,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,16,C1CheerGaugeView,TMP_Text,totalText,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,17,C1CheerGaugeView,TMP_Text,labelText,serialized,,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,18,C1CheerGaugeView,float,transitionSeconds,serialized,0.2f,
+Assets/Scripts/Systems/CheerGauge/C1CheerGaugeView.cs,19,C1CheerGaugeView,bool,reduceFlashing,serialized,,
+Assets/Scripts/Systems/CommonButtons/CommonButtonsPreview.cs,10,CommonButtonsPreview,CurtainCallButton[],buttons,serialized,,
+Assets/Scripts/Systems/CommonButtons/CommonButtonsPreview.cs,11,CommonButtonsPreview,Font,controlFont,serialized,,
+Assets/Scripts/Systems/CommonIcons/CommonIconCatalog.cs,16,CommonIconCatalog,Entry[],entries,serialized,Array.Empty<Entry>(),
+Assets/Scripts/Systems/CommonIcons/CommonIconsPreview.cs,17,CommonIconsPreview,CommonIconCatalog,catalog,serialized,,
+Assets/Scripts/Systems/CommonIcons/CommonIconsPreview.cs,18,CommonIconsPreview,UnityEngine.UI.Image[],samples,serialized,,
+Assets/Scripts/Systems/CommonIcons/CommonIconsPreview.cs,19,CommonIconsPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Control/ControlSettings.cs,17,ControlSettings,PlayerControlScheme,defaultScheme,serialized,,"""조작 규칙을 끼우지 않은 공간에서 쓸 기본 이동 규칙. 비우면 플랫폼 이동(8방향 이동·점프)."""
+Assets/Scripts/Systems/Control/SceneControlScheme.cs,14,SceneControlScheme,PlayerControlScheme,scheme,serialized,,"""이 씬에서 쓸 이동 규칙. 비우면 기본 이동 규칙(조작 설정)을 쓴다."""
+Assets/Scripts/Systems/Control/UIInputBlocker.cs,16,UIInputBlocker,bool,blockWhileActive,serialized,true,"""켜면 이 오브젝트가 보이는 동안 항상 막는다(패널에 붙일 때). 끄면 SetOpen(true)이거나 입력칸 입력 중일 때만 막는다."""
+Assets/Scripts/Systems/Control/UIInputBlocker.cs,19,UIInputBlocker,TMP_InputField[],fields,serialized,Array.Empty<TMP_InputField>(),"""글자를 넣는 동안 막을 입력칸."""
+Assets/Scripts/Systems/Damage/BodyDamageEffects.cs,21,BodyDamageEffects,BodyPenaltyPolicy,startPolicy,serialized,,"""시작할 때 끼울 콘텐츠 불이익 정책. 비우면 콘텐츠가 등록한 기본 정책."""
+Assets/Scripts/Systems/Damage/ModelLimbs.cs,16,ModelLimbs,Transform,leftArm,serialized,,"""왼팔 시작 오브젝트(어깨 쪽). 비우면 휴머노이드 뼈(LeftUpperArm)."""
+Assets/Scripts/Systems/Damage/ModelLimbs.cs,19,ModelLimbs,Transform,rightArm,serialized,,"""오른팔 시작 오브젝트(어깨 쪽). 비우면 휴머노이드 뼈(RightUpperArm)."""
+Assets/Scripts/Systems/Damage/ModelLimbs.cs,22,ModelLimbs,Transform,leftLeg,serialized,,"""왼다리 시작 오브젝트(엉덩이 쪽). 비우면 휴머노이드 뼈(LeftUpperLeg)."""
+Assets/Scripts/Systems/Damage/ModelLimbs.cs,25,ModelLimbs,Transform,rightLeg,serialized,,"""오른다리 시작 오브젝트(엉덩이 쪽). 비우면 휴머노이드 뼈(RightUpperLeg)."""
+Assets/Scripts/Systems/DevMode/DevModeTestUI.cs,14,DevModeTestUI,Rect,_panelRect,serialized,"new Rect(770, 50, 300, 260)",
+Assets/Scripts/Systems/Guides/GuidePreview.cs,11,GuidePreview,GuideView,guide,serialized,,
+Assets/Scripts/Systems/Guides/GuidePreview.cs,12,GuidePreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Guides/GuidePreview.cs,13,GuidePreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/Interaction/InteractionPreview.cs,10,InteractionPreview,InteractionPromptView,prompt,serialized,,
+Assets/Scripts/Systems/Interaction/InteractionPreview.cs,11,InteractionPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Interaction/InteractionPreview.cs,12,InteractionPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/Interaction/InteractionPreview.cs,13,InteractionPreview,GameObject,performance,serialized,,
+Assets/Scripts/Systems/Interaction/InteractionPreview.cs,14,InteractionPreview,GameObject,backstage,serialized,,
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,17,LevelPreviewCamera,PlayerController,player,serialized,,"""따라갈 플레이어(씬에 놓은 Player 프리팹)."""
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,20,LevelPreviewCamera,float,eyeHeight,serialized,,"""서 있을 때 눈높이. 발(플레이어 원점)에서 잰 높이(m). 0이면 몸통 높이의 90%. 앉으면 앉기 높이 비율만큼 함께 낮아진다."""
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,23,LevelPreviewCamera,float,sensitivity,serialized,0.1f,"""마우스 감도(마우스 이동 1픽셀당 도)."""
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,26,LevelPreviewCamera,float,pitchLimit,serialized,85f,"""위아래로 볼 수 있는 최대 각도(도)."""
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,29,LevelPreviewCamera,bool,hideOwnModel,serialized,true,"""내 모델을 숨긴다(그림자 포함). 끄면 1인칭에서 내 몸이 화면을 가린다."""
+Assets/Scripts/Systems/Network/PlayerSync/LocalPlayerViews.cs,14,LocalPlayerViews,BalanceGaugeView[],gauges,serialized,,"""내 캐릭터 균형을 보여 줄 게이지. 비워 두면 씬에서 모두 찾는다."""
+Assets/Scripts/Systems/Network/PlayerSync/LocalPlayerViews.cs,17,LocalPlayerViews,PlayerCommandDebugHud[],huds,serialized,,"""내 캐릭터를 대상으로 할 테스트 HUD. 비워 두면 씬에서 모두 찾는다."""
+Assets/Scripts/Systems/Network/PlayerSync/PlayerSpawnPoints.cs,12,PlayerSpawnPoints,Transform[],points,serialized,,"""자리 번호 0, 1, 2, 3 순서의 출발 위치. 방향(전진)도 이 Transform을 따른다."""
+Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs,11,NetworkSessionTestUI,string,_address,serialized,"""127.0.0.1:7777""",
+Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs,12,NetworkSessionTestUI,Rect,_panelRect,serialized,"new Rect(10, 10, 340, 320)",
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,9,NotificationsPreview,SystemNotificationsView,combined,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,10,NotificationsPreview,SystemNotificationsView,bannerOnly,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,11,NotificationsPreview,SystemNotificationsView,toastOnly,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,12,NotificationsPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,13,NotificationsPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,14,NotificationsPreview,GameObject,performanceContext,serialized,,
+Assets/Scripts/Systems/Notifications/NotificationsPreview.cs,15,NotificationsPreview,GameObject,backstageContext,serialized,,
+Assets/Scripts/Systems/PerformanceHud/PerformanceHudPreview.cs,11,PerformanceHudPreview,PerformanceHUDView,hud,serialized,,
+Assets/Scripts/Systems/PerformanceHud/PerformanceHudPreview.cs,12,PerformanceHudPreview,C1CheerGaugeView,cheer,serialized,,
+Assets/Scripts/Systems/PerformanceHud/PerformanceHudPreview.cs,13,PerformanceHudPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,15,BalanceGaugeView,PlayerBalance,target,serialized,,"""표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다(Auto Find Target이 켜져 있을 때)."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,18,BalanceGaugeView,bool,autoFindTarget,serialized,true,"""대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지. 온라인에서는 내 캐릭터를 넣는 쪽이 끈다."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,21,BalanceGaugeView,RectTransform,greenZone,serialized,,"""초록 구간. 부모(게이지 막대) 기준 가로 앵커로 폭을 맞춘다."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,24,BalanceGaugeView,RectTransform,warningZone,serialized,,"""노란 경고 구간. 기존 프리팹에서 비어 있으면 초록 뒤에 자동으로 생성한다."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,27,BalanceGaugeView,RectTransform,needle,serialized,,"""바늘. 부모(게이지 막대) 기준 가로 앵커로 위치를 맞춘다."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,30,BalanceGaugeView,GameObject,redTimerRoot,serialized,,"""누적 추락 위험 표시 묶음. 착지·노랑·빨강 위험이 남아 있으면 보인다(선택)."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,33,BalanceGaugeView,RectTransform,redTimerFill,serialized,,"""빨강 체류 막대. 부모 기준 가로 앵커 0~비율로 채운다(선택)."""
+Assets/Scripts/Systems/Player/BalanceGaugeView.cs,36,BalanceGaugeView,TMP_Text,valueLabel,serialized,,"""균형 숫자 표시(선택)."""
+Assets/Scripts/Systems/Player/PlayerBalance.cs,33,PlayerBalance,bool,activeOnStart,serialized,true,"""시작할 때 균형을 켤지. 테스트 씬용. 실제 게임에서는 외줄 기능이 켠다."""
+Assets/Scripts/Systems/Player/PlayerBalance.cs,37,PlayerBalance,int,stackSize,serialized,1,"""현재 목마 전체 인원. 목마 기능이 SetStackSize로 바꾼다. 연결 전에는 여기서 테스트."""
+Assets/Scripts/Systems/Player/PlayerBalance.cs,40,PlayerBalance,float,upperBalanceSum,serialized,,"""내 위에 있는 층들의 균형값 합. 목마 기능이 매 프레임 SetUpperBalanceSum으로 넣는다. 맨 위는 0. 연결 전에는 여기서 테스트."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,15,PlayerCommandDebugHud,PlayerInputReader,target,serialized,,"""표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다(Auto Find Target이 켜져 있을 때)."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,18,PlayerCommandDebugHud,bool,autoFindTarget,serialized,true,"""대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지. 온라인에서는 내 캐릭터를 넣는 쪽이 끈다."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,21,PlayerCommandDebugHud,Key,toggleKey,serialized,Key.P,"""표시를 켜고 끄는 키."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,24,PlayerCommandDebugHud,Key,balanceToggleKey,serialized,Key.B,"""균형 시스템을 켜고 끄는 디버그 키(줄에 오르내리는 상황 흉내)."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,27,PlayerCommandDebugHud,Key,restartKey,serialized,Key.R,"""추락 후 다시 시작하는 디버그 키(균형 중앙, 추락 해제)."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,30,PlayerCommandDebugHud,Key,modelCycleKey,serialized,Key.M,"""모델을 차례로 바꿔 끼우는 디버그 키."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,33,PlayerCommandDebugHud,GameObject[],testModels,serialized,,"""바꿔 끼울 모델 목록. 비워 두면 Resources/Prefabs/Characters/Players/Models의 프리팹을 모두 쓴다."""
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,35,PlayerCommandDebugHud,bool,visible,serialized,,
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,37,PlayerCommandDebugHud,float,scale,serialized,1.5f,
+Assets/Scripts/Systems/Player/PlayerCondition.cs,44,PlayerCondition,BodyPart,lostParts,serialized,,"""잃은 부위. 플레이 중 여기서 바꿔도 테스트할 수 있다(온라인에서는 호스트 값이 덮어쓴다)."""
+Assets/Scripts/Systems/Player/PlayerController.cs,17,PlayerController,PlayerControlScheme,startScheme,serialized,,"""이 플레이어만 쓸 시작 조작 규칙(테스트용). 비워 두면 씬 규칙 → 기본 이동 규칙(조작 설정)을 쓴다."""
+Assets/Scripts/Systems/Player/PlayerInputReader.cs,18,PlayerInputReader,InputActionAsset,inputAsset,serialized,,"""비워 두면 Resources/Input/PlayerControls를 쓴다."""
+Assets/Scripts/Systems/Player/PlayerModelSlot.cs,19,PlayerModelSlot,Transform,slot,serialized,,"""모델이 붙을 위치. 비워 두면 이 오브젝트 아래에 'ModelSlot'을 만든다. 원점이 발 위치."""
+Assets/Scripts/Systems/Player/PlayerModelSlot.cs,22,PlayerModelSlot,GameObject,modelPrefab,serialized,,"""시작할 때 끼울 모델 프리팹. 비워 두면 슬롯에 이미 있는 모델을 그대로 쓴다."""
+Assets/Scripts/Systems/Player/PlayerModelSlot.cs,25,PlayerModelSlot,bool,fitToHeight,serialized,true,"""모델 크기를 캐릭터 키(세팅 · 모델 맞춤 키)에 맞출지. 끄면 프리팹 크기 그대로."""
+Assets/Scripts/Systems/Player/PlayerModelSlot.cs,28,PlayerModelSlot,bool,squashWhenCrouched,serialized,true,"""앉으면 겉모습을 위아래로 줄여 낮출지(임시 표현). 앉기 애니메이션을 넣으면 끈다. 꺼도 속도·충돌 높이·1인칭 눈높이는 그대로 낮아진다."""
+Assets/Scripts/Systems/Player/PlayerMover.cs,36,PlayerMover,Transform,destination,serialized,,"""목적지. 지정하면 시작 위치에서 이 지점을 향하는 방향이 전진이 된다."""
+Assets/Scripts/Systems/Player/PlayerMover.cs,39,PlayerMover,Vector3,courseDirection,serialized,Vector3.forward,"""목적지가 없을 때 쓰는 월드 전진 방향. 높이(Y)는 무시한다."""
+Assets/Scripts/Systems/Player/PlayerMover.cs,42,PlayerMover,bool,blockLaneJumpOntoPlayer,serialized,true,"""임시(목마 기능 구현 전): 옆줄 점프 도착점이 다른 플레이어 몸통과 겹치면 점프하지 않는다. 목마 기능이 합체로 바꿀 때 끈다."""
+Assets/Scripts/Systems/Player/PlayerRagdoll.cs,19,PlayerRagdoll,float,fallbackMass,serialized,5f,"""Rigidbody가 없는 모델을 한 덩어리로 쓰러뜨릴 때의 질량."""
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.cs,28,HumanoidPlayerPresentation,float,poleGripHeightOffset,serialized,-.06f,"""봉 매달림 손 접점의 높이 보정(m). 줄 매달림에는 적용하지 않는다."""
+Assets/Scripts/Systems/ResultsUi/ResultsUiPreview.cs,11,ResultsUiPreview,ResultsPanelView,results,serialized,,
+Assets/Scripts/Systems/ResultsUi/ResultsUiPreview.cs,12,ResultsUiPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/ResultsUi/ResultsUiPreview.cs,13,ResultsUiPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/ResultsUi/ResultsUiPreview.cs,14,ResultsUiPreview,UnityEngine.UI.Button[],controls,serialized,,
+Assets/Scripts/Systems/ResultsUi/ResultsUiPreview.cs,15,ResultsUiPreview,RectTransform,localDestination,serialized,,
+Assets/Scripts/Systems/Reward/PerformanceAudience.cs,20,PerformanceAudience,bool,humanCannon,serialized,,
+Assets/Scripts/Systems/Reward/PerformanceAudience.cs,21,PerformanceAudience,Transform,cannonStart,serialized,,
+Assets/Scripts/Systems/Reward/PerformanceAudience.cs,21,PerformanceAudience,Transform,cannonFinish,serialized,,
+Assets/Scripts/Systems/Reward/PerformanceRewardTestUI.cs,16,PerformanceRewardTestUI,RewardTable,rewardTable,serialized,,
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,16,TemporaryRewardTable,int,cheer,serialized,10,"""기본 환호 1회의 호응도 증가량입니다. 장애물 회피·구조 등 상황별 환호량은 호응도 설정(temporary-audience)에서 따로 조정합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,18,TemporaryRewardTable,int,jeer,serialized,5,"""기본 야유 1회의 호응도 감소량입니다. 양수를 입력합니다. 추락·진행 정체 등 상황별 감점량은 호응도 설정(temporary-audience)에서 따로 조정합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,21,TemporaryRewardTable,int,difficultyOneCap,serialized,100,"""1단계 공연에서 한 사람이 쌓을 수 있는 최대 호응도입니다. 완주 보너스 토큰은 이 상한과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,23,TemporaryRewardTable,int,difficultyTwoCap,serialized,150,"""2단계 공연에서 한 사람이 쌓을 수 있는 최대 호응도입니다. 완주 보너스 토큰은 이 상한과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,25,TemporaryRewardTable,int,difficultyThreeCap,serialized,200,"""3단계 공연에서 한 사람이 쌓을 수 있는 최대 호응도입니다. 완주 보너스 토큰은 이 상한과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,28,TemporaryRewardTable,int,difficultyOneCompletion,serialized,100,"""1단계 완주 인정자 한 명당 추가 지급할 토큰입니다. 실제 도착자와 종료 순간 완주 인정 진행률을 충족한 생존자에게 호응 보상과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,30,TemporaryRewardTable,int,difficultyTwoCompletion,serialized,150,"""2단계 완주 인정자 한 명당 추가 지급할 토큰입니다. 실제 도착자와 종료 순간 완주 인정 진행률을 충족한 생존자에게 호응 보상과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,32,TemporaryRewardTable,int,difficultyThreeCompletion,serialized,200,"""3단계 완주 인정자 한 명당 추가 지급할 토큰입니다. 실제 도착자와 종료 순간 완주 인정 진행률을 충족한 생존자에게 호응 보상과 별도로 지급합니다."""
+Assets/Scripts/Systems/Reward/TemporaryRewardTable.cs,35,TemporaryRewardTable,int,cutBonus,serialized,10,"""공연 중 팔다리를 새로 잃을 때 부위 하나당 더할 호응도입니다. 즉시 토큰으로 지급하지 않으며, 같은 부위를 복구한 뒤 다시 잃어도 해당 공연에서는 중복 지급하지 않습니다."""
+Assets/Scripts/Systems/ScheduleUi/ScheduleUiPreview.cs,10,ScheduleUiPreview,SchedulePanelView,schedule,serialized,,
+Assets/Scripts/Systems/ScheduleUi/ScheduleUiPreview.cs,11,ScheduleUiPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/ScheduleUi/ScheduleUiPreview.cs,12,ScheduleUiPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/ScheduleUi/ScheduleUiPreview.cs,13,ScheduleUiPreview,UnityEngine.UI.Button[],controls,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,27,BaseGameSettings,FrameRateSettings,frameRate,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,30,BaseGameSettings,SessionSettings,session,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,32,BaseGameSettings,RunSettings,run,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,34,BaseGameSettings,ItemCarrySettings,itemCarry,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,36,BaseGameSettings,CharacterSettings,character,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,38,BaseGameSettings,InputSettings,input,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,40,BaseGameSettings,BalanceSettings,balance,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,42,BaseGameSettings,HudLayoutSettings,hudLayout,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,44,BaseGameSettings,PresentationSettings,presentation,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,46,BaseGameSettings,SyncSettings,sync,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,48,BaseGameSettings,BodyDamageSettings,bodyDamage,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,50,BaseGameSettings,SpaceTransitionSettings,spaceTransition,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,52,BaseGameSettings,VoiceChatSettings,voiceChat,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,81,BaseGameSettings.HudLayoutSettings,BalanceHudPosition,balancePosition,serialized,BalanceHudPosition.BottomCenter,"""1안은 기존 인벤토리 자리인 하단 중앙, 2안은 상단 중앙입니다. 플레이 중에도 즉시 반영되며, 상단 팝업은 게이지 아래로 이동합니다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,91,BaseGameSettings.FrameRateSettings,bool,limitEnabled,serialized,true,"""켜면 최대 FPS를 제한합니다. 끄면 FPS 제한을 해제합니다. 플레이 중 변경도 반영되며, 빌드에는 빌드 당시 값이 포함됩니다. VSync는 실행 중 꺼집니다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,95,BaseGameSettings.FrameRateSettings,int,maxFps,serialized,60,"""초당 최대 프레임 수(FPS). 기본 60. 제한을 켰을 때만 적용됩니다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,107,BaseGameSettings.SessionSettings,int,maxPlayers,serialized,4,"""방 정원(명). 이 인원이 차면 더 들어오지 못한다(자동 시작은 하지 않음). 방을 만들 때 적용된다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,110,BaseGameSettings.SessionSettings,int,minPlayers,serialized,2,"""호스트가 게임을 시작할 수 있는 최소 인원(명, 호스트 포함). 정원보다 크면 정원을 쓴다. 기획 2(2026-10-14 PM). 1인 테스트는 개발자 모드로 한다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,121,BaseGameSettings.RunSettings,int,dayCount,serialized,3,"""공연하는 날 수(일). 이 다음 날 아침 쉬는 시간이 마지막 탈출 기회이고, 그것이 끝나면 런 실패. 기획 3."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,124,BaseGameSettings.RunSettings,int,performancesPerDay,serialized,2,"""하루 공연 횟수(회). 공연 사이마다 쉬는 시간, 마지막 공연 뒤 밤 정비. 기획 2."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,127,BaseGameSettings.RunSettings,string[],firstDayTricks,serialized,"{ ""Tightrope"", ""Tightrope"" }","""1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. M2: 외줄타기 → 외줄타기(2026-10-29 사용자, Task-079)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,130,BaseGameSettings.RunSettings,string,defaultTrick,serialized,"""Tightrope""","""2일차부터 스케줄표로 정하지 않은 공연에 쓰는 묘기. M2: 스케줄표 편성 보류 동안 외줄타기 고정(Task-079)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,133,BaseGameSettings.RunSettings,float,restDuration,serialized,300f,"""쉬는 시간 길이(초). 아침·공연 사이 공통. 시작하자마자 흐른다(M2, 안전한 곳 없음). 기획 5분 = 300."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,136,BaseGameSettings.RunSettings,float,guideRestDuration,serialized,300f,"""가이드 쉬는 시간 길이(초). 1일차 첫 공연 뒤 쉬는 시간. 기획 미정(플레이테스트로 결정) — 임시 300."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,139,BaseGameSettings.RunSettings,RestTimeLimitSettings,morningRest,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,140,BaseGameSettings.RunSettings,RestTimeLimitSettings,noonRest,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,141,BaseGameSettings.RunSettings,RestTimeLimitSettings,guideRest,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,142,BaseGameSettings.RunSettings,RestTimeLimitSettings,nightMaintenance,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,143,BaseGameSettings.RunSettings,bool,timeLimitsMigrated,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,149,BaseGameSettings.RunSettings.RestTimeLimitSettings,bool,unlimited,serialized,,
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,151,BaseGameSettings.RunSettings.RestTimeLimitSettings,float,seconds,serialized,300f,"""제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,182,BaseGameSettings.RunSettings,float,recallAlarmLeadTime,serialized,60f,"""소집 경보 시점(초). 쉬는 시간이 이만큼 남으면 경보를 울린다. 기획 1분 = 60."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,185,BaseGameSettings.RunSettings,float,failedPerformanceHold,serialized,2f,"""공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,219,BaseGameSettings.ItemCarrySettings,int,baseSlots,serialized,2,"""신체 상태와 관계없이 지닐 수 있는 기물(개). 기본 2. 배낭·외팔 슬롯 감소 없음."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,229,BaseGameSettings.CharacterSettings,float,freeMoveSpeed,serialized,3f,"""플랫폼 위 이동 속도(m/s, 8방향 일반 이동). 2026-10-03 PM 테스트 값 3."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,232,BaseGameSettings.CharacterSettings,float,courseMoveSpeed,serialized,0.5f,"""코스 방향 걷기 속도(m/s, 앞뒤로만 걷는 줄타기 이동). 외줄 세팅에서 옮김(값 그대로, 2026-10-14 PM). 기획 0.5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,235,BaseGameSettings.CharacterSettings,float,jumpHeight,serialized,0.8f,"""점프 높이(m, 발 기준 최고점). 공중 시간은 이 값과 중력으로 정해진다. 다리를 잃으면 신체 손상 · 점프 높이 배율을 곱한다. 외줄 세팅에서 옮김(값 그대로, 2026-10-14 PM). 0.8."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,238,BaseGameSettings.CharacterSettings,float,turnSpeed,serialized,720f,"""플랫폼 위에서 이동 방향으로 몸을 돌리는 속도(도/초)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,241,BaseGameSettings.CharacterSettings,float,gravity,serialized,9.81f,"""중력 크기(m/s²). 기획 기준 9.81. 점프 높이·공중 시간도 이 값으로 계산한다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,244,BaseGameSettings.CharacterSettings,float,capsuleHeight,serialized,1.5f,"""몸통(충돌 캡슐) 높이(m). 2026-10-03 기준 1.5. ⚠ 모델 맞춤 키(1.73)와 다르다 — 모델 작업(017)에서 확정."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,247,BaseGameSettings.CharacterSettings,float,capsuleDiameter,serialized,0.6f,"""몸통(충돌 캡슐) 지름(m). 2026-10-03 기준 0.6. 높이보다 클 수 없다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,250,BaseGameSettings.CharacterSettings,float,modelHeight,serialized,1.73f,"""모델을 맞출 캐릭터 키(m). 기획 1.73. ⚠ 캡슐 높이(1.5)와 다르다 — 모델 작업(017)에서 확정. 모델을 끼울 때 적용된다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,253,BaseGameSettings.CharacterSettings,float,pushSpeed,serialized,2f,"""몸통으로 래그돌 같은 물체를 밀 때 주는 속도(m/s). 0이면 밀지 않는다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,256,BaseGameSettings.CharacterSettings,float,playerGap,serialized,0.05f,"""다른 플레이어와 닿을 때 남기는 틈(m)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,259,BaseGameSettings.CharacterSettings,float,sprintSpeedMultiplier,serialized,1.5f,"""달리기(LShift 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 1.5. 플레이 중 바꾸면 바로 반영."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,262,BaseGameSettings.CharacterSettings,float,crouchSpeedMultiplier,serialized,0.5f,"""앉기(LCtrl 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 0.5. 플레이 중 바꾸면 바로 반영."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,265,BaseGameSettings.CharacterSettings,float,crouchHeightRatio,serialized,0.6f,"""앉았을 때 높이 비율(0~1, 몸통 캡슐 높이 기준). 발은 고정하고 겉모습·충돌 높이·1인칭 눈높이를 함께 낮춘다. 2026-10-19 PM 0.6. 플레이 중 바꾸면 바로 반영."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,270,BaseGameSettings.CharacterSettings,Color,playerColorRed,serialized,Color.red,"""첫 번째 자리(0번) 플레이어 색상. 자리가 정해지지 않았거나 범위를 벗어나면 이 색상을 쓴다. 기본 빨강."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,274,BaseGameSettings.CharacterSettings,Color,playerColorBlue,serialized,Color.blue,"""두 번째 자리(1번) 플레이어 색상. 기본 파랑."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,278,BaseGameSettings.CharacterSettings,Color,playerColorYellow,serialized,Color.yellow,"""세 번째 자리(2번) 플레이어 색상. 기본 노랑."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,282,BaseGameSettings.CharacterSettings,Color,playerColorGreen,serialized,Color.green,"""네 번째 자리(3번) 플레이어 색상. 기본 초록."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,313,BaseGameSettings.InputSettings,float,longPressTime,serialized,0.5f,"""상호작용 키를 이 시간(초) 이상 누르면 '길게'(목마 해제 등). 기획 값이 없어 튜닝값 0.5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,323,BaseGameSettings.BalanceSettings,float,greenLimit,serialized,30f,"""중앙에서 이 값(±, 게이지 ±100 기준)까지 초록. 외줄 고도화 초기값 30."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,326,BaseGameSettings.BalanceSettings,float,warningLimit,serialized,50f,"""초록 바깥부터 이 값(±)까지 노란 경고 구간. 노랑은 느리게, 빨강은 정상 속도로 추락 게이지가 쌓인다. 초기값 50."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,329,BaseGameSettings.BalanceSettings,float,fallTime,serialized,2f,"""빨강에 이 시간(초) 이상 머물면 추락. 기획 확정 2초."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,331,BaseGameSettings.BalanceSettings,float,warningFallRate,serialized,1f / 3f,"""노란 구간 추락 게이지 누적 속도(빨강=1). 초기 테스트 1/3. 초록에서는 회복 속도에 따라 서서히 줄인다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,334,BaseGameSettings.BalanceSettings,float,greenRecoveryRate,serialized,.25f,"""줄 위 초록 구간에서 초당 회복하는 추락 바의 비율(0~1). 0.25 = 초당 25%, 50% 위험은 2초에 회복. 공중에서는 회복하지 않는다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,337,BaseGameSettings.BalanceSettings,float,correctionSpeed,serialized,85f,"""균형 보정(A/D)을 끝까지 눌렀을 때 바늘이 움직이는 양(초당). 외줄 고도화 초기값 85(이전 60)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,340,BaseGameSettings.BalanceSettings,float,movingSway,serialized,15f,"""걷는 중 자연 흔들림(초당). 기획 15."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,343,BaseGameSettings.BalanceSettings,float,idleSway,serialized,5f,"""서 있을 때 자연 흔들림(초당). 기획 5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,346,BaseGameSettings.BalanceSettings,Vector2,swayDirectionInterval,serialized,"new(1f, 2f)","""흔들림 방향이 바뀌는 간격(초). x~y 사이에서 랜덤. 기획 1~2초."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,349,BaseGameSettings.BalanceSettings,float,tiltAcceleration,serialized,0.5f,"""기울기 가속: 초당 (현재 균형값 × 이 값)만큼 바깥으로 민다. 많이 기울수록 빨리 넘어간다. 기획 0.5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,377,BaseGameSettings.PresentationSettings.InteractionAnimationPolicy,bool,allowMovement,serialized,,"""애니메이션 중 이동과 점프 허용"""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,379,BaseGameSettings.PresentationSettings.InteractionAnimationPolicy,bool,allowInterrupt,serialized,,"""재생 중 다음 상호작용을 즉시 허용"""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,385,BaseGameSettings.PresentationSettings,InteractionAnimationPolicy,strike,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,386,BaseGameSettings.PresentationSettings,InteractionAnimationPolicy,manipulate,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,387,BaseGameSettings.PresentationSettings,InteractionAnimationPolicy,pull,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,388,BaseGameSettings.PresentationSettings,InteractionAnimationPolicy,key,serialized,new(),
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,390,BaseGameSettings.PresentationSettings,InteractionAnimationPolicy,pickup,serialized,new(),"""바닥 또는 배송구의 기물 줍기"""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,396,BaseGameSettings.PresentationSettings,float,maxTiltAngle,serialized,25f,"""균형이 끝(±100)일 때 몸 기울기(도)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,399,BaseGameSettings.PresentationSettings,float,tiltFollowSharpness,serialized,10f,"""몸 기울기가 목표를 따라가는 빠르기. 클수록 바로, 작을수록 부드럽게."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,402,BaseGameSettings.PresentationSettings,float,ragdollTiltPush,serialized,1.5f,"""추락해 래그돌로 무너질 때 기울어 있던 쪽으로 밀어 주는 속도(m/s). 0이면 그냥 무너진다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,405,BaseGameSettings.PresentationSettings,float,ropeHangSwayAngle,serialized,18f,"""줄에 매달린 외형의 추가 흔들림 최대 각도(도). 0이면 추가 흔들림 없음. 판정·버티기 시간에는 영향 없음."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,408,BaseGameSettings.PresentationSettings,float,poleHangSwayAngle,serialized,12f,"""봉·그네·리프트에 매달린 외형의 추가 흔들림 최대 각도(도). 장치 자체 운동과 별개."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,422,BaseGameSettings.SyncSettings,float,balanceSendThreshold,serialized,0.5f,"""균형 값이 이만큼(게이지 ±100 기준) 바뀌어야 다른 화면에 다시 보낸다. 작을수록 기울기가 촘촘히 맞고 전송이 늘어난다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,445,BaseGameSettings.BodyDamageSettings,BodyRestartRecovery,restartRecovery,serialized,BodyRestartRecovery.KeepSurvivors,"""[폐기 예정] 외줄 묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 기획상 재시작이 없어 외줄 재시작이 사라지면 지운다. 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구, 모두 복구 = 전원 온전한 몸."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,449,BaseGameSettings.BodyDamageSettings,float,oneLegJumpHeight,serialized,0.75f,"""다리 1개를 잃었을 때 점프 높이 배율(×). 캐릭터 점프 높이에 곱한다. 부상 기획 5-4(6), 수치 미정 — 임시값 0.75."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,452,BaseGameSettings.BodyDamageSettings,float,twoLegJumpHeight,serialized,0.5f,"""두 다리를 잃었을 때(기어가기) 점프 높이 배율(×). 기어갈 때 점프 허용은 아래 '기어갈 때 제자리 점프'. 임시값 0.5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,456,BaseGameSettings.BodyDamageSettings,float,exploreOneLegMoveSpeed,serialized,0.8f,"""다리 1개를 잃었을 때 이동 속도 배율(×). 두 다리는 기어가기 배율을 쓴다. 수치는 대기실 담당 미정 — 임시값 0.8."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,459,BaseGameSettings.BodyDamageSettings,float,exploreOneArmReach,serialized,0.8f,"""팔 1개를 잃었을 때 손 닿는 거리 배율(×). 수치는 대기실 담당 미정 — 임시값 0.8."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,463,BaseGameSettings.BodyDamageSettings,float,crawlSpeedMultiplier,serialized,0.5f,"""기어갈 때 이동 속도 배율(×). 걷기 속도에 곱한다. 임시값 0.5(줄 위 0.5m/s → 0.25m/s)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,466,BaseGameSettings.BodyDamageSettings,bool,crawlCanJump,serialized,true,"""기어갈 때 제자리 점프를 할 수 있는지. 기획상 금지 규칙 없음 — 기본 가능(2026-10-04 PM)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,469,BaseGameSettings.BodyDamageSettings,bool,crawlCanLaneJump,serialized,true,"""기어갈 때 옆줄 이동(점프)을 할 수 있는지. 기획상 금지 규칙 없음 — 기본 가능(2026-10-04 PM)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,472,BaseGameSettings.BodyDamageSettings,float,crawlCapsuleHeight,serialized,0.9f,"""기어갈 때 충돌 몸통(캡슐) 높이(m). 서 있을 때는 게임 기본 세팅 · 캐릭터의 캡슐 높이. 임시값 0.9."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,476,BaseGameSettings.BodyDamageSettings,float,limbFlingSpeed,serialized,3f,"""잘린 팔·다리가 몸 바깥쪽으로 날아가는 속도(m/s). 임시값 3."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,479,BaseGameSettings.BodyDamageSettings,float,limbFlingUpSpeed,serialized,2.5f,"""잘린 팔·다리가 위로 튀는 속도(m/s). 임시값 2.5."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,482,BaseGameSettings.BodyDamageSettings,float,limbSpin,serialized,8f,"""잘린 팔·다리가 도는 속도(라디안/초, 랜덤 방향). 임시값 8."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,485,BaseGameSettings.BodyDamageSettings,float,limbMass,serialized,1f,"""잘린 부위에 Rigidbody가 없을 때 붙이는 질량(kg). 임시값 1."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,488,BaseGameSettings.BodyDamageSettings,float,limbLifetime,serialized,0f,"""잘린 부위가 사라지기까지 시간(초). 0이면 묘기 재시작까지 남는다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,492,BaseGameSettings.BodyDamageSettings,bool,bloodEffectEnabled,serialized,true,"""절단 순간 잘린 부위에서 혈흔이 튀는 연출과 부상에 따른 피 묻은 의상을 게임 전체에서 쓸지. 끄면 의상은 처음 상태를 유지하고, 모든 플레이어에게 보이지 않고 게임 설정 화면의 '혈흔 연출 표시' 항목도 사라진다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,495,BaseGameSettings.BodyDamageSettings,float,bloodAmount,serialized,1f,"""혈흔 방울 양 배율(×). 파티클 프리팹(Resources/Effects/Blood/BloodSpurt)의 방출 수에 곱한다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,498,BaseGameSettings.BodyDamageSettings,float,bloodSpurtDuration,serialized,0.8f,"""잘린 부위에서 피가 뿜어지는 시간(초). 처음 한 번 크게 튀고 이 시간 동안 약하게 이어진다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,528,BaseGameSettings.SpaceTransitionSettings,SpaceTransitionMode,mode,serialized,SpaceTransitionMode.Single,"""공간 씬을 바꾸는 방식. 통째 교체 = 다음 공간 씬만 남김(기본). 추가 로드 = 시작 씬을 남기고 공간 씬만 붙였다 뗌. 다음 전환부터 적용된다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,531,BaseGameSettings.SpaceTransitionSettings,string,hubScene,serialized,"""Lobby""","""시작 씬(접속·런 시작, 도입·엔딩 때 돌아오는 곳). 추가 로드에서는 계속 떠 있는 코어 씬."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,534,BaseGameSettings.SpaceTransitionSettings,string,performanceScene,serialized,"""Tightrope""","""묘기별 씬이 지정되지 않은 공연 시간대의 공간 씬."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,537,BaseGameSettings.SpaceTransitionSettings,string,tightropeScene,serialized,"""Tightrope""","""줄타기 공연 씬. 비어 있으면 기본 공연 씬을 쓴다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,540,BaseGameSettings.SpaceTransitionSettings,string,humanCannonScene,serialized,"""HumanCannon""","""인간 대포 공연 씬. 비어 있으면 기본 공연 씬을 쓴다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,544,BaseGameSettings.SpaceTransitionSettings,WaitingRoomSceneVariant,waitingRoomVariant,serialized,WaitingRoomSceneVariant.Integrated,"""실제 플레이·Dev 시작·탐색 대기실. 변경 후 런을 다시 시작하세요."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,545,BaseGameSettings.SpaceTransitionSettings,string,waitingRoomScene,serialized,"""WaitingRoomBase""",
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,548,BaseGameSettings.SpaceTransitionSettings,bool,keepWaitingRoomOnExit,serialized,true,"""퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,551,BaseGameSettings.SpaceTransitionSettings,string,explorationScene,serialized,"""WaitingRoomBase""","""퇴장 시 같은 씬 유지가 꺼져 있을 때 이동할 공간 씬(백스테이지 탐색)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,554,BaseGameSettings.SpaceTransitionSettings,string,escapeRouteScene,serialized,"""DummyEscapeRoute""","""탈출 개시 뒤의 공간 씬(탈출로)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,576,BaseGameSettings.VoiceChatSettings,bool,enabled,serialized,true,"""음성 채팅 사용. 끄면 음성 로그인·채널 입장을 하지 않는다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,579,BaseGameSettings.VoiceChatSettings,bool,useOnLan,serialized,true,"""LAN(직접 IP) 접속에서도 음성을 쓴다(기본 켬). Vivox 서버를 쓰므로 인터넷이 필요하다. 끄면 LAN 방에서는 음성 없음."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,582,BaseGameSettings.VoiceChatSettings,string[],scenes,serialized,"{ ""Start"", ""Lobby"", ""WaitingRoomBase"", ""Tightrope"", ""HumanCannon"" }","""음성을 쓰는 씬 이름. Start 씬부터 실행해 이어진 흐름에서, 지금 씬이 이 목록에 있을 때만 동작한다. 백스테이지·탈출로 씬이 확정되면 추가."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,585,BaseGameSettings.VoiceChatSettings,int,conversationalDistance,serialized,2,"""생존자: 이 거리(m) 안에서는 최대 음량. 정수."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,588,BaseGameSettings.VoiceChatSettings,int,audibleDistance,serialized,20,"""생존자: 이 거리(m) 밖은 들리지 않는다. 정수, 대화 거리보다 커야 한다."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,591,BaseGameSettings.VoiceChatSettings,VoiceFadeModel,fadeModel,serialized,VoiceFadeModel.Linear,"""생존자: 대화 거리~들리는 거리 사이에서 줄어드는 모양. 직선 = 일정하게 줄어 들리는 거리에서 0(기본). 반비례 = 처음에 빨리 줄고 멀수록 천천히. 지수 = 매우 빨리 줄어듦."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,594,BaseGameSettings.VoiceChatSettings,float,fadeIntensity,serialized,1f,"""생존자: 줄어드는 세기(배). 1 = 보통, 2 = 두 배 빨리 작아짐, 0.5 = 절반."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,597,BaseGameSettings.VoiceChatSettings,float,mouthHeight,serialized,1.55f,"""말하는/듣는 위치 높이(캐릭터 발에서 m)."""
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,600,BaseGameSettings.VoiceChatSettings,Key,muteKey,serialized,Key.M,"""내 마이크 끄기/켜기 키(pressed). 기획 미정 임시값 — 조작키 합의 필요(control-keys.md)."""
+Assets/Scripts/Systems/Settings/EscapeRouteSettings.cs,14,EscapeRouteSettings,int,dummyInputRows,serialized,2,
+Assets/Scripts/Systems/Settings/EscapeRouteSettings.cs,20,EscapeRouteSettings,float,exitDoorOpenAngle,serialized,105f,"""양쪽 여닫이문의 최대 열림 각도(도)."""
+Assets/Scripts/Systems/Settings/EscapeRouteSettings.cs,22,EscapeRouteSettings,float,exitDoorOpenSeconds,serialized,4f,"""탈출문이 닫힘에서 완전히 열리기까지 걸리는 시간(초)."""
+Assets/Scripts/Systems/Settings/ExplorationSettings.cs,15,ExplorationSettings,int,dummyLostCount,serialized,,
+Assets/Scripts/Systems/Settings/GameSettings.cs,18,GameSettings,BaseGameSettings,baseSettings,serialized,,"""공통 세팅(세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화)."""
+Assets/Scripts/Systems/Settings/GameSettings.cs,21,GameSettings,TightropeSettings,tightrope,serialized,,"""외줄 묘기 세팅(코스·진행·줄 위 동작·목마·보상)."""
+Assets/Scripts/Systems/Settings/GameSettings.cs,24,GameSettings,HumanCannonSettings,humanCannon,serialized,,"""인간대포 세팅(일반 점프 높이·이번 빌드 톱날 배치 비율·사선 각도)."""
+Assets/Scripts/Systems/Settings/GameSettings.cs,27,GameSettings,WaitingRoomSettings,waitingRoom,serialized,,"""대기실 세팅(상점·소품실·서비스·밤 정비)."""
+Assets/Scripts/Systems/Settings/GameSettings.cs,30,GameSettings,ExplorationSettings,exploration,serialized,,"""탐색 세팅(백스테이지 탐색·탈출 단계·추격자)."""
+Assets/Scripts/Systems/Settings/GameSettings.cs,33,GameSettings,EscapeRouteSettings,escapeRoute,serialized,,"""탈출로 세팅(탈출로 구간·추격·엔딩)."""
+Assets/Scripts/Systems/Settings/HumanCannonSettings.cs,10,HumanCannonSettings,float,jumpHeight,serialized,1.2f,"""인간대포 공간에서 일반 점프의 높이(m, 발 기준 최고점). 부상 배율은 별도로 적용. 대포 발사와 트램폴린 반동에는 적용하지 않는다."""
+Assets/Scripts/Systems/Settings/HumanCannonSettings.cs,14,HumanCannonSettings,float,cannonCooldown,serialized,5f,"""발사부터 다시 탑승할 수 있을 때까지의 시간(초). 포신이 내려간 상태의 대기 시간을 조절합니다."""
+Assets/Scripts/Systems/Settings/HumanCannonSettings.cs,18,HumanCannonSettings,float,poleJumpHorizontalSpeedLimit,serialized,8f,"""봉을 놓은 뒤 최대 수평 속도(m/s). WASD 공중 보정도 이 상한에 포함한다. 수직 속도·대포 발사·트램폴린에는 적용하지 않는다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,16,TightropeSettings,CourseSettings,course,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,18,TightropeSettings,RunSettings,run,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,20,TightropeSettings,RopeMovementSettings,ropeMovement,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,22,TightropeSettings,HandholdSettings,handhold,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,24,TightropeSettings,PiggybackSettings,piggyback,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,26,TightropeSettings,CameraSettings,camera,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,28,TightropeSettings,BodyPenaltySettings,bodyPenalty,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,30,TightropeSettings,Tightrope.Saws.SawSettings,saws,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,32,TightropeSettings,Tightrope.Fire.FireSettings,fire,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,34,TightropeSettings,HangSettings,hang,serialized,new(),
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,60,TightropeSettings.HangSettings,float,holdSeconds,serialized,7f,"""매달려 버티는 시간(초). 다 지나면 낙사. 기획 7."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,62,TightropeSettings.HangSettings,float,pullSeconds,serialized,2f,"""동료가 F를 누른 뒤 끌어올리는 시간(초). 그동안 버티는 시간이 멈춘다. 기획 2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,64,TightropeSettings.HangSettings,float,rescueDistance,serialized,2.5f,"""끌어올릴 수 있는 수평 거리(m, 동료 발 ~ 매달린 줄 지점). 구조 판정 완화 기본 2.5."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,66,TightropeSettings.HangSettings,float,rescueHeightTolerance,serialized,.75f,"""구조할 때 줄 윗면과 동료 발 사이에 허용하는 높이 차이(m). 기본 0.75. 공중에서는 구조 불가."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,68,TightropeSettings.HangSettings,int,laneReach,serialized,1,"""목마 낙하 때 잡을 수 있는 옆줄 범위(줄 수). 0이면 같은 줄만. 기획 '근처 줄'(임시 1)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,70,TightropeSettings.HangSettings,float,laneOccupyDistance,serialized,2f,"""같은 줄의 다른 매달린 사람과 이 거리(m) 안이면 그 줄은 이미 찬 것으로 본다(한 줄에 한 명). 임시 2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,72,TightropeSettings.HangSettings,float,hangDrop,serialized,1.9f,"""매달린 몸의 발이 줄 윗면보다 내려가는 거리(m). 보이는 자세용."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,91,TightropeSettings.CourseSettings,int,laneCount,serialized,4,"""줄 수(개). 기획 4."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,94,TightropeSettings.CourseSettings,float,laneSpacing,serialized,3f,"""줄 중심 간격(m). 옆줄 점프 거리도 이 값이 된다. 기획 3."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,97,TightropeSettings.CourseSettings,float[],laneEndDistances,serialized,Array.Empty<float>(),"""줄마다 끝나는 거리(m, 왼쪽 줄부터). 비우거나 0 이하·도착 거리 이상이면 도착까지 간다. 기획: 모든 줄이 도착까지."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,100,TightropeSettings.CourseSettings,float,finishDistance,serialized,100f,"""코스 길이 = 도착 판정선(m, 외줄 시작점에서). 기획 100."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,103,TightropeSettings.CourseSettings,Vector2[],laneChangeZones,serialized,"{ new(0f, 100f) }","""옆줄 이동 가능 구간(m). x = 시작, y = 끝. 구간 밖에서는 옆줄 이동을 막는다. 2026-10-03 PM: 0~100 전 구간."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,107,TightropeSettings.CourseSettings,bool,swingGapEnabled,serialized,true,"""기획 초기 테스트: 중간 줄을 끊고 회전봉으로 건너는 구간을 만든다. 짧은 테스트 코스에는 적용하지 않는다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,109,TightropeSettings.CourseSettings,bool,relayGapEnabled,serialized,true,"""끊긴 구간을 해제봉 교대 관문으로 사용한다. 켜면 모든 줄이 끊기며 출발·도착 봉으로 연결한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,111,TightropeSettings.CourseSettings,int,relayRequiredHolders,serialized,1,"""양쪽에서 통로를 유지하는 데 필요한 봉 인원. 첫 관문 1, 심화 관문 2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,113,TightropeSettings.CourseSettings,float,relayHoldSeconds,serialized,30f,"""해제봉 최대 유지 시간(초). 첫 교대 관문 초기값 30. 놓기 예고는 인간대포 봉의 값을 사용한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,115,TightropeSettings.CourseSettings,int[],swingGapLanes,serialized,"{ 2, 5 }","""줄을 끊고 개별 봉을 둘 줄 번호(1부터). 나머지 줄은 이어진다. 초기 배치: 2·5번 줄."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,117,TightropeSettings.CourseSettings,float,swingGapStart,serialized,128f,"""끊어진 구간 시작 거리(m). 초기 테스트 128."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,119,TightropeSettings.CourseSettings,float,swingGapLength,serialized,8f,"""끊어진 줄 길이(m). 초기 테스트 8."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,122,TightropeSettings.CourseSettings,bool,trapezeEnabled,serialized,true,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,123,TightropeSettings.CourseSettings,float,trapezeStart,serialized,110f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,124,TightropeSettings.CourseSettings,float,trapezeLength,serialized,16f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,126,TightropeSettings.CourseSettings,int,trapezeLane,serialized,3,"""공중 봉 세 개를 배치할 줄 번호(1부터). 구간의 모든 줄을 끊어 봉으로 건너도록 한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,129,TightropeSettings.CourseSettings,float,startPlatformLength,serialized,6f,"""시작(대기) 플랫폼 길이(m). 기획 6."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,132,TightropeSettings.CourseSettings,float,finishPlatformLength,serialized,6f,"""도착(세리머니) 플랫폼 길이(m). 기획 6."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,135,TightropeSettings.CourseSettings,float,sideMargin,serialized,2f,"""양쪽 끝 줄 중심에서 맵 경계까지 여유(m). 기획 2(유효 폭 13m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,138,TightropeSettings.CourseSettings,float,platformThickness,serialized,0.5f,"""플랫폼 두께(m). 윗면이 줄 높이와 같다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,141,TightropeSettings.CourseSettings,float,ropeThickness,serialized,0.2f,"""줄 굵기(m, 보이는 지름). 기획 0.2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,144,TightropeSettings.CourseSettings,float,ropeWalkWidth,serialized,0.4f,"""줄 위를 걸을 수 있는 폭(m, 충돌 폭). 보이는 굵기보다 넓어야 캐릭터가 서 있는다. 0.4."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,147,TightropeSettings.CourseSettings,float,ropeHeightTolerance,serialized,0.3f,"""발 높이가 줄 윗면에서 이 거리(m) 안이면 줄 위로 본다. 0.3."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,150,TightropeSettings.CourseSettings,float,spawnDistance,serialized,-1f,"""출발 위치(m, 외줄 시작점 기준). 음수면 시작 플랫폼 위. -1."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,154,TightropeSettings.CourseSettings,float,safetyNetDepth,serialized,6f,"""코스 아래 안전망 깊이(m). 떨어진 캐릭터를 받는다. 0이면 만들지 않는다. 6."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,157,TightropeSettings.CourseSettings,float,fallDepth,serialized,1f,"""캐릭터가 줄 높이보다 이만큼(m) 내려가면 추락 처리. 기획 값이 없어 테스트 값 1."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,160,TightropeSettings.CourseSettings,CourseSection[],sections,serialized,"{
+                new(.22727273f, ""균형과 점프"", new Color(.18f, .52f, 1f)),
+                new(.40909091f, ""줄바꿈"", new Color(.12f, .82f, .7f)),
+                new(.59090909f, ""첫 협동 관문"", new Color(.65f, .4f, 1f)),
+                new(.77272727f, ""동료와 합류"", new Color(.95f, .38f, .68f)),
+                new(.95454545f, ""마지막 줄 선택"", new Color(.65f, .85f, .25f)),
+                new(1f, ""한 줄 피날레"", new Color(.95f, .95f, 1f))
+            }","""진행 구간의 끝 비율·이름·줄 색. 충돌면은 색 경계에서 끊기지 않는다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,230,TightropeSettings.RunSettings,float,timeLimit,serialized,300f,"""제한시간(초). 게임 시작부터 잰다. 기획 300(5분)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,233,TightropeSettings.RunSettings,float,restartDelay,serialized,3f,"""실패 후 묘기 재시작까지 기다리는 시간(초). 기획 값이 없어 테스트 값 3."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,244,TightropeSettings.RopeMovementSettings,float,jumpHeightMultiplier,serialized,1.25f,"""공통 점프 높이에 곱하는 외줄 높이 배율. 2026-10-19 사용자 요청: 0.8m → 1.0m."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,246,TightropeSettings.RopeMovementSettings,float,jumpInputBuffer,serialized,0.15f,"""착지 직전 점프 입력을 기억하는 시간(초). 0이면 입력 여유를 끈다. 옆줄 방향은 누른 순간 기준."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,249,TightropeSettings.RopeMovementSettings,float,naturalSwayMultiplier,serialized,1.5f,"""외줄의 자연 흔들림 배율(×). 걷기·제자리 흔들림에 적용하고 부상·목마·옆줄 착지 배율과 곱한다. A/D 보정 힘과 추락 기준은 바꾸지 않는다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,253,TightropeSettings.RopeMovementSettings,float,dynamicIdleSway,serialized,6f,"""서 있을 때에도 강약과 방향이 변하는 추가 흔들림(초당). 0이면 끈다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,255,TightropeSettings.RopeMovementSettings,float,dynamicMovingSway,serialized,12f,"""걷는 동안 추가 흔들림(초당). A/D 보정과 별도로 실제 균형에 반영한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,257,TightropeSettings.RopeMovementSettings,float,dynamicSwayFrequency,serialized,.55f,"""큰 흔들림의 초당 왕복 횟수. 더 빠르고 작은 흔들림도 함께 겹친다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,259,TightropeSettings.RopeMovementSettings,float,sharedSwayRange,serialized,12f,"""동일한 연결 줄 위 동료의 하중이 전달되는 앞뒤 거리(m). 가까울수록 강하다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,261,TightropeSettings.RopeMovementSettings,float,sharedSwayPerPlayer,serialized,.25f,"""가까운 동료 한 명당 자연·동적 흔들림에 더하는 배율. 총 증가는 최대 75%."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,270,TightropeSettings.RopeMovementSettings,float,landingShock,serialized,10f,"""착지 충격. 현재 기울어진 쪽으로 밀며 목마 배율을 곱한다. 추락 위험 시간은 직접 더하지 않는다. 기획 10."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,273,TightropeSettings.RopeMovementSettings,float,minAirTimeForShock,serialized,0.15f,"""이 시간(초)보다 짧게 떠 있었으면 착지 충격을 주지 않는다(작은 턱 무시). 0.15."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,276,TightropeSettings.RopeMovementSettings,float,laneLandingShock,serialized,35f,"""옆줄 점프 착지 충격. 현재 기울어진 쪽으로 밀며 중앙에서는 점프 방향을 쓴다. 기획 35."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,279,TightropeSettings.RopeMovementSettings,float,laneLandingDangerRatio,serialized,.05f,"""옆줄에 착지할 때 더하는 추락 게이지 비율(0~1). 0.05면 전체 바의 5%. 충격 완충·목마 배율과 무관하게 적용한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,282,TightropeSettings.RopeMovementSettings,float,laneSwayBoost,serialized,1.5f,"""옆줄 점프 착지 후 자연 흔들림 배율(×). 고도화 초기값 1.5(이전 1.75)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,285,TightropeSettings.RopeMovementSettings,float,laneSwayBoostDuration,serialized,1.5f,"""옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 고도화 초기값 1.5(이전 3)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,289,TightropeSettings.RopeMovementSettings,float,trapezeEntryHeightTolerance,serialized,1.2f,"""첫 높은 봉과 플레이어 발 높이의 허용 차이(m). 짧아진 목마 높이·점프에도 잡을 여유를 준다. 팔 부상은 수평 잡기 거리에 적용한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,291,TightropeSettings.RopeMovementSettings,float,trapezeEntryGrabDistance,serialized,1.05f,"""첫 높은 봉의 수평 잡기 거리(m). 팔 부상의 상호작용 거리 배율을 곱한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,297,TightropeSettings.RopeMovementSettings,float,landingWaveRange,serialized,6f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,298,TightropeSettings.RopeMovementSettings,float,landingWaveSpeed,serialized,10f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,299,TightropeSettings.RopeMovementSettings,float,landingWaveShock,serialized,6f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,300,TightropeSettings.RopeMovementSettings,float,landingWaveDelay,serialized,.2f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,325,TightropeSettings.HandholdSettings,float,distance,serialized,1f,"""옆줄 착지 지점과 같은 줄 동료의 앞뒤 거리(m, 몸 중심끼리)가 이 안이면 손잡기. 기획 1.0."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,328,TightropeSettings.HandholdSettings,float,reduction,serialized,0.5f,"""손잡기 때 옆줄 착지 충격·흔들림 증가 감소율(0~1). 기획 0.5(50%)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,331,TightropeSettings.HandholdSettings,float,readySeconds,serialized,3f,"""F로 동료를 받을 준비를 유지하는 시간(초). 이동·점프하면 해제한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,332,TightropeSettings.HandholdSettings,float,activeDistance,serialized,1.25f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,333,TightropeSettings.HandholdSettings,float,activeReduction,serialized,0.9f,
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,337,TightropeSettings.HandholdSettings,bool,relayBraceEnabled,serialized,true,"""봉 앞에서 F로 버티는 동료는 착지 충격을 완충하고, 양쪽 발판의 준비는 주변 톱 정지를 요청한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,339,TightropeSettings.HandholdSettings,float,relaySourceOffset,serialized,3f,"""끊어진 줄 시작점에서 뒤쪽 버팀 표시까지 거리(m). 봉 잡기 위치와 겹치지 않게 둔다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,341,TightropeSettings.HandholdSettings,float,relayPadRadius,serialized,.6f,"""버팀 표시의 앞뒤 위치 허용 거리(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,358,TightropeSettings.PiggybackSettings,float[],stackMultipliers,serialized,"{ 1f, 1.3f, 1.6f, 2f }","""목마 전체 인원별 흔들림 배율(×, 1인~4인 순서). 자연 흔들림과 충격에 곱한다. 기획 1 / 1.3 / 1.6 / 2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,361,TightropeSettings.PiggybackSettings,float,upperTransfer,serialized,0.2f,"""위층 균형 전달: 초당 (내 위층 균형값 합 × 이 값)만큼 같은 방향으로 민다. 기획 0.2."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,364,TightropeSettings.PiggybackSettings,float,linkDistance,serialized,1.5f,"""목마 연결 거리(m, 수평). F 짧게를 누른 사람과 상대(목마면 맨 아래 사람) 사이가 이 안이어야 올라간다. 호스트 값으로 판정. 기획 미정(임시 1.5)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,367,TightropeSettings.PiggybackSettings,float,fallShock,serialized,10f,"""위층이 떨어질 때 바로 아래층이 받는 반동 충격(균형 ±, 랜덤 방향, 목마 배율 적용). 호스트 값으로 보낸다. 기획 미정(임시 10, 착지 충격과 같음)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,370,TightropeSettings.PiggybackSettings,float,jumpHeightMultiplier,serialized,1.5f,"""목마 맨 위 점프의 높이 배율(×). 부상 배율을 적용한 기존 높이에 곱하며, 제자리·앞뒤 분리·옆줄 분리 점프에 적용한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,373,TightropeSettings.PiggybackSettings,float,forwardJumpSpeed,serialized,2.2f,"""맨 위 W + SB 앞으로 분리 점프의 수평 속도(m/s). 높이는 목마 점프 배율을 적용한다. 기획 미정(임시 2.2)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,376,TightropeSettings.PiggybackSettings,float,backwardJumpSpeed,serialized,0.7f,"""맨 위 S + SB 뒤로 분리 점프의 수평 속도(m/s). 높이는 목마 점프 배율을 적용한다. 기획 미정(임시 0.7)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,400,TightropeSettings.CameraSettings,float,height,serialized,3.75f,"""카메라 높이(m, 내 캐릭터 발 기준 위). 이전 2.6. 기획 미정(임시 3.75)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,403,TightropeSettings.CameraSettings,float,distance,serialized,4.5f,"""카메라 거리(m, 코스 뒤쪽)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,406,TightropeSettings.CameraSettings,float,lookHeight,serialized,1.2f,"""바라보는 점 높이(m, 내 캐릭터 발 기준)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,409,TightropeSettings.CameraSettings,float,lookAhead,serialized,1.75f,"""바라보는 점을 내 캐릭터 앞쪽으로 옮기는 거리(m). 앞 장애물이 화면 가운데로 온다. 기획 미정(임시 1.75)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,412,TightropeSettings.CameraSettings,float,nearbyRadius,serialized,6f,"""함께 화면에 담을 가까운 동료의 수평 거리(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,415,TightropeSettings.CameraSettings,float,obstacleLookAhead,serialized,8f,"""앞쪽 톱날을 미리 화면에 담는 거리(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,418,TightropeSettings.CameraSettings,float,maximumDistance,serialized,12f,"""목마·동료·장애물을 담기 위해 카메라가 멀어질 수 있는 최대 거리(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,421,TightropeSettings.CameraSettings,float,framingPadding,serialized,0.5f,"""화면 가장자리와 대상 사이의 여유(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,424,TightropeSettings.CameraSettings,float,contextLookAhead,serialized,2f,"""앞 장애물을 볼 때 추가로 앞을 바라보는 최대 거리(m)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,427,TightropeSettings.CameraSettings,float,framingSmoothTime,serialized,0.45f,"""상황에 따라 구도가 넓어지고 돌아오는 완충 시간(초)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,430,TightropeSettings.CameraSettings,float,occluderAlpha,serialized,0.35f,"""카메라와 내 캐릭터 사이를 가리는 것(다른 플레이어·장애물)의 투명도(0 투명 ~ 1 불투명). 기획 미정(임시 0.35)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,433,TightropeSettings.CameraSettings,float,occluderRadius,serialized,0.4f,"""가림 판정 굵기(m, 반지름). 카메라→내 캐릭터 선에서 이 안에 걸리면 흐리게 한다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,436,TightropeSettings.CameraSettings,float,fadeSpeed,serialized,6f,"""흐려지고 돌아오는 빠르기(초당 투명도 변화)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,461,TightropeSettings.BodyPenaltySettings,float,oneLegMoveSpeed,serialized,0.8f,"""다리 하나만 잃었을 때 이동 속도 배율(×). 두 다리를 잃으면 기어가기 속도(게임 기본 세팅)를 쓴다. 임시값 0.8."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,464,TightropeSettings.BodyPenaltySettings,float,minimumInjuredMoveSpeed,serialized,0.8f,"""외줄에서 다리를 잃어도 유지할 최소 이동 속도 배율. 공통 기어가기 감속을 포함한 최종 값이다."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,467,TightropeSettings.BodyPenaltySettings,float,swayPerLostLeg,serialized,0.25f,"""잃은 다리 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 다리 수. 임시값 0.25(하나 ×1.25, 둘 ×1.5)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,470,TightropeSettings.BodyPenaltySettings,float,swayPerLostArm,serialized,0.1f,"""잃은 팔 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 팔 수. 다리 쪽 배율과 곱한다. 임시값 0.1."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,473,TightropeSettings.BodyPenaltySettings,float,leglessLandingShock,serialized,1.5f,"""두 다리를 잃었을 때 제자리 점프 착지 충격 배율(×). 임시값 1.5(10 → 15)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,476,TightropeSettings.BodyPenaltySettings,float,leglessLaneLandingShock,serialized,1.5f,"""두 다리를 잃었을 때 옆줄 이동 착지 충격 배율(×). 임시값 1.5(35 → 52.5)."""
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,479,TightropeSettings.BodyPenaltySettings,float,reachLossPerArm,serialized,0.25f,"""잃은 팔 하나당 상호작용(목마 올라타기) 가능 거리 감소(−). 1 − 이 값 × 잃은 팔 수. 임시값 0.25(하나 ×0.75, 둘 ×0.5). 목마(006)가 이 거리를 쓴다."""
+Assets/Scripts/Systems/Settings/TrickSettings.cs,13,TrickSettings,float,sawDensity,serialized,.6f,"""이번 빌드는 1단계 고정: 기준 배치의 60%. 난이도 선택 기능은 구현하지 않는다. 2단계 85%·3단계 110%는 추후 계획이며 이번 빌드에 적용하지 않는다."""
+Assets/Scripts/Systems/Settings/TrickSettings.cs,15,TrickSettings,float,sawDiagonalDegrees,serialized,30f,"""위에서 본 기존 이동축과 사선 경로의 각도(도). 톱마다 +/−를 번갈아 쓴다."""
+Assets/Scripts/Systems/Settings/TrickSettings.cs,36,TrickSettings,RewardTable,reward,serialized,,"""이 묘기의 보상 규칙 파일(Tricks/Rewards/). 규칙을 바꾸려면 다른 파일을 끼운다. 미연결 묘기는 연결 Task에서 배정한다."""
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,13,WaitingRoomSettings,int,dummySpendAmount,serialized,10,
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,17,WaitingRoomSettings,bool,allowPurchasesDuringRest,serialized,true,"""켜면 아침·낮·첫날 가이드 쉬는 시간에도 기물을 구매할 수 있습니다. 밤 정비에는 항상 구매할 수 있습니다."""
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,22,WaitingRoomSettings,int,bodyRestoreBasePrice,serialized,50,"""팔다리 1개당 기본 가격(토큰). 런(세대)이 새로 시작되면 이 값으로 돌아간다."""
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,24,WaitingRoomSettings,int,bodyRestorePriceStep,serialized,25,"""팀 전체가 한 번 이용할 때마다 오르는 다음 1개당 가격(토큰). 여러 개를 고쳐도 한 번만 오른다."""
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,26,WaitingRoomSettings,int,bodyRestoreMaxParts,serialized,3,"""한 번에 복구할 수 있는 최대 팔다리 수."""
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,29,WaitingRoomSettings,PursuitSettings,pursuit,serialized,new(),
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,11,SettingsUiPreview,SettingsPanelView,settings,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,12,SettingsUiPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,13,SettingsUiPreview,TMP_Text,samplesCaption,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,14,SettingsUiPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,15,SettingsUiPreview,CurtainCallTabVisual,sampleTab,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,16,SettingsUiPreview,CurtainCallSliderVisual,sampleSlider,serialized,,
+Assets/Scripts/Systems/SettingsUi/SettingsUiPreview.cs,17,SettingsUiPreview,CurtainCallToggleVisual,sampleToggle,serialized,,
+Assets/Scripts/Systems/ShopUi/ShopUiPreview.cs,11,ShopUiPreview,ShopPanelView,shop,serialized,,
+Assets/Scripts/Systems/ShopUi/ShopUiPreview.cs,12,ShopUiPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/ShopUi/ShopUiPreview.cs,13,ShopUiPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/ShopUi/ShopUiPreview.cs,14,ShopUiPreview,UnityEngine.UI.Button[],controls,serialized,,
+Assets/Scripts/Systems/SpaceLink/SpaceLinkHub.cs,16,SpaceLinkHub,GameObject[],hubUi,serialized,new GameObject[0],"""공간 씬이 붙어 있는 동안 끌 시작 씬 화면(Hub Canvas·Hub EventSystem). 빌더가 채운다."""
+Assets/Scripts/Systems/Spectator/SpectatorPreview.cs,12,SpectatorPreview,SpectatorView,spectator,serialized,,
+Assets/Scripts/Systems/Spectator/SpectatorPreview.cs,13,SpectatorPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Spectator/SpectatorPreview.cs,14,SpectatorPreview,TMP_Text,independentCaption,serialized,,
+Assets/Scripts/Systems/Spectator/SpectatorPreview.cs,15,SpectatorPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/Spectator/SpectatorPreview.cs,16,SpectatorPreview,GuideView,guide,serialized,,
+Assets/Scripts/Systems/StartLobby/LobbyCamera.cs,14,LobbyCamera,Vector3,focus,serialized,"new(0f, 0.8f, 3f)","""카메라가 바라보는 로비 중심(월드)."""
+Assets/Scripts/Systems/StartLobby/LobbyCamera.cs,16,LobbyCamera,float,follow,serialized,0.3f,"""내 캐릭터를 따라가는 비율(0 = 완전 고정, 1 = 그대로 따라감)."""
+Assets/Scripts/Systems/StartLobby/LobbyCamera.cs,18,LobbyCamera,Rect,bounds,serialized,"new(-1.2f, -0.6f, 2.4f, 1.2f)","""카메라 이동 한계(월드 좌표, x·z). 맵 밖을 비추지 않게 작게 둔다."""
+Assets/Scripts/Systems/StartLobby/LobbyCamera.cs,19,LobbyCamera,float,smoothTime,serialized,0.35f,
+Assets/Scripts/Systems/StartLobby/LobbyCurtainLever.cs,14,LobbyCurtainLever,LobbyReadyBoard,board,serialized,,
+Assets/Scripts/Systems/StartLobby/LobbyCurtainLever.cs,16,LobbyCurtainLever,Transform,handle,serialized,,"""당기면 X축으로 기우는 손잡이."""
+Assets/Scripts/Systems/StartLobby/LobbyCurtainLever.cs,17,LobbyCurtainLever,float,pulledAngle,serialized,50f,
+Assets/Scripts/Systems/StartLobby/LobbyInteractable.cs,11,LobbyInteractable,float,reach,serialized,1.8f,"""이 거리(m, 수평) 안에 들어오면 쓸 수 있다."""
+Assets/Scripts/Systems/Survival/InjurySurvivalTestUI.cs,21,InjurySurvivalTestUI,Rect,_panelRect,serialized,"new Rect(770, 10, 520, 700)",
+Assets/Scripts/Systems/Tooltips/TooltipPreview.cs,10,TooltipPreview,TooltipView,tooltip,serialized,,
+Assets/Scripts/Systems/Tooltips/TooltipPreview.cs,11,TooltipPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/Tooltips/TooltipPreview.cs,12,TooltipPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/TransitionCurtain/TransitionCurtainPreview.cs,8,TransitionCurtainPreview,TransitionCurtainView,view,serialized,,
+Assets/Scripts/Systems/TransitionCurtain/TransitionCurtainPreview.cs,9,TransitionCurtainPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/TransitionCurtain/TransitionCurtainPreview.cs,10,TransitionCurtainPreview,UnityEngine.UI.Button[],buttons,serialized,,
+Assets/Scripts/Systems/WorldLabels/WorldLabelPreview.cs,11,WorldLabelPreview,WorldLabelView[],views,serialized,,
+Assets/Scripts/Systems/WorldLabels/WorldLabelPreview.cs,12,WorldLabelPreview,TMP_Text,status,serialized,,
+Assets/Scripts/Systems/WorldLabels/WorldLabelPreview.cs,13,WorldLabelPreview,Transform,observer,serialized,,
+Assets/Scripts/Systems/WorldLabels/WorldLabelPreview.cs,14,WorldLabelPreview,Camera,previewCamera,serialized,,
+Assets/Scripts/Systems/WorldLabels/WorldLabelPreview.cs,15,WorldLabelPreview,Sprite[],defaultIcons,serialized,,
+Assets/Scripts/UI/SceneIntegration/BalanceRiskBlink.cs,18,BalanceRiskBlink,float,threshold,serialized,0.7f,"""이 비율 이상 차면 깜빡이기 시작한다."""
+Assets/Scripts/UI/SceneIntegration/BalanceRiskBlink.cs,20,BalanceRiskBlink,Vector2,blinkHz,serialized,"new(3f, 7f)","""기준에 막 닿았을 때와 가득 찼을 때의 깜빡임 횟수(초당)."""
+Assets/Scripts/UI/SceneIntegration/BalanceRiskBlink.cs,22,BalanceRiskBlink,Color,color,serialized,"new(1f, 0.08f, 0.05f, 1f)","""깜빡일 때 테두리 색."""
+Assets/Scripts/UI/SceneIntegration/BalanceRiskBlink.cs,24,BalanceRiskBlink,float,thickness,serialized,4f,"""테두리 두께(px). 트랙 바깥선에서 안쪽으로 그린다. 채움 막대까지 여백은 4px."""
+Assets/Scripts/UI/SceneIntegration/BalanceZoneColors.cs,15,BalanceZoneColors,Color,safeFill,serialized,"new(0.08f, 0.6f, 0.34f, 1f)",
+Assets/Scripts/UI/SceneIntegration/BalanceZoneColors.cs,16,BalanceZoneColors,Color,warningFill,serialized,"new(0.95f, 0.62f, 0f, 1f)",
+Assets/Scripts/UI/SceneIntegration/BalanceZoneColors.cs,17,BalanceZoneColors,Color,dangerFill,serialized,"new(0.8f, 0.1f, 0.14f, 1f)",
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,23,CommonInteractionUI,InteractionPromptView,prompt,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,24,CommonInteractionUI,RectTransform,promptAnchor,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,25,CommonInteractionUI,float,highlightDistance,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,26,CommonInteractionUI,float,outlinePixels,serialized,6f,
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,28,CommonInteractionUI,float,waitingRoomOutlinePixels,serialized,2.5f,"""대기실 상호작용 대상 외곽선 두께(픽셀). 2026-11-02 사용자: 대기실 외곽선이 너무 넓다."""
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,30,CommonInteractionUI,float,waitingRoomHighlightDistance,serialized,2.5f,"""대기실 상호작용 대상에 외곽선을 띄우는 거리(m). 2026-11-02 사용자: 너무 먼 대상까지 표시된다."""
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,31,CommonInteractionUI,Color,outlineColor,serialized,"new Color(3f, 2.8f, 2.2f, 1f)",
+Assets/Scripts/UI/SceneIntegration/CommonInventoryUI.cs,32,CommonInventoryUI,UnityEngine.UI.Image,heldIndicator,serialized,,"""이름 칸(SelectedProp) 아래에 배치한 손 아이콘. 그림·크기·위치는 씬에서 고친다(코드는 켜고 끄기만)"""
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,45,CommonMenuUI,CurtainCallMenuPanels,menu,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,46,CommonMenuUI,CommonSettingsUI,settings,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,47,CommonMenuUI,GameObject,backdrop,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,48,CommonMenuUI,TMP_Text,leaveMessage,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,49,CommonMenuUI,TMP_Text,footer,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonPerformanceUI.cs,14,CommonPerformanceUI,PerformanceHUDView,hud,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonPerformanceUI.cs,15,CommonPerformanceUI,C1CheerGaugeView,cheer,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonPerformanceUI.cs,18,CommonPerformanceUI,PerformanceFeedback,feedback,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonPerformanceUI.cs,21,CommonPerformanceUI,GuideView,guide,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonPerformanceUI.cs,22,CommonPerformanceUI,TooltipView,tooltip,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,23,CommonSettingsUI,SettingsPanelView,main,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,24,CommonSettingsUI,SettingsPanelView,teammates,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,25,CommonSettingsUI,CanvasGroup,mainGroup,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,26,CommonSettingsUI,UnityEngine.UI.Button,teammateButton,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,27,CommonSettingsUI,TMP_Text,controlsHint,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,28,CommonSettingsUI,TMP_Text,teammateHint,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,18,CommonWaitingRoomUI,BackstageHUDView,hud,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,19,CommonWaitingRoomUI,CaptionView,captions,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,20,CommonWaitingRoomUI,SystemNotificationsView,notifications,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,21,CommonWaitingRoomUI,CommonIconCatalog,icons,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,22,CommonWaitingRoomUI,float,inventorySeconds,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,23,CommonWaitingRoomUI,float,announcementSeconds,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,24,CommonWaitingRoomUI,float,fundsAccentSeconds,serialized,1f,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,29,CommonWaitingRoomUI,DayClockView,dayClock,serialized,,
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,30,CommonWaitingRoomUI,RestTimerView,restTimer,serialized,,
+Assets/Scripts/UI/SceneIntegration/HumanCannonUiBinding.cs,18,HumanCannonUiBinding,HumanCannonCourseSections,legacy,serialized,,
+Assets/Scripts/UI/SceneIntegration/HumanCannonUiBinding.cs,19,HumanCannonUiBinding,HumanCannonCourseSections.Boundaries,boundaries,serialized,,
+Assets/Scripts/UI/SceneIntegration/HumanCannonUiBinding.cs,20,HumanCannonUiBinding,TMP_Text,sectionLabel,serialized,,
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,18,InventorySlotDurabilityBar,Image,segmentTemplate,serialized,,"""칸 하나의 그림. 비활성으로 두면 남은 횟수만큼 복제한다"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,20,InventorySlotDurabilityBar,GameObject,visibleRoot,serialized,,"""바 전체를 켜고 끄는 대상. 비우면 이 오브젝트"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,21,InventorySlotDurabilityBar,Color,filledColor,serialized,"new(1f, .84f, .38f, 1f)",
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,23,InventorySlotDurabilityBar,Color,wornColor,serialized,"new(1f, .45f, .25f, 1f)","""낡은 상태(기물 목록 wornAtOrBelow 이하)일 때 채운 칸 색"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,24,InventorySlotDurabilityBar,Color,emptyColor,serialized,"new(1f, 1f, 1f, .2f)",
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,26,InventorySlotDurabilityBar,Color,consumeFlashColor,serialized,Color.white,
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,27,InventorySlotDurabilityBar,float,consumeFlashSeconds,serialized,.08f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,28,InventorySlotDurabilityBar,float,consumeFadeSeconds,serialized,.45f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotDurabilityBar.cs,29,InventorySlotDurabilityBar,float,consumePunchScale,serialized,.6f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotSelectionBorder.cs,13,InventorySlotSelectionBorder,Image,image,serialized,,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,20,InventorySlotUseEffect,Image,icon,serialized,,"""기물 아이콘(30_Item)"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,22,InventorySlotUseEffect,Image,flash,serialized,,"""칸 전체를 덮는 번쩍임 그림. 평소 알파 0"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,24,InventorySlotUseEffect,Image,breakGhost,serialized,,"""파괴 연출 때 사라진 기물 그림을 띄우는 그림. 평소 꺼 둠"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,26,InventorySlotUseEffect,Material,effectMaterial,serialized,,"""All In 1 Sprite Shader UI 머티리얼(HITEFFECT_ON·FADE_ON). 비우면 셰이더 효과 없이 나머지만"""
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,29,InventorySlotUseEffect,Color,useFlashColor,serialized,"new(1f, .93f, .6f, .85f)",
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,30,InventorySlotUseEffect,float,useSeconds,serialized,.4f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,31,InventorySlotUseEffect,float,useIconPunch,serialized,.35f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,32,InventorySlotUseEffect,float,useHitBlend,serialized,.85f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,35,InventorySlotUseEffect,Color,breakFlashColor,serialized,"new(1f, .3f, .22f, .9f)",
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,36,InventorySlotUseEffect,float,breakSeconds,serialized,.7f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,37,InventorySlotUseEffect,float,breakGhostScale,serialized,1.45f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,38,InventorySlotUseEffect,float,breakGhostSpin,serialized,18f,
+Assets/Scripts/UI/SceneIntegration/InventorySlotUseEffect.cs,40,InventorySlotUseEffect,float,breakFadeTo,serialized,.65f,"""파괴 때 Fade Amount 끝 값. 0.6 근처면 그림이 다 타 없어진다"""
+Assets/Scripts/UI/SceneIntegration/MicrophoneStatusIcon.cs,10,MicrophoneStatusIcon,bool,muted,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,25,PerformanceEndingPresentation,SystemNotificationsView,notifications,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,26,PerformanceEndingPresentation,CurtainCallPanelView,resultPanel,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,27,PerformanceEndingPresentation,ResultsPanelView,resultsView,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,28,PerformanceEndingPresentation,TMP_Text,title,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,28,PerformanceEndingPresentation,TMP_Text,summary,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,29,PerformanceEndingPresentation,CanvasGroup,black,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,30,PerformanceEndingPresentation,TransitionCurtainView,curtain,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceFeedback.cs,14,PerformanceFeedback,FeedbackView,view,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceFeedback.cs,15,PerformanceFeedback,TMP_Text,amount,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,21,PerformanceSceneBinding,TightropeBalanceView,localBalance,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,22,PerformanceSceneBinding,bool,sharedScene,serialized,true,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,23,PerformanceSceneBinding,bool,presentationOnly,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,25,PerformanceSceneBinding,BalanceGaugeView,legacyBalance,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,26,PerformanceSceneBinding,bool,humanCannon,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,27,PerformanceSceneBinding,Transform,cannonStart,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,28,PerformanceSceneBinding,Transform,cannonFinish,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,29,PerformanceSceneBinding,HumanCannonFireWall[],cannonFires,serialized,Array.Empty<HumanCannonFireWall>(),
+Assets/Scripts/UI/SceneIntegration/PerformanceSpectatorBinding.cs,14,PerformanceSpectatorBinding,SpectatorView,view,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceWorldLabelBinding.cs,10,PerformanceWorldLabelBinding,TMP_Text,source,serialized,,
+Assets/Scripts/UI/SceneIntegration/PerformanceWorldLabelBinding.cs,11,PerformanceWorldLabelBinding,WorldLabelView,view,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,28,ResultsPanelView,CanvasGroup,visuals,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,29,ResultsPanelView,RectTransform,layoutStage,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,30,ResultsPanelView,Image,ribbon,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,30,ResultsPanelView,Image,grandCrest,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,30,ResultsPanelView,Image,maximumMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,31,ResultsPanelView,Sprite,failureRibbon,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,31,ResultsPanelView,Sprite,successRibbon,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,31,ResultsPanelView,Sprite,grandRibbon,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,32,ResultsPanelView,Sprite,selfMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,32,ResultsPanelView,Sprite,teammateMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,33,ResultsPanelView,TextLayers,textLayers,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,34,ResultsPanelView,MemberLayers[],memberLayers,serialized,new MemberLayers[4],
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,35,ResultsPanelView,CurtainCall.UI.ResultsV1.CurtainCallButton,acknowledge,serialized,,
+Assets/Scripts/UI/SceneIntegration/ResultsPanelView.cs,36,ResultsPanelView,ResultsRewardTransfer,rewardTransfer,serialized,,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,19,ShopDescriptionScroll,ScrollRect,scroll,serialized,,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,20,ShopDescriptionScroll,RectMask2D,mask,serialized,,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,21,ShopDescriptionScroll,TMP_Text,text,serialized,,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,25,ShopDescriptionScroll,int,fadeHeight,serialized,40,"""더 읽을 글이 있는 쪽 가장자리를 흐리게 하는 높이(px). 0이면 흐리지 않음"""
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,27,ShopDescriptionScroll,float,fadeSpeed,serialized,240f,"""흐림이 나타나고 사라지는 빠르기(초당 px)"""
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,31,ShopDescriptionScroll,CanvasGroup,moreIndicator,serialized,,"""아래에 글이 남았을 때 보이는 표시(없으면 쓰지 않음)"""
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,32,ShopDescriptionScroll,float,indicatorBob,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,33,ShopDescriptionScroll,float,indicatorBobSpeed,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,34,ShopDescriptionScroll,float,indicatorFadeSpeed,serialized,6f,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,37,ShopDescriptionScroll,bool,nudge,serialized,true,
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,39,ShopDescriptionScroll,float,nudgeDistance,serialized,22f,"""내려가는 거리(px)"""
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,41,ShopDescriptionScroll,float,nudgeDelay,serialized,.45f,"""항목을 고른 뒤 기다리는 시간(초)"""
+Assets/Scripts/UI/SceneIntegration/ShopDescriptionScroll.cs,43,ShopDescriptionScroll,float,nudgeDuration,serialized,.7f,"""내려갔다 돌아오는 데 걸리는 시간(초)"""
+Assets/Scripts/UI/SceneIntegration/ShopFooterTexts.cs,17,ShopFooterTexts,ShopUiTexts,texts,serialized,,
+Assets/Scripts/UI/SceneIntegration/ShopFooterTexts.cs,19,ShopFooterTexts,TMP_Text,footer,serialized,,"""상점 창 아래 줄 TMP(ShopPanelView의 Footer Message)"""
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,12,SoloPerformanceProgress,PerformanceProgressView,source,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,13,SoloPerformanceProgress,RectTransform,playerRoot,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,13,SoloPerformanceProgress,RectTransform,fireRoot,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,playerImage,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,playerUnderlay,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,fireMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,arrivalMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,maximumMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,14,SoloPerformanceProgress,Image,fallMarker,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,15,SoloPerformanceProgress,TMP_Text,playerNumber,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,15,SoloPerformanceProgress,TMP_Text,remainingText,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,16,SoloPerformanceProgress,Sprite,selfSprite,serialized,,
+Assets/Scripts/UI/SceneIntegration/SoloPerformanceProgress.cs,16,SoloPerformanceProgress,Sprite,teammateSprite,serialized,,
+Assets/Scripts/UI/SceneIntegration/TightropeControlsPanel.cs,15,TightropeControlsPanel,float,holdSeconds,serialized,4f,
+Assets/Scripts/UI/SceneIntegration/TightropeControlsPanel.cs,16,TightropeControlsPanel,float,sawDistance,serialized,8f,
+Assets/Scripts/UI/SceneIntegration/TightropeControlsPanel.cs,17,TightropeControlsPanel,bool,escapeTraversal,serialized,,
+Assets/Scripts/UI/SceneIntegration/UiRuntimeFontFallback.cs,11,UiRuntimeFontFallback,TMP_FontAsset,fallback,serialized,,
+Assets/Scripts/UI/SceneIntegration/UiRuntimeFontFallback.cs,12,UiRuntimeFontFallback,Font,mediumSource,serialized,,
+Assets/Scripts/UI/SceneIntegration/UiRuntimeFontFallback.cs,13,UiRuntimeFontFallback,Font,semiBoldSource,serialized,,
+Assets/Scripts/UI/SceneIntegration/VoiceStatusUI.cs,12,VoiceStatusUI,Button,button,serialized,,
+Assets/Scripts/UI/SceneIntegration/VoiceStatusUI.cs,13,VoiceStatusUI,TMP_Text,label,serialized,,
+Assets/Scripts/UI/SceneIntegration/VoiceStatusUI.cs,14,VoiceStatusUI,MicrophoneStatusIcon,icon,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomScheduleUI.cs,15,WaitingRoomScheduleUI,SchedulePanelView,view,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomScheduleUI.cs,16,WaitingRoomScheduleUI,UnityEngine.UI.Button[],editButtons,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomScheduleUI.cs,17,WaitingRoomScheduleUI,UnityEngine.UI.Button,confirmButton,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomScheduleUI.cs,17,WaitingRoomScheduleUI,UnityEngine.UI.Button,readyButton,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomShopUI.cs,21,WaitingRoomShopUI,ShopPanelView,view,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomShopUI.cs,22,WaitingRoomShopUI,float,responseTimeout,serialized,15,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomShopUI.cs,24,WaitingRoomShopUI,ShopUiTexts,texts,serialized,,"""상점 문구·아이콘 키 설정"""
+Assets/Scripts/UI/SceneIntegration/WaitingRoomShopUI.cs,26,WaitingRoomShopUI,TMP_Text,titleLabel,serialized,,"""창 제목 TMP. 여기에 적힌 글이 제목으로 쓰인다"""
+Assets/Scripts/UI/SceneIntegration/WaitingRoomUiBinding.cs,12,WaitingRoomUiBinding,StageEntranceGather,gather,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomUiBinding.cs,13,WaitingRoomUiBinding,ExplorationTimerAnnouncer,announcer,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,16,WaitingRoomWorldLabels,ExpertRoomView,expert,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,17,WaitingRoomWorldLabels,WorldLabelView,expertLabel,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,18,WaitingRoomWorldLabels,FloorPropsView,floor,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,19,WaitingRoomWorldLabels,ShopDeliverySlot,delivery,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,20,WaitingRoomWorldLabels,HandoverShelfView,shelf,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,21,WaitingRoomWorldLabels,HeldPropsView,held,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,22,WaitingRoomWorldLabels,WorldLabelView[],shelfLabels,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,23,WaitingRoomWorldLabels,WorldLabelView,itemPrefab,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,24,WaitingRoomWorldLabels,Transform,itemsRoot,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,25,WaitingRoomWorldLabels,UiRuntimeFontFallback,fonts,serialized,,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,26,WaitingRoomWorldLabels,float,enterDistance,serialized,3f,
+Assets/Scripts/UI/SceneIntegration/WaitingRoomWorldLabels.cs,27,WaitingRoomWorldLabels,float,exitDistance,serialized,3.3f,
+Assets/Scripts/WaitingRoom/Base/PlanarMirror.cs,14,PlanarMirror,Vector2Int,resolution,serialized,"new(640, 360)",
+Assets/Scripts/WaitingRoom/Base/PlanarMirror.cs,16,PlanarMirror,float,activeDistance,serialized,14f,"""이보다 멀면 그리지 않는다(m)."""
+Assets/Scripts/WaitingRoom/Base/PlanarMirror.cs,18,PlanarMirror,int,refreshEvery,serialized,2,"""반사 상을 몇 프레임마다 다시 그릴지(1이면 매 프레임). 사이 프레임은 직전 상을 쓴다."""
+Assets/Scripts/WaitingRoom/Base/PlanarMirror.cs,19,PlanarMirror,Color,tint,serialized,"new(.82f, .86f, .9f, 1f)",
+Assets/Scripts/WaitingRoom/Base/PlanarMirror.cs,20,PlanarMirror,float,clipOffset,serialized,.02f,
+Assets/Scripts/WaitingRoom/Base/StageEntranceGather.cs,21,StageEntranceGather,bool,showStatus,serialized,true,"""화면 왼쪽 위에 집결 인원을 표시한다(공동 테스트 확인용)."""
+Assets/Scripts/WaitingRoom/Base/StageEntranceGather.cs,25,StageEntranceGather,Vector3,areaCenter,serialized,Vector3.zero,"""판정 상자 중심. 이 오브젝트 위치에서의 거리."""
+Assets/Scripts/WaitingRoom/Base/StageEntranceGather.cs,27,StageEntranceGather,Vector3,areaSize,serialized,"new(4f, 3f, 7f)","""판정 상자 크기(x = 통로 길이 방향, y = 높이, z = 통로 폭 방향)."""
+Assets/Scripts/WaitingRoom/Base/StageEntranceGather.cs,29,StageEntranceGather,Transform,border,serialized,,"""바닥 테두리 묶음(자식 N·S·W·E 띠). 지정하면 범위를 바꿀 때 함께 맞춘다."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,21,ExpertRoomView,Transform,curtainLeft,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,22,ExpertRoomView,Transform,curtainRight,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,23,ExpertRoomView,Transform,inside,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,24,ExpertRoomView,Transform,outside,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,25,ExpertRoomView,TextMesh,sign,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,26,ExpertRoomView,AudioSource,sound,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,27,ExpertRoomView,Light,glow,serialized,,
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,30,ExpertRoomView,float,slide,serialized,.85f,"""커튼이 다 열렸을 때 한쪽이 옆으로 비키는 거리(m)."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,33,ExpertRoomView,float,bunched,serialized,.25f,"""다 열렸을 때 커튼 한쪽 폭 비율(주름져 모인 모습)."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,36,ExpertRoomView,float,curtainSpeed,serialized,1.6f,"""커튼이 열리고 닫히는 속도(초당 0~1)."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,39,ExpertRoomView,float,arriveDistance,serialized,2.5f,"""구매자가 이 거리(m, 수평) 안에 오면 커튼이 열린다."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,42,ExpertRoomView,float,reach,serialized,2f,"""커튼 앞 F가 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs,45,ExpertRoomView,float,glowIntensity,serialized,6f,"""커튼이 다 열렸을 때 방 안 황금빛 조명 밝기."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertService.cs,25,ExpertService,float,workSeconds,serialized,3f,"""커튼이 닫힌 뒤 복구까지 걸리는 시간(초)."""
+Assets/Scripts/WaitingRoom/ExpertService/ExpertService.cs,28,ExpertService,float,exitSeconds,serialized,2f,"""복구 뒤 커튼이 열려 있는 시간(초). 이 동안 구매자가 커튼 앞에 다시 나타난다."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,14,BreakableWall,string,targetId,serialized,"""restroom-breach""",
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,15,BreakableWall,string,label,serialized,"""금 간 벽""",
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,16,BreakableWall,string,toolId,serialized,ItemUses.StakePuller,
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,17,BreakableWall,string,toolName,serialized,"""천막 말뚝 뽑개""",
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,18,BreakableWall,int,requiredHits,serialized,6,
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,21,BreakableWall,float,reach,serialized,1.7f,"""닿는 수평 거리(m, 벽 중심에서)."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,24,BreakableWall,Collider,blocker,serialized,,"""무너지기 전 길을 막는 충돌체."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,27,BreakableWall,Transform[],pieces,serialized,,"""벽을 이루는 조각. 칠 때마다 일부가 들뜨고 떨어지며, 무너지면 바닥으로 쏟아진다."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,30,BreakableWall,GameObject[],cracks,serialized,,"""타격마다 하나씩 켜지는 금(앞에서부터 1타, 2타 ...)."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,33,BreakableWall,GameObject,aftermath,serialized,,"""무너진 뒤 켜는 잔해·먼지."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,36,BreakableWall,GameObject[],revealOnOpen,serialized,,"""무너지기 전에는 숨겨 옆 벽과 똑같이 보이게 하고, 무너진 뒤 드러내는 것(깨진 가장자리 조각·철근 등)."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,38,BreakableWall,AudioSource,sound,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,41,BreakableWall,Transform,outlineRoot,serialized,,"""외곽선 기준(깊이 전용 판). 비우면 벽 조각마다 외곽선이 그려져 격자처럼 보인다. 무너지면 숨긴다."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,44,BreakableWall,bool,showOutline,serialized,true,"""끄면 가까이 가도 외곽선을 그리지 않는다(숨겨진 벽처럼 옆 벽과 이어져 보여야 할 때). F 안내는 그대로."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,47,BreakableWall,bool,loosenPieces,serialized,true,"""끄면 칠 때 조각이 들뜨거나 빠지지 않고 금만 늘어난다(조각 격자가 드러나지 않게). 무너질 때는 그대로 쏟아진다."""
+Assets/Scripts/WaitingRoom/Exploration/BreakableWall.cs,50,BreakableWall,GameObject,standingDetail,serialized,,"""서 있는 동안 늘 보이는 금·녹(무너지면 숨긴다)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,19,ClueInspectable,string,targetId,serialized,"""""",
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,20,ClueInspectable,string,availableAfter,serialized,"""""",
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,21,ClueInspectable,bool,revealPending,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,24,ClueInspectable,Transform,body,serialized,,"""보여 줄 단서 몸체(없으면 이 오브젝트)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,27,ClueInspectable,string,title,serialized,"""단서""","""단서 이름(F 안내·오버뷰 제목)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,30,ClueInspectable,string,description,serialized,"""""","""오버뷰 아래에 보일 설명. 비우면 제목만."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,33,ClueInspectable,float,reach,serialized,1.6f,"""단서에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,36,ClueInspectable,float,viewSize,serialized,.32f,"""눈앞에 띄울 때 단서의 가장 긴 변 크기(m)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,39,ClueInspectable,Vector2,viewDistance,serialized,"new(.35f, .9f)","""카메라에서 단서까지 거리(m). 휠로 이 범위 안에서 당기고 민다."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,42,ClueInspectable,float,rotateSpeed,serialized,.35f,"""마우스 끌기 회전 속도(도/픽셀)."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,45,ClueInspectable,Transform,secretMark,serialized,[redacted],"""오버뷰에서 돌려 봐야 보이는 새김 글자(위쪽 축이 새긴 면의 바깥 방향). 없으면 이 연출을 쓰지 않는다."""
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,48,ClueInspectable,string,secretText,serialized,[redacted],"""새김 글자를 찾았을 때 설명에 더할 문구. 문구 파일의 target.<ID>.secret이 우선한다."""
+Assets/Scripts/WaitingRoom/Exploration/DebugEscapeKeyProp.cs,13,DebugEscapeKeyProp,int,keyNumber,serialized,1,"""1 또는 2: 탈출로 열쇠 번호."""
+Assets/Scripts/WaitingRoom/Exploration/DebugEscapeKeyProp.cs,16,DebugEscapeKeyProp,float,reach,serialized,1.2f,"""기물에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationDrops.cs,22,ExplorationDrops,bool,pending,serialized,,"""보상 미정이면 기존 단일 보상도 지급하지 않고 설정을 기다린다."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,13,ExplorationGate,string,targetId,serialized,"""gate""",
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,14,ExplorationGate,string,label,serialized,"""조사""",
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,15,ExplorationGate,ExplorationGateKind,kind,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,17,ExplorationGate,string[],requiredTargets,serialized,,"""모두 열린 뒤 상호작용 가능. 열쇠 획득, UV 발견, 패드 해제 등의 고유 TargetId."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,19,ExplorationGate,string,revealTarget,serialized,,"""비우면 처음부터 표시. 숨겨진 문은 UV/모니터 등의 TargetId 지정."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,20,ExplorationGate,bool,revealPending,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,21,ExplorationGate,bool,interactionPending,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,23,ExplorationGate,GameObject[],hiddenVisuals,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,24,ExplorationGate,Collider,blocker,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,25,ExplorationGate,GameObject[],showOnOpen,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,26,ExplorationGate,GameObject[],hideOnOpen,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,27,ExplorationGate,string,toolId,serialized,"""""",
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,28,ExplorationGate,int,requiredHits,serialized,1,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,29,ExplorationGate,float,cooperationWindow,serialized,.75f,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,30,ExplorationGate,float,reach,serialized,1.6f,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,31,ExplorationGate,string,password,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,32,ExplorationGate,bool,passwordPending,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,32,ExplorationGate,bool,passwordExplicit,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,33,ExplorationGate,string,monitorText,serialized,"""""",
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,34,ExplorationGate,Camera,monitorCamera,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,36,ExplorationGate,string,rewardItemId,serialized,"""""",
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,37,ExplorationGate,int,rewardUidOffset,serialized,60,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,38,ExplorationGate,Transform,rewardPoint,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,72,ExplorationGate,string,openedBy,serialized,"""""","""지정하면 그 대상이 열릴 때 함께 열리고 직접 F하지 않는다. 예: 키패드 정답 → 숨겨진 문."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,105,ExplorationGate,Transform,interactionPoint,serialized,,"""지정하면 실제 자물쇠/조작면을 상호작용 위치로 사용한다."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,107,ExplorationGate,Transform[],keySlots,serialized,,"""협력 문의 열쇠 구멍. 두 사람이 서로 다른 구멍에서 동시에 F."""
+Assets/Scripts/WaitingRoom/Exploration/ExplorationSlide.cs,8,ExplorationSlide,string,openedBy,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationSlide.cs,9,ExplorationSlide,Vector3,openOffset,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ExplorationSlide.cs,10,ExplorationSlide,float,seconds,serialized,1.2f,
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,16,FoundItemSpot,string,spotId,serialized,"""workshop-crowbar""","""자리 이름(세대 안에서 한 번만 놓기 위한 구분)."""
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,19,FoundItemSpot,int,uidOffset,serialized,1,"""UID 구분 번호(1~99, 자리마다 다르게). 발견품 UID = 기준 + 세대×100 + 이 값."""
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,21,FoundItemSpot,string,itemId,serialized,ItemUses.StakePuller,
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,22,FoundItemSpot,string,itemName,serialized,"""천막 말뚝 뽑개""",
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,25,FoundItemSpot,string,availableAfter,serialized,"""""","""이 대상이 열린 뒤에만 바닥 기물 생성. 비우면 기존처럼 처음부터 생성."""
+Assets/Scripts/WaitingRoom/Exploration/FoundItemSpot.cs,27,FoundItemSpot,bool,debugOnly,serialized,,"""디버그 보급품: Dev 모드를 켠 Editor 또는 Development Build에서만 생성."""
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropDiscovery.cs,13,PerformancePropDiscovery,string,trickId,serialized,CampaignSnapshot.HumanCannonId,
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropDiscovery.cs,14,PerformancePropDiscovery,string,trickName,serialized,"""인간 대포""",
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropDiscovery.cs,16,PerformancePropDiscovery,GameObject[],mapProps,serialized,,"""탐색 중 F로 획득할 맵 위 기물(세트). 해금되면 숨긴다."""
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropDiscovery.cs,18,PerformancePropDiscovery,GameObject[],practiceProps,serialized,,"""연습실로 옮겨진 기물. 해금 전에는 숨긴다."""
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropDiscovery.cs,19,PerformancePropDiscovery,float,noticeSeconds,serialized,8f,
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropPickup.cs,12,PerformancePropPickup,PerformancePropDiscovery,owner,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/PerformancePropPickup.cs,14,PerformancePropPickup,float,reach,serialized,3f,"""F가 닿는 거리(m). 큰 기물이라 일반 대상보다 넓다."""
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,graffiti1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,graffiti2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,graffiti4,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,oldNotebook,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,performanceRecord,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,newspaper,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,23,StructureAClueRoute,ClueInspectable,confiscatedNotebook,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,24,StructureAClueRoute,UvMark,restroomUv,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,24,StructureAClueRoute,UvMark,passwordPrefixUv,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,25,StructureAClueRoute,ClueInspectable,restroomUvClue,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,25,StructureAClueRoute,ClueInspectable,passwordPrefixClue,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,26,StructureAClueRoute,ExplorationGate,monitor,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,27,StructureAClueRoute,ClueInspectable,hiddenGraffiti3,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAClueRoute.cs,29,StructureAClueRoute,string,hiddenGraffiti3Condition,serialized,"""""","""숨겨진 낙서3 공개 조건. 비우면 미정으로 숨겨 두며 UV/모니터 등을 임의 지정하지 않는다."""
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,9,StructureAContainerRoute,ExplorationGate,dormitoryBox1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,9,StructureAContainerRoute,ExplorationGate,dormitoryBox2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,9,StructureAContainerRoute,ExplorationGate,pipeBox1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,10,StructureAContainerRoute,ExplorationGate,cargoBox1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,10,StructureAContainerRoute,ExplorationGate,cargoBox2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,10,StructureAContainerRoute,ExplorationGate,cargoBox3,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,10,StructureAContainerRoute,ExplorationGate,loungeBox1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,10,StructureAContainerRoute,ExplorationGate,loungeBox2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,11,StructureAContainerRoute,ToolTarget,emptyCabinet,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,11,StructureAContainerRoute,ToolTarget,mapCabinet,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,11,StructureAContainerRoute,ToolTarget,lockedBox2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAContainerRoute.cs,12,StructureAContainerRoute,ClueInspectable,mapClue,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,15,StructureAExitRoute,BreakableWall,restroomBreach,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,16,StructureAExitRoute,ExplorationGate,key2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,16,StructureAExitRoute,ExplorationGate,machineDoor,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,16,StructureAExitRoute,ExplorationGate,passwordPad,serialized,[redacted],
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,16,StructureAExitRoute,ExplorationGate,escapeDoor,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAExitRoute.cs,18,StructureAExitRoute,string,escapePassword,serialized,[redacted],"""명시적으로 정한4자리 정답. 비우면 기본0000을 승인하지 않고 미정으로 둔다. ConfigurePassword API로 지정한 값은 존중."""
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,24,StructureAKeyRoute,ExplorationGate,key1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,24,StructureAKeyRoute,ExplorationGate,steelBox,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,24,StructureAKeyRoute,ExplorationGate,managementKey,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,25,StructureAKeyRoute,ToolTarget,lockedBox1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,26,StructureAKeyRoute,ExplorationGate,stairsKey,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,26,StructureAKeyRoute,ExplorationGate,stairsDoor,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,27,StructureAKeyRoute,ToolTarget,cabinet3,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,27,StructureAKeyRoute,ToolTarget,managementDrawer,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,28,StructureAKeyRoute,ExplorationGate,escapeKey1,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,28,StructureAKeyRoute,ExplorationGate,escapeKey2,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/StructureAKeyRoute.cs,28,StructureAKeyRoute,ExplorationGate,escapeDoor,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,17,ToolTarget,string,targetId,serialized,"""locked-box""",
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,18,ToolTarget,ToolTargetKind,kind,serialized,ToolTargetKind.HairpinLock,
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,19,ToolTarget,string,label,serialized,"""잠긴 상자""",
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,20,ToolTarget,float,reach,serialized,1.6f,
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,23,ToolTarget,Collider,blocker,serialized,,"""열리기 전 막는 충돌체(문·판자). 없으면 막지 않는다."""
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,25,ToolTarget,Transform,hinge,serialized,,"""열릴 때 돌아가는 뚜껑·문(없으면 생략)."""
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,26,ToolTarget,Vector3,openEuler,serialized,"new(-100, 0, 0)",
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,28,ToolTarget,GameObject[],hideOnOpen,serialized,,"""열리면 사라지는 것(좌물쇠·걸쇠·못 박힌 판자 등)."""
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,30,ToolTarget,GameObject[],showOnOpen,serialized,,"""열리면 나타나는 것(속 공간 등)."""
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,33,ToolTarget,string,rewardItemId,serialized,"""""","""열리면 그 자리에 나오는 발견품 ID(비우면 없음)."""
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,34,ToolTarget,Transform,rewardPoint,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,35,ToolTarget,int,rewardUidOffset,serialized,50,
+Assets/Scripts/WaitingRoom/Exploration/ToolTarget.cs,36,ToolTarget,AudioSource,sound,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,18,UvFlashlight,Color,color,serialized,"new(.6f, .25f, 1f)",
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,19,UvFlashlight,float,range,serialized,12f,
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,20,UvFlashlight,float,spotAngle,serialized,50f,
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,21,UvFlashlight,float,intensity,serialized,60f,
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,23,UvFlashlight,float,frontLimit,serialized,75f,"""캐릭터 정면에서 좌우로 이 각도까지만 비춘다(도). 뒤는 못 비춘다."""
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,25,UvFlashlight,float,ringReach,serialized,1f,"""조준점에서 이 거리(m) 안의 낙서는 원뿔 각도와 관계없이 비춘 것으로 본다."""
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,27,UvFlashlight,float,requestInterval,serialized,.6f,"""같은 낙서에 발견 요청을 다시 보내기까지의 간격(초)."""
+Assets/Scripts/WaitingRoom/Exploration/UvFlashlight.cs,29,UvFlashlight,float,checkInterval,serialized,.1f,"""낙서 판정 간격(초)."""
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,15,UvMark,string,targetId,serialized,"""uv-mark""",
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,16,UvMark,string,label,serialized,"""숨겨진 낙서""",
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,18,UvMark,float,reach,serialized,10f,"""손전등 빛이 닿는 최대 거리(m). 시야가 막히면 닿지 않는다."""
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,20,UvMark,GameObject[],marks,serialized,,"""비추는 동안 켜지는 형광 낙서(평소에는 꺼 둔다)."""
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,21,UvMark,AudioSource,sound,serialized,,
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,22,UvMark,Color,glow,serialized,"new(1f, .95f, .25f)",
+Assets/Scripts/WaitingRoom/Exploration/UvMark.cs,70,UvMark,float,holdSeconds,serialized,5f,"""빛이 떠난 뒤에도 낙서가 남아 조사할 수 있는 시간(초). 다시 비추면 연장된다."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerAnnouncer.cs,33,ExplorationTimerAnnouncer,float[],broadcastSeconds,serialized,"{ 30f, 10f }","""방송(종소리 없음) 문턱(초). 공용 세팅에 칸이 생기면 옮긴다."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,20,ExplorationTimerView,ExplorationTimerAnnouncer,announcer,serialized,,
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,22,ExplorationTimerView,bool,showLegacyUi,serialized,true,"""정본 HUD를 사용하는 씬에서는 끕니다. 방송 종소리는 유지합니다."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,24,ExplorationTimerView,TMP_FontAsset,font,serialized,,"""비우면 Resources의 Pretendard 폰트."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,26,ExplorationTimerView,AudioClip,bellClip,serialized,,"""소집 경보 종소리. 비우면 임시 '딩동'을 만든다."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,27,ExplorationTimerView,float,bellVolume,serialized,0.8f,
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,29,ExplorationTimerView,float,messageDuration,serialized,4f,"""문구가 떠 있는 시간(초)."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,32,ExplorationTimerView,Color,normalColor,serialized,"new(0.95f, 0.9f, 0.75f)",
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,33,ExplorationTimerView,Color,alarmColor,serialized,"new(1f, 0.35f, 0.3f)",
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,34,ExplorationTimerView,Color,pausedColor,serialized,"new(0.7f, 0.7f, 0.7f)",
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerZones.cs,18,ExplorationTimerZones,string[],runningZones,serialized,"{
+            ""Area_P05_PipeZone"", ""PipeLink"", ""F8_PipeCrawl"", ""Area_S05_JunkStorage"", ""Area_S12_CargoBay"", ""F8_Cargo"",
+            ""Area_S11_StageGear"", ""Area_ST_Stairwell"", ""Area_B1_MachineRoom"", ""Area_B1_Office"", ""Area_B1_OfficeLink"",
+            ""Area_B1_ChangingRoom"", ""Area_B1_EscapeCorridor"", ""Area_B1_EscapeEntrance"",
+        }","""타이머가 흐르는 구역 콜라이더 이름. 나머지는 멈춤 구역."""
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerZones.cs,25,ExplorationTimerZones,Transform,areas,serialized,,"""구역 콜라이더 묶음. 비우면 이 오브젝트 아래 전부."""
+Assets/Scripts/WaitingRoom/Items/ItemCatalog.cs,52,ItemCatalog,List<Entry>,items,serialized,new(),
+Assets/Scripts/WaitingRoom/NightSchedule/NightBed.cs,17,NightBed,Transform,body,serialized,,"""닿는 거리를 재는 침대 몸체(없으면 이 오브젝트)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightBed.cs,20,NightBed,float,reach,serialized,1.2f,"""침대 가장자리에서 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,16,NightDoorLock,Transform,shutter,serialized,,"""셔터 판 묶음. 위쪽 끝이 기준점이고, 세로 크기를 줄여 말려 올라간 모습을 낸다. 4단계 씬 구성 메뉴가 만든다."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,19,NightDoorLock,GameObject,lockedDoor,serialized,,"""잠겼을 때만 켜는 오브젝트(잠김 표지)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,22,NightDoorLock,Renderer,warningLamp,serialized,,"""셔터가 움직이는 동안 깜박이는 경고등."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,25,NightDoorLock,float,moveSeconds,serialized,2.5f,"""다 닫히거나 열리는 데 걸리는 시간(초)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,28,NightDoorLock,float,openScale,serialized,.06f,"""다 열렸을 때 남는 셔터 세로 비율(말림 통 아래로 살짝 보이는 정도)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,31,NightDoorLock,float,blinkSeconds,serialized,.25f,"""경고등 깜박임 간격(초)."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,34,NightDoorLock,string,notice,serialized,"""밤 정비 — 대기실 문이 잠겼습니다 · 탐색 시간 없음""","""밤 정비 동안 화면 위쪽에 띄우는 안내."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightDoorLock.cs,35,NightDoorLock,bool,showLegacyNotice,serialized,true,
+Assets/Scripts/WaitingRoom/NightSchedule/NightPower.cs,9,NightPower,Light[],circuit,serialized,,
+Assets/Scripts/WaitingRoom/NightSchedule/NightScheduleTestUI.cs,22,NightScheduleTestUI,int,cheers,serialized,10,"""테스트 자금 받기 때 참가자마다 넣는 환호 횟수."""
+Assets/Scripts/WaitingRoom/NightSchedule/NightScheduleTestUI.cs,25,NightScheduleTestUI,float,stepTimeout,serialized,15f,"""1인 테스트 시작 각 단계를 기다리는 최대 시간(초)."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoard.cs,19,ScheduleBoard,string[],selectableTricks,serialized,"{ ""Tightrope"", ""HumanCannon"" }","""2일차부터 고를 수 있는 공연(묘기 ID, 런 상태 TrickId와 같은 값). 임시: 지금 있는 묘기 2개."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoard.cs,22,ScheduleBoard,string[],trickNames,serialized,"{ ""줄타기"", ""인간 대포"" }","""화면에 보일 공연 이름. selectableTricks와 같은 순서. 비우면 ID를 그대로 보인다."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,18,ScheduleBoardView,Transform,board,serialized,,"""거리를 재는 스케줄표 판(없으면 이 오브젝트)."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,21,ScheduleBoardView,CinemachineCamera,closeUp,serialized,,"""창이 열려 있는 동안 켜는 클로즈업 카메라. 4단계 씬 구성 메뉴가 만든다."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,24,ScheduleBoardView,float,reach,serialized,2f,"""스케줄표에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,25,ScheduleBoardView,bool,showLegacyUi,serialized,true,
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,28,ScheduleBoardView,int,closeUpPriority,serialized,100,"""클로즈업 카메라 우선순위(플레이어 카메라보다 높게)."""
+Assets/Scripts/WaitingRoom/ShopStorage/DebugMoneyProp.cs,12,DebugMoneyProp,long,amount,serialized,1000,
+Assets/Scripts/WaitingRoom/ShopStorage/DebugMoneyProp.cs,15,DebugMoneyProp,float,reach,serialized,1.6f,"""기물에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/FloorPropsView.cs,14,FloorPropsView,float,reach,serialized,1f,"""기물에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/FloorPropsView.cs,15,FloorPropsView,float,itemSize,serialized,.25f,
+Assets/Scripts/WaitingRoom/ShopStorage/FloorPropsView.cs,16,FloorPropsView,Color,color,serialized,"new(.55f, .85f, 1f)",
+Assets/Scripts/WaitingRoom/ShopStorage/FloorPropsView.cs,17,FloorPropsView,bool,showLegacyLabels,serialized,true,
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,14,HandoverShelfView,float,reach,serialized,1.2f,"""같은 층에서 가림 없이 선반 앞면에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,15,HandoverShelfView,float,itemSize,serialized,.25f,
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,16,HandoverShelfView,Color,color,serialized,"new(.7f, 1f, .6f)",
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,19,HandoverShelfView,Transform[],boards,serialized,new Transform[0],"""비우면 자식 중 이름이 Board_로 시작하는 판자를 이름 순으로 쓴다(아래 칸부터)."""
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,20,HandoverShelfView,bool,showLegacyLabels,serialized,true,
+Assets/Scripts/WaitingRoom/ShopStorage/HandoverShelfView.cs,21,HandoverShelfView,Transform,visualRoot,serialized,,
+Assets/Scripts/WaitingRoom/ShopStorage/HeldPropsView.cs,15,HeldPropsView,float,itemSize,serialized,.26f,
+Assets/Scripts/WaitingRoom/ShopStorage/HeldPropsView.cs,17,HeldPropsView,Vector3,firstOffset,serialized,"new(0f, .95f, .45f)","""캐릭터 기준 첫 기물 위치(m, 앞쪽 +Z)."""
+Assets/Scripts/WaitingRoom/ShopStorage/HeldPropsView.cs,19,HeldPropsView,float,stack,serialized,.28f,"""기물을 하나 더 들 때마다 위로 쌓는 간격(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/HeldPropsView.cs,20,HeldPropsView,Color,itemColor,serialized,"new(.55f, .85f, 1f)",
+Assets/Scripts/WaitingRoom/ShopStorage/HeldPropsView.cs,136,HeldPropsView,bool,showLegacyLabels,serialized,false,
+Assets/Scripts/WaitingRoom/ShopStorage/PropCarry.cs,27,PropCarry,int,floorCapacity,serialized,32,"""바닥에 동시에 둘 수 있는 기물 수(메시지 크기 보호용 임시값)."""
+Assets/Scripts/WaitingRoom/ShopStorage/PropCarry.cs,30,PropCarry,float,dropAhead,serialized,.45f,"""내려놓을 때 캐릭터 앞쪽으로 떨어지는 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/PropCarry.cs,33,PropCarry,bool,showHud,serialized,true,"""화면 왼쪽 아래에 내 소지·플레이어별 소지를 표시한다(공동 테스트 확인용)."""
+Assets/Scripts/WaitingRoom/ShopStorage/SharedFundsView.cs,13,SharedFundsView,bool,show,serialized,true,
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,26,ShopDeliverySlot,float,reach,serialized,1.2f,"""물건에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,29,ShopDeliverySlot,float,dropForward,serialized,.6f,"""배송구 로컬 +Z 기준으로 물건이 떨어지는 거리(m). 방 안쪽이 -Z면 음수."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,32,ShopDeliverySlot,int,perRow,serialized,4,"""한 줄에 놓는 개수와 간격(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,33,ShopDeliverySlot,float,spacing,serialized,.4f,
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,34,ShopDeliverySlot,float,itemSize,serialized,.32f,
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,37,ShopDeliverySlot,float,dropTime,serialized,.6f,"""배송구에서 나와 바닥에 닿을 때까지 걸리는 시간(초)."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopDeliverySlot.cs,38,ShopDeliverySlot,bool,showLegacyLabels,serialized,true,
+Assets/Scripts/WaitingRoom/ShopStorage/ShopPhone.cs,16,ShopPhone,float,reach,serialized,1.8f,"""수화기에 닿는 수평 거리(m)."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopPhone.cs,17,ShopPhone,bool,showLegacyUi,serialized,true,
+Assets/Scripts/WaitingRoom/ShopStorage/ShopStorageTestUI.cs,22,ShopStorageTestUI,int,cheers,serialized,10,"""테스트 자금 받기 때 참가자마다 넣는 환호 횟수."""
+Assets/Scripts/WaitingRoom/ShopStorage/ShopStorageTestUI.cs,25,ShopStorageTestUI,float,stepTimeout,serialized,15f,"""1인 테스트 시작 각 단계를 기다리는 최대 시간(초)."""
+Assets/Scripts/WaitingRoom/ShopStorage/WaitingRoomShop.cs,33,WaitingRoomShop,List<Entry>,items,serialized,"new()
+        {
+            new Entry { id = ""tool-a"", name = ""임시 공연 도구 A"", price = 10 },
+            new Entry { id = ""tool-b"", name = ""임시 공연 도구 B"", price = 15 },
+            new Entry { id = ""escape"", name = ""임시 탈출 도구"", price = 20 },
+        }",
+Assets/Scripts/WaitingRoom/ShopStorage/WaitingRoomShop.cs,41,WaitingRoomShop,int,slotCapacity,serialized,8,"""배송구 바닥에 동시에 놓일 수 있는 최대 개수(메시지 크기 보호용 임시값)."""

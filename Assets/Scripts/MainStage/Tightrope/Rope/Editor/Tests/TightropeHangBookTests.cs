@@ -61,24 +61,14 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
-        public void PiggybackFall_OneHangerPerLane_InFallOrder_ExtraDrops()
+        public void OccupiedRopeUsesPhysicalAlongDistanceAndDifferentRopesStayIndependent()
         {
-            var book = new TightropeHangBook();
-            // 3줄 코스 가운데(1번)에서 목마 3명 낙하: 아래 → 위 순서로 같은 줄, 왼쪽, 오른쪽.
-            int first = book.PickLane(1, 20f, 3, 1, 2f, AllLanes); book.Begin(1, first, 20f, 7d);
-            int second = book.PickLane(1, 20f, 3, 1, 2f, AllLanes); book.Begin(2, second, 20f, 7d);
-            int third = book.PickLane(1, 20f, 3, 1, 2f, AllLanes); book.Begin(3, third, 20f, 7d);
-            Assert.AreEqual(new[] { 1, 0, 2 }, new[] { first, second, third });
-            Assert.AreEqual(-1, book.PickLane(1, 20.5f, 3, 1, 2f, AllLanes), "줄이 모자라면 남은 사람은 낙사.");
-            Assert.AreEqual(1, book.PickLane(1, 23f, 3, 1, 2f, AllLanes), "멀리 떨어진 같은 줄은 비어 있다.");
-        }
-
-        [Test]
-        public void PickLane_SkipsMissingRopeAndRespectsReach()
-        {
-            var book = new TightropeHangBook();
-            Assert.AreEqual(2, book.PickLane(1, 5f, 4, 1, 2f, (lane, _) => lane != 1 && lane != 0));
-            Assert.AreEqual(-1, book.PickLane(0, 5f, 4, 1, 2f, (lane, _) => lane >= 2), "근처(1줄) 밖은 잡지 못한다.");
+            var book = new TightropeHangBook(); book.Begin(1, 1, 20f, 7d);
+            Assert.IsTrue(book.IsOccupied(1, 21.99f, 2));
+            Assert.IsFalse(book.IsOccupied(1, 22f, 2));
+            Assert.IsFalse(book.IsOccupied(0, 20f, 2));
+            book.Remove(1);
+            Assert.IsFalse(book.IsOccupied(1, 20f, 2));
         }
 
         [Test]

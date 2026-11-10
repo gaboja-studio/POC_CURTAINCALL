@@ -22,9 +22,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var trampoline=UnityEngine.Object.FindAnyObjectByType<HumanCannonTrampoline>();
             Undo.SetTransformParent(trampoline.transform,root,"Reuse original carried trampoline");
             trampoline.transform.SetPositionAndRotation(new Vector3(94,-5,25),Quaternion.Euler(0,90,0));
-            var td=new SerializedObject(trampoline);td.FindProperty("upwardSpeed").floatValue=12.5f;
-            td.FindProperty("groundBounceAirControlSpeed").floatValue=7;
-            td.FindProperty("requireCarrierForBounce").boolValue=true;td.ApplyModifiedProperties();
+            var td=new SerializedObject(trampoline);
+            td.ApplyModifiedProperties();
             PreserveFusionGuide(bg.Find(FusionGroup+"/05_RopeDropTrampolineSwing"));
             var oldEntry=bg.Find(BrutalGroup+"/05_TransferChasm/트램폴린 진입 대");
             PreserveFusionGuide(oldEntry);
@@ -48,7 +47,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             SetFinaleArray(cd,"sceneRopes",all);cd.FindProperty("independentSceneRopes").boolValue=true;
             var shape=cd.FindProperty("sceneShape");shape.FindPropertyRelative("laneCount").intValue=5;
             shape.FindPropertyRelative("laneSpacing").floatValue=2;
-            var zones=shape.FindPropertyRelative("laneChangeZones");zones.arraySize=1;zones.GetArrayElementAtIndex(0).vector2Value=new Vector2(0,12);
             Ensure<RopeLaneJumpRules>(course.gameObject);
             var ends=shape.FindPropertyRelative("laneEndDistances");ends.arraySize=5;
             for(int i=0;i<5;i++)ends.GetArrayElementAtIndex(i).floatValue=i==0?first.size.z:12;
@@ -79,7 +77,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 int n=pole.Grip.position.x<104?0:pole.Grip.position.x<110?1:2;
                 foreach(var obsolete in bg.Find("31_FlowRefinement").Cast<Transform>().Where(t=>t.name.StartsWith(pole.name+"_",StringComparison.Ordinal)).ToArray())
                     Undo.DestroyObjectImmediate(obsolete.gameObject);
-                TuneFlowPole(root,pole,new Vector3(106+n*5,1.8f-n*2.55f,28),5,38,7.2f);
+                TuneFlowPole(root,pole,new Vector3(106+n*5,1.8f-n*2.55f,28),5);
             }
             CompletionDeck(root,"하강 그네 넓은 착지턱",117.5f,120,25.5f,30.5f,-8);
             foreach(float z in new[]{20f,32f})SpaceEdgeRail(root,new Vector3(87.5f,-5,z),new Vector3(100,-5,z));

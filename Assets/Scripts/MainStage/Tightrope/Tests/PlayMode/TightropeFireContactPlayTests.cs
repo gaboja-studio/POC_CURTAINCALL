@@ -22,7 +22,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             return fire;
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator FireHostCannotKillRemoteWithoutDisplayedContact()
         {
             yield return BeginPerformance();
@@ -46,7 +46,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             } finally { Call(netObject, "Despawn", true); }
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator FireContactRejectsAvoidanceOldRoundRestartAndStaleReport()
         {
             yield return BeginPerformance();
@@ -57,20 +57,20 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var kind = Enum.Parse(GameType("CurtainCall.Tightrope.Fire.FireKind"), "Chase");
             var contact = (Vector3)Call(course, "GetLanePosition", 0, 6f);
             double at = (float)Get(fire, "Elapsed");
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, at, player.transform.position, kind, -1), "Safe owner pose must not be killed.");
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round - 1, restart, at, contact, kind, -1));
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart - 1, at, contact, kind, -1));
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, at - 2, contact, kind, -1));
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, double.NaN, contact, kind, -1));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, at, player.transform.position, kind, -1, true), "Safe owner pose must not be killed.");
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round - 1, restart, at, contact, kind, -1, true));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart - 1, at, contact, kind, -1, true));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, at - 2, contact, kind, -1, true));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, double.NaN, contact, kind, -1, true));
             Assert.AreEqual("Normal", Get(player, "State").ToString());
             // Report-time contact is valid even if the owner has moved out before receipt.
             yield return new WaitForSeconds(.3f);
-            Assert.IsTrue((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, at, contact, kind, -1));
+            Assert.IsTrue((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, at, contact, kind, -1, true));
             Assert.AreEqual("Fallen", Get(player, "State").ToString());
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, at, contact, kind, -1));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, at, contact, kind, -1, true));
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator FireSegmentRejectsContactBeforeIgnition()
         {
             yield return BeginPerformance();
@@ -89,10 +89,11 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             int round = (int)Get(fire, "Round"), restart = (int)Get(player, "RestartVersion");
             ulong owner = (ulong)Get(player, "OwnerClientId");
             yield return new WaitForSeconds(.3f);
-            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, (double)activated - .01, feet, kind, 0));
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, (double)activated - .01, feet, kind, 0, true));
             Assert.AreEqual("Normal", Get(player, "State").ToString());
-            Assert.IsTrue((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, (double)activated, feet, kind, 0));
-            Assert.AreEqual("Fallen", Get(player, "State").ToString());
+            Assert.IsTrue((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, (double)activated, feet, kind, 0, true));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.AreNotEqual(0, Convert.ToInt32(Get(player, "LostParts")));
         }
     }
 }

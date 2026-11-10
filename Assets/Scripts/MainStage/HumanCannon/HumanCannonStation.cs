@@ -11,17 +11,11 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform seat;
         [Tooltip("발사 시작 위치. forward가 수평 발사 방향이다.")]
         [SerializeField] Transform muzzle;
-        [Tooltip("임시 탑승 거리(m). 상호작용 거리 배율을 곱한다.")]
-        [Min(0.1f), SerializeField] float boardingDistance = 2f;
         [Tooltip("임시 수평 발사 속도(m/s). 최종 밸런스 값이 아니다.")]
         [Min(0f), SerializeField] float forwardSpeed = 8f;
         [Tooltip("임시 위쪽 발사 속도(m/s). 최종 밸런스 값이 아니다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
-        [Tooltip("비행 중 시선 기준 WASD 수평 보정 속도(m/s). 키를 놓으면 보정은 사라진다.")]
-        [Min(0f), SerializeField] float airControlSpeed = 3f;
 
-        // Retained for existing scene serialization; all stations now use the same cooldown.
-        [HideInInspector, SerializeField] bool animateBarrel;
         public const float BarrelLowerSeconds = 1.2f;
         public const float BarrelRecoverySeconds = 2.8f;
         readonly CannonBarrelCycle barrel = new();
@@ -30,8 +24,8 @@ namespace CurtainCall.HumanCannon
         public Transform BoardingPoint => boardingPoint != null ? boardingPoint : transform;
         public Transform Seat => seat != null ? seat : transform;
         public Transform Muzzle => muzzle != null ? muzzle : Seat;
-        public float BoardingDistance => boardingDistance;
-        public float AirControlSpeed => airControlSpeed;
+        public float BoardingDistance => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
+        public float AirControlSpeed => CurtainCall.Settings.GameSettings.Base.AirControl.Speed;
         // Scene machinery may interlock boarding/launch without disabling an in-flight station or Cancel.
         public bool InteractionAvailable
         {

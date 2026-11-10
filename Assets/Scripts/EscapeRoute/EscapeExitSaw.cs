@@ -22,7 +22,6 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Renderer indicator;
         [SerializeField] ParticleSystem sparks;
         [SerializeField] AudioSource motor;
-        [SerializeField, Min(.1f)] float grabDistance = 2.5f;
         [SerializeField, Min(0)] float carryHandleHeight = 1.05f;
         [SerializeField, Min(.1f)] float carryMoveSpeed = 3f;
         [SerializeField, Min(.05f)] float bladeRadius = .5f;
@@ -53,6 +52,7 @@ namespace CurtainCall.EscapeRoute
         public ulong Carrier => ownership.Occupant;
         public Transform CarryRoot => carryRoot != null ? carryRoot : transform;
         public Transform Handle => handle != null ? handle : CarryRoot;
+        public Vector3 GrabPoint => Handle.position;
         public Transform CableSocket => cableSocket;
         public Vector3 CarryFocus => blade != null ? blade.position : CarryRoot.position + Vector3.up;
         public Vector2 CarryHalfSize => loadCollider != null
@@ -140,7 +140,7 @@ namespace CurtainCall.EscapeRoute
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return PlayerInteraction.InRange(player, Handle.position, grabDistance * reach)
+            return PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, transform)
                 && HumanCannonCarry.TryFollowPose(player, CarryRoot, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
                 && PoseFits(position, rotation, player);
         }

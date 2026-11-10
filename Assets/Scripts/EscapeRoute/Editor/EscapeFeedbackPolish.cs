@@ -51,7 +51,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             serialized.ApplyModifiedPropertiesWithoutUndo();
             // Only the first cannon has one prescribed receiving wire. Other stations retain steering.
             var station = all.Select(t => t.GetComponent<HumanCannonStation>()).Single(x => x != null && x.name == "03_Cannon");
-            var cannon = new SerializedObject(station); cannon.FindProperty("airControlSpeed").floatValue = 0;
+            var cannon = new SerializedObject(station);
             cannon.ApplyModifiedPropertiesWithoutUndo();
             Physics.SyncTransforms();
             EditorSceneManager.MarkSceneDirty(scene);

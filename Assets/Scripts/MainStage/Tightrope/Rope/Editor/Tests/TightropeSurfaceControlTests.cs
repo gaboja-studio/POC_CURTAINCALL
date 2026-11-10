@@ -403,10 +403,10 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 "대포·그네가 이동을 맡는 프레임에는 외줄의 1m 바닥선을 적용하지 않는다.");
         }
 
-        [TestCase(true, 0f, false)]
-        [TestCase(true, .5f, false)]
-        [TestCase(false, 0f, true)]
-        public void RunningCourseOnlyAppliesStuntFloorDeathToGeneratedStage(bool authored, float aboveFloor, bool falls)
+        [TestCase(true, 0f)]
+        [TestCase(true, .5f)]
+        [TestCase(false, 0f)]
+        public void RunningCourseNeverKillsFromRopeHeightAlone(bool authored, float aboveFloor)
         {
             AuthoredRopes();
             var data = new UnityEditor.SerializedObject(course);
@@ -426,7 +426,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 Assert.That(course.UsesRopeRules(player), Is.False);
                 Assert.That(Invoke(course, "IsBelowFallDepth", mover), Is.True, "높이만 비교하면 정상 발판도 추락으로 오인한다.");
                 Invoke(course, "CheckLocalFall");
-                Assert.That(balance.HasFallen, Is.EqualTo(falls), "탈출로의 낮은 발판은 살리고 공연장 바닥 실패는 유지한다.");
+                Assert.That(balance.HasFallen, Is.False, "외줄 이탈은 일반 낙하이며 실제 착지 높이가 피해를 결정한다.");
             }
             finally { local.SetValue(null, previous); }
         }
@@ -553,7 +553,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
-        public void DisabledTriggerAndCoveredRopes_DoNotGrantSafeCannonLanding()
+        public void DisabledAndTriggerRopesRejectLandingButOrdinaryWalkableFloorAcceptsIt()
         {
             var rope = AuthoredRopes()[0];
             MovePlayer(new Vector3(0, 0, 4));
@@ -565,7 +565,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             rope.isTrigger = false;
             AddBox("Actual ordinary floor", new Vector3(0, 0, 4), new Vector3(2, .2f, 2));
             MovePlayer(new Vector3(0, .1f, 4));
-            Assert.That(SafeLanding(player.transform.position), Is.False);
+            Assert.That(SafeLanding(player.transform.position), Is.True);
         }
 
         [Test]
@@ -594,7 +594,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             AuthoredRopes();
             var data = new UnityEditor.SerializedObject(course);
-            data.FindProperty("bidirectionalSceneTraversal").boolValue = legacyOption;
+            Assert.IsNull(data.FindProperty("bidirectionalSceneTraversal"));
             data.ApplyModifiedPropertiesWithoutUndo();
             Invoke(switcher, "Bind", player);
             MovePlayer(new Vector3(0, 0, 4));
@@ -613,7 +613,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             AuthoredRopes();
             var left = AddBox("Reverse right landing", new Vector3(-2, -.1f, 4), new Vector3(.4f, .2f, 8));
             var data = new UnityEditor.SerializedObject(course);
-            data.FindProperty("bidirectionalSceneTraversal").boolValue = true;
+            Assert.IsNull(data.FindProperty("bidirectionalSceneTraversal"));
             data.FindProperty("sceneShape.laneCount").intValue = 3;
             data.FindProperty("sceneShape.laneSpacing").floatValue = 2;
             var ropes = data.FindProperty("sceneRopes"); ropes.arraySize = 3;
@@ -660,11 +660,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             {
                 var rules = player.gameObject.AddComponent<RopeLaneJumpRules>();
                 typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
+                Assert.That(rules.CanLaneJump(1), Is.False, "3m 경계에서 동료를 피한 착지점이 범위를 초과하면 뛰지 않는다.");
+                other.transform.position += Vector3.forward * 2;
                 Assert.That(rules.CanLaneJump(1), Is.True);
-                float original = course.GetDistance(mover.GetLaneLandingPosition(1));
-                Assert.That(rules.TryGetLandingDistance(1, out float behind), Is.True);
-                Assert.That(behind, Is.GreaterThan(original), "Behind a reverse-facing player is a greater authored distance.");
-                Assert.That(Invoke(rules, "GetLandingShift", 1), Is.EqualTo(original - behind).Within(.001));
             }
             finally { Invoke(other, "OnDisable"); }
         }
@@ -684,6 +682,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 var rules = player.gameObject.AddComponent<RopeLaneJumpRules>();
                 typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
                 mover.LaneSpacing = authored.LaneSpacing;
+                mover.LaneLandingTarget = direction => (Vector3?)Invoke(rules, "GetLandingTarget", direction);
                 foreach (var lanes in new[] { new[] { 11, 7, 13 }, new[] { 14, 8, 12 } })
                 for (int index = 0; index < lanes.Length; index++)
                 foreach (float fraction in new[] { .15f, .5f, .85f })

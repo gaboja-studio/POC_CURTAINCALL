@@ -113,7 +113,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(ground.max.z, Is.EqualTo(7).Within(0.001f));
             Assert.That(floor.min.z, Is.EqualTo(16).Within(0.001f));
             Assert.That(ground.max.z, Is.LessThan(floor.min.z));
-            float jumpHeight = GameSettings.HumanCannon.JumpHeight;
+            float jumpHeight = GameSettings.Base.Character.JumpHeight;
             var bridges = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
                 .Where(c => c.bounds.min.z < 15.999f && c.bounds.max.z > 7.001f
                     && c.bounds.min.x < 22f && c.bounds.max.x > -22f
@@ -129,7 +129,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var floor = FloorBounds(Find("SplitRouteCourse/FirstCourseFloor"));
             Assert.That(deck.max.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(deck.max.y - floor.max.y,
-                Is.GreaterThan(GameSettings.HumanCannon.JumpHeight), "일반 점프로 쉼터 승강을 우회하면 안 됩니다.");
+                Is.GreaterThan(GameSettings.Base.Character.JumpHeight), "일반 점프로 쉼터 승강을 우회하면 안 됩니다.");
             Assert.That(Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>(), Is.Not.Null);
         }
 
@@ -428,7 +428,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var body = playerPrefab.GetComponent<CharacterController>();
             Assert.That(body, Is.Not.Null);
             float drop = deck.max.y - lift.StartPosition.y;
-            float verticalSpeed = Mathf.Sqrt(2f * character.Gravity * GameSettings.HumanCannon.JumpHeight);
+            float verticalSpeed = Mathf.Sqrt(2f * character.Gravity * character.JumpHeight);
             float time = (verticalSpeed + Mathf.Sqrt(verticalSpeed * verticalSpeed + 2f * character.Gravity * drop)) / character.Gravity;
             float reach = character.FreeMoveSpeed * time + 2f * (character.CapsuleRadius + body.skinWidth);
             float liftGap = deck.min.x - (lift.StartPosition.x + lift.HalfSize.x);

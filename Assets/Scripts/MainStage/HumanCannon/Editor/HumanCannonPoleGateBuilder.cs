@@ -104,16 +104,7 @@ namespace CurtainCall.HumanCannon.EditorTools
             var data = new SerializedObject(pole);
             data.FindProperty("grip").objectReferenceValue = grip;
             data.FindProperty("linkedGate").objectReferenceValue = gate;
-            data.FindProperty("hangLength").floatValue = 1.5f;
-            data.FindProperty("grabDistance").floatValue = 2f;
-            data.FindProperty("holdSeconds").floatValue = 8f;
             data.FindProperty("warningSeconds").floatValue = 2f;
-            data.FindProperty("swingAcceleration").floatValue = 300f;
-            data.FindProperty("maxSwingAngle").floatValue = 80f;
-            data.FindProperty("maxSwingSpeed").floatValue = 180f;
-            data.FindProperty("swingDamping").floatValue = 0.4f;
-            data.FindProperty("releaseUpwardSpeed").floatValue = 6f;
-            data.FindProperty("airControlSpeed").floatValue = 3f;
             data.ApplyModifiedPropertiesWithoutUndo();
             return pole;
         }

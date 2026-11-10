@@ -11,7 +11,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         /// 2026-11-01 버그: 외줄 매달림 중 흔들림마다 캐릭터가 오른쪽 ↔ 왼쪽을 번갈아 봤다(맨 왼쪽 줄에서 발견).
         /// 모든 줄에서 매달린 동안 한쪽(줄에 수직)을 계속 보고, 가운데가 아닌 줄은 코스 가운데 쪽을 본다.
         /// </summary>
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangFacing_EveryLaneStaysOnOneSideFacingCourseCenter()
         {
             yield return PrepareHangRescue();
@@ -24,6 +24,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 // 앞 줄 매달림을 풀고 떨어지기 전에(같은 프레임) 다음 줄에 매단다.
                 if (lane > 0) Call(hangs, "ServerReleaseForInspection", id);
+                Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", lane, 6.2f), Quaternion.identity, true);
                 Assert.IsTrue((bool)Call(hangs, "ServerTryHang", player, 6.2f, lane), $"{lane}번 줄 매달림");
                 Assert.AreEqual(lane, (int)Get(FindHang(hangs, id), "Lane"), $"{lane}번 줄을 골랐다");
                 yield return Until(() => (bool)Get(presentation, "IsHanging"), 2, $"{lane}번 줄 매달림 표현");

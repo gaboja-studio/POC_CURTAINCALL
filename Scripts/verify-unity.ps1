@@ -94,6 +94,18 @@ if ($Compile) {
         throw "COMPILE_FAILED: $(@($compileResult.errors) -join '; ')"
     }
     Write-Output "Compile: PASS ($($compileResult.status))"
+    $commonScript = Join-Path $reportDir 'common-settings-check.cs'
+    @'
+public static class CommonSettingsCheck {
+ public static object Run() { return new { errors = CurtainCall.Settings.EditorTools.CommonSettingsValidation.Validate() }; }
+}
+'@ | Set-Content -LiteralPath $commonScript -Encoding utf8NoBOM
+    $common = Invoke-EditorCommand 'run_script' -Arguments @('--file', $commonScript, '--entry', 'CommonSettingsCheck.Run', '--timeout_ms', '60000') -TimeoutSeconds 65
+    if ($common.success -ne $true -or $null -eq $common.result -or $null -eq $common.result.PSObject.Properties['errors']) {
+        throw "COMMON_SETTINGS_CHECK_FAILED: $($common | ConvertTo-Json -Depth 6 -Compress)"
+    }
+    if (@($common.result.errors).Count) { throw "COMMON_SETTINGS_INVALID: $($common.result.errors -join '; ')" }
+    Write-Output 'Common settings: PASS (links, retired fields, builders, serialized scene/prefab data)'
 } else {
     Write-Output 'Compile: SKIPPED'
 }

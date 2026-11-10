@@ -61,7 +61,7 @@ namespace CurtainCall.WaitingRoom.EditorTools.Tests
             Assert.AreSame(system.AirborneView, copy.Cannon.AirborneView);
             foreach (var clone in copy.Stations)
             {
-                foreach (string key in new[] { "boardingDistance", "forwardSpeed", "upwardSpeed", "airControlSpeed" })
+                foreach (string key in new[] { "forwardSpeed", "upwardSpeed" })
                     Assert.AreEqual(Number(station, key), Number(clone, key), key);
                 SameArt(station.transform, clone.transform);
                 Assert.AreEqual(station.transform.InverseTransformPoint(station.Muzzle.position), clone.transform.InverseTransformPoint(clone.Muzzle.position));

@@ -20,7 +20,7 @@ namespace CurtainCall.Tightrope
         TMP_FontAsset trapezeRuntimeFont;
         MaterialPropertyBlock trapezeTint;
 
-        public Transform PoleVisual(int index) => index >= 0 && index < PoleTotal && views[index]?.Bar != null ? views[index].Bar.transform : null;
+        public Transform PoleVisual(int index) => index >= 0 && index < PoleTotal ? poles[index]?.Physics.VisualBar : null;
         public Vector3 GripPoint(NetworkPlayer player)
         {
             if (!FindHeld(player, out int index, out bool lower)) return player != null ? player.transform.position : Vector3.zero;
@@ -99,6 +99,10 @@ namespace CurtainCall.Tightrope
                 DrawLine(view.Bar, grip - side, grip + side, color);
                 DrawLine(view.LeftCable, pivot - side, grip - side, color);
                 DrawLine(view.RightCable, pivot + side, grip + side, color);
+                bool commonArt = state.Physics.VisualBar != null;
+                view.Bar.gameObject.SetActive(!commonArt);
+                view.LeftCable.gameObject.SetActive(!commonArt);
+                view.RightCable.gameObject.SetActive(!commonArt);
                 view.BodyLink.gameObject.SetActive(state.Lower != Nobody);
                 if (state.Lower != Nobody) DrawLine(view.BodyLink, feet + Vector3.up * .15f, Feet(i, true) + Vector3.up * 1.6f, Color.yellow);
                 view.Label.gameObject.SetActive(showPoleLabels);

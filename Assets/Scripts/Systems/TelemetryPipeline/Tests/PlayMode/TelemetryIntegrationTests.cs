@@ -564,7 +564,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
                     Physics.SyncTransforms();
                     Call(local, "ServerCut", 2);
                     yield return new WaitForSeconds(.6f);
-                    Game("CurtainCall.HumanCannon.HumanCannonSystem").GetMethod("ServerFallInjury").Invoke(null, new object[] { local });
+                    local.GetType().GetMethod("CompleteFall").Invoke(local, new object[] { 3f, ((Component)local).transform.position, null, null });
                 }
                 else if (deathCause == "CUT") Call(local, "ServerCut", 4);
                 else if (deathCause == "NO_ROPE")

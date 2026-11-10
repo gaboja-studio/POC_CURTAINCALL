@@ -8,15 +8,16 @@ namespace CurtainCall.HumanCannon.Tests
     public sealed partial class FinalCannonPlayTests
     {
         [UnityTest]
-        public IEnumerator CarryMovement_StrafeBackpedalMatchesAirSpeed_AndRestoresAfterDropRestartAndExit()
+        public IEnumerator CarryMovement_UsesCommonCarrySpeed_AndRestoresAfterDropRestartAndExit()
         {
             DisableEnhancementThreats();
             var trampoline = StaticGet("CurtainCall.HumanCannon.HumanCannonTrampoline", "Current") as Component;
             var handle = (Transform)Get(trampoline, "Handle");
             var character = Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Character");
             float walkSpeed = (float)Get(character, "FreeMoveSpeed");
-            float airSpeed = (float)Get(trampoline, "groundBounceAirControlSpeed");
-            Assert.AreEqual(4.5f, airSpeed);
+            float carrySpeed = (float)Get(trampoline, "CarryMoveSpeed");
+            float airSpeed = (float)Get(Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "AirControl"), "Speed");
+            Assert.AreEqual(4.5f, carrySpeed);
             for (int i = 0; i < (int)Get(system, "StationCount"); i++)
                 Assert.AreEqual(airSpeed, Get(Call(system, "Station", i), "AirControlSpeed"));
 
@@ -40,7 +41,7 @@ namespace CurtainCall.HumanCannon.Tests
                 if (lost > 0) Call(player, "ServerCut", 1);
                 yield return null; yield return null;
                 float injury = (float)Call(Get(system, "Injuries"), "AirMultiplier", lost);
-                Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(airSpeed * injury).Within(.001f));
+                Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(carrySpeed * injury).Within(.001f));
                 foreach (Vector3 direction in new[] { Vector3.right, Vector3.left, Vector3.back,
                     Vector3.forward, new Vector3(1, 0, -1).normalized })
                 {
@@ -51,8 +52,8 @@ namespace CurtainCall.HumanCannon.Tests
                     Call(mover, "Update");
                     Call(trampoline, "LateUpdate");
                     Vector3 moved = Vector3.ProjectOnPlane(player.transform.position - start, Vector3.up);
-                    Assert.That(Vector3.Distance(moved, direction * (airSpeed * injury * Time.deltaTime)), Is.LessThan(.003f),
-                        "직선/대각선 실제 이동 속도가 같은 부상 상태의 공중 조작 속도와 같아야 한다.");
+                    Assert.That(Vector3.Distance(moved, direction * (carrySpeed * injury * Time.deltaTime)), Is.LessThan(.003f),
+                        "직선/대각선 모두 공통 운반 속도에 공통 부상 배율을 적용한다.");
                     Assert.That(Quaternion.Angle(player.transform.rotation, facing), Is.LessThan(.05f), "옆걸음/뒷걸음은 몸 방향 유지");
                     Assert.That(Quaternion.Angle(trampoline.transform.rotation, deviceFacing), Is.LessThan(.05f));
                     Assert.That(Vector3.Distance((Vector3)Get(trampoline, "Surface") - player.transform.position, offset), Is.LessThan(.003f),
@@ -78,7 +79,7 @@ namespace CurtainCall.HumanCannon.Tests
             Input(held: true, progress: 1);
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == ulong.MaxValue, 2, "긴 F로 내려놓기");
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.8f).Within(.001f), "내려놓으면 운반 배율 제거");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "내려놓으면 운반 배율 제거");
             yield return new WaitForEndOfFrame();
             Vector3 dropPosition = trampoline.transform.position;
             CarryMovementInput(Vector3.back);
@@ -97,16 +98,16 @@ namespace CurtainCall.HumanCannon.Tests
             Call(player, "RequestRestartAll");
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == ulong.MaxValue, 3, "R 운반 점유 초기화");
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.8f).Within(.001f), "R은 운반 배율만 해제하고 기존 부상은 보존");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "R은 운반 배율만 해제하고 기존 부상은 보존");
 
             Call(mover, "SetStartPose", handle.position, Quaternion.identity, true);
             Input(tapped: true);
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor, 2, "종료 전 운반");
             yield return null; yield return null;
-            Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(airSpeed * .8f).Within(.001f));
+            Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(carrySpeed * .5f).Within(.001f));
             ((Behaviour)trampoline).enabled = false;
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.8f).Within(.001f), "장치 비활성화 후 운반 속도 해제");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "장치 비활성화 후 운반 속도 해제");
         }
 
         void CarryMovementInput(Vector3 worldDirection)

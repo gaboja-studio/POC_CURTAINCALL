@@ -67,12 +67,12 @@ namespace CurtainCall.HumanCannon
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
             if (carried != null)
             {
-                if (latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
+                if (CommonInteractionSelection.Allows(player, carried) && latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
                     carried.RequestDrop();
                 return;
             }
             var carryTarget = HumanCannonCarry.FindGrabbable(player);
-            if (input.InteractTapped && carryTarget != null)
+            if (input.InteractTapped && carryTarget != null && CommonInteractionSelection.Consume(player, carryTarget))
             {
                 carryTarget.RequestGrab();
                 return;
@@ -81,13 +81,14 @@ namespace CurtainCall.HumanCannon
                 airControl.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
             else if (stationIndex >= 0)
             {
-                var action = latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress);
+                var action = CommonInteractionSelection.Allows(player, system)
+                    ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) : CannonAction.Sync;
                 if (action != CannonAction.Sync) system.Request(stationIndex, action);
             }
             else if (!IsFlying && input.InteractTapped)
             {
                 int nearest = system.FindBoardableStation(player);
-                if (nearest >= 0) system.Request(nearest, CannonAction.Board);
+                if (nearest >= 0 && CommonInteractionSelection.Consume(player, system.Station(nearest))) system.Request(nearest, CannonAction.Board);
             }
         }
 
@@ -113,6 +114,7 @@ namespace CurtainCall.HumanCannon
             FinishBalloonPants();
             airControl.Clear();
             steerPoleMomentum = false;
+            airControl.BeginPoleFlight(0f);
             TakeMovement();
             stationIndex = -1;
             flightStationIndex = index;
@@ -150,6 +152,7 @@ namespace CurtainCall.HumanCannon
             velocity = Vector3.up * upwardSpeed;
             steerPoleMomentum = false;
             airControl.Clear();
+            airControl.BeginPoleFlight(0f);
             Teleport(contact + Vector3.up * 0.05f, transform.rotation);
         }
 
@@ -239,13 +242,12 @@ namespace CurtainCall.HumanCannon
             float dt = Time.deltaTime;
             float gravity = GameSettings.Base.Character.Gravity;
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
-            float controlMultiplier = system.Injuries.AirMultiplier(condition != null ? condition.LostLegCount : 0);
+            float controlMultiplier = GameSettings.Base.BodyDamage.MoveMultiplier(condition != null ? condition.LostLegCount : 0);
             Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
-            Vector3 correction = steerPoleMomentum
-                ? airControl.ConsumePoleVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
-                    airControlSpeed * controlMultiplier, velocity, poleFlightSpeedLimit, dt)
-                : airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
-                    airControlSpeed * controlMultiplier);
+            float controlLimit = steerPoleMomentum ? poleFlightSpeedLimit
+                : Vector3.ProjectOnPlane(velocity, Vector3.up).magnitude + airControlSpeed * controlMultiplier;
+            Vector3 correction = airControl.ConsumePoleVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
+                airControlSpeed * controlMultiplier, velocity, controlLimit, dt);
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);

@@ -9,14 +9,10 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
-    [DefaultExecutionOrder(-20)]
+    [DefaultExecutionOrder(-100)]
     public sealed partial class HumanCannonPoleSystem : MonoBehaviour
     {
         [SerializeField] HumanCannonPole[] poles = Array.Empty<HumanCannonPole>();
-        [Tooltip("봉을 잡을 때 바라본 쪽을 각 좌석의 앞쪽으로 사용한다."), SerializeField] bool useGrabFacing;
-        // Legacy authoring fields. Grab/transfer rules are shared across all scenes.
-        [SerializeField, HideInInspector] bool allowPlatformJumpGrab;
-        [SerializeField, HideInInspector] bool independentInteraction;
         public bool IndependentInteraction => true;
         uint platformLaunch;
         const double SnapshotInterval = .05d;
@@ -27,12 +23,9 @@ namespace CurtainCall.HumanCannon
             public double LastInput;
             public uint InputSequence;
             public uint JoinedRevision;
-            public bool ReverseFacing;
             public int Station;
             public uint Launch, Segment;
         }
-        /// <summary>호스트: 제한 시간이 있는 봉(톱날 연동 봉 등)을 잡은 사람의 끈끈이 장갑(Task-092).</summary>
-        readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
 
         sealed class Runtime
         {
@@ -92,7 +85,7 @@ namespace CurtainCall.HumanCannon
         public int OccupantCount(int index) => Valid(index) ? states[index].State.Count : 0;
         public ulong Occupant(int index, int seat) => Valid(index) ? states[index].State.OccupantAt(seat) : CannonSeatState.Nobody;
         public bool HasFreeSeat(int index) => Valid(index) && states[index].State.HasFreeSeat;
-        public bool CanGrab(int index, NetworkPlayer player) => Valid(index) && FindSeat(player, index) >= 0;
+        public bool CanGrab(int index, NetworkPlayer player) => CanApproachPole(index, player);
         public Vector3 InteractionPoint(int index, NetworkPlayer player)
         {
             int seat = FindSeat(player, index);
@@ -125,7 +118,7 @@ namespace CurtainCall.HumanCannon
             float distance = float.PositiveInfinity;
             for (int i = 0; i < poles.Length; i++)
             {
-                if (!Valid(i)) continue;
+                if (!Valid(i) || !poles[i].InteractionAvailable) continue;
                 int seat = FindSeat(player, i);
                 if (seat < 0) continue;
                 float candidate = (poles[i].BarPosition(SwingAngle(i)) + poles[i].SeatOffset(seat) - PlayerInteraction.Center(player)).sqrMagnitude;
@@ -142,6 +135,7 @@ namespace CurtainCall.HumanCannon
             float distance = float.PositiveInfinity;
             for (int seat = 0; seat < state.Capacity; seat++)
             {
+                if (seat > 0 && state.OccupantAt(0) == CannonSeatState.Nobody) continue;
                 if (state.OccupantAt(seat) != CannonSeatState.Nobody
                     || !poles[index].IsSeatInReach(player, SwingAngle(index), seat, observedElapsed)) continue;
                 float candidate = (poles[index].BarPosition(SwingAngle(index)) + poles[index].SeatOffset(seat) - PlayerInteraction.Center(player)).sqrMagnitude;
@@ -150,15 +144,6 @@ namespace CurtainCall.HumanCannon
             return closest;
         }
         float SwingAngle(int index) => states[index].State.IsOccupied ? states[index].Angle : 0f;
-
-        static bool ReversedAtGrab(Vector3 poleForward, Vector3 view, Vector3 body, Vector3 approach)
-        {
-            float Projection(Vector3 direction) => Vector3.Dot(Vector3.ProjectOnPlane(direction, Vector3.up).normalized, poleForward);
-            float facing = Projection(view);
-            if (Mathf.Abs(facing) < .05f) facing = Projection(body);
-            if (Mathf.Abs(facing) < .05f) facing = Projection(approach);
-            return facing < -.0001f;
-        }
 
         public Quaternion RiderRotation(int index, ulong actor)
         {
@@ -169,7 +154,7 @@ namespace CurtainCall.HumanCannon
         Quaternion SeatRotation(int index, int seat)
         {
             Quaternion grip = poles[index].Grip.rotation;
-            return seat >= 0 && states[index].Riders[seat].ReverseFacing ? grip * Quaternion.Euler(0, 180, 0) : grip;
+            return grip;
         }
 
         internal void RequestGrab(int index, int station, uint launch, uint segment) =>
@@ -205,14 +190,22 @@ namespace CurtainCall.HumanCannon
         {
             if (Current != null && Current != this) { enabled = false; return; }
             Current = this;
-            states = new Runtime[poles.Length];
-            for (int i = 0; i < states.Length; i++) states[i] = NewRuntime(i);
+            InitializeStates();
             NetworkPlayer.Restarted += Restart;
         }
-        Runtime NewRuntime(int index) => new Runtime(poles[index] != null ? poles[index].RiderCapacity : 1);
+        Runtime NewRuntime(int index) => new Runtime(poles[index] != null ? poles[index].RiderCapacity : 1)
+        { MaxDisplayAngle = GameSettings.Poles.MaxSwingAngle };
+
+        void InitializeStates()
+        {
+            if (states != null) return;
+            states = new Runtime[poles.Length];
+            for (int i = 0; i < states.Length; i++) states[i] = NewRuntime(i);
+        }
 
         void Update()
         {
+            ConnectFlightEvents();
             if (session == null && NetworkSessionManager.Instance != null)
             {
                 session = NetworkSessionManager.Instance;
@@ -233,38 +226,30 @@ namespace CurtainCall.HumanCannon
                         ulong actor = runtime.State.OccupantAt(seat);
                         if (actor == CannonSeatState.Nobody) continue;
                         var player = FindPlayer(actor);
-                        if (!pole.isActiveAndEnabled || player == null || player.State != PlayerState.Normal)
+                        if (!pole.isActiveAndEnabled || !pole.InteractionAvailable || player == null || player.State != PlayerState.Normal)
                         {
+                            if (seat == 0) ReleasePassenger(i);
                             if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, pole.WarningSeconds))
                                 Publish(i, PoleEvent.Abandoned, actor, seat);
                             continue;
                         }
-                        var route = pole.Loop;
-                        if (route != null && route.AtUnloadingBay(route.Elapsed))
-                        {
-                            if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, pole.WarningSeconds))
-                                Publish(i, PoleEvent.Released, actor, seat);
-                            continue;
-                        }
+                        if (seat != 0) continue; // 아래 사람은 매달리고 도약할 수 있지만 반동을 만들지 않는다.
                         var rider = runtime.Riders[seat];
                         float input = Clock - rider.LastInput <= .3 ? rider.Input : 0f;
-                        if (rider.ReverseFacing) input = -input;
                         drive += pole.SwingDrive(ref rider.SwingInput, input, Time.deltaTime);
                     }
-                    // 같은 방향·같은 박자로 힘을 모아야 원래 반동이 난다. 반대 입력은 상쇄한다.
                     if (runtime.State.Count > 0)
-                        pole.Step(ref runtime.Angle, ref runtime.Speed, SharedDrive(drive, runtime.State.Count),
+                        pole.Step(ref runtime.Angle, ref runtime.Speed, drive,
                             Time.deltaTime, GameSettings.Base.Character.Gravity);
                 }
                 if (pole.LinkedGate != null)
                 {
-                    pole.LinkedGate.Present(runtime.State.Phase, pole.LinkedGate.CarrierPassed, pole.LinkedGate.IsOpen, Clock);
+                    pole.LinkedGate.Present(runtime.State.Phase, pole.LinkedGate.CarrierPassed,
+                        runtime.State.OccupantAt(0) != CannonSeatState.Nobody, Clock);
                     if (session != null && session.IsHost && pole.LinkedGate.HostTick(runtime.State.Phase, runtime.State.Occupant))
                         Publish(i, PoleEvent.Sync, CannonSeatState.Nobody);
                 }
             }
-            if (session != null && session.IsHost)
-                stickyGloves.Tick(Clock, actor => { foreach (var s in states) if (s != null && s.State.SeatOf(actor) >= 0) return true; return false; });
             if (session != null && session.IsHost && Clock >= nextSnapshot)
             {
                 double now = Clock;
@@ -280,6 +265,14 @@ namespace CurtainCall.HumanCannon
         void TickState(int index)
         {
             var runtime = states[index];
+            if (runtime.State.IsOccupied && (runtime.State.OccupantAt(0) == CannonSeatState.Nobody
+                || Clock >= runtime.State.DeadlineAt(0)))
+            {
+                ReleasePassenger(index);
+                ulong upper = runtime.State.OccupantAt(0);
+                if (upper != CannonSeatState.Nobody && runtime.State.TryRelease(upper, runtime.State.Revision, Clock, poles[index].WarningSeconds))
+                    Publish(index, PoleEvent.Released, upper, 0);
+            }
             // Tick removes at most one timed rider per call, giving each release its own revision.
             for (int pass = 0; pass <= PoleGateState.MaxRiders; pass++)
             {
@@ -293,6 +286,14 @@ namespace CurtainCall.HumanCannon
                 ulong actor = seat == 0 ? a : seat == 1 ? b : seat == 2 ? c : seat == 3 ? d : CannonSeatState.Nobody;
                 Publish(index, seat >= 0 ? PoleEvent.Released : PoleEvent.Sync, actor, seat);
             }
+        }
+
+        void ReleasePassenger(int index)
+        {
+            var state = states[index].State;
+            ulong actor = state.OccupantAt(1);
+            if (actor != CannonSeatState.Nobody && state.TryRelease(actor, state.Revision, Clock, poles[index].WarningSeconds))
+                Publish(index, PoleEvent.Released, actor, 1);
         }
 
         void LateUpdate()
@@ -331,9 +332,8 @@ namespace CurtainCall.HumanCannon
             if (action == PoleAction.Grab || action == PoleAction.PlatformGrab)
             {
                 bool fromPlatform = action == PoleAction.PlatformGrab;
-                if (useGrabFacing && input != 1f && input != -1f) return;
                 if (runtime.LastDeparture.TryGetValue(actor, out uint departure) && revision < departure) return;
-                if (!CanApproach(player) || (fromPlatform ? !CanEnterFromPlatform(player) || cannon.IsFlying(actor)
+                if (!poles[index].InteractionAvailable || !CanApproach(player) || (fromPlatform ? !CanEnterFromPlatform(player) || cannon.IsFlying(actor)
                     : !cannon.MatchesFlight(actor, station, launch, segment))) return;
                 seat = FindSeat(player, index);
                 if (seat < 0 && observedElapsed >= 0) seat = FindSeat(player, index, observedElapsed);
@@ -341,14 +341,12 @@ namespace CurtainCall.HumanCannon
                 var stack = PiggybackSystem.Current;
                 bool transferring = stack != null && stack.IsInStack(player);
                 if (transferring && !stack.CanReleaseForPole(player)) return;
-                // 제한 시간이 있는 봉이면 끈끈이 장갑으로 늘린다(Task-092). 무제한(0) 봉은 그대로.
-                float hold = poles[index].HoldSeconds;
-                if (hold > 0f) hold += (float)stickyGloves.Begin(actor, Clock, hold);
-                if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, poles[index].LinkedGate != null, seat)) return;
+                float hold = seat == 0 ? poles[index].HoldSeconds : Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(0) - Clock));
+                if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, false, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 if (runtime.State.Count == 1) runtime.Angle = runtime.Speed = 0f;
                 runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment,
-                    JoinedRevision = runtime.State.Revision, ReverseFacing = useGrabFacing && input < 0f };
+                    JoinedRevision = runtime.State.Revision };
                 void CompleteCatch()
                 {
                     stack?.ConsumeTrapezeEntry(player);
@@ -359,11 +357,12 @@ namespace CurtainCall.HumanCannon
             }
             else if (action == PoleAction.Release && seat >= 0)
             {
+                if (seat == 0 && runtime.State.OccupantAt(1) != CannonSeatState.Nobody) return;
                 if (revision >= runtime.Riders[seat].JoinedRevision
                     && runtime.State.TryRelease(actor, runtime.State.Revision, Clock, poles[index].WarningSeconds))
                     Publish(index, PoleEvent.Released, actor, seat);
             }
-            else if (action == PoleAction.Swing && seat >= 0)
+            else if (action == PoleAction.Swing && seat == 0)
             {
                 var rider = runtime.Riders[seat];
                 if (revision < rider.JoinedRevision || sequence <= rider.InputSequence || !float.IsFinite(input)) return;
@@ -379,13 +378,25 @@ namespace CurtainCall.HumanCannon
             if (cannon == null) return;
             if (action == PoleEvent.Grabbed || action == PoleEvent.PlatformGrabbed)
             {
+                flightOrigins.Remove(actor);
                 if (action == PoleEvent.PlatformGrabbed) cannon.BeginPoleFlight(actor, launch);
                 cannon.ApplyPoleGrab(actor, station, launch, segment, index);
+                OccupancyChanged?.Invoke(index, actor, true);
             }
             else if (action == PoleEvent.Released)
+            {
+                flightOrigins[actor] = index;
                 cannon.ApplyPoleRelease(actor, station, launch, segment, runtime.ReleasePosition, runtime.ReleaseRotation,
                     runtime.ReleaseVelocity, poles[index].AirControlSpeed);
-            else if (action == PoleEvent.Abandoned) cannon.AbandonPole(actor);
+                OccupancyChanged?.Invoke(index, actor, false);
+                Released?.Invoke(index, actor);
+            }
+            else if (action == PoleEvent.Abandoned)
+            {
+                flightOrigins.Remove(actor);
+                cannon.AbandonPole(actor);
+                OccupancyChanged?.Invoke(index, actor, false);
+            }
             else if (action == PoleEvent.Reset)
             {
                 if (poles[index].LinkedGate != null) poles[index].LinkedGate.ResetGate();
@@ -407,7 +418,6 @@ namespace CurtainCall.HumanCannon
             {
                 var runtime = states[i];
                 runtime.State.Reset(); runtime.Angle = runtime.Speed = 0f;
-                stickyGloves.Clear();
                 runtime.ResetRevision = runtime.State.Revision; runtime.LastDeparture.Clear();
                 for (int seat = 0; seat < runtime.Riders.Length; seat++) runtime.Riders[seat] = new Rider();
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);
@@ -420,6 +430,7 @@ namespace CurtainCall.HumanCannon
             int index = HeldBy(actor);
             if (index < 0) return;
             int seat = states[index].State.SeatOf(actor);
+            if (seat == 0) ReleasePassenger(index);
             if (states[index].State.TryRelease(actor, states[index].State.Revision, Clock, poles[index].WarningSeconds))
                 Publish(index, PoleEvent.Abandoned, actor, seat);
         }
@@ -438,6 +449,9 @@ namespace CurtainCall.HumanCannon
         }
         void OnDisable()
         {
+            if (observedFlightSystem != null) observedFlightSystem.LandingConfirmed -= OnLandingConfirmed;
+            observedFlightSystem = null;
+            flightOrigins.Clear();
             NetworkPlayer.Restarted -= Restart;
             Unregister();
             if (session != null) session.ConnectionStateChanged -= Connection;
@@ -447,6 +461,7 @@ namespace CurtainCall.HumanCannon
                 if (poles[i] != null) poles[i].PresentSwing(0f);
             }
             session = null;
+            states = null;
             if (Current == this) Current = null;
         }
     }

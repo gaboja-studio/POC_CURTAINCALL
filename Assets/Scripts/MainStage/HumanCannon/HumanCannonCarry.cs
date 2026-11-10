@@ -12,6 +12,7 @@ namespace CurtainCall.HumanCannon
         ulong Carrier { get; }
         Transform CarryRoot { get; }
         Transform Handle { get; }
+        Vector3 GrabPoint { get; }
         Vector3 CarryFocus { get; }
         Vector2 CarryHalfSize { get; }
         float CarryMoveSpeed { get; }
@@ -42,7 +43,7 @@ namespace CurtainCall.HumanCannon
             foreach (var device in devices)
             {
                 if (!Active(device) || !device.CanGrab(player)) continue;
-                float distance = (device.Handle.position - player.transform.position).sqrMagnitude;
+                float distance = (device.GrabPoint - PlayerInteraction.Center(player)).sqrMagnitude;
                 if (distance < nearest) { nearest = distance; result = device; }
             }
             return result;

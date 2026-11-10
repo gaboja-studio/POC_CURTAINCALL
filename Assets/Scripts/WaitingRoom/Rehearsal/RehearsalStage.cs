@@ -42,7 +42,7 @@ namespace CurtainCall.WaitingRoom
                 string lesson = Kind == RehearsalStageKind.Trapeze ? "" :
                     $",\"startPlatformLength\":4,\"finishPlatformLength\":3,\"trapezeLane\":1,\"trapezeLength\":{(Kind == RehearsalStageKind.ConsecutivePoles ? 12 : 8)}";
                 JsonUtility.FromJsonOverwrite("{" +
-                    $"\"laneCount\":{lanes},\"laneEndDistances\":[{ends}],\"finishDistance\":{finish},\"laneChangeZones\":[{{\"x\":0,\"y\":{finish}}}]," +
+                    $"\"laneCount\":{lanes},\"laneEndDistances\":[{ends}],\"finishDistance\":{finish}," +
                     $"\"swingGapEnabled\":false,\"relayGapEnabled\":false,\"swingGapStart\":{(Kind == RehearsalStageKind.Relay ? 12 : 10)}," +
                     $"\"trapezeEnabled\":{trapeze},\"trapezeStart\":10" + lesson + "}", shape);
                 return shape.ToJson();

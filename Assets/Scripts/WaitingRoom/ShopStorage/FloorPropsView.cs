@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom
     public sealed class FloorPropsView : MonoBehaviour
     {
         [Tooltip("기물에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.3f)] float reach = 1f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField, Min(.05f)] float itemSize = .25f;
         [SerializeField] Color color = new(.55f, .85f, 1f);
         [SerializeField] bool showLegacyLabels = true;
@@ -28,10 +28,11 @@ namespace CurtainCall.WaitingRoom
         Material material;
         static int activeCount;
         static readonly List<FloorPropsView> views = new();
-        public static bool CanPickUp(int uid, Vector3 feet)
+        public static bool CanPickUp(int uid, Vector3 feet, Component actor = null)
         {
             foreach (var view in views)
-                if (view != null && view.shown.TryGetValue(uid, out var item) && item.Reach(feet) >= 0f) return true;
+                if (view != null && view.shown.TryGetValue(uid, out var item)
+                    && (actor == null ? item.Reach(feet, actor) : CurtainCall.Player.PlayerInteraction.RestrictReach(item.Reach(feet, actor), actor)) >= 0f) return true;
             return false;
         }
 
@@ -55,9 +56,9 @@ namespace CurtainCall.WaitingRoom
             public string ActionLabel => WaitingRoomText.Format("prompt.pick-up-floor-item", "{item} 줍기", ("item", Prop.Item.Name));
             public bool IsAvailable => Shape != null && View.carry != null;
 
-            public float Reach(Vector3 feet)
+            public float Reach(Vector3 feet, Component actor = null)
             {
-                return Shape != null ? ExplorationReach.From(Shape.transform, Shape.transform.position, feet, View.reach, insideFurniture: true) : -1f;
+                return Shape != null ? ExplorationReach.From(Shape.transform, Shape.transform.position, feet, View.CommonReach, insideFurniture: true, actor: actor) : -1f;
             }
 
             public void Interact()

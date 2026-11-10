@@ -18,7 +18,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(1)] int requiredHits = 6;
 
         [Tooltip("닿는 수평 거리(m, 벽 중심에서).")]
-        [SerializeField, Min(.5f)] float reach = 1.7f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("무너지기 전 길을 막는 충돌체.")]
         [SerializeField] Collider blocker;
@@ -100,10 +100,10 @@ namespace CurtainCall.WaitingRoom
 
         void Start() { if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered += Show; }
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (Opened) return -1f;
-            return ExplorationReach.From(transform, PresentationPoint, feet, reach);
+            return ExplorationReach.From(transform, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact()

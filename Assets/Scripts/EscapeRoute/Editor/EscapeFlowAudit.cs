@@ -22,7 +22,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var poleSystem=UnityEngine.Object.FindAnyObjectByType<HumanCannonPoleSystem>();
             var registered=new SerializedObject(poleSystem).FindProperty("poles");
             Check("all active swings registered",registered.arraySize==poles.Length && poles.All(p=>Enumerable.Range(0,registered.arraySize).Any(i=>registered.GetArrayElementAtIndex(i).objectReferenceValue==p)));
-            Check("platform jump grab",new SerializedObject(poleSystem).FindProperty("allowPlatformJumpGrab").boolValue);
+            Check("common pole service",poleSystem.IndependentInteraction);
             foreach(var p in poles)
             {
                 Check(p.name+" bounded launch",p.MaxReleaseUpwardSpeed>0&&p.MaxReleaseUpwardSpeed<=7.2f&&p.SwingLength<=5.05f);
@@ -73,7 +73,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     Check("four timed original ropes",supports.arraySize==4&&Enumerable.Range(0,4).All(i=>supports.GetArrayElementAtIndex(i).objectReferenceValue is BoxCollider c&&c.enabled&&Mathf.Abs(c.bounds.size.x-12)<.01f));
                     Check("four plus A03 original rope",new SerializedObject(UnityEngine.Object.FindAnyObjectByType<TightropeCourse>()).FindProperty("sceneRopes").arraySize==5);
                     Check("button and return gate",data.FindProperty("button").objectReferenceValue!=null&&data.FindProperty("returnGate").objectReferenceValue!=null);
-                    Check("carried original trampoline",coop.Trampoline!=null&&new SerializedObject(coop.Trampoline).FindProperty("requireCarrierForBounce").boolValue);
+                    Check("carried original trampoline",coop.Trampoline!=null&&!coop.Trampoline.RequireCarrierForBounce);
                     var transfer=poles.Where(p=>p.Grip.position.x>100&&p.Grip.position.x<118).OrderBy(p=>p.Grip.position.x).ToArray();
                     for(int i=0;i<transfer.Length-1;i++)Check("A transfer chain "+i,StaticSwingReach(transfer[i],transfer[i+1].Grip.position,false,out _));
                     Check("A transfer landing",StaticSwingReach(transfer.Last(),new Vector3(119,-8,28),true,out _));

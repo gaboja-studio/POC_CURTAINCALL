@@ -48,27 +48,7 @@ namespace CurtainCall.Tightrope
             return false;
         }
 
-        /// <summary>
-        /// 떨어진 줄에서 가까운 순서로 빈 줄을 고른다(같은 줄 → 한 칸 옆 → …, 같은 거리면 왼쪽 먼저). <paramref name="usable"/>은 그 거리에 줄이 있는지.
-        /// 이미 다른 사람이 가까이 매달린 줄은 건너뛴다. 없으면 -1.
-        /// </summary>
-        public int PickLane(int preferred, float distance, int laneCount, int reach, float occupyDistance, Func<int, float, bool> usable)
-        {
-            for (int offset = 0; offset <= Math.Max(0, reach); offset++)
-            {
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    if (offset == 0 && side > 0) break;
-                    int lane = preferred + offset * side;
-                    if (lane < 0 || lane >= laneCount || (usable != null && !usable(lane, distance))) continue;
-                    if (IsOccupied(lane, distance, occupyDistance)) continue;
-                    return lane;
-                }
-            }
-            return -1;
-        }
-
-        bool IsOccupied(int lane, float distance, float occupyDistance)
+        public bool IsOccupied(int lane, float distance, float occupyDistance)
         {
             foreach (var hang in hangs.Values)
                 if (hang.Lane == lane && Math.Abs(hang.Distance - distance) < occupyDistance) return true;

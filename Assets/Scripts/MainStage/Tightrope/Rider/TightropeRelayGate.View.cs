@@ -41,7 +41,7 @@ namespace CurtainCall.Tightrope
         static readonly Color RelayOrange = new(1f, .55f, .08f);
         static readonly Color RelayIdle = new(.3f, .37f, .43f);
 
-        public Transform PoleVisual(int index) => index >= 0 && index < relayPoleViews.Count ? relayPoleViews[index].Bar : null;
+        public Transform PoleVisual(int index) => index >= 0 && index < PoleCount ? PhysicalPole(index)?.VisualBar : null;
 
         public string LocalHint
         {
@@ -61,7 +61,7 @@ namespace CurtainCall.Tightrope
                         : OutboundOpen ? $"{LaneName(OpenedLane(held))} 연결 중 · 건넌 동료가 반대편 봉을 잡을 때까지 버티세요"
                         : "출발 봉을 함께 잡을 동료를 기다리세요";
                     string time = UnlimitedHold ? "" : $"봉 유지 {HoldRemaining(held):0.0}초 · ";
-                    return $"{task}\n{time}{RelayHolderCount(far)}/{RequiredHolders}명 · F / Space 놓기" + warning;
+                    return $"{task}\n{time}{RelayHolderCount(far)}/{RequiredHolders}명 · Space / F 길게 놓기" + warning;
                 }
                 float distance = course.GetDistance(local.transform.position);
                 if (distance < EntryDistance - 7f || distance > ExitDistance + 7f) return null;
@@ -107,7 +107,7 @@ namespace CurtainCall.Tightrope
                 bool warning = far ? ReturnWarning : OutboundWarning;
                 Color color = warning ? RelayOrange : far ? RelayGreen : RelayCyan;
                 Color poleColor = available || occupied ? color : RelayIdle;
-                Vector3 feet = PoleFeet(i), grip = pole.Grip.position;
+                Vector3 feet = PoleFeet(i), grip = pole.BarPosition(common != null ? common.AngleAt(stations[i].Index) : 0);
                 view.Bar.SetPositionAndRotation(grip, facing);
                 view.Bar.localScale = new Vector3(1.15f, .12f, .12f);
                 view.Pad.gameObject.SetActive(showStandPads);
@@ -124,6 +124,8 @@ namespace CurtainCall.Tightrope
                 TintRelay(view.Bar, poleColor); TintRelay(view.Pad, poleColor);
                 TintRelay(view.LeftCable, poleColor); TintRelay(view.RightCable, poleColor);
                 TintRelay(view.Link, occupied ? color : RelayIdle);
+                bool commonArt = pole.VisualBar != null;
+                view.Bar.gameObject.SetActive(!commonArt); view.LeftCable.gameObject.SetActive(!commonArt); view.RightCable.gameObject.SetActive(!commonArt);
                 if (UnlimitedHold)
                 {
                     // 지정 자리 봉은 시간 제한이 없어 유지 시간 전광판을 띄우지 않는다.
@@ -134,7 +136,7 @@ namespace CurtainCall.Tightrope
                 {
                     // 상태 문구 대신 케이블 꼭대기에 유지 시간 전광판을 상시 둔다. 잡기 전에는 전체 시간, 잡으면 줄어든다.
                     view.Label.gameObject.SetActive(false);
-                    float shown = occupied ? HoldRemaining(i) : course.Shape.RelayHoldSeconds;
+                    float shown = occupied ? HoldRemaining(i) : pole.HoldSeconds;
                     ShowRelayClock(view.Clock, shown, grip + Vector3.up * (RelayCableHeight - ClockHalfHeight), facing);
                     continue;
                 }

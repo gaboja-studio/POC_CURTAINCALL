@@ -5123,25 +5123,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 987580504}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 547576780}
   leftCable: {fileID: 433747189}
   rightCable: {fileID: 1479412613}
   leftAnchor: {fileID: 142152556}
   rightAnchor: {fileID: 1673472892}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1 &11034814
 GameObject:
   m_ObjectHideFlags: 0
@@ -10969,6 +10956,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &25049004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28769,25 +28757,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 2099054840}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1852146730}
   leftCable: {fileID: 2110066423}
   rightCable: {fileID: 605128885}
   leftAnchor: {fileID: 1496499388}
   rightAnchor: {fileID: 2068336747}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1001 &58791939
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40853,25 +40828,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1981778282}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1137622417}
   leftCable: {fileID: 1925083895}
   rightCable: {fileID: 140652746}
   leftAnchor: {fileID: 1286896504}
   rightAnchor: {fileID: 1230100593}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1 &89958026
 GameObject:
   m_ObjectHideFlags: 0
@@ -55306,6 +55268,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &115289897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58080,25 +58043,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 87307926}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 493763531}
   leftCable: {fileID: 1953304615}
   rightCable: {fileID: 1927014308}
   leftAnchor: {fileID: 1766663966}
   rightAnchor: {fileID: 2033225086}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1 &121798394
 GameObject:
   m_ObjectHideFlags: 0
@@ -73383,6 +73333,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &155145152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109686,6 +109637,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &249979464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121589,25 +121541,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1429524329}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 538931528}
   leftCable: {fileID: 1828402650}
   rightCable: {fileID: 1590851916}
   leftAnchor: {fileID: 1851642203}
   rightAnchor: {fileID: 1923711990}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1 &270174770
 GameObject:
   m_ObjectHideFlags: 0
@@ -193797,25 +193736,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 520214115}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 167668789}
   leftCable: {fileID: 173651505}
   rightCable: {fileID: 811928776}
   leftAnchor: {fileID: 291850732}
   rightAnchor: {fileID: 1387825724}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &387293895
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -218518,25 +218444,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 860098813}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 483072054}
   leftCable: {fileID: 1105966233}
   rightCable: {fileID: 770864187}
   leftAnchor: {fileID: 456349543}
   rightAnchor: {fileID: 1882261376}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1 &431512381
 GameObject:
   m_ObjectHideFlags: 0
@@ -219589,25 +219502,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 738117818}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1438541044}
   leftCable: {fileID: 1096694819}
   rightCable: {fileID: 1312783364}
   leftAnchor: {fileID: 1880665681}
   rightAnchor: {fileID: 1269083133}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1 &433621904
 GameObject:
   m_ObjectHideFlags: 0
@@ -224806,6 +224706,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &444575727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251358,11 +251259,9 @@ MonoBehaviour:
     - 9
     - 7
     finishDistance: 9
-    laneChangeZones: []
     swingGapEnabled: 0
     relayGapEnabled: 0
     relayRequiredHolders: 1
-    relayHoldSeconds: 30
     swingGapLanes: 0200000005000000
     swingGapStart: 40
     swingGapLength: 8
@@ -251375,11 +251274,8 @@ MonoBehaviour:
     sideMargin: 2
     platformThickness: 0.5
     ropeThickness: 0.2
-    ropeWalkWidth: 0.4
-    ropeHeightTolerance: 0.3
     spawnDistance: -1
     safetyNetDepth: 0
-    fallDepth: 1
     sections:
     - endFraction: 0.18181819
       label: "\uADE0\uD615\uACFC \uC810\uD504"
@@ -251399,6 +251295,7 @@ MonoBehaviour:
   sceneRopes:
   - {fileID: 1688559517}
   - {fileID: 310159089}
+  piggybackDismountPlatforms: []
   ropeColor: {r: 0.85, g: 0.75, b: 0.55, a: 1}
   platformColor: {r: 0.45, g: 0.45, b: 0.5, a: 1}
   finishColor: {r: 0.3, g: 0.8, b: 0.4, a: 1}
@@ -254183,6 +254080,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &499454061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -260855,6 +260753,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &516708150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264142,6 +264041,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &524263726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -268167,6 +268067,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &534050304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -305196,6 +305097,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &622926622
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -317439,25 +317341,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 260966316}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 2101117397}
   leftCable: {fileID: 168765905}
   rightCable: {fileID: 1894446637}
   leftAnchor: {fileID: 1522554679}
   rightAnchor: {fileID: 810041618}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &641989402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -334080,25 +333969,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1690236222}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 902591314}
   leftCable: {fileID: 952668448}
   rightCable: {fileID: 1036036765}
   leftAnchor: {fileID: 647440130}
   rightAnchor: {fileID: 1591147537}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1 &672400408
 GameObject:
   m_ObjectHideFlags: 0
@@ -363920,6 +363796,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &726890517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -404639,25 +404516,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1703668039}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1280417883}
   leftCable: {fileID: 2077578803}
   rightCable: {fileID: 1849874661}
   leftAnchor: {fileID: 118294590}
   rightAnchor: {fileID: 1166229347}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1001 &821802629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -426180,25 +426044,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1245146279}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1325091042}
   leftCable: {fileID: 931305795}
   rightCable: {fileID: 151510149}
   leftAnchor: {fileID: 2054855956}
   rightAnchor: {fileID: 1732162244}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &861663364
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -441971,6 +441822,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &894482244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -446440,6 +446292,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &904795896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -461960,6 +461813,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &940866305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476505,6 +476359,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &974558723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -480222,6 +480077,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &982601077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -507529,6 +507385,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1025702107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -530171,6 +530028,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1058463336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -558706,16 +558564,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce2dededdc8e928418a33ba2f9d95bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonSystem
-  injuries:
-    oneLegMove: 0.8
-    oneLegAir: 0.8
-    twoLegAir: 0.8
-    oneArmInteractionSeconds: 0.6
   stations:
   - {fileID: 426086034}
   - {fileID: 17377622}
   - {fileID: 1328250446}
   flightFloorHeight: -80
+  flightCoordinateSpace: {fileID: 0}
+  useThirdPersonView: 0
+  airborneView: {fileID: 0}
 --- !u!4 &1129570221
 Transform:
   m_ObjectHideFlags: 0
@@ -558757,8 +558613,6 @@ MonoBehaviour:
   - {fileID: 431397061}
   - {fileID: 672336908}
   - {fileID: 821451528}
-  allowPlatformJumpGrab: 1
-  independentInteraction: 0
 --- !u!114 &1129570223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -580913,25 +580767,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1939785805}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1918378656}
   leftCable: {fileID: 1191096742}
   rightCable: {fileID: 387608138}
   leftAnchor: {fileID: 173726347}
   rightAnchor: {fileID: 1346024452}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1 &1175383401
 GameObject:
   m_ObjectHideFlags: 0
@@ -629297,6 +629138,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1270022055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -632799,6 +632641,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1279170284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -648148,6 +647991,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1294317640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -718411,6 +718255,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1433800522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -750603,6 +750448,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1501091401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -790418,6 +790264,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1573000792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -814488,25 +814335,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1610101049}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 946936269}
   leftCable: {fileID: 1276168475}
   rightCable: {fileID: 140608207}
   leftAnchor: {fileID: 632244205}
   rightAnchor: {fileID: 1089939917}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1 &1625831381
 GameObject:
   m_ObjectHideFlags: 0
@@ -899130,25 +898964,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1301573093}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1349520327}
   leftCable: {fileID: 1629812661}
   rightCable: {fileID: 1487542317}
   leftAnchor: {fileID: 144040933}
   rightAnchor: {fileID: 1280769179}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1 &1760118459
 GameObject:
   m_ObjectHideFlags: 0
@@ -907734,25 +907555,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1518003068}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1289094469}
   leftCable: {fileID: 1132720667}
   rightCable: {fileID: 2009762090}
   leftAnchor: {fileID: 586133441}
   rightAnchor: {fileID: 157747323}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 32
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 5.2
-  airControlSpeed: 6
 --- !u!1001 &1770589649
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -926929,6 +926737,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1819407117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -943848,6 +943657,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeDevelopmentSession
   suppressFallConsequences: 0
+  allowRopeBalanceFalls: 0
 --- !u!1001 &1840359191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -952218,25 +952028,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 523612947}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 809542692}
   leftCable: {fileID: 1580944015}
   rightCable: {fileID: 1530249360}
   leftAnchor: {fileID: 1918197012}
   rightAnchor: {fileID: 1161007984}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &1861961255
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -971960,6 +971757,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &1900010147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -976573,25 +976371,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 539215572}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 625098314}
   leftCable: {fileID: 882374379}
   rightCable: {fileID: 1876093176}
   leftAnchor: {fileID: 486412336}
   rightAnchor: {fileID: 1335490940}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1 &1912899831
 GameObject:
   m_ObjectHideFlags: 0
@@ -979881,11 +979666,7 @@ MonoBehaviour:
   halfSize: {x: 2, y: 2}
   circularSurface: 1
   usePropOutline: 0
-  requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
-  grabDistance: 4
-  upwardSpeed: 12
-  groundBounceAirControlSpeed: 6
   resetPoseOnRestart: 1
 --- !u!1 &1919983901
 GameObject:
@@ -979956,25 +979737,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1095273607}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 318141797}
   leftCable: {fileID: 1976672589}
   rightCable: {fileID: 102571786}
   leftAnchor: {fileID: 303759647}
   rightAnchor: {fileID: 1712715427}
-  hangLength: 1.5
-  grabDistance: 2.6
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 150
-  maxSwingAngle: 38
-  maxSwingSpeed: 100
-  swingDamping: 0.65
-  releaseUpwardSpeed: 2.4
-  maxReleaseUpwardSpeed: 7.2
-  airControlSpeed: 6
 --- !u!1001 &1920089757
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1012861,25 +1012629,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 377854557}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1496101068}
   leftCable: {fileID: 1026975764}
   rightCable: {fileID: 2084372004}
   leftAnchor: {fileID: 1115325250}
   rightAnchor: {fileID: 614297462}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1 &1976905454
 GameObject:
   m_ObjectHideFlags: 0
@@ -1029694,25 +1029449,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 702668856}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 2014213931}
   leftCable: {fileID: 849196361}
   rightCable: {fileID: 410852976}
   leftAnchor: {fileID: 149982782}
   rightAnchor: {fileID: 235660971}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &2010103982
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1032026,6 +1031768,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &2018756375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1053619,6 +1053362,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &2071664523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1058348,25 +1058092,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1395200458}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1073940292}
   leftCable: {fileID: 179122244}
   rightCable: {fileID: 83168112}
   leftAnchor: {fileID: 1812060128}
   rightAnchor: {fileID: 902094782}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
 --- !u!1001 &2081994766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1090828,6 +1090559,7 @@ MonoBehaviour:
   bladeHalfThickness: 0.14
   rotationSpeed: 105
   authoredPath: 0
+  showRail: 1
 --- !u!114 &2142820620
 MonoBehaviour:
   m_ObjectHideFlags: 0

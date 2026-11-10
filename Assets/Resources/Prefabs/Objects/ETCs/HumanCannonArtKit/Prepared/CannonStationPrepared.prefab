@@ -80,10 +80,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 95604129752680444}
   seat: {fileID: 2800622110060500007}
   muzzle: {fileID: 914834467578385755}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
 --- !u!4 &95604129752680444 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3770946372942921179, guid: 620c536cebf69f546ba2aef8b895a79c, type: 3}

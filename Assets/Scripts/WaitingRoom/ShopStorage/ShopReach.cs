@@ -32,7 +32,7 @@ namespace CurtainCall.WaitingRoom
     public interface IShopTarget
     {
         /// <summary>내 발 위치에서 닿는 거리. 닿지 않으면 음수.</summary>
-        float Reach(Vector3 feet);
+        float Reach(Vector3 feet, Component actor = null);
 
         /// <summary>F를 짧게 눌렀다(가장 가까운 대상 하나만 받는다).</summary>
         void Interact();
@@ -86,7 +86,7 @@ namespace CurtainCall.WaitingRoom
             float best = float.MaxValue;
             foreach (var target in targets)
             {
-                float distance = target.Reach(feet);
+                float distance = PlayerInteraction.RestrictReach(target.Reach(feet, reader), reader);
                 if (distance < 0f || distance >= best) continue;
                 best = distance;
                 Focused = target;
@@ -95,7 +95,8 @@ namespace CurtainCall.WaitingRoom
             var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
             // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
             if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
-            if (Focused != null && reader.Current.InteractTapped)
+            if (CommonInteractionSelection.Selected(reader) is IShopTarget selected && targets.Contains(selected)) Focused = selected;
+            if (Focused != null && reader.Current.InteractTapped && CommonInteractionSelection.Consume(reader, Focused))
             {
                 if (Focused is IShopPresentation presentation && presentation.IsAvailable)
                 {
@@ -113,7 +114,8 @@ namespace CurtainCall.WaitingRoom
                 }
                 Focused.Interact();
             }
-            if (reader.Current.InteractLongPressed) LongPressed?.Invoke();
+            if (reader.Current.InteractLongPressed
+                && CommonInteractionSelection.Consume(reader, CommonInteractionSelection.Selected(reader) is IShopTarget ? Focused : CommonInteractionSelection.Idle)) LongPressed?.Invoke();
         }
 
         /// <summary>

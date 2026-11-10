@@ -34,7 +34,7 @@ namespace CurtainCall.HumanCannon
             if (IsFlying && !awaitingBounce && !awaitingLanding)
             {
                 int nearest = poles.FindGrabbable(player);
-                if (nearest >= 0)
+                if (nearest >= 0 && CommonInteractionSelection.Consume(player, poles.Pole(nearest)))
                 {
                     poles.RequestGrab(nearest, flightStationIndex, launchRevision, flightSegment);
                     return true;
@@ -43,7 +43,7 @@ namespace CurtainCall.HumanCannon
             if (!IsDriving && poles.CanEnterFromPlatform(player))
             {
                 int nearest = poles.FindGrabbable(player);
-                if (nearest >= 0) { poles.RequestPlatformGrab(nearest); return true; }
+                if (nearest >= 0 && CommonInteractionSelection.Consume(player, poles.Pole(nearest))) { poles.RequestPlatformGrab(nearest); return true; }
             }
             return false;
         }

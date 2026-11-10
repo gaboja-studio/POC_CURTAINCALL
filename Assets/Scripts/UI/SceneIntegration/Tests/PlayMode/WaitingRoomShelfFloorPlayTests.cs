@@ -23,7 +23,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             // 1) 관리실 문 앞(지하)에서는 위층 선반이 잡히지 않는다.
             Call(mover, "SetStartPose", door.position + new Vector3(.9f, .1f, 0f), Quaternion.Euler(0, 270, 0));
             yield return new WaitForSecondsRealtime(.3f);
-            Assert.Less((float)Call(shelf, "Reach", player.transform.position), 0f, "다른 층 선반은 닿지 않는다");
+            Assert.Less((float)Call(shelf, "Reach", player.transform.position, player), 0f, "다른 층 선반은 닿지 않는다");
             Assert.AreNotSame(shelf, Static("CurtainCall.WaitingRoom.ShopReach", "Focused"));
 
             // 2) 선반 밑(선반 몸체 안 바닥)에 놓인 물건도 선반 앞에서 줍는다.

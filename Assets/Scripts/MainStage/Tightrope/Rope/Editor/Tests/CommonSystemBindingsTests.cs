@@ -154,7 +154,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Invoke(effects, "Update");
             Assert.That(effects.IsCrawling, Is.True);
             Assert.That(mover.SpeedMultiplier, Is.EqualTo(GameSettings.Base.BodyDamage.CrawlSpeedMultiplier));
-            Assert.That(playerObject.GetComponent<PlayerInteraction>().ReachMultiplier, Is.EqualTo(1f));
+            Assert.That(playerObject.GetComponent<PlayerInteraction>().ReachMultiplier, Is.EqualTo(GameSettings.Base.BodyDamage.ReachMultiplier(1)));
         }
 
         [TestCase(BodyPart.None, 0)]
@@ -168,7 +168,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             float reach = (float)typeof(PiggybackSystem).GetMethod("LinkReach", BindingFlags.Static | BindingFlags.NonPublic)
                 .Invoke(null, new object[] { player });
             float expected = GameSettings.Tightrope.Piggyback.LinkDistance
-                * Mathf.Max(0f, 1f - GameSettings.Tightrope.BodyPenalty.ReachLossPerArm * arms);
+                * GameSettings.Base.BodyDamage.ReachMultiplier(arms);
             Assert.That(reach, Is.EqualTo(expected).Within(0.0001f));
         }
 
@@ -245,8 +245,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(above, Is.Empty);
             Assert.That(GetField(system, "interaction"), Is.Null);
             Invoke(system, "Bind", player);
-            Assert.That(GetField(system, "interaction"), Is.Null, "다른 시간대에서 재바인딩하지 않는다");
-            Assert.That(Invoke(system, "ServerTryLink", 0UL), Is.EqualTo("거부: 외줄 공연이 진행 중이 아님"));
+            Assert.That(GetField(system, "interaction"), Is.Not.Null, "외줄 코스를 떠나도 일반 바닥 목마 입력은 다시 연결된다.");
+            system.enabled = false;
+            Assert.That(Invoke(system, "ServerTryLink", 0UL), Is.EqualTo("거부: 목마 기능이 비활성 상태"));
         }
 
         [Test]
@@ -260,9 +261,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             try
             {
                 var cannon = Track(new GameObject("Concurrent cannon policy")).AddComponent<CurtainCall.HumanCannon.HumanCannonSystem>();
-                Invoke(cannon, "BindInjuryPolicy", player);
                 Assert.That(effects.Policy, Is.SameAs(ropePolicy));
-                Assert.That(((System.Collections.IDictionary)GetField(cannon, "previousPolicies")).Count, Is.Zero);
+                Assert.That(cannon.Injuries.InteractionSeconds(true), Is.Zero, "대포 전용 부상 정책이나 입력 지연을 설치하지 않는다.");
             }
             finally { spawned.SetValue(player, false); owner.SetValue(player, false); }
         }

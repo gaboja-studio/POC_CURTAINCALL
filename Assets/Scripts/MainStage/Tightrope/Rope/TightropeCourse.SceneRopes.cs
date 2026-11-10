@@ -1,4 +1,5 @@
 using UnityEngine;
+using CurtainCall.Settings;
 
 namespace CurtainCall.Tightrope
 {
@@ -6,8 +7,6 @@ namespace CurtainCall.Tightrope
     {
         [Tooltip("각 줄을 독립된 위치/방향의 구간으로 사용한다. 네트워크 줄 번호는 sceneRopes 배열 순서다.")]
         [SerializeField] bool independentSceneRopes;
-        // Legacy scene data is retained; entry direction is now a shared rule for every rope.
-        [SerializeField, HideInInspector] bool bidirectionalSceneTraversal;
         public bool HasIndependentRopes => useSceneGeometry && independentSceneRopes;
 
         public Vector3 TraversalForwardAt(Vector3 position, Vector3 enteringForward)
@@ -46,39 +45,79 @@ namespace CurtainCall.Tightrope
         }
 
         bool IsSceneLineActive(int lane) => lane >= 0 && lane < sceneRopes.Length
-            && sceneRopes[lane] != null && sceneRopes[lane].enabled && sceneRopes[lane].gameObject.activeInHierarchy;
+            && sceneRopes[lane] is BoxCollider && sceneRopes[lane].enabled && !sceneRopes[lane].isTrigger
+            && sceneRopes[lane].gameObject.activeInHierarchy;
 
-        /// <summary>배열 번호가 아닌 실제 옆줄 점프 도착점에서 같은 방향/높이의 지지줄을 찾는다.</summary>
-        int FindSceneLandingLane(Vector3 position, int direction)
+        /// <summary>배치 간격·배열 순서·줄 방향과 무관하게 같은 높이·수평 거리 안의 가까운 옆줄을 고른다.</summary>
+        public bool TryFindLaneLanding(Vector3 position, Vector3 traversalForward, int direction,
+            out int result, out Vector3 landing)
         {
-            if (direction == 0 || LaneSpacing <= 0f) return NoLane;
-            int from = NearestSceneLine(position);
-            if (!IsSceneLineActive(from) || !SceneLine(from, out var start, out var forward, out float length)) return NoLane;
-            float along = Vector3.Dot(position - start, forward);
-            if (along < 0f || along > length || !IsLaneUsable(from, along)) return NoLane;
-            Vector3 right = Vector3.Cross(Vector3.up, forward);
-            Vector3 landing = start + forward * along + right * (Mathf.Sign(direction) * LaneSpacing);
-            float tolerance = Mathf.Max(.01f, Mathf.Min(.15f, Shape.RopeWalkWidth * .5f));
-            float best = tolerance * tolerance;
-            int result = NoLane;
-            for (int lane = 0; lane < sceneRopes.Length; lane++)
+            result = NoLane;
+            landing = default;
+            if (direction == 0 || !TryGetRopePoint(position, out int from, out float along)
+                || !IsLaneUsable(from, along)) return false;
+            Vector3 source = GetLanePosition(from, along);
+            Vector3 right = Vector3.Cross(Vector3.up, traversalForward).normalized * Mathf.Sign(direction);
+            float reach = GameSettings.Tightrope.RopeMovement.LaneJumpReach;
+            float best = float.PositiveInfinity;
+            for (int lane = 0; lane < LaneCount; lane++)
             {
-                if (lane == from || !IsSceneLineActive(lane)
-                    || !SceneLine(lane, out var otherStart, out var otherForward, out float otherLength)
-                    || Vector3.Dot(forward, otherForward) < .999f
-                    || Mathf.Abs(otherStart.y - start.y) > Shape.RopeHeightTolerance) continue;
-                float distance = Vector3.Dot(landing - otherStart, otherForward);
-                if (distance < 0f || distance > otherLength || !IsLaneUsable(lane, distance)) continue;
-                Vector3 error = Vector3.ProjectOnPlane(otherStart + otherForward * distance - landing, Vector3.up);
-                if (error.sqrMagnitude > best) continue;
-                best = error.sqrMagnitude;
+                if (lane == from || HasIndependentRopes && !IsSceneLineActive(lane)) continue;
+                Vector3 start = GetLanePosition(lane, 0f);
+                Vector3 forward = (GetLanePosition(lane, 1f) - start).normalized;
+                float length = HasIndependentRopes && SceneLine(lane, out _, out _, out float sceneLength)
+                    ? sceneLength : Layout.GetLaneEnd(lane);
+                float distance = Mathf.Clamp(Vector3.Dot(source - start, forward), 0f, length);
+                Vector3 point = start + forward * distance;
+                Vector3 delta = point - source;
+                // 1mm는 먼 월드 좌표의 float 오차만 허용한다. 높이 허용 판정(발 위치)과 구분한다.
+                if (Mathf.Abs(delta.y) > .001f) continue;
+                float horizontalSquared = Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude;
+                if (Vector3.Dot(delta, right) <= .001f || horizontalSquared > (reach + .001f) * (reach + .001f)
+                    || horizontalSquared >= best || !IsLaneUsable(lane, distance)) continue;
+                best = horizontalSquared;
                 result = lane;
+                landing = point;
             }
-            return result;
+            return result != NoLane;
         }
 
         public Vector3 ForwardAt(Vector3 position) => SceneLine(NearestSceneLine(position), out _, out var direction, out _)
             ? direction : Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+
+        public bool TryGetHangTarget(int lane, Vector3 position, out float distance, out Vector3 point)
+        {
+            distance = 0f; point = default;
+            if (lane < 0 || lane >= LaneCount || HasIndependentRopes && !IsSceneLineActive(lane)) return false;
+            Vector3 start = GetLanePosition(lane, 0f);
+            Vector3 forward = (GetLanePosition(lane, 1f) - start).normalized;
+            float length = HasIndependentRopes && SceneLine(lane, out _, out _, out float authoredLength)
+                ? authoredLength : Layout.GetLaneEnd(lane);
+            distance = Mathf.Clamp(Vector3.Dot(position - start, forward), 0f, length);
+            point = start + forward * distance;
+            if (IsLaneUsable(lane, distance)) return true;
+            float best = float.PositiveInfinity;
+            float projected = distance;
+            foreach (var span in GetUsableSpans(lane))
+            {
+                float from = Mathf.Max(0f, span.x), to = Mathf.Min(length, span.y);
+                if (to <= from) continue;
+                float inset = Mathf.Min(.001f, (to - from) * .25f);
+                float candidate = Mathf.Clamp(projected, from + inset, to - inset);
+                if (!IsLaneUsable(lane, candidate)) continue;
+                var target = start + forward * candidate;
+                float squared = (target - position).sqrMagnitude;
+                if (squared >= best) continue;
+                best = squared; distance = candidate; point = target;
+            }
+            return float.IsFinite(best);
+        }
+
+        public Transform HangTargetRoot(int lane)
+        {
+            if (useSceneGeometry) return lane >= 0 && lane < sceneRopes.Length && sceneRopes[lane] != null ? sceneRopes[lane].transform : null;
+            return laneGeometry.TryGetValue(lane, out var root) ? root : null;
+        }
 
         public float RopeHeightAt(Vector3 position) => SceneLine(NearestSceneLine(position), out var start, out _, out _)
             ? start.y : transform.position.y;

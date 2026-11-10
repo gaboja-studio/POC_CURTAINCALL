@@ -122,7 +122,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var system = UnityEngine.Object.FindAnyObjectByType<HumanCannonPoleSystem>();
             var poles = UnityEngine.Object.FindObjectsByType<HumanCannonPole>(FindObjectsSortMode.None)
                 .Where(p => p.gameObject.scene == system.gameObject.scene && p.enabled).OrderBy(p => p.name, StringComparer.Ordinal).ToArray();
-            var data = new SerializedObject(system); SetFinaleArray(data, "poles", poles); data.FindProperty("allowPlatformJumpGrab").boolValue = true;
+            var data = new SerializedObject(system); SetFinaleArray(data, "poles", poles);
             data.ApplyModifiedProperties();
         }
     }

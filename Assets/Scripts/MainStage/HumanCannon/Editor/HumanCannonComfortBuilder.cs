@@ -10,35 +10,6 @@ namespace CurtainCall.HumanCannon.EditorTools
 {
     public static class HumanCannonComfortBuilder
     {
-        [MenuItem("Tools/CurtainCall/인간 대포/일반 점프 1.2m 설정 적용")]
-        public static void ApplyJumpSettings()
-        {
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-                throw new InvalidOperationException("Play 종료 후 실행하세요.");
-            const string path = "Assets/Resources/Settings/GameSettings/Tricks/HumanCannonSettings.asset";
-            var settings = AssetDatabase.LoadAssetAtPath<HumanCannonSettings>(path);
-            if (settings == null)
-            {
-                settings = ScriptableObject.CreateInstance<HumanCannonSettings>();
-                AssetDatabase.CreateAsset(settings, path);
-            }
-            Undo.RecordObject(settings, "인간대포 일반 점프 높이");
-            using (var data = new SerializedObject(settings))
-            {
-                data.FindProperty("jumpHeight").floatValue = 1.2f;
-                data.ApplyModifiedPropertiesWithoutUndo();
-            }
-            var game = GameSettings.Current;
-            Undo.RecordObject(game, "인간대포 세팅 연결");
-            using (var data = new SerializedObject(game))
-            {
-                data.FindProperty("humanCannon").objectReferenceValue = settings;
-                data.ApplyModifiedPropertiesWithoutUndo();
-            }
-            AssetDatabase.SaveAssetIfDirty(settings);
-            AssetDatabase.SaveAssetIfDirty(game);
-        }
-
         [MenuItem("Tools/CurtainCall/인간 대포/공중 발밑 표시와 불꽃 30초 대기 적용")]
         public static void ApplyToOpenScene()
         {
@@ -70,16 +41,6 @@ namespace CurtainCall.HumanCannon.EditorTools
             Undo.SetCurrentGroupName("인간 대포 발밑 표시와 불꽃 30초 대기");
             try
             {
-                Undo.RecordObject(cannon, "부상 속도 최소 80% 저장");
-                using (var data = new SerializedObject(cannon))
-                {
-                    foreach (string field in new[] { "oneLegMove", "oneLegAir", "twoLegAir" })
-                    {
-                        var value = data.FindProperty("injuries").FindPropertyRelative(field);
-                        value.floatValue = Mathf.Max(0.8f, value.floatValue);
-                    }
-                    data.ApplyModifiedPropertiesWithoutUndo();
-                }
                 var markers = enhancement.GetComponent<HumanCannonGroundMarkers>()
                     ?? Undo.AddComponent<HumanCannonGroundMarkers>(enhancement);
                 Undo.RecordObject(markers, "발밑 표시 재질 연결");

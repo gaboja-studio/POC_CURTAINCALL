@@ -23,7 +23,7 @@ namespace CurtainCall.WaitingRoom
                 catch (Exception error) { Debug.LogException(error, this); }
         }
         [Tooltip("물건에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.3f)] float reach = 1.2f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("배송구 로컬 +Z 기준으로 물건이 떨어지는 거리(m). 방 안쪽이 -Z면 음수.")]
         [SerializeField] float dropForward = .6f;
@@ -62,12 +62,10 @@ namespace CurtainCall.WaitingRoom
             public string HelperLabel => WaitingRoomText.Format("prompt.receive-delivery-helper", "#{order} · {player} 주문", ("order", Delivery.Order), ("player", WaitingRoomShop.PlayerLabel(Delivery.Buyer)));
             public bool IsAvailable => View != null && Started < 0f && Slot.shop != null;
 
-            public float Reach(Vector3 feet)
+            public float Reach(Vector3 feet, Component actor = null)
             {
                 if (Started >= 0f) return -1f; // 떨어지는 중에는 받지 않는다
-                Vector3 offset = feet - View.transform.position;
-                float distance = new Vector2(offset.x, offset.z).magnitude;
-                return distance <= Slot.reach ? distance : -1f;
+                return View != null ? ExplorationReach.From(VisualRoot, PresentationPoint, feet, Slot.CommonReach, actor: actor) : -1f;
             }
 
             public void Interact()

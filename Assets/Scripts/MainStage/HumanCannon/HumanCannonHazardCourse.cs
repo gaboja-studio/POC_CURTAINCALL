@@ -21,7 +21,7 @@ namespace CurtainCall.HumanCannon
         readonly HashSet<(int, ulong)> touching = new(), touchingNow = new();
         readonly Dictionary<ulong, Vector3> previousFeet = new();
         readonly Dictionary<ulong, Vector3> restartPositions = new();
-        readonly HashSet<ulong> cutThisFrame = new();
+
         readonly List<ulong> stale = new();
         double epoch, previousElapsed = -1, runStart = -1, runEnd = -1, nextSnapshot;
         bool synchronized;
@@ -141,7 +141,7 @@ namespace CurtainCall.HumanCannon
 
         void HostContacts(double elapsed, float speed)
         {
-            touchingNow.Clear(); cutThisFrame.Clear();
+            touchingNow.Clear();
             bool forwardTime = previousElapsed >= 0 && elapsed > previousElapsed;
             // 긴 프레임에도 최근 0.5초는 검사한다. 초기화/시간 역행 때는 현재 자세만 검사한다.
             double beforeTime = forwardTime ? Math.Max(previousElapsed, elapsed - 0.5) : elapsed;
@@ -180,7 +180,7 @@ namespace CurtainCall.HumanCannon
                         touchingNow.Add(key);
                         if (!touching.Contains(key))
                         {
-                            bool evaluated = cutThisFrame.Add(player.OwnerClientId);
+                            bool evaluated = true;
                             BodyPart cut = BodyPart.None;
                             if (evaluated)
                             {
@@ -190,7 +190,7 @@ namespace CurtainCall.HumanCannon
                                     catch (Exception error) { Debug.LogException(error, this); }
                               string obstacle=CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(hazard,"OB_");
                               if (hazard.KillsOnContact) player.ServerKill(NetworkPlayer.DeathOrigin.Hazard,obstacle);
-                              else cut = player.ServerCut(1,obstacle,NetworkPlayer.DeathOrigin.Hazard);
+                              else cut = player.ServerHazardCut(obstacle,NetworkPlayer.DeathOrigin.Hazard);
                               if (cut != BodyPart.None && HitConfirmed != null)
                                 foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> observer in HitConfirmed.GetInvocationList())
                                     try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t)); }

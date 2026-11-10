@@ -1,41 +1,37 @@
-using System;
 using System.Collections.Generic;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
 {
-    /// <summary>출발 쪽 봉으로 먼저 건너고 반대편 봉으로 남은 동료의 줄을 연결한다. 점유는 호스트가 판정한다.</summary>
+    /// <summary>공통 스위치 봉이 잡혀 있는 동안 연결할 외줄만 관리한다. 점유·반동·비행은 공통 봉 서비스가 맡는다.</summary>
     [DefaultExecutionOrder(-55)]
     public sealed partial class TightropeRelayGate : MonoBehaviour
     {
         const ulong Nobody = ulong.MaxValue;
+        const int NoLane = -1;
         sealed class Station
         {
-            public PoleGateState State = new();
             public HumanCannonPole Pole;
-            public int Lane;
+            public int Index = -1, Lane, Opened = NoLane;
             public bool Far;
-            // 잡을 때 호스트가 고른 연결 줄(0부터). -1이면 아직 연 줄이 없다.
-            public int Opened = -1;
+            public ulong PreviousHolder = Nobody;
         }
-        const int NoLane = -1;
-        static readonly List<int> laneCandidates = new();
         Station[] stations = new Station[4];
-        /// <summary>호스트: 봉을 잡은 사람의 끈끈이 장갑(Task-092).</summary>
-        readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
+        readonly List<int> laneCandidates = new();
         TightropeCourse course;
         TightropeRun run;
+        HumanCannonPoleSystem common;
         int round = -1, version, geometryMask = -1;
-        double nextSnapshot, nextSync, pendingUntil, feedbackUntil;
+        double nextSnapshot, nextSync, feedbackUntil;
         string feedback;
         public static TightropeRelayGate Current { get; private set; }
         public bool IsActive => isActiveAndEnabled && HasGate && course.IsGameplayActive
-            && run != null && round == run.Round && run.State == TightropeRunState.Running;
-        double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
-            ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
+            && run != null && run.State == TightropeRunState.Running;
+        double Clock => common != null ? common.Clock : Time.timeAsDouble;
         public int PoleCount => stations.Length;
         public int RequiredHolders => course != null ? course.Shape.RelayRequiredHolders : 1;
         public int TransitLane => course != null ? (course.LaneCount - 1) / 2 : 0;
@@ -47,85 +43,70 @@ namespace CurtainCall.Tightrope
         public bool IsFarPole(int index) => stations[index].Far;
         public HumanCannonPole PhysicalPole(int index) => stations[index].Pole;
         public Vector3 PoleFeet(int index) => UsesSpots ? course.GetLanePosition(spotList[index].Lane, spotList[index].Distance) : course.RelayPoleGround(index);
-        public ulong HolderAt(int index) => stations[index].State.Occupant;
-        /// <summary>시간 제한 없이 잡고 있는 봉(리허설 지정 자리 봉).</summary>
-        public bool IsUnlimitedHold(int index) => index >= 0 && index < stations.Length && stations[index].State.IsUnlimitedHold;
-        public float HoldRemaining(int index) => stations[index].State.IsOccupied ? Mathf.Max(0f, (float)(stations[index].State.HoldUntil - Clock)) : 0f;
-        // 줄은 봉을 실제로 잡고 있는 동안에만 이어진다. 놓으면 그 봉이 연 줄은 바로 끊긴다.
+        public ulong HolderAt(int index) => common != null && stations[index] != null ? common.Occupant(stations[index].Index, 0) : Nobody;
+        public bool IsUnlimitedHold(int index) => false;
+        public float HoldRemaining(int index) => HolderAt(index) != Nobody ? Mathf.Max(0f, (float)(common.HoldUntil(stations[index].Index) - Clock)) : 0f;
         public bool OutboundOpen => IsActive && (GroupHeld(false) || GroupHeld(true));
         public bool ReturnOpen => IsActive && GroupHeld(true);
-        // 경고: 줄을 이어 주는 봉들이 모두 유지 시간 마지막 예고 구간에 들어갔다.
         public bool OutboundWarning => OutboundOpen && (!GroupHeld(false) || GroupInWarning(false)) && (!GroupHeld(true) || GroupInWarning(true));
         public bool ReturnWarning => ReturnOpen && GroupInWarning(true);
-        public float OutboundWarningRemaining => OutboundWarning ? Mathf.Max(GroupWarningRemaining(false), GroupWarningRemaining(true)) : 0f;
-        public float ReturnWarningRemaining => ReturnWarning ? GroupWarningRemaining(true) : 0f;
-        public float WarningRemaining => OutboundWarning && ReturnWarning
-            ? Mathf.Min(OutboundWarningRemaining, ReturnWarningRemaining)
+        public float OutboundWarningRemaining => OutboundWarning ? Mathf.Max(GroupWarningRemaining(false), GroupWarningRemaining(true)) : 0;
+        public float ReturnWarningRemaining => ReturnWarning ? GroupWarningRemaining(true) : 0;
+        public float WarningRemaining => OutboundWarning && ReturnWarning ? Mathf.Min(OutboundWarningRemaining, ReturnWarningRemaining)
             : OutboundWarning ? OutboundWarningRemaining : ReturnWarningRemaining;
-
-        float GroupWarningRemaining(bool far)
-        {
-            if (!GroupHeld(far)) return 0f;
-            float first = float.PositiveInfinity, last = 0f;
-            foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning)
-                {
-                    float time = Mathf.Max(0f, (float)(station.State.RearmAt - Clock));
-                    first = Mathf.Min(first, time); last = Mathf.Max(last, time);
-                }
-            // 두 명 유지 설정에서는 먼저 끝나는 봉의 유지 시간이 다하는 순간 연결 조건을 잃는다.
-            return RequiredHolders > 1 && float.IsFinite(first) ? first : last;
-        }
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
 
         void Awake()
         {
-            course = GetComponent<TightropeCourse>();
-            CreateStations();
+            course = GetComponent<TightropeCourse>(); run = GetComponent<TightropeRun>();
+            common = HumanCannonPoleSystem.Ensure(gameObject);
+            if (stations.Length == 0 || stations[0] == null) CreateStations();
             PlacePoles();
-            course.Rebuilt += OnRebuilt;
         }
-        void OnEnable() => Current = this;
+        void OnEnable()
+        {
+            Current = this;
+            if (course != null) course.Rebuilt += OnRebuilt;
+            if (common != null) common.OccupancyChanged += OnOccupancyChanged;
+        }
         void PlacePoles()
         {
             if (course == null) return;
             for (int i = 0; i < stations.Length; i++)
             {
-                var station = stations[i];
-                // 6줄에서는 2·5번, 5줄에서는 2·4번. 가운데 통로와 겹치지 않는다.
+                var station = stations[i]; if (station == null) continue;
                 station.Lane = UsesSpots ? spotList[i].Lane : course.RelayPoleLane(i);
-                station.Pole.transform.SetPositionAndRotation(PoleFeet(i) + Vector3.up * (station.Pole.HangLength + .7f),
-                    Quaternion.LookRotation(course.Forward));
+                station.Pole.transform.SetPositionAndRotation(PoleFeet(i) + Vector3.up * (GameSettings.Poles.HangLength + .7f), Quaternion.LookRotation(course.Forward));
             }
-        }
-        bool GroupInWarning(bool far)
-        {
-            foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning) return true;
-            return false;
         }
         bool GroupHeld(bool far)
         {
             int count = 0;
-            foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.IsOccupied) count++;
+            for (int i = 0; i < stations.Length; i++) if (stations[i] != null && stations[i].Far == far && HolderAt(i) != Nobody) count++;
             return count >= RequiredHolders;
         }
-        /// <summary>
-        /// 봉마다 잡을 때 정한 줄 하나를 연다. 그 줄은 그 봉을 잡고 있는 동안에만 이어지고 놓으면 바로 끊긴다.
-        /// 열린 줄끼리는 겹치지 않는다.
-        /// </summary>
+        bool GroupInWarning(bool far)
+        {
+            for (int i = 0; i < stations.Length; i++) if (stations[i] != null && stations[i].Far == far && HolderAt(i) != Nobody && HoldRemaining(i) <= 5f) return true;
+            return false;
+        }
+        float GroupWarningRemaining(bool far)
+        {
+            if (!GroupHeld(far)) return 0;
+            float first = float.PositiveInfinity, last = 0;
+            for (int i = 0; i < stations.Length; i++)
+                if (stations[i] != null && stations[i].Far == far && HolderAt(i) != Nobody)
+                { float left = HoldRemaining(i); first = Mathf.Min(first, left); last = Mathf.Max(last, left); }
+            return RequiredHolders > 1 && float.IsFinite(first) ? first : last;
+        }
         public bool IsLaneConnected(int lane) => LaneOwner(lane) >= 0;
-        /// <summary>이 줄을 지금 열고 있는 봉 번호. 없으면 -1.</summary>
         public int LaneOwner(int lane)
         {
             if (lane < 0) return -1;
-            for (int i = 0; i < stations.Length; i++) if (stations[i].Opened == lane && StationConnected(i)) return i;
+            for (int i = 0; i < stations.Length; i++) if (stations[i] != null && stations[i].Opened == lane && StationConnected(i)) return i;
             return -1;
         }
-        /// <summary>봉이 마지막으로 연 줄(0부터). 없으면 -1.</summary>
         public int OpenedLane(int index) => stations[index].Opened;
-        /// <summary>지금 이어진 줄 중 fromLane에서 가장 가까운 줄. 이어진 줄이 없으면 가운데 줄에서 기다린다.</summary>
         public int CrossingLane(int fromLane)
         {
             int best = NoLane;
@@ -133,122 +114,71 @@ namespace CurtainCall.Tightrope
                 if (IsLaneConnected(lane) && (best == NoLane || Mathf.Abs(lane - fromLane) < Mathf.Abs(best - fromLane))) best = lane;
             return best != NoLane ? best : TransitLane;
         }
-        bool StationConnected(int index)
-        {
-            var station = stations[index];
-            // 지정 자리 봉은 봉마다 혼자 잡아도 자기 줄을 잇는다.
-            return IsActive && station.Opened >= 0 && station.State.IsOccupied && (UsesSpots || GroupHeld(station.Far));
-        }
-        /// <summary>
-        /// 출발 봉은 봉이 있는 줄을 빼고, 교대 봉은 전체 줄에서 고른다. 다른 봉이 지금 쓰는 줄과는 겹치지 않는다.
-        /// </summary>
+        bool StationConnected(int index) => IsActive && stations[index].Opened >= 0 && HolderAt(index) != Nobody && (UsesSpots || GroupHeld(stations[index].Far));
         int PickLane(int index)
         {
-            var station = stations[index];
             if (UsesSpots) return spotList[index].TargetLane;
             laneCandidates.Clear();
             for (int lane = 0; lane < course.LaneCount; lane++)
             {
-                if (!station.Far && (lane == PoleLane(0) || lane == PoleLane(1))) continue;
+                if (!stations[index].Far && (lane == PoleLane(0) || lane == PoleLane(1))) continue;
                 bool taken = false;
-                for (int j = 0; j < stations.Length && !taken; j++)
-                    taken = j != index && stations[j].Opened == lane && stations[j].State.IsOccupied;
+                for (int j = 0; j < stations.Length && !taken; j++) taken = j != index && stations[j].Opened == lane && HolderAt(j) != Nobody;
                 if (!taken) laneCandidates.Add(lane);
             }
-            return laneCandidates.Count > 0 ? laneCandidates[UnityEngine.Random.Range(0, laneCandidates.Count)] : TransitLane;
+            return laneCandidates.Count > 0 ? laneCandidates[Random.Range(0, laneCandidates.Count)] : TransitLane;
         }
         public int HeldPole(NetworkPlayer player)
         {
-            if (player == null || !IsActive) return -1;
-            for (int i = 0; i < stations.Length; i++) if (HolderAt(i) == player.OwnerClientId) return i;
+            if (player == null || common == null) return -1;
+            int index = common.HeldBy(player.OwnerClientId);
+            for (int i = 0; i < stations.Length; i++) if (stations[i] != null && stations[i].Index == index) return i;
             return -1;
         }
         public bool IsHeld(NetworkPlayer player) => HeldPole(player) >= 0;
-        public bool IsPoleAvailable(int index) => IsActive && index >= 0 && index < PoleCount
-            && !stations[index].State.IsOccupied && course.IsLaneUsable(PoleLane(index), StationDistance(index));
-        public bool CanUsePole(int index, NetworkPlayer player)
-        {
-            if (!IsPoleAvailable(index) || player == null || !player.IsSpawned || player.State != PlayerState.Normal || !run.IsParticipantReady(player)
-                || IsHeld(player) || !player.TryGetComponent(out PlayerMover mover) || !mover.ControlEnabled || mover.PassThrough
-                || (player.IsLocal && !mover.Simulated) || (player.IsLocal ? mover.IsAirborne : player.IsAirborne)
-                || !course.TryGetSupportingRope(mover, out int lane) || lane != PoleLane(index)
-                || !course.IsLaneUsable(lane, course.GetDistance(player.transform.position))) return false;
-            if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
-            if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
-            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return false;
-            var pole = PhysicalPole(index);
-            // 양팔 손실이어도 지상에서 2.2m 봉에 닿는 협동 역할은 유지한다.
-            return PlayerInteraction.InRange(player, pole.BarPosition(0), pole.GrabRadius(player, .75f));
-        }
-        public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input)
-        {
-            var local = NetworkPlayer.Local;
-            if (!IsActive || local == null || context.Mover == null || context.Mover.gameObject != local.gameObject) return false;
-            int held = HeldPole(local);
-            if (held >= 0)
-            {
-                context.Mover.ClearPendingInput();
-                if (!InputGate.IsBlocked && (input.InteractTapped || input.ActionPressed || input.InteractLongPressed)) Send(Operation.Release, held);
-                return true;
-            }
-            if (Clock < pendingUntil) { context.Mover.ClearPendingInput(); return true; }
-            if (!input.InteractTapped || InputGate.IsBlocked) return false;
-            for (int i = 0; i < PoleCount; i++)
-                if (CanUsePole(i, local))
-                {
-                    TightropeCatchSystem.Current?.CancelLocal();
-                    context.Mover.ClearPendingInput(); pendingUntil = Clock + .5d;
-                    Send(Operation.Grab, i); return true;
-                }
-            return false;
-        }
+        public bool IsPoleAvailable(int index) => IsActive && index >= 0 && index < PoleCount && common != null && common.HasFreeSeat(stations[index].Index);
+        public bool CanUsePole(int index, NetworkPlayer player) => IsPoleAvailable(index) && common.CanApproachPole(stations[index].Index, player);
+        public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input) => IsActive && common != null && common.TryHandleInput(context, input);
         void Update()
         {
-            run = TightropeRun.Current; Connect(); PlacePoles();
+            if (run == null) run = GetComponent<TightropeRun>();
+            Connect(); PlacePoles();
             int generation = run != null ? run.Round : -1;
-            if (round != generation)
+            if (round != generation) { Deactivate(); ResetState(); round = generation; }
+            for (int i = 0; i < stations.Length; i++)
             {
-                RestoreBinding(false); ResetState(); round = generation;
-                if (session != null && session.IsHost) Publish(); else Send(Operation.Sync);
-            }
-            RetryLocalAbort();
-            if (!IsActive)
-            {
-                ClearPendingGrabs();
-                RestoreBinding(false);
-                bool dirty = false;
-                foreach (var station in stations)
-                    if (station.State.Phase != PoleSawPhase.Active || station.Opened >= 0) { station.State.Reset(); station.Opened = NoLane; dirty = true; }
-                if (dirty && session != null && session.IsHost) { version++; Publish(); }
-                ApplyConnections(); return;
+                var station = stations[i]; if (station == null) continue;
+                if (!IsActive && station.Pole.InteractionAvailable) common.Deactivate(station.Index);
+                station.Pole.InteractionAvailable = IsActive;
+                station.Pole.PresentationVisible = isActiveAndEnabled && HasGate && course.IsTraversalActive;
             }
             if (session != null && session.IsHost)
             {
-                ProcessPendingGrabs();
-                bool changed = false;
-                for (int i = 0; i < stations.Length; i++)
-                {
-                    var station = stations[i];
-                    if (station.State.IsOccupied)
-                    {
-                        var player = Find(station.State.Occupant);
-                        bool lost = player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                            || !course.IsLaneUsable(station.Lane, StationDistance(i))
-                            || (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
-                        if (lost) changed |= station.State.TryRelease(station.State.Occupant, station.State.Revision, Clock, station.Pole.WarningSeconds);
-                    }
-                    changed |= station.State.Tick(Clock, station.Pole.WarningSeconds);
-                }
-                stickyGloves.Tick(Clock, actor => { foreach (var s in stations) if (s != null && s.State.SeatOf(actor) >= 0) return true; return false; });
-                // 봉을 놓으면 그 봉이 연 줄을 비운다. 다음에 잡을 때 다시 고른다.
-                for (int i = 0; i < stations.Length; i++)
-                    if (stations[i].Opened >= 0 && !stations[i].State.IsOccupied)
-                    { stations[i].Opened = NoLane; changed = true; }
-                if (changed) version++;
+                bool changed = RefreshOpenedLanes();
                 if (changed || Clock >= nextSnapshot) { Publish(); nextSnapshot = Clock + .5d; }
             }
-            else if (Clock >= nextSync && round >= 0) { Send(Operation.Sync); nextSync = Clock + 2d; }
-            ApplyConnections(); UpdateBinding();
+            else if (Clock >= nextSync) { RequestSync(); nextSync = Clock + 2d; }
+            ApplyConnections();
+        }
+        bool RefreshOpenedLanes()
+        {
+            bool changed = false;
+            for (int i = 0; i < stations.Length; i++)
+            {
+                var station = stations[i]; if (station == null) continue;
+                ulong holder = IsActive ? HolderAt(i) : Nobody;
+                if (holder == station.PreviousHolder) continue;
+                station.PreviousHolder = holder;
+                station.Opened = holder == Nobody ? NoLane : PickLane(i);
+                changed = true;
+            }
+            if (changed) version++;
+            return changed;
+        }
+        void OnOccupancyChanged(int index, ulong actor, bool held)
+        {
+            if (session != null && session.IsHost && RefreshOpenedLanes()) Publish();
+            ApplyConnections();
         }
         void ApplyConnections()
         {
@@ -257,67 +187,25 @@ namespace CurtainCall.Tightrope
             if (geometryMask == mask) return;
             if ((mask & 1) != 0 && (geometryMask < 0 || (geometryMask & 1) == 0))
             { feedback = "반대편에서 잡았어요! 출발 쪽은 봉을 놓고 건너오세요"; feedbackUntil = Clock + 4d; }
-            geometryMask = mask;
-            course.RefreshRelayGeometry();
-        }
-        void ServerHandle(ulong sender, Operation operation, int index, uint revision)
-        {
-            if (operation == Operation.Sync) { Publish(sender); return; }
-            if (operation == Operation.Grab) { SubmitGrab(sender, index, revision); return; }
-            pendingGrabs.Remove(sender);
-            if (!IsActive || index < 0 || index >= stations.Length) { Publish(sender); return; }
-            var station = stations[index];
-            bool changed = station.State.TryRelease(sender, revision, Clock, station.Pole.WarningSeconds);
-            if (changed) { version++; ApplyConnections(); Publish(); }
-            else Publish(sender);
-        }
-        static NetworkPlayer Find(ulong owner)
-        {
-            if (owner == Nobody) return null;
-            var players = NetworkPlayer.All;
-            for (int i = 0; i < players.Count; i++)
-                if (players[i] != null && players[i].OwnerClientId == owner) return players[i];
-            return null;
+            geometryMask = mask; course?.RefreshRelayGeometry();
         }
         void ResetState()
         {
-            ClearPendingGrabs();
-            foreach (var station in stations) { station.State.Reset(); station.Opened = NoLane; }
-            stickyGloves.Clear();
-            version = 0; geometryMask = -1; pendingUntil = feedbackUntil = nextSnapshot = 0d; feedback = null;
-            localAborted = localAbortWaiting = false; nextAbortRetry = 0d;
+            foreach (var station in stations) if (station != null) { station.Opened = NoLane; station.PreviousHolder = Nobody; }
+            version = session != null && session.IsHost ? version + 1 : -1;
+            geometryMask = -1; nextSnapshot = nextSync = feedbackUntil = 0; feedback = null;
         }
-        void OnRebuilt()
-        {
-            if (session != null && !session.IsHost)
-            {
-                // 클라이언트 재빌드는 호스트 점유/리비전을 바꾸지 않는다. 해제 확인 전에는 새 위치에 다시 붙이지 않는다.
-                if (binding != null || SnapshotHeldPole(NetworkPlayer.Local) >= 0) AbortLocalBinding();
-                else RestoreBinding(false);
-                PlacePoles(); geometryMask = -1; ApplyConnections(); Send(Operation.Sync);
-                return;
-            }
-            int nextVersion = version + 1;
-            RestoreBinding(false); ResetState(); PlacePoles(); version = nextVersion;
-            if (session != null && session.IsHost) Publish();
-        }
-        void LateUpdate()
-        {
-            PlaceHeldPlayers(); UpdateViews();
-            // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다.
-            if (binding != null) binding.Balance?.RecoverWhileSupported(Time.deltaTime);
-        }
+        void Deactivate() { if (common != null) foreach (var station in stations) if (station != null) common.Deactivate(station.Index); }
+        void OnRebuilt() { Deactivate(); ResetState(); PlacePoles(); Publish(); }
+        void LateUpdate() => UpdateViews();
         void OnDisable()
         {
-            RestoreBinding(false); ResetState(); Disconnect();
-            if (Current == this) Current = null;
-            HideViews();
-            if (course != null) course.RefreshRelayGeometry();
-        }
-        void OnDestroy()
-        {
+            if (common != null) common.OccupancyChanged -= OnOccupancyChanged;
             if (course != null) course.Rebuilt -= OnRebuilt;
-            DestroyViews();
+            Deactivate(); ResetState(); Disconnect(); HideViews();
+            if (Current == this) Current = null;
+            course?.RefreshRelayGeometry();
         }
+        void OnDestroy() => DestroyViews();
     }
 }

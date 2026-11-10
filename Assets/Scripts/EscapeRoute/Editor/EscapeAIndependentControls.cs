@@ -32,8 +32,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             if (group.GetComponent<EscapeIndependentInteractions>() == null) Undo.AddComponent<EscapeIndependentInteractions>(group.gameObject);
             var poleData = new SerializedObject(poles);
-            poleData.FindProperty("allowPlatformJumpGrab").boolValue = true;
-            poleData.FindProperty("independentInteraction").boolValue = true; poleData.ApplyModifiedProperties();
+
+            poleData.ApplyModifiedProperties();
 
             const string lampPath = Materials + "a-mechanism-indicator.mat";
             var lampMaterial = AssetDatabase.LoadAssetAtPath<Material>(lampPath);

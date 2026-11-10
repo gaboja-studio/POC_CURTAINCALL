@@ -36,8 +36,6 @@ namespace CurtainCall.EscapeRoute
         }
 
         [SerializeField] Checkpoint[] checkpoints = Array.Empty<Checkpoint>();
-        [Tooltip("버튼 중심의 구형 상호작용 반경(m). 모든 방향에 같은 거리를 사용한다."), Min(.1f), SerializeField]
-        float controlDistance = EscapeSwitchInteraction.DefaultRadius;
         const string RequestName = "CurtainCall.Escape.Locks.Request";
         const string StateName = "CurtainCall.Escape.Locks.State";
         const int RequestSize = 17, StateSize = 20;
@@ -82,14 +80,20 @@ namespace CurtainCall.EscapeRoute
             && session != null && session.GameState == GameSessionState.Playing;
         internal static bool OpenAt(uint complete, uint supported, int index) => index >= 0 && index < 32
             && ((complete | supported) & (1u << index)) != 0;
-        public bool IsLatched(int index) => Valid(index) && (latched & (1u << index)) != 0;
+        bool UsesPole(int index) => Valid(index) && (checkpoints[index].helperPole != null || checkpoints[index].returnHelperPole != null);
+        public bool IsLatched(int index) => Valid(index) && !UsesPole(index) && (latched & (1u << index)) != 0;
         public bool IsArmed(int index) => Valid(index) && (armed & (1u << index)) != 0;
-        public bool IsOpen(int index) => Ready && Valid(index) && OpenAt(latched, held, index);
+        public bool IsOpen(int index) => Ready && Valid(index) && OpenAt(UsesPole(index) ? 0u : latched, held, index);
 
         void OnEnable()
         {
             if (Current != null && Current != this) { enabled = false; return; }
             Current = this;
+            foreach (var checkpoint in checkpoints)
+            {
+                if (checkpoint?.helperPole != null) checkpoint.helperPole.IsSwitch = true;
+                if (checkpoint?.returnHelperPole != null) checkpoint.returnHelperPole.IsSwitch = true;
+            }
             NetworkPlayer.Restarted += Restart;
             Present();
         }
@@ -109,7 +113,7 @@ namespace CurtainCall.EscapeRoute
             if (!InputGate.IsBlocked && local != null && local.TryGetComponent(out PlayerInputReader input)
                 && input.isActiveAndEnabled && input.Current.InteractTapped)
                 for (int i = 0; i < checkpoints.Length; i++)
-                    if (CanUseControl(local, i))
+                    if (CanUseControl(local, i) && CommonInteractionSelection.Consume(local, Control(i)))
                     {
                         if (session.IsHost) Arm(local.OwnerClientId, i, revision, ++sequence);
                         else SendRequest(1, i, ++sequence, 0);
@@ -123,7 +127,7 @@ namespace CurtainCall.EscapeRoute
         {
             if (!Ready || !Valid(index) || checkpoints[index].shoulderControl == null
                 || (armed & (1u << index)) != 0 || !Alive(player)) return false;
-            return EscapeSwitchInteraction.InRange(player, checkpoints[index].shoulderControl, controlDistance);
+            return EscapeSwitchInteraction.InRange(player, checkpoints[index].shoulderControl);
         }
 
         static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
@@ -145,6 +149,16 @@ namespace CurtainCall.EscapeRoute
             foreach (var player in NetworkPlayer.All)
                 if (Alive(player) && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) == poleIndex) count++;
             return count;
+        }
+
+        static bool UpperHolderAlive(int index)
+        {
+            var poles = HumanCannonPoleSystem.Current;
+            if (poles == null || index < 0) return false;
+            ulong actor = poles.Occupant(index, 0);
+            foreach (var player in NetworkPlayer.All)
+                if (player.OwnerClientId == actor && Alive(player)) return true;
+            return false;
         }
 
         bool AtArrival(NetworkPlayer player, int index)
@@ -172,6 +186,14 @@ namespace CurtainCall.EscapeRoute
                 uint bit = 1u << i;
                 int poleIndex = HelperIndex(i);
                 int returning = HelperIndex(i, true);
+                if (UsesPole(i))
+                {
+                    // 스위치 봉은 직접 잡은 상단 사람 한 명으로 작동한다. 도착·버튼·아래 사람으로 고정하지 않는다.
+                    bool active = UpperHolderAlive(poleIndex) || UpperHolderAlive(returning);
+                    if (active) held |= bit;
+                    latched &= ~bit;
+                    continue;
+                }
                 int helpers = HelperCount(poleIndex) + (returning != poleIndex ? HelperCount(returning) : 0);
                 int required = Mathf.Max(1, checkpoints[i].minimumHelpers);
                 if (session != null && session.PlayerCount > 0) required = Mathf.Min(required, session.PlayerCount);

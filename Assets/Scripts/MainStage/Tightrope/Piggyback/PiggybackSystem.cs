@@ -9,6 +9,8 @@ using DG.Tweening;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using CurtainCall.HumanCannon;
 
 namespace CurtainCall.Tightrope
 {
@@ -65,9 +67,9 @@ namespace CurtainCall.Tightrope
         GUIStyle handholdStyle;
         bool gameplayActive;
 
-        /// <summary>목마를 쓰지 않는 외줄(대기실 리허설, 사용자 2026-11-04). 켜져 있으면 목마 연결·안내가 동작하지 않는다.</summary>
+        /// <summary>일시적인 목마 입력 차단. 일반 씬·대기실에서도 기본값은 false다.</summary>
         public static bool Suppressed { get; set; }
-        bool IsGameplayActive => !Suppressed && isActiveAndEnabled && TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
+        internal bool IsGameplayActive => !Suppressed && isActiveAndEnabled;
 
         /// <summary>손잡기 착지 표시(내 화면만). 새 착지·재시작·사망에는 이전 연출을 정리한다.</summary>
         public void ShowHandholdLanding()
@@ -95,7 +97,7 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
-            if (!TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
+            if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
             if (TightropeRelayGate.Current != null && (TightropeRelayGate.Current.IsHeld(climber) || TightropeRelayGate.Current.IsHeld(target))) return false;
@@ -156,10 +158,57 @@ namespace CurtainCall.Tightrope
             return LaneLinkedResult;
         }
 
-        void Awake() => Current = this;
+        bool runtimeFallback;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void InitializeSceneHook()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (NetworkPlayer.All.Count > 0) EnsureExists();
+        }
+
+        public static void EnsureExists()
+        {
+            if (Current != null && Current.isActiveAndEnabled) return;
+            var authored = FindAnyObjectByType<PiggybackSystem>();
+            if (authored != null && authored.isActiveAndEnabled) { Current = authored; return; }
+            var root = new GameObject("CommonPiggyback");
+            root.SetActive(false);
+            var system = root.AddComponent<PiggybackSystem>();
+            system.runtimeFallback = true;
+            system.showDebug = false;
+            system.SuppressLegacyFeedback = true;
+            root.AddComponent<PiggybackFollow>();
+            DontDestroyOnLoad(root);
+            root.SetActive(true);
+        }
+
+        void Awake() => ClaimCurrent();
+
+        void ClaimCurrent()
+        {
+            var previous = Current;
+            if (previous != null && previous != this)
+            {
+                // 꺼진 리허설 루트는 다음 활성화 때 다시 OnEnable을 받아야 한다.
+                if (previous.isActiveAndEnabled)
+                {
+                    previous.enabled = false;
+                    if (previous.TryGetComponent(out PiggybackFollow follow)) follow.enabled = false;
+                }
+                if (previous.runtimeFallback) Destroy(previous.gameObject);
+            }
+            Current = this;
+        }
 
         void OnEnable()
         {
+            if (Current != this) ClaimCurrent();
             NetworkPlayer.LocalSpawned += Bind;
             NetworkPlayer.LocalDespawned += Unbind;
             NetworkPlayer.Restarted += HandleRestarted;
@@ -231,6 +280,13 @@ namespace CurtainCall.Tightrope
                         if (upper.State == PlayerState.Normal && upper.TryGetComponent(out PlayerBalance upperBalance)
                             && upperBalance.IsActive && !upperBalance.HasFallen)
                             sum += upperBalance.Value;
+                }
+                if (size > 1 && player.State == PlayerState.Normal && !balance.HasFallen)
+                {
+                    var course = TightropeCourse.Current;
+                    bool onRope = course != null && course.IsTraversalActive
+                        && course.PiggybackUsesRopeBalance(GetCarrier(player), balance.IsActive);
+                    if (!onRope && balance.IsActive) balance.SetBalanceActive(false);
                 }
                 balance.SetStackSize(size);
                 balance.SetUpperBalanceSum(sum);
@@ -345,9 +401,9 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터의 목마 해제를 호스트에 요청한다(F 길게와 같은 판정). 예: 맨 위 앞·뒤 분리 점프.</summary>
         public void RequestLocalRelease() => SendRequest(Request.Release);
 
-        void HandleInteract() => SendRequest(Request.Interact);
+        void HandleInteract() { if (CommonInteractionSelection.Consume(NetworkPlayer.Local, this)) SendRequest(Request.Interact); }
 
-        void HandleRelease() => SendRequest(Request.Release);
+        void HandleRelease() { if (CommonInteractionSelection.Consume(NetworkPlayer.Local, this)) SendRequest(Request.Release); }
 
         void SendRequest(Request request)
         {
@@ -386,7 +442,7 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive && request != Request.Sync)
             {
-                Reply(senderId, "거부: 외줄 공연이 진행 중이 아님");
+                Reply(senderId, "거부: 목마 기능이 비활성 상태");
                 return;
             }
             switch (request)
@@ -405,7 +461,7 @@ namespace CurtainCall.Tightrope
 
         string ServerTryLink(ulong climberId)
         {
-            if (!IsGameplayActive) return "거부: 외줄 공연이 진행 중이 아님";
+            if (!IsGameplayActive) return "거부: 목마 기능이 비활성 상태";
             var climber = FindPlayer(climberId);
             if (climber == null) return "거부: 내 캐릭터를 찾지 못함";
             if (climber.State != PlayerState.Normal) return "거부: 내 상태가 정상이 아님";
@@ -429,13 +485,13 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)
-                || !OnRope(climber)) return null;
+                || !CanStand(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
-                if (!OnRope(other)) continue;
+                if (!CanStand(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 Vector3 center = PlayerInteraction.Center(other);
@@ -448,15 +504,44 @@ namespace CurtainCall.Tightrope
             return target;
         }
 
-        /// <summary>
-        /// 실제로 줄 위에 서 있는지. 내 캐릭터도 조작 방식만이 아니라 원격 판정과 같은 균형 켜짐·줄 위치를 요구해
-        /// 시작 플랫폼(지면)에서 목마 표시가 뜨거나 호스트와 결과가 갈리지 않게 한다(2026-11-05 사용자 요청).
-        /// </summary>
-        static bool OnRope(NetworkPlayer player) => TightropeCourse.Current.UsesRopeRules(player)
-            && player.TryGetComponent(out PlayerBalance balance) && balance.IsActive
-            && TightropeCourse.Current.TryGetRopePoint(player.transform.position, out _, out _);
+        static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne
+            && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)
+            && (TightropeCourse.Current != null && player.TryGetComponent(out PlayerMover mover)
+                && TightropeCourse.Current.TryGetSupportingRope(mover, out _) || GroundSupport(player) != null);
+
+        internal static Collider GroundSupport(NetworkPlayer player)
+        {
+            if (player == null || player.State != PlayerState.Normal || player.IsAirborne
+                || !player.TryGetComponent(out PlayerMover mover) || mover.Body == null
+                || player.IsLocal && mover.IsAirborne) return null;
+            var origin = player.transform.position + Vector3.up * .15f;
+            foreach (var hit in Physics.RaycastAll(origin, Vector3.down, .45f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.normal.y < Mathf.Cos(mover.Body.slopeLimit * Mathf.Deg2Rad)
+                    || hit.collider.GetComponentInParent<NetworkPlayer>() != null
+                    || CurtainCall.Damage.DismemberedLimb.Contains(hit.collider)
+                    || TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                return hit.collider;
+            }
+            return null;
+        }
+
+        public bool HandlePlatformInput(PlayerControlContext context, in PlayerInputFrame input)
+        {
+            var local = NetworkPlayer.Local;
+            if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
+                || local.State != PlayerState.Normal || UsingDevice(local)) return false;
+            if (input.InteractLongPressed && GetBelow(local) != null && CommonInteractionSelection.Consume(local, this))
+            { RequestLocalRelease(); return true; }
+            if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))
+            { HandleInteract(); return true; }
+            return false;
+        }
 
         static bool UsingDevice(NetworkPlayer player) =>
+            player.TryGetComponent(out HumanCannonPilot pilot) && pilot.IsDriving
+            ||
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
             || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
             || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player);
@@ -529,10 +614,10 @@ namespace CurtainCall.Tightrope
             {
                 var carrier = FindPlayer(BottomOf(riderId));
                 var course = TightropeCourse.Current;
-                var platform = course?.ManualPiggybackDismountSupport(carrier);
+                var platform = GroundSupport(carrier);
                 if (platform != null)
-                    return ServerDismountOnPlatform(carrier, platform) ? "해제: 발판에 내려옴" : "거부: 발판에 내려설 자리가 없음";
-                if (course != null && course.UsesPlatformPiggyback && !course.PiggybackUsesRopeBalance(carrier, true))
+                    return ServerDismountOnPlatform(carrier, platform, FindPlayer(riderId)) ? "해제: 발판에 내려옴" : "거부: 발판에 내려설 자리가 없음";
+                if ((course == null || !course.PiggybackUsesRopeBalance(carrier, true)) && !FindPlayer(riderId).IsAirborne)
                     return "거부: 안전한 발판에 착지한 뒤 내려올 수 있음";
             }
             RememberTrapezeEntry(FindPlayer(riderId));
@@ -546,14 +631,14 @@ namespace CurtainCall.Tightrope
         internal bool HasDismountSupport(NetworkPlayer player)
         {
             return player != null && IsInStack(player)
-                && TightropeCourse.Current?.PiggybackDismountSupport(FindPlayer(BottomOf(player.OwnerClientId))) != null;
+                && GroundSupport(FindPlayer(BottomOf(player.OwnerClientId))) != null;
         }
 
         void ServerResolvePlatformDismounts()
         {
             if (belowOf.Count == 0) return;
             var course = TightropeCourse.Current;
-            if (course == null || !course.UsesPlatformPiggyback) return;
+            if (course == null) return;
             foreach (var carrier in NetworkPlayer.All)
             {
                 if (carrier == null || carrier.State != PlayerState.Normal || carrier.IsAirborne
@@ -564,17 +649,15 @@ namespace CurtainCall.Tightrope
                     carriersFromRope.Add(carrier.OwnerClientId);
                     continue;
                 }
-                Collider platform = course.PiggybackDismountSupport(carrier);
-                if (platform == null && carriersFromRope.Contains(carrier.OwnerClientId))
-                    platform = course.PiggybackLandingGround(carrier);
+                Collider platform = carriersFromRope.Contains(carrier.OwnerClientId) ? GroundSupport(carrier) : null;
                 if (platform != null) ServerDismountOnPlatform(carrier, platform);
             }
         }
 
-        bool ServerDismountOnPlatform(NetworkPlayer carrier, Collider platform)
+        bool ServerDismountOnPlatform(NetworkPlayer carrier, Collider platform, NetworkPlayer onlyRider = null)
         {
             var placements = new Dictionary<ulong, Vector3>();
-            for (var rider = GetAbove(carrier); rider != null; rider = GetAbove(rider))
+            for (var rider = onlyRider != null ? onlyRider : GetAbove(carrier); rider != null; rider = onlyRider != null ? null : GetAbove(rider))
             {
                 if (rider.State != PlayerState.Normal || !rider.TryGetComponent(out PlayerMover mover)) return false;
                 float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
@@ -687,7 +770,7 @@ namespace CurtainCall.Tightrope
                 var hangs = TightropeHangSystem.Current;
                 // M2: 줄에 매달린 사람도 목마에서 떨어진 것이다.
                 bool hanging = hangs != null && player != null && player.State == PlayerState.Normal && hangs.IsHanging(player);
-                if (player == null || (player.State != PlayerState.Fallen && !hanging)) continue;
+                if (player == null || (player.State != PlayerState.Fallen && !hanging && !player.IsDroppingFromSupport)) continue;
                 changed = true;
 
                 for (ulong current = id; aboveOf.TryGetValue(current, out ulong up); current = up)
@@ -698,7 +781,7 @@ namespace CurtainCall.Tightrope
                     {
                         if (hangs != null && TightropeCourse.Current != null)
                             hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
-                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerSetState(PlayerState.Fallen);
+                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerReleaseIntoFall();
                     }
                     (dropped ??= new List<ulong>()).Add(up);
                 }

@@ -10,7 +10,7 @@ namespace CurtainCall.ItemArt
         public Vector3 PresentationPoint=>transform.position+Vector3.up*.9f;
         public string ActionLabel=>open?"문 닫기":"문 열기";
         public bool IsAvailable=>true;
-        public float Reach(Vector3 feet){float d=Vector3.Distance(new Vector3(feet.x,0,feet.z),new Vector3(transform.position.x,0,transform.position.z));return d<1.8f?d:-1;}
+        public float Reach(Vector3 feet, Component actor = null) => CurtainCall.WaitingRoom.ExplorationReach.From(transform, transform.position, feet, CurtainCall.Settings.GameSettings.Base.Interaction.Distance, actor: actor);
         public void Interact(){open=!open;}
         void OnEnable()=>ShopReach.Add(this);
         void OnDisable()=>ShopReach.Remove(this);
