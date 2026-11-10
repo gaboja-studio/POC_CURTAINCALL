@@ -89,16 +89,7 @@ MonoBehaviour:
   rightCable: {fileID: 6416970701129603348}
   leftAnchor: {fileID: 6456780227117527707}
   rightAnchor: {fileID: 6708013396957654284}
-  hangLength: 1.5
-  grabDistance: 2
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  releaseUpwardSpeed: 6
-  airControlSpeed: 4.5
 --- !u!4 &6416970701129603348 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4441963286703552481, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}

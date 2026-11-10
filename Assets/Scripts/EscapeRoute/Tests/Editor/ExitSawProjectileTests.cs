@@ -161,7 +161,7 @@ namespace CurtainCall.EscapeRoute.Tests
             var strand = Strand(ShotStart + Vector3.forward * 3); SetCables(strand);
             var second = Root("Second independent saw").AddComponent(T(SawType));
             Set(second, "deviceId", 1); Set(second, "cables", Get(saw, "cables")); second.gameObject.SetActive(true); Call(second, "OnEnable");
-            Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 5, Vector3.up);
+            Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 5, Vector3.up, null);
             Assert.That(Get(saw, "CutCableCount"), Is.EqualTo(1));
             Assert.That(Get(second, "CutCableCount"), Is.EqualTo(1));
             Assert.That(Get(second, "DoorOpen"), Is.True);

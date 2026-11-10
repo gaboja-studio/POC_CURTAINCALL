@@ -117,8 +117,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             station.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(target-station.transform.position, Vector3.up));
             AimCompletionCannon(station, target, seconds);
             var data = new SerializedObject(station);
-            data.FindProperty("boardingDistance").floatValue = 2.75f;
-            data.FindProperty("airControlSpeed").floatValue = 6;
             data.ApplyModifiedProperties();
         }
 
@@ -144,7 +142,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             {
                 var source = preview.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>(true)).First();
                 var p = OriginalPole(root, source, "B03_MidRelaySwing", new Vector3(38.5f, 3, 82.5f), new Vector3(1, 0, -.08f).normalized, 20);
-                TuneFlowPole(root, p, p.Grip.position, 5, 38, 7.2f);
+                TuneFlowPole(root, p, p.Grip.position, 5);
             }
             finally { EditorSceneManager.ClosePreviewScene(preview); }
             FusionFloorMarks(root, new Vector3(36.5f, 1.02f, 82.5f), Vector3.right);
@@ -158,15 +156,15 @@ namespace CurtainCall.EscapeRoute.EditorTools
             second.transform.rotation = Quaternion.LookRotation(Vector3.forward);
             foreach (var part in bg.Find("31_FlowRefinement").Cast<Transform>().Where(t => t.name.StartsWith(second.name+"_", StringComparison.Ordinal)))
                 part.gameObject.SetActive(false);
-            TuneFlowPole(root, second, new Vector3(119, -1, 30), 5, 38, 7.2f);
+            TuneFlowPole(root, second, new Vector3(119, -1, 30), 5);
             var preview = EditorSceneManager.OpenPreviewScene(OriginalCannonPath);
             try
             {
                 var source = preview.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>(true)).First();
                 var p = OriginalPole(root, source, "C05_ChainThirdSwing", new Vector3(119, -2, 36), new Vector3(3, 0, 5).normalized, 20);
-                TuneFlowPole(root, p, p.Grip.position, 5, 38, 7.2f);
+                TuneFlowPole(root, p, p.Grip.position, 5);
                 p = OriginalPole(root, source, "C05_ChainFinalSwing", new Vector3(122, -3.6f, 41), new Vector3(3, 0, 2.5f).normalized, 20);
-                TuneFlowPole(root, p, p.Grip.position, 5, 38, 7.2f);
+                TuneFlowPole(root, p, p.Grip.position, 5);
             }
             finally { EditorSceneManager.ClosePreviewScene(preview); }
             FusionFloorMarks(root, new Vector3(125, -7.98f, 43.5f), Vector3.back);

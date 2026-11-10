@@ -1,36 +1,18 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
     /// <summary>봉의 배치·조정값. 점유/시간/반동 판정은 PoleSystem의 호스트가 맡는다.</summary>
-    public sealed class HumanCannonPole : MonoBehaviour
+    public sealed partial class HumanCannonPole : MonoBehaviour
     {
         [SerializeField] Transform grip;
         [SerializeField] HumanCannonSawGate linkedGate;
-        [Tooltip("함께 매달릴 수 있는 인원. 기존 톱 관문 봉은 1명을 유지한다."), Range(1, 4), SerializeField] int riderCapacity = 1;
-        [Tooltip("봉 위 고정 손잡이 자리 간격(m)."), Min(0.65f), SerializeField] float riderSpacing = 0.8f;
         [Header("반동 — Grip은 중립점, 천장 앵커는 회전 중심")]
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
-        [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
-        [Tooltip("봉 중심의 구형 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
-        [SerializeField, HideInInspector] bool requireClearGrabPath; // Legacy data; solid obstructions always block grabs.
-        readonly RaycastHit[] grabObstacles = new RaycastHit[32];
-        readonly Collider[] grabOverlaps = new Collider[32];
-        [Tooltip("잡은 뒤 최대 유지 시간(초). 0이면 스스로 놓거나 사망할 때까지 유지한다."), Min(0f), SerializeField] float holdSeconds;
-        [Tooltip("놓기/제한 시간 만료/사망 뒤 지상 관문 톱 재동작 예고(초)."), Min(0.1f), SerializeField] float warningSeconds = 2f;
-        [Tooltip("W/S 반동 가속(도/초²)."), Min(0f), SerializeField] float swingAcceleration = 300f;
-        [Tooltip("최대 반동 각도(도)."), Range(1f, 85f), SerializeField] float maxSwingAngle = 80f;
-        [Tooltip("최대 각속도(도/초)."), Min(1f), SerializeField] float maxSwingSpeed = 180f;
-        [Tooltip("반동 감쇠(1/초)."), Min(0f), SerializeField] float swingDamping = 0.4f;
-        // Retain old serialized data; all poles now use held input consistently.
-        [SerializeField, HideInInspector] bool continuousSwingInput;
-        [Tooltip("손을 놓을 때 접선 속도에 더하는 상승 속도(m/s)."), Min(0f), SerializeField] float releaseUpwardSpeed = 6f;
-        [Tooltip("봉 도약 수평 반동 배율. 1은 원본이며 공용 수평 속도 상한은 유지한다."), Range(1f, 1.5f), SerializeField] float horizontalReleaseMultiplier = 1f;
-        [Tooltip("이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."), Min(0f), SerializeField] float maxReleaseUpwardSpeed;
-        [Tooltip("봉 도약 뒤 WASD 수평 조절(m/s)."), Min(0f), SerializeField] float airControlSpeed = 3f;
-        [Tooltip("이 봉의 도약 수평 속도 상한(m/s). 0이면 공용 설정을 사용한다."), Min(0f), SerializeField] float releaseHorizontalSpeedLimit;
+        [SerializeField, Min(.1f)] float warningSeconds = 2f;
         HumanCannonPoleLoop loop;
         bool loopSearched;
 
@@ -49,42 +31,36 @@ namespace CurtainCall.HumanCannon
         public Transform Grip => grip != null ? grip : transform;
         public Transform VisualBar => visualBar;
         public HumanCannonSawGate LinkedGate => linkedGate;
-        public float HoldSeconds => holdSeconds;
+        public bool InteractionAvailable { get; set; } = true;
+        public bool IsSwitch { get; set; }
+        static PoleSettings Rules => GameSettings.Poles;
+        public float HoldSeconds => Rules.HoldSeconds;
         public float WarningSeconds => warningSeconds;
-        public float AirControlSpeed => airControlSpeed;
-        public float FlightSpeedLimit(float sharedLimit) => releaseHorizontalSpeedLimit > 0f ? releaseHorizontalSpeedLimit : sharedLimit;
-        public float MaxReleaseUpwardSpeed => maxReleaseUpwardSpeed;
-        public float HangLength => hangLength;
-        internal float MaxSwingAngle => maxSwingAngle;
-        public int RiderCapacity => linkedGate != null ? 1 : Mathf.Clamp(riderCapacity, 1, PoleGateState.MaxRiders);
-        public float RiderSpacing => Mathf.Max(0.65f, riderSpacing);
+        public float AirControlSpeed => Rules.AirControlSpeed;
+        public float FlightSpeedLimit(float sharedLimit) => Rules.HorizontalSpeedLimit;
+        public float MaxReleaseUpwardSpeed => 0f;
+        public float HangLength => Rules.HangLength;
+        internal float MaxSwingAngle => Rules.MaxSwingAngle;
+        public int RiderCapacity => PoleSettings.Capacity;
+        public float RiderSpacing => Rules.PassengerSeparation;
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;
-        public float SwingLength => TryCeilingPivot(out var pivot) ? Vector3.Distance(pivot, Grip.position) : hangLength;
-        public Vector3 HangingPosition(float angle) => BarPosition(angle) - Vector3.up * hangLength;
-        public Vector3 SeatOffset(int seat) => Grip.right * ((Mathf.Clamp(seat, 0, RiderCapacity - 1) - (RiderCapacity - 1) * .5f) * RiderSpacing);
+        public float SwingLength => Rules.SwingLength;
+        public Vector3 HangingPosition(float angle) => BarPosition(angle) - Vector3.up * HangLength;
+        public Vector3 SeatOffset(int seat) => Vector3.down * (Mathf.Clamp(seat, 0, RiderCapacity - 1) * RiderSpacing);
         public Vector3 HangingPosition(float angle, int seat) => HangingPosition(angle) + SeatOffset(seat);
 
-        /// <summary>실제 줄 길이로 천장 중간점 주위를 돈다. 앵커가 없으면 기존 짧은 진자 형상을 유지한다.</summary>
+        /// <summary>외형 케이블 길이와 무관한 공통 진자. 모든 봉의 이동 범위와 관성이 같다.</summary>
         public Vector3 BarPosition(float angle)
         {
-            if (TryCeilingPivot(out var pivot))
-                return pivot + Quaternion.AngleAxis(angle, Vector3.Cross(Forward, Vector3.up)) * (Grip.position - pivot);
-            return Grip.position + PoleSwingMotion.Offset(angle, hangLength, Forward) + Vector3.up * hangLength;
+            return Grip.position + PoleSwingMotion.Offset(angle, SwingLength, Forward) + Vector3.up * SwingLength;
         }
 
         public Vector3 ReleaseVelocity(float angle, float speed) => ReleaseVelocity(angle, speed, -1);
         public Vector3 ReleaseVelocity(float angle, float speed, int seat)
         {
-            Vector3 tangent = TryCeilingPivot(out var pivot)
-                ? Vector3.Cross(Vector3.Cross(Forward, Vector3.up), BarPosition(angle) - pivot) * (speed * Mathf.Deg2Rad)
-                : PoleSwingMotion.Velocity(angle, speed, hangLength, Forward);
-            Vector3 velocity = tangent + Vector3.up * releaseUpwardSpeed;
-            // 레일 병진·회전 관성을 진자 접선에 더한 뒤 기존 상승/수평 제한을 적용한다.
-            if (Loop != null) velocity += Loop.PointVelocity(seat < 0 ? HangingPosition(angle) : HangingPosition(angle, seat));
-            velocity = Vector3.up * velocity.y + Vector3.ProjectOnPlane(velocity, Vector3.up) * horizontalReleaseMultiplier;
-            // 수평 반동과 하강은 보존한다. 원본 씬은 기본값 0으로 기존 도약을 유지한다.
-            if (maxReleaseUpwardSpeed > 0f) velocity.y = Mathf.Min(velocity.y, maxReleaseUpwardSpeed);
-            return velocity;
+            Vector3 velocity = PoleSwingMotion.Velocity(angle, speed, SwingLength, Forward)
+                + Vector3.up * Rules.ReleaseUpwardSpeed;
+            return CannonAirControl.LimitPoleHorizontalSpeed(velocity, Rules.HorizontalSpeedLimit);
         }
 
         bool TryCeilingPivot(out Vector3 pivot)
@@ -99,6 +75,8 @@ namespace CurtainCall.HumanCannon
         /// <summary>공유 반동 각도에 봉·줄을 맞춘다. 천장과 중립 Grip은 움직이지 않는다.</summary>
         public void PresentSwing(float angle)
         {
+            EnsureCommonVisual();
+            if (commonVisual != null) commonVisual.gameObject.SetActive(PresentationVisible);
             if (visualBar == null) return;
             Vector3 position = BarPosition(angle);
             if ((visualBar.position - position).sqrMagnitude > .0000000001f
@@ -128,7 +106,7 @@ namespace CurtainCall.HumanCannon
 
         public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
             PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, SwingLength,
-                swingAcceleration, maxSwingAngle, maxSwingSpeed, swingDamping);
+                Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping);
 
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)
             => float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0;
@@ -136,26 +114,26 @@ namespace CurtainCall.HumanCannon
         public bool IsInReach(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
-            if (Loop != null && (!Loop.IsSynchronized || Loop.AtUnloadingBay(Loop.Elapsed))) return false;
+            if (Loop != null && !Loop.IsSynchronized) return false;
             RefreshMovingPose();
             var target = BarPosition(0);
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
         }
 
         internal bool IsSeatInReach(NetworkPlayer player, float angle, int seat, double observedElapsed = -1d)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || seat < 0 || seat >= RiderCapacity) return false;
             var route = Loop;
-            if (route != null && (!route.IsSynchronized || route.AtUnloadingBay(route.Elapsed))) return false;
+            if (route != null && !route.IsSynchronized) return false;
             RefreshMovingPose();
-            Vector3 target = BarPosition(angle) + SeatOffset(seat);
+            Vector3 target = seat == 0 ? BarPosition(angle) : HangingPosition(angle) + Vector3.up * (HangLength * .5f);
             if (observedElapsed >= 0d)
             {
-                if (route == null || route.AtUnloadingBay(observedElapsed) || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
+                if (route == null || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
                     || route.Elapsed - observedElapsed > .35d) return false;
                 target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
             }
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
         }
 
         /// <summary>빠르게 지나간 순환 봉만 짧은 수신 지연을 허용한다. 거리·부상·점유 검사는 원본을 유지한다.</summary>
@@ -165,45 +143,16 @@ namespace CurtainCall.HumanCannon
             if (route == null || !route.IsSynchronized || player == null || !player.IsSpawned
                 || player.State != PlayerState.Normal || !double.IsFinite(observedElapsed) || observedElapsed < 0d) return false;
             double now = route.Elapsed;
-            if (route.AtUnloadingBay(now) || route.AtUnloadingBay(observedElapsed) || observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
+            if (observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
             route.RefreshPose();
             Vector3 target = route.PointAt(BarPosition(0), System.Math.Min(observedElapsed, now));
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
         }
-
-        bool HasClearGrabPath(NetworkPlayer player, Vector3 target)
-        {
-            Vector3 origin = PlayerInteraction.Center(player), span = target - origin;
-            float distance = span.magnitude;
-            if (distance < .001f) return true;
-            float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : .3f;
-            int overlaps = Physics.OverlapSphereNonAlloc(origin, Mathf.Max(.01f, radius - .01f), grabOverlaps,
-                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            if (overlaps == grabOverlaps.Length) return false;
-            for (int i = 0; i < overlaps; i++)
-                if (BlocksGrab(grabOverlaps[i], player)
-                    && Vector3.Dot(grabOverlaps[i].bounds.ClosestPoint(origin) - origin, span) >= -.001f) return false;
-            int count = Physics.SphereCastNonAlloc(origin, Mathf.Max(.01f, radius), span / distance,
-                grabObstacles, Mathf.Max(0, distance - .03f), Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            if (count == grabObstacles.Length) return false;
-            for (int i = 0; i < count; i++)
-            {
-                var hit = grabObstacles[i].collider;
-                if (BlocksGrab(hit, player)) return false;
-            }
-            return true;
-        }
-
-        bool BlocksGrab(Collider hit, NetworkPlayer player) => hit != null && !hit.transform.IsChildOf(transform)
-            && !hit.transform.IsChildOf(Grip) && (visualBar == null || !hit.transform.IsChildOf(visualBar))
-            && hit.GetComponentInParent<NetworkPlayer>() == null
-            && !Physics.GetIgnoreLayerCollision(player.gameObject.layer, hit.gameObject.layer);
 
         public float GrabRadius(NetworkPlayer player, float minimumReach)
         {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            // 씬별 기본 거리와 부상 배율에 25% 접근 여유를 적용한다. 표시와 호스트도 이 판정을 공유한다.
-            return grabDistance * (reach > 0f ? Mathf.Max(minimumReach, reach) : reach) * 1.25f;
+            return Rules.GrabRadius * Mathf.Clamp01(reach);
         }
     }
 }

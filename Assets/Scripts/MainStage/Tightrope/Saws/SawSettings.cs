@@ -166,8 +166,6 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("허리 높이(m, 발바닥 기준). 닿은 곳이 이보다 낮으면 다리, 높으면 팔. 임시값(캡슐 높이 1.5 기준).")]
         [Min(0f)] public float waistHeight = 0.85f;
 
-        [Tooltip("같은 톱날·같은 플레이어가 다시 판정되기까지 최소 시간(초). 닿아 있는 동안에는 다시 판정하지 않는다. 임시값.")]
-        [Min(0f)] public float hitCooldown = 1f;
 
         [Header("겉모습")]
         [Tooltip("기본 가로 톱날 원판 색. 낮은 가로 톱날은 점프로 피한다.")]

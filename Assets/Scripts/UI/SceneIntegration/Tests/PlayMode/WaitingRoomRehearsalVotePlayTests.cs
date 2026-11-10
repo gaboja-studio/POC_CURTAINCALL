@@ -105,7 +105,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(1f);
                 yield return CaptureVote("7-practice-station");
                 var station = rope.GetComponent(T("CurtainCall.WaitingRoom.RehearsalPracticeStation"));
-                Assert.IsTrue((float)Call(station, "Reach", localPlayer.transform.position) >= 0f, "줄 아래에서 닿는다");
+                Assert.IsTrue((float)Call(station, "Reach", localPlayer.transform.position, localPlayer) >= 0f, "줄 아래에서 닿는다");
                 Call(station, "Interact");
                 yield return null; yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsPracticeVoteOpen"), "재연습 투표가 열린다");

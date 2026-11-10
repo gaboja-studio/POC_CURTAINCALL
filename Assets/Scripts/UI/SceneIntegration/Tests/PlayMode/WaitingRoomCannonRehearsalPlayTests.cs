@@ -170,7 +170,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
             Call(mover, "Relocate", new Vector3(point.x, pickup.transform.position.y + .1f, point.z - 2f), Quaternion.identity);
             yield return new WaitForSecondsRealtime(.4f);
-            Assert.GreaterOrEqual((float)Call(pickup, "Reach", LocalPlayer.transform.position), 0f, "The real pickup must be reachable.");
+            Assert.GreaterOrEqual((float)Call(pickup, "Reach", LocalPlayer.transform.position, LocalPlayer), 0f, "The real pickup must be reachable.");
             yield return FlowTap();
             yield return CannonWait(() => (bool)Field(State, "CannonUnlocked"), 4, "F on the storage prop must unlock the cannon.");
             yield return null;
@@ -304,7 +304,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 }
             }
             var condition = Get(LocalPlayer, "LostParts");
-            T("CurtainCall.HumanCannon.HumanCannonSystem").GetMethod("ServerFallInjury").Invoke(null, new object[] { LocalPlayer });
+            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
             Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
             yield return CannonWait(() => Get(LocalPlayer, "State").ToString() == "Normal", 4, "Practice death must recover after its death animation.");
             Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"));
@@ -399,7 +399,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
             yield return CannonWait(() => Get(CannonLesson, "Course") != null && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Native course placement must finish.");
             var course = (Component)Get(CannonLesson, "Course");
-            T("CurtainCall.HumanCannon.HumanCannonSystem").GetMethod("ServerFallInjury").Invoke(null, new object[] { LocalPlayer });
+            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
             yield return CannonWait(() => Get(LocalPlayer, "State").ToString() == "Normal", 4, "Training death must recover.");
             Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"), "Recovery must neither add injuries nor heal pre-existing ones.");
             Assert.IsTrue(OnCannonFloor(Field(course, "StartFloor")));
@@ -407,7 +407,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
             Call(mover, "Relocate", new Vector3(middle.center.x, middle.max.y, middle.center.z), Quaternion.identity);
             yield return CannonWait(() => (int)CannonStatic("Checkpoint", LocalId) == 1, 3, "Prepared checkpoint fixture must be accepted by the host.");
-            T("CurtainCall.HumanCannon.HumanCannonSystem").GetMethod("ServerFallInjury").Invoke(null, new object[] { LocalPlayer });
+            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
             Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
             CannonStatic("VoteToAbandon", true);
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Abandon must finish without mastery.");

@@ -21,7 +21,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] CinemachineCamera closeUp;
 
         [Tooltip("스케줄표에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.5f)] float reach = 2f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] bool showLegacyUi = true;
 
         [Tooltip("클로즈업 카메라 우선순위(플레이어 카메라보다 높게).")]
@@ -44,7 +44,7 @@ namespace CurtainCall.WaitingRoom
             ? WaitingRoomText.Format("schedule.board-action-new", "스케줄표 보기 · 새 공연 {trick} 편성 가능", ("trick", ScheduleBoard.Instance.TrickName(newTrick)))
             : WaitingRoomText.Get("schedule.board-action", "스케줄표 보기");
         public bool IsAvailable => !open && ScheduleBoard.Instance != null;
-        public float Reach(Vector3 feet) { float d = Flat(feet - Target.position); return d <= reach ? d : -1; }
+        public float Reach(Vector3 feet, Component actor = null) { return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor); }
         public void Interact() { if (IsAvailable) SetOpen(true); }
         void OnEnable() => ShopReach.Add(this);
 
@@ -61,7 +61,7 @@ namespace CurtainCall.WaitingRoom
         {
             ShopReach.Pump();
             var reader = LocalReader();
-            inReach = reader != null && Flat(reader.transform.position - Target.position) <= reach;
+            inReach = reader != null && Flat(reader.transform.position - Target.position) <= CommonReach;
 
             if (!open)
             {
@@ -71,7 +71,7 @@ namespace CurtainCall.WaitingRoom
             var keyboard = Keyboard.current;
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             // 창을 연 채로 밀려나거나 순간이동(장소 전환)하면 닫는다.
-            if (escape || reader == null || Flat(reader.transform.position - Target.position) > reach + .5f || ScheduleBoard.Instance == null)
+            if (escape || reader == null || Flat(reader.transform.position - Target.position) > CommonReach + .5f || ScheduleBoard.Instance == null)
                 SetOpen(false);
         }
 

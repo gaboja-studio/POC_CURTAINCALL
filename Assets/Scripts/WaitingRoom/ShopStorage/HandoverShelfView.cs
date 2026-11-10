@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom
     public sealed class HandoverShelfView : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("같은 층에서 가림 없이 선반 앞면에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.3f)] float reach = 1.2f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField, Min(.05f)] float itemSize = .25f;
         [SerializeField] Color color = new(.7f, 1f, .6f);
 
@@ -138,18 +138,18 @@ namespace CurtainCall.WaitingRoom
             ShopReach.Pump();
         }
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             // 다른 층(바로 아래 지하 관리실 등)에서는 닿지 않는다(2026-10-31: 관리실 문 F가 위층 선반에 보관되던 문제).
-            if (feet.y < area.min.y - .6f || feet.y > area.max.y) return -1f;
-            Vector3 closest = area.ClosestPoint(new Vector3(feet.x, area.center.y, feet.z));
-            return ExplorationReach.From(VisualRoot, closest, feet, reach);
+            Vector3 closest = area.ClosestPoint(actor != null ? CurtainCall.Player.PlayerInteraction.Center(actor) : feet + Vector3.up * (CurtainCall.Settings.GameSettings.Base.Character.CapsuleHeight * .5f));
+            return ExplorationReach.From(VisualRoot, closest, feet, CommonReach, actor: actor);
         }
 
-        public static bool CanUse(Vector3 feet)
+        public static bool CanUse(Vector3 feet, Component actor = null)
         {
             foreach (var target in ShopReach.Targets)
-                if (target is HandoverShelfView shelf && shelf.isActiveAndEnabled && shelf.Reach(feet) >= 0f)
+                if (target is HandoverShelfView shelf && shelf.isActiveAndEnabled
+                    && (actor == null ? shelf.Reach(feet, actor) : CurtainCall.Player.PlayerInteraction.RestrictReach(shelf.Reach(feet, actor), actor)) >= 0f)
                     return true;
             return false;
         }

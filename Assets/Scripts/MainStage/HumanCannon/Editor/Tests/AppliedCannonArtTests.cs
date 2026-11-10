@@ -156,7 +156,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
             foreach (var pole in All<HumanCannonPole>())
             {
-                Assert.That(Number(pole, "grabDistance"), Is.EqualTo(3f));
+                Assert.IsNull(new SerializedObject(pole).FindProperty("grabDistance"));
                 if (pole.LinkedGate == null) continue;
                 var bands = pole.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.StartsWith("BlackBand")).ToArray();
                 Assert.That(bands.Length, Is.EqualTo(5));

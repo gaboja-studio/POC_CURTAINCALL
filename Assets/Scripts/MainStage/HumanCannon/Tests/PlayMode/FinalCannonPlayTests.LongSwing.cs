@@ -239,7 +239,7 @@ namespace CurtainCall.HumanCannon.Tests
             Vector3 pivot = (leftAnchor.position + rightAnchor.position) * 0.5f;
             Vector3 forward = (Vector3)Get(pole, "Forward");
             float length = (float)Get(pole, "SwingLength");
-            float hangLength = (float)Get(pole, "hangLength");
+            float hangLength = (float)Get(pole, "HangLength");
             Assert.That(length, Is.EqualTo(8).Within(0.01f));
             var runtime = ((Array)Get(poles, "states")).GetValue(index);
             float deadline = Time.realtimeSinceStartup + 3;

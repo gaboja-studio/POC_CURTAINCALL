@@ -1,0 +1,57 @@
+"Test","Message","Disposition"
+"CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.GroundSaws_HaveDistinctRailsAndSpacedRoutesAtFourSecondCycles","  GroundSaw1C
+  Expected: less than 0.400000006f
+  But was:  0.420000017f
+","미해결: 인간대포 GroundSaw1C 상단 0.42m; 기대 0.4m 미만; 높이 조정 보류"
+"CurtainCall.Tightrope.EditorTools.Tests.TightropeSurfaceControlTests.CommonRules_HangTargetUsesRealEndpointAndDoesNotTreatTheRopeAsAWall","  Expected: (9000.00, 9000.00, 9004.00)
+  But was:  (9000.00, 9000.00, 9008.00)
+","해결: 테스트 좌표 중복 보정을 제거한 뒤 외줄 집중 검사 69/69 통과"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.ChosenTierIsLimitedToNextAfterCleared","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 미완료 상태에서 공연 집결 승인 true 기대/실제 false; 난이도 본 검사 전 준비 단계 실패"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.HumanCannonNeedsDiscoveryAndResetsWithRun","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 미완료 상태에서 공연 집결 승인 true 기대/실제 false; 난이도 본 검사 전 준비 단계 실패"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.NewRunForgetsClearedTiers","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 미완료 상태에서 공연 집결 승인 true 기대/실제 false; 난이도 본 검사 전 준비 단계 실패"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.RestTimeAdjustsOnlyNextPerformanceTier","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 미완료 상태에서 공연 집결 승인 true 기대/실제 false; 난이도 본 검사 전 준비 단계 실패"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.RestTimeAdjustWorksWithoutChosenTiersAndNotOnDayOne","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 미완료 상태에서 공연 집결 승인 true 기대/실제 false; 난이도 본 검사 전 준비 단계 실패"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.EachRestUsesItsOwnLimitOnlyOnEntry(1,Between,Guide,333.0f)","  Expected: Running
+  But was:  WaitingForExit
+","미해결: 튜토리얼 완료 전 WaitingForExit 상태와 시간 검사 기대값 불일치"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.FiniteRestStillRaisesAlarmAndExpiresBeforePerformance","  Expected: True
+  But was:  False
+","미해결: 튜토리얼 완료 전 WaitingForExit 상태와 시간 검사 기대값 불일치"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestCanEscapeAndDebugRequiresFiniteValue","  Expected: Unlimited
+  But was:  WaitingForExit
+","미해결: 튜토리얼 완료 전 WaitingForExit 상태와 시간 검사 기대값 불일치"
+"CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestNeverExpiresOrAlarmsButCanGather(1,Between,Guide)","  Expected: Unlimited
+  But was:  WaitingForExit
+","미해결: 튜토리얼 완료 전 WaitingForExit 상태와 시간 검사 기대값 불일치"
+"CurtainCall.WaitingRoom.Pursuit.Editor.UnifiedWaitingRoomSceneTests.UnifiedWaitingRoom_PreservesPursuitAuthoringAndSceneReferences","  Expected is <System.String[26]>, actual is <System.Linq.Enumerable+SelectArrayIterator`2[CurtainCall.WaitingRoom.Pursuit.PursuitPlacement,System.String]>
+  Values differ at index [6]
+  String lengths are both 474. Strings differ at index 275.
+  Expected: ""...:-0.13052621483802796},""size"":0,""stage"":1,""roomPatrol"":fal...""
+  But was:  ""...:-0.13052621483802796},""size"":1,""stage"":1,""roomPatrol"":fal...""
+  --------------------------------------------^
+","미해결: 추격자 배치 인덱스6 원본 Small(0)/통합 대기실 Medium(1)"
+"CurtainCall.Reward.Tests.AudienceReactionTests.CutIsAwardedOnceAndSurvivorDoublesCheer","  생존 호응 25 × 2
+  Expected: 50
+  But was:  150
+","미해결: 검사 기대 50에 완주 보너스100 누락; 실제 정산150"
+"CurtainCall.WaitingRoom.Tests.WaitingRoomTextTests.ShippedFileCoversEveryCodeKeyWithSameNames","  explore.locked-before-tutorial: 문구 파일에 없음 (ExplorationState.cs)
+cannon-rehearsal.vote-body: 문구 파일에 없음 (WaitingRoomCannonRehearsal.Ui.cs)
+rehearsal.lane-guide-title: 기본 문구가 두 가지 (WaitingRoomRehearsal.Local.cs)
+rehearsal.lane-guide: 기본 문구가 두 가지 (WaitingRoomRehearsal.Local.cs)
+  Expected: <empty>
+  But was:  < ""explore.locked-before-tutorial: 문구 파일에 없음 (ExplorationState.cs)"", ""cannon-rehearsal.vote-body: 문구 파일에 없음 (WaitingRoomCannonRehearsal.Ui.cs)"", ""rehearsal.lane-guide-title: 기본 문구가 두 가지 (WaitingRoomRehearsal.Local.cs)"", ""rehearsal.lane-guide: 기본 문구가 두 가지 (WaitingRoomRehearsal.Local.cs)"" >
+","미해결: 대기실 문구 누락2키·기본 문구 충돌2키; UI 문구 범위"
+"CurtainCall.WaitingRoom.Tests.WaitingRoomTextTests.ShippedFileHasNoUnusedKeys","  쓰지 않는 키(오타?): narration.performance-unlocked-body, rehearsal.gather-title, rehearsal.quest.fallen, rehearsal.quest.wait-team, rehearsal.quest.arrived, rehearsal.quest.balance, rehearsal.quest.lane-jump, rehearsal.quest.lane-platform, rehearsal.quest.finish, rehearsal.quest.fallen.title, rehearsal.quest.hang-help.title, rehearsal.quest.hang-help, rehearsal.quest.rescue-team.title, rehearsal.quest.rescue-team, rehearsal.quest.rescue-pull.title, rehearsal.quest.rescue-pull, rehearsal.quest.wait-team.title, rehearsal.quest.arrived.title, rehearsal.quest.balance.title, rehearsal.quest.lane-jump.title, rehearsal.quest.lane-platform.title, rehearsal.quest.gather.title, rehearsal.quest.gathered.title, first-day.panel.top, first-day.panel.right, first-day.panel.width, first-day.panel.title-size, first-day.panel.body-size, first-day.quest.tutorial.title, first-day.quest.tutorial.body, first-day.quest.gather.title, first-day.quest.gather.body, first-day.quest.second-pick.title, first-day.quest.second-pick.body, first-day.quest.second-pick-wait.title, first-day.quest.second-pick-wait.body, first-day.quest.night-schedule.title, first-day.quest.night-schedule.body, first-day.quest.night-schedule-wait.title, first-day.quest.night-schedule-wait.body, first-day.quest.night-bed.title, first-day.quest.night-bed.body, first-day.quest.night-wait.title, first-day.quest.night-wait.body, rehearsal.stage.1.title, rehearsal.stage.1.intro, rehearsal.stage.1.guide-title, rehearsal.stage.2-1.title, rehearsal.stage.2-1.intro, rehearsal.stage.2-1.guide-title, rehearsal.stage.2-2.title, rehearsal.stage.2-2.intro, rehearsal.stage.2-2.guide-title, rehearsal.stage.2-3.title, rehearsal.stage.2-3.intro, rehearsal.stage.2-3.guide-title, rehearsal.stage.3.title, rehearsal.stage.3.intro, rehearsal.stage.3.guide-title, rehearsal.vote, rehearsal.quest.arrived-vote, rehearsal.quest.trapeze-mount.title, rehearsal.quest.trapeze-mount, rehearsal.quest.trapeze-grab.title, rehearsal.quest.trapeze-grab, rehearsal.quest.trapeze-attach.title, rehearsal.quest.trapeze-attach, rehearsal.skip.body-practice, rehearsal.skip.agree, rehearsal.skip.cancel, rehearsal.practice-vote.agree, rehearsal.practice-vote.agreed, rehearsal.quest.handhold.title, rehearsal.quest.handhold, rehearsal.quest.relay.title, rehearsal.quest.trapeze.title, rehearsal.quest.trapeze-lane.title, rehearsal.quest.trapeze-lane, rehearsal.quest.mount.title, rehearsal.quest.mount, rehearsal.quest.mount-move.title, rehearsal.quest.mount-move, rehearsal.quest.mount-balance.title, rehearsal.quest.mount-balance, rehearsal.quest.mount-jump.title, rehearsal.quest.mount-jump, rehearsal.quest.mount-land.title, rehearsal.quest.mount-land, rehearsal.quest.lane-learned.title, rehearsal.quest.lane-learned, cannon-rehearsal.title, cannon-rehearsal.quest-title, cannon-rehearsal.intro, cannon-rehearsal.first, cannon-rehearsal.second, cannon-rehearsal.carry, cannon-rehearsal.ride, cannon-rehearsal.catch, cannon-rehearsal.air, cannon-rehearsal.bounce, cannon-rehearsal.self, cannon-rehearsal.fall-title, cannon-rehearsal.fall, cannon-rehearsal.required-title, cannon-rehearsal.yes, cannon-rehearsal.no, cannon-rehearsal.unavailable, cannon-rehearsal.abandon-title, cannon-rehearsal.abandon, cannon-rehearsal.abandon-body, cannon-rehearsal.cancel-vote, cannon-rehearsal.end-title, cannon-rehearsal.complete, cannon-rehearsal.abandoned, rehearsal.quest.pole-grab.title, rehearsal.quest.pole-single.title, rehearsal.quest.pole-next.title, rehearsal.quest.trigger-hold.title, rehearsal.quest.trigger-grab.title, rehearsal.quest.trigger-open.title, rehearsal.quest.trigger-closed.title
+  Expected: <empty>
+  But was:  < ""narration.performance-unlocked-body"", ""rehearsal.gather-title"", ""rehearsal.quest.fallen"", ""rehearsal.quest.wait-team"", ""rehearsal.quest.arrived"", ""rehearsal.quest.balance"", ""rehearsal.quest.lane-jump"", ""rehearsal.quest.lane-platform"", ""rehearsal.quest.finish"", ""rehearsal.quest.fallen.title""... >
+","미해결: 검사에서 문구121키 사용처 미검출; 동적 참조 포함 확인 필요"

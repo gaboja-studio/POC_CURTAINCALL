@@ -146,11 +146,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(hideOnOpen.Any(g => g.name.StartsWith("Keypad") || g.name == "EscapeSign" || g.name == "HazardStripe" || g.name == "BeaconGlass" || g.name == "RustStain"), "Opening removes only the door and its locks");
             yield return new WaitForSecondsRealtime(1.5f);
             Assert.Greater(panelClosed.z - hiddenPanel.position.z, 2.3f, "Hidden door slid aside after the code");
-            var slotIndex = exit.GetType().GetMethod("SlotAt", new[] { typeof(Vector3) });
+            var slotIndex = exit.GetType().GetMethod("SlotAt", new[] { typeof(Vector3), typeof(Component) });
             foreach (var (slotName, index) in new[] { ("KeySlot_L", 0), ("KeySlot_R", 1) })
             {
                 var slot = exit.transform.Find(slotName); Assert.IsTrue(slot.gameObject.activeInHierarchy);
-                Assert.AreEqual(index, slotIndex.Invoke(exit, new object[] { new Vector3(slot.position.x + .7f, -10f, slot.position.z) }), slotName + " reachable in front of it");
+                Assert.AreEqual(index, slotIndex.Invoke(exit, new object[] { new Vector3(slot.position.x + .7f, -10f, slot.position.z), null }), slotName + " reachable in front of it");
             }
             yield return UsePlaced("escape-door", -10); Assert.AreEqual(false, Get(exit, "Opened"));
             Assert.AreEqual("RestTime", Field(State, "Phase").ToString());

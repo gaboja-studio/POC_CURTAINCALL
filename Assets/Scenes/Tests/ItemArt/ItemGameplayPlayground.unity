@@ -276,7 +276,6 @@ MonoBehaviour:
   toolId: 
   requiredHits: 1
   cooperationWindow: 0.75
-  reach: 1.6
   password: 0000
   passwordPending: 0
   passwordExplicit: 0
@@ -787,7 +786,6 @@ MonoBehaviour:
   toolId: stake-puller
   toolName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
   requiredHits: 3
-  reach: 1.7
   blocker: {fileID: 326033042}
   pieces:
   - {fileID: 326033039}
@@ -796,6 +794,9 @@ MonoBehaviour:
   revealOnOpen: []
   sound: {fileID: 0}
   outlineRoot: {fileID: 0}
+  showOutline: 1
+  loosenPieces: 1
+  standingDetail: {fileID: 0}
 --- !u!4 &463855787
 Transform:
   m_ObjectHideFlags: 0
@@ -841,7 +842,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 118f72f245caa48b0b7d03816db736ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FloorPropsView
-  reach: 1
   itemSize: 0.25
   color: {r: 0.55, g: 0.85, b: 1, a: 1}
   showLegacyLabels: 1
@@ -892,7 +892,6 @@ MonoBehaviour:
   targetId: item-art-088-1
   kind: 0
   label: "\uC7A0\uAE34 \uC0C1\uC790"
-  reach: 1.6
   blocker: {fileID: 77241447}
   hinge: {fileID: 77241444}
   openEuler: {x: -100, y: 0, z: 0}
@@ -964,7 +963,6 @@ MonoBehaviour:
   toolId: 
   requiredHits: 1
   cooperationWindow: 0.75
-  reach: 1.6
   password: 0000
   passwordPending: 0
   passwordExplicit: 0

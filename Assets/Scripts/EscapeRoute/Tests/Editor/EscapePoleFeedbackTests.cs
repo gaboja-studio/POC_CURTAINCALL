@@ -48,13 +48,13 @@ namespace CurtainCall.EscapeRoute.Tests
                 root.transform.position = origin + new Vector3(0, 1, 2);
                 actor.transform.position = origin;
                 var pole = root.AddComponent(TypeNamed("CurtainCall.HumanCannon.HumanCannonPole"));
-                Set(pole, "requireClearGrabPath", true);
+                Assert.IsNull(pole.GetType().GetField("requireClearGrabPath", BindingFlags.Instance | BindingFlags.NonPublic));
                 var system = root.AddComponent(polesType);
                 var poles = Array.CreateInstance(pole.GetType(), 1);
                 poles.SetValue(pole, 0);
                 Set(system, "poles", poles);
-                Set(system, "allowPlatformJumpGrab", true);
-                Set(system, "independentInteraction", true);
+                Assert.IsNull(system.GetType().GetField("allowPlatformJumpGrab", BindingFlags.Instance | BindingFlags.NonPublic));
+                Assert.IsNull(system.GetType().GetField("independentInteraction", BindingFlags.Instance | BindingFlags.NonPublic));
                 var runtime = polesType.GetNestedType("Runtime", BindingFlags.NonPublic);
                 var states = Array.CreateInstance(runtime, 1);
                 states.SetValue(Activator.CreateInstance(runtime, new object[] { 1 }), 0);

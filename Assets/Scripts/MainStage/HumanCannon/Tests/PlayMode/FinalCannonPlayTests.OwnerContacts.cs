@@ -118,7 +118,7 @@ namespace CurtainCall.HumanCannon.Tests
             var fires = (Array)Get(route, "fires");
             var fire = fires.Cast<Component>().First(f => f != null && (bool)Get(f, "IsConfigured"));
             int index = Array.IndexOf(fires.Cast<object>().ToArray(), fire);
-            HazardSet(fire, "available", true); HazardSet(fire, "killOnContact", true);
+            HazardSet(fire, "available", true);
             HazardSet(fire, "warningSeconds", .1f);
             Call(fire, "ResetWall");
             double at = (double)Get(route, "Clock");

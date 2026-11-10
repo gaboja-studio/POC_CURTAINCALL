@@ -1,0 +1,130 @@
+{
+  "HumanCannonPole": [
+    "riderCapacity",
+    "riderSpacing",
+    "hangLength",
+    "grabDistance",
+    "requireClearGrabPath",
+    "holdSeconds",
+    "swingAcceleration",
+    "maxSwingAngle",
+    "maxSwingSpeed",
+    "swingDamping",
+    "continuousSwingInput",
+    "releaseUpwardSpeed",
+    "horizontalReleaseMultiplier",
+    "maxReleaseUpwardSpeed",
+    "airControlSpeed",
+    "releaseHorizontalSpeedLimit"
+  ],
+  "HumanCannonPoleSystem": [
+    "allowPlatformJumpGrab",
+    "independentInteraction",
+    "useGrabFacing"
+  ],
+  "HumanCannonSystem": [
+    "injuries"
+  ],
+  "HumanCannonTrampoline": [
+    "requireCarrierForBounce",
+    "grabDistance",
+    "upwardSpeed",
+    "groundBounceAirControlSpeed"
+  ],
+  "HumanCannonStation": [
+    "boardingDistance",
+    "airControlSpeed",
+    "animateBarrel"
+  ],
+  "HumanCannonHazard": [
+    "fireSeversLimbs"
+  ],
+  "HumanCannonFireWall": [
+    "killOnContact"
+  ],
+  "TightropeCourse": [
+    "bidirectionalSceneTraversal"
+  ],
+  "HumanCannonSettings": [
+    "jumpHeight",
+    "poleJumpHorizontalSpeedLimit"
+  ],
+  "TightropeSettings.CourseSettings": [
+    "relayHoldSeconds",
+    "ropeWalkWidth",
+    "ropeHeightTolerance",
+    "fallDepth",
+    "laneChangeZones"
+  ],
+  "TightropeSettings.RopeMovementSettings": [
+    "jumpInputBuffer",
+    "trapezeEntryHeightTolerance",
+    "trapezeEntryGrabDistance"
+  ],
+  "TightropeSettings.BodyPenaltySettings": [
+    "oneLegMoveSpeed",
+    "minimumInjuredMoveSpeed",
+    "reachLossPerArm"
+  ],
+  "TightropeSettings.HangSettings": [
+    "laneReach",
+    "rescueDistance"
+  ],
+  "SawSettings": [
+    "hitCooldown"
+  ],
+  "CurtainCall.WaitingRoom.ExpertRoomView": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.BreakableWall": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ClueInspectable": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.DebugEscapeKeyProp": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ExplorationGate": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.PerformancePropPickup": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ToolTarget": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.NightBed": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ScheduleBoardView": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.DebugMoneyProp": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.FloorPropsView": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.HandoverShelfView": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ShopDeliverySlot": [
+    "reach"
+  ],
+  "CurtainCall.WaitingRoom.ShopPhone": [
+    "reach"
+  ],
+  "CurtainCall.EscapeRoute.EscapeCooperativeLocks": [
+    "controlDistance"
+  ],
+  "CurtainCall.EscapeRoute.EscapeCooperativeRopes": [
+    "buttonDistance"
+  ],
+  "CurtainCall.EscapeRoute.EscapeExitSaw": [
+    "grabDistance"
+  ],
+  "CurtainCall.StartLobby.LobbyInteractable": [
+    "reach"
+  ]
+}

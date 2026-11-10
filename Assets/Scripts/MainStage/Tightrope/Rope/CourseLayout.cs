@@ -13,9 +13,8 @@ namespace CurtainCall.Tightrope
         public const int NoLane = -1;
 
         readonly float[] laneEnds;
-        readonly Vector2[] laneChangeZones;
 
-        public CourseLayout(int laneCount, float laneSpacing, float finishDistance, float[] laneEndDistances, Vector2[] laneChangeZones)
+        public CourseLayout(int laneCount, float laneSpacing, float finishDistance, float[] laneEndDistances)
         {
             LaneCount = Mathf.Max(1, laneCount);
             LaneSpacing = Mathf.Max(0.01f, laneSpacing);
@@ -29,7 +28,6 @@ namespace CurtainCall.Tightrope
                 laneEnds[i] = end <= 0f ? FinishDistance : Mathf.Min(end, FinishDistance);
             }
 
-            this.laneChangeZones = laneChangeZones != null ? (Vector2[])laneChangeZones.Clone() : Array.Empty<Vector2>();
         }
 
         public int LaneCount { get; }
@@ -80,15 +78,5 @@ namespace CurtainCall.Tightrope
         public int GetLaneSlotAt(float side) =>
             Mathf.Clamp(Mathf.RoundToInt(side / LaneSpacing + (LaneCount - 1) * 0.5f), 0, LaneCount - 1);
 
-        /// <summary>그 거리가 옆줄 이동 가능 구간 안인지. 구간이 하나도 없으면 어디서도 안 된다.</summary>
-        public bool IsLaneChangeAllowed(float distance)
-        {
-            foreach (var zone in laneChangeZones)
-                if (distance >= Mathf.Min(zone.x, zone.y) && distance <= Mathf.Max(zone.x, zone.y)) return true;
-            return false;
-        }
-
-        /// <summary>옆줄 이동 가능 구간 목록(복사본). x = 시작 거리, y = 끝 거리.</summary>
-        public Vector2[] GetLaneChangeZones() => (Vector2[])laneChangeZones.Clone();
     }
 }

@@ -189,7 +189,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(position.z, Is.EqualTo(4f).Within(.001f));
             Assert.That(velocity.x, Is.Zero, "공중 보정을 발사 관성에 누적하지 않는다.");
             Assert.That(GameSettings.Tightrope.RopeMovement.JumpGravityMultiplier, Is.EqualTo(1f));
-            Assert.That(GameSettings.Tightrope.RopeMovement.JumpHeight, Is.EqualTo(GameSettings.Base.Character.JumpHeight * 1.25f));
+            Assert.That(GameSettings.Tightrope.RopeMovement.JumpHeight, Is.EqualTo(1.5f));
         }
     }
 }

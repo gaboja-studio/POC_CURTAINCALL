@@ -365,13 +365,80 @@ namespace CurtainCall.WaitingRoom.EditorTools
             player.transform.position = Feet(enlarged.center.x, enlarged.center.z) + Vector3.down * 1f;
             Assert.That(Call(rehearsal, "IsFinished", player), Is.False);
             var walls = (GameObject)Call(rehearsal, "BuildFinishWalls");
-            Assert.That(walls.activeSelf, Is.False, "도착자 화면에서만 켠다.");
+            Assert.That(walls.activeSelf, Is.False, "튜토리얼 도착자 화면에서만 켠다.");
             walls.SetActive(true);
             Physics.SyncTransforms();
             var right = walls.transform.Find("Right").GetComponent<BoxCollider>().bounds;
             var back = walls.transform.Find("Back").GetComponent<BoxCollider>().bounds;
             Assert.That(right.min.x - course.transform.position.x, Is.EqualTo(enlarged.max.x).Within(.005f));
             Assert.That(back.min.z - course.transform.position.z, Is.EqualTo(enlarged.max.z).Within(.005f));
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        public void PracticeArrivedPlayerCanReturnFromFinishAndReenterWithoutLosingCredit(int stage)
+        {
+            Set(rehearsal, "practice", true);
+            Set(rehearsal, "stage", stage);
+            JsonUtility.FromJsonOverwrite(RehearsalStage.All[stage].CourseJson, Get(course, "sceneShape"));
+            course.FinishPlatformScale = 2;
+            Assert.That(course.TryGetFinishPlatformBounds(out var floor), Is.True);
+            var player = Participant(701);
+            var mover = player.GetComponent<PlayerMover>();
+            Set(rehearsal, "local", player);
+            var arrived = (HashSet<ulong>)Get(rehearsal, "arrived");
+            arrived.Add(701);
+            mover.SetStartPose(course.transform.position + course.Forward * 5f, Quaternion.identity, true);
+            var before = player.transform.position;
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Assert.That(player.transform.position, Is.EqualTo(before), "재연습은 학습 완료 시점에도 강제 이동시키지 않는다.");
+            Vector3 edge = course.transform.position + course.Right * floor.center.x
+                + course.Forward * (floor.min.z + .4f);
+            mover.SetStartPose(edge, Quaternion.LookRotation(-course.Forward), true);
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Physics.SyncTransforms();
+            mover.Body.Move(-course.Forward * 2f);
+            Assert.That(Vector3.Dot(edge - player.transform.position, course.Forward), Is.GreaterThan(1.9f),
+                "도착 후에도 줄 쪽 출구를 투명 벽으로 막지 않는다.");
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Assert.That(Vector3.Dot(edge - player.transform.position, course.Forward), Is.GreaterThan(1.9f),
+                "되돌아간 위치를 도착대로 강제 복귀시키지 않는다.");
+            mover.Body.Move(course.Forward * 2f);
+            Assert.That(Vector3.Distance(player.transform.position, edge), Is.LessThan(.05f));
+            Assert.That(arrived.Contains(701), Is.True, "왕복 이동과 이수 기록은 분리한다.");
+        }
+
+        [Test]
+        public void TutorialStillBlocksArrivedPlayerUntilPracticeStarts()
+        {
+            var player = Participant(701);
+            var mover = player.GetComponent<PlayerMover>();
+            Set(rehearsal, "local", player);
+            ((HashSet<ulong>)Get(rehearsal, "arrived")).Add(701);
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            var walls = (GameObject)Get(rehearsal, "finishWalls");
+            Assert.That(walls, Is.Not.Null);
+            Assert.That(walls.activeSelf, Is.True);
+            Set(rehearsal, "practice", true);
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Assert.That(walls.activeSelf, Is.False, "튜토리얼 벽이 남아 있어도 재연습을 막으면 안 된다.");
+        }
+
+        [Test]
+        public void PracticeKeepsCourseAfterAllArriveUntilMajorityRequestsNext()
+        {
+            Set(rehearsal, "practice", true);
+            for (ulong id = 701; id <= 704; id++) Participant(id);
+            Call(rehearsal, "HostJudgeStage");
+            Assert.That(Get(rehearsal, "stage"), Is.EqualTo(0));
+            Assert.That(Get(rehearsal, "round"), Is.EqualTo(5));
+            Assert.That((HashSet<ulong>)Get(rehearsal, "arrived"), Has.Count.EqualTo(4));
+            var votes = (HashSet<ulong>)Get(rehearsal, "votes");
+            votes.Add(701); votes.Add(702);
+            Call(rehearsal, "HostJudgeStage");
+            Assert.That(Get(rehearsal, "stage"), Is.EqualTo(0));
+            votes.Add(703);
+            Call(rehearsal, "HostJudgeStage");
+            Assert.That(Get(rehearsal, "stage"), Is.EqualTo(1));
         }
 
         [Test]

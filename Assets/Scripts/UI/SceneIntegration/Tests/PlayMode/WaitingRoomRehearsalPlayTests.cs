@@ -38,7 +38,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
                 PlaceOnRope(course, (int)Get(trapeze, "LaneIndex"), (float)Get(trapeze, "EntryDistance"));
                 yield return null;
-                Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, LocalPlayer), "혼자 첫 봉을 잡는 규칙은 추가하지 않는다");
+                Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, LocalPlayer), "첫 봉도 공통 거리 안이면 혼자 잡을 수 있다");
 
                 var network = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
                 var prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");
@@ -82,19 +82,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(2, Call(stack, "GetStackSize", LocalPlayer));
                 Assert.IsTrue((bool)Invoke(stack, "CanEnterTrapeze", LocalPlayer));
                 Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, LocalPlayer), "목마 위 사람은 공연과 같은 거리/자격으로 첫 봉을 잡는다");
-                Assert.IsTrue((bool)Invoke(trapeze, "TryRequestCatch", LocalPlayer));
+                Assert.IsTrue((bool)Invoke(LocalPlayer.GetComponent(T("CurtainCall.HumanCannon.HumanCannonPilot")), "TryRequestNearbyPole"));
                 yield return null;
                 Assert.AreEqual(0, Call(trapeze, "HeldPole", LocalPlayer));
                 Assert.IsTrue((bool)Call(trapeze, "CanAttachToPole", 0, bottom), "아래 동료도 기존 F 매달리기 범위에 있어야 한다");
                 var firstPole = ((System.Array)Priv(trapeze, "poles")).GetValue(0);
-                Invoke(trapeze, "HandleRequest", 740UL, NestedEnum(trapeze, "Command", "Attach"), 0,
-                    (uint)Priv(firstPole, "Revision"), 0f, 0u);
+                CommonPoleRequest(740UL,(int)Priv(firstPole,"Index"),"PlatformGrab");
                 Assert.AreEqual(740UL, Call(trapeze, "PassengerAt", 0), "아래 동료도 원본 공중그네에 함께 매달림");
-                Assert.IsFalse((bool)Priv(trapeze, "HoldTimeLimited"));
-                Assert.AreEqual(0d, Priv(firstPole, "Until"), "무제한 유지 상태는 유한 시간으로 위장하지 않는다");
+                Assert.IsTrue((bool)Priv(trapeze, "HoldTimeLimited"));
+                Assert.That((double)Priv(firstPole,"Until")-(double)Priv(trapeze,"Clock"), Is.InRange(28d,30.01d));
                 yield return new WaitForSecondsRealtime(.5f);
-                Assert.AreEqual(LocalId, Call(trapeze, "HolderAt", 0), "만료 시각 0이어도 리허설에서는 강제 해제하지 않는다");
-                StringAssert.DoesNotContain("유지", (string)Get(trapeze, "LocalHint"));
+                Assert.AreEqual(LocalId, Call(trapeze, "HolderAt", 0), "30초가 지나기 전에는 계속 매달린다");
                 Assert.IsFalse((bool)Call(stack, "IsInStack", LocalPlayer), "봉으로 전환하면 원본 목마 연결이 해제됨");
 
                 // 3단계의 공중그네에서도 기존 무패널티 출발대 복귀가 동작해야 한다.

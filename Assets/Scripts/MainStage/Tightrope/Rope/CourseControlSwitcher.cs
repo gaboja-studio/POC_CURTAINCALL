@@ -212,6 +212,8 @@ namespace CurtainCall.Tightrope
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
+            if (player.IsDroppingFromSupport) { ApplyPlatformMode(); return; }
+
             if (onRope == true && (CannonPilot != null && CannonPilot.IsDriving
                 || (mover.IsAirborne && course.PastSceneRopeEnd(player.transform.position, mover.BodyRadius))))
             {
@@ -226,7 +228,7 @@ namespace CurtainCall.Tightrope
                 return;
             }
             var stack = PiggybackSystem.Current;
-            if (course.UsesPlatformPiggyback && IsCourseActive() && stack != null && stack.isActiveAndEnabled
+            if (course.IsTraversalActive && stack != null && stack.isActiveAndEnabled
                 && stack.IsInStack(player))
             {
                 var carrier = stack.GetCarrier(player);
@@ -242,25 +244,8 @@ namespace CurtainCall.Tightrope
                 else
                 {
                     ApplyPlatformMode();
-                    // 일반 이동 규칙은 F 홀드 하차를 보내지 않는다. 호스트가 착지와 내려설 자리를 검증한다.
-                    if (!InputGate.IsBlocked && carrier != null && !carrier.IsAirborne && carrier != player
-                        && player.TryGetComponent(out PlayerInputReader reader) && reader.enabled
-                        && reader.Current.InteractLongPressed)
-                        stack.RequestLocalRelease();
                     return;
                 }
-            }
-            if (IsCourseActive() && stack != null && stack.isActiveAndEnabled && stack.GetBelow(player) != null)
-            {
-                // 발판 착지 후에는 호스트의 하차 위치를 기다리는 동안에도 균형으로 쓰러지지 않는다.
-                if (stack.HasDismountSupport(player))
-                {
-                    ApplyPlatformMode();
-                    return;
-                }
-                // 플랫폼에서 올라탄 위층도 균형을 써야 한다. 위치·공중 상태는 Follow가 맡는다.
-                if (onRope != true) Apply(true);
-                return;
             }
             // LateUpdate의 목마 분리 점프는 다음 이동 Update 전에 CurrentJump부터 바뀐다.
             // 그 사이 머리 높이를 일반 바닥으로 오인해 봉 잡기 조작을 빼지 않는다.
@@ -338,9 +323,6 @@ namespace CurtainCall.Tightrope
                 previousForward = mover.CourseForwardOverride;
                 previousSpacing = mover.LaneSpacing;
                 Vector3 enteringForward = player.transform.forward;
-                var view = CameraViewDirector.Current;
-                if (view != null && view.LocalPlayer == player && view.UsesMouseLook
-                    && view.ViewForward.sqrMagnitude > .001f) enteringForward = view.ViewForward;
                 mover.CourseForwardOverride = course.TraversalForwardAt(player.transform.position, enteringForward);
                 mover.LaneSpacing = course.LaneSpacing;
                 ownsAxes = true;

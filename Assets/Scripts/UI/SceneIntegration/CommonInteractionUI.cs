@@ -484,7 +484,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     var station = system.Station(i);
                     if (station == null || !station.isActiveAndEnabled || station.ReadyToUse
-                        || !PlayerInteraction.InRange(player, station.BoardingPoint.position, station.BoardingDistance)) continue;
+                        || !PlayerInteraction.InRange(player, station.BoardingPoint.position, station.BoardingDistance, station.transform)) continue;
                     bool recovering = station.InteractionAvailable;
                     Add(station.transform, station.Seat.position, "대포가 활성화 되지 않았습니다", false, true, feet);
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;

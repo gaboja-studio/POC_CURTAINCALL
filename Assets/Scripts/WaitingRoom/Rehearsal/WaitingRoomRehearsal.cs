@@ -441,6 +441,8 @@ namespace CurtainCall.WaitingRoom
             if (arrived.Count == 0 && votes.Count > 0) { votes.Clear(); changed = true; }
             if (participantCount != participants.Count) { participantCount = participants.Count; changed = true; }
             if (changed) { version++; Publish(); }
+            // 재연습은 도착 후에도 왕복할 수 있다. 다음 구간은 기존 '다음' 과반 투표로만 진행한다.
+            if (practice && votes.Count <= participantCount / 2) return;
             if (!s.CanAdvance(participantCount, arrived.Count, votes.Count)) return;
             RecordAction("STAGE_CLEARED", reason: arrived.Count == participantCount ? "ALL_ARRIVED" : s.Rule == RehearsalClearRule.Anyone ? "ANY_ARRIVED" : "MAJORITY_NEXT");
             AdvanceStage();

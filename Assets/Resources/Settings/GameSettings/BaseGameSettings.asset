@@ -63,7 +63,14 @@ MonoBehaviour:
     playerColorYellow: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     playerColorGreen: {r: 0, g: 1, b: 0, a: 1}
   input:
+    jumpInputBuffer: 0.15
     longPressTime: 0.5
+  interaction:
+    distance: 2.5
+  airControl:
+    speed: 3
+    responseSeconds: 0.1
+    pumpReleaseGrace: 0.15
   balance:
     greenLimit: 30
     warningLimit: 50

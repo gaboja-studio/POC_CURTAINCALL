@@ -29,7 +29,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(mover, "SetStartPose", stand + Vector3.up * .1f, Quaternion.LookRotation(face));
             yield return new WaitForSecondsRealtime(.3f);
 
-            Assert.IsTrue((float)Call(clue, "Reach", player.transform.position) >= 0f, "단서 앞에서 F가 닿아야 한다");
+            Assert.IsTrue((float)Call(clue, "Reach", player.transform.position, player) >= 0f, "단서 앞에서 F가 닿아야 한다");
             Call(clue, "Interact");
             yield return null;
             Assert.AreEqual(true, Get(clue, "IsOpen"));

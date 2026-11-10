@@ -49,17 +49,13 @@ namespace CurtainCall.HumanCannon
         /// 호스트: 추락 부상(M2 부상 규칙). 즉사가 아니라 공통 순서로 <see cref="FallCuts"/>곳을 잃고, 4곳이 되면 공용 규칙이 사망으로 확정한다.
         /// 불꽃 같은 즉사 장애물은 이것을 쓰지 않는다.
         /// </summary>
-        public static void ServerFallInjury(NetworkPlayer player)
+        public static void NotifyCommonFall(NetworkPlayer player)
         {
-            if (Current != null && Current.PracticeMode) { ServerFallDeath(player); return; }
-            if (player == null || !player.IsServer || player.State != PlayerState.Normal
-                || EscapeDevelopmentSession.FallInjuriesSuppressed(player)) return;
-            // 추락 야유를 먼저 알리고 절단한다. 절단으로 사망하면 그 뒤 호응도는 고정된다.
+            if (player == null || !player.IsServer) return;
             if (ServerFell != null)
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
                     try { observer(player.OwnerClientId); }
                     catch (Exception error) { Debug.LogException(error); }
-            player.ServerCut(FallCuts,null,NetworkPlayer.DeathOrigin.Fall);
         }
 
         /// <summary>
@@ -88,10 +84,9 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         bool TrySpringRebound(NetworkPlayer player, int index, uint revision, uint segment, Vector3 contact)
         {
-            if (PracticeMode) return false;
             var carry = PropCarry.Instance;
             ulong actor = player.OwnerClientId;
-            if (carry == null || player.State != PlayerState.Normal || !carry.EquipmentReady(actor, ItemUses.SpringShoes)) return false;
+            if (carry == null || !carry.HasAuthority || player.State != PlayerState.Normal || !carry.EquipmentReady(actor, ItemUses.SpringShoes)) return false;
             float speed = SpringReboundSpeed;
             if (!ApplyRebound(actor, index, revision, segment, contact, speed)) return false;
             carry.UseEquipment(actor, ItemUses.SpringShoes);
@@ -107,11 +102,16 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe(speed);
                 messaging.SendNamedMessage(SpringReboundMessage, client, writer, NetworkDelivery.ReliableSequenced);
             }
-            if (ServerSpringRebounded != null)
-                foreach (Action<ulong> observer in ServerSpringRebounded.GetInvocationList())
-                    try { observer(actor); }
-                    catch (Exception error) { Debug.LogException(error, this); }
+            NotifyCommonSpring(player);
             return true;
+        }
+
+        public static void NotifyCommonSpring(NetworkPlayer player)
+        {
+            if (player == null || !player.IsServer || ServerSpringRebounded == null) return;
+            foreach (Action<ulong> observer in ServerSpringRebounded.GetInvocationList())
+                try { observer(player.OwnerClientId); }
+                catch (Exception error) { Debug.LogException(error); }
         }
 
         /// <summary>스프링 신발 반동 속도: 기본 트램펄린 반동 × 기물 효과 배율(초안 1).</summary>
@@ -119,7 +119,7 @@ namespace CurtainCall.HumanCannon
         {
             get
             {
-                float trampoline = HumanCannonTrampoline.Current != null ? HumanCannonTrampoline.Current.UpwardSpeed : 12f;
+                float trampoline = CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed;
                 float scale = ItemCatalog.Get(ItemUses.SpringShoes)?.effect ?? 1f;
                 return trampoline * (scale > 0f ? scale : 1f);
             }
@@ -163,14 +163,17 @@ namespace CurtainCall.HumanCannon
             }
             pendingLandingReports.Remove(player.OwnerClientId);
             bool safe = IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
-            bool injuring = !safe && !EscapeDevelopmentSession.FallInjuriesSuppressed(player)
-                && !HumanCannonRouteSystem.IsBelowCourse(position);
-            // 부상이 날 바닥이면 스프링 신발이 먼저 반동시킨다. 반동하면 이 비행은 끝나지 않는다.
-            if (injuring && TrySpringRebound(player, index, revision, segment, position)) return;
-            ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
+            if (!safe && position.y < FlightFloorHeight)
+            {
+                ApplyLanding(player.OwnerClientId, index, revision, segment, false);
+                ServerFallDeath(player);
+                return;
+            }
+            float height = player.FallHeightAt(position);
+            if (player.CompleteFall(height, position,
+                () => safe && TrySpringRebound(player, index, revision, segment, position),
+                () => ApplyLanding(player.OwnerClientId, index, revision, segment, safe))) return;
             NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe);
-            // 부딪힌 바닥에서 부상 상태로 계속한다(2026-10-28 사용자 결정). 코스 아래 낭떠러지는 경로 시스템이 같은 추락으로 한 번만 처리한다.
-            if (injuring) ServerFallInjury(player);
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
             {
                 if (client == NetworkManager.ServerClientId) continue;
@@ -189,9 +192,9 @@ namespace CurtainCall.HumanCannon
             var course = TightropeCourse.Current;
             // 좁은 줄의 가장자리에 몸통이 지지되어도 발 중심은 박스 밖일 수 있다.
             // 좌표상 줄 근처라는 이유가 아니라 실제 외줄 조작 전환과 같은 접촉으로 승인한다.
-            if (course != null && course.UsesSceneGeometry && course.IsTraversalActive
+            if (course != null && course.IsTraversalActive
                 && course.TryGetSupportingRopeAt(mover, feet, out _)) return true;
-            return HumanCannonLandingZone.ContainsLanding(feet);
+            return WalkableSupport.Contains(mover, feet);
         }
 
         void HandleLandingMessage(ulong sender, FastBufferReader reader)

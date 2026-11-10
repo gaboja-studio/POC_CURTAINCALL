@@ -1,8 +1,8 @@
 ---
 summary: 공통 조작키 — hold/pressed 구분·F(매달린 동료 2초 끌어올리기 포함, M2)·카메라/UI, 1인칭 기본 이동은 수평 시선 W/S·3인칭 유지(연결 미구현)
 status: active
-updated: 2026-10-27
-source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 항목 포함·2026-10-15 재확인; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076)
+updated: 2026-11-09
+source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 항목 포함·2026-10-15 재확인; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076); 2026-11-09 사용자 공통화 요청, Task-20261109-114
 ---
 
 # 공통 조작키 역할
@@ -12,6 +12,8 @@ source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 �
 입력·조작 규칙을 추가할 때. 구조는 [player-control-architecture.md](player-control-architecture.md)(키→공통 역할→콘텐츠 규칙). 기획 동기화가 입력 에셋 변경을 자동 허용하지 않는다.
 
 ## 결정
+
+- 2026-11-09 사용자: 외줄의 **T pressed = 즉시 180도 방향 전환**. 카메라 회전으로 외줄 이동 방향을 반전하지 않는다. `Common/TurnAround` 입력 역할이며 기존 Q/E+Space·F 조합은 유지한다. 일반 바닥의 카메라 기준 이동은 이 결정의 변경 대상이 아니다. (Task-20261109-114)
 
 - PC 전용, 최초 키 기준(이후 설정 변경 가능):
   - **캐릭터**: WASD hold 이동(줄타기 A/D 균형), Q/E hold 좌/우 감시, Space pressed 수직 점프, Q/E 또는 WASD+Space 방향 점프. F pressed 상호작용(예: 줄타기에서 줄에 매달린 동료 끌어올리기, 입력 후 2초 동작, M2), F hold 상호작용 취소.

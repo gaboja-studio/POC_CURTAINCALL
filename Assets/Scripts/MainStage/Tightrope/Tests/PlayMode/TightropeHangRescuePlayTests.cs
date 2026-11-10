@@ -24,7 +24,28 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return StandOnRopeForSawTest(1, 4f);
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
+        public IEnumerator HangFailureAndTimeoutReleaseIntoOrdinaryFallWithoutImmediateDeath()
+        {
+            yield return PrepareHangRescue();
+            var hangs = (Component)Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
+            var grip = (Vector3)Call(course, "GetLanePosition", 1, 6.2f);
+            Call(mover, "SetStartPose", grip + Vector3.up * 3f, Quaternion.identity, true);
+            Assert.IsFalse((bool)Call(hangs, "ServerTryHang", player, 6.2f, 1));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.IsTrue((bool)Get(player, "IsDroppingFromSupport"));
+            Call(mover, "SetStartPose", grip, Quaternion.identity, true);
+            Assert.IsTrue((bool)Call(hangs, "ServerTryHang", player, 6.2f, 1));
+            yield return null;
+            Call(hangs, "ServerTick", 8f);
+            Assert.IsFalse((bool)Call(hangs, "IsHanging", player));
+            Assert.AreEqual("Normal", Get(player, "State").ToString(), "버티기 만료 자체로 사망하지 않는다");
+            yield return null;
+            Assert.IsTrue((bool)Get(mover, "Simulated"));
+            Assert.IsTrue((bool)Get(player, "IsDroppingFromSupport"));
+        }
+
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangRequestWaitsForDelayedPositionAndValidatesHostPosition()
         {
             yield return PrepareHangRescue();
@@ -50,7 +71,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.IsTrue((bool)Call(hangs, "IsHanging", player));
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangRescue_GenerousReachMatchesHostAndAcceptsMovingInteractThenCancel()
         {
             yield return PrepareHangRescue();
@@ -73,7 +94,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(hangs, "ServerRescue", Get(player, "OwnerClientId"), Get(target, "OwnerClientId"));
                 Assert.IsFalse((bool)Call(hangs, "IsRescuing", player), "호스트도 범위 밖 요청은 거절한다.");
                 player.transform.position = origin + Vector3.up * .65f;
-                Assert.IsNotNull(Call(hangs, "NearestRescueTarget", player), "발 높이의 작은 오차를 허용한다.");
+                Assert.IsNull(Call(hangs, "NearestRescueTarget", player), "높이 차이까지 합친 실제 거리가 2.5m를 넘으면 구조할 수 없다.");
                 player.transform.position = grip - Vector3.up * 1.9f;
                 Assert.IsNull(Call(hangs, "NearestRescueTarget", player), "매달린 높이에서는 구조하지 않는다.");
                 player.transform.position = origin;
@@ -88,13 +109,16 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(mover, "SetMoveInput", 1f);
                 var held = CatchFrame(move: 1f); Set(held, "InteractHeld", true);
                 Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, held));
+                Assert.That((float)Get(mover, "moveInput"), Is.Zero, "구조 시작 프레임의 이동 입력을 즉시 비운다.");
                 Assert.IsTrue((bool)Call(hangs, "IsRescuing", player));
                 Assert.IsTrue((bool)Get(balance, "IsRescueSupported"), "구조를 승인하는 프레임부터 보호한다.");
 
                 yield return new WaitForSeconds(.25f);
                 Assert.That((float)Get(balance, "Value"), Is.EqualTo(80f));
                 Assert.That((float)Get(balance, "RedTime"), Is.EqualTo(.5f));
-                Assert.That(Vector3.Distance(player.transform.position, origin), Is.LessThan(.05f), "구조 시작 프레임의 이동 입력도 지운다.");
+                // 위의 높이 경계 검사 뒤 CharacterController가 줄에 수직으로 붙는 보정은 이동 입력과 별개다.
+                Vector3 displacement = player.transform.position - origin;
+                Assert.That(Vector3.ProjectOnPlane(displacement, Vector3.up).magnitude, Is.LessThan(.05f), $"구조 중 수평 이동을 막는다. 실제 변위={displacement}");
                 var cancel = CatchFrame();
                 Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, cancel));
                 Assert.IsTrue((bool)Call(hangs, "IsRescuing", player), "순간적인 입력 흔들림은 구조를 끊지 않는다.");
@@ -112,7 +136,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangRescue_FireKillsOnlyContactedRescuerAndImmediatelyReleasesPull()
         {
             yield return PrepareHangRescue();
@@ -136,7 +160,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
             finally { if (helper != null) Call(helper, "Despawn", true); }
         }
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangRescue_ProtectsThroughFullPullAndReleasesOnCompletion()
         {
             yield return PrepareHangRescue();
@@ -176,7 +200,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
         }
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangRescue_ReleasesSupportOnRangeLossTargetRemovalAndDisable()
         {
             yield return PrepareHangRescue();

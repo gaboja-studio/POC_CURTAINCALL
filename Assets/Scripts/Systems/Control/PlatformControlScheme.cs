@@ -41,11 +41,14 @@ namespace CurtainCall.Player
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)
         {
             if (context.Mover == null) return;
+            if (CurtainCall.HumanCannon.HumanCannonPoleSystem.Current != null
+                && CurtainCall.HumanCannon.HumanCannonPoleSystem.Current.TryHandleInput(context, input)) return;
             bool moving = input.Move != 0f || input.Posture != 0f;
             Vector3 view = bases.GetOrCreateValue(context).Resolve(LocalViewForward(context.Player), moving);
             Vector2 move = ToCourseInput(view, context.Mover.CourseForward, input.Posture, input.Move);
             context.Mover.SetMoveInput(move.x, move.y);
             ApplyLocomotion(context, input);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.HandlePlatformInput(context, input);
         }
 
         /// <summary>

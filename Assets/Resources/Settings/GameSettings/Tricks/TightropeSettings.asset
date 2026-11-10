@@ -20,12 +20,9 @@ MonoBehaviour:
     laneSpacing: 3
     laneEndDistances: []
     finishDistance: 165
-    laneChangeZones:
-    - {x: 0, y: 165}
     swingGapEnabled: 1
     relayGapEnabled: 1
     relayRequiredHolders: 1
-    relayHoldSeconds: 30
     swingGapLanes: 0200000005000000
     swingGapStart: 40
     swingGapLength: 8
@@ -38,11 +35,8 @@ MonoBehaviour:
     sideMargin: 2
     platformThickness: 0.5
     ropeThickness: 0.2
-    ropeWalkWidth: 0.4
-    ropeHeightTolerance: 0.3
     spawnDistance: -1
     safetyNetDepth: 0
-    fallDepth: 1
     sections:
     - endFraction: 0.18181819
       label: "\uADE0\uD615\uACFC \uC810\uD504"
@@ -63,8 +57,11 @@ MonoBehaviour:
     timeLimit: 300
     restartDelay: 3
   ropeMovement:
-    jumpHeightMultiplier: 1.25
-    jumpInputBuffer: 0.15
+    supportWidth: 0.55
+    supportHeightTolerance: 0.3
+    fallReleaseDepth: 1
+    jumpHeight: 1.5
+    laneJumpReach: 3
     naturalSwayMultiplier: 1.5
     dynamicIdleSway: 6
     dynamicMovingSway: 12
@@ -77,8 +74,6 @@ MonoBehaviour:
     laneLandingDangerRatio: 0.05
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
-    trapezeEntryHeightTolerance: 1.2
-    trapezeEntryGrabDistance: 1.05
     landingWaveRange: 6
     landingWaveSpeed: 10
     landingWaveShock: 6
@@ -119,13 +114,10 @@ MonoBehaviour:
     occluderRadius: 0.4
     fadeSpeed: 6
   bodyPenalty:
-    oneLegMoveSpeed: 0.8
-    minimumInjuredMoveSpeed: 0.8
     swayPerLostLeg: 0.25
     swayPerLostArm: 0.1
     leglessLandingShock: 1.5
     leglessLaneLandingShock: 1.5
-    reachLossPerArm: 0.25
   saws:
     steps:
     - name: "\uAC00\uB85C \uC804\uCCB4"
@@ -217,7 +209,6 @@ MonoBehaviour:
     verticalLowerDuration: 0.2
     verticalLowerDepth: 1.5
     waistHeight: 0.85
-    hitCooldown: 1
     horizontalColor: {r: 0.05, g: 0.8, b: 0.85, a: 1}
     verticalColor: {r: 1, g: 0.38, b: 0.08, a: 1}
     spinSpeed: 720
@@ -259,8 +250,7 @@ MonoBehaviour:
   hang:
     holdSeconds: 7
     pullSeconds: 2
-    rescueDistance: 2.5
     rescueHeightTolerance: 0.75
-    laneReach: 1
+    catchDistance: 1.5
     laneOccupyDistance: 2
     hangDrop: 1.9

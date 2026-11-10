@@ -90,8 +90,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(Vector3.Angle(station.Muzzle.forward, Vector3.forward), Is.LessThan(0.001f), station.name);
                 // 2026-11-02 담당자 결정: 무조작 착지가 도착지점 중간이 되도록 앞 속도 8 → 11.74 → 11.79(위 속도 12 유지).
                 Assert.That(Vector3.Distance(station.LaunchVelocity, new Vector3(0, 12, 11.79f)), Is.LessThan(0.001f), station.name);
-                Assert.That(station.AirControlSpeed, Is.EqualTo(4.5f).Within(0.001f), station.name);
-                Assert.That(station.BoardingDistance, Is.EqualTo(2f).Within(0.001f), station.name);
+                Assert.That(station.AirControlSpeed, Is.EqualTo(3f).Within(0.001f), station.name);
+                Assert.That(station.BoardingDistance, Is.EqualTo(2.5f).Within(0.001f), station.name);
             }
         }
 

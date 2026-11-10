@@ -37,7 +37,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     int index = at.x < 284 ? 0 : at.x < 292 ? 1 : 2;
                     at = new Vector3(280 + index*7, 3.2f-index*.2f,78);
                 }
-                TuneFlowPole(group,pole,at,descent?4.2f:5f,descent?32:38,descent?5.2f:7.2f);
+                TuneFlowPole(group,pole,at,descent?4.2f:5f);
             }
             for (int stage=0;stage<3;stage++)
             {
@@ -73,8 +73,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             foreach(var station in UnityEngine.Object.FindObjectsByType<HumanCannonStation>(FindObjectsSortMode.None))
             {
-                var data=new SerializedObject(station); data.FindProperty("boardingDistance").floatValue=2.75f;
-                data.FindProperty("airControlSpeed").floatValue=6; data.ApplyModifiedProperties();
+                var data=new SerializedObject(station);
+                 data.ApplyModifiedProperties();
                 var target=station.transform.Find("AuthoredLanding");
                 if(target!=null) AimCompletionCannon(station,target.position,station.name=="04_ReturnCannon"?3.05f:1.25f);
             }
@@ -82,13 +82,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var trampoline=UnityEngine.Object.FindAnyObjectByType<HumanCannonTrampoline>();
             if(trampoline!=null)
             {
-                var data=new SerializedObject(trampoline);data.FindProperty("groundBounceAirControlSpeed").floatValue=6;
+                var data=new SerializedObject(trampoline);
                 data.ApplyModifiedProperties();
             }
             RegisterAllPoles(); Physics.SyncTransforms(); EditorSceneManager.MarkSceneDirty(scene);
         }
 
-        static void TuneFlowPole(Transform group, HumanCannonPole pole, Vector3 at,float length,float angle,float upwardCap)
+        static void TuneFlowPole(Transform group, HumanCannonPole pole, Vector3 at,float length)
         {
             var data=new SerializedObject(pole); var delta=at-pole.Grip.position;
             Undo.RecordObject(pole.transform,"Align swing to route");pole.transform.position+=delta;
@@ -100,14 +100,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 Undo.RecordObject(anchor,"Short controlled swing suspension");
                 anchor.position=at+Vector3.up*length+side*(prefix=="left"?-.8f:.8f);
             }
-            data.FindProperty("maxSwingAngle").floatValue=angle;
-            data.FindProperty("maxSwingSpeed").floatValue=100;
-            data.FindProperty("swingAcceleration").floatValue=150;
-            data.FindProperty("swingDamping").floatValue=.65f;
-            data.FindProperty("releaseUpwardSpeed").floatValue=2.4f;
-            data.FindProperty("maxReleaseUpwardSpeed").floatValue=upwardCap;
-            data.FindProperty("airControlSpeed").floatValue=6;
-            data.FindProperty("grabDistance").floatValue=2.6f;
             data.ApplyModifiedProperties();pole.PresentSwing(0);
             var cross=Vector3.Cross(Vector3.up,pole.Forward);
             var originalMount=GameObject.Find(pole.name+" 천장 매립 하중보");

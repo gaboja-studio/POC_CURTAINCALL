@@ -14,7 +14,7 @@ namespace CurtainCall.HumanCannon
     /// 기존 목마와 같은 NGO 이름 붙은 메시지로 요청하고 호스트만 점유/발사/취소를 확정한다.
     /// 공용 Player/NetworkManager 프리팹은 변경하지 않는다.
     /// </summary>
-    [DefaultExecutionOrder(-40)]
+    [DefaultExecutionOrder(-110)]
     public sealed partial class HumanCannonSystem : MonoBehaviour
     {
         const string RequestMessage = "CurtainCall.HumanCannon.Request";
@@ -47,9 +47,14 @@ namespace CurtainCall.HumanCannon
         CustomMessagingManager messaging;
         HumanCannonPilot pilot;
         NetworkPlayer boundPlayer;
-        IDisposable jumpHeightOverride;
 
         public static HumanCannonSystem Current { get; private set; }
+        public bool PoleServiceOnly { get; internal set; }
+        internal void ConfigurePoleServiceSpace(Transform space)
+        {
+            PoleServiceOnly = true;
+            flightCoordinateSpace = space;
+        }
         public event Action<int, CannonAction, ulong> StateChanged;
         public int StationCount => stations.Length;
         public float FlightFloorHeight => flightCoordinateSpace != null
@@ -90,6 +95,7 @@ namespace CurtainCall.HumanCannon
         {
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
+            FindPlayer(actor)?.BeginFallAt(position);
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
                 pilot.Rebound(index, revision, segment, position, upwardSpeed);
             return true;
@@ -109,6 +115,7 @@ namespace CurtainCall.HumanCannon
             }
             // -1은 대포 좌석 없이 지상 점프로 시작한 비행이다. 이후 반동/착지는 같은 식별자로 검증한다.
             flying.Begin(actor, -1, sequence);
+            FindPlayer(actor)?.BeginFallAt(contact);
             return true;
         }
 
@@ -133,8 +140,6 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             Current = this;
-            jumpHeightOverride = CharacterJumpHeightOverrides.Register(this, () => GameSettings.HumanCannon.JumpHeight);
-            CreateInjuryPolicy();
             ResetSeats();
             NetworkPlayer.LocalSpawned += Bind;
             NetworkPlayer.LocalDespawned += Unbind;
@@ -146,7 +151,6 @@ namespace CurtainCall.HumanCannon
         {
             pendingLandingReports.Clear();
             awaitingFlightSnapshot = false;
-            injuryInteractions.Clear();
             LocalSafeLandingCount = 0;
             seats = new SeatRuntime[stations.Length];
             for (int i = 0; i < seats.Length; i++)
@@ -160,7 +164,6 @@ namespace CurtainCall.HumanCannon
 
         void Update()
         {
-            UpdateInjuryPolicies();
             if (session == null && NetworkSessionManager.Instance != null)
             {
                 session = NetworkSessionManager.Instance;
@@ -171,7 +174,6 @@ namespace CurtainCall.HumanCannon
             if (session.IsHost)
             {
                 RetryLandingReports();
-                injuryInteractions.Tick(Time.timeAsDouble);
                 for (int i = 0; i < seats.Length; i++)
                 {
                     var state = seats[i].State;
@@ -211,9 +213,9 @@ namespace CurtainCall.HumanCannon
             {
                 var station = stations[i];
                 if (station == null || !station.isActiveAndEnabled || !station.ReadyToUse || seats[i].State.IsOccupied) continue;
-                float distance = (station.Seat.position - PlayerInteraction.Center(player)).sqrMagnitude;
+                float distance = (station.BoardingPoint.position - PlayerInteraction.Center(player)).sqrMagnitude;
                 float radius = station.BoardingDistance * reach;
-                if (!PlayerInteraction.InRange(player, station.Seat.position, radius) || distance >= best) continue;
+                if (!PlayerInteraction.InRange(player, station.BoardingPoint.position, radius, station.transform) || distance >= best) continue;
                 nearest = i;
                 best = distance;
             }
@@ -402,7 +404,6 @@ namespace CurtainCall.HumanCannon
             if (boundPlayer == local) return;
             Unbind();
             boundPlayer = local;
-            BindInjuryPolicy(local);
             pilot = local.gameObject.AddComponent<HumanCannonPilot>();
             pilot.Initialize(this, local);
             for (int i = 0; i < seats.Length; i++)
@@ -420,7 +421,6 @@ namespace CurtainCall.HumanCannon
         {
             pendingLandingReports.Remove(player.OwnerClientId);
             awaitingFlightSnapshot = false;
-            injuryInteractions.Clear();
             flying.Remove(player.OwnerClientId);
             if (player == boundPlayer)
             {
@@ -488,13 +488,10 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
-            jumpHeightOverride?.Dispose();
-            jumpHeightOverride = null;
             NetworkPlayer.LocalSpawned -= Bind;
             NetworkPlayer.LocalDespawned -= Unbind;
             NetworkPlayer.Restarted -= HandleRestart;
             Unbind();
-            ReleaseInjuryPolicies();
             Unregister();
             if (session != null) session.ConnectionStateChanged -= HandleConnection;
             session = null;

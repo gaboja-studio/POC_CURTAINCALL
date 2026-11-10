@@ -101,7 +101,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(launch);
             writer.WriteValueSafe(segment);
             writer.WriteValueSafe(contact);
-            writer.WriteValueSafe(upwardSpeed);
+            writer.WriteValueSafe(CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed);
             messaging.SendNamedMessage(BounceMessage, client, writer, NetworkDelivery.ReliableSequenced);
         }
 

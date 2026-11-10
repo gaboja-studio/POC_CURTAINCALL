@@ -128,9 +128,10 @@ namespace CurtainCall.HumanCannon
 
         internal void Present(PoleSawPhase phase, bool passed, bool open, double time)
         {
+            if (IsOpen && !open) ResetGate();
             Phase = phase;
             CarrierPassed = passed;
-            if (open || phase != PoleSawPhase.Active) IsOpen = true;
+            IsOpen = open;
             bool spinning = IsSpinning;
             float clock = (float)(time * spinSpeed % 360.0);
             if (spinning && !wasSpinning) spinOffset = spinAngle - clock;
@@ -222,7 +223,7 @@ namespace CurtainCall.HumanCannon
                 else carrierSides.Remove(actor);
                 if (player.OwnerClientId != Unity.Netcode.NetworkManager.ServerClientId) continue;
                 bool hit = Touches(player);
-                if (hit && touching.Add(actor)) player.ServerCut();
+                if (hit && touching.Add(actor)) player.ServerHazardCut();
                 if (!hit) touching.Remove(actor);
             }
             stale.Clear();

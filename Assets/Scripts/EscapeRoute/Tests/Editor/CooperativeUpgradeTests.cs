@@ -74,15 +74,15 @@ namespace CurtainCall.EscapeRoute.Tests
         {
             var actor = Player(82);
             var poleObject = Root("Observation pole", true);
-            poleObject.transform.position = Origin + new Vector3(3, 1, 0);
+            poleObject.transform.position = Origin + new Vector3(2.4f, 1, 0);
             var pole = poleObject.AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
-            Set(pole, "grabDistance", 3f);
+            Assert.IsNull(pole.GetType().GetField("grabDistance", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic));
             var frame = Root("Solid observation frame", true).AddComponent<BoxCollider>();
             frame.transform.position = Origin + new Vector3(1.5f, 1, 0);
             frame.size = new Vector3(.12f, 4, 4); frame.isTrigger = trigger;
             Physics.SyncTransforms();
             Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger), "Solid walls block the same grab in every scene.");
-            Set(pole, "requireClearGrabPath", true);
+            Assert.IsNull(pole.GetType().GetField("requireClearGrabPath", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic));
             Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger));
             Assert.That(Call(pole, "IsSeatInReach", actor, 0f, 0, -1d), Is.EqualTo(trigger));
             actor.transform.position = Origin + new Vector3(1.22f, 0, 0);
@@ -298,7 +298,7 @@ namespace CurtainCall.EscapeRoute.Tests
             pole.transform.position += Vector3.up * 1.5f;
             poleSystem = Root("Independent pole registry").AddComponent(T(PoleType));
             var poles = Array.CreateInstance(pole.GetType(), 1); poles.SetValue(pole, 0); Set(poleSystem, "poles", poles);
-            Set(poleSystem, "allowPlatformJumpGrab", false); Set(poleSystem, "independentInteraction", false);
+            Assert.IsNull(poleSystem.GetType().GetField("allowPlatformJumpGrab", BindingFlags.Instance | BindingFlags.NonPublic)); Assert.IsNull(poleSystem.GetType().GetField("independentInteraction", BindingFlags.Instance | BindingFlags.NonPublic));
             Call(poleSystem, "OnEnable"); Set(poleSystem, "session", session); Physics.SyncTransforms();
             Assert.That(Call(poleSystem, "FindGrabbable", crew[role]), Is.EqualTo(0));
             var action = Enum.Parse(poleSystem.GetType().GetNestedType("PoleAction", BindingFlags.NonPublic), "PlatformGrab");
@@ -309,7 +309,7 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(below.Count, Is.EqualTo(role == 2 ? 1 : 0));
             Assert.That(above.Count, Is.EqualTo(below.Count));
             Assert.That(Call(cannon, "IsFlying", actor), Is.True, "The catch publishes a real pole flight before releasing stack follow.");
-            Assert.That(Call(poleSystem, "FindGrabbable", crew[(role + 1) % 3]), Is.EqualTo(-1), "Seat occupancy still applies.");
+            Assert.That(Call(poleSystem, "FindGrabbable", crew[(role + 1) % 3]), Is.EqualTo(0), "공통 두 번째 자리는 위 사람 아래에 연결할 수 있다.");
         }
 
         [Test]
@@ -415,37 +415,37 @@ namespace CurtainCall.EscapeRoute.Tests
         [TestCase(1, 0)]
         [TestCase(2, 0)]
         [TestCase(4, 2)]
-        public void CrewLatchRequiresConfiguredAliveHoldersAndSurvivesTheirDeparture(int required, int connected)
+        public void CommonSwitchUsesLivingUpperHolderAndNeverLatchesAfterDeparture(int required, int connected)
         {
             var locks = Locks(out object checkpoint);
             Set(checkpoint, "minimumHelpers", required); Set(checkpoint, "latchWhenCrewReady", true);
             int needed = connected > 0 ? Math.Min(required, connected) : required;
             if (connected > 0) { var session = HostSession(); Set(session, "PlayerCount", connected); Set(locks, "session", session); }
             var pole = Root("Shared original bar", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
-            Set(pole, "riderCapacity", 4); Set(checkpoint, "helperPole", pole);
+            Assert.IsNull(pole.GetType().GetField("riderCapacity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)); Set(checkpoint, "helperPole", pole);
             poleSystem = Root("Original pole registry").AddComponent(T(PoleType));
             var poles = Array.CreateInstance(pole.GetType(), 1); poles.SetValue(pole, 0); Set(poleSystem, "poles", poles);
             Call(poleSystem, "OnEnable");
             var state = Call(poleSystem, "State", 0);
             var first = Player(51); var second = Player(52); Player(53);
             Assert.That(Call(state, "TryGrab", 51UL, 0U, 0d, 0f, false, 0), Is.True);
-            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1));
+            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.False);
             Assert.That(Call(state, "TryGrab", 52UL, 1U, 0d, 0f, false, 1), Is.True);
             Set(second, "IsSpawned", false); Call(locks, "HostStep");
-            Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1), "A stale occupied seat is not a living helper.");
+            Assert.That(Call(locks, "IsLatched", 0), Is.False, "A stale occupied seat is not a living helper.");
             Set(second, "IsSpawned", true);
             Set(Get(second, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
-            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1));
+            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.False);
             Set(Get(second, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Normal"));
-            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.False);
             Assert.That(Get(locks, "held"), Is.EqualTo(1U));
             Set(first, "IsSpawned", false); Set(second, "IsSpawned", false); Call(locks, "HostStep");
-            Assert.That(Get(locks, "held"), Is.EqualTo(0U)); Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Assert.That(Get(locks, "held"), Is.EqualTo(0U)); Assert.That(Call(locks, "IsLatched", 0), Is.False);
             Call(locks, "Detach"); Assert.That(Call(locks, "IsLatched", 0), Is.False);
         }
 
         [TestCase(false, false)] [TestCase(true, false)] [TestCase(false, true)] [TestCase(true, true)]
-        public void HigherSwitchRejectsSoloJumpButAcceptsInjuredTwoPersonStack(bool lowerInjured, bool upperInjured)
+        public void HigherSwitchUsesActualBodyCenterWithoutInjuryHeightCompensation(bool lowerInjured, bool upperInjured)
         {
             var stack = Root("Switch injured stack").AddComponent(T("CurtainCall.Tightrope.PiggybackSystem"));
             SetStatic(stack.GetType(), "Current", stack);
@@ -465,13 +465,13 @@ namespace CurtainCall.EscapeRoute.Tests
             var button = Root("Higher piggyback switch", true).transform;
             button.position = Origin + new Vector3(1, 4.4f, 0);
             var rule = T("CurtainCall.EscapeRoute.EscapeSwitchInteraction");
-            Assert.That(rule.GetMethod("InRange").Invoke(null, new object[] { upper, button, 2.5f }), Is.True);
+            Assert.That(rule.GetMethod("InRange").Invoke(null, new object[] { upper, button, 2.5f }), Is.EqualTo(!lowerInjured && !upperInjured));
             lower.transform.position = Origin + Vector3.up * .8f;
             Assert.That(rule.GetMethod("InRange").Invoke(null, new object[] { lower, button, 2.5f }), Is.False);
         }
 
         [Test]
-        public void UpperCannonButtonKeepsPowerAfterTheHelperLeaves()
+        public void UpperCannonButtonCannotLatchTheSwitchPoleAfterItsHolderLeaves()
         {
             var locks = Locks(out var checkpoint, true);
             var player = Player(94);
@@ -484,8 +484,8 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(locks, "Arm", 94UL, 0, 0U, 1U);
             Call(locks, "HostStep"); Call(locks, "Present");
             Assert.That(Get(locks, "held"), Is.EqualTo(0U));
-            Assert.That(Call(locks, "IsLatched", 0), Is.True);
-            Assert.That(Get(station, "InteractionAvailable"), Is.True);
+            Assert.That(Call(locks, "IsLatched", 0), Is.False);
+            Assert.That(Get(station, "InteractionAvailable"), Is.False);
         }
 
         [Test]

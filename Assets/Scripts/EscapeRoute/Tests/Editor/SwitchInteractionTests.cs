@@ -54,21 +54,21 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void ButtonSphere_IgnoresArmReachPenaltyButRejectsCornersAndInactiveButtons()
+        public void ButtonSphereUsesCommonReachPenaltyAndRejectsCornersAndInactiveButtons()
         {
             Place(new Vector3(2,0,2)); Assert.That(InRange, Is.False);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, .5f);
             Place(Vector3.right * 1.24f); Assert.That(InRange, Is.True);
-            Place(Vector3.right * 2.49f); Assert.That(InRange, Is.True);
+            Place(Vector3.right * 2.49f); Assert.That(InRange, Is.False);
             Place(Vector3.right * 2.51f); Assert.That(InRange, Is.False);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, 0f);
-            Place(Vector3.right * 2f); Assert.That(InRange, Is.True);
+            Place(Vector3.right * 2f); Assert.That(InRange, Is.False);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, 1f);
             button.SetActive(false); Assert.That(InRange, Is.False);
         }
 
         [TestCase(1)] [TestCase(2)] [TestCase(3)]
-        public void RaisedSwitch_RemainsReachableWithShortenedLegsAndCutArms(int lostCount)
+        public void RaisedSwitchRequiresActualReachWithShortenedLegsAndCutArms(int lostCount)
         {
             var conditionType = T("CurtainCall.Player.PlayerCondition");
             var condition = actor.AddComponent(conditionType);
@@ -82,7 +82,9 @@ namespace CurtainCall.EscapeRoute.Tests
             // The lower player is also shortened: upper feet are only .6m above the floor.
             actor.transform.position = ButtonCenter - Vector3.up * 3f + Vector3.right;
             Assert.That(Vector3.Distance(ActorCenter, ButtonCenter), Is.GreaterThan(2.5f));
-            Assert.That(InRange, Is.True);
+            Assert.That(InRange, Is.False, "외형 높이를 가상으로 늘려 먼 스위치를 누르지 않는다.");
+            Place(Vector3.up * 1.24f);
+            Assert.That(InRange, Is.True, "같은 몸 상태라도 실제 공통 거리 안으로 오면 누른다.");
             actor.transform.position += Vector3.right * 3f;
             Assert.That(InRange, Is.False);
         }

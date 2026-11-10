@@ -91,13 +91,14 @@ namespace CurtainCall.Tightrope
 
         void LateUpdate()
         {
-            if (TightropeCourse.Current == null || !TightropeCourse.Current.IsGameplayActive)
+            if (system == null || !system.IsGameplayActive)
             {
                 Release();
                 return;
             }
             var local = NetworkPlayer.Local;
-            if (TightropeRun.Current != null && TightropeRun.Current.State == TightropeRunState.Succeeded)
+            if (TightropeCourse.Current != null && TightropeCourse.Current.UsesRopeRules(NetworkPlayer.Local)
+                && TightropeRun.Current != null && TightropeRun.Current.State == TightropeRunState.Succeeded)
             {
                 Release();
                 return;
@@ -156,7 +157,11 @@ namespace CurtainCall.Tightrope
         /// </summary>
         static void PlaceOnTop(NetworkPlayer above, NetworkPlayer below, float hop)
         {
-            above.transform.SetPositionAndRotation(HeadOf(below) + Vector3.up * hop, below.transform.rotation);
+            var rotation = below.transform.rotation;
+            if (TightropeCourse.Current != null && TightropeCourse.Current.UsesRopeRules(above))
+                rotation = above.IsLocal && above.TryGetComponent(out PlayerMover mover)
+                    ? Quaternion.LookRotation(mover.CourseForward, Vector3.up) : above.transform.rotation;
+            above.transform.SetPositionAndRotation(HeadOf(below) + Vector3.up * hop, rotation);
         }
 
         /// <summary>남의 위 사람: 위치 공유로 받은 높이가 머리보다 높으면 제자리 점프 중인 높이로 본다.</summary>

@@ -75,7 +75,6 @@ namespace CurtainCall.HumanCannon.EditorTools
             {
                 if (station.GetComponentInChildren<CannonBarrelPresentation>(true) == null) continue;
                 var config = new SerializedObject(station);
-                config.FindProperty("animateBarrel").boolValue = true;
                 config.ApplyModifiedProperties(); count++;
             }
             return count;

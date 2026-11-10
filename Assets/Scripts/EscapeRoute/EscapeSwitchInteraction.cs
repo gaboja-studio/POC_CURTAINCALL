@@ -19,22 +19,8 @@ namespace CurtainCall.EscapeRoute
         public static bool InRange(Component actor, Transform button, float radius = DefaultRadius)
         {
             if (actor == null || button == null || !button.gameObject.activeInHierarchy) return false;
-            var center = PlayerInteraction.Center(actor);
-            // A cut arm must not disable switches. Restore only the lost-leg reach height;
-            // the actual capsule, stack pose, and other interactions remain authoritative.
-            if (actor.TryGetComponent<PlayerCondition>(out var condition) && condition.LostLegCount > 0)
-                center.y = Mathf.Max(center.y, actor.transform.position.y
-                    + GameSettings.Base.Character.CapsuleHeight * Mathf.Abs(actor.transform.lossyScale.y) * .5f);
-            if (actor.TryGetComponent<NetworkPlayer>(out var player) && PiggybackSystem.Current != null)
-            {
-                var below = PiggybackSystem.Current.GetBelow(player);
-                for (int i = 0; below != null && i < 3; i++, below = PiggybackSystem.Current.GetBelow(below))
-                    if (below.TryGetComponent<PlayerCondition>(out var injury) && injury.LostLegCount > 0
-                        && below.TryGetComponent<PlayerMover>(out var lowerMover))
-                        center.y += Mathf.Max(0, GameSettings.Base.Character.CapsuleHeight
-                            * Mathf.Abs(below.transform.lossyScale.y) - lowerMover.BodyHeight);
-            }
-            return float.IsFinite(radius) && radius > 0f && (center - Center(button)).sqrMagnitude <= radius * radius;
+            float reach = actor.TryGetComponent<PlayerInteraction>(out var interaction) ? interaction.ReachMultiplier : 1f;
+            return PlayerInteraction.InRange(actor, Center(button), GameSettings.Base.Interaction.Distance * reach, button);
         }
     }
 }

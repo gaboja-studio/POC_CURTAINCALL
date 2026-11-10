@@ -39,7 +39,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.5f)] float arriveDistance = 2.5f;
 
         [Tooltip("커튼 앞 F가 닿는 수평 거리(m).")]
-        [SerializeField, Min(.5f)] float reach = 2f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("커튼이 다 열렸을 때 방 안 황금빛 조명 밝기.")]
         [SerializeField, Min(0f)] float glowIntensity = 6f;
@@ -55,7 +55,7 @@ namespace CurtainCall.WaitingRoom
         public string ActionLabel => IsAvailable ? WaitingRoomText.Get("expert-room.ride-lift", "신체 복구 승강기 타기") : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : WaitingRoomText.Get("expert-room.absent", "담당자 부재중");
 
         /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
-        public bool InReach(Vector3 feet) => FlatDistance(feet) <= reach;
+        public bool InReach(Vector3 feet) => FlatDistance(feet) <= CommonReach;
         ExpertService bound;
         AudioClip clank;
         string signText;
@@ -153,11 +153,10 @@ namespace CurtainCall.WaitingRoom
         }
 
         // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (ExpertService.Instance == null) return -1f;
-            float distance = FlatDistance(feet);
-            return distance <= reach ? distance : -1f;
+            return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact()

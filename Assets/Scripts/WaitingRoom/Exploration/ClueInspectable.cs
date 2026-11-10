@@ -30,7 +30,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, TextArea] string description = "";
 
         [Tooltip("단서에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.5f)] float reach = 1.6f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("눈앞에 띄울 때 단서의 가장 긴 변 크기(m).")]
         [SerializeField, Min(.05f)] float viewSize = .32f;
@@ -144,17 +144,17 @@ namespace CurtainCall.WaitingRoom
             AvailabilityObserved?.Invoke(this, false, "DISABLED");
         }
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (!Revealed || Current != null) return -1f;
-            return ((IExplorationTarget)this).Reach(feet);
+            return ((IExplorationTarget)this).Reach(feet, actor);
         }
 
         // 호스트 자신의 오버뷰 상태가 다른 참가자의 단서 발견 판정을 막지 않는다.
-        float IExplorationTarget.Reach(Vector3 feet)
+        float IExplorationTarget.Reach(Vector3 feet, Component actor)
         {
             if (!Revealed) return -1f;
-            return ExplorationReach.From(Body, PresentationPoint, feet, reach);
+            return ExplorationReach.From(Body, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact() { if (Current == null) SetOpen(true); }
@@ -172,11 +172,11 @@ namespace CurtainCall.WaitingRoom
             if (!IsOpen) return;
 
             var reader = LocalReader();
-            bool pushedAway = reader == null || new Vector2(reader.transform.position.x - Body.position.x, reader.transform.position.z - Body.position.z).magnitude > reach + .6f;
+            bool pushedAway = reader == null || new Vector2(reader.transform.position.x - Body.position.x, reader.transform.position.z - Body.position.z).magnitude > CommonReach + .6f;
             var keyboard = Keyboard.current; var mouse = Mouse.current;
             string close = !revealed ? "NO_LONGER_REVEALED" : reader == null ? "READER_UNAVAILABLE" :
                 pushedAway ? "OUT_OF_REACH" : keyboard != null && keyboard.escapeKey.wasPressedThisFrame ? "ESCAPE_KEY" :
-                Time.frameCount > openedFrame + 1 && keyboard != null && keyboard.fKey.wasPressedThisFrame ? "INTERACT_KEY" :
+                Time.frameCount > openedFrame + 1 && reader != null && reader.WasPressedThisFrame("Interact") ? "INTERACT_KEY" :
                 mouse != null && mouse.rightButton.wasPressedThisFrame ? "RIGHT_CLICK" : null;
             if (close != null) { SetOpen(false, close); return; }
 

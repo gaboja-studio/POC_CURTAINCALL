@@ -96,7 +96,7 @@ namespace CurtainCall.WaitingRoom
         void OnDisable() { ExplorationTargets.Remove(this); All.Remove(this); }
 
         /// <summary>호스트 판정: 손전등 거리 안이고 시야가 막히지 않으면 닿는다.</summary>
-        public float Reach(Vector3 feet) => Found ? -1f : ExplorationReach.From(transform, Point, feet, reach, true);
+        public float Reach(Vector3 feet, Component actor = null) => Found ? -1f : ExplorationReach.From(transform, Point, feet, reach, true, remoteTool: true, actor: actor);
 
         /// <summary>UV 손전등이 이번 프레임에 비췄다. 빛이 떠나도 holdSeconds 동안 남아 조사할 수 있다.</summary>
         public void Illuminate() { litUntil = Time.time + holdSeconds; }

@@ -30,8 +30,6 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Transform overflowReturnPoint;
         [Min(.1f), SerializeField] float visibleSeconds = 4f;
         [Min(.1f), SerializeField] float hiddenSeconds = 3f;
-        [Tooltip("버튼 중심의 구형 상호작용 반경(m). 모든 방향에 같은 거리를 사용한다."), Min(.1f), SerializeField]
-        float buttonDistance = EscapeSwitchInteraction.DefaultRadius;
         const string RequestName = "CurtainCall.Escape.CooperativeRopes.Request";
         const string StateName = "CurtainCall.Escape.CooperativeRopes.State";
         const int RequestSize = 13, StateSize = 21;
@@ -146,7 +144,7 @@ namespace CurtainCall.EscapeRoute
             { nextSnapshot = Time.unscaledTimeAsDouble + .5; Publish(); }
             var player = NetworkPlayer.Local;
             if (InputGate.IsBlocked || !CanUseButton(player) || !player.TryGetComponent(out PlayerInputReader reader)
-                || !reader.isActiveAndEnabled || !reader.Current.InteractTapped) return;
+                || !reader.isActiveAndEnabled || !reader.Current.InteractTapped || !CommonInteractionSelection.Consume(player, this)) return;
             RequestOpen();
             // 한 번의 F가 같은 프레임의 목마/다른 기물 조작으로도 소비되지 않게 한다.
             reader.ClearPendingInput();
@@ -158,7 +156,7 @@ namespace CurtainCall.EscapeRoute
                 || !button.gameObject.activeInHierarchy || player == null || !player.IsSpawned
                 || player.State != PlayerState.Normal || session == null
                 || session.GameState != GameSessionState.Playing) return false;
-            return EscapeSwitchInteraction.InRange(player, button, buttonDistance);
+            return EscapeSwitchInteraction.InRange(player, button);
         }
 
         RopePhase PhaseAt(double elapsed)

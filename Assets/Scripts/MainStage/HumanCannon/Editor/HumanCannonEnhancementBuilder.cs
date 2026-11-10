@@ -110,8 +110,6 @@ namespace CurtainCall.HumanCannon.EditorTools
                 foreach (var pole in poles)
                 {
                     using var data = new SerializedObject(pole);
-                    data.FindProperty("holdSeconds").floatValue = 0;
-                    data.FindProperty("airControlSpeed").floatValue = 4.5f;
                     data.ApplyModifiedPropertiesWithoutUndo();
                     TuneSwing(pole);
                     HumanCannonOutline.AttachToHierarchy(pole.gameObject, outline);
@@ -141,13 +139,11 @@ namespace CurtainCall.HumanCannon.EditorTools
                 foreach (var station in All<HumanCannonStation>(roots))
                 {
                     using var data = new SerializedObject(station);
-                    data.FindProperty("airControlSpeed").floatValue = 4.5f;
                     data.ApplyModifiedPropertiesWithoutUndo();
                 }
                 foreach (var trampoline in All<HumanCannonTrampoline>(roots))
                 {
                     using var data = new SerializedObject(trampoline);
-                    data.FindProperty("groundBounceAirControlSpeed").floatValue = 4.5f;
                     data.ApplyModifiedPropertiesWithoutUndo();
                     HumanCannonOutline.AttachToHierarchy(trampoline.gameObject, outline);
                 }
@@ -182,11 +178,6 @@ namespace CurtainCall.HumanCannon.EditorTools
         static void TuneSwing(HumanCannonPole pole)
         {
             using var data = new SerializedObject(pole);
-            data.FindProperty("swingAcceleration").floatValue = 180f;
-            data.FindProperty("maxSwingAngle").floatValue = 50f;
-            data.FindProperty("maxSwingSpeed").floatValue = 100f;
-            data.FindProperty("swingDamping").floatValue = 0.4f;
-            data.FindProperty("releaseUpwardSpeed").floatValue = 6f;
             data.ApplyModifiedPropertiesWithoutUndo();
             pole.PresentSwing(0);
         }

@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(1)] long amount = 1000;
 
         [Tooltip("기물에 닿는 수평 거리(m).")]
-        [SerializeField, Min(.5f)] float reach = 1.6f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         public long Amount => amount;
         public Transform VisualRoot => transform;
@@ -26,11 +26,9 @@ namespace CurtainCall.WaitingRoom
         void OnDisable() => ShopReach.Remove(this);
         void Update() => ShopReach.Pump();
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
-            Vector3 v = feet - transform.position;
-            float distance = new Vector2(v.x, v.z).magnitude;
-            return distance <= reach ? distance : -1f;
+            return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact()
@@ -45,7 +43,7 @@ namespace CurtainCall.WaitingRoom
         }
 #else
         void Awake() => Destroy(gameObject);
-        public float Reach(Vector3 feet) => -1f;
+        public float Reach(Vector3 feet, Component actor = null) => -1f;
         public void Interact() { }
 #endif
     }

@@ -17,7 +17,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string targetId = "locked-box";
         [SerializeField] ToolTargetKind kind = ToolTargetKind.HairpinLock;
         [SerializeField] string label = "잠긴 상자";
-        [SerializeField, Min(.5f)] float reach = 1.6f;
+        float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("열리기 전 막는 충돌체(문·판자). 없으면 막지 않는다.")]
         [SerializeField] Collider blocker;
@@ -97,10 +97,10 @@ namespace CurtainCall.WaitingRoom
         }
         void Start() { if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered += Show; }
 
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
             if (Opened) return -1f;
-            return ExplorationReach.From(transform, PresentationPoint, feet, reach);
+            return ExplorationReach.From(transform, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
         public void Interact() { if (!Opened && ExplorationState.Instance != null) ExplorationState.Instance.RequestUse(targetId); }

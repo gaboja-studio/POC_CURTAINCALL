@@ -53,7 +53,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 var poleData = new SerializedObject(system);
                 var list = poleData.FindProperty("poles"); list.arraySize = poles.Length;
                 for (int i = 0; i < poles.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = poles[i];
-                poleData.FindProperty("allowPlatformJumpGrab").boolValue = true;
+
                 poleData.ApplyModifiedProperties(); system.enabled = true;
             }
             finally { EditorSceneManager.ClosePreviewScene(source); }
@@ -74,7 +74,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var ends = shape.FindPropertyRelative("laneEndDistances"); ends.arraySize = 2;
             ends.GetArrayElementAtIndex(0).floatValue = Mathf.Sqrt(194);
             ends.GetArrayElementAtIndex(1).floatValue = 7.2f;
-            shape.FindPropertyRelative("laneChangeZones").arraySize = 0;
             courseData.ApplyModifiedProperties(); course.Rebuild();
             Physics.SyncTransforms();
             foreach (var feet in new[] { new Vector3(119,-8,28), new Vector3(300,0,78), new Vector3(98,-4.6f,25) })
@@ -189,14 +188,14 @@ namespace CurtainCall.EscapeRoute.EditorTools
             {
                 var character = CurtainCall.Settings.GameSettings.Base.Character;
                 float gravity = character.Gravity, speed = character.FreeMoveSpeed;
-                float vertical = Mathf.Sqrt(2 * gravity * CurtainCall.Settings.GameSettings.HumanCannon.JumpHeight);
+                float vertical = Mathf.Sqrt(2 * gravity * character.JumpHeight);
                 float closest = float.PositiveInfinity;
                 for (float t = .01f; t < vertical * 2 / gravity; t += .01f)
                 {
                     var center = new Vector3(275.8f + speed*t, vertical*t-.5f*gravity*t*t+character.CapsuleHeight*.5f,78);
                     closest = Mathf.Min(closest,Vector3.Distance(center,first.Grip.position));
                 }
-                float reach = new SerializedObject(first).FindProperty("grabDistance").floatValue * 1.25f;
+                float reach = CurtainCall.Settings.GameSettings.Poles.GrabRadius;
                 Check("A07 first swing within original jump reach",closest < reach - .2f);
                 output.AppendLine($"A07 static jump nearest={closest:F2}m, grab radius={reach:F2}m; no player input used.");
             }

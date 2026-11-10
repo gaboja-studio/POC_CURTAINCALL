@@ -42,7 +42,7 @@ namespace CurtainCall.EscapeRoute.Tests
             Set(spare, "carryRoot", spareBody); Set(spare, "scaleWithCrew", true); Set(spare, "deviceId", 3);
             Set(spare, "cables", Get(saw, "cables")); Call(spare, "OnEnable");
             Call(spare, "RefreshCrewAvailability", 1); Assert.IsFalse(spareBody.gameObject.activeSelf);
-            Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 5, Vector3.up);
+            Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 5, Vector3.up, null);
             Assert.That(Get(spare, "DoorOpen"), Is.True); Assert.That(Get(spare, "Carrier"), Is.EqualTo(ulong.MaxValue));
             Call(spare, "RefreshCrewAvailability", 4);
             Assert.IsTrue(spareBody.gameObject.activeSelf); Assert.That(Get(spare, "CutCableCount"), Is.EqualTo(1));

@@ -36,20 +36,13 @@ namespace CurtainCall.HumanCannon
             if (player == null || player.State != PlayerState.Normal || InputGate.IsBlocked || !Valid(index)) return;
             if (action is PoleAction.Grab or PoleAction.PlatformGrab) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player,poles[index],"POLE");
             uint revision = states[index].State.Revision;
-            if (useGrabFacing && (action == PoleAction.Grab || action == PoleAction.PlatformGrab))
-            {
-                var camera = CameraViewDirector.Current;
-                Vector3 view = camera != null && camera.LocalPlayer == player ? camera.ViewForward : Vector3.zero;
-                var pole = poles[index];
-                input = ReversedAtGrab(pole.Forward, view, player.transform.forward, pole.Grip.position - player.transform.position) ? -1f : 1f;
-            }
             double observedElapsed = poles[index].Loop != null ? poles[index].Loop.Elapsed : -1d;
             if (session != null && session.IsHost)
                 HandleRequest(player.OwnerClientId, action, index, revision, station, launch, segment, input, sequence, observedElapsed);
             else if (messaging != null)
             {
                 using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
-                WriteRequest(writer, action, index, revision, station, launch, segment, input, sequence, observedElapsed);
+                WriteRequest(writer, action, WireIndex(index), revision, station, launch, segment, input, sequence, observedElapsed);
                 messaging.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
             }
         }
@@ -69,7 +62,7 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out int station); reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment);
             reader.ReadValueSafe(out float input); reader.ReadValueSafe(out uint sequence); reader.ReadValueSafe(out double observedElapsed);
             if (action > (byte)PoleAction.PlatformGrab) return;
-            HandleRequest(sender, (PoleAction)action, index, revision, station, launch, segment, input, sequence, observedElapsed);
+            HandleRequest(sender, (PoleAction)action, LocalIndex(index), revision, station, launch, segment, input, sequence, observedElapsed);
         }
 
         void Publish(int index, PoleEvent action, ulong actor, int seat = -1)
@@ -102,17 +95,14 @@ namespace CurtainCall.HumanCannon
         {
             var runtime = states[index];
             using var writer = new FastBufferWriter(action == PoleEvent.Released ? ReleaseStateSize : StateSize, Allocator.Temp);
-            writer.WriteValueSafe((byte)action); writer.WriteValueSafe(index); writer.WriteValueSafe(runtime.State.Revision);
+            writer.WriteValueSafe((byte)action); writer.WriteValueSafe(WireIndex(index)); writer.WriteValueSafe(runtime.State.Revision);
             writer.WriteValueSafe((byte)runtime.State.Phase); writer.WriteValueSafe(runtime.State.RearmAt);
             writer.WriteValueSafe(runtime.Angle); writer.WriteValueSafe(runtime.Speed); writer.WriteValueSafe(actor);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
-            // 비트 0: 지상 담당 통과, 비트 1~4: 뒤로 앉은 좌석, 비트 5: 톱벽이 좌우로 열림(재시작 전까지 유지).
+            // 비트 0: 지상 담당 통과, 비트 1~4: 예약(항상 0), 비트 5: 상단 점유로 톱벽이 열려 있음.
             var gate = poles[index].LinkedGate;
             byte flags = (byte)(gate != null && gate.CarrierPassed ? 1 : 0);
-            for (int slot = 0; slot < runtime.State.Capacity; slot++)
-                if (runtime.State.OccupantAt(slot) != CannonSeatState.Nobody && runtime.Riders[slot].ReverseFacing)
-                    flags |= (byte)(2 << slot);
             if (gate != null && gate.IsOpen) flags |= GateOpenFlag;
             writer.WriteValueSafe(flags);
             for (int slot = 0; slot < PoleGateState.MaxRiders; slot++)
@@ -143,6 +133,7 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out byte action);
             if (action > (byte)PoleEvent.PlatformGrabbed || bytes != (action == (byte)PoleEvent.Released ? ReleaseStateSize : StateSize)) return;
             reader.ReadValueSafe(out int index); reader.ReadValueSafe(out uint revision);
+            index = LocalIndex(index);
             reader.ReadValueSafe(out byte phase); reader.ReadValueSafe(out double rearmAt);
             reader.ReadValueSafe(out float angle); reader.ReadValueSafe(out float speed); reader.ReadValueSafe(out ulong actor);
             reader.ReadValueSafe(out byte seat); reader.ReadValueSafe(out int station);
@@ -150,7 +141,7 @@ namespace CurtainCall.HumanCannon
             int reversedSeats = (flags >> 1) & ((1 << PoleGateState.MaxRiders) - 1);
             if (index < 0 || index >= states.Length || poles[index] == null
                 || (flags & ~(1 | GateOpenFlag | (((1 << PoleGateState.MaxRiders) - 1) << 1))) != 0
-                || (!useGrabFacing && reversedSeats != 0)
+                || reversedSeats != 0
                 || !float.IsFinite(angle) || !float.IsFinite(speed)) return;
             var runtime = states[index];
             bool riderEvent = action == (byte)PoleEvent.Grabbed || action == (byte)PoleEvent.PlatformGrabbed
@@ -187,7 +178,6 @@ namespace CurtainCall.HumanCannon
             for (int slot = 0; slot < receivedFlights.Length; slot++)
             {
                 var rider = runtime.Riders[slot];
-                rider.ReverseFacing = (reversedSeats & (1 << slot)) != 0;
                 rider.Station = receivedFlights[slot].Station;
                 rider.Launch = receivedFlights[slot].Launch;
                 rider.Segment = receivedFlights[slot].Segment;
@@ -197,7 +187,8 @@ namespace CurtainCall.HumanCannon
                 runtime.ReleasePosition = releasePosition; runtime.ReleaseRotation = releaseRotation; runtime.ReleaseVelocity = releaseVelocity;
             }
             if (poles[index].LinkedGate != null)
-                poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0, (flags & GateOpenFlag) != 0, Clock);
+                poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0,
+                    states[index].State.OccupantAt(0) != CannonSeatState.Nobody, Clock);
             Apply(index, (PoleEvent)action, actor, station, launch, segment);
         }
 

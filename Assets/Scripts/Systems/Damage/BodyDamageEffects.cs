@@ -58,9 +58,16 @@ namespace CurtainCall.Damage
             var common = GameSettings.Base.BodyDamage;
             bool crawling = IsCrawling;
             var penalty = Policy != null ? Policy.Evaluate(condition) : BodyPenalty.None;
+            // 콘텐츠 정책은 균형만 추가한다. 이동·점프·손 닿는 거리는 씬과 무관하게 공통 설정을 사용한다.
+            penalty.MoveSpeed = condition.LostLegCount == 1 ? common.ExploreOneLegMoveSpeed : 1f;
+            penalty.Reach = common.ReachMultiplier(condition.LostArmCount);
             Current = penalty;
 
             mover.SpeedMultiplier = (crawling ? common.CrawlSpeedMultiplier : 1f) * penalty.MoveSpeed;
+            if (TryGetComponent(out CurtainCall.Network.PlayerSync.NetworkPlayer player) && player.IsSpawned
+                && CurtainCall.HumanCannon.HumanCannonCarry.Held(player.OwnerClientId) is { } carried
+                && GameSettings.Base.Character.FreeMoveSpeed > 0f)
+                mover.SpeedMultiplier *= carried.CarryMoveSpeed / GameSettings.Base.Character.FreeMoveSpeed;
             mover.JumpHeightMultiplier = common.JumpHeightForLostLegs(condition.LostLegCount);
             mover.JumpAllowed = !crawling || common.CrawlCanJump;
             mover.LaneJumpAllowed = !crawling || common.CrawlCanLaneJump;

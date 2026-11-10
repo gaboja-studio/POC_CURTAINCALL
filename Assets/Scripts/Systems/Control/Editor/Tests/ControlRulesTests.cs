@@ -184,7 +184,7 @@ namespace CurtainCall.Player.EditorTools.Tests
         public void Locomotion_DefaultSettings_AreConfirmedValues()
         {
             var character = CurtainCall.Settings.GameSettings.Base.Character;
-            Assert.AreEqual(1.5f, character.SprintSpeedMultiplier, 0.0001f, "달리기 배율");
+            Assert.AreEqual(2f, character.SprintSpeedMultiplier, 0.0001f, "공통 걷기3 / 달리기6 배율");
             Assert.AreEqual(0.5f, character.CrouchSpeedMultiplier, 0.0001f, "앉기 이동 배율");
             Assert.AreEqual(0.6f, character.CrouchHeightRatio, 0.0001f, "앉기 높이 비율");
         }

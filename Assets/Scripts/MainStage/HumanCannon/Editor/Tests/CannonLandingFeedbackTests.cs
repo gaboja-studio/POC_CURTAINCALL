@@ -49,7 +49,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             blocker.isTrigger=true;Physics.SyncTransforms();Assert.That(Safe(),Is.True);
             floor.enabled=false;Physics.SyncTransforms();Assert.That(Safe(),Is.False);
             floor.enabled=true;var zone=floor.GetComponent<HumanCannonLandingZone>();zone.enabled=false;
-            Assert.That(Safe(),Is.False,"A projected course floor need not be a safe landing.");
+            Assert.That(Safe(),Is.True,"A walkable floor is safe without a cannon-only landing tag.");
             Assert.That(markers.TryProjectGround(origin+new Vector3(4,10,0),out _,out _),Is.False,"No surface is invented in the void.");
         }
         [TestCase(-3.99f)] [TestCase(3.99f)]

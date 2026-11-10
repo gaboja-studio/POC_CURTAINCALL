@@ -1,0 +1,1079 @@
+﻿path,line,scope,code
+Assets/Scripts/CharacterArt/PlayerAppearanceCatalog.cs,27,runtime,"public static PlayerAppearanceCatalog Current => cached != null ? cached : cached = Resources.Load<PlayerAppearanceCatalog>(""Settings/PlayerAppearanceCatalog"");"
+Assets/Scripts/EscapeRoute/EntranceReviewLocal.cs,64,runtime,[redacted]
+Assets/Scripts/EscapeRoute/EscapeCampaignContent.cs,60,runtime,var waiting = SceneManager.GetSceneByName(GameSettings.Base.SpaceTransition.WaitingRoomScene);
+Assets/Scripts/EscapeRoute/EscapeCannonReviewHud.cs,37,runtime,if (InputGate.IsBlocked || Keyboard.current == null || !Keyboard.current.rKey.wasPressedThisFrame) return;
+Assets/Scripts/EscapeRoute/EscapeDevelopmentSession.cs,69,runtime,if (gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.EscapeRouteScene)
+Assets/Scripts/EscapeRoute/EscapeEndingPresentation.cs,148,runtime,"resultFont = TMP_FontAsset.CreateFontAsset(Resources.Load<Font>(""Fonts/Pretendard-Medium/Pretendard-Medium 1""));"
+Assets/Scripts/EscapeRoute/EscapeExitSaw.cs,259,runtime,var settings = CurtainCall.Settings.GameSettings.EscapeRoute;
+Assets/Scripts/EscapeRoute/EscapeInspectionCamera.cs,44,runtime,var keys = Keyboard.current;
+Assets/Scripts/EscapeRoute/EscapeMppmReviewConfig.cs,55,runtime,var spaces = GameSettings.Base.SpaceTransition;
+Assets/Scripts/EscapeRoute/EscapeRopeBalanceDisplay.cs,29,runtime,"HudLayout.PlaceBalance((RectTransform)view.Balance.transform, GameSettings.Base.HudLayout.BalancePosition);"
+Assets/Scripts/EscapeRoute/EscapeSceneTransfer.cs,178,runtime,|| camera.gameObject.scene.name != GameSettings.Base.SpaceTransition.WaitingRoomScene) return;
+Assets/Scripts/EscapeRoute/EscapeSwitchInteraction.cs,27,runtime,+ GameSettings.Base.Character.CapsuleHeight * Mathf.Abs(actor.transform.lossyScale.y) * .5f);
+Assets/Scripts/EscapeRoute/EscapeSwitchInteraction.cs,34,runtime,"center.y += Mathf.Max(0, GameSettings.Base.Character.CapsuleHeight"
+Assets/Scripts/ItemArt/ItemGameplayPlayground.cs,55,runtime,if(!ready||Keyboard.current==null)return;
+Assets/Scripts/ItemArt/ItemGameplayPlayground.cs,56,runtime,if(Keyboard.current.digit1Key.wasPressedThisFrame)PropCarry.Instance.RequestSelectSlot(0);
+Assets/Scripts/ItemArt/ItemGameplayPlayground.cs,57,runtime,if(Keyboard.current.digit2Key.wasPressedThisFrame)PropCarry.Instance.RequestSelectSlot(1);
+Assets/Scripts/ItemArt/ItemGameplayPlayground.cs,58,runtime,if(Keyboard.current.gKey.wasPressedThisFrame)PropCarry.Instance.RequestDrop();
+Assets/Scripts/ItemArt/ItemInteractionGallery.cs,100,runtime,var kb=Keyboard.current;
+Assets/Scripts/ItemArt/ItemVisualAssets.cs,20,runtime,"if (!icons.TryGetValue(key, out var icon)) icons[key] = icon = Resources.Load<Sprite>(""ItemArt/Icons/"" + key);"
+Assets/Scripts/ItemArt/ItemVisualAssets.cs,36,runtime,"if (!prefabs.TryGetValue(id, out var prefab)) prefabs[id] = prefab = Resources.Load<GameObject>(""ItemArt/Prefabs/"" + id);"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,128,editor-builder,"serialized.FindProperty(""m_ClearDynamicDataOnBuild"").boolValue = false;"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,294,editor-builder,"EditorGUILayout.PropertyField(serializedObject.FindProperty(""text""));"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,295,editor-builder,"var index = serializedObject.FindProperty(""fontIndex"");"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,317,editor-builder,"EditorGUILayout.PropertyField(serializedObject.FindProperty(""target""));"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,318,editor-builder,"EditorGUILayout.PropertyField(serializedObject.FindProperty(""fonts""));"
+Assets/Scripts/WorldSigns/Editor/WorldSignStudio.cs,319,editor-builder,"EditorGUILayout.PropertyField(serializedObject.FindProperty(""fontNames""));"
+Assets/Scripts/WaitingRoom/ExpertService/ExpertService.cs,37,runtime,static WaitingRoomSettings Prices => GameSettings.WaitingRoom;
+Assets/Scripts/WaitingRoom/Exploration/ClueInspectable.cs,176,runtime,var keyboard = Keyboard.current; var mouse = Mouse.current;
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,223,runtime,[redacted]
+Assets/Scripts/WaitingRoom/Exploration/ExplorationGate.cs,224,runtime,|| (Time.frameCount > openedFrame + 1 && Keyboard.current.fKey.wasPressedThisFrame)))) ClosePanel();
+Assets/Scripts/WaitingRoom/Exploration/ExplorationPanel.cs,25,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/BasicPanels/BasicPanels"");"
+Assets/Scripts/WaitingRoom/Exploration/ExplorationPanel.cs,41,runtime,"var font = Resources.Load<TMP_FontAsset>(""Fonts/BasicPanels/Pretendard-Medium SDF"");"
+Assets/Scripts/WaitingRoom/Exploration/ExplorationPanel.cs,89,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/CommonButtons/Button_General"");"
+Assets/Scripts/WaitingRoom/Exploration/ExplorationReach.cs,20,runtime,float height = GameSettings.Base.Character.CapsuleHeight;
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomGuidePanel.cs,59,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/BasicPanels/BasicPanels"");"
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomGuidePanel.cs,78,runtime,"var font = Resources.Load<TMP_FontAsset>(""Fonts/BasicPanels/Pretendard-Medium SDF"");"
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomRightPanel.cs,113,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/Tooltips/Tooltips"");"
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorial.cs,79,runtime,"get => memoryOnly ? memoryEnabled : PlayerPrefs.GetInt(EnabledKey, 1) != 0;"
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorial.cs,83,runtime,"PlayerPrefs.SetInt(EnabledKey, value ? 1 : 0); PlayerPrefs.Save();"
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorial.cs,93,runtime,var texts = Resources.Load<TextAsset>(TextsPath);
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorial.cs,145,runtime,if (PlayerPrefs.HasKey(LegacyProgressKey)) { PlayerPrefs.DeleteKey(LegacyProgressKey); PlayerPrefs.Save(); }
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorialPanel.cs,26,runtime,var file = Resources.Load<TextAsset>(SettingsPath);
+Assets/Scripts/WaitingRoom/Exploration/WaitingRoomTutorialPanel.cs,81,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/Tooltips/Tooltips"");"
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,75,runtime,var rules = GameSettings.Base.Run;
+Assets/Scripts/WaitingRoom/ExplorationTimer/ExplorationTimerView.cs,106,runtime,if (font == null) font = Resources.Load<TMP_FontAsset>(FontResource);
+Assets/Scripts/WaitingRoom/Items/ItemCatalog.cs,67,runtime,var asset = Resources.Load<ItemCatalog>(ResourcePath);
+Assets/Scripts/WaitingRoom/NightSchedule/BedRestView.cs,45,runtime,var k = Keyboard.current;
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoard.cs,54,runtime,if (string.IsNullOrEmpty(trick) || trick == GameSettings.Base.Run.DefaultTrick || !run.IsTrickUnlocked(trick)) continue;
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoard.cs,96,runtime,var run = GameSettings.Base.Run;
+Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs,71,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.Behaviour.cs,60,runtime,"(unseen > GameSettings.WaitingRoom.Pursuit.LoseTargetSeconds || Vector3.Distance(transform.position, target.position) > Mathf.Max(rule.SightRadius, rule.TrackingRadius))))) {"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.Behaviour.cs,195,runtime,"float t = Mathf.SmoothStep(0, 1, Mathf.Clamp01(CaptureElapsed / Mathf.Max(.1f, GameSettings.WaitingRoom.Pursuit.KnockdownSeconds)));"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.cs,26,runtime,bool IsAwakening => activatedAt < 0 || Time.time - activatedAt < GameSettings.WaitingRoom.Pursuit.AwakeningSeconds;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.cs,89,runtime,bool advanced = IsActivated && director.CurrentStageIndex + 1 >= GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.cs,108,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.Leash.cs,17,runtime,<= GameSettings.WaitingRoom.Pursuit.CaptureRadius;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitAppearance.cs,61,runtime,var d = PursuitDirector.Current; var rule = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitAppearance.Surface.cs,39,runtime,? Mathf.Clamp01(CaptureCount * GameSettings.WaitingRoom.Pursuit.BloodPerCapture) : 0;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitCaptureBlood.cs,22,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitCaptureBlood.cs,38,runtime,float amount = rules.CaptureBloodAmount * GameSettings.Base.BodyDamage.BloodAmount;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Contact.cs,52,runtime,float radius = GameSettings.WaitingRoom.Pursuit.CaptureRadius;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Contact.cs,102,runtime,"player.transform.position, GameSettings.WaitingRoom.Pursuit.CaptureRadius);"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.cs,170,runtime,bool warning = s.Timer == RestTimerState.Running && s.TimeRemaining <= GameSettings.WaitingRoom.Pursuit.WarningSeconds;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.cs,331,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Debug.cs,21,runtime,: run != null && !run.HasAuthority ? stage : GameSettings.WaitingRoom.Pursuit.StageAt(Elapsed);
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Debug.cs,24,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Debug.cs,77,runtime,var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Lighting.cs,25,runtime,var lighting = GameSettings.WaitingRoom.Pursuit.Lighting;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Lighting.cs,59,runtime,var rule = GameSettings.WaitingRoom.Pursuit.Lighting.StageFor(CurrentStageIndex);
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Perception.cs,53,runtime,"float playerSpeed = GameSettings.Base.Character.FreeMoveSpeed * Mathf.Max(1, GameSettings.Base.Character.SprintSpeedMultiplier);"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitDirector.Perception.cs,64,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitEyeFeedback.cs,37,runtime,"var shader = Resources.Load<Shader>(""PursuitEye/PursuitEye"");"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitEyeFeedback.cs,66,runtime,var settings = GameSettings.WaitingRoom.Pursuit.Eyes;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitFeedback.cs,49,runtime,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitLighting.cs,66,runtime,if (GameSettings.WaitingRoom.Pursuit.Lighting.IncludeUnassignedLights) {
+Assets/Scripts/WaitingRoom/Pursuit/PursuitLighting.cs,149,runtime,var settings = GameSettings.WaitingRoom.Pursuit.Lighting;
+Assets/Scripts/WaitingRoom/Pursuit/PursuitLighting.cs,293,runtime,var material = settings.SparkMaterial != null ? settings.SparkMaterial : Resources.Load<Material>(DefaultSparkMaterial);
+Assets/Scripts/WaitingRoom/Pursuit/PursuitSettings.cs,80,runtime,": GameSettings.Base.Character.FreeMoveSpeed * GameSettings.Base.Character.SprintSpeedMultiplier * Mathf.Max(.1f, ChaseSpeedMultiplier);"
+Assets/Scripts/WaitingRoom/Pursuit/PursuitTexts.cs,20,runtime,var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalCannonReviewBrain.cs,129,runtime,"trampoline.Surface.y, GameSettings.Base.Character.Gravity, 4f);"
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalStage.cs,30,runtime,public float Finish => Kind == RehearsalStageKind.Trapeze ? 22f + GameSettings.Tightrope.Course.TrapezeLength
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalStage.cs,37,runtime,var shape = GameSettings.Tightrope.Course.Clone();
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalVotePanel.cs,80,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/BasicPanels/BasicPanels"");"
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalVotePanel.cs,81,runtime,"var buttonPrefab = Resources.Load<GameObject>(""Prefabs/UIs/CommonButtons/Button_General"");"
+Assets/Scripts/WaitingRoom/Rehearsal/RehearsalVotePanel.cs,102,runtime,"var font = Resources.Load<TMP_FontAsset>(""Fonts/BasicPanels/Pretendard-Medium SDF"");"
+Assets/Scripts/WaitingRoom/Rehearsal/WaitingRoomCannonRehearsal.cs,112,runtime,"|| Resources.Load<GameObject>(""Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance"") == null) return false;"
+Assets/Scripts/WaitingRoom/Rehearsal/WaitingRoomCannonRehearsal.cs,147,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance"");"
+Assets/Scripts/WaitingRoom/Rehearsal/WaitingRoomRehearsal.cs,333,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/Objects/ETCs/TightropeArtKit/Prepared/TightropeCoursePrepared"");"
+Assets/Scripts/WaitingRoom/Rehearsal/WaitingRoomRehearsal.Local.cs,53,runtime,"var hudPrefab = Resources.Load<GameObject>(""Prefabs/UIs/PerformanceHud/PerformanceHud"");"
+Assets/Scripts/WaitingRoom/Rehearsal/WaitingRoomRehearsal.Local.cs,54,runtime,"var cheerPrefab = Resources.Load<GameObject>(""Prefabs/UIs/CheerGauge/C1CheerGauge"");"
+Assets/Scripts/WaitingRoom/ShopStorage/ShopPhone.cs,47,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/WaitingRoom/ShopStorage/WaitingRoomShop.cs,198,runtime,GameSettings.WaitingRoom.AllowPurchasesDuringRest && CampaignRun.Instance.State.Phase == CampaignPhase.RestTime);
+Assets/Scripts/WaitingRoom/ShopStorage/WaitingRoomShop.cs,199,runtime,public static string PurchaseTimeRefusal => GameSettings.WaitingRoom.AllowPurchasesDuringRest
+Assets/Scripts/WaitingRoom/Texts/WaitingRoomTextLoader.cs,14,runtime,var file = Resources.Load<TextAsset>(TextsPath);
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalArrivalTests.cs,49,editor-builder,var shape = GameSettings.Tightrope.Course.Clone();
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,34,editor-builder,"var stationProperty = new SerializedObject(source).FindProperty(""stations"");"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,36,editor-builder,"var sourceTransport = (HumanCannonTransport)new SerializedObject(sourceRoute).FindProperty(""transports"").GetArrayElementAtIndex(0).objectReferenceValue;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,81,editor-builder,"var floors = markerSettings.FindProperty(""courseFloors"");"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,86,editor-builder,"markerSettings.FindProperty(""feedbackRopes"").arraySize = 0;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,90,editor-builder,"var stations = cannon.FindProperty(""stations""); stations.arraySize = 4;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,92,editor-builder,"cannon.FindProperty(""flightCoordinateSpace"").objectReferenceValue = null;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,95,editor-builder,"var transports = route.FindProperty(""transports""); transports.arraySize = 1;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,97,editor-builder,"route.FindProperty(""shelter"").objectReferenceValue = null;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceBuilder.cs,98,editor-builder,"route.FindProperty(""fires"").arraySize = 0;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceTests.cs,24,editor-builder,var property = new SerializedObject(owner).FindProperty(name);
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalCannonSourceTests.cs,27,editor-builder,"static float Number(Object owner, string name) => new SerializedObject(owner).FindProperty(name).floatValue;"
+Assets/Scripts/WaitingRoom/Rehearsal/Editor/RehearsalLifecycleTests.cs,201,editor-builder,oldScene.name = GameSettings.Base.SpaceTransition.WaitingRoomScene;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,42,editor-builder,"so.FindProperty(""Appearance"").enumValueIndex = (int)PursuitAppearanceChoice.HeavyBlood;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,43,editor-builder,"so.FindProperty(""AppearancePattern"").intValue = 9; so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,123,editor-builder,"so.FindProperty(""CustomSurfaceLayers"").boolValue = true;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,124,editor-builder,"so.FindProperty(""DirtAmount"").floatValue = .9f; so.FindProperty(""WearAmount"").floatValue = .8f;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,125,editor-builder,"so.FindProperty(""BloodAmount"").floatValue = .15f; so.FindProperty(""WearPattern"").intValue = 3;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceAuthoringTests.cs,126,editor-builder,"so.FindProperty(""AppearancePattern"").intValue = 12; so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceReview.cs,29,editor-builder,bool advanced = stage >= CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAppearanceReview.cs,36,editor-builder,"props.SetFloat(""_BloodAmount"", stains ? Mathf.Clamp01(view * CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.BloodPerCapture) : 0);"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAuthoring.cs,16,editor-builder,var selected = CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomVariant;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitAuthoringTests.cs,97,editor-builder,"serialized.FindProperty(""ActivationStage"").intValue = 4;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,23,editor-builder,"var appearance = placementSO.FindProperty(""Appearance"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,28,editor-builder,"placementSO.FindProperty(""CustomSurfaceLayers"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,34,editor-builder,"placementSO.FindProperty(""CustomSurfaceLayers"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,51,editor-builder,"placementSO.FindProperty(""CustomSurfaceLayers"").boolValue = true;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,52,editor-builder,"placementSO.FindProperty(""DirtAmount"").floatValue = dirt;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,53,editor-builder,"placementSO.FindProperty(""WearAmount"").floatValue = wear;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,54,editor-builder,"placementSO.FindProperty(""BloodAmount"").floatValue = blood;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,55,editor-builder,"placementSO.FindProperty(""WearPattern"").intValue = wearPattern;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Appearance.cs,56,editor-builder,"placementSO.FindProperty(""AppearancePattern"").intValue = bloodPattern;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,120,editor-builder,EditorSceneManager.SaveScene(director.gameObject.scene); AssetDatabase.SaveAssetIfDirty(GameSettings.WaitingRoom);
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,189,editor-builder,"EditorGUILayout.PropertyField(roomSO.FindProperty(""RoamAcrossRooms""), new GUIContent(""다른 방까지 추격"")); roomSO.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,211,editor-builder,"var activation = placementSO.FindProperty(""ActivationStage"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,216,editor-builder,var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,220,editor-builder,"EditorGUILayout.PropertyField(placementSO.FindProperty(""Size""), new GUIContent(""크기 (Small 소형 / Medium 중형)""));"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.cs,223,editor-builder,"EditorGUILayout.PropertyField(placementSO.FindProperty(""RouteDetachDistance""), new GUIContent(""동선 자동 해제 거리 (m)"", ""가장 가까운 순찰 선분까지의 거리. 0은 자동 해제 안 함.""));"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Map.cs,120,editor-builder,var rules = GameSettings.WaitingRoom.Pursuit;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Settings.cs,11,editor-builder,var settings = GameSettings.WaitingRoom;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Settings.cs,13,editor-builder,"var root = so.FindProperty(""pursuit"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitDesignerWindow.Settings.cs,31,editor-builder,var character = GameSettings.Base.Character;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitEyeImporter.cs,38,editor-builder,var rules = GameSettings.WaitingRoom;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitEyeTests.cs,94,editor-builder,"var shader = Resources.Load<Shader>(""PursuitEye/PursuitEye""); Assert.IsNotNull(shader);"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitLightingWindow.cs,28,editor-builder,var asset = GameSettings.WaitingRoom;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitLightingWindow.cs,31,editor-builder,"var pursuit = so.FindProperty(""pursuit"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitLightingWindow.cs,227,editor-builder,"var rule = GameSettings.WaitingRoom.Pursuit.Lighting.StageFor(Mathf.Max(0, stage));"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitPerformanceProbe.cs,27,editor-builder,static string SelectedSceneName => GameSettings.Base.SpaceTransition.WaitingRoomScene;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitRulesTests.cs,47,editor-builder,var limit = GameSettings.Base.Run.TimeLimit(run.Snapshot.Rest);
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,150,editor-builder,"var blocker = so.FindProperty(""blocker"").objectReferenceValue as Collider;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,152,editor-builder,"var hide = so.FindProperty(""hideOnOpen"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,160,editor-builder,"var blocker = new SerializedObject(wall).FindProperty(""blocker"").objectReferenceValue as Collider;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,164,editor-builder,"var shutter = new SerializedObject(door).FindProperty(""shutter"").objectReferenceValue as Transform;"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,184,editor-builder,"var timerSource = new SerializedObject(timers).FindProperty(""runningZones"");"
+Assets/Scripts/WaitingRoom/Pursuit/Editor/PursuitSceneBuilder.cs,208,editor-builder,var settings = GameSettings.WaitingRoom;
+Assets/Scripts/WaitingRoom/Pursuit/Editor/WaitingRoomRenderComparison.cs,145,editor-builder,"var property = settings.FindProperty(""m_BrgStripping"");"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,258,editor-builder,"so.FindProperty(""shutter"").objectReferenceValue = shutter;"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,259,editor-builder,"so.FindProperty(""lockedDoor"").objectReferenceValue = sign;"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,260,editor-builder,"so.FindProperty(""warningLamp"").objectReferenceValue = lamp.GetComponent<Renderer>();"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,263,editor-builder,"shutter.localScale = new Vector3(1f, so.FindProperty(""openScale"").floatValue, 1f);"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,309,editor-builder,"so.FindProperty(""board"").objectReferenceValue = boardShape;"
+Assets/Scripts/WaitingRoom/NightSchedule/Editor/NightScheduleSceneBuilder.cs,310,editor-builder,"so.FindProperty(""closeUp"").objectReferenceValue = closeUp;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,210,editor-builder,"so.FindProperty(""curtainLeft"").objectReferenceValue = left;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,211,editor-builder,"so.FindProperty(""curtainRight"").objectReferenceValue = rightHalf;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,212,editor-builder,"so.FindProperty(""inside"").objectReferenceValue = inside;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,213,editor-builder,"so.FindProperty(""outside"").objectReferenceValue = outside;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,214,editor-builder,"so.FindProperty(""sign"").objectReferenceValue = sign;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,215,editor-builder,"so.FindProperty(""sound"").objectReferenceValue = sound;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,216,editor-builder,"so.FindProperty(""glow"").objectReferenceValue = glow;"
+Assets/Scripts/WaitingRoom/ExpertService/Editor/ExpertServiceSceneBuilder.cs,247,editor-builder,"so.FindProperty(""preset"").objectReferenceValue = preset;"
+Assets/Scripts/WaitingRoom/Base/Editor/DebugLobbyEscapeKeyInstaller.cs,45,editor-builder,"so.FindProperty(""keyNumber"").intValue = number;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,83,editor-builder,"gso.FindProperty(""revealTarget"").stringValue = """"; gso.FindProperty(""revealPending"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,84,editor-builder,"var keys = gso.FindProperty(""keySlots""); keys.arraySize = 2;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,86,editor-builder,"Add(gso.FindProperty(""hiddenVisuals""), face.Concat(slots.Select(s => (Object)s.gameObject)).Append(frame.gameObject));"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,87,editor-builder,"Add(gso.FindProperty(""hideOnOpen""), face);"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,117,editor-builder,[redacted]
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,118,editor-builder,"slide.FindProperty(""openOffset"").vector3Value = group.InverseTransformVector(Vector3.back * (z1 - z0 + .05f)); // 왼쪽 빈 벽으로"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,122,editor-builder,"so.FindProperty(""requiredTargets"").arraySize = 0; so.FindProperty(""revealTarget"").stringValue = """"; so.FindProperty(""revealPending"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,123,editor-builder,[redacted]
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,124,editor-builder,"Add(so.FindProperty(""showOnOpen""), reveals.Select(r => (Object)r.gameObject));"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,144,editor-builder,"if (bridge != null) { var gso = new SerializedObject(door.GetComponent<ExplorationGate>()); Add(gso.FindProperty(""hideOnOpen""), new Object[] { bridge.gameObject }); gso.ApplyModifiedProperties(); }"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,183,editor-builder,"so.FindProperty(""targetId"").stringValue = PipeBoxId; so.FindProperty(""label"").stringValue = ""배관함"";"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,184,editor-builder,"so.FindProperty(""requiredHits"").intValue = 3; so.FindProperty(""reach"").floatValue = 1.7f;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,185,editor-builder,"var list = so.FindProperty(""pieces""); list.arraySize = pieces.Count;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,189,editor-builder,"gate.FindProperty(""revealTarget"").stringValue = PipeBoxId; gate.FindProperty(""revealPending"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,196,editor-builder,"var so = new SerializedObject(root.GetComponent<BreakableWall>()); var list = so.FindProperty(""pieces"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,257,editor-builder,"Filter(so.FindProperty(""hiddenVisuals""), o => !o.name.StartsWith(""Keypad""));"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureADoorVisualFix.cs,258,editor-builder,"Filter(so.FindProperty(""hideOnOpen""), o => !(o is GameObject g) || !g.transform.IsChildOf(assembly) || StructureAPlacement.OpensAway(g.transform, assembly));"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,48,editor-builder,"var so = new SerializedObject(zones); so.FindProperty(""areas"").objectReferenceValue = timer.Find(""Frame8Areas""); so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,57,editor-builder,"{ var so = new SerializedObject(mark); so.FindProperty(""reach"").floatValue = 10f; so.ApplyModifiedProperties(); }"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,63,editor-builder,"var used = layout.GetComponentsInChildren<FoundItemSpot>(true).Select(s => new SerializedObject(s).FindProperty(""uidOffset"").intValue)"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,80,editor-builder,"so.FindProperty(""spotId"").stringValue = id; so.FindProperty(""uidOffset"").intValue = DormitoryUvOffsets[i];"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,81,editor-builder,"so.FindProperty(""itemId"").stringValue = ItemUses.UvLamp; so.FindProperty(""debugOnly"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,152,editor-builder,var catalog = Resources.Load<ItemCatalog>(ItemCatalog.ResourcePath);
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAFeatureUpdate.cs,153,editor-builder,"var so = new SerializedObject(catalog); var items = so.FindProperty(""items"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,124,editor-builder,"var cracks = so.FindProperty(""cracks"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,139,editor-builder,"so.FindProperty(""showOutline"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,140,editor-builder,"so.FindProperty(""loosenPieces"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,141,editor-builder,"so.FindProperty(""standingDetail"").objectReferenceValue = standingGo;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,285,editor-builder,"var so = new SerializedObject(wall); var piecesProp = so.FindProperty(""pieces"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,323,editor-builder,"so.FindProperty(""loosenPieces"").boolValue = false;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAHiddenDetailPass.cs,342,editor-builder,"var uv = mark.GetComponent<UvMark>(); var so = new SerializedObject(uv); var marks = so.FindProperty(""marks"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPlacement.cs,221,editor-builder,"Undo.RecordObject(target, ""Bind exploration route""); var so = new SerializedObject(target); var p = so.FindProperty(field) ?? throw new InvalidOperationException(""Missing field "" + field);"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPlacementFix.cs,209,editor-builder,"var p = so.FindProperty(field); var list = Enumerable.Range(0, p.arraySize).Select(i => p.GetArrayElementAtIndex(i).objectReferenceValue).ToList();"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPlacementFix.cs,223,editor-builder,"var so = new SerializedObject(wall.GetComponent<BreakableWall>()); so.FindProperty(""outlineRoot"").objectReferenceValue = plate; so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPropShapes.cs,276,editor-builder,[redacted]
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPropShapes.cs,277,editor-builder,[redacted]
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPropShapes.cs,278,editor-builder,"so.FindProperty(""description"").stringValue = """";"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAPropShapes.cs,336,editor-builder,var p = so.FindProperty(field); if (p == null) continue;
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAReview.cs,52,editor-builder,"so.FindProperty(""spotId"").stringValue = id; so.FindProperty(""uidOffset"").intValue = 61 + row * 4 + col;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAReview.cs,53,editor-builder,"so.FindProperty(""itemId"").stringValue = kinds[row]; so.FindProperty(""debugOnly"").boolValue = true;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAReview.cs,96,editor-builder,"spots = root.GetComponentsInChildren<FoundItemSpot>(true).Select(s => new { id = s.SpotId, item = s.MakeItem(0).ItemId, uid = s.MakeItem(0).Uid, p = V(s.FloorPoint), path = PathOf(s.transform, root), debug = new SerializedObject(s).FindProperty(""debugOnly"").boolValue }).ToArray()"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureARouteAudit.cs,66,editor-builder,"var blocker = so.FindProperty(""blocker"")?.objectReferenceValue as Collider;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureARouteAudit.cs,68,editor-builder,"var hide = so.FindProperty(""hideOnOpen"");"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureARouteAudit.cs,86,editor-builder,"var shutter = new SerializedObject(door).FindProperty(""shutter"").objectReferenceValue as Transform;"
+Assets/Scripts/WaitingRoom/Base/Editor/StructureARouteAudit.cs,91,editor-builder,settings.agentRadius = CurtainCall.Settings.GameSettings.Base.Character.CapsuleRadius;
+Assets/Scripts/WaitingRoom/Base/Editor/StructureARouteAudit.cs,92,editor-builder,settings.agentHeight = CurtainCall.Settings.GameSettings.Base.Character.CapsuleHeight;
+Assets/Scripts/WaitingRoom/Base/Editor/StructureAStairAccessFix.cs,78,editor-builder,"so.FindProperty(""interactionPoint"").objectReferenceValue = anchor; so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomArtIntegration.cs,79,editor-builder,"var boards = new SerializedObject(shelf).FindProperty(""boards"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomGreyboxBuilder.cs,308,editor-builder,"var array = so.FindProperty(""points"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,645,editor-builder,"if (!(so.FindProperty(field).objectReferenceValue is Component c) || !c.transform.IsChildOf(hall)) throw new InvalidOperationException(""Expert room "" + field + "" still points at the original"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,646,editor-builder,"var inside = ((Component)so.FindProperty(""inside"").objectReferenceValue).transform.position;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,649,editor-builder,"if (new SerializedObject(labels).FindProperty(""expert"").objectReferenceValue != views[0]) throw new InvalidOperationException(""World labels do not point at the moved expert room"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,653,editor-builder,"foreach (var (p, what) in new[] { (inside, ""expert inside""), (((Component)so.FindProperty(""outside"").objectReferenceValue).transform.position, ""expert outside"") })"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,2382,editor-builder,"if (!(new SerializedObject(gather).FindProperty(""border"").objectReferenceValue is Transform border) || !border.IsChildOf(stage))"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,2391,editor-builder,"var shutter = (Transform)new SerializedObject(doorLock).FindProperty(""shutter"").objectReferenceValue;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,2610,editor-builder,"if (new SerializedObject(labels).FindProperty(""shelf"").objectReferenceValue != shelves[0])"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,2632,editor-builder,var so = new SerializedObject(owner); var p = so.FindProperty(field);
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,3439,editor-builder,"var points = new SerializedObject(spawn).FindProperty(""points"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs,3468,editor-builder,"if (new SerializedObject(labels).FindProperty(""delivery"").objectReferenceValue != slots[0])"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Detail.cs,45,editor-builder,"so.FindProperty(""curtainLeft"").objectReferenceValue=left;so.FindProperty(""curtainRight"").objectReferenceValue=right;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Detail.cs,46,editor-builder,"so.FindProperty(""inside"").objectReferenceValue=inside;so.FindProperty(""outside"").objectReferenceValue=outside;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Detail.cs,47,editor-builder,"so.FindProperty(""glow"").objectReferenceValue=g.Find(""ServiceGlow"").GetComponent<Light>();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Detail.cs,48,editor-builder,"so.FindProperty(""sign"").objectReferenceValue=g.GetComponentsInChildren<TextMesh>().Single();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Detail.cs,49,editor-builder,"so.FindProperty(""bunched"").floatValue=1;so.FindProperty(""slide"").floatValue=1.5f;so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,30,editor-builder,"so.FindProperty(""title"").stringValue = ""이전 단원의 기록책"";"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,141,editor-builder,"so.FindProperty(""targetId"").stringValue = ""restroom-breach"";"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,142,editor-builder,"so.FindProperty(""blocker"").objectReferenceValue = blocker;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,143,editor-builder,"var pp = so.FindProperty(""pieces""); pp.arraySize = pieces.Count; for (int i = 0; i < pieces.Count; i++) pp.GetArrayElementAtIndex(i).objectReferenceValue = pieces[i];"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,144,editor-builder,"var cp = so.FindProperty(""cracks""); cp.arraySize = cracks.Count; for (int i = 0; i < cracks.Count; i++) cp.GetArrayElementAtIndex(i).objectReferenceValue = cracks[i];"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,145,editor-builder,"so.FindProperty(""aftermath"").objectReferenceValue = after.gameObject;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,149,editor-builder,"var reveal = so.FindProperty(""revealOnOpen""); reveal.arraySize = broken != null ? 1 : 0;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,285,editor-builder,"so.FindProperty(""spotId"").stringValue = spotId; so.FindProperty(""uidOffset"").intValue = offset;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,286,editor-builder,"so.FindProperty(""itemId"").stringValue = id; so.FindProperty(""itemName"").stringValue = ItemCatalog.Get(id)?.displayName ?? id;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,313,editor-builder,"static void SetRef(SerializedObject so, string field, Object value) => so.FindProperty(field).objectReferenceValue = value;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,316,editor-builder,var p = so.FindProperty(field); p.arraySize = values.Length;
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,341,editor-builder,"so.FindProperty(""targetId"").stringValue = ""trial-padlocked-trunk""; so.FindProperty(""kind"").enumValueIndex = (int)ToolTargetKind.HairpinLock;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,342,editor-builder,"so.FindProperty(""label"").stringValue = ""자물쇠 잠긴 트렁크"";"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,343,editor-builder,"SetRef(so, ""hinge"", lid); so.FindProperty(""openEuler"").vector3Value = new Vector3(-105, 0, 0);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,345,editor-builder,"so.FindProperty(""rewardItemId"").stringValue = ItemUses.UvLamp; SetRef(so, ""rewardPoint"", lamp); so.FindProperty(""rewardUidOffset"").intValue = 51;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,369,editor-builder,"so.FindProperty(""targetId"").stringValue = ""trial-boarded-crate""; so.FindProperty(""kind"").enumValueIndex = (int)ToolTargetKind.Pry;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,370,editor-builder,"so.FindProperty(""label"").stringValue = ""판자로 막힌 상자"";"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,372,editor-builder,"so.FindProperty(""rewardItemId"").stringValue = ItemUses.MagicianHairpin; SetRef(so, ""rewardPoint"", pin); so.FindProperty(""rewardUidOffset"").intValue = 52;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.M2.cs,388,editor-builder,"so.FindProperty(""targetId"").stringValue = ""trial-uv-restroom""; so.FindProperty(""label"").stringValue = ""벽의 희미한 얼룩"";"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Night.cs,20,editor-builder,"var door=Undo.AddComponent<NightDoorLock>(gate.gameObject);var so=new SerializedObject(door);so.FindProperty(""shutter"").objectReferenceValue=bars;so.FindProperty(""showLegacyNotice"").boolValue=false;so.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Night.cs,30,editor-builder,"var power=Undo.AddComponent<NightPower>(root.gameObject);var ps=new SerializedObject(power);var list=ps.FindProperty(""circuit"");list.arraySize=circuit.Length;for(int i=0;i<circuit.Length;i++)list.GetArrayElementAtIndex(i).objectReferenceValue=circuit[i];ps.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.Polish8.cs,89,editor-builder,"so.FindProperty(""initialOpen"").floatValue = 0f; so.FindProperty(""openOnStart"").boolValue = false; so.ApplyModifiedProperties();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.SourceFaithful.cs,100,editor-builder,"so.FindProperty(""areaCenter"").vector3Value=new Vector3(0,1.5f,0);so.FindProperty(""areaSize"").vector3Value=new Vector3(6,3,12);so.ApplyModifiedProperties();gather.ApplyArea();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.SourceFaithful.cs,105,editor-builder,"var shutter=(Transform)new SerializedObject(night).FindProperty(""shutter"").objectReferenceValue;var door=shutter.parent;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutFitter.cs,242,editor-builder,"so.FindProperty(""preset"").objectReferenceValue = preset;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutFitter.cs,243,editor-builder,"so.FindProperty(""priority"").intValue = ClosePriority;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutFitter.cs,244,editor-builder,"so.FindProperty(""exitPadding"").floatValue = 1f;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Bindings.cs,25,editor-builder,"var so = new SerializedObject(component); var p = so.FindProperty(""rewardPoint"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Bindings.cs,74,editor-builder,"var reward = so.FindProperty(""rewardPoint"")?.objectReferenceValue as Transform;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Bindings.cs,81,editor-builder,"var list = new SerializedObject(tool).FindProperty(""showOnOpen"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,17,editor-builder,"static string SpotItem(FoundItemSpot spot) => new SerializedObject(spot).FindProperty(""itemId"").stringValue;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,18,editor-builder,"static string SpotCondition(FoundItemSpot spot) => new SerializedObject(spot).FindProperty(""availableAfter"").stringValue;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,19,editor-builder,"static GameObject SpotArt(FoundItemSpot spot) => Resources.Load<GameObject>(""ItemArt/Prefabs/"" + SpotItem(spot));"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,23,editor-builder,var so = new SerializedObject(c); var p = so.FindProperty(field);
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,34,editor-builder,"foreach (var spot in root.GetComponentsInChildren<FoundItemSpot>(true)) used.Add(new SerializedObject(spot).FindProperty(""uidOffset"").intValue);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,57,editor-builder,".FirstOrDefault(g => IsInteractionObject(g.transform) && new SerializedObject(g).FindProperty(""kind"").enumValueIndex == (int)ExplorationGateKind.Breakable);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,70,editor-builder,"var so = new SerializedObject(gate); var hidden = so.FindProperty(""hideOnOpen""); hidden.arraySize = go.transform.childCount;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,130,editor-builder,"var entry = item; var art = Resources.Load<GameObject>(""ItemArt/Prefabs/"" + entry.id);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.Creation.cs,135,editor-builder,".FirstOrDefault(g => CurrentLayoutTarget(g.transform) && new SerializedObject(g).FindProperty(""kind"").enumValueIndex == (int)ExplorationGateKind.Breakable);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindow.cs,42,editor-builder,"var kind = new SerializedObject(gate).FindProperty(""kind"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindowTests.cs,18,editor-builder,"var so = new UnityEditor.SerializedObject(target); so.FindProperty(""rewardPoint"").objectReferenceValue = external; so.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomObjectWindowTests.cs,94,editor-builder,"var so = new UnityEditor.SerializedObject(view); so.FindProperty(""board"").objectReferenceValue = board; so.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomOverlapFix.cs,150,editor-builder,"var so = new SerializedObject(c); var far = so.FindProperty(""Lens.FarClipPlane"");"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomTunnelLayout.cs,177,editor-builder,"so.FindProperty(""areaCenter"").vector3Value = Vector3.zero;"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomTunnelLayout.cs,178,editor-builder,"so.FindProperty(""areaSize"").vector3Value = new Vector3(Gather.width, GatherHeight, Gather.height);"
+Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomTunnelLayout.cs,179,editor-builder,"so.FindProperty(""border"").objectReferenceValue = corridor.Find(""GatherZone_Border"");"
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,59,runtime,"var shader = Resources.Load<Shader>(""TightropeOutline"");"
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,319,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/Interaction/InteractionPrompt"");"
+Assets/Scripts/UI/SceneIntegration/CommonInteractionUI.cs,351,runtime,"var template = Resources.Load<GameObject>(""Prefabs/UIs/Interaction/RescueProgress"");"
+Assets/Scripts/UI/SceneIntegration/CommonInventoryUI.cs,52,runtime,if (carry != null && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal && Keyboard.current != null)
+Assets/Scripts/UI/SceneIntegration/CommonInventoryUI.cs,53,runtime,for (int i = 0; i < Keys.Length; i++) if (Keyboard.current[Keys[i]].wasPressedThisFrame) carry.RequestSelectSlot(i);
+Assets/Scripts/UI/SceneIntegration/CommonMenuUI.cs,79,runtime,bool cancel = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,58,runtime,var prefab = Resources.Load<GameObject>(PrefabResource);
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,162,runtime,"var license = Resources.Load<TextAsset>(""Fonts/Pretendard-License"");"
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,227,runtime,if (Keyboard.current != null)
+Assets/Scripts/UI/SceneIntegration/CommonSettingsUI.cs,228,runtime,foreach (var key in Keyboard.current.allKeys)
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,77,runtime,var rules = GameSettings.Base.Run;
+Assets/Scripts/UI/SceneIntegration/CommonWaitingRoomUI.cs,107,runtime,var prefab = Resources.Load<RestTimerView>(RestTimerView.PrefabPath);
+Assets/Scripts/UI/SceneIntegration/DemoRunEnding.cs,157,runtime,"font = TMP_FontAsset.CreateFontAsset(Resources.Load<Font>(""Fonts/Pretendard-Medium/Pretendard-Medium 1""));"
+Assets/Scripts/UI/SceneIntegration/DemoRunEnding.cs,204,runtime,"public static string DayTitle(int day) => day > CurtainCall.Settings.GameSettings.Base.Run.DayCount ? ""D-Day"" : $""Day {day}"";"
+Assets/Scripts/UI/SceneIntegration/HudLayout.cs,22,runtime,"public static void PlaceBalance(RectTransform rect, BaseGameSettings.BalanceHudPosition position)"
+Assets/Scripts/UI/SceneIntegration/HudLayout.cs,24,runtime,bool top = position == BaseGameSettings.BalanceHudPosition.TopCenter;
+Assets/Scripts/UI/SceneIntegration/NotificationTextLayout.cs,106,runtime,&& CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition == CurtainCall.Settings.BaseGameSettings.BalanceHudPosition.TopCenter;
+Assets/Scripts/UI/SceneIntegration/PerformanceEndingPresentation.cs,207,runtime,"if (!SpaceRoute.TryFind(scene.name, GameSettings.Base.SpaceTransition, out _)) return;"
+Assets/Scripts/UI/SceneIntegration/PerformanceSceneBinding.cs,252,runtime,"HudLayout.PlaceBalance((RectTransform)localBalance.transform, CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition);"
+Assets/Scripts/UI/SceneIntegration/SettingsExtensionPanel.cs,104,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/CommonButtons/Button_General"");"
+Assets/Scripts/UI/SceneIntegration/VoiceStatusUI.cs,25,runtime,label.text = GameSettings.Base.VoiceChat.MuteKey.ToString();
+Assets/Scripts/UI/SceneIntegration/WaitingRoomScheduleUI.cs,98,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/CommonButtons/Button_General"");"
+Assets/Scripts/UI/SceneIntegration/Editor/CommonMenuInstaller.cs,45,editor-builder,"menuSerialized.FindProperty(""showMenuOnStart"").boolValue = false;"
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockProjectBuilder.cs,63,editor-builder,"serialized.FindProperty(""m_SourceFontFile"").objectReferenceValue = sourceFont;"
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,76,editor-builder,var prefab = Resources.Load<DayClockView>(DayClockView.PrefabPath);
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,105,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,120,editor-builder,"settings.FindProperty(""showMinuteHand"").boolValue = true;"
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,136,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,163,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,218,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,236,editor-builder,var prefab = Resources.Load<DayClockView>(DayClockView.PrefabPath);
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,282,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,328,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,344,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,380,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,425,editor-builder,"var clock = new UnityEditor.SerializedObject(ui).FindProperty(""dayClock"").objectReferenceValue as DayClockView;"
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,430,editor-builder,"Assert.AreSame(Resources.Load<DayClockView>(DayClockView.PrefabPath).View.ScheduleProfile, clock.View.ScheduleProfile);"
+Assets/Scripts/UI/SceneIntegration/Editor/DayClockTests.cs,461,editor-builder,var instance = Object.Instantiate(Resources.Load<DayClockView>(DayClockView.PrefabPath));
+Assets/Scripts/UI/SceneIntegration/Editor/DemoRunEndingTests.cs,111,editor-builder,"Assert.AreEqual(GameSettings.Base.Run.FirstDayTrick(0), run.Snapshot.TrickId);"
+Assets/Scripts/UI/SceneIntegration/Editor/DevStartPointTests.cs,81,editor-builder,"run.DebugStartAt(new RunStartPoint(GameSettings.Base.Run.DayCount + 1, RunStartPhase.Morning, 0, """"));"
+Assets/Scripts/UI/SceneIntegration/Editor/DevStartPointTests.cs,142,editor-builder,"Assert.AreEqual(GameSettings.Base.Run.FirstDayTrick(0), run.Snapshot.TrickId);"
+Assets/Scripts/UI/SceneIntegration/Editor/HudLayoutTests.cs,26,editor-builder,"HudLayout.PlaceBalance(balance, BaseGameSettings.BalanceHudPosition.TopCenter);"
+Assets/Scripts/UI/SceneIntegration/Editor/HudLayoutTests.cs,36,editor-builder,"HudLayout.PlaceBalance(balance, BaseGameSettings.BalanceHudPosition.BottomCenter);"
+Assets/Scripts/UI/SceneIntegration/Editor/HudLayoutTests.cs,59,editor-builder,"Assert.AreEqual(BaseGameSettings.BalanceHudPosition.BottomCenter, settings.HudLayout.BalancePosition);"
+Assets/Scripts/UI/SceneIntegration/Editor/HumanCannonUiInstaller.cs,27,editor-builder,"var fallback = Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/UI/SceneIntegration/Editor/HumanCannonUiInstaller.cs,33,editor-builder,"var values = new SerializedObject(legacy).FindProperty(""boundaries"");"
+Assets/Scripts/UI/SceneIntegration/Editor/HumanCannonUiInstaller.cs,54,editor-builder,"textData.FindProperty(""m_fontAsset"").objectReferenceValue = fallback;"
+Assets/Scripts/UI/SceneIntegration/Editor/HumanCannonUiInstaller.cs,55,editor-builder,"textData.FindProperty(""m_sharedMaterial"").objectReferenceValue = fallback.material;"
+Assets/Scripts/UI/SceneIntegration/Editor/InteractionSceneInstaller.cs,62,editor-builder,"fonts.Configure(Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF""));"
+Assets/Scripts/UI/SceneIntegration/Editor/InteractionSceneInstaller.cs,94,editor-builder,"var shutter = (Transform)serialized.FindProperty(""shutter"").objectReferenceValue;"
+Assets/Scripts/UI/SceneIntegration/Editor/LobbyHudInstaller.cs,46,editor-builder,"var serialized=new SerializedObject(hub);var list=serialized.FindProperty(""hubUi"");"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,35,editor-builder,"dst.FindProperty(""source"").objectReferenceValue = progress;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,37,editor-builder,"dst.FindProperty(name).objectReferenceValue = src.FindProperty(name + ""s"").GetArrayElementAtIndex(0).objectReferenceValue;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,39,editor-builder,dst.FindProperty(name).objectReferenceValue = src.FindProperty(name).objectReferenceValue;
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,40,editor-builder,"dst.FindProperty(""fallMarker"").objectReferenceValue = src.FindProperty(""fallTemplate"").objectReferenceValue;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,51,editor-builder,"values.FindProperty(""humanCannon"").boolValue = path == PerformanceSceneInstaller.CannonScenePath;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceDataInstaller.cs,53,editor-builder,values.FindProperty(name).objectReferenceValue = space.FindProperty(name).objectReferenceValue;
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,77,editor-builder,"serialized.FindProperty(""notifications"").objectReferenceValue = notifications.GetComponent<SystemNotificationsView>();"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,78,editor-builder,"serialized.FindProperty(""resultPanel"").objectReferenceValue = panel;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,79,editor-builder,"serialized.FindProperty(""title"").objectReferenceValue = title;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,80,editor-builder,"serialized.FindProperty(""summary"").objectReferenceValue = summary;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,81,editor-builder,"serialized.FindProperty(""black"").objectReferenceValue = group;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceEndingInstaller.cs,84,editor-builder,"fonts.Configure(Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF""));"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceResultsInstaller.cs,31,editor-builder,"if (integrated != null && new SerializedObject(integrated).FindProperty(""visuals"").objectReferenceValue == null)"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceResultsInstaller.cs,50,editor-builder,destination.CopyFromSerializedProperty(source.FindProperty(field));
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceResultsInstaller.cs,57,editor-builder,"data.FindProperty(""resultsView"").objectReferenceValue = integrated;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceResultsInstaller.cs,68,editor-builder,"data.FindProperty(""curtain"").objectReferenceValue = curtain;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceSceneInstaller.cs,86,editor-builder,"var landing = new SerializedObject(destination).FindProperty(""destination"").objectReferenceValue as Component;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,50,editor-builder,"var summary=(TMP_Text)data.FindProperty(""summary"").objectReferenceValue;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,61,editor-builder,"fonts.Configure(Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF""));"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,67,editor-builder,"var finish=(Component)new SerializedObject(destination).FindProperty(""destination"").objectReferenceValue;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,74,editor-builder,"var b=new SerializedObject(boundaryOwner).FindProperty(""boundaries"");"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,87,editor-builder,"label.font=Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,94,editor-builder,"values.FindProperty(""humanCannon"").boolValue=true;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,95,editor-builder,"values.FindProperty(""cannonStart"").objectReferenceValue=system.Station(0).Muzzle;"
+Assets/Scripts/UI/SceneIntegration/Editor/PerformanceUpgradeInstaller.cs,96,editor-builder,"values.FindProperty(""cannonFinish"").objectReferenceValue=finish.transform;"
+Assets/Scripts/UI/SceneIntegration/Editor/PresentationReuseTests.cs,56,editor-builder,"var asset = Resources.Load<GameObject>(""Prefabs/UIs/PerformanceHud/PerformanceHud"");"
+Assets/Scripts/UI/SceneIntegration/Editor/PresentationReuseTests.cs,59,editor-builder,"var cheer = Object.Instantiate(Resources.Load<GameObject>(""Prefabs/UIs/CheerGauge/C1CheerGauge""), root.transform).GetComponent<C1CheerGaugeView>();"
+Assets/Scripts/UI/SceneIntegration/Editor/RestTimerProjectBuilder.cs,66,editor-builder,"var timer = serialized.FindProperty(""restTimer"");"
+Assets/Scripts/UI/SceneIntegration/Editor/RestTimerTests.cs,75,editor-builder,var prefab = Resources.Load<RestTimerView>(RestTimerView.PrefabPath);
+Assets/Scripts/UI/SceneIntegration/Editor/RunTimeLimitTests.cs,14,editor-builder,BaseGameSettings.RunSettings rules;
+Assets/Scripts/UI/SceneIntegration/Editor/RunTimeLimitTests.cs,20,editor-builder,rules = GameSettings.Base.Run;
+Assets/Scripts/UI/SceneIntegration/Editor/RunTimeLimitTests.cs,31,editor-builder,"static void Configure(BaseGameSettings.RunSettings.RestTimeLimitSettings limit, bool unlimited, float seconds)"
+Assets/Scripts/UI/SceneIntegration/Editor/RunTimeLimitTests.cs,47,editor-builder,"var migrated = JsonUtility.FromJson<BaseGameSettings.RunSettings>(""{\""restDuration\"":123,\""guideRestDuration\"":456}"");"
+Assets/Scripts/UI/SceneIntegration/Editor/RunTimeLimitTests.cs,55,editor-builder,var restored = JsonUtility.FromJson<BaseGameSettings.RunSettings>(JsonUtility.ToJson(migrated));
+Assets/Scripts/UI/SceneIntegration/Editor/SceneUiCleanup.cs,93,editor-builder,data.FindProperty(property).objectReferenceValue=null;
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomScheduleInstaller.cs,44,editor-builder,"serialized.FindProperty(""showLegacyUi"").boolValue = false; serialized.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomScheduleInstaller.cs,59,editor-builder,"var edits = serialized.FindProperty(""editButtons"");"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomScheduleInstaller.cs,66,editor-builder,"serialized.Update(); edits = serialized.FindProperty(""editButtons""); edits.arraySize = cards.Length;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomScheduleInstaller.cs,74,editor-builder,"var layers = new SerializedObject(view).FindProperty(""dayLayers"");"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomShopInstaller.cs,38,editor-builder,"serialized.FindProperty(""showLegacyUi"").boolValue = false;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomUiInstaller.cs,63,editor-builder,"owner.Configure(hud, captions, messages, Resources.Load<CommonIconCatalog>(""Prefabs/UIs/CommonIcons/CommonIconCatalog""));"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomUiInstaller.cs,66,editor-builder,"fonts.Configure(Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF""));"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomUiInstaller.cs,89,editor-builder,serialized.FindProperty(name).boolValue = value;
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,28,editor-builder,"fonts.Configure(Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF""));"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,34,editor-builder,"var old = new SerializedObject(expert).FindProperty(""sign"").objectReferenceValue as TextMesh;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,42,editor-builder,"expertData.FindProperty(""sign"").objectReferenceValue = null;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,49,editor-builder,"shelfData.FindProperty(""visualRoot"").objectReferenceValue = shelfVisual;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,50,editor-builder,"var boardField = shelfData.FindProperty(""boards""); boardField.arraySize = boards.Length;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,62,editor-builder,"void Ref(string field, UnityEngine.Object value) => so.FindProperty(field).objectReferenceValue = value;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,67,editor-builder,"var slotField = so.FindProperty(""shelfLabels""); slotField.arraySize = slots.Length;"
+Assets/Scripts/UI/SceneIntegration/Editor/WaitingRoomWorldLabelInstaller.cs,72,editor-builder,"var viewData = new SerializedObject(view); viewData.FindProperty(""showLegacyLabels"").boolValue = false;"
+Assets/Scripts/Systems/Camera/CameraViewDirector.cs,109,runtime,"if (settings == null) settings = Resources.Load<CameraViewSettings>(""Settings/Camera/CameraViewSettings"");"
+Assets/Scripts/Systems/Camera/CameraViewDirector.cs,209,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Campaign/CampaignFlowTestUI.cs,60,runtime,var rules = GameSettings.Base.Run;
+Assets/Scripts/Systems/Campaign/RunStartPoint.cs,19,runtime,var rules = GameSettings.Base.Run;
+Assets/Scripts/Systems/Campaign/RunState.cs,44,runtime,static BaseGameSettings.RunSettings Rules => GameSettings.Base.Run;
+Assets/Scripts/Systems/Campaign/RunState.cs,532,runtime,void StartTimer(BaseGameSettings.RunSettings.RestTimeLimitSettings limit)
+Assets/Scripts/Systems/Control/ControlSettings.cs,31,runtime,current = Resources.Load<ControlSettings>(ResourcePath);
+Assets/Scripts/Systems/Control/InputGate.cs,51,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Control/InputGate.cs,107,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Damage/BodyDamageEffects.cs,44,runtime,public void SetPolicy(BodyPenaltyPolicy policy) => Policy = policy;
+Assets/Scripts/Systems/Damage/BodyDamageEffects.cs,53,runtime,SetPolicy(startPolicy != null ? startPolicy : DefaultPolicyFactory?.Invoke());
+Assets/Scripts/Systems/Damage/BodyDamageEffects.cs,58,runtime,var common = GameSettings.Base.BodyDamage;
+Assets/Scripts/Systems/Damage/InjuryBloodEffects.cs,36,runtime,public static bool IsEnabledByGame => GameSettings.Base.BodyDamage.BloodEffectEnabled;
+Assets/Scripts/Systems/Damage/InjuryBloodEffects.cs,132,runtime,if (!prefabLoaded) { prefab = Resources.Load<GameObject>(PrefabPath); prefabLoaded = true; }
+Assets/Scripts/Systems/Damage/InjuryBloodEffects.cs,138,runtime,var settings = GameSettings.Base.BodyDamage;
+Assets/Scripts/Systems/Damage/LimbDismemberment.cs,41,runtime,static BaseGameSettings.BodyDamageSettings Settings => GameSettings.Base.BodyDamage;
+Assets/Scripts/Systems/DevMode/DevCheatPanel.cs,53,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/DevMode/DevCheatPanel.Pursuit.cs,48,runtime,var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+Assets/Scripts/Systems/DevMode/DevModeTestUI.cs,26,runtime,int officialPlayers = GameSettings.Base.Session.MinPlayers;
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,60,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,83,runtime,"string scene = SpaceRoute.SceneName(SpaceRoute.ForPhase(point.TargetPhase), GameSettings.Base.SpaceTransition, point.TrickId);"
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,209,runtime,"GUILayout.Label($""{day}일차"" + (day > GameSettings.Base.Run.DayCount ? "" (마지막 아침)"" : """"), heading);"
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,210,runtime,"if (GUILayout.Button(""▶"", button, GUILayout.Width(48))) day = Mathf.Min(GameSettings.Base.Run.DayCount + 1, day + 1);"
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,216,runtime,GUI.enabled = enabled && !IsBusy && (day <= GameSettings.Base.Run.DayCount || candidate == RunStartPhase.Morning || candidate == RunStartPhase.Escape)
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,225,runtime,"GUILayout.Label($""대기실 대상: {GameSettings.Base.SpaceTransition.WaitingRoomScene}"", label);"
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,227,runtime,if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,233,runtime,bool chooseContent = phase != RunStartPhase.Night && phase != RunStartPhase.Escape && phase != RunStartPhase.Rehearsal && day <= GameSettings.Base.Run.DayCount;
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,237,runtime,"slot = Mathf.Clamp(slot, minSlot, GameSettings.Base.Run.PerformancesPerDay - 1);"
+Assets/Scripts/Systems/DevMode/DevStartLauncher.cs,240,runtime,for (int i = minSlot; i < GameSettings.Base.Run.PerformancesPerDay; i++)
+Assets/Scripts/Systems/DummySpaces/DummyEscapeRoute.cs,14,runtime,public int InputRows => GameSettings.EscapeRoute.DummyInputRows;
+Assets/Scripts/Systems/DummySpaces/DummyExploration.cs,14,runtime,"public CatchOutcome PreviewCatch => SurvivalRules.ResolveCatch(SurvivalPlace.Exploration, GameSettings.Exploration.DummyLostCount);"
+Assets/Scripts/Systems/DummySpaces/DummyExploration.cs,48,runtime,"diagnostics.Note(""규칙 미리보기"", $""ExplorationSettings 손실 {GameSettings.Exploration.DummyLostCount} → ResolveCatch(Exploration)"","
+Assets/Scripts/Systems/DummySpaces/DummyPerformance.cs,103,runtime,performanceTimeLimit = GameSettings.Tightrope.Run.TimeLimit;
+Assets/Scripts/Systems/DummySpaces/DummySpaceCanvas.cs,276,runtime,"case ""catchPreview"": title = ""탐색 잡힘 규칙 조회""; api = ""030 SurvivalRules.ResolveCatch / 실제 추격 아님""; query = true; applied = true; summary = $""조회 손실 {GameSettings.Exploration.DummyLostCount} → {exploration.Preview()}\n실제 신체 변경·끌려가기·무대 이동이 아닙니다.""; break;"
+Assets/Scripts/Systems/DummySpaces/DummySpaceCanvas.cs,377,runtime,"place.text = $""{SpaceName}   <size=70%><color=#9FB8BF>더미 공간 · 실제 공간 아님{(director != null ? $""   ·   장소 전환 [{SpaceRoute.Describe(GameSettings.Base.SpaceTransition.Mode)}]{(director.IsTransitioning ? "" 전환 중"" : """")}"" : """")}</color></size>"";"
+Assets/Scripts/Systems/DummySpaces/DummySpaceCanvas.cs,393,runtime,"if (exploration != null) sb.Append($""현재 더미 구역  {exploration.Zone}\n안전 조건  {(exploration.IsSafe ? ""안전"" : ""안전 밖"")}\n잡힘 조회 손실  {GameSettings.Exploration.DummyLostCount}"");"
+Assets/Scripts/Systems/DummySpaces/DummySpaceCanvas.cs,476,runtime,float limit = state.Rest == RestKind.Guide ? GameSettings.Base.Run.GuideRestDuration : GameSettings.Base.Run.RestDuration;
+Assets/Scripts/Systems/DummySpaces/DummyWaitingRoom.cs,15,runtime,public int SpendAmount => GameSettings.WaitingRoom.DummySpendAmount;
+Assets/Scripts/Systems/FirstPersonMovement/FirstPersonMovementInputProbe.cs,56,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/LevelPreview/LevelPreviewCamera.cs,73,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Player/BalanceTiltView.cs,39,runtime,var presentation = GameSettings.Base.Presentation;
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,65,runtime,"var json = PlayerPrefs.GetString(PlayerPrefsKey, """");"
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,96,runtime,var source = Resources.Load<InputActionAsset>(ResourcePath);
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,191,runtime,var source = Resources.Load<InputActionAsset>(ResourcePath);
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,240,runtime,"PlayerPrefs.SetString(PlayerPrefsKey, JsonUtility.ToJson(saved));"
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,241,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,250,runtime,PlayerPrefs.DeleteKey(PlayerPrefsKey);
+Assets/Scripts/Systems/Player/InputBindingPreferences.cs,251,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/Player/PlayerBalance.cs,54,runtime,static BaseGameSettings.BalanceSettings Rules => GameSettings.Base.Balance;
+Assets/Scripts/Systems/Player/PlayerBalance.cs,55,runtime,static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
+Assets/Scripts/Systems/Player/PlayerBalance.cs,97,runtime,public float StackMultiplier => GameSettings.Tightrope.Piggyback.GetStackMultiplier(stackSize);
+Assets/Scripts/Systems/Player/PlayerBalance.cs,100,runtime,public float UpperPush => upperBalanceSum * GameSettings.Tightrope.Piggyback.UpperTransfer;
+Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs,76,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Player/PlayerInputReader.cs,67,runtime,var source = inputAsset != null ? inputAsset : Resources.Load<InputActionAsset>(DefaultAssetPath);
+Assets/Scripts/Systems/Player/PlayerInputReader.cs,183,runtime,float longPressTime = GameSettings.Base.Input.LongPressTime; // 길게 누르기 기준은 세팅(입력)
+Assets/Scripts/Systems/Player/PlayerInteraction.cs,18,runtime,return actor.transform.position + Vector3.up * (GameSettings.Base.Character.CapsuleHeight * .5f);
+Assets/Scripts/Systems/Player/PlayerModelSlot.cs,154,runtime,model.localScale *= GameSettings.Base.Character.ModelHeight / height;
+Assets/Scripts/Systems/Player/PlayerMover.cs,65,runtime,static BaseGameSettings.CharacterSettings Character => GameSettings.Base.Character;
+Assets/Scripts/Systems/Player/PlayerMover.cs,200,runtime,public float CourseSpeedOverride { get; set; }
+Assets/Scripts/Systems/Player/PlayerMover.cs,206,runtime,public float CourseJumpHeightOverride { get; set; }
+Assets/Scripts/Systems/Player/PlayerMover.cs,211,runtime,float LaunchHeight => (FreeMovement || CourseJumpHeightOverride <= 0f ? Character.JumpHeight : CourseJumpHeightOverride) * jumpHeightMultiplier;
+Assets/Scripts/Systems/Player/PlayerMover.cs,405,runtime,Vector3 dir = CourseForwardOverride ?? (destination != null ? destination.position - startPosition : courseDirection);
+Assets/Scripts/Systems/Player/PlayerMover.cs,415,runtime,public Vector3? CourseForwardOverride { get; set; }
+Assets/Scripts/Systems/Player/PlayerMover.cs,422,runtime,laneSpacing = GameSettings.Tightrope.Course.LaneSpacing;
+Assets/Scripts/Systems/Player/PlayerMover.cs,551,runtime,float speed = CourseSpeedOverride > 0f ? CourseSpeedOverride : Character.CourseMoveSpeed;
+Assets/Scripts/Systems/Player/PlayerRagdoll.cs,59,runtime,Vector3 push = transform.right * (Mathf.Sign(balance.Value) * GameSettings.Base.Presentation.RagdollTiltPush);
+Assets/Scripts/Systems/Reward/PerformanceRewards.cs,283,runtime,table = rewardTable != null ? rewardTable : Resources.Load<RewardTable>(DefaultTablePath);
+Assets/Scripts/Systems/Reward/PerformanceRewards.cs,383,runtime,"if (!result.Succeeded) hold = Mathf.Max(hold, GameSettings.Base.Run.FailedPerformanceHold);"
+Assets/Scripts/Systems/Settings/AudienceReactionSettings.cs,16,runtime,public static AudienceReactionSettings Current => cached != null ? cached : cached = Resources.Load<AudienceReactionSettings>(ResourcePath);
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,20,runtime,"/// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref=""GameSettings.Base""/>로 읽는다."
+Assets/Scripts/Systems/Settings/BaseGameSettings.cs,295,runtime,public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
+Assets/Scripts/Systems/Settings/CharacterJumpHeightOverrides.cs,9,runtime,public static class CharacterJumpHeightOverrides
+Assets/Scripts/Systems/Settings/EscapeRouteSettings.cs,7,runtime,"/// 에셋: Assets/Resources/Settings/GameSettings/EscapeRouteSettings.asset. <see cref=""GameSettings.EscapeRoute""/>로 읽는다."
+Assets/Scripts/Systems/Settings/ExplorationSettings.cs,7,runtime,"/// 에셋: Assets/Resources/Settings/GameSettings/ExplorationSettings.asset. <see cref=""GameSettings.Exploration""/>로 읽는다."
+Assets/Scripts/Systems/Settings/ExplorationSettings.cs,9,runtime,"/// 쉬는 시간 길이·타이머 방식은 공통 세팅(<see cref=""BaseGameSettings.Run""/>)에 있다."
+Assets/Scripts/Systems/Settings/GameSettings.cs,7,runtime,/// 에셋: Assets/Resources/Settings/GameSettings/GameSettings.asset. 결정: Harness/Project/Decisions/game-settings.md
+Assets/Scripts/Systems/Settings/GameSettings.cs,49,runtime,current = Resources.Load<GameSettings>(ResourcePath);
+Assets/Scripts/Systems/Settings/PerformanceEndingSettings.cs,11,runtime,public static PerformanceEndingSettings Current => cached != null ? cached : cached = Resources.Load<PerformanceEndingSettings>(ResourcePath);
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,8,runtime,"/// 에셋: Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset. <see cref=""GameSettings.Tightrope""/>로 읽는다."
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,308,runtime,public float MoveSpeed => GameSettings.Base.Character.FreeMoveSpeed;
+Assets/Scripts/Systems/Settings/TightropeSettings.cs,309,runtime,"public float JumpHeight => GameSettings.Base.Character.JumpHeight * Mathf.Max(1f, jumpHeightMultiplier);"
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,42,runtime,PlayerPrefs.DeleteKey(InputDeviceKey); PlayerPrefs.Save();
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,53,runtime,"PlayerPrefs.SetString(InputDeviceKey, deviceId);"
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,54,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,70,runtime,PlayerPrefs.DeleteKey(OutputDeviceKey); PlayerPrefs.Save();
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,81,runtime,"PlayerPrefs.SetString(OutputDeviceKey, deviceId);"
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,82,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,98,runtime,"string input = PlayerPrefs.GetString(InputDeviceKey, """");"
+Assets/Scripts/Systems/Settings/VoiceChatDevices.cs,99,runtime,"string output = PlayerPrefs.GetString(OutputDeviceKey, """");"
+Assets/Scripts/Systems/Settings/WaitingRoomScenes.cs,42,runtime,public static bool PursuitEnabled => HasPursuit(GameSettings.Base.SpaceTransition.WaitingRoomScene) && GameSettings.WaitingRoom.Pursuit.Enabled;
+Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs,7,runtime,"/// 에셋: Assets/Resources/Settings/GameSettings/WaitingRoomSettings.asset. <see cref=""GameSettings.WaitingRoom""/>로 읽는다."
+Assets/Scripts/Systems/SpaceLink/CampaignPerformanceEntry.cs,37,runtime,var settings = GameSettings.Base.SpaceTransition;
+Assets/Scripts/Systems/SpaceLink/CampaignTightropeAdapter.cs,59,runtime,"if (!rewards.BeginPerformance(Mathf.Clamp(campaign.State.Difficulty, 1, 3), GameSettings.Tightrope.Reward)) return;"
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,79,runtime,var settings = GameSettings.Base.SpaceTransition;
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,133,runtime,return GameSettings.Base.SpaceTransition.KeepWaitingRoomOnExit || Request(SpaceId.Exploration);
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,154,runtime,"string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, state.TrickId);"
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,164,runtime,"string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, trickId);"
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,218,runtime,var settings = GameSettings.Base.SpaceTransition;
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,359,runtime,"if (SpaceRoute.TryFind(scene.name, GameSettings.Base.SpaceTransition, out var space) && space != SpaceId.Hub)"
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs,363,runtime,static List<Scene> LoadedSpaceScenes(BaseGameSettings.SpaceTransitionSettings settings)
+Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.Escape.cs,48,runtime,foreach (var old in LoadedSpaceScenes(GameSettings.Base.SpaceTransition))
+Assets/Scripts/Systems/SpaceLink/SpaceLinkHub.cs,45,runtime,var settings = GameSettings.Base.SpaceTransition;
+Assets/Scripts/Systems/SpaceLink/SpaceLinkHubCanvas.cs,178,runtime,"if (place != null) place.text = $""시작 로비   <size=70%><color=#9FB8BF>더미 · 장소 전환 [{SpaceRoute.Describe(GameSettings.Base.SpaceTransition.Mode)}]{(director != null && director.IsTransitioning ? "" 전환 중"" : """")}</color></size>"";"
+Assets/Scripts/Systems/SpaceLink/SpaceRoute.cs,39,runtime,"public static string SceneName(SpaceId space, BaseGameSettings.SpaceTransitionSettings settings, string trickId = null)"
+Assets/Scripts/Systems/SpaceLink/SpaceRoute.cs,55,runtime,"public static bool TryFind(string sceneName, BaseGameSettings.SpaceTransitionSettings settings, out SpaceId space)"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,17,runtime,"get => PlayerPrefs.GetInt(HideNearbyCharacterKey, 1) != 0;"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,18,runtime,"set => PlayerPrefs.SetInt(HideNearbyCharacterKey, value ? 1 : 0);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,30,runtime,"get => !CurtainCall.Dev.DevMode.Enabled || PlayerPrefs.GetInt(ShowBloodEffectKey, 1) != 0;"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,31,runtime,"set => PlayerPrefs.SetInt(ShowBloodEffectKey, value ? 1 : 0);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,72,runtime,"get => PlayerPrefs.GetFloat(VolumeKey, DefaultVolume);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,75,runtime,"PlayerPrefs.SetFloat(VolumeKey, Mathf.Clamp01(value));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,83,runtime,"get => Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumeKey, DefaultBgmVolume));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,84,runtime,"set { PlayerPrefs.SetFloat(BgmVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,89,runtime,"get => Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumeKey, DefaultSfxVolume));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,90,runtime,"set { PlayerPrefs.SetFloat(SfxVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,105,runtime,if (!PlayerPrefs.HasKey(ScreenModeKey))
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,106,runtime,"return PlayerPrefs.GetInt(FullscreenKey, 1) == 1 ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,107,runtime,return NormalizeMode((FullScreenMode)PlayerPrefs.GetInt(ScreenModeKey));
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,118,runtime,"get => NormalizeFrameRate(PlayerPrefs.GetInt(FrameRateKey, DefaultFrameRateLimit));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,121,runtime,"PlayerPrefs.SetInt(FrameRateKey, NormalizeFrameRate(value));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,131,runtime,"PlayerPrefs.SetInt(ScreenModeKey, (int)mode);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,132,runtime,"PlayerPrefs.SetInt(FullscreenKey, mode == FullScreenMode.Windowed ? 0 : 1);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,133,runtime,"PlayerPrefs.SetInt(WidthKey, resolution.width);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,134,runtime,"PlayerPrefs.SetInt(HeightKey, resolution.height);"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,135,runtime,"PlayerPrefs.SetInt(FrameRateKey, NormalizeFrameRate(fps));"
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,148,runtime,public static void Save() => PlayerPrefs.Save();
+Assets/Scripts/Systems/StartLobby/ClientSettings.cs,167,runtime,"static Resolution SavedResolution() => ResolveResolution(PlayerPrefs.GetInt(WidthKey, 0), PlayerPrefs.GetInt(HeightKey, 0));"
+Assets/Scripts/Systems/StartLobby/LobbyRoom.cs,122,runtime,if (!useCommonMenu && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+Assets/Scripts/Systems/StartLobby/StartLobbyFlow.cs,10,runtime,"/// 로비 씬 이름은 장소 전환 세팅의 시작 씬(<see cref=""BaseGameSettings.SpaceTransitionSettings.HubScene""/>)을 그대로 쓴다."
+Assets/Scripts/Systems/StartLobby/StartLobbyFlow.cs,28,runtime,public static string LobbyScene => GameSettings.Base.SpaceTransition.HubScene;
+Assets/Scripts/Systems/Survival/ExplorationBodyPenalty.cs,13,runtime,/// 공간에 들어갈 때 <c>GetComponent&lt;BodyDamageEffects&gt;().SetPolicy(ExplorationBodyPenalty.Shared)</c>로 끼운다.
+Assets/Scripts/Systems/Survival/ExplorationBodyPenalty.cs,37,runtime,var rules = GameSettings.Base.BodyDamage;
+Assets/Scripts/Systems/Survival/InjurySurvivalTestUI.cs,125,runtime,"if (GUILayout.Button(""탐색 중"")) effects.SetPolicy(ExplorationBodyPenalty.Shared);"
+Assets/Scripts/Systems/Survival/InjurySurvivalTestUI.cs,126,runtime,"if (GUILayout.Button(""기본"")) effects.SetPolicy(BodyDamageEffects.DefaultPolicyFactory?.Invoke());"
+Assets/Scripts/Systems/Survival/InjurySurvivalTestUI.cs,127,runtime,"if (GUILayout.Button(""없음"")) effects.SetPolicy(null);"
+Assets/Scripts/Systems/Survival/InjurySurvivalTestUI.cs,134,runtime,"+ $"" ({GameSettings.Base.Character.JumpHeight * jump:0.##}m)"");"
+Assets/Scripts/Systems/Survival/SurvivalRules.cs,58,runtime,public static int ItemSlots() => GameSettings.Base.ItemCarry.BaseSlots;
+Assets/Scripts/Systems/TelemetryPipeline/InputLogAdapter.cs,26,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/TelemetryPipeline/SpatialLogAdapter.cs,65,runtime,"var manifest = Resources.Load<TextAsset>(""TelemetrySpatialMaps"");"
+Assets/Scripts/Systems/Voice/VoiceChat.cs,23,runtime,"/// 상시 마이크 + 음소거 키. 결정: Harness/Project/Decisions/voice-chat.md, 값: 공통 세팅 <see cref=""BaseGameSettings.VoiceChatSettings""/>."
+Assets/Scripts/Systems/Voice/VoiceChat.cs,69,runtime,static BaseGameSettings.VoiceChatSettings Settings => GameSettings.Base.VoiceChat;
+Assets/Scripts/Systems/Voice/VoiceChat.cs,98,runtime,"PlayerPrefs.SetInt(MicMuteKey, muted ? 1 : 0);"
+Assets/Scripts/Systems/Voice/VoiceChat.cs,99,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/Voice/VoiceChat.cs,333,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/Systems/Voice/VoiceChatDevOverlay.cs,25,runtime,var settings = GameSettings.Base.VoiceChat;
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,22,runtime,"IsMicMuted = PlayerPrefs.GetInt(MicMuteKey, 0) != 0;"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,23,runtime,"MicVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(MicVolumeKey, 1));"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,24,runtime,"TeamVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(TeamVolumeKey, 1));"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,25,runtime,"IsTeamMuted = PlayerPrefs.GetInt(TeamMuteKey, 0) != 0;"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,33,runtime,"PlayerPrefs.SetFloat(MicVolumeKey, MicVolume);"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,34,runtime,"PlayerPrefs.SetFloat(TeamVolumeKey, TeamVolume);"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,35,runtime,"PlayerPrefs.SetInt(TeamMuteKey, IsTeamMuted ? 1 : 0);"
+Assets/Scripts/Systems/Voice/VoiceChatPreferences.cs,36,runtime,PlayerPrefs.Save();
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,26,editor-builder,"const string SettingsPath = ""Assets/Resources/Settings/GameSettings/BaseGameSettings.asset"";"
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,185,editor-builder,"var ui = serialized.FindProperty(""hubUi"");"
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,254,editor-builder,"var list = serialized.FindProperty(""points"");"
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,315,editor-builder,"serialized.FindProperty(""board"").objectReferenceValue = board;"
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,316,editor-builder,"serialized.FindProperty(""handle"").objectReferenceValue = handle;"
+Assets/Scripts/Systems/StartLobby/Editor/StartLobbySceneBuilder.cs,380,editor-builder,"var hub = serialized.FindProperty(""spaceTransition.hubScene"");"
+Assets/Scripts/Systems/Spectator/Editor/SpectatorProjectBuilder.cs,134,editor-builder,"var recordedGuid=serializedFont?.FindProperty(""m_SourceFontFileGUID"");"
+Assets/Scripts/Systems/SpaceLink/Editor/SpaceLinkHubBuilder.cs,88,editor-builder,"var ui = serialized.FindProperty(""hubUi"");"
+Assets/Scripts/Systems/SpaceLink/PerformanceTests/PerformanceLinkPlayTests.cs,134,runtime,"var asset = Resources.Load<ScriptableObject>(""Settings/GameSettings/BaseGameSettings"");"
+Assets/Scripts/Systems/SettingsUi/Editor/SettingsUiProjectBuilder.cs,252,editor-builder,"var guid = font == null ? null : new SerializedObject(font).FindProperty(""m_SourceFontFileGUID"");"
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,21,editor-builder,existed[i] = PlayerPrefs.HasKey(Keys[i]);
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,22,editor-builder,values[i] = PlayerPrefs.GetFloat(Keys[i]);
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,23,editor-builder,PlayerPrefs.DeleteKey(Keys[i]);
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,31,editor-builder,"if (existed[i]) PlayerPrefs.SetFloat(Keys[i], values[i]); else PlayerPrefs.DeleteKey(Keys[i]);"
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,50,editor-builder,"Assert.AreEqual(.4f, PlayerPrefs.GetFloat(Keys[1]));"
+Assets/Scripts/Systems/Settings/Editor/LocalAudioSettingsTests.cs,51,editor-builder,"Assert.AreEqual(.6f, PlayerPrefs.GetFloat(Keys[2]));"
+Assets/Scripts/Systems/Settings/Editor/WaitingRoomSceneSelectionTests.cs,18,editor-builder,var settings = new BaseGameSettings.SpaceTransitionSettings();
+Assets/Scripts/Systems/Settings/Editor/WaitingRoomSceneSelectionTests.cs,19,editor-builder,"typeof(BaseGameSettings.SpaceTransitionSettings).GetField(""waitingRoomVariant"", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(settings, variant);"
+Assets/Scripts/Systems/Settings/Editor/WaitingRoomSceneSelectionTests.cs,30,editor-builder,"Assert.AreEqual(WaitingRoomSceneVariant.Integrated, new BaseGameSettings.SpaceTransitionSettings().WaitingRoomVariant);"
+Assets/Scripts/Systems/Player/Editor/BalanceGaugePrefabBuilder.cs,97,editor-builder,"so.FindProperty(""greenZone"").objectReferenceValue = green;"
+Assets/Scripts/Systems/Player/Editor/BalanceGaugePrefabBuilder.cs,98,editor-builder,"so.FindProperty(""needle"").objectReferenceValue = needle;"
+Assets/Scripts/Systems/Player/Editor/BalanceGaugePrefabBuilder.cs,99,editor-builder,"so.FindProperty(""valueLabel"").objectReferenceValue = label;"
+Assets/Scripts/Systems/Player/Editor/BalanceGaugePrefabBuilder.cs,100,editor-builder,"so.FindProperty(""redTimerRoot"").objectReferenceValue = redTimer.gameObject;"
+Assets/Scripts/Systems/Player/Editor/BalanceGaugePrefabBuilder.cs,101,editor-builder,"so.FindProperty(""redTimerFill"").objectReferenceValue = redTimerFill;"
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidModel.cs,97,runtime,var settings = GameSettings.Base.BodyDamage;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidModel.cs,172,runtime,float lifetime = GameSettings.Base.BodyDamage.LimbLifetime;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.cs,78,runtime,color = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.cs,136,runtime,Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.cs,201,runtime,grip = transform.position + Vector3.up * GameSettings.Tightrope.Hang.HangDrop;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.cs,258,runtime,float strength = onRope ? GameSettings.Base.Presentation.RopeHangSwayAngle : GameSettings.Base.Presentation.PoleHangSwayAngle;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.Items.cs,22,runtime,public bool InteractionActionLocked => isActiveAndEnabled && Time.time < interactionActionUntil && activeInteractionKind >= 0 && !GameSettings.Base.Presentation.InteractionPolicy(activeInteractionKind).AllowInterrupt;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.Items.cs,65,runtime,activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(policyKind).AllowMovement;
+Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidPlayerPresentation.Rescue.cs,40,runtime,"model.Play(next,(rescueReceiver?2f:1.6f)/Mathf.Max(.1f,GameSettings.Tightrope.Hang.PullSeconds));"
+Assets/Scripts/Systems/Player/HumanoidPresentation/Editor/HumanoidPlayerBuilder.cs,93,editor-builder,"slot.FindProperty(""modelPrefab"").objectReferenceValue = model;"
+Assets/Scripts/Systems/Player/HumanoidPresentation/Editor/HumanoidPlayerBuilder.cs,94,editor-builder,"slot.FindProperty(""squashWhenCrouched"").boolValue = false;"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,153,editor-builder,"view.Configure((CanvasGroup)data.FindProperty(""visibility"").objectReferenceValue, zones, masks, edges,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,154,editor-builder,"(RectTransform)data.FindProperty(""needle"").objectReferenceValue,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,155,editor-builder,"(RectTransform)data.FindProperty(""needleUnderlay"").objectReferenceValue,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,156,editor-builder,"(UnityEngine.UI.Image)data.FindProperty(""dwellFill"").objectReferenceValue,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,157,editor-builder,"new[] { (UnityEngine.UI.Image)data.FindProperty(""keyBodies"").GetArrayElementAtIndex(0).objectReferenceValue,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,158,editor-builder,"(UnityEngine.UI.Image)data.FindProperty(""keyBodies"").GetArrayElementAtIndex(1).objectReferenceValue },"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,159,editor-builder,"new[] { (TMP_Text)data.FindProperty(""keyLabels"").GetArrayElementAtIndex(0).objectReferenceValue,"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,160,editor-builder,"(TMP_Text)data.FindProperty(""keyLabels"").GetArrayElementAtIndex(1).objectReferenceValue });"
+Assets/Scripts/Systems/PerformanceHud/Editor/PerformanceHudProjectBuilder.cs,190,editor-builder,var property = data.FindProperty(field);
+Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs,187,runtime,var recovery = GameSettings.Base.BodyDamage.RestartRecovery;
+Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs,192,runtime,if (recovery == BaseGameSettings.BodyRestartRecovery.RestoreAll || player.state.Value == PlayerState.Fallen)
+Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs,521,runtime,if (Mathf.Abs(balanceValue.Value - balance.Value) >= GameSettings.Base.Sync.BalanceSendThreshold
+Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs,32,runtime,var prefab = Resources.Load<NetworkSessionManager>(PrefabPath);
+Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs,52,runtime,public int RequiredPlayers => GameSettings.Base.Session.MaxPlayers;
+Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs,59,runtime,int minimum = DevMode.MinPlayers(GameSettings.Base.Session.MinPlayers);
+Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs,224,runtime,var sync = Resources.Load<GameSessionStateSync>(StateSyncPrefabPath);
+Assets/Scripts/Systems/Fonts/Editor/StaticFontBaker.cs,50,editor-builder,"serialized.FindProperty(""m_ClearDynamicDataOnBuild"").boolValue = false;"
+Assets/Scripts/Systems/DevMode/Editor/WaitingRoomSceneWindow.cs,13,editor-builder,var settings = GameSettings.Base;
+Assets/Scripts/Systems/DevMode/Editor/WaitingRoomSceneWindow.cs,15,editor-builder,"var variant = serialized.FindProperty(""spaceTransition.waitingRoomVariant"");"
+Assets/Scripts/Systems/Control/Editor/ControlSettingsEditor.cs,40,editor-builder,"var property = serializedObject.FindProperty(""defaultScheme"");"
+Assets/Scripts/Systems/BasicPanels/Editor/BasicPanelsProjectBuilder.cs,53,editor-builder,"serialized.FindProperty(""showMenuOnStart"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/CannonBarrelGallery.cs,21,runtime,public float Duration => Mode == 2 ? 1.2f : Mode == 3 ? 2.8f : Mode == 4 ? 1 + CurtainCall.Settings.GameSettings.HumanCannon.CannonCooldown : 1;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonBodyPenalty.cs,18,runtime,"result.MoveSpeed = settings.MovePolicyMultiplier(condition.LostLegCount, GameSettings.Base.BodyDamage.CrawlSpeedMultiplier);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonBodyPenalty.cs,19,runtime,float baseSpeed = GameSettings.Base.Character.FreeMoveSpeed;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonBotBrain.cs,106,runtime,"trampoline.Surface.y, GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonBotBrain.cs,224,runtime,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonCourseSections.cs,98,runtime,"if (font == null) font = Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,119,runtime,"* (side * TrickSettings.DiagonalSlope(index, GameSettings.HumanCannon.SawDiagonalDegrees));"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,122,runtime,"public bool IsSawEnabled(int index) => TrickSettings.IncludesSaw(index, TotalSawCount, GameSettings.HumanCannon.SawDensity);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonFinalSaws.cs,145,runtime,GameSettings.HumanCannon.SawDiagonalDegrees));
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazard.cs,49,runtime,"* TrickSettings.DiagonalSlope(diagonalIndex, GameSettings.HumanCannon.SawDiagonalDegrees);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonHazardCourse.cs,61,runtime,"return TrickSettings.IncludesSaw(SawIndex(hazard), count, GameSettings.HumanCannon.SawDensity);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPilot.Camera.cs,42,runtime,"var free = Resources.Load<CameraViewPreset>(""Settings/Camera/FreeThirdPerson"");"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPilot.cs,240,runtime,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPilot.Poles.cs,79,runtime,poleFlightSpeedLimit = pole != null ? pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit)
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPilot.Poles.cs,80,runtime,: GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSaw.cs,23,runtime,public float BodyCenterHeight => bodyCenterHeight > 0 ? bodyCenterHeight : GameSettings.Base.Character.CapsuleHeight * 0.5f;
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.cs,257,runtime,"Time.deltaTime, GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonPoleSystem.Network.cs,89,runtime,"pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat), pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit));"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonStation.cs,54,runtime,"float rest = Mathf.Max(0, CurtainCall.Settings.GameSettings.HumanCannon.CannonCooldown - BarrelLowerSeconds - BarrelRecoverySeconds);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.cs,136,runtime,"jumpHeightOverride = CharacterJumpHeightOverrides.Register(this, () => GameSettings.HumanCannon.JumpHeight);"
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.Injuries.cs,34,runtime,effects.SetPolicy(injuryPolicy);
+Assets/Scripts/MainStage/HumanCannon/HumanCannonSystem.Injuries.cs,54,runtime,if (effects != null && effects.Policy == injuryPolicy) effects.SetPolicy(previous);
+Assets/Scripts/MainStage/HumanCannon/HumanCannonTestHud.cs,25,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/MainStage/HumanCannon/OwnerContactChannel.cs,125,runtime,"|| height > Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight) + .05f) return false;"
+Assets/Scripts/MainStage/Tightrope/Camera/TightropeCameraFraming.cs,95,runtime,var rules = GameSettings.Tightrope.Camera;
+Assets/Scripts/MainStage/Tightrope/Camera/TightropeCameraFraming.cs,263,runtime,"float height = Mathf.Max(GameSettings.Base.Character.ModelHeight,"
+Assets/Scripts/MainStage/Tightrope/Camera/TightropeCameraFraming.cs,264,runtime,mover != null && mover.Body != null ? mover.BodyHeight : GameSettings.Base.Character.CapsuleHeight);
+Assets/Scripts/MainStage/Tightrope/Camera/TightropeCameraFraming.cs,265,runtime,float radius = mover != null && mover.Body != null ? mover.BodyRadius : GameSettings.Base.Character.CapsuleRadius;
+Assets/Scripts/MainStage/Tightrope/Camera/TightropeCameraFraming.Views.cs,34,runtime,"var thirdSource = Resources.Load<CameraViewPreset>(""Settings/Camera/FreeThirdPerson"");"
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,60,runtime,context.Mover.CourseSpeedOverride = GameSettings.Tightrope.RopeMovement.MoveSpeed;
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,61,runtime,context.Mover.CourseJumpHeightOverride = GameSettings.Tightrope.RopeMovement.JumpHeight;
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,62,runtime,context.Mover.CourseJumpGravityMultiplier = GameSettings.Tightrope.RopeMovement.JumpGravityMultiplier;
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,81,runtime,context.Mover.CourseSpeedOverride = 0f;
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,82,runtime,context.Mover.CourseJumpHeightOverride = 0f;
+Assets/Scripts/MainStage/Tightrope/Control/TightropeControlScheme.cs,152,runtime,"Time.timeAsDouble, GameSettings.Tightrope.RopeMovement.JumpInputBuffer, out int direction))"
+Assets/Scripts/MainStage/Tightrope/Damage/TightropeBodyPenalty.cs,23,runtime,var rules = GameSettings.Tightrope.BodyPenalty;
+Assets/Scripts/MainStage/Tightrope/Damage/TightropeBodyPenalty.cs,30,runtime,float crawl = GameSettings.Base.BodyDamage.CrawlSpeedMultiplier;
+Assets/Scripts/MainStage/Tightrope/Damage/TightropeBodyPenalty.cs,33,runtime,penalty.Sway = GameSettings.Tightrope.RopeMovement.NaturalSwayMultiplier
+Assets/Scripts/MainStage/Tightrope/Fire/TightropeFire.cs,182,runtime,var settings = GameSettings.Tightrope.Fire ?? new FireSettings();
+Assets/Scripts/MainStage/Tightrope/Outline/TightropeOutline.cs,89,runtime,var shader = Resources.Load<Shader>(ShaderResource);
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,148,runtime,float height = below.TryGetComponent(out PlayerMover mover) ? mover.BodyHeight : GameSettings.Base.Character.CapsuleHeight;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,194,runtime,var rules = GameSettings.Tightrope.Piggyback;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,206,runtime,hopSpeed = localMover.JumpSpeed * Mathf.Sqrt(GameSettings.Tightrope.Piggyback.JumpHeightMultiplier);
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,234,runtime,"float blockedLead = Mathf.Min(12f, GameSettings.Tightrope.Saws.cooperativeGateTriggerLead);"
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,243,runtime,float speedScale = Mathf.Sqrt(mover.JumpGravity / GameSettings.Base.Character.Gravity);
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,244,runtime,float previousHeight = mover.CourseJumpHeightOverride;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,252,runtime,"mover.CourseJumpHeightOverride = height / Mathf.Max(.01f,"
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,253,runtime,previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier);
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,257,runtime,mover.JumpHeightMultiplier = previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,262,runtime,mover.CourseJumpHeightOverride = previousHeight;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,275,runtime,mover.JumpHeightMultiplier = previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackFollow.cs,355,runtime,float gap = bottomMover.BodyRadius + mover.BodyRadius + GameSettings.Base.Character.PlayerGap;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,142,runtime,float reach = climberMover.BodyRadius + targetMover.BodyRadius + GameSettings.Base.Character.PlayerGap;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,146,runtime,"|| Vector3.Distance(climber.transform.position, landing) > GameSettings.Tightrope.Piggyback.LinkDistance)"
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,464,runtime,static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,580,runtime,"float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);"
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,581,runtime,"float height = Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);"
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,603,runtime,float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
+Assets/Scripts/MainStage/Tightrope/Piggyback/PiggybackSystem.cs,762,runtime,float shock = GameSettings.Tightrope.Piggyback.FallShock;
+Assets/Scripts/MainStage/Tightrope/Rider/RopeLaneJumpRules.cs,192,runtime,float gap = GameSettings.Base.Character.PlayerGap;
+Assets/Scripts/MainStage/Tightrope/Rider/RopeLaneJumpRules.cs,233,runtime,<= GameSettings.Tightrope.Handhold.Distance * GameSettings.Tightrope.Handhold.Distance) return true;
+Assets/Scripts/MainStage/Tightrope/Rider/RopeLaneJumpRules.cs,249,runtime,float reach = GameSettings.Tightrope.Handhold.Distance;
+Assets/Scripts/MainStage/Tightrope/Rider/RopeLaneJumpRules.cs,324,runtime,float handhold = handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeBalancePoseView.cs,66,runtime,float maximumAngle = GameSettings.Base.Presentation.MaxTiltAngle;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeCatchSystem.cs,143,runtime,float radius = GameSettings.Tightrope.Handhold.ActiveDistance;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeCatchSystem.cs,214,runtime,? GameSettings.Tightrope.Handhold.Reduction : 0f;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeCatchSystem.cs,264,runtime,bool relayLanding = !gloveCatch && helperDistance > GameSettings.Tightrope.Handhold.ActiveDistance;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeCatchSystem.cs,335,runtime,"GUI.DrawTexture(new Rect(rect.x + 5f, rect.yMax - 5f, 170f * Mathf.Clamp01(left / GameSettings.Tightrope.Handhold.ReadySeconds), 4), Texture2D.whiteTexture);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeLandingWaves.cs,121,runtime,if (Clock - state.Since >= GameSettings.Tightrope.RopeMovement.MinAirTimeForShock)
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeLandingWaves.cs,203,runtime,var settings = GameSettings.Tightrope.RopeMovement;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropePracticeBotBrain.cs,169,runtime,float reach = GameSettings.Tightrope.Piggyback.LinkDistance;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropePracticeBotBrain.Trapeze.cs,109,runtime,+ bottomMover.BodyRadius + mover.BodyRadius + GameSettings.Base.Character.PlayerGap);
+Assets/Scripts/MainStage/Tightrope/Rider/TightropePracticeBotBrain.Trapeze.cs,140,runtime,+ GameSettings.Base.Character.PlayerGap;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropePracticeBotBrain.Trapeze.cs,232,runtime,float speed = GameSettings.Tightrope.Piggyback.ForwardJumpSpeed * Mathf.Sqrt(gravity / GameSettings.Base.Character.Gravity);
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelayGate.View.cs,187,runtime,"var source = Resources.Load<Font>(""Fonts/Pretendard-Medium/Pretendard-Medium 1"");"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelayGate.View.cs,190,runtime,"relayLabelFont = relayRuntimeFont != null ? relayRuntimeFont : Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRelaySupport.cs,13,runtime,static TightropeSettings.HandholdSettings Rules => GameSettings.Tightrope.Handhold;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeRopeSway.cs,34,runtime,var rules = GameSettings.Tightrope.RopeMovement;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeSwingPole.cs,102,runtime,"physicalPole.Step(ref angle, ref angularSpeed, drive, Time.deltaTime, GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeSwingPole.cs,247,runtime,"physicalPole.Step(ref sampledAngle, ref sampledSpeed, drive, Mathf.Clamp((float)(Clock - changedAt), 0f, .25f), GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeSwingPole.Motion.cs,61,runtime,"flightVelocity.y, GameSettings.Base.Character.Gravity, Mathf.Max(.1f, LandingDistance - course.GetDistance(mover.transform.position)));"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeSwingPole.Motion.cs,73,runtime,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeSwingPole.Motion.cs,92,runtime,"Vector3 displacement = BallisticMotion.Step(ref flightVelocity, correction, GameSettings.Base.Character.Gravity, Time.deltaTime);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.cs,142,runtime,"state.Physics.Step(ref state.Angle, ref state.Speed, state.Drive, Time.deltaTime, GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.cs,263,runtime,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.cs,280,runtime,"state.Physics.Step(ref angle, ref speed, state.Drive, Mathf.Clamp((float)(Clock - state.SampledAt), 0f, .2f), GameSettings.Base.Character.Gravity);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.Motion.cs,82,runtime,"? SwingPoleMath.PoleFlightSpeedLimit(flight.Position, flight.Target, course.Forward, flight.Velocity.y, GameSettings.Base.Character.Gravity)"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.Motion.cs,84,runtime,"GameSettings.Base.Character.Gravity, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)));"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.Motion.cs,87,runtime,"flight.Velocity.y, GameSettings.Base.Character.Gravity, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)));"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.Motion.cs,101,runtime,"Vector3 displacement = BallisticMotion.Step(ref flightVelocity, correction, GameSettings.Base.Character.Gravity, Time.deltaTime);"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.Motion.cs,172,runtime,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.View.cs,121,runtime,"var source = Resources.Load<Font>(""Fonts/Pretendard-Medium/Pretendard-Medium 1"");"
+Assets/Scripts/MainStage/Tightrope/Rider/TightropeTrapeze.View.cs,124,runtime,"var font = trapezeRuntimeFont != null ? trapezeRuntimeFont : Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,162,runtime,mover.CourseForwardOverride = previousForward;
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,328,runtime,mover.CourseForwardOverride = forward;
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,338,runtime,previousForward = mover.CourseForwardOverride;
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,344,runtime,"mover.CourseForwardOverride = course.TraversalForwardAt(player.transform.position, enteringForward);"
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,372,runtime,effects.SetPolicy(injuryPolicy);
+Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs,393,runtime,if (effects != null && effects.Policy == injuryPolicy) effects.SetPolicy(previous);
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCampaignBridge.cs,62,runtime,"Rewards.BeginPerformance(Mathf.Clamp(Campaign.State.Difficulty > 0 ? Campaign.State.Difficulty : difficulty, 1, 3), GameSettings.Tightrope.Reward);"
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,174,runtime,TightropeSettings.CourseSettings Settings => useSceneGeometry ? sceneShape : GameSettings.Tightrope.Course;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,464,runtime,GameSettings.Tightrope.Changed += HandleSettingsChanged;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs,470,runtime,GameSettings.Tightrope.Changed -= HandleSettingsChanged;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeHangSystem.cs,34,runtime,static TightropeSettings.HangSettings Rules => GameSettings.Tightrope.Hang;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs,149,runtime,public float TimeLimit => GameSettings.Tightrope.Run.TimeLimit;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs,437,runtime,restartAt = Clock + GameSettings.Tightrope.Run.RestartDelay;
+Assets/Scripts/MainStage/Tightrope/Rope/TightropeRunDebug.cs,46,runtime,var keyboard = Keyboard.current;
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.CooperativeGate.cs,47,runtime,|| CooperativeGateLiftOffset >= GameSettings.Base.Character.CapsuleHeight + .25f;
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.CooperativeGate.cs,63,runtime,"Mathf.Max(2.2f, settings.cooperativeGateHeight * .5f + GameSettings.Base.Character.CapsuleRadius"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.CooperativeGate.cs,72,runtime,"float height = Mathf.Max(settings.cooperativeGateHeight + .4f, GameSettings.Base.Character.CapsuleHeight + .5f);"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.CooperativeGate.cs,126,runtime,jumpHeight *= GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.CooperativeGate.Stack.cs,24,runtime,+ settings.cooperativeGatePlateLength * .5f + GameSettings.Base.Character.CapsuleRadius
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,98,runtime,"public int ActiveHorizontalCount => TrickSettings.SawCount(HorizontalCount, GameSettings.Tightrope.SawDensity);"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,99,runtime,"public bool IsHorizontalEnabled(int index) => TrickSettings.IncludesSaw(index, HorizontalCount, GameSettings.Tightrope.SawDensity);"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,140,runtime,static SawSettings settings => GameSettings.Tightrope.Saws;
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,180,runtime,"float slope = TrickSettings.DiagonalSlope(0, GameSettings.Tightrope.SawDiagonalDegrees);"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs,194,runtime,"float shift = (distance - referenceDistance) * TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.OwnerContacts.cs,142,runtime,"|| height > Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight) + .05f) return false;"
+Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.ReleasedGates.cs,49,runtime,"GameSettings.Base.Character.CapsuleHeight * settings.cooperativeGateHopHeightMultiplier,"
+Assets/Scripts/MainStage/Tightrope/Telemetry/TightropeTelemetry.cs,132,runtime,settings = GameSettings.Tightrope;
+Assets/Scripts/MainStage/Tightrope/Telemetry/TightropeTelemetry.cs,180,runtime,"configuredBase = JsonUtility.ToJson(GameSettings.Base),"
+Assets/Scripts/MainStage/Tightrope/UI/TightropeActionButtons.cs,33,runtime,"var source = Resources.Load<Font>(""Fonts/Pretendard-Medium/Pretendard-Medium 1"");"
+Assets/Scripts/MainStage/Tightrope/UI/TightropeActionButtons.cs,36,runtime,"var font = runtimeFont != null ? runtimeFont : Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/MainStage/Tightrope/UI/TightropeCampaignHud.cs,82,runtime,if (!InputGate.IsBlocked && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+Assets/Scripts/MainStage/Tightrope/UI/TightropeDemoView.cs,55,runtime,"font = Resources.Load<TMP_FontAsset>(""Fonts/Pretendard-Medium/Pretendard-Medium SDF"");"
+Assets/Scripts/MainStage/Tightrope/UI/TightropeDemoView.cs,152,runtime,"var prefab = Resources.Load<GameObject>(""Prefabs/UIs/Player/BalanceGauge"");"
+Assets/Scripts/MainStage/Tightrope/Rope/Editor/TightropeCoursePrefabBuilder.cs,49,editor-builder,var array = target.FindProperty(property);
+Assets/Scripts/MainStage/HumanCannon/Editor/CannonBarrelArtBuilder.cs,46,editor-builder,"config.FindProperty(""animationRoot"").objectReferenceValue = model;"
+Assets/Scripts/MainStage/HumanCannon/Editor/CannonBarrelArtBuilder.cs,47,editor-builder,"config.FindProperty(""barrelPivot"").objectReferenceValue = model.transform.Find(""BarrelPivot"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/CannonBarrelArtBuilder.cs,62,editor-builder,config.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = clip;
+Assets/Scripts/MainStage/HumanCannon/Editor/CannonBarrelArtBuilder.cs,78,editor-builder,"config.FindProperty(""animateBarrel"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonAutoLiftBuilder.cs,32,editor-builder,"var indicators = data.FindProperty(""boardingIndicators"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonAutoLiftBuilder.cs,40,editor-builder,"routeData.FindProperty(""boardingSeconds"").floatValue = 1.5f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonAutoLiftBuilder.cs,54,editor-builder,"var array = landingData.FindProperty(""additionalSurfaces"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,28,editor-builder,"data.FindProperty(""jumpHeight"").floatValue = 1.2f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,31,editor-builder,var game = GameSettings.Current;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,35,editor-builder,"data.FindProperty(""humanCannon"").objectReferenceValue = settings;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,78,editor-builder,"var value = data.FindProperty(""injuries"").FindPropertyRelative(field);"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,88,editor-builder,"data.FindProperty(""markerMaterial"").objectReferenceValue = material;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,89,editor-builder,"var floors = data.FindProperty(""courseFloors"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,98,editor-builder,"data.FindProperty(""available"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,99,editor-builder,"data.FindProperty(""warningSeconds"").floatValue = 30f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,100,editor-builder,"data.FindProperty(""speed"").floatValue = 0.7f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonComfortBuilder.cs,101,editor-builder,"var visual = (Transform)data.FindProperty(""visual"").objectReferenceValue;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseExtensionBuilder.cs,34,editor-builder,"var poles = poleData.FindProperty(""poles"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseExtensionBuilder.cs,117,editor-builder,"data.FindProperty(""grip"").objectReferenceValue = grip;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,31,editor-builder,"var array = poleData.FindProperty(""poles"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,38,editor-builder,/ (2 * GameSettings.Base.Character.Gravity) - 0.5f;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,82,editor-builder,"var hazards = data.FindProperty(""hazards"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,93,editor-builder,"values.FindProperty(""phase"").floatValue += Mathf.PI * 0.75f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,98,editor-builder,"var winds = data.FindProperty(""windZones""); count = winds.arraySize;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonCourseTuningBuilder.cs,141,editor-builder,"using var data = new SerializedObject(zone); var field = data.FindProperty(""streams""); field.arraySize = streams.Length;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonDestinationBuilder.cs,48,editor-builder,"var target = data.FindProperty(""destination"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonDestinationBuilder.cs,49,editor-builder,"var difficulty = data.FindProperty(""difficultyLevel"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,32,editor-builder,"var left = data.FindProperty(""leftAnchor"").objectReferenceValue as Transform;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,33,editor-builder,"var right = data.FindProperty(""rightAnchor"").objectReferenceValue as Transform;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,83,editor-builder,"var polesField = systemData.FindProperty(""poles"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,113,editor-builder,"data.FindProperty(""holdSeconds"").floatValue = 0;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,114,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue = 4.5f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,120,editor-builder,"var hazards = courseData.FindProperty(""hazards"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,130,editor-builder,"var visual = (Transform)data.FindProperty(""visual"").objectReferenceValue;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,132,editor-builder,"data.FindProperty(""radius"").floatValue = 0.55f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,133,editor-builder,"data.FindProperty(""phase"").floatValue = -Mathf.PI * 0.5f + i * 0.6f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,144,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue = 4.5f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,150,editor-builder,"data.FindProperty(""groundBounceAirControlSpeed"").floatValue = 4.5f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,160,editor-builder,"var horizontal = data.FindProperty(""horizontalViews"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,164,editor-builder,if (data.FindProperty(field).objectReferenceValue is Transform view)
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,185,editor-builder,"data.FindProperty(""swingAcceleration"").floatValue = 180f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,186,editor-builder,"data.FindProperty(""maxSwingAngle"").floatValue = 50f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,187,editor-builder,"data.FindProperty(""maxSwingSpeed"").floatValue = 100f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,188,editor-builder,"data.FindProperty(""swingDamping"").floatValue = 0.4f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,189,editor-builder,"data.FindProperty(""releaseUpwardSpeed"").floatValue = 6f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,197,editor-builder,"var originalCeiling = ((Transform)sourceData.FindProperty(""leftAnchor"").objectReferenceValue).parent;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonEnhancementBuilder.cs,209,editor-builder,data.FindProperty(field).objectReferenceValue = ceiling.Find(char.ToUpperInvariant(field[0]) + field.Substring(1));
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,28,editor-builder,"var stations = systemData.FindProperty(""stations"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,39,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,66,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue = 8;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,67,editor-builder,"data.FindProperty(""upwardSpeed"").floatValue = 12;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,68,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue = 3;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalCannonBuilder.cs,69,editor-builder,"data.FindProperty(""boardingDistance"").floatValue = 2;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinaleRingBuilder.cs,48,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinaleRingBuilder.cs,78,editor-builder,+ Vector3.up * (GameSettings.Base.Character.CapsuleHeight * 0.5f);
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalSawBuilder.cs,54,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalSawBuilder.cs,155,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonFinalSawBuilder.cs,254,editor-builder,"static SerializedProperty Property(SerializedObject data, string name) => data.FindProperty(name)"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonGroundSawBuilder.cs,58,editor-builder,"var registered = courseData.FindProperty(""hazards"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonGroundSawBuilder.cs,71,editor-builder,"data.FindProperty(""phase"").floatValue = Mathf.PI * (i == 0 ? 1f / 3f : 4f / 3f);"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,58,editor-builder,"data.FindProperty(""difficulty"").intValue = 1;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,112,editor-builder,"data.FindProperty(""kind"").enumValueIndex = (int)kind;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,113,editor-builder,"data.FindProperty(""visual"").objectReferenceValue = view;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,114,editor-builder,"data.FindProperty(""travel"").vector3Value = travel;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,115,editor-builder,"data.FindProperty(""periodSeconds"").floatValue = period;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,116,editor-builder,"data.FindProperty(""phase"").floatValue = phase;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,117,editor-builder,"data.FindProperty(""radius"").floatValue = radius;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,143,editor-builder,"data.FindProperty(""area"").objectReferenceValue = area;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,144,editor-builder,"data.FindProperty(""direction"").vector3Value = Vector3.right * direction;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,145,editor-builder,"data.FindProperty(""affectsGround"").boolValue = ground;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,146,editor-builder,"data.FindProperty(""affectsAir"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonHazardBuilder.cs,167,editor-builder,var property = data.FindProperty(field); property.arraySize = values.Length;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonLiftTrapBuilder.cs,143,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonLiftTrapBuilder.cs,148,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue = Vector3.ProjectOnPlane(target - station.Muzzle.position, Vector3.up).magnitude / time;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonLiftTrapBuilder.cs,174,editor-builder,data.FindProperty(field).objectReferenceValue = value;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonLiftTrapBuilder.cs,181,editor-builder,var array = data.FindProperty(field);
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonOpenCourseBuilder.cs,32,editor-builder,"data.FindProperty(""windZones"").ClearArray();"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,50,editor-builder,"var poles = systemData.FindProperty(""poles"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,105,editor-builder,"data.FindProperty(""grip"").objectReferenceValue = grip;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,106,editor-builder,"data.FindProperty(""linkedGate"").objectReferenceValue = gate;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,107,editor-builder,"data.FindProperty(""hangLength"").floatValue = 1.5f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,108,editor-builder,"data.FindProperty(""grabDistance"").floatValue = 2f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,109,editor-builder,"data.FindProperty(""holdSeconds"").floatValue = 8f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,110,editor-builder,"data.FindProperty(""warningSeconds"").floatValue = 2f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,111,editor-builder,"data.FindProperty(""swingAcceleration"").floatValue = 300f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,112,editor-builder,"data.FindProperty(""maxSwingAngle"").floatValue = 80f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,113,editor-builder,"data.FindProperty(""maxSwingSpeed"").floatValue = 180f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,114,editor-builder,"data.FindProperty(""swingDamping"").floatValue = 0.4f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,115,editor-builder,"data.FindProperty(""releaseUpwardSpeed"").floatValue = 6f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,116,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue = 3f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,142,editor-builder,"data.FindProperty(""barrier"").objectReferenceValue = barrier.GetComponent<Collider>();"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,143,editor-builder,"data.FindProperty(""sawVisual"").objectReferenceValue = visual;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleGateBuilder.cs,144,editor-builder,"data.FindProperty(""contactPadding"").floatValue = 0.15f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleSwingVisualBuilder.cs,22,editor-builder,"var list = systemData.FindProperty(""poles"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPoleSwingVisualBuilder.cs,67,editor-builder,"static void Set(SerializedObject data, string field, Transform value) => data.FindProperty(field).objectReferenceValue = value;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPropArtBuilder.cs,115,editor-builder,"config.FindProperty(""usePropOutline"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonRouteBuilder.cs,127,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonRouteBuilder.cs,132,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue = Vector3.ProjectOnPlane(catchPoint - station.Muzzle.position, Vector3.up).magnitude / time;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonRouteBuilder.cs,148,editor-builder,"data.FindProperty(""travelSeconds"").floatValue = seconds;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonRouteBuilder.cs,212,editor-builder,data.FindProperty(field).objectReferenceValue = value;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonRouteBuilder.cs,219,editor-builder,var list = data.FindProperty(field);
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonSawGateSplitBuilder.cs,122,editor-builder,"var list = data.FindProperty(""dragSparks"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonSawGateSplitBuilder.cs,230,editor-builder,"Assign(data.FindProperty(""leftParts""), leftBlades, leftFence);"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonSawGateSplitBuilder.cs,231,editor-builder,"Assign(data.FindProperty(""rightParts""), rightBlades, rightFence);"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonSawGateSplitBuilder.cs,232,editor-builder,"data.FindProperty(""openGap"").floatValue = openGap;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonSectionFontBuilder.cs,58,editor-builder,"data.FindProperty(""font"").objectReferenceValue = font;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTestSceneBuilder.cs,65,editor-builder,"var list = systemData.FindProperty(""stations"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTestSceneBuilder.cs,73,editor-builder,"var points = spawnData.FindProperty(""points"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTestSceneBuilder.cs,117,editor-builder,data.FindProperty(field).objectReferenceValue = value;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTrampolineBuilder.cs,45,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTrampolineBuilder.cs,62,editor-builder,"data.FindProperty(""handle"").objectReferenceValue = handle;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonTrampolineBuilder.cs,63,editor-builder,"data.FindProperty(""surfaceHeight"").floatValue = SurfaceHeight;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,37,editor-builder,"data.FindProperty(""periodSeconds"").floatValue = 4f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,119,editor-builder,"data.FindProperty(""halfWidth"").floatValue = FloorHalfWidth + 3f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,131,editor-builder,"data.FindProperty(""lateralPasses"").boolValue = true;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,132,editor-builder,"data.FindProperty(""horizontalHalfWidth"").floatValue = SawHalfWidth;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,134,editor-builder,"data.FindProperty(""horizontalSpeed"").floatValue = 6f;"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,136,editor-builder,"var views = data.FindProperty(""horizontalViews"");"
+Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonWideCourseBuilder.cs,141,editor-builder,if (data.FindProperty(field).objectReferenceValue is Transform view)
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,152,editor-builder,"var view=root.GetComponentInChildren<CurtainCall.UI.ShopV1.ShopPanelView>(true);var so=new SerializedObject(view);var list=so.FindProperty(""iconBindings"");"
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,201,editor-builder,"playground.Player=(GameObject)PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>(""Prefabs/Characters/Players/Player""));"
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,203,editor-builder,"var balance=new SerializedObject(playground.Player.GetComponent<PlayerBalance>());balance.FindProperty(""activeOnStart"").boolValue=false;balance.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,216,editor-builder,"var so=new SerializedObject(target);so.FindProperty(""targetId"").stringValue=""item-art-088-""+i;so.FindProperty(""blocker"").objectReferenceValue=leaf.GetComponent<Collider>();"
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,217,editor-builder,"if(i==0){so.FindProperty(""requiredHits"").intValue=3;var a=so.FindProperty(""pieces"");a.arraySize=1;a.GetArrayElementAtIndex(0).objectReferenceValue=leaf.transform;}"
+Assets/Scripts/ItemArt/Editor/ItemArtBuilder.cs,218,editor-builder,"else so.FindProperty(""hinge"").objectReferenceValue=leaf.transform;"
+Assets/Scripts/ItemArt/Editor/ItemArtValidation.cs,23,editor-builder,"var prefab=Resources.Load<GameObject>(""Prefabs/Characters/Players/Models/""+character+""/""+character);"
+Assets/Scripts/ItemArt/Editor/ItemArtValidation.cs,34,editor-builder,"var prop=UnityEngine.Object.Instantiate(Resources.Load<GameObject>(""ItemArt/Prefabs/""+item));UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(prop,scene);"
+Assets/Scripts/ItemArt/Editor/ItemGripReview.cs,21,editor-builder,"var prefab = Resources.Load<GameObject>(""Prefabs/Characters/Players/Models/""+character+""/""+character);"
+Assets/Scripts/ItemArt/Editor/ItemMotionReview.cs,16,editor-builder,"var obj=(GameObject)PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>(""Prefabs/Characters/Players/Models/""+character+""/""+character),scene);"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,61,editor-builder,"var path = cableData.FindProperty(""localPoints""); path.arraySize = 24;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,69,editor-builder,"cableData.FindProperty(""radius"").floatValue = .085f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,70,editor-builder,"cableData.FindProperty(""insulationMaterial"").objectReferenceValue = rubber[color];"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,71,editor-builder,"cableData.FindProperty(""copperMaterial"").objectReferenceValue = copper;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,72,editor-builder,"cableData.FindProperty(""requiredForExit"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,83,editor-builder,"cableData.FindProperty(""cutSparks"").objectReferenceValue = sparks;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,84,editor-builder,"cableData.FindProperty(""cutAudio"").objectReferenceValue = source;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,91,editor-builder,"SetFinaleReferences(data.FindProperty(""cables""), cables.ToArray());"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,93,editor-builder,"data.FindProperty(""cableSocket"").objectReferenceValue = prompt;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,104,editor-builder,"var blade = (Transform)data.FindProperty(""blade"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,125,editor-builder,"data.FindProperty(""muzzle"").objectReferenceValue = muzzle;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,126,editor-builder,"data.FindProperty(""projectileVisual"").objectReferenceValue = template.gameObject;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,127,editor-builder,"data.FindProperty(""launchFlash"").objectReferenceValue = null;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,128,editor-builder,"data.FindProperty(""launchAudio"").objectReferenceValue = source;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,129,editor-builder,"data.FindProperty(""recoilVisual"").objectReferenceValue = recoil;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,130,editor-builder,"data.FindProperty(""shotInterval"").floatValue = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,131,editor-builder,"data.FindProperty(""projectileSpeed"").floatValue = 36;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,132,editor-builder,"data.FindProperty(""projectileLifetime"").floatValue = 0;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,133,editor-builder,"data.FindProperty(""projectileRadius"").floatValue = .55f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAColoredCables.cs,134,editor-builder,"data.FindProperty(""projectileHalfThickness"").floatValue = .12f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAConveyorRepair.cs,39,editor-builder,"data.FindProperty(""reverseDirection"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAConveyorRepair.cs,92,editor-builder,"locks.FindProperty(""checkpoints"").GetArrayElementAtIndex(0).FindPropertyRelative(""instruction"").stringValue ="
+Assets/Scripts/EscapeRoute/Editor/EscapeAConveyorVoid.cs,61,editor-builder,"data.FindProperty(""checkpoints"").GetArrayElementAtIndex(0).FindPropertyRelative(""instruction"").stringValue ="
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,25,editor-builder,"var old=cd.FindProperty(""ropeSupports"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,35,editor-builder,"var data=new SerializedObject(course);var registered=data.FindProperty(""sceneRopes"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,42,editor-builder,"var shape=data.FindProperty(""sceneShape"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,85,editor-builder,"var td=new SerializedObject(trampoline);td.FindProperty(""requireCarrierForBounce"").boolValue=false;td.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,86,editor-builder,"var bounds=cd.FindProperty(""dropBounds"").objectReferenceValue as BoxCollider;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,95,editor-builder,"cd.Update();cd.FindProperty(""lowerWorkerBounds"").objectReferenceValue=lowerBounds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeExpansion.cs,96,editor-builder,"cd.FindProperty(""lowerEntryGate"").objectReferenceValue=gate;cd.FindProperty(""overflowReturnPoint"").objectReferenceValue=returnPoint;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeFusion.cs,26,editor-builder,"var list = data.FindProperty(""checkpoints""); list.arraySize = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeFusion.cs,69,editor-builder,"entryData.FindProperty(""maxReleaseUpwardSpeed"").floatValue = 5.2f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACooperativeFusion.cs,141,editor-builder,"poleData.FindProperty(""maxSwingAngle"").floatValue = 12;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,33,editor-builder,"var entries = data.FindProperty(""checkpoints""); entries.arraySize = 5;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,38,editor-builder,"var existingRopes = courseData.FindProperty(""sceneRopes"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,46,editor-builder,"var shape = courseData.FindProperty(""sceneShape"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,206,editor-builder,"data.FindProperty(""leftLeaf"").objectReferenceValue = left;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,207,editor-builder,"data.FindProperty(""rightLeaf"").objectReferenceValue = right;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,227,editor-builder,var data = new SerializedObject(pole); data.FindProperty(name).floatValue = value; data.ApplyModifiedProperties();
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,267,editor-builder,"data.FindProperty(""riderCapacity"").intValue = capacity; data.FindProperty(""riderSpacing"").floatValue = .8f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,270,editor-builder,"var bar = data.FindProperty(""visualBar"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeACoopUpgrade.cs,282,editor-builder,"var anchor = data.FindProperty(prefix + ""Anchor"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,54,editor-builder,"data.FindProperty(""trigger"").objectReferenceValue = FinaleVolume(root, ""최종 질주 진입 감지"", new Vector3(152, 1, 78), new Vector3(24, 4, 14));"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,55,editor-builder,"data.FindProperty(""startDelay"").floatValue = 20;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,56,editor-builder,"data.FindProperty(""stepSeconds"").floatValue = 12;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,57,editor-builder,"data.FindProperty(""warnSeconds"").floatValue = 3;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,58,editor-builder,"data.FindProperty(""burstSeconds"").floatValue = 3;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,59,editor-builder,"data.FindProperty(""safeExitX"").floatValue = 400;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,60,editor-builder,"var bays = data.FindProperty(""bays""); bays.arraySize = 13;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,176,editor-builder,data.FindProperty(pair.Item1).objectReferenceValue = pair.Item2;
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,177,editor-builder,"data.FindProperty(""carryHandleHeight"").floatValue = 1.05f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,178,editor-builder,"data.FindProperty(""carryMoveSpeed"").floatValue = 3;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,179,editor-builder,"data.FindProperty(""bladeRadius"").floatValue = .55f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,180,editor-builder,"data.FindProperty(""bladeHalfThickness"").floatValue = .12f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,181,editor-builder,"data.FindProperty(""cableRadius"").floatValue = .08f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,182,editor-builder,"data.FindProperty(""cutSeconds"").floatValue = 3;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,183,editor-builder,"data.FindProperty(""doorLift"").floatValue = 7;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFinaleInferno.cs,184,editor-builder,"data.FindProperty(""doorSpeed"").floatValue = 5;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,32,editor-builder,"var oldRopes = new SerializedObject(course).FindProperty(""sceneRopes"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,54,editor-builder,"cd.FindProperty(""independentSceneRopes"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,55,editor-builder,"var shape = cd.FindProperty(""sceneShape"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,62,editor-builder,"sw.FindProperty(""allowCannonPoleExit"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,63,editor-builder,"sw.FindProperty(""cannonPoleExitDistance"").floatValue = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,90,editor-builder,"var data = new SerializedObject(pole); data.FindProperty(""holdSeconds"").floatValue = 0;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAFusedRoute.cs,139,editor-builder,"var pd = new SerializedObject(points).FindProperty(""points"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,35,editor-builder,"poleData.FindProperty(""allowPlatformJumpGrab"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,36,editor-builder,"poleData.FindProperty(""independentInteraction"").boolValue = true; poleData.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,57,editor-builder,"var data = new SerializedObject(locks); var entries = data.FindProperty(""checkpoints"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,87,editor-builder,"var label = (TMP_Text)new SerializedObject(views.Toast).FindProperty(""messageLabel"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,100,editor-builder,"fd.FindProperty(""locks"").objectReferenceValue = locks; fd.FindProperty(""ropes"").objectReferenceValue = ropes;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,101,editor-builder,"fd.FindProperty(""toast"").objectReferenceValue = views.Toast;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAIndependentControls.cs,102,editor-builder,"var ri = fd.FindProperty(""returnIndicators""); ri.arraySize = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,38,editor-builder,"data.FindProperty(""handle"").objectReferenceValue = trampolineRoot.Find(""Handle/Grip"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,54,editor-builder,"var list = poleData.FindProperty(""poles""); list.arraySize = poles.Length;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,56,editor-builder,"poleData.FindProperty(""allowPlatformJumpGrab"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,68,editor-builder,"courseData.FindProperty(""independentSceneRopes"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,69,editor-builder,"var ropes = courseData.FindProperty(""sceneRopes""); ropes.arraySize = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,72,editor-builder,"var shape = courseData.FindProperty(""sceneShape"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,135,editor-builder,"data.FindProperty(""grip"").objectReferenceValue = grip;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,136,editor-builder,"data.FindProperty(""linkedGate"").objectReferenceValue = null;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,137,editor-builder,"data.FindProperty(""visualBar"").objectReferenceValue = bar;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,138,editor-builder,"data.FindProperty(""leftCable"").objectReferenceValue = cables[0]; data.FindProperty(""rightCable"").objectReferenceValue = cables[1];"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,139,editor-builder,"data.FindProperty(""leftAnchor"").objectReferenceValue = anchors[0]; data.FindProperty(""rightAnchor"").objectReferenceValue = anchors[1];"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,168,editor-builder,"Check(pole.name + "" "" + key, data.FindProperty(key).objectReferenceValue != null);"
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,190,editor-builder,var character = CurtainCall.Settings.GameSettings.Base.Character;
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,192,editor-builder,float vertical = Mathf.Sqrt(2 * gravity * CurtainCall.Settings.GameSettings.HumanCannon.JumpHeight);
+Assets/Scripts/EscapeRoute/Editor/EscapeAllDevices.cs,199,editor-builder,"float reach = new SerializedObject(first).FindProperty(""grabDistance"").floatValue * 1.25f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeAOpenFacility.cs,86,editor-builder,"var data=new SerializedObject(points); var list=data.FindProperty(""points"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeAOpenFacility.cs,143,editor-builder,"var d=new SerializedObject(loop); float phase=d.FindProperty(""phase01"").floatValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,39,editor-builder,"fire.FindProperty(""stepSeconds"").floatValue=6; fire.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,58,editor-builder,"var cd=new SerializedObject(cables[j]);var points=cd.FindProperty(""localPoints"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,67,editor-builder,"SetFinaleReferences(d.FindProperty(""cables""),wires.ToArray());"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,68,editor-builder,"d.FindProperty(""deviceId"").intValue=0;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,69,editor-builder,"var blade=(Transform)d.FindProperty(""blade"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,71,editor-builder,"var template=(GameObject)d.FindProperty(""projectileVisual"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,76,editor-builder,"((Transform)d.FindProperty(""recoveryAnchor"").objectReferenceValue).position=main.CarryRoot.position;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,94,editor-builder,"sd.FindProperty(""deviceId"").intValue=1;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,95,editor-builder,"sd.FindProperty(""doorPanel"").objectReferenceValue=null;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,96,editor-builder,"sd.FindProperty(""indicator"").objectReferenceValue=null;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,97,editor-builder,"sd.FindProperty(""sparks"").objectReferenceValue=null;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,100,editor-builder,"sd.FindProperty(""recoveryAnchor"").objectReferenceValue=recovery;sd.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,141,editor-builder,"var data=new SerializedObject(sp);var points=data.FindProperty(""points"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,170,editor-builder,"var registered=cd.FindProperty(""sceneRopes"");var ropes=new List<BoxCollider>();"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,174,editor-builder,"var shape=cd.FindProperty(""sceneShape"");shape.FindPropertyRelative(""laneCount"").intValue=ropes.Count;"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,177,editor-builder,"var locks=new SerializedObject(UnityEngine.Object.FindFirstObjectByType<EscapeCooperativeLocks>());var entry=locks.FindProperty(""checkpoints"").GetArrayElementAtIndex(0);"
+Assets/Scripts/EscapeRoute/Editor/EscapeARouteRevision.cs,186,editor-builder,"locks.FindProperty(""checkpoints"").GetArrayElementAtIndex(1).FindPropertyRelative(""instruction"").stringValue=""한 명이 F로 노란 봉을 잡고 대기 → 다른 사람이 대포를 타고 위 외줄에 착지 → 봉을 놓고 함께 올라갑니다"";"
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonIntegration.cs,51,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue = Vector3.ProjectOnPlane(delta, Vector3.up).magnitude / flightSeconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonIntegration.cs,52,editor-builder,"data.FindProperty(""upwardSpeed"").floatValue = (delta.y + .5f * GameSettings.Base.Character.Gravity * flightSeconds * flightSeconds) / flightSeconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonIntegration.cs,57,editor-builder,"var stations = systemData.FindProperty(""stations""); stations.arraySize = 1;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonValidation.cs,39,editor-builder,float radius = GameSettings.Base.Character.CapsuleRadius;
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonValidation.cs,40,editor-builder,float height = GameSettings.Base.Character.CapsuleHeight;
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonValidation.cs,46,editor-builder,"Vector3 step = BallisticMotion.Step(ref velocity, Vector3.zero, GameSettings.Base.Character.Gravity, dt);"
+Assets/Scripts/EscapeRoute/Editor/EscapeCannonValidation.cs,63,editor-builder,"var points = new SerializedObject(spawns[0]).FindProperty(""points"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,59,editor-builder,"var size = new SerializedObject(hazard).FindProperty(""boxSize"").vector3Value;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,107,editor-builder,"var sourceCable = new SerializedObject(source).FindProperty(prefix + ""Cable"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,110,editor-builder,"data.FindProperty(prefix + ""Anchor"").objectReferenceValue = anchor;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,111,editor-builder,"data.FindProperty(prefix + ""Cable"").objectReferenceValue = cable;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,113,editor-builder,"data.FindProperty(""linkedGate"").objectReferenceValue = null; data.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionAssets.cs,125,editor-builder,"var data = new SerializedObject(system); SetFinaleArray(data, ""poles"", poles); data.FindProperty(""allowPlatformJumpGrab"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,39,editor-builder,"var registered = new SerializedObject(poleSystem).FindProperty(""poles"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,46,editor-builder,var reference = data.FindProperty(field).objectReferenceValue as Component;
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,50,editor-builder,"Check(pole.name + "" authored dynamics"", pole.HoldSeconds == 0 && data.FindProperty(""maxSwingAngle"").floatValue == 50);"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,99,editor-builder,"float radius = GameSettings.Base.Character.CapsuleRadius, height = GameSettings.Base.Character.CapsuleHeight;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,103,editor-builder,"velocity = CannonAirControl.LimitPoleHorizontalSpeed(velocity, GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit);"
+Assets/Scripts/EscapeRoute/Editor/EscapeCompletionValidation.cs,108,editor-builder,"var step = BallisticMotion.Step(ref velocity, Vector3.zero, GameSettings.Base.Character.Gravity, 1f/60);"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,25,editor-builder,"var td=new SerializedObject(trampoline);td.FindProperty(""upwardSpeed"").floatValue=12.5f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,26,editor-builder,"td.FindProperty(""groundBounceAirControlSpeed"").floatValue=7;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,27,editor-builder,"td.FindProperty(""requireCarrierForBounce"").boolValue=true;td.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,32,editor-builder,"var old=cd.FindProperty(""sceneRopes""); var first=old.GetArrayElementAtIndex(0).objectReferenceValue as BoxCollider;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,48,editor-builder,"SetFinaleArray(cd,""sceneRopes"",all);cd.FindProperty(""independentSceneRopes"").boolValue=true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,49,editor-builder,"var shape=cd.FindProperty(""sceneShape"");shape.FindPropertyRelative(""laneCount"").intValue=5;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,72,editor-builder,"data.FindProperty(""button"").objectReferenceValue=root.Find(""ReturnButton"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,73,editor-builder,"data.FindProperty(""returnGate"").objectReferenceValue=recovery.Find(""ReturnGate"").gameObject;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,74,editor-builder,"data.FindProperty(""switcher"").objectReferenceValue=course.GetComponent<CourseControlSwitcher>();"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,75,editor-builder,"data.FindProperty(""trampoline"").objectReferenceValue=trampoline;"
+Assets/Scripts/EscapeRoute/Editor/EscapeCooperativeLayout.cs,76,editor-builder,"data.FindProperty(""dropBounds"").objectReferenceValue=bounds;data.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthExpansion.cs,106,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue = new Vector2(delta.x, delta.z).magnitude / flightSeconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthExpansion.cs,107,editor-builder,"data.FindProperty(""upwardSpeed"").floatValue = (delta.y + .5f * GameSettings.Base.Character.Gravity * flightSeconds * flightSeconds) / flightSeconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthExpansion.cs,112,editor-builder,"var stations = settings.FindProperty(""stations""); stations.arraySize = 2;"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthExpansion.cs,114,editor-builder,"settings.FindProperty(""flightFloorHeight"").floatValue = -80;"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthValidation.cs,32,editor-builder,"float radius = GameSettings.Base.Character.CapsuleRadius, height = GameSettings.Base.Character.CapsuleHeight;"
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthValidation.cs,61,editor-builder,float sampleHeight = crouch ? height * GameSettings.Base.Character.CrouchHeightRatio : height;
+Assets/Scripts/EscapeRoute/Editor/EscapeDepthValidation.cs,82,editor-builder,"Vector3 step = BallisticMotion.Step(ref velocity, Vector3.zero, GameSettings.Base.Character.Gravity, 1f / 120);"
+Assets/Scripts/EscapeRoute/Editor/EscapeDescentSwings.cs,32,editor-builder,"float ceiling = ((Transform)data.FindProperty(""leftAnchor"").objectReferenceValue).position.y;"
+Assets/Scripts/EscapeRoute/Editor/EscapeEndingBuilder.cs,140,editor-builder,"var data=new SerializedObject(ending);data.FindProperty(""title"").objectReferenceValue=group;data.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/EscapeRoute/Editor/EscapeEndingBuilder.cs,161,editor-builder,"var data=new SerializedObject(ending);data.FindProperty(""content"").objectReferenceValue=frame.GetComponent<EscapeCampaignContent>();"
+Assets/Scripts/EscapeRoute/Editor/EscapeEndingBuilder.cs,162,editor-builder,"var content=new SerializedObject(frame.GetComponent<EscapeCampaignContent>());data.FindProperty(""exitSaw"").objectReferenceValue=content.FindProperty(""exitSaw"").objectReferenceValue;data.FindProperty(""arrivalArea"").objectReferenceValue=content.FindProperty(""arrivalArea"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeEndingBuilder.cs,164,editor-builder,"var camera=Undo.AddComponent<CinemachineCamera>(cameraRoot.gameObject);camera.Priority=100;camera.Lens.FieldOfView=62;camera.enabled=false;data.FindProperty(""endingCamera"").objectReferenceValue=camera;data.ApplyModifiedPropertiesWithoutUndo();"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackPolish.cs,48,editor-builder,"var checkpoints = serialized.FindProperty(""checkpoints"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackPolish.cs,54,editor-builder,"var cannon = new SerializedObject(station); cannon.FindProperty(""airControlSpeed"").floatValue = 0;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackRefinement.cs,36,editor-builder,"data.FindProperty(""carryHandleHeight"").floatValue = .8f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackRefinement.cs,98,editor-builder,"var list = data.FindProperty(""hazards""); int count = list.arraySize;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackRefinement.cs,120,editor-builder,"data.FindProperty(""boardingDistance"").floatValue = 2.75f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFeedbackRefinement.cs,121,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue = 6;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFinaleIntegration.cs,17,editor-builder,var array = data.FindProperty(name); array.arraySize = values.Length;
+Assets/Scripts/EscapeRoute/Editor/EscapeFinaleIntegration.cs,53,editor-builder,"var points=new SerializedObject(roster).FindProperty(""points"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,36,editor-builder,"var size = new SerializedObject(hazard).FindProperty(""boxSize"").vector3Value;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,49,editor-builder,"var template = existing.Single(s => new SerializedObject(s).FindProperty(""deviceId"").intValue == 1);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,52,editor-builder,"if (existing.Any(s => new SerializedObject(s).FindProperty(""deviceId"").intValue == id)) continue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,57,editor-builder,"data.FindProperty(""deviceId"").intValue = id;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,61,editor-builder,"((Transform)data.FindProperty(""recoveryAnchor"").objectReferenceValue).position = at;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlameSawRepair.cs,66,editor-builder,"var data = new SerializedObject(saw); data.FindProperty(""scaleWithCrew"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,23,editor-builder,"var registered=new SerializedObject(poleSystem).FindProperty(""poles"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,25,editor-builder,"Check(""platform jump grab"",new SerializedObject(poleSystem).FindProperty(""allowPlatformJumpGrab"").boolValue);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,31,editor-builder,"Check(""common movement settings"",CurtainCall.Settings.GameSettings.Base.Character.FreeMoveSpeed > 0f);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,72,editor-builder,"var data=new SerializedObject(coop);var supports=data.FindProperty(""ropeSupports"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,74,editor-builder,"Check(""four plus A03 original rope"",new SerializedObject(UnityEngine.Object.FindAnyObjectByType<TightropeCourse>()).FindProperty(""sceneRopes"").arraySize==5);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,75,editor-builder,"Check(""button and return gate"",data.FindProperty(""button"").objectReferenceValue!=null&&data.FindProperty(""returnGate"").objectReferenceValue!=null);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowAudit.cs,76,editor-builder,"Check(""carried original trampoline"",coop.Trampoline!=null&&new SerializedObject(coop.Trampoline).FindProperty(""requireCarrierForBounce"").boolValue);"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,53,editor-builder,"data.FindProperty(""rotationSpeed"").floatValue=105;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,54,editor-builder,"data.FindProperty(""periodSeconds"").floatValue=4.2f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,76,editor-builder,"var data=new SerializedObject(station); data.FindProperty(""boardingDistance"").floatValue=2.75f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,77,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue=6; data.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,85,editor-builder,"var data=new SerializedObject(trampoline);data.FindProperty(""groundBounceAirControlSpeed"").floatValue=6;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,98,editor-builder,"var anchor=data.FindProperty(prefix+""Anchor"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,103,editor-builder,"data.FindProperty(""maxSwingAngle"").floatValue=angle;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,104,editor-builder,"data.FindProperty(""maxSwingSpeed"").floatValue=100;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,105,editor-builder,"data.FindProperty(""swingAcceleration"").floatValue=150;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,106,editor-builder,"data.FindProperty(""swingDamping"").floatValue=.65f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,107,editor-builder,"data.FindProperty(""releaseUpwardSpeed"").floatValue=2.4f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,108,editor-builder,"data.FindProperty(""maxReleaseUpwardSpeed"").floatValue=upwardCap;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,109,editor-builder,"data.FindProperty(""airControlSpeed"").floatValue=6;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFlowTuning.cs,110,editor-builder,"data.FindProperty(""grabDistance"").floatValue=2.6f;"
+Assets/Scripts/EscapeRoute/Editor/EscapeFusionValidation.cs,27,editor-builder,float radius = GameSettings.Base.Character.CapsuleRadius;
+Assets/Scripts/EscapeRoute/Editor/EscapeFusionValidation.cs,28,editor-builder,float height = GameSettings.Base.Character.CapsuleHeight;
+Assets/Scripts/EscapeRoute/Editor/EscapeFusionValidation.cs,50,editor-builder,float gravity = GameSettings.Base.Character.Gravity;
+Assets/Scripts/EscapeRoute/Editor/EscapeLoadingConnectionBuilder.cs,70,editor-builder,"campaignData.FindProperty(""campaignPosition"").vector3Value = new Vector3(-200, -16, 118.3f);"
+Assets/Scripts/EscapeRoute/Editor/EscapeLoadingConnectionBuilder.cs,91,editor-builder,data.FindProperty(field).objectReferenceValue = value;
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounters.cs,88,editor-builder,"var data = new SerializedObject(course); var list = data.FindProperty(""hazards""); int original = list.arraySize;"
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounters.cs,105,editor-builder,"Vector3 sourceSize = new SerializedObject(template).FindProperty(""boxSize"").vector3Value;"
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounters.cs,117,editor-builder,"data.FindProperty(""cue"").objectReferenceValue = cue; data.FindProperty(""visual"").objectReferenceValue = visual;"
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounters.cs,118,editor-builder,"data.FindProperty(""boxSize"").vector3Value = size; data.ApplyModifiedProperties();"
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounterValidation.cs,22,editor-builder,var character = GameSettings.Base.Character;
+Assets/Scripts/EscapeRoute/Editor/EscapeMidEncounterValidation.cs,53,editor-builder,"float depth = hazard.Kind == CannonHazardKind.GroundSaw ? .28f : new SerializedObject(hazard).FindProperty(""boxSize"").vector3Value.x;"
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,55,editor-builder,"var points = rosterData.FindProperty(""points""); points.arraySize = 4;"
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,73,editor-builder,var settings = GameSettings.Tightrope.Course;
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,78,editor-builder,"data.FindProperty(""useSceneGeometry"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,84,editor-builder,"var shape = data.FindProperty(""sceneShape"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,92,editor-builder,"var ropes = data.FindProperty(""sceneRopes""); ropes.arraySize = 1;"
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,128,editor-builder,GameSettings.Base.HudLayout.BalancePosition);
+Assets/Scripts/EscapeRoute/Editor/EscapeOriginalMechanics.cs,131,editor-builder,"data.FindProperty(""view"").objectReferenceValue = hud;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,24,editor-builder,"var model = (GameObject)sourceSlot.FindProperty(""modelPrefab"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,28,editor-builder,"slot.FindProperty(""modelPrefab"").objectReferenceValue = model;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,29,editor-builder,"slot.FindProperty(""fitToHeight"").boolValue = true;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,30,editor-builder,"slot.FindProperty(""squashWhenCrouched"").boolValue = sourceSlot.FindProperty(""squashWhenCrouched"").boolValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,34,editor-builder,"balance.FindProperty(""activeOnStart"").boolValue = false;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,39,editor-builder,"cameraData.FindProperty(""player"").objectReferenceValue = player;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,40,editor-builder,"cameraData.FindProperty(""eyeHeight"").floatValue = GameSettings.Base.Character.ModelHeight * .92f;"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,56,editor-builder,"instance.name = ""현재 플레이어 모델 · "" + GameSettings.Base.Character.ModelHeight.ToString(""0.00"") + ""m"";"
+Assets/Scripts/EscapeRoute/Editor/EscapePlayerReference.cs,70,editor-builder,instance.transform.localScale *= GameSettings.Base.Character.ModelHeight / bounds.size.y;
+Assets/Scripts/EscapeRoute/Editor/EscapePresentationUpgrade.cs,26,editor-builder,"var view = (PerformanceHUDView)new SerializedObject(display).FindProperty(""view"").objectReferenceValue;"
+Assets/Scripts/EscapeRoute/Editor/EscapeSeamFinish.cs,83,editor-builder,"float radius=GameSettings.Base.Character.CapsuleRadius,height=GameSettings.Base.Character.CapsuleHeight;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,49,editor-builder,"var ropes=new SerializedObject(course).FindProperty(""sceneRopes"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,66,editor-builder,"data.FindProperty(""forwardSpeed"").floatValue=Vector3.ProjectOnPlane(delta,Vector3.up).magnitude/seconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,67,editor-builder,"data.FindProperty(""upwardSpeed"").floatValue=(delta.y+.5f*GameSettings.Base.Character.Gravity*seconds*seconds)/seconds;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,82,editor-builder,"support.center=new Vector3(0,-GameSettings.Tightrope.Course.RopeThickness*.5f,length*.5f);"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,83,editor-builder,"support.size=new Vector3(GameSettings.Tightrope.Course.RopeWalkWidth,GameSettings.Tightrope.Course.RopeThickness,length);"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,91,editor-builder,"SetFinaleArray(data,""sceneRopes"",supports); data.FindProperty(""independentSceneRopes"").boolValue=true;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantCompletion.cs,92,editor-builder,"var shape=data.FindProperty(""sceneShape""); shape.FindPropertyRelative(""laneCount"").intValue=supports.Length;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,26,editor-builder,"float radius=GameSettings.Base.Character.CapsuleRadius,height=GameSettings.Base.Character.CapsuleHeight;"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,30,editor-builder,"var step=BallisticMotion.Step(ref velocity,Vector3.zero,GameSettings.Base.Character.Gravity,1f/120);"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,69,editor-builder,var feet=trampoline.Surface+direction*trampoline.CarryMoveSpeed*t+Vector3.up*(trampoline.UpwardSpeed*t-.5f*GameSettings.Base.Character.Gravity*t*t);
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,70,editor-builder,"closest=Mathf.Min(closest,Vector3.Distance(feet+Vector3.up*GameSettings.Base.Character.CapsuleHeight*.5f,pole.Grip.position));"
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,92,editor-builder,var feet=trampoline.Surface+direction*trampoline.CarryMoveSpeed*t+Vector3.up*(trampoline.UpwardSpeed*t-.5f*GameSettings.Base.Character.Gravity*t*t);
+Assets/Scripts/EscapeRoute/Editor/EscapeVariantTraversalValidation.cs,93,editor-builder,"closest=Mathf.Min(closest,Vector3.Distance(feet+Vector3.up*GameSettings.Base.Character.CapsuleHeight*.5f,first.Grip.position));"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,63,editor-builder,"var left = sawData.FindProperty(""leftDoorHinge"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,64,editor-builder,"var right = sawData.FindProperty(""rightDoorHinge"").objectReferenceValue as Transform;"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,92,editor-builder,"var gateData = new SerializedObject(puzzle); var hide = gateData.FindProperty(""hideOnOpen"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,124,editor-builder,"var settings = AssetDatabase.LoadAssetAtPath<BaseGameSettings>(""Assets/Resources/Settings/GameSettings/BaseGameSettings.asset"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,126,editor-builder,"so.FindProperty(""spaceTransition.escapeRouteScene"").stringValue = ""escape_route"";"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,127,editor-builder,"var voice = so.FindProperty(""voiceChat.scenes"");"
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,225,editor-builder,{ var so=new SerializedObject(target); so.FindProperty(field).objectReferenceValue=value; so.ApplyModifiedPropertiesWithoutUndo(); }
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,227,editor-builder,{ var so=new SerializedObject(target); so.FindProperty(field).vector3Value=value; so.ApplyModifiedPropertiesWithoutUndo(); }
+Assets/Scripts/EscapeRoute/Editor/EscapeWaitingRoomLinkBuilder.cs,229,editor-builder,{ var so=new SerializedObject(target); var p=so.FindProperty(field); p.arraySize=values.Length; for(int i=0;i<values.Length;i++) p.GetArrayElementAtIndex(i).objectReferenceValue=values[i]; so.ApplyModifiedPropertiesWithoutUndo(); }
+Assets/Scripts/CharacterArt/Editor/PlayerAppearanceCatalogEditor.cs,17,editor-builder,root.Add(new PropertyField(serializedObject.FindProperty(name)));
+Assets/Scripts/CharacterArt/Editor/PlayerAppearanceCatalogEditor.cs,18,editor-builder,"var slots = serializedObject.FindProperty(""defaults"");"

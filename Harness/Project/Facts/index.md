@@ -1,5 +1,7 @@
 # Project Facts
 
+- [Final-build/](Final-build/index.md) — 최종 빌드 개선의 Confluence 기준·확정 방향·미검증 범위를 확인할 때
+
 - [Pursuit/](Pursuit/index.md) — 추격자 외형·봉제·혈흔·기존 FBX 비율을 다룰 때
 
 - [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목

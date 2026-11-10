@@ -10,6 +10,14 @@ namespace CurtainCall.Player
     /// </summary>
     public class PlayerInteraction : MonoBehaviour
     {
+        /// <summary>몸 상태를 읽어 호스트·클라이언트가 같은 근접 상호작용 거리를 사용한다.</summary>
+        public static float RestrictReach(float distance, Component actor)
+        {
+            if (distance < 0f || actor == null) return -1f;
+            float scale = actor.TryGetComponent<PlayerCondition>(out var condition)
+                ? GameSettings.Base.BodyDamage.ReachMultiplier(condition.LostArmCount) : 1f;
+            return distance <= GameSettings.Base.Interaction.Distance * scale ? distance : -1f;
+        }
         /// <summary>발 원점 대신 현재 몸통 중심을 사용한다. 비활성 충돌체도 같은 위치를 반환한다.</summary>
         public static Vector3 Center(Component actor)
         {
@@ -19,8 +27,40 @@ namespace CurtainCall.Player
         }
 
         /// <summary>대상 중심의 구형 상호작용 범위. 입력·호스트·안내에서 함께 사용한다.</summary>
-        public static bool InRange(Component actor, Vector3 target, float radius) => actor != null
-            && float.IsFinite(radius) && radius > 0f && (Center(actor) - target).sqrMagnitude <= radius * radius;
+        public static bool InRange(Component actor, Vector3 target, float radius, Transform targetRoot = null) => actor != null
+            && float.IsFinite(radius) && radius > 0f && (Center(actor) - target).sqrMagnitude <= radius * radius
+            && ClearPath(actor, target, targetRoot);
+
+        static readonly RaycastHit[] reachHits = new RaycastHit[64];
+        static readonly Collider[] reachOverlaps = new Collider[32];
+
+        public static bool ClearPath(Component actor, Vector3 target, Transform targetRoot = null) => actor != null
+            && ClearPathFrom(Center(actor), target, targetRoot, actor);
+
+        /// <summary>몸 중심부터 대상까지 같은 경로를 검사한다. 층·벽은 차단하고 대상 자체와 사람은 제외한다.</summary>
+        public static bool ClearPathFrom(Vector3 origin, Vector3 target, Transform targetRoot, Component actor = null)
+        {
+            Vector3 delta = target - origin;
+            float distance = delta.magnitude;
+            if (!float.IsFinite(distance)) return false;
+            int overlaps = Physics.OverlapSphereNonAlloc(origin, .01f, reachOverlaps,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (overlaps == reachOverlaps.Length) return false;
+            for (int i = 0; i < overlaps; i++)
+                if (Blocks(reachOverlaps[i], targetRoot, actor)) return false;
+            if (distance < .01f) return true;
+            int count = Physics.RaycastNonAlloc(origin, delta / distance, reachHits, Mathf.Max(0, distance - .01f),
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (count == reachHits.Length) return false;
+            for (int i = 0; i < count; i++)
+                if (Blocks(reachHits[i].collider, targetRoot, actor)) return false;
+            return true;
+        }
+
+        static bool Blocks(Collider hit, Transform targetRoot, Component actor) => hit != null
+            && (targetRoot == null || !hit.transform.IsChildOf(targetRoot))
+            && (actor == null || !hit.transform.IsChildOf(actor.transform))
+            && hit.GetComponentInParent<PlayerMover>() == null;
 
         /// <summary>상호작용 요청(외줄: 목마 연결 시도, F 짧게).</summary>
         public event Action InteractRequested;

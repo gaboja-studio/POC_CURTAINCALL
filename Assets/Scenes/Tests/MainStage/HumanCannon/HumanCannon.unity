@@ -603,11 +603,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 111257988}
   seat: {fileID: 1411399882}
   muzzle: {fileID: 1983623797}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!4 &6958373
 Transform:
   m_ObjectHideFlags: 0
@@ -2230,7 +2227,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &32851466
 Transform:
@@ -15519,7 +15515,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &224691618
 Transform:
@@ -17374,7 +17369,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 0
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &245393158
 Transform:
@@ -22329,11 +22323,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 618742501}
   seat: {fileID: 1239793022}
   muzzle: {fileID: 1303880842}
-  boardingDistance: 2
   forwardSpeed: 11.79
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &309496921
 GameObject:
   m_ObjectHideFlags: 0
@@ -27511,28 +27502,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1325123808}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1307302898}
   leftCable: {fileID: 737035054}
   rightCable: {fileID: 1499158811}
   leftAnchor: {fileID: 530483749}
   rightAnchor: {fileID: 1118429367}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  continuousSwingInput: 0
-  releaseUpwardSpeed: 6
-  horizontalReleaseMultiplier: 1
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
-  releaseHorizontalSpeedLimit: 0
 --- !u!114 &391449864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30970,7 +30945,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &445642875
 Transform:
@@ -34028,7 +34002,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &494009332
 Transform:
@@ -48026,7 +47999,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 0
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &551171403
 Transform:
@@ -57787,7 +57759,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 0
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &683296579
 Transform:
@@ -59427,11 +59398,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce2dededdc8e928418a33ba2f9d95bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonSystem
-  injuries:
-    oneLegMove: 0.8
-    oneLegAir: 0.8
-    twoLegAir: 0.8
-    oneArmInteractionSeconds: 0.6
   stations:
   - {fileID: 6958372}
   - {fileID: 908843055}
@@ -66449,28 +66415,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 656683570}
   linkedGate: {fileID: 0}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1289407534}
   leftCable: {fileID: 1339226493}
   rightCable: {fileID: 1535517942}
   leftAnchor: {fileID: 589781797}
   rightAnchor: {fileID: 1149801284}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 0
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  continuousSwingInput: 0
-  releaseUpwardSpeed: 6
-  horizontalReleaseMultiplier: 1
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
-  releaseHorizontalSpeedLimit: 0
 --- !u!114 &735849984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66959,9 +66909,6 @@ MonoBehaviour:
   - {fileID: 735849983}
   - {fileID: 1819786791}
   - {fileID: 391449863}
-  useGrabFacing: 0
-  allowPlatformJumpGrab: 0
-  independentInteraction: 0
 --- !u!4 &739255938
 Transform:
   m_ObjectHideFlags: 0
@@ -71994,11 +71941,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 556675683}
   seat: {fileID: 161071395}
   muzzle: {fileID: 569124315}
-  boardingDistance: 2
   forwardSpeed: 7.2959137
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &810490189
 GameObject:
   m_ObjectHideFlags: 0
@@ -72136,7 +72080,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &811148990
 Transform:
@@ -72547,7 +72490,6 @@ MonoBehaviour:
   speed: 0.7
   halfWidth: 25
   height: 24
-  killOnContact: 1
   available: 1
   stageSpeedMultipliers:
   - 1.3
@@ -72987,11 +72929,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 464944505}
   seat: {fileID: 2121013094}
   muzzle: {fileID: 2090756333}
-  boardingDistance: 2
   forwardSpeed: 7.999999
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &822138172
 GameObject:
   m_ObjectHideFlags: 0
@@ -74383,7 +74322,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &842095135
 Transform:
@@ -76433,11 +76371,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 428981239}
   seat: {fileID: 276055911}
   muzzle: {fileID: 1549834692}
-  boardingDistance: 2
   forwardSpeed: 11.79
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &871091490
 GameObject:
   m_ObjectHideFlags: 0
@@ -77747,11 +77682,7 @@ MonoBehaviour:
   halfSize: {x: 2, y: 2}
   circularSurface: 1
   usePropOutline: 1
-  requireCarrierForBounce: 1
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
-  grabDistance: 4
-  upwardSpeed: 12
-  groundBounceAirControlSpeed: 4.5
   resetPoseOnRestart: 1
 --- !u!4 &889164005
 Transform:
@@ -79120,11 +79051,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 445852788}
   seat: {fileID: 1743871415}
   muzzle: {fileID: 933020678}
-  boardingDistance: 2
   forwardSpeed: 7.2959137
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &909359354
 GameObject:
   m_ObjectHideFlags: 0
@@ -81042,7 +80970,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &930613299
 Transform:
@@ -86867,11 +86794,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 7356427}
   seat: {fileID: 919260768}
   muzzle: {fileID: 1974113487}
-  boardingDistance: 2
   forwardSpeed: 8.079266
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &1031387887
 GameObject:
   m_ObjectHideFlags: 0
@@ -93345,7 +93269,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &1138544349
 Transform:
@@ -105817,7 +105740,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &1243086865
 Transform:
@@ -129589,7 +129511,6 @@ MonoBehaviour:
   speed: 0.7
   halfWidth: 25
   height: 24
-  killOnContact: 1
   available: 0
   stageSpeedMultipliers: []
   stageLines: []
@@ -133905,11 +133826,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 1428715481}
   seat: {fileID: 1401491956}
   muzzle: {fileID: 1890476436}
-  boardingDistance: 2
   forwardSpeed: 11.79
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &1589311046
 GameObject:
   m_ObjectHideFlags: 0
@@ -134233,7 +134151,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &1595126905
 Transform:
@@ -136232,7 +136149,6 @@ MonoBehaviour:
   bladeHalfThickness: 0.12
   rotationSpeed: 720
   authoredPath: 1
-  fireSeversLimbs: 0
   showRail: 0
 --- !u!4 &1622125726
 Transform:
@@ -141770,11 +141686,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 1503850858}
   seat: {fileID: 309975892}
   muzzle: {fileID: 1351580988}
-  boardingDistance: 2
   forwardSpeed: 11.79
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &1708035843
 GameObject:
   m_ObjectHideFlags: 0
@@ -151416,28 +151329,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1313896094}
   linkedGate: {fileID: 180301946}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1494150582}
   leftCable: {fileID: 1475445117}
   rightCable: {fileID: 1689111498}
   leftAnchor: {fileID: 678155276}
   rightAnchor: {fileID: 1013767202}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 40
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  continuousSwingInput: 0
-  releaseUpwardSpeed: 6
-  horizontalReleaseMultiplier: 1
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
-  releaseHorizontalSpeedLimit: 0
 --- !u!4 &1789996986
 Transform:
   m_ObjectHideFlags: 0
@@ -154442,28 +154339,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 823159483}
   linkedGate: {fileID: 1195873121}
-  riderCapacity: 1
-  riderSpacing: 0.8
   visualBar: {fileID: 1303567701}
   leftCable: {fileID: 883259034}
   rightCable: {fileID: 1855661855}
   leftAnchor: {fileID: 1487614197}
   rightAnchor: {fileID: 237571951}
-  hangLength: 1.5
-  grabDistance: 3
-  requireClearGrabPath: 0
-  holdSeconds: 40
   warningSeconds: 2
-  swingAcceleration: 180
-  maxSwingAngle: 50
-  maxSwingSpeed: 100
-  swingDamping: 0.4
-  continuousSwingInput: 0
-  releaseUpwardSpeed: 6
-  horizontalReleaseMultiplier: 1
-  maxReleaseUpwardSpeed: 0
-  airControlSpeed: 4.5
-  releaseHorizontalSpeedLimit: 0
 --- !u!114 &1819786792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163485,11 +163366,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 207220564}
   seat: {fileID: 18662039}
   muzzle: {fileID: 1264954819}
-  boardingDistance: 2
   forwardSpeed: 8.079266
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &1957524715
 GameObject:
   m_ObjectHideFlags: 0

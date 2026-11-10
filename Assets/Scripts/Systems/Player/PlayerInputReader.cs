@@ -22,6 +22,7 @@ namespace CurtainCall.Player
         InputAction move;
         InputAction posture;
         InputAction action;
+        InputAction turnAround;
         InputAction auxLeft;
         InputAction auxRight;
         InputAction interact;
@@ -35,6 +36,8 @@ namespace CurtainCall.Player
 
         /// <summary>이번 프레임의 입력(공통 역할 값).</summary>
         public PlayerInputFrame Current { get; private set; }
+        /// <summary>상호작용 패널을 닫을 때도 사용자가 바꾼 공통 키 매핑을 따른다.</summary>
+        public bool WasPressedThisFrame(string actionName) => commonMap?.FindAction(actionName, false)?.WasPressedThisFrame() == true;
 
         public string BindingLabel(string actionName, string fallback)
         {
@@ -79,6 +82,7 @@ namespace CurtainCall.Player
             move = commonMap.FindAction("Move", true);
             posture = commonMap.FindAction("Posture", true);
             action = commonMap.FindAction("Action", true);
+            turnAround = commonMap.FindAction("TurnAround", false);
             auxLeft = commonMap.FindAction("DirectionLeft", true);
             auxRight = commonMap.FindAction("DirectionRight", true);
             interact = commonMap.FindAction("Interact", true);
@@ -101,6 +105,7 @@ namespace CurtainCall.Player
 
         public void ClearPendingInput()
         {
+            CommonInteractionSelection.Forget(this);
             Current = default;
             interactPressedAt = -1f;
             interactLongSent = false;
@@ -152,6 +157,7 @@ namespace CurtainCall.Player
                 Move = moveKeys.Read(move),
                 Posture = postureKeys.Read(posture),
                 ActionPressed = action.WasPressedThisFrame(),
+                TurnAroundPressed = turnAround != null && turnAround.WasPressedThisFrame(),
                 AuxDirection = auxKeys.Update(auxLeft.IsPressed(), auxRight.IsPressed()),
                 InteractTapped = tapped,
                 InteractHeld = interact.IsPressed(),
@@ -161,6 +167,7 @@ namespace CurtainCall.Player
                 CrouchHeld = crouch.IsPressed(),
                 UvLightHeld = uvLight != null && uvLight.IsPressed(),
             };
+            CommonInteractionSelection.Selected(this);
         }
 
         /// <summary>짧게 = 기준 시간 전에 뗌(뗀 프레임), 길게 = 기준 시간에 닿음(그 프레임, 뗄 때는 아무것도 안 나감).</summary>

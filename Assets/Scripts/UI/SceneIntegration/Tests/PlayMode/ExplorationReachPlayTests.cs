@@ -31,8 +31,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             {
                 root.SetActive(true); Physics.SyncTransforms();
                 var type = shelf.GetType();
-                float Local(Vector3 feet) => (float)type.GetMethod("Reach").Invoke(shelf, new object[] { feet });
-                bool Host(Vector3 feet) => (bool)type.GetMethod("CanUse").Invoke(null, new object[] { feet });
+                float Local(Vector3 feet) => (float)type.GetMethod("Reach").Invoke(shelf, new object[] { feet, null });
+                bool Host(Vector3 feet) => (bool)type.GetMethod("CanUse").Invoke(null, new object[] { feet, null });
                 var front = at + Vector3.forward;
                 foreach (var feet in new[] { front, front + Vector3.down * 5, front + Vector3.up * 5 })
                 { Assert.Less(Local(feet), 0); Assert.IsFalse(Host(feet)); }
@@ -49,7 +49,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.WaitingRoom." + name)).First(t => t != null);
-        static float Reach(Component c, Vector3 feet) => (float)T("IExplorationTarget").GetMethod("Reach").Invoke(c, new object[] { feet });
+        static float Reach(Component c, Vector3 feet) => (float)T("IExplorationTarget").GetMethod("Reach").Invoke(c, new object[] { feet, null });
         [UnityTest]
         public IEnumerator ExplorationReach_RejectsOtherFloorsAndWallsForEveryTargetKind()
         {

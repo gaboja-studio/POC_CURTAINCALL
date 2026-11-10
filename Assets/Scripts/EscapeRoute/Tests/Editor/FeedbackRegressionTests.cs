@@ -13,28 +13,21 @@ namespace CurtainCall.EscapeRoute.Tests
         const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
 
-        [TestCase(0, 1)] [TestCase(45, 1)] [TestCase(135, -1)] [TestCase(180, -1)]
-        public void RopeControlsFollowTheViewAtBothEnds(float angle, int expected)
-        {
-            var resolve = T("CurtainCall.Player.TightropeControlScheme").GetMethod("ResolveViewSign");
-            foreach (float courseYaw in new[] { 0f, 48f, 90f, 180f, 271f })
-            {
-                Vector3 rope = Quaternion.Euler(0, courseYaw, 0) * Vector3.forward;
-                Vector3 view = Quaternion.Euler(0, angle, 0) * rope;
-                int sign = (int)resolve.Invoke(null, new object[] { view, rope, 1 });
-                Assert.That(sign, Is.EqualTo(expected));
-                Assert.That(Vector3.Dot(view, rope * sign), Is.GreaterThan(0));
-                Assert.That(Vector3.Dot(Vector3.Cross(Vector3.up, view), Vector3.Cross(Vector3.up, rope) * sign), Is.GreaterThan(0));
-            }
-        }
-
         [Test]
-        public void LookingAcrossTheRopeDoesNotFlipHeldControlsEveryFrame()
+        public void RopeViewSignDoesNotChangeWithCameraOrCharacterYaw()
         {
-            var resolve = T("CurtainCall.Player.TightropeControlScheme").GetMethod("ResolveViewSign");
-            foreach (int previous in new[] { -1, 1 })
-                foreach (float angle in new[] { 86f, 90f, 94f })
-                    Assert.That(resolve.Invoke(null, new object[] { Quaternion.Euler(0, angle, 0) * Vector3.forward, Vector3.forward, previous }), Is.EqualTo(previous));
+            var go = new GameObject("Rope facing fixture");
+            var mover = go.AddComponent(T("CurtainCall.Player.PlayerMover"));
+            try
+            {
+                foreach (float yaw in new[] { 0f, 90f, 135f, 180f, 270f })
+                {
+                    go.transform.rotation = Quaternion.Euler(0, yaw, 0);
+                    Assert.That(T("CurtainCall.Player.TightropeControlScheme").GetMethod("LocalViewSign")
+                        .Invoke(null, new object[] { mover }), Is.EqualTo(1));
+                }
+            }
+            finally { Object.DestroyImmediate(go); }
         }
 
         [Test]

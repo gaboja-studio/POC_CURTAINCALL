@@ -121,7 +121,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(0f)]
         [TestCase(6f)]
-        public void GrabSplitsTheWallIntoOpenHalvesThatStayOpenAndKeepCutting(float floorHeight)
+        public void GrabOpensWallAndReleaseRestoresClosedWallAndFallenBlades(float floorHeight)
         {
             gateObject.transform.position = Vector3.up * floorHeight;
             var visual = new GameObject("SawVisual").transform;
@@ -171,10 +171,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
             Present(PoleSawPhase.Active, false, 2.5d);
             Animate(10f);
-            Assert.That(gate.IsOpen, Is.True, "한 번 열리면 톱이 다시 돌아도 닫히지 않는다.");
-            Assert.That(Inner(right, -1f) - Inner(left, 1f), Is.EqualTo(6f).Within(0.01f));
-            Assert.That(gate.GoneBladeCount, Is.EqualTo(2), "낙하 부상 높이에 닿은 톱은 사라진다.");
-            Assert.That(leftOuter.gameObject.activeSelf || rightOuter.gameObject.activeSelf, Is.False);
+            Assert.That(gate.IsOpen, Is.False, "직접 잡은 사람이 놓으면 스위치가 즉시 해제된다.");
+            Assert.That(Inner(right, -1f) - Inner(left, 1f), Is.LessThan(.01f));
+            Assert.That(gate.GoneBladeCount, Is.Zero);
+            Assert.That(leftOuter.gameObject.activeSelf && rightOuter.gameObject.activeSelf, Is.True);
             Assert.That(leftRotor.gameObject.activeSelf, Is.True);
 
             typeof(HumanCannonSawGate).GetMethod("ResetGate", InternalInstance).Invoke(gate, null);
@@ -230,7 +230,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         void Present(PoleSawPhase phase, bool passed, double time = 0d)
         {
             typeof(HumanCannonSawGate).GetMethod("Present", InternalInstance)
-                .Invoke(gate, new object[] { phase, passed, false, time });
+                .Invoke(gate, new object[] { phase, passed, phase == PoleSawPhase.Retracted, time });
         }
 
         Vector3 Constrain(Vector3 from, Vector3 displacement)

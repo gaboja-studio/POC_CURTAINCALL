@@ -151,7 +151,7 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var root = New(Group(room), field, at); var visual = Shape(root, "Visual", Vector3.up * size.y * .5f, size, kind == ExplorationGateKind.Breakable ? wood : metal);
             var gate = Undo.AddComponent<ExplorationGate>(root.gameObject); Set(gate, "targetId", "structure-a:" + field); Set(gate, "kind", (int)kind); Set(gate, "label", label);
-            Set(gate, "reach", 2f); Set(gate, "hiddenVisuals", new Object[] { visual.gameObject });
+            Set(gate, "hiddenVisuals", new Object[] { visual.gameObject });
             if (solid) { var block = Undo.AddComponent<BoxCollider>(root.gameObject); block.center = Vector3.up * size.y * .5f; block.size = size; Set(gate, "blocker", block); }
             if (kind != ExplorationGateKind.Monitor && kind != ExplorationGateKind.Keypad) Set(gate, "hideOnOpen", new Object[] { visual.gameObject });
             refs[field] = gate; Record(label, at); return gate;

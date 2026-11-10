@@ -262,14 +262,18 @@ namespace CurtainCall.Tightrope.Fire
                 float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : 0f;
                 if (TryContact(player.transform.position, radius, Elapsed, false, out var kind, out int index))
                     Kill(player, kind, index, course.GetDistance(player.transform.position));
+                else fireContacts.Remove(player.OwnerClientId);
             }
         }
 
         void Kill(NetworkPlayer player, FireKind kind, int segment, float distance)
         {
-            if (!player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,"FIRE_"+kind+"_"+segment)) return;
-            // 화염에 맞은 사람만 사망시키고 구조 상태는 같은 호스트 판정에서 즉시 정리한다.
-            TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
+            var contact = (kind, segment);
+            if (fireContacts.TryGetValue(player.OwnerClientId, out var previous) && previous == contact) return;
+            fireContacts[player.OwnerClientId] = contact;
+            var damage = kind == FireKind.Chase ? CurtainCall.Damage.HazardDamageKind.FatalFire : CurtainCall.Damage.HazardDamageKind.OrdinaryFire;
+            if (!player.ServerHazardContact(damage, "FIRE_"+kind+"_"+segment, NetworkPlayer.DeathOrigin.FirePillar)) return;
+            if (kind == FireKind.Chase) TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
             Hit?.Invoke(new FireHit(player, kind, segment, round, elapsed, distance));
             Debug.Log($"[Fire] 회차 {round} · 슬롯 {player.Slot} · {kind}({segment}) · {elapsed:0.00}s · {distance:0.00}m", this);
         }

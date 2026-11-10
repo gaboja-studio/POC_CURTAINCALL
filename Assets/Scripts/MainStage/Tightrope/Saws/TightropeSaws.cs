@@ -121,8 +121,6 @@ namespace CurtainCall.Tightrope.Saws
         float platePressedFor;
         readonly HashSet<(int saw, ulong player)> touching = new();
         readonly HashSet<(int saw, ulong player)> touchingNow = new();
-        readonly Dictionary<(int saw, ulong player), float> lastHitAt = new();
-        readonly Dictionary<ulong, float> lastPlayerCutAt = new();
 
         /// <summary>씬의 톱날. 없으면 null.</summary>
         public static TightropeSaws Current
@@ -303,8 +301,6 @@ namespace CurtainCall.Tightrope.Saws
             ResetCooperativeGates();
             platePressedFor = 0f;
             touching.Clear();
-            lastHitAt.Clear();
-            lastPlayerCutAt.Clear();
             verticalStep = -1;
             waitReasons.Clear();
             sequence = new ObstacleSequence(settings.steps);
@@ -604,17 +600,11 @@ namespace CurtainCall.Tightrope.Saws
             var key = (sawKey, player.NetworkObjectId);
             touchingNow.Add(key);
             if (touching.Contains(key)) return;
-            if (lastHitAt.TryGetValue(key, out float last) && Time.time - last < settings.hitCooldown) return;
-            // 톱 종류가 달라도 같은 접촉 순간에 팔다리가 여러 개 잘리지 않는다.
-            if (lastPlayerCutAt.TryGetValue(player.NetworkObjectId, out float playerLast)
-                && Time.time - playerLast < settings.hitCooldown) return;
-            lastHitAt[key] = Time.time;
 
             // 기존 공용 순서로 한 부위만 자른다. 버튼을 일찍 누른 상층도 실제 톱의 접촉을 면제하지 않는다.
             var requested = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight);
-            BodyPart cut = player.ServerCut(1, "SAW_"+kind.ToString().ToUpperInvariant()+"_"+index,NetworkPlayer.DeathOrigin.Hazard);
+            BodyPart cut = player.ServerHazardCut("SAW_"+kind.ToString().ToUpperInvariant()+"_"+index,NetworkPlayer.DeathOrigin.Hazard);
             if (cut == BodyPart.None) return;
-            lastPlayerCutAt[player.NetworkObjectId] = Time.time;
             var hit = new SawHit(player, cut, requested, kind, index, contact, contact.y - body.Feet.y);
             RaiseHit(hit);
             BroadcastHit(hit);

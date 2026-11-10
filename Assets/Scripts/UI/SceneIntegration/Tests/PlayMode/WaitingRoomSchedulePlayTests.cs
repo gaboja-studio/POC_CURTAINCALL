@@ -358,7 +358,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var point = (Vector3)Get(pickup, "PresentationPoint");
             Call(player.GetComponent(T("CurtainCall.Player.PlayerMover")), "SetStartPose", new Vector3(point.x + 2f, map[0].transform.position.y + .1f, point.z), Quaternion.identity);
             yield return new WaitForSecondsRealtime(.2f);
-            Assert.GreaterOrEqual((float)Call(pickup, "Reach", player.transform.position), 0f, "F가 닿는다");
+            Assert.GreaterOrEqual((float)Call(pickup, "Reach", player.transform.position, player), 0f, "F가 닿는다");
             Call(pickup, "Interact");
             yield return new WaitForSecondsRealtime(.3f);
             Assert.AreEqual(true, Call(run, "IsTrickUnlocked", "HumanCannon"));

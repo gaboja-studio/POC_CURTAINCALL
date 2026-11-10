@@ -73,7 +73,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (relay != null && relay.IsActive)
             {
                 if (relay.IsHeld(local))
-                    return ShowOnce("relay-held", TightropeGuideProgress.HoldText(course.Shape.RelayHoldSeconds));
+                    return ShowOnce("relay-held", TightropeGuideProgress.HoldText(CurtainCall.Settings.GameSettings.Poles.HoldSeconds));
                 float distance = course.GetDistance(local.transform.position);
                 if (Mathf.Abs(distance - relay.EntryDistance) <= sawDistance || Mathf.Abs(distance - relay.ExitDistance) <= sawDistance)
                     if (ShowOnce("relay-approach", "F를 눌러 매달리고 길을 만드세요")) return true;

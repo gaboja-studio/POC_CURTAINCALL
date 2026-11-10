@@ -30,7 +30,7 @@ namespace CurtainCall.HumanCannon
                 for (var item = transform; item != null; item = item.parent) path.Append('/').Append(item.GetSiblingIndex());
                 ownerContacts = new OwnerContactChannel("CurtainCall.HumanCannon.Gate.Contact.v2:" + path,
                     () => 1, _ => 0, ReportedGateContactAt,
-                    (player, _) => player.ServerCut());
+                    (player, _) => player.ServerHazardCut());
             }
             ownerContacts.Tick(session, now, isActiveAndEnabled
                 && (HumanCannonDestination.Current == null || !HumanCannonDestination.Current.IsResolved), false);

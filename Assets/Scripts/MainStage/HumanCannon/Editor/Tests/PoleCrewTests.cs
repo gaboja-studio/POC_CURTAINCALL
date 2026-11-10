@@ -109,23 +109,20 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             => Assert.That(HumanCannonPoleSystem.SharedDrive(sum, count), Is.EqualTo(expected).Within(.0001f));
 
         [Test]
-        public void SeatSpacingUsesBarRightAxisAndDoesNotChangeSwingHeight()
+        public void AllPolesUseTwoVerticalSeatsRegardlessOfLegacyCapacityOrGate()
         {
             var root = new GameObject("Crew seat geometry") { hideFlags = HideFlags.HideAndDontSave };
             try
             {
                 var pole = root.AddComponent<HumanCannonPole>();
-                typeof(HumanCannonPole).GetField("riderCapacity", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(pole, 4);
+                Assert.IsNull(typeof(HumanCannonPole).GetField("riderCapacity", BindingFlags.Instance | BindingFlags.NonPublic));
                 root.transform.rotation = Quaternion.Euler(0, 37, 0);
-                for (int i = 0; i < 3; i++)
-                {
-                    Vector3 span = pole.HangingPosition(25, i + 1) - pole.HangingPosition(25, i);
-                    Assert.That(Vector3.Distance(span, root.transform.right * .8f), Is.LessThan(.001f));
-                    Assert.That(pole.HangingPosition(25, i).y, Is.EqualTo(pole.HangingPosition(25).y).Within(.001f));
-                }
+                Vector3 span = pole.HangingPosition(25, 1) - pole.HangingPosition(25, 0);
+                Assert.That(Vector3.Distance(span, Vector3.down * 1.45f), Is.LessThan(.001f));
+                Assert.That(pole.RiderCapacity, Is.EqualTo(2));
                 var gate = root.AddComponent<HumanCannonSawGate>();
                 typeof(HumanCannonPole).GetField("linkedGate", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(pole, gate);
-                Assert.That(pole.RiderCapacity, Is.EqualTo(1));
+                Assert.That(pole.RiderCapacity, Is.EqualTo(2));
             }
             finally { Object.DestroyImmediate(root); }
         }
@@ -156,7 +153,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             root.SetActive(false);
             receiver = root.AddComponent<HumanCannonPoleSystem>();
             var pole = root.AddComponent<HumanCannonPole>();
-            typeof(HumanCannonPole).GetField("riderCapacity", Instance).SetValue(pole, 4);
+            Assert.IsNull(typeof(HumanCannonPole).GetField("riderCapacity", Instance));
             typeof(HumanCannonPoleSystem).GetField("poles", Instance).SetValue(receiver, new[] { pole });
             Type type = typeof(HumanCannonPoleSystem).GetNestedType("Runtime", BindingFlags.NonPublic);
             runtime = Activator.CreateInstance(type, new object[] { 4 });
@@ -185,33 +182,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void GrabUsesViewBeforeBodyAndApproachWhenChoosingASide()
+        public void LegacyReverseFacingSnapshotsCannotChangeTheSharedPoleDirection()
         {
-            var select = typeof(HumanCannonPoleSystem).GetMethod("ReversedAtGrab", BindingFlags.Static | BindingFlags.NonPublic);
-            bool Reversed(Vector3 view, Vector3 body, Vector3 approach) =>
-                (bool)select.Invoke(null, new object[] { Vector3.forward, view, body, approach });
-            Assert.IsTrue(Reversed(Vector3.back + Vector3.up, Vector3.forward, Vector3.forward));
-            Assert.IsFalse(Reversed(Vector3.forward, Vector3.back, Vector3.back));
-            Assert.IsTrue(Reversed(Vector3.right, Vector3.back, Vector3.forward));
-            Assert.IsTrue(Reversed(Vector3.up, Vector3.left, Vector3.back));
-            Assert.IsFalse(Reversed(Vector3.up, Vector3.right, Vector3.zero));
-        }
-
-        [Test]
-        public void ReverseFacingStaysWithItsOccupiedSeatOnLateJoinAndRelease()
-        {
-            typeof(HumanCannonPoleSystem).GetField("useGrabFacing", Instance).SetValue(receiver, true);
+            Assert.IsNull(typeof(HumanCannonPoleSystem).GetField("useGrabFacing", Instance));
             root.transform.rotation = Quaternion.Euler(0f, 37f, 0f);
-            Deliver(Two, 8, reversedSeats: 4);
+            Deliver(Two, 8);
             Assert.That(Vector3.Dot(receiver.RiderRotation(0, 7) * Vector3.forward, root.transform.forward), Is.GreaterThan(.999f));
-            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 8) * Vector3.forward, root.transform.forward), Is.LessThan(-.999f));
-            var after = Two; after[0] = Vacant;
-            Deliver(after, 9, action: 2, actor: 7, seat: 0, reversedSeats: 4);
-            Assert.IsTrue(Field<bool>(2, "ReverseFacing"));
-            Deliver(after, 10, reversedSeats: 1);
-            Assert.That(receiver.State(0).Revision, Is.EqualTo(9), "Empty seats cannot carry a facing bit.");
-            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 10, action: 4, phase: PoleSawPhase.Active);
-            Assert.IsFalse(Field<bool>(2, "ReverseFacing"));
+            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 8) * Vector3.forward, root.transform.forward), Is.GreaterThan(.999f));
+            Deliver(Two, 9, reversedSeats: 4);
+            Assert.That(receiver.State(0).Revision, Is.EqualTo(8), "옛 시점 반전 플래그는 거부한다.");
         }
 
         [Test]

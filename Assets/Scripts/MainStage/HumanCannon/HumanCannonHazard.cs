@@ -25,8 +25,6 @@ namespace CurtainCall.HumanCannon
         [SerializeField, Min(1f)] float rotationSpeed = 60f;
         [Tooltip("공용 대각선 각도와 톱 밀도를 적용하지 않고 작성한 레일(travel)과 항상 켜진 상태를 그대로 쓴다.")]
         [SerializeField] bool authoredPath;
-        [Tooltip("이 씬의 일반 화염 접촉은 즉사 대신 기존 사지 절단을 적용한다. 추격 화염벽은 별도 시스템이다.")]
-        [SerializeField] bool fireSeversLimbs;
         [Tooltip("이동 경로(파란 레일)를 보여 준다. 끄면 플레이 중에도 레일을 숨기고 톱만 보인다.")]
         [SerializeField] bool showRail = true;
         int diagonalIndex;
@@ -35,8 +33,10 @@ namespace CurtainCall.HumanCannon
         public float PeriodSeconds => periodSeconds;
         public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
         public bool UsesAuthoredPath => authoredPath;
-        public bool KillsOnContact => kind == CannonHazardKind.FallingLoad
-            || kind == CannonHazardKind.FireJet && !fireSeversLimbs;
+        public CurtainCall.Damage.HazardDamageKind DamageKind => kind == CannonHazardKind.FallingLoad
+            ? CurtainCall.Damage.HazardDamageKind.Crushing : kind == CannonHazardKind.FireJet
+            ? CurtainCall.Damage.HazardDamageKind.OrdinaryFire : CurtainCall.Damage.HazardDamageKind.CutLimb;
+        public bool KillsOnContact => CurtainCall.Damage.CommonDamageRules.IsFatal(DamageKind);
         bool UsesBoxGeometry => kind == CannonHazardKind.FallingLoad || kind == CannonHazardKind.FireJet;
         public Vector3 Travel
         {

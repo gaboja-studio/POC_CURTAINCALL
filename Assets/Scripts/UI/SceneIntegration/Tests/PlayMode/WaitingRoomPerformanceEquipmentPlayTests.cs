@@ -26,7 +26,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         void Give(object carry, ulong me, int uid, string id, int uses) =>
             Assert.AreEqual("None", Call(carry, "Receive", me, Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), uid, id, id, uses)).ToString());
 
-        [UnityTest]
+        [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator Performance_SpringShoesReboundInsteadOfFallInjuryWithoutCooldown()
         {
             yield return Launch(2, "Performance", 1, "HumanCannon", "HumanCannon");
@@ -49,11 +49,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                         var probe = boarding + Quaternion.Euler(0, a * 30f, 0) * Vector3.forward * radius + Vector3.up * 2f;
                         if (!Physics.Raycast(probe, Vector3.down, out var hit, 6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
                         if (hit.collider.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) != null) continue;
-                        if ((bool)belowCourse.Invoke(null, new object[] { hit.point }) || (bool)safeSurface.Invoke(null, new object[] { mover, hit.point })) continue;
+                        if ((bool)belowCourse.Invoke(null, new object[] { hit.point }) || !(bool)safeSurface.Invoke(null, new object[] { mover, hit.point })) continue;
                         found = hit.point;
                     }
             }
-            Assert.IsNotNull(found, "추락 부상이 나는 일반 바닥을 찾아야 한다");
+            Assert.IsNotNull(found, "실제 지지 가능한 일반 바닥을 찾아야 한다");
             Call(mover, "SetStartPose", found.Value + Vector3.up * .05f, Quaternion.identity, true);
             yield return new WaitForSecondsRealtime(.3f);
             Vector3 floor = player.transform.position;
@@ -67,6 +67,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 Call(flying, "Begin", me, 1, 900u);
+                Call(player, "BeginFallAt", floor + Vector3.up * 5f);
                 land.Invoke(system, new object[] { player, 1, 900u, 0u, floor });
                 yield return null;
                 Assert.AreEqual(1, rebounds, "다칠 바닥이면 스프링 신발이 반동한다");
@@ -75,12 +76,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsTrue((bool)Call(flying, "Matches", me, 1, 900u, 1u), "반동하면 같은 비행이 다음 구간으로 이어진다");
 
                 // 2026-11-02 사용자: 공연 기물 쿨타임 없음. 바로 다음 착지도 반동하고, 마지막 회차 뒤 신발이 사라진다.
+                Call(player, "BeginFallAt", floor + Vector3.up * 3f);
                 land.Invoke(system, new object[] { player, 1, 900u, 1u, floor });
                 yield return null;
                 Assert.AreEqual(2, rebounds, "쿨타임 없이 바로 다음 착지도 반동한다");
                 Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
                 Assert.AreEqual(0, UsesOf(carry, me, "spring-shoes"), "새 제품 내구도 2를 다 쓰면 사라진다");
 
+                Call(player, "BeginFallAt", floor + Vector3.up * 3f);
                 land.Invoke(system, new object[] { player, 1, 900u, 2u, floor });
                 yield return null;
                 Assert.AreEqual(2, rebounds, "다 쓴 뒤에는 반동하지 않는다");

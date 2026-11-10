@@ -65,8 +65,6 @@ namespace CurtainCall.HumanCannon.EditorTools
                     var data = new SerializedObject(station);
                     data.FindProperty("forwardSpeed").floatValue = 8;
                     data.FindProperty("upwardSpeed").floatValue = 12;
-                    data.FindProperty("airControlSpeed").floatValue = 3;
-                    data.FindProperty("boardingDistance").floatValue = 2;
                     data.ApplyModifiedPropertiesWithoutUndo();
                     foreach (var renderer in clone.GetComponentsInChildren<MeshRenderer>()) renderer.sharedMaterial = barrelMaterial;
                     stations.GetArrayElementAtIndex(6 + i).objectReferenceValue = station;

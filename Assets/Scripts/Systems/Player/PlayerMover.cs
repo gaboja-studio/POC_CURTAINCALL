@@ -51,6 +51,7 @@ namespace CurtainCall.Player
         bool sprintInput;
         bool crouchInput;
         bool jumpRequested;
+        double jumpBufferedUntil = double.NegativeInfinity;
         int laneJumpRequested;
         Vector3 startPosition;
         Quaternion startRotation;
@@ -90,6 +91,8 @@ namespace CurtainCall.Player
         /// 외줄 기능이 착지 자리에 동료가 있을 때 뒤쪽으로 보정하는 데 쓴다. 공중 이동 속도에 더해 착지까지 고정된다.
         /// </summary>
         public Func<int, float> LaneLandingShift { get; set; }
+        public Func<int, Vector3?> LaneLandingTarget { get; set; }
+        public Action<int> LaneJumpStarting { get; set; }
 
         /// <summary>이번 프레임 땅에서 코스 이동 중인지(조작 잠금 반영). 균형의 이동 중 흔들림 판정에 쓴다.</summary>
         public bool IsMoving { get; private set; }
@@ -206,6 +209,17 @@ namespace CurtainCall.Player
         public float CourseJumpHeightOverride { get; set; }
 
         float jumpGravity, jumpHeight;
+        Vector3 laneFlightRight, laneFlightForward;
+        double laneFlightUntil;
+        public bool IsPlannedLaneFlight => CurrentJump == JumpKind.Lane && Time.timeAsDouble <= laneFlightUntil;
+
+        /// <summary>외줄 진행 방향과 몸을 즉시 180도 바꾼다. 진행 중인 점프 궤적은 유지한다.</summary>
+        public void ReverseCourseDirection()
+        {
+            var direction = -CourseForward;
+            CourseForwardOverride = direction;
+            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
         float LaunchGravity => Character.Gravity * (FreeMovement ? 1f : Mathf.Max(0.1f, CourseJumpGravityMultiplier));
         float EffectiveGravity => CurrentJump != JumpKind.None && jumpGravity > 0f ? jumpGravity : LaunchGravity;
         float LaunchHeight => (FreeMovement || CourseJumpHeightOverride <= 0f ? Character.JumpHeight : CourseJumpHeightOverride) * jumpHeightMultiplier;
@@ -238,8 +252,13 @@ namespace CurtainCall.Player
         /// </summary>
         public float BodyHeightOverride { get; set; }
 
-        /// <summary>제자리 점프를 요청한다. 땅에 있고 조작이 켜져 있을 때만 이번 프레임에 뛴다.</summary>
-        public void RequestJump() => jumpRequested = true;
+        /// <summary>제자리 점프를 요청한다. 착지 직전 입력은 Base의 공통 유예 시간 동안 보관한다.</summary>
+        public void RequestJump()
+        {
+            if (!ControlEnabled || !Simulated || InputGate.IsBlocked) return;
+            jumpRequested = true;
+            jumpBufferedUntil = Time.timeAsDouble + GameSettings.Base.Input.JumpInputBuffer;
+        }
 
         /// <summary>옆줄 점프를 요청한다(-1 왼쪽, +1 오른쪽). 땅에 있고 조작이 켜져 있고 <see cref="LaneJumpFilter"/>가 허용할 때만 뛴다. 방향은 뛴 순간 고정된다.</summary>
         public void RequestLaneJump(int direction) => laneJumpRequested = Math.Sign(direction);
@@ -256,6 +275,19 @@ namespace CurtainCall.Player
         }
 
         /// <summary>봉 등 외부 이동과 인계할 때 이전 점프·옆줄 목표를 비운다. 위치·조작 규칙은 바꾸지 않는다.</summary>
+        public void LaunchBounce(float speed)
+        {
+            if (!float.IsFinite(speed) || speed <= 0f || controller == null) return;
+            ClearPendingInput();
+            ClearJump();
+            jumpGravity = Character.Gravity;
+            jumpHeight = speed * speed / (2f * Mathf.Max(.01f, jumpGravity));
+            CurrentJump = JumpKind.InPlace;
+            verticalSpeed = speed;
+            airVelocity = groundVelocity;
+            SetAirborne(true);
+        }
+
         public void ResetExternalMotion(bool airborne)
         {
             ClearPendingInput();
@@ -332,9 +364,9 @@ namespace CurtainCall.Player
 
         /// <summary>지금 그 방향(-1 왼쪽, +1 오른쪽)으로 옆줄 점프하면 착지할 예상 위치. 옆으로 줄 간격 + 앞뒤로 뛸 때 속도 × 공중 시간.</summary>
         public Vector3 GetLaneLandingPosition(int direction) =>
-            transform.position
+            LaneLandingTarget?.Invoke(direction) ?? (transform.position
             + CourseRight * (Math.Sign(direction) * laneSpacing)
-            + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
+            + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime));
 
         /// <summary>점프 초속(m/s). 공중에서는 이륙 시 선택한 높이·부상 배율·중력으로 계산한 값을 유지한다.</summary>
         public float JumpSpeed => Mathf.Sqrt(2f * EffectiveGravity * EffectiveJumpHeight);
@@ -365,6 +397,7 @@ namespace CurtainCall.Player
             sprintInput = crouchInput = false;
             IsSprinting = false;
             jumpRequested = false;
+            jumpBufferedUntil = double.NegativeInfinity;
             laneJumpRequested = 0;
         }
 
@@ -558,7 +591,7 @@ namespace CurtainCall.Player
                     if (LaneJumpAllowed && CanLaneJump(laneJumpRequested)) StartJump(JumpKind.Lane, laneJumpRequested);
                     else verticalSpeed = -1f; // 옆줄 점프를 막아도 제자리 점프로 바꾸지 않는다
                 }
-                else if (ControlEnabled && jumpRequested && JumpAllowed && !IsCrouched) // 앉아 있으면(일어설 공간이 없어 유지 중이어도) 뛰지 않는다
+                else if (ControlEnabled && (jumpRequested || Time.timeAsDouble <= jumpBufferedUntil) && JumpAllowed && !IsCrouched) // 앉아 있으면(일어설 공간이 없어 유지 중이어도) 뛰지 않는다
                     StartJump(JumpKind.InPlace, 0);
                 else
                     verticalSpeed = -1f; // 땅에 붙어 있도록 작은 하강 속도를 유지한다
@@ -743,8 +776,8 @@ namespace CurtainCall.Player
         /// <summary>옆줄 점프 중 옆 이동이 도착 줄을 넘어가지 않게 줄인다. 착지 지점을 앞뒤로 보정했으면 앞뒤도 그 지점에서 멈춘다.</summary>
         Vector3 LimitToLaneTarget(Vector3 step)
         {
-            step = LimitAxis(step, CourseRight, laneTargetSide);
-            return laneAlongLimited ? LimitAxis(step, CourseForward, laneTargetAlong) : step;
+            step = LimitAxis(step, laneFlightRight, laneTargetSide);
+            return laneAlongLimited ? LimitAxis(step, laneFlightForward, laneTargetAlong) : step;
         }
 
         Vector3 LimitAxis(Vector3 step, Vector3 axis, float target)
@@ -757,6 +790,7 @@ namespace CurtainCall.Player
 
         void StartJump(JumpKind kind, int laneDirection)
         {
+            jumpBufferedUntil = double.NegativeInfinity;
             jumpGravity = LaunchGravity; // 착지 전 조작 규칙이 바뀌어도 궤적과 옆줄 도착 위치를 유지한다.
             jumpHeight = LaunchHeight;
             CurrentJump = kind;
@@ -767,6 +801,24 @@ namespace CurtainCall.Player
             airVelocity = groundVelocity;
             if (kind == JumpKind.Lane)
             {
+                laneFlightRight = CourseRight;
+                laneFlightForward = CourseForward;
+                var target = LaneLandingTarget?.Invoke(laneDirection);
+                if (target.HasValue)
+                {
+                    LaneJumpStarting?.Invoke(laneDirection);
+                    Vector3 delta = target.Value - transform.position;
+                    // 출발 높이는 공통 점프값을 유지한다. 목마 위층에서 같은 높이의 옆줄로
+                    // 분리 점프하는 경우에는 몸의 출발점부터 실제 줄까지의 낙하 시간을 쓴다.
+                    float duration = verticalSpeed / jumpGravity
+                        + Mathf.Sqrt(2f * Mathf.Max(0f, jumpHeight - delta.y) / jumpGravity);
+                    laneFlightUntil = Time.timeAsDouble + duration + .2f;
+                    airVelocity = Vector3.ProjectOnPlane(delta, Vector3.up) / Mathf.Max(.01f, duration);
+                    laneTargetSide = Vector3.Dot(target.Value, laneFlightRight);
+                    laneTargetAlong = Vector3.Dot(target.Value, laneFlightForward);
+                    laneAlongLimited = true;
+                    return;
+                }
                 airVelocity += CourseRight * (laneDirection * laneSpacing / AirTime);
                 laneTargetSide = Vector3.Dot(transform.position, CourseRight) + laneDirection * laneSpacing;
 
@@ -797,7 +849,7 @@ namespace CurtainCall.Player
 
             // 착지 프레임·땅 판정 여유로 생긴 옆 오차를 없애 도착 줄 위에 정확히 세운다
             if (!airborne && CurrentJump == JumpKind.Lane)
-                controller.Move(CourseRight * (laneTargetSide - Vector3.Dot(transform.position, CourseRight))
+                controller.Move(laneFlightRight * (laneTargetSide - Vector3.Dot(transform.position, laneFlightRight))
                     + Vector3.down * controller.skinWidth); // 아래로 살짝 눌러 땅 판정을 유지한다
 
             SetAirborne(airborne);
@@ -819,6 +871,7 @@ namespace CurtainCall.Player
             LaneJumpDirection = 0;
             airVelocity = Vector3.zero;
             laneAlongLimited = false;
+            laneFlightUntil = 0;
         }
     }
 }

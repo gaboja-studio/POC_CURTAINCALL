@@ -50,7 +50,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         public bool CanReachLocal(IShopTarget target)
-        { var body = FindBody(channel.LocalClientId); return body != null && target.Reach(body.position) >= 0f; }
+        { var body = FindBody(channel.LocalClientId); return body != null && CurtainCall.Player.PlayerInteraction.RestrictReach(target.Reach(body.position, body), body) >= 0f; }
         public Vector3? LocalFeet { get { var body = FindBody(channel.LocalClientId); return body != null ? body.position : null; } }
 
         public int Hits(string target) => book.Hits(target);
@@ -193,7 +193,8 @@ namespace CurtainCall.WaitingRoom
             if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."), "UNKNOWN_TARGET");
             if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."), "ALREADY_OPEN");
             var body = FindBody(player);
-            if (body == null || target.Reach(body.position) < 0f) return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."), body == null ? "ACTOR_UNAVAILABLE" : "OUT_OF_REACH");
+            if (body == null || (target is UvMark ? target.Reach(body.position, body) : CurtainCall.Player.PlayerInteraction.RestrictReach(target.Reach(body.position, body), body)) < 0f)
+                return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."), body == null ? "ACTOR_UNAVAILABLE" : "OUT_OF_REACH");
             var carry = PropCarry.Instance;
             var tool = carry != null ? carry.InHand(player) : default;
             bool needsTool = !string.IsNullOrEmpty(target.ToolId);
@@ -211,12 +212,12 @@ namespace CurtainCall.WaitingRoom
                 if (gate.UsesKey && !gate.AcceptsKey(tool)) return (false, "맞는 열쇠를 슬롯에서 선택해야 합니다.", "WRONG_KEY");
                 if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode, "WRONG_CODE");
                 // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
-                int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
+                int slot = gate.HasKeySlots ? gate.SlotAt(body.position, body) : -1;
                 if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,
                     id => {
                         var other = FindBody(id);
-                        if (other == null || gate.Reach(other.position) < 0f) return false;
-                        if (gate.HasKeySlots && id != player && gate.SlotAt(other.position) == slot) return false;
+                        if (other == null || CurtainCall.Player.PlayerInteraction.RestrictReach(gate.Reach(other.position, other), other) < 0f) return false;
+                        if (gate.HasKeySlots && id != player && gate.SlotAt(other.position, other) == slot) return false;
                         var held = carry != null ? carry.InHand(id) : default;
                         if (gate.UsesKey && (!gate.AcceptsKey(held) || (id != player && held.ItemId == tool.ItemId))) return false;
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);

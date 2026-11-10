@@ -319,7 +319,12 @@ namespace CurtainCall.HumanCannon.Tests
         static object StaticGet(string type, string name) => GameType(type).GetProperty(name).GetValue(null);
         static object Get(object target, string name) => target.GetType().GetProperty(name, InstanceMembers) is PropertyInfo property
             ? property.GetValue(target) : target.GetType().GetField(name, InstanceMembers).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods(InstanceMembers)
-            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
+        static object Call(object target, string name, params object[] args)
+        {
+            var methods = target.GetType().GetMethods(InstanceMembers).Where(m => m.Name == name).ToArray();
+            var method = methods.SingleOrDefault(m => m.GetParameters().Length == args.Length)
+                ?? methods.Single(m => m.GetParameters().Length > args.Length && m.GetParameters().Skip(args.Length).All(p => p.IsOptional));
+            return method.Invoke(target, args.Concat(Enumerable.Repeat(Type.Missing, method.GetParameters().Length - args.Length)).ToArray());
+        }
     }
 }

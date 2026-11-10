@@ -43,7 +43,7 @@ namespace CurtainCall.WaitingRoom
             if (s.Phase == CampaignPhase.Night && run.IsLocalReady)
             {
                 var k = Keyboard.current;
-                if (blend > .2f && k != null && (k.fKey.wasPressedThisFrame || k.escapeKey.wasPressedThisFrame)) run.SetReady(false);
+                if (blend > .2f && (GetComponent<PlayerInputReader>()?.WasPressedThisFrame("Interact") == true || k != null && k.escapeKey.wasPressedThisFrame)) run.SetReady(false);
             }
             bool asleep = s.Phase == CampaignPhase.Dawn || (s.Phase == CampaignPhase.Night && run.IsLocalReady);
             if (s.Day > day && s.Phase == CampaignPhase.RestTime) morning = true;

@@ -83,12 +83,11 @@ namespace CurtainCall.EscapeRoute.EditorTools
         }
 
         static HumanCannonPole AFusedPole(Transform root, HumanCannonPole source, string name,
-            Vector3 grip, Vector3 forward, float cap = 5.2f, float suspensionLength = 4.2f)
+            Vector3 grip, Vector3 forward, float suspensionLength = 4.2f)
         {
             var pole = OriginalPole(root, source, name, grip, forward.normalized, grip.y + suspensionLength);
-            TuneFlowPole(root, pole, grip, suspensionLength, 38, cap);
-            var data = new SerializedObject(pole); data.FindProperty("holdSeconds").floatValue = 0;
-            data.ApplyModifiedProperties(); return pole;
+            TuneFlowPole(root, pole, grip, suspensionLength);
+            return pole;
         }
 
         static void HideAFusedPole(Transform bg, HumanCannonPole pole)
@@ -194,7 +193,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 loop.Configure(carriage, Vector3.zero, 22, 10, 5, i / 6f);
                 loop.EvaluatePose(0, out var at, out var rotation, out _, out _);
                 carriage.SetPositionAndRotation(at, rotation);
-                AFusedPole(carriage, source, "A04B_CirculatingGrip_" + i, at, rotation * Vector3.forward, 5.2f);
+                AFusedPole(carriage, source, "A04B_CirculatingGrip_" + i, at, rotation * Vector3.forward);
                 if (i == 0) firstLoop = loop;
             }
             // Visible closed overhead rail; straight capture/disembark zones and smooth return arcs.
@@ -222,12 +221,12 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             ropes.Add(CompletionRope(group, "A04B_PrecisionExitWire", new Vector3(47, -23, -26), new Vector3(47, -23, -11)));
             ropes.Add(CompletionRope(group, "A04B_ExitTurnWire", new Vector3(47, -23, -11), new Vector3(51, -23, -7)));
-            AFusedPole(group, source, "A04B_WireExitGrip", new Vector3(52, -21.5f, -6), new Vector3(6, 0, 6), 7.2f);
+            AFusedPole(group, source, "A04B_WireExitGrip", new Vector3(52, -21.5f, -6), new Vector3(6, 0, 6));
             AFloor(group, "후속 하차 작업대", 44.5f, 53, -1, 6, -23);
-            AFusedPole(group, source, "A04B_FloorExitGrip", new Vector3(52.5f, -21.5f, 4), new Vector3(8, 0, -4), 5.2f);
+            AFusedPole(group, source, "A04B_FloorExitGrip", new Vector3(52.5f, -21.5f, 4), new Vector3(8, 0, -4));
             AFloor(group, "두 하차 경로 합류대", 56, 62, -3, 4, -23);
             ropes.Add(CompletionRope(group, "A04B_SawTransferWire", new Vector3(62, -23, 0), new Vector3(70, -23, 0)));
-            AFusedPole(group, source, "A04B_ReturnCannonGrip", new Vector3(71.5f, -21.5f, 0), Vector3.right, 7.2f);
+            AFusedPole(group, source, "A04B_ReturnCannonGrip", new Vector3(71.5f, -21.5f, 0), Vector3.right);
             AFloor(group, "압착기 통과와 복귀 대포대", 79, 91, -4, 4, -22);
             var returnStation = GameObject.Find("04_ReturnCannon").GetComponent<HumanCannonStation>();
             Undo.SetTransformParent(returnStation.transform, group, "Connect return cannon");
@@ -283,7 +282,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     t.name.StartsWith(pole.name + "_", StringComparison.Ordinal)).ToArray()) PreserveFusionGuide(t);
                 var at = pole.Grip.position;
                 if (pole == poles[2]) at.x = 293;
-                TuneFlowPole(root, pole, at, 5, 38, 7.2f);
+                TuneFlowPole(root, pole, at, 5);
             }
         }
 

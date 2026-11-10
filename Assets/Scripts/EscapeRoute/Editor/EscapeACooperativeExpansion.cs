@@ -40,8 +40,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 if(index>=0)item.objectReferenceValue=ropes[index];
             }
             var shape=data.FindProperty("sceneShape");
-            var zones=shape.FindPropertyRelative("laneChangeZones");zones.arraySize=1;
-            zones.GetArrayElementAtIndex(0).vector2Value=new Vector2(0,28);
             var ends=shape.FindPropertyRelative("laneEndDistances");ends.arraySize=registered.arraySize;
             for(int i=0;i<registered.arraySize;i++)
             {
@@ -82,7 +80,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             BLight(root,new Vector3(108,5,20),new Vector3(108,-5,25),420,25);
 
             var trampoline=coop.Trampoline;
-            var td=new SerializedObject(trampoline);td.FindProperty("requireCarrierForBounce").boolValue=false;td.ApplyModifiedProperties();
+            var td=new SerializedObject(trampoline);td.ApplyModifiedProperties();
             var bounds=cd.FindProperty("dropBounds").objectReferenceValue as BoxCollider;
             Undo.RecordObject(bounds,"Expand disappearance handoff area");bounds.center=new Vector3(102,1,25);bounds.size=new Vector3(28.6f,4,9);
             var lowerBounds=VerticalChild(root,"SingleWorkerBounds").gameObject.AddComponent<BoxCollider>();

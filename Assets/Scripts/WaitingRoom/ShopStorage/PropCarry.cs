@@ -351,7 +351,7 @@ namespace CurtainCall.WaitingRoom
                 if (floor.Item.Uid == uid)
                 {
                     var body = FindBody(player);
-                    if (body == null || !FloorPropsView.CanPickUp(uid, body.position))
+                    if (body == null || !FloorPropsView.CanPickUp(uid, body.position, body))
                         return Reject(player, "PICK_UP", uid, "TOO_FAR", WaitingRoomText.Get("carry.too-far", "기물에 가까이 다가가세요."));
                     break;
                 }
@@ -373,7 +373,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (WaitingRoomShop.InPerformance) return Reject(player, "SHELF", Selected(player).Uid, "IN_PERFORMANCE", WaitingRoomText.Get("carry.shelf-in-performance", "공연 중에는 선반을 쓸 수 없습니다."));
             var body = FindBody(player);
-            if (body == null || !HandoverShelfView.CanUse(body.position))
+            if (body == null || !HandoverShelfView.CanUse(body.position, body))
                 return Reject(player, "SHELF", Selected(player).Uid, "TOO_FAR", "선반 앞에 가까이 다가가세요.");
             // 고른 칸이 있으면 올리고, 없으면 꺼낸다. 고르지 않은 채 빈 가판대 앞이면 고르라고 안내한다.
             int chosen = Selected(player).Uid;

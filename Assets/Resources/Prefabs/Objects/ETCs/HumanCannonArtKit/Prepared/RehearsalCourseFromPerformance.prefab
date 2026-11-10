@@ -386,11 +386,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 604142010800553985}
   seat: {fileID: 166300432722763496}
   muzzle: {fileID: 624619594659623397}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &657179968577211928
 GameObject:
   m_ObjectHideFlags: 0
@@ -2490,11 +2487,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce2dededdc8e928418a33ba2f9d95bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonSystem
-  injuries:
-    oneLegMove: 0.8
-    oneLegAir: 0.8
-    twoLegAir: 0.8
-    oneArmInteractionSeconds: 0.6
   stations:
   - {fileID: 193188031775044265}
   - {fileID: 7540953547942587969}
@@ -3232,11 +3224,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 2191983138306337057}
   seat: {fileID: 1213716952458650169}
   muzzle: {fileID: 4947102725596424752}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &3015451180321018494
 GameObject:
   m_ObjectHideFlags: 0
@@ -3798,11 +3787,7 @@ MonoBehaviour:
   halfSize: {x: 2, y: 2}
   circularSurface: 1
   usePropOutline: 1
-  requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
-  grabDistance: 4
-  upwardSpeed: 12
-  groundBounceAirControlSpeed: 4.5
   resetPoseOnRestart: 1
 --- !u!114 &7673191041780645649
 MonoBehaviour:
@@ -4506,11 +4491,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 5663579198103888598}
   seat: {fileID: 901119974464337923}
   muzzle: {fileID: 5952046378524963925}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &3992145146948110011
 GameObject:
   m_ObjectHideFlags: 0
@@ -7080,11 +7062,8 @@ MonoBehaviour:
   boardingPoint: {fileID: 5799677463366343036}
   seat: {fileID: 5150658242387124235}
   muzzle: {fileID: 5017653686487205302}
-  boardingDistance: 2
   forwardSpeed: 7.2243333
   upwardSpeed: 12
-  airControlSpeed: 4.5
-  animateBarrel: 1
 --- !u!1 &7260835643697960367
 GameObject:
   m_ObjectHideFlags: 0

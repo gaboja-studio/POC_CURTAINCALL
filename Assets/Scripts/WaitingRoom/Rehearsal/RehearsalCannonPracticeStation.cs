@@ -17,10 +17,10 @@ namespace CurtainCall.WaitingRoom
         void OnEnable() { cannon = GetComponentInChildren<CurtainCall.HumanCannon.HumanCannonStation>(true); visual = GetComponentInChildren<Renderer>(true); all.Add(this); ShopReach.Add(this); }
         void OnDisable() { all.Remove(this); ShopReach.Remove(this); }
         void Update() => ShopReach.Pump();
-        public float Reach(Vector3 feet)
+        public float Reach(Vector3 feet, Component actor = null)
         {
-            float d = Vector3.ProjectOnPlane(feet - Point, Vector3.up).magnitude;
-            return IsAvailable && Mathf.Abs(feet.y - Point.y) < 3f && d <= 3f ? d : -1f;
+            return IsAvailable ? ExplorationReach.From(VisualRoot, Point, feet,
+                CurtainCall.Settings.GameSettings.Base.Interaction.Distance, actor: actor) : -1f;
         }
         public void Interact() { if (IsAvailable) WaitingRoomCannonRehearsal.RequestPractice(); }
         public static bool IsNear(Vector3 feet)

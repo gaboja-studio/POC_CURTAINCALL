@@ -20,7 +20,7 @@ namespace CurtainCall.Tightrope
 
     public sealed partial class TightropeRelayGate
     {
-        /// <summary>지정 자리 봉은 시간 제한 없이 잡고 있는 동안 계속 잇는다(리허설, 사용자 결정 2026-11-02).</summary>
+        /// <summary>지정 자리는 배치만 바꾸며 공통 봉의 30초 제한과 조작을 사용한다.</summary>
         List<RelaySpot> spotList;
 
         bool UsesSpots => spotList != null;
@@ -33,13 +33,13 @@ namespace CurtainCall.Tightrope
             return false;
         }
         // 지정 연습 배치도 원본 봉의 점유·입력·복제 상태를 사용한다. 연습에서는 유지 시간을 제한하지 않는다.
-        bool UnlimitedHold => UsesSpots || (run != null && run.PracticeMode);
+        bool UnlimitedHold => false;
         bool HasGate => course != null && (course.HasRelayGap || UsesSpots);
 
         /// <summary>코스 값의 출발·교대 봉 4개 대신 이 자리들에 봉을 놓는다. 빈 목록이면 코스 값으로 돌아간다.</summary>
         public void UseSpots(IReadOnlyList<RelaySpot> spots)
         {
-            RestoreBinding(false); ResetState(); DestroyViews();
+            Deactivate(); ResetState(); DestroyViews();
             foreach (var station in stations) if (station?.Pole != null) Destroy(station.Pole.gameObject);
             spotList = spots != null && spots.Count > 0 ? new List<RelaySpot>(spots) : null;
             stations = new Station[UsesSpots ? spotList.Count : 4];
@@ -50,11 +50,16 @@ namespace CurtainCall.Tightrope
 
         void CreateStations()
         {
+            if (course == null) course = GetComponent<TightropeCourse>();
+            if (common == null) common = HumanCannonPoleSystem.Ensure(gameObject);
             for (int i = 0; i < stations.Length; i++)
             {
                 var root = new GameObject($"RelayPolePhysics{i}");
                 root.transform.SetParent(transform, false);
                 stations[i] = new Station { Far = !UsesSpots && i >= 2, Pole = root.AddComponent<HumanCannonPole>() };
+                stations[i].Pole.IsSwitch = true;
+                stations[i].Pole.InteractionAvailable = false;
+                stations[i].Index = common.Register(stations[i].Pole);
             }
         }
 
@@ -75,7 +80,7 @@ namespace CurtainCall.Tightrope
         {
             int held = HeldPole(local);
             if (held >= 0)
-                return $"{LaneName(OpenedLane(held))} 연결 중 · 동료가 건널 때까지 잡고 있으세요\nF / Space 놓기";
+                return $"{LaneName(OpenedLane(held))} 연결 중 · 동료가 건널 때까지 잡고 있으세요\nSpace / F 길게 놓기";
             for (int i = 0; i < PoleCount; i++)
                 if (CanUsePole(i, local)) return $"F로 봉 잡기 · 잡는 동안 {LaneName(spotList[i].TargetLane)}이 이어져요";
             return null;

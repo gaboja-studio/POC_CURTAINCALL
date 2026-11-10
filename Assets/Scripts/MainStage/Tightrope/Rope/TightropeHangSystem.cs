@@ -120,7 +120,7 @@ namespace CurtainCall.Tightrope
         // ── 호스트 ────────────────────────────────────────────
 
         /// <summary>
-        /// 호스트: 이 사람을 줄에 매달리게 한다. 가까운 빈 줄이 없으면 낙사시키고 false.
+        /// 호스트: 이 사람을 줄에 매달리게 한다. 가까운 빈 줄이 없으면 일반 낙하로 넘기고 false.
         /// <paramref name="preferredLane"/>가 음수면 위치에서 가장 가까운 줄을 쓴다.
         /// </summary>
         public bool ServerTryHang(NetworkPlayer player, float distance, int preferredLane = -1)
@@ -128,14 +128,21 @@ namespace CurtainCall.Tightrope
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
             if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
-            if (!Active) { player.ServerKill(); return false; }
-            if (preferredLane < 0 && !course.TryGetRopePoint(player.transform.position, out preferredLane, out _))
-                preferredLane = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
-            int lane = book.PickLane(preferredLane, distance, course.LaneCount,
-                course.HasIndependentRopes ? 0 : Rules.LaneReach, Rules.LaneOccupyDistance, course.IsLaneUsable);
+            if (!Active) { player.ServerReleaseIntoFall(); return false; }
+            int lane = -1;
+            float best = Rules.CatchDistance * Rules.CatchDistance;
+            for (int candidate = 0; candidate < course.LaneCount; candidate++)
+            {
+                if (!course.TryGetHangTarget(candidate, player.transform.position, out float along, out var point)
+                    || book.IsOccupied(candidate, along, Rules.LaneOccupyDistance)) continue;
+                float squared = (point - player.transform.position).sqrMagnitude;
+                if (squared > best || squared == best && lane >= 0
+                    || !PlayerInteraction.ClearPath(player, point, course.HangTargetRoot(candidate))) continue;
+                lane = candidate; distance = along; best = squared;
+            }
             if (lane < 0)
             {
-                player.ServerKill(); Publish(); return false;
+                player.ServerReleaseIntoFall(); Publish(); return false;
             }
             // 받는 사람이 끊어진 상태(끌어올리는 중)였다면 정리한다.
             foreach (var other in book.All) if (other.Rescuer == player.OwnerClientId) book.CancelPull(other.Id);
@@ -192,8 +199,8 @@ namespace CurtainCall.Tightrope
                 // 도와주는 동료가 떠나거나, 죽거나, 다치거나, 멀어지거나, 자신도 떨어지면 끊기고 남은 시간이 다시 흐른다.
                 if (rescuer == null || rescuer.State != PlayerState.Normal || (int)rescuer.LostParts != hang.RescuerParts
                     || book.IsHanging(rescuer.OwnerClientId)
-                    || !WithinRescueReach(rescuer, hang, Rules.RescueDistance * 1.5f))
-                { Debug.Log($"[RescueDiag] cancel rescuer={hang.Rescuer} target={hang.Id} reason=" + (rescuer == null ? "missing" : rescuer.State != PlayerState.Normal ? "state" : (int)rescuer.LostParts != hang.RescuerParts ? "injury" : book.IsHanging(rescuer.OwnerClientId) ? "hanging" : ReachFailure(rescuer, hang, Rules.RescueDistance * 1.5f))); changed |= book.CancelPull(hang.Id); }
+                    || !WithinRescueReach(rescuer, hang, Rules.RescueDistance))
+                { Debug.Log($"[RescueDiag] cancel rescuer={hang.Rescuer} target={hang.Id} reason=" + (rescuer == null ? "missing" : rescuer.State != PlayerState.Normal ? "state" : (int)rescuer.LostParts != hang.RescuerParts ? "injury" : book.IsHanging(rescuer.OwnerClientId) ? "hanging" : ReachFailure(rescuer, hang, Rules.RescueDistance))); changed |= book.CancelPull(hang.Id); }
             }
             if (gone != null)
             {
@@ -212,7 +219,7 @@ namespace CurtainCall.Tightrope
                 if (outcome == TightropeHangBook.Outcome.Dropped)
                 {
                     var dropped = Find(id);
-                    if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(dropped)) dropped?.ServerKill(NetworkPlayer.DeathOrigin.HangExpired);
+                    if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(dropped)) dropped?.ServerReleaseIntoFall();
                 }
                 else
                 {
@@ -293,6 +300,7 @@ namespace CurtainCall.Tightrope
         {
             UpdateRescuerBalance();
             var local = NetworkPlayer.Local;
+            if (local != null && local.IsDroppingFromSupport) { ReleaseLocalIntoFall(local); return; }
             // 목마 낙하처럼 호스트가 먼저 매달리게 한 경우에도 내 몸을 붙잡는다.
             if (localHang == null && local != null && local.State == PlayerState.Normal && book.IsHanging(local.OwnerClientId)
                 && local.TryGetComponent(out PlayerMover mover) && mover.Body != null)
@@ -355,6 +363,13 @@ namespace CurtainCall.Tightrope
             mover.Relocate(rope, RopeRotationAt(rope));
         }
 
+        public void ReleaseLocalIntoFall(NetworkPlayer player)
+        {
+            if (player == null || !player.IsOwner) return;
+            book.Remove(player.OwnerClientId);
+            if (localHang != null && localHang.Player == player) ReleaseLocal(false);
+        }
+
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>
         void ApplyRescued(ulong id, int lane, float distance)
         {
@@ -404,7 +419,7 @@ namespace CurtainCall.Tightrope
             releaseSince = -1d;
             cancelSent = false;            if (!input.InteractHeld || input.ActionPressed) return false;
             var target = NearestRescueTarget(local);
-            if (target == null) return false;
+            if (target == null || !CommonInteractionSelection.Consume(local, this)) return false;
             Debug.Log($"[RescueDiag] local request id={local.OwnerClientId} target={target.Id} held={input.InteractHeld}");
             localPullHeld = true;
             context.Mover.ClearPendingInput();
@@ -437,15 +452,16 @@ namespace CurtainCall.Tightrope
             Vector3 grip = GripPoint(hang);
             // 아래로 떨어지는 사람이나 매달린 높이에서는 동료를 끌어올릴 수 없다.
             if (rescuer.TryGetComponent(out PlayerMover mover) && mover.IsAirborne) return false;
-            return Mathf.Abs(rescuer.transform.position.y - grip.y) <= Mathf.Max(course.Shape.RopeHeightTolerance, Rules.RescueHeightTolerance)
-                && Horizontal(rescuer.transform.position, grip) <= reach;
+            float multiplier = rescuer.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
+            return Mathf.Abs(rescuer.transform.position.y - grip.y) <= Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance)
+                && PlayerInteraction.InRange(rescuer, grip + Vector3.up * .05f, Mathf.Min(reach, GameSettings.Base.Interaction.Distance) * multiplier);
         }
 
         // 실제 거리 판정을 플레이 중 Scene 뷰 Gizmos에서 확인한다. 충돌체는 사용하지 않는다.
         void OnDrawGizmos()
         {
             if (!Application.isPlaying || course == null) return;
-            float height = Mathf.Max(course.Shape.RopeHeightTolerance, Rules.RescueHeightTolerance);
+            float height = Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance);
             foreach (var hang in book.All)
             {
                 Vector3 grip = GripPoint(hang);
@@ -470,7 +486,7 @@ namespace CurtainCall.Tightrope
                 || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(rescuer)) return "device";
             if (rescuer.TryGetComponent(out PlayerMover mover) && mover.IsAirborne) return $"airborne(localMover={mover.IsAirborne},network={rescuer.IsAirborne})";
             Vector3 grip = GripPoint(hang);
-            return $"range(horizontal={Horizontal(rescuer.transform.position, grip):F2}/{reach:F2},height={Mathf.Abs(rescuer.transform.position.y - grip.y):F2}/{Mathf.Max(course.Shape.RopeHeightTolerance, Rules.RescueHeightTolerance):F2})";
+            return $"range(horizontal={Horizontal(rescuer.transform.position, grip):F2}/{reach:F2},height={Mathf.Abs(rescuer.transform.position.y - grip.y):F2}/{Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance):F2})";
         }
         static float Horizontal(Vector3 a, Vector3 b) => Vector3.ProjectOnPlane(a - b, Vector3.up).magnitude;
 

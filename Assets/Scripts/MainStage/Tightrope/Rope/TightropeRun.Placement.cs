@@ -28,7 +28,7 @@ namespace CurtainCall.Tightrope
         bool IsStartPosition(Vector3 position) => float.IsFinite(position.x) && float.IsFinite(position.y)
             && float.IsFinite(position.z) && course.GetDistance(position) < -.1f
             && course.GetDistance(position) >= -course.Shape.StartPlatformLength - 1f
-            && Mathf.Abs(position.y - course.transform.position.y) <= course.Shape.RopeHeightTolerance
+            && Mathf.Abs(position.y - course.transform.position.y) <= course.RopeHeightTolerance
             && Mathf.Abs(course.GetSide(position)) <= (course.LaneCount - 1) * course.LaneSpacing * .5f + course.Shape.SideMargin;
 
         void UpdatePlacement()

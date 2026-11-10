@@ -24,7 +24,7 @@ namespace CurtainCall.HumanCannon
             bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && cannon != null && Carrier != player.OwnerClientId && nearSurface
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)
-                && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, upwardSpeed, groundBounceAirControlSpeed);
+                && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, CurtainCall.Settings.GameSettings.Trampoline.AirControlSpeed);
             if (accepted) ServerBounced?.Invoke(player.OwnerClientId);
             if (player.IsLocal)
             {
@@ -38,7 +38,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(sequence);
             writer.WriteValueSafe(epoch);
             writer.WriteValueSafe(contact);
-            writer.WriteValueSafe(upwardSpeed);
+            writer.WriteValueSafe(CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed);
             messaging.SendNamedMessage(GroundBounceMessage, player.OwnerClientId, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -55,7 +55,7 @@ namespace CurtainCall.HumanCannon
             if (cannon == null || player == null) return;
             if (accepted == 1)
             {
-                if (cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, speed, groundBounceAirControlSpeed))
+                if (cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, speed, CurtainCall.Settings.GameSettings.Trampoline.AirControlSpeed))
                     LocalBounceCount++;
             }
             else cannon.RejectGroundBounce(sequence, epoch);

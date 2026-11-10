@@ -150,8 +150,8 @@ namespace CurtainCall.StartLobby
                 foreach (var item in interactables)
                 {
                     if (item == null || !item.isActiveAndEnabled) continue;
-                    float d = item.HorizontalDistance(local.transform.position);
-                    if (d <= item.Reach && d < best)
+                    float d = Vector3.Distance(PlayerInteraction.Center(local), item.transform.position);
+                    if (PlayerInteraction.InRange(local, item.transform.position, CurtainCall.Settings.GameSettings.Base.Interaction.Distance, item.transform) && d < best)
                     {
                         best = d;
                         nearest = item;
@@ -167,7 +167,7 @@ namespace CurtainCall.StartLobby
             }
             string text = nearest.Prompt(out bool usable);
             SetPrompt(text, usable);
-            if (usable && local.TryGetComponent(out PlayerInputReader reader) && reader.Current.InteractTapped) nearest.Use();
+            if (usable && local.TryGetComponent(out PlayerInputReader reader) && reader.Current.InteractTapped && CommonInteractionSelection.Consume(local, nearest)) nearest.Use();
         }
 
         void SetPrompt(string text, bool usable)

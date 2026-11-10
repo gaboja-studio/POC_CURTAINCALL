@@ -353,12 +353,9 @@ namespace CurtainCall.Cameras
         }
 
         /// <summary>
-        /// 벽 충돌(스프링 암)을 쓰는 공간: 대기실(Task-086)·탈출로(Task-089). 이 공간에서는 카메라가 벽 앞으로 당겨지므로
-        /// <see cref="CameraOcclusionFade"/>도 고정 구조물을 반투명하게 만들지 않는다. 탈출로는 씬 활성화 후 활성 씬이 된다.
+        /// 모든 플레이 씬에 같은 벽 충돌을 적용한다. 연출/1인칭은 호출부의 시점 조건을 따른다.
         /// </summary>
-        public static bool UsesWallCollision(Scene scene) => scene.IsValid()
-            && (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(scene)
-                || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
+        public static bool UsesWallCollision(Scene scene) => scene.IsValid();
 
         /// <summary>줄 소실 등으로 우선 요청이 해제돼도 탈출로는 3인칭을 유지한다.
         /// 제외된 요청은 지우지 않으므로 다른 공간으로 돌아가면 원래 우선순위를 다시 쓸 수 있다.</summary>

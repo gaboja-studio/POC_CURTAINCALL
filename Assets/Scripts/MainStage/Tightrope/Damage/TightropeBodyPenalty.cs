@@ -24,12 +24,7 @@ namespace CurtainCall.Damage
             int legs = condition.LostLegCount;
             int arms = condition.LostArmCount;
 
-            if (legs == 1) penalty.MoveSpeed = Mathf.Max(rules.MinimumInjuredMoveSpeed, rules.OneLegMoveSpeed);
-            if (legs >= 2)
-            {
-                float crawl = GameSettings.Base.BodyDamage.CrawlSpeedMultiplier;
-                if (crawl > 0f) penalty.MoveSpeed = Mathf.Max(crawl, rules.MinimumInjuredMoveSpeed) / crawl;
-            }
+            penalty.MoveSpeed = legs == 1 ? GameSettings.Base.BodyDamage.ExploreOneLegMoveSpeed : 1f;
             penalty.Sway = GameSettings.Tightrope.RopeMovement.NaturalSwayMultiplier
                 * (1f + rules.SwayPerLostLeg * legs) * (1f + rules.SwayPerLostArm * arms);
             if (legs >= 2)
@@ -37,7 +32,7 @@ namespace CurtainCall.Damage
                 penalty.LandingShock = rules.LeglessLandingShock;
                 penalty.LaneLandingShock = rules.LeglessLaneLandingShock;
             }
-            penalty.Reach = Mathf.Max(0f, 1f - rules.ReachLossPerArm * arms);
+            penalty.Reach = GameSettings.Base.BodyDamage.ReachMultiplier(arms);
             return penalty;
         }
     }

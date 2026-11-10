@@ -1,6 +1,7 @@
 using CurtainCall.Settings;
+using CurtainCall.Player;
 using NUnit.Framework;
-using UnityEditor;
+using System.Reflection;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,58 +11,43 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     public sealed class CannonJumpSettingsTests
     {
         [Test]
-        public void JumpSettings_AreLinked_AndKeepCommonAssetAtPointEight()
-        {
-            using var common = new SerializedObject(GameSettings.Base);
-            using var game = new SerializedObject(GameSettings.Current);
-            Assert.That(common.FindProperty("character.jumpHeight").floatValue, Is.EqualTo(0.8f));
-            Assert.That(game.FindProperty("humanCannon").objectReferenceValue, Is.SameAs(GameSettings.HumanCannon));
-            Assert.That(GameSettings.HumanCannon.JumpHeight, Is.EqualTo(1.2f));
-        }
-
-        [Test]
-        public void JumpOverride_FollowsActiveSceneAndOwnerLifetime_WithoutStaleRestoration()
+        public void FloorAndRopeUseIndependentCommonSettingsAcrossActiveScenes()
         {
             var original = SceneManager.GetActiveScene();
-            // EditMode 러너의 저장하지 않은 빈 씬 옆에는 NewScene 대신 저장된 씬을 연다.
-            var first = SceneManager.GetSceneByPath(HumanCannonTestSceneBuilder.ScenePath);
-            bool openedHere = !first.IsValid() || !first.isLoaded;
-            if (openedHere) first = EditorSceneManager.OpenScene(HumanCannonTestSceneBuilder.ScenePath, OpenSceneMode.Additive);
-            var second = original;
-            var owner = new GameObject("jump-owner").AddComponent<Animator>();
-            SceneManager.MoveGameObjectToScene(owner.gameObject, first);
-            var character = new BaseGameSettings.CharacterSettings();
-            float height = 1.2f;
-            using var earlier = CharacterJumpHeightOverrides.Register(owner, () => height);
-            using var later = CharacterJumpHeightOverrides.Register(owner, () => 1.6f);
+            var cannon = SceneManager.GetSceneByPath(HumanCannonTestSceneBuilder.ScenePath);
+            bool opened = !cannon.IsValid() || !cannon.isLoaded;
+            if (opened) cannon = EditorSceneManager.OpenScene(HumanCannonTestSceneBuilder.ScenePath, OpenSceneMode.Additive);
+            var go = new GameObject("Common jump fixture");
+            var mover = go.AddComponent<PlayerMover>();
+            typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
+            var character = GameSettings.Base.Character;
+            var field = character.GetType().GetField("jumpHeight", BindingFlags.Instance | BindingFlags.NonPublic);
+            float saved = character.JumpHeight;
             try
             {
-                Assert.That(first, Is.Not.EqualTo(original), "러너의 임시 씬과 콘텐츠 씬은 분리되어야 한다.");
-                SceneManager.SetActiveScene(first);
-                Assert.That(character.JumpHeight, Is.EqualTo(1.6f));
-                earlier.Dispose();
-                Assert.That(character.JumpHeight, Is.EqualTo(1.6f));
-                later.Dispose();
-                Assert.That(character.JumpHeight, Is.EqualTo(0.8f));
-                using var live = CharacterJumpHeightOverrides.Register(owner, () => height);
-                Assert.That(character.JumpHeight, Is.EqualTo(1.2f));
-                height = 1.1f;
-                Assert.That(character.JumpHeight, Is.EqualTo(1.1f), "플레이 중 설정 변경을 읽는다.");
-                SceneManager.SetActiveScene(second);
-                Assert.That(character.JumpHeight, Is.EqualTo(0.8f), "additive로 남은 인간대포가 다른 공간에 영향을 주지 않는다.");
-                SceneManager.SetActiveScene(first);
-                owner.enabled = false;
-                Assert.That(character.JumpHeight, Is.EqualTo(0.8f));
-                owner.enabled = true;
-                Assert.That(character.JumpHeight, Is.EqualTo(1.1f));
-                Object.DestroyImmediate(owner.gameObject);
-                Assert.That(character.JumpHeight, Is.EqualTo(0.8f));
+                foreach (var scene in new[] { cannon, original, cannon })
+                {
+                    SceneManager.SetActiveScene(scene);
+                    foreach (float height in new[] { .8f, .95f })
+                    {
+                        field.SetValue(character, height);
+                        mover.FreeMovement = true;
+                        mover.CourseJumpHeightOverride = 99;
+                        mover.CourseJumpGravityMultiplier = 3;
+                        Assert.That(mover.JumpSpeed * mover.JumpSpeed / (2 * mover.JumpGravity), Is.EqualTo(height).Within(.0001));
+                        Assert.That(GameSettings.Tightrope.RopeMovement.JumpHeight, Is.EqualTo(1.5f));
+                        mover.FreeMovement = false;
+                        mover.CourseJumpHeightOverride = GameSettings.Tightrope.RopeMovement.JumpHeight;
+                        Assert.That(mover.JumpSpeed * mover.JumpSpeed / (2 * mover.JumpGravity), Is.EqualTo(1.5f).Within(.0001));
+                    }
+                }
             }
             finally
             {
-                if (owner != null) Object.DestroyImmediate(owner.gameObject);
+                field.SetValue(character, saved);
+                Object.DestroyImmediate(go);
                 SceneManager.SetActiveScene(original);
-                if (openedHere) EditorSceneManager.CloseScene(first, true);
+                if (opened) EditorSceneManager.CloseScene(cannon, true);
             }
         }
     }
