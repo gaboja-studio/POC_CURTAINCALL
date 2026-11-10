@@ -14,3 +14,4 @@
 - Confluence39845898에 전후21행·발판5행·Inspector 경로·검사/미확정 기록 추가. 기존 사용자 체크박스·첨부·local ID 보존. 최종 저장/PR은 아래에 기록한다.
 - 최종 check-work: 안전성·문서/규칙·컴파일·공통 설정 연결 PASS, 전체 테스트 선택 안 함(집중75개 결과 재사용). 초기 문서66줄 hard 초과는38줄로 압축하고 계획/지난 로그는 History002/003에 원문 보관. 시작 doctor의 기존 Task ID중복9개는 이번 범위 밖으로 남음.
 - 저장·제출: 관련54파일 8a1861d2 commit/push, dev 대상 [PR #322](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/322) 생성. 병합하지 않음. 기존 사용자 변경 보존. Unity6000.3.25f1 Start 씬·비재생·미저장0 유지.
+- 11/11 PR #322 충돌 해결: dev 036b4d9a(#323 HUD, #321 통로 기믹 포함)를 병합했다. 외줄 OnLocalRevived 구독과 새 팀 임무 프리팹을 함께 유지하고 인간대포의 복귀 설정별 DeathGuide를 시스템 경고 HUD로 표시한다. Inspector에 복귀 켬/끔의 소개·사망 안내를 각각 노출. Unity 컴파일 오류 0, WaitingRoomCommonRecovery 20/20 및 WaitingRoomHudProfileTests 5/5 통과. PlayMode·다인 플레이는 이번 충돌 해소에서 실행하지 않음.
