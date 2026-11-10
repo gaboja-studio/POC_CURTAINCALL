@@ -24,6 +24,17 @@ namespace CurtainCall.WaitingRoom.Editor
         readonly List<Transform> objectRows = new();
         Label status;
         readonly List<Transform> linked = new();
+        TwoPaneSplitView leftSplit, rightSplit;
+        bool wideMap;
+        // 좌우 패널을 접어 맵만 크게 보거나 다시 편다.
+        void ToggleWideMap()
+        {
+            if (leftSplit == null || rightSplit == null) return;
+            wideMap = !wideMap;
+            if (wideMap) { leftSplit.CollapseChild(0); rightSplit.CollapseChild(1); }
+            else { leftSplit.UnCollapse(); rightSplit.UnCollapse(); }
+            RepaintMap();
+        }
         const string IntegratedScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         static bool IsIntegrated => SceneManager.GetActiveScene().path == IntegratedScenePath;
         internal static bool IsFurnitureGate(ExplorationGateKind kind, bool key, string id)
@@ -69,7 +80,44 @@ namespace CurtainCall.WaitingRoom.Editor
             && !value.GetComponentsInChildren<ExplorationGate>(true).Any(g => g.IsKeyPickup);
 
         [MenuItem("Tools/CurtainCall/대기실/오브젝트 배치")]
-        public static void Open() => GetWindow<WaitingRoomObjectWindow>("대기실 오브젝트 배치").Show();
+        public static void Open()
+        {
+            var window = GetWindow<WaitingRoomObjectWindow>("대기실 오브젝트 배치");
+            if (!window.docked && (window.position.width < 1200 || window.position.height < 800)) window.position = LargeWindowRect();
+            window.Show();
+        }
+        // 메인 에디터 창의 90% 크기, 가운데.
+        static Rect LargeWindowRect()
+        {
+            var main = EditorGUIUtility.GetMainWindowPosition();
+            float w = Mathf.Max(1200, main.width * .9f), h = Mathf.Max(800, main.height * .9f);
+            return new Rect(main.x + (main.width - w) / 2, main.y + (main.height - h) / 2, w, h);
+        }
+        // 도킹 위치와 무관하게 큰 독립 창으로 다시 연다. 기존 창은 닫는다(씬 내용은 그대로).
+        void OpenLargeFloating()
+        {
+            var window = CreateInstance<WaitingRoomObjectWindow>();
+            window.titleContent = new GUIContent("대기실 오브젝트 배치");
+            window.Show();
+            window.position = LargeWindowRect();
+            Close();
+        }
+        // 배치 부모·배치 모드·상태 안내. 오른쪽 패널에 둔다.
+        VisualElement CreatePlacementControls()
+        {
+            var panel = new Foldout { text = "배치", value = true, viewDataKey = "waiting-room-object-placement" };
+            panel.Add(new Label("상호작용 오브젝트 전용 · 벽·바닥·문·맵 구조물은 편집 불가") { style = { whiteSpace = WhiteSpace.Normal } });
+            var owner = new ObjectField("배치 부모") { objectType = typeof(Transform), allowSceneObjects = true };
+            owner.RegisterValueChangedCallback(e => parent = e.newValue as Transform); panel.Add(owner);
+            panel.Add(new Button(() => {
+                placing = IsIntegrated && (HasCreation || InteractionPrefab(prefab)) && !EditorApplication.isPlayingOrWillChangePlaymode;
+                status.text = placing ? "맵에서 Alt+드래그 후 놓아 배치 · Esc 취소" : "지원하는 상호작용 컴포넌트가 루트에 있는 프리팹을 선택하세요. 구조물은 배치할 수 없습니다.";
+                RepaintMap();
+            }) { text = "Alt+드래그 배치 모드" });
+            status = new Label { style = { whiteSpace = WhiteSpace.Normal } }; panel.Add(status);
+            panel.Add(new Label("클릭 선택 · 드래그 맵 이동 · Alt+드래그 이동·배치 · 휠 확대 · F 선택 위치 · Esc 취소 · Ctrl+Z 실행 취소") { style = { whiteSpace = WhiteSpace.Normal, color = Color.gray } });
+            return panel;
+        }
 
         void OnEnable()
         {
@@ -96,7 +144,7 @@ namespace CurtainCall.WaitingRoom.Editor
         public void CreateGUI()
         {
             rootVisualElement.Clear();
-            minSize = new Vector2(1100, 760);
+            minSize = new Vector2(640, 480);
             var toolbar = new Toolbar(); toolbar.style.flexShrink = 0;
             toolbar.Add(new ToolbarButton(() => {
                 if (IsIntegrated) return;
@@ -105,29 +153,28 @@ namespace CurtainCall.WaitingRoom.Editor
             }) { text = "Integrated 대기실 열기" });
             toolbar.Add(new ToolbarButton(() => FrameMap(false)) { text = "맵 전체 보기" });
             toolbar.Add(new ToolbarButton(() => FrameMap(true)) { text = "선택 위치 보기" });
+            toolbar.Add(new ToolbarButton(ToggleWideMap) { text = "맵 크게 보기" });
+            toolbar.Add(new ToolbarButton(OpenLargeFloating) { text = "큰 창으로 분리", tooltip = "도킹된 작은 창 대신 에디터 크기의 90% 독립 창으로 엽니다." });
             toolbar.Add(new ToolbarButton(() => {
                 if (IsIntegrated && !EditorApplication.isPlayingOrWillChangePlaymode) EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             }) { text = "Integrated 씬 저장" });
             rootVisualElement.Add(toolbar);
-            rootVisualElement.Add(new HelpBox("클릭 선택 · 드래그 맵 이동 · Alt+드래그 오브젝트 이동·배치 · 휠 확대 · F 선택 위치 보기 · Esc 배치 취소 · Ctrl+Z 실행 취소", HelpBoxMessageType.Info));
-            var search = new ToolbarSearchField();
+            var search = new ToolbarSearchField { tooltip = "오브젝트 이름·표시 이름·ID 검색" };
             search.RegisterValueChangedCallback(e => { filter = e.newValue; RefreshList(); });
-            rootVisualElement.Add(search);
-            var body = new VisualElement { style = { flexDirection = FlexDirection.Row, flexGrow = 1, flexShrink = 1, minHeight = 0 } };
+            toolbar.Add(search);
+            // 목록 | 맵 | 오른쪽(표시 층·보기 설정·배치 / 상세). 경계선을 끌어 크기를 바꾼다. 맵은 남는 공간 전체를 쓴다.
             objects = CreatePalette();
             details = new ScrollView { style = { flexGrow = 1 } };
-            details.style.width = 320; details.style.flexGrow = 0;
-            body.Add(objects); body.Add(CreateMap()); body.Add(details); rootVisualElement.Add(body);
-            var palette = new VisualElement { style = { flexShrink = 0 } };
-            palette.Add(new Label("상호작용 오브젝트 전용 · 벽·바닥·문·맵 구조물은 편집 불가"));
-            var owner = new ObjectField("배치 부모") { objectType = typeof(Transform), allowSceneObjects = true };
-            owner.RegisterValueChangedCallback(e => parent = e.newValue as Transform); palette.Add(owner);
-            palette.Add(new Button(() => {
-                placing = IsIntegrated && (HasCreation || InteractionPrefab(prefab)) && !EditorApplication.isPlayingOrWillChangePlaymode;
-                status.text = placing ? "맵에서 Alt+드래그 후 놓아 배치 · Esc 취소" : "지원하는 상호작용 컴포넌트가 루트에 있는 프리팹을 선택하세요. 구조물은 배치할 수 없습니다.";
-                RepaintMap();
-            }) { text = "Alt+드래그 배치 모드" });
-            status = new Label(); palette.Add(status); rootVisualElement.Add(palette);
+            var controls = new ScrollView { style = { flexGrow = 1 } };
+            controls.Add(CreateMapControls());
+            controls.Add(CreatePlacementControls());
+            var side = new TwoPaneSplitView(0, 330, TwoPaneSplitViewOrientation.Vertical) { viewDataKey = "waiting-room-object-window-side", style = { minWidth = 220 } };
+            side.Add(controls); side.Add(details);
+            var right = new TwoPaneSplitView(1, 340, TwoPaneSplitViewOrientation.Horizontal) { viewDataKey = "waiting-room-object-window-right", style = { flexGrow = 1 } };
+            right.Add(CreateMap()); right.Add(side);
+            var body = new TwoPaneSplitView(0, 230, TwoPaneSplitViewOrientation.Horizontal) { viewDataKey = "waiting-room-object-window-left", style = { flexGrow = 1, flexShrink = 1, minHeight = 0 } };
+            body.Add(objects); body.Add(right); rootVisualElement.Add(body);
+            leftSplit = body; rightSplit = right;
             SelectionChanged();
         }
         void SelectionChanged()
@@ -142,6 +189,7 @@ namespace CurtainCall.WaitingRoom.Editor
         void RefreshList()
         {
             if (objects == null) return;
+            MarkVisibilityDirty();
             objectRows.Clear();
             RefreshFloors();
             if (!IsIntegrated) { RefreshPalette(); return; }

@@ -32,7 +32,7 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var room = MapRooms().FirstOrDefault(r => r.name == "B1_Office");
             if (room == null || room.Area == null) return;
-            planeHeight = Mathf.Round(CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoring.FloorReference(room));
+            planeHeight = Mathf.Round(CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoring.FloorReference(room)); allFloors = false;
             selected = null; linked.Clear(); existingPaletteSource = null; placing = false;
             RefreshFloors(); RefreshList(); RefreshDetails();
             var b = room.Area.bounds; mapCenter = b.center;
@@ -47,52 +47,75 @@ namespace CurtainCall.WaitingRoom.Editor
             floorHeights = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<CurtainCall.WaitingRoom.Pursuit.PursuitRoom>(true))
                 .Select(r => Mathf.Round(CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoring.FloorReference(r)))
                 .Append(0f).Distinct().OrderBy(y => y).ToArray();
-            floorSelector.choices = floorHeights.Select(y => $"{y:0.##}m 층").ToList();
-            int index = System.Array.IndexOf(floorHeights, planeHeight);
+            floorSelector.choices = floorHeights.Select(y => $"{y:0.##}m 층").Append(AllFloorsChoice).ToList();
+            int index = allFloors ? floorHeights.Length : System.Array.IndexOf(floorHeights, planeHeight);
             if (index < 0) { index = 0; planeHeight = floorHeights[0]; }
             floorSelector.SetValueWithoutNotify(floorSelector.choices[index]);
         }
         internal static float FloorForHeight(float height, float[] floors) => floors.Where(y => y <= height + .5f).DefaultIfEmpty(floors[0]).Max();
-        bool OnSelectedFloor(Transform t) => t != null && Mathf.Abs(FloorForHeight(t.position.y, floorHeights) - planeHeight) < .1f;
-        float SliceTop => Mathf.Min(planeHeight + cutHeight, floorHeights.Where(y => y > planeHeight + .1f).DefaultIfEmpty(float.PositiveInfinity).Min() - .1f);
+        bool OnSelectedFloor(Transform t) => t != null && (allFloors || Mathf.Abs(FloorForHeight(t.position.y, floorHeights) - planeHeight) < .1f);
+        float SliceTop => SliceTopFor(planeHeight);
         void FocusObject(Transform target)
         {
             if (!IsIntegrated || !IsInteractionObject(target)) return;
             EndMapDrag(); placing = false; ClearCreation(); existingPaletteSource = null;
-            planeHeight = FloorForHeight(target.position.y, floorHeights); RefreshFloors();
+            planeHeight = FloorForHeight(target.position.y, floorHeights); allFloors = false; RefreshFloors();
             Selection.activeGameObject = target.gameObject; selected = target;
             RefreshList(); RefreshDetails(); FrameMap(true);
-            status.text = $"{InteractionLabel(target)} · 위치 보기";
+            bool framed = FrameSceneView(target);
+            status.text = $"{InteractionLabel(target)} · 위치 보기" + (framed ? " · 씬 뷰 이동" : " · 열린 씬 뷰 없음");
+        }
+        // 씬 뷰도 같은 기물로 맞춘다. 렌더러가 없거나 숨은 발견품은 기준 위치 주변 1.5m로 잡는다.
+        static bool FrameSceneView(Transform target)
+        {
+            var view = SceneView.lastActiveSceneView;
+            if (view == null) return false;
+            var bounds = new Bounds(PlacementPoint(target), Vector3.one * 1.5f);
+            foreach (var r in PlacementVisual(target).GetComponentsInChildren<Renderer>()) if (r.enabled) bounds.Encapsulate(r.bounds);
+            view.Frame(bounds, false);
+            return true;
         }
 
+        // 가운데 맵: 패널 전체 높이를 쓴다. 설정은 CreateMapControls로 오른쪽 패널에 둔다.
         VisualElement CreateMap()
         {
-            var panel = new VisualElement { style = { flexGrow = 1, minWidth = 200 } };
+            map = new IMGUIContainer(DrawMap) { focusable = true, style = { flexGrow = 1, minHeight = 200, minWidth = 200 },
+                tooltip = "클릭 선택 · 드래그 맵 이동 · Alt+드래그 오브젝트 이동·배치 · 휠 확대 · F 선택 위치 보기 · Esc 배치 취소 · Ctrl+Z 실행 취소" };
+            map.schedule.Execute(RepaintMap).Every(100);
+            return map;
+        }
+        VisualElement CreateMapControls()
+        {
+            var panel = new VisualElement { style = { flexShrink = 0 } };
             floorSelector = new DropdownField("표시 층");
             RefreshFloors();
             floorSelector.RegisterValueChangedCallback(e => {
                 int index = floorSelector.choices.IndexOf(e.newValue);
                 if (index < 0) return;
-                EndMapDrag(); placing = false; ClearCreation(); existingPaletteSource = null; planeHeight = floorHeights[index];
-                selected = null; linked.Clear(); RefreshList(); RefreshDetails(); FrameMap(false);
+                EndMapDrag(); placing = false; ClearCreation(); existingPaletteSource = null;
+                allFloors = index >= floorHeights.Length;
+                if (!allFloors) planeHeight = floorHeights[index];
+                if (!allFloors || selected == null) { selected = null; linked.Clear(); }
+                RefreshList(); RefreshDetails(); FrameMap(false);
             });
             panel.Add(floorSelector);
+            var settings = new Foldout { text = "보기 설정", value = true, viewDataKey = "waiting-room-object-map-settings" };
+            panel.Add(settings);
             var contents = new Toggle("개방·발견 후 아이템 위치 보기") { value = showConditionalContents };
-            contents.RegisterValueChangedCallback(e => { showConditionalContents = e.newValue; RepaintMap(); }); panel.Add(contents);
-            panel.Add(new Button(ShowManagementRoom) { text = "관리실 보기 · 지하 -5m" });
+            contents.RegisterValueChangedCallback(e => { showConditionalContents = e.newValue; RepaintMap(); }); settings.Add(contents);
+            settings.Add(CreateVisibilityControls());
+            settings.Add(CreateAllFloorsControls());
+            settings.Add(new Button(ShowManagementRoom) { text = "관리실 보기 · 지하 -5m" });
             var cut = new UnityEngine.UIElements.FloatField("천장 절단 높이 (m)") { value = cutHeight };
             cut.RegisterValueChangedCallback(e => { cutHeight = Mathf.Max(.2f, e.newValue); RepaintMap(); });
-            panel.Add(cut);
-            panel.Add(new Button(() => { cutHeight = DefaultCutHeight; cut.SetValueWithoutNotify(cutHeight); RepaintMap(); }) { text = "천장 절단 높이 기본값 (2.4m)" });
-            map = new IMGUIContainer(DrawMap) { focusable = true, style = { flexGrow = 1, minHeight = 200 } };
-            panel.Add(map);
-            panel.schedule.Execute(RepaintMap).Every(100);
+            settings.Add(cut);
+            settings.Add(new Button(() => { cutHeight = DefaultCutHeight; cut.SetValueWithoutNotify(cutHeight); RepaintMap(); }) { text = "천장 절단 높이 기본값 (2.4m)" });
             return panel;
         }
         void RepaintMap() { map?.MarkDirtyRepaint(); Repaint(); }
         void MapSceneChanged(Scene before, Scene after)
         {
-            CleanupMap(); mapInitialized = false; placing = false; ClearCreation(); RefreshFloors(); SelectionChanged();
+            CleanupMap(); mapInitialized = false; placing = false; ClearCreation(); RefreshFloors(); SyncVisibilityToggles(); SelectionChanged();
         }
         void MapPlayModeChanged(PlayModeStateChange state) { placing = false; CleanupMap(); SelectionChanged(); }
         void MapSceneClosing(Scene scene, bool removing) { CleanupMap(); mapInitialized = false; }
@@ -114,6 +137,10 @@ namespace CurtainCall.WaitingRoom.Editor
             && r.enabled && (r.gameObject.hideFlags & HideFlags.HideAndDontSave) == 0).ToArray();
         void FrameMap(bool selection)
         {
+            if (allFloors) {
+                if (!selection || selected == null) { FrameAllFloors(); return; }
+                ShowFloor(FloorOf(selected));
+            }
             if (!selection) {
                 var rooms = MapRooms().Where(r => r.Area != null && Mathf.Abs(Mathf.Round(CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoring.FloorReference(r)) - planeHeight) < .1f).ToArray();
                 if (rooms.Length > 0) {
@@ -147,9 +174,8 @@ namespace CurtainCall.WaitingRoom.Editor
             float units = rect.height / (2 * mapSize);
             return rect.center + new Vector2(world.x - mapCenter.x, mapCenter.z - world.z) * units;
         }
-        void RenderMap(Rect rect)
+        void EnsureMapTarget(Rect rect)
         {
-            PrepareSpotPreviews();
             if (mapCamera == null) {
                 var go = new GameObject("__WaitingRoomObjectMap") { hideFlags = HideFlags.HideAndDontSave };
                 mapCamera = go.AddComponent<Camera>(); mapCamera.enabled = false;
@@ -165,20 +191,36 @@ namespace CurtainCall.WaitingRoom.Editor
                 if (mapTexture != null) { mapCamera.targetTexture = null; mapTexture.Release(); DestroyImmediate(mapTexture); }
                 mapTexture = new RenderTexture(w, h, 24) { hideFlags = HideFlags.HideAndDontSave, name = "Waiting room object map" };
             }
-            mapCamera.transform.SetPositionAndRotation(new Vector3(mapCenter.x, planeHeight + 1000, mapCenter.z), Quaternion.Euler(90, 0, 0));
-            mapCamera.nearClipPlane = Mathf.Max(.01f, 1000 - (SliceTop - planeHeight));
-            mapCamera.farClipPlane = 1000.5f;
-            mapCamera.orthographicSize = mapSize; mapCamera.aspect = rect.width / rect.height;
             mapCamera.overrideSceneCullingMask = UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(SceneManager.GetActiveScene());
             mapCamera.targetTexture = mapTexture;
+        }
+        System.Collections.Generic.Dictionary<Renderer, bool> MaskMapRenderers()
+        {
             var masked = new System.Collections.Generic.Dictionary<Renderer, bool>();
             if (!showConditionalContents)
                 foreach (var gate in SceneManager.GetActiveScene().GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<ExplorationGate>(true)))
                     if (IsInteractionObject(gate.transform) && ConditionalContent(gate.transform) && gate.transform != selected)
                         foreach (var r in gate.GetComponentsInChildren<Renderer>(true))
                             if (!masked.ContainsKey(r)) { masked[r] = r.forceRenderingOff; r.forceRenderingOff = true; }
+            MaskHiddenRenderers(masked);
+            return masked;
+        }
+        static void RestoreMapRenderers(System.Collections.Generic.Dictionary<Renderer, bool> masked)
+        {
+            foreach (var entry in masked) if (entry.Key != null) entry.Key.forceRenderingOff = entry.Value;
+        }
+        void RenderMap(Rect rect)
+        {
+            PrepareSpotPreviews();
+            EnsureMapTarget(rect);
+            mapCamera.rect = new Rect(0, 0, 1, 1);
+            mapCamera.transform.SetPositionAndRotation(new Vector3(mapCenter.x, planeHeight + 1000, mapCenter.z), Quaternion.Euler(90, 0, 0));
+            mapCamera.nearClipPlane = Mathf.Max(.01f, 1000 - (SliceTop - planeHeight));
+            mapCamera.farClipPlane = 1000.5f;
+            mapCamera.orthographicSize = mapSize; mapCamera.aspect = rect.width / rect.height;
+            var masked = MaskMapRenderers();
             try { mapCamera.Render(); }
-            finally { foreach (var entry in masked) if (entry.Key != null) entry.Key.forceRenderingOff = entry.Value; }
+            finally { RestoreMapRenderers(masked); }
         }
         void DrawMap()
         {
@@ -189,11 +231,12 @@ namespace CurtainCall.WaitingRoom.Editor
                 placing = false; CleanupMap(); GUI.Label(rect, "플레이 중에는 배치를 편집할 수 없습니다."); return;
             }
             if (!mapInitialized) FrameMap(false);
+            if (allFloors) { DrawAllFloors(rect); return; }
             if (Event.current.type == EventType.Repaint) RenderMap(rect);
             if (mapTexture != null) GUI.DrawTexture(rect, mapTexture, ScaleMode.StretchToFill, false);
             GUI.Label(new Rect(8, 8, 500, 22), $"N ↑   {planeHeight:0.##}m 층 · {(placing ? "Alt+드래그 새 오브젝트 배치" : "드래그 맵 이동 / Alt+드래그 오브젝트 이동")}", EditorStyles.whiteBoldLabel);
             Handles.BeginGUI();
-            foreach (var target in objectRows.Where(t => t != null && t != selected)) {
+            foreach (var target in objectRows.Where(t => t != null && t != selected && !hideInteractions)) {
                 if (!showConditionalContents && ConditionalContent(target)) continue;
                 var p = MapPixel(PlacementPoint(target), rect);
                 if (!rect.Contains(p)) continue;
@@ -220,6 +263,7 @@ namespace CurtainCall.WaitingRoom.Editor
         }
         Transform PickMap(Vector2 mouse, Rect rect)
         {
+            if (hideInteractions) return null;
             var marker = objectRows.Where(t => t != null && OnSelectedFloor(t) && (showConditionalContents || !ConditionalContent(t) || t == selected))
                 .OrderBy(t => (MapPixel(PlacementPoint(t), rect) - mouse).sqrMagnitude).FirstOrDefault();
             if (marker != null && Vector2.Distance(MapPixel(PlacementPoint(marker), rect), mouse) <= 9) return marker;
@@ -269,6 +313,32 @@ namespace CurtainCall.WaitingRoom.Editor
             placing = false; ClearCreation(); Selection.activeGameObject = instance;
             status.text = "배치 완료 · 기존 발견품·상호작용 시스템에 연결됨";
         }
+        // 선택한 카드(새 기물·프리팹·기존 대상)를 맵 지점에 배치하거나 재배치한다.
+        void DropAt(Vector2 mouse, Rect rect)
+        {
+            if (existingPaletteSource != null && IsInteractionObject(existingPaletteSource) && OnSelectedFloor(existingPaletteSource)) {
+                selected = existingPaletteSource;
+                Undo.IncrementCurrentGroup(); int group = Undo.GetCurrentGroup();
+                ApplyPlacement(MapWorld(mouse, rect, mapCenter, mapSize, PlacementPoint(selected).y), selected.rotation);
+                Undo.CollapseUndoOperations(group);
+                existingPaletteSource = null; status.text = "기존 상호작용 오브젝트 재배치 완료";
+            } else PlaceMap(mouse, rect);
+        }
+        // 팔레트 카드를 맵 위로 끌어 와 놓으면 Alt+드래그와 같은 배치를 한다.
+        void CardDrop(Event e, Rect rect)
+        {
+            if (DragAndDrop.GetGenericData(CardDragKey) == null) return;
+            if (e.type == EventType.DragExited) { mapPrefabDragging = false; RepaintMap(); return; }
+            if (!rect.Contains(e.mousePosition)) return;
+            bool ready = existingPaletteSource != null || (placing && (HasCreation || InteractionPrefab(prefab)));
+            DragAndDrop.visualMode = ready ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
+            mapPrefabDragging = ready; mapPress = e.mousePosition;
+            if (e.type == EventType.DragPerform && ready) {
+                DragAndDrop.AcceptDrag(); DropAt(e.mousePosition, rect);
+                EndMapDrag(); RefreshDetails(); RefreshPalette();
+            }
+            e.Use(); RepaintMap();
+        }
         void MapInput(Rect rect)
         {
             var e = Event.current;
@@ -276,16 +346,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 placing = false; ClearCreation(); existingPaletteSource = null; EndMapDrag(); RefreshPalette(); e.Use(); return;
             }
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.F) { FrameMap(true); e.Use(); return; }
+            if (e.type is EventType.DragUpdated or EventType.DragPerform or EventType.DragExited) { CardDrop(e, rect); return; }
             if (e.type == EventType.MouseUp) {
-                if (mapPrefabDragging && rect.Contains(e.mousePosition)) {
-                    if (existingPaletteSource != null && IsInteractionObject(existingPaletteSource) && OnSelectedFloor(existingPaletteSource)) {
-                        selected = existingPaletteSource;
-                        Undo.IncrementCurrentGroup(); int group = Undo.GetCurrentGroup();
-                        ApplyPlacement(MapWorld(e.mousePosition, rect, mapCenter, mapSize, PlacementPoint(selected).y), selected.rotation);
-                        Undo.CollapseUndoOperations(group);
-                        existingPaletteSource = null; status.text = "기존 상호작용 오브젝트 재배치 완료";
-                    } else PlaceMap(e.mousePosition, rect);
-                }
+                if (mapPrefabDragging && rect.Contains(e.mousePosition)) DropAt(e.mousePosition, rect);
                 else if (mapPanning && panButton == 0 && panDistance < 3 && rect.Contains(e.mousePosition)) {
                     var hit = PickMap(e.mousePosition, rect);
                     if (hit != null) Selection.activeGameObject = hit.gameObject;

@@ -138,10 +138,13 @@ namespace CurtainCall.WaitingRoom.Editor
         }
         void AddCreationCard(VisualElement grid, string label, GameObject art, Action choose)
         {
-            var button = new Button(() => {
+            void Select()
+            {
                 EndMapDrag(); existingPaletteSource = null; prefab = null; placing = true; choose();
-                status.text = label + " · Alt+드래그로 새로 추가"; RepaintMap();
-            }) { style = { width = 100, height = 132 } };
+                status.text = label + " · 맵에서 Alt+드래그 또는 카드를 맵에 끌어 놓아 새로 추가"; RepaintMap();
+            }
+            var button = new Button(Select) { style = { width = 100, height = 132 } };
+            MakeCardDraggable(button, Select, label);
             var picture = new Image { scaleMode = ScaleMode.ScaleToFit, style = { width = 94, height = 90 } };
             if (art != null) {
                 if (thumbnails.TryGetValue(art.GetInstanceID(), out var cached)) picture.image = cached;

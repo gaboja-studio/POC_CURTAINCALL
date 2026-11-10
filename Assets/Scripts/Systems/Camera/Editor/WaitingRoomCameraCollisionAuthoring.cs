@@ -14,7 +14,7 @@ namespace CurtainCall.Cameras.Editor
     {
         // Reviewed against all active mesh renderers in both scenes. Exact names deliberately exclude
         // signs, light housings, pipes, furniture and effects (e.g. GoldenLightWall).
-        static readonly HashSet<string> StructureNames = new(StringComparer.Ordinal) {
+        internal static readonly HashSet<string> StructureNames = new(StringComparer.Ordinal) {
             "WallSurfaces", "OuterWall", "DrumWall", "DomeCap", "Ceiling", "CeilingPanel",
             "RoofSlab", "RoofSheet", "PassageRoof", "PassageFloorCeiling", "BranchFloorCeiling",
             "CeilingBeam", "RoofGirderWeb", "RoofGirderFlange", "CanvasRoof", "CageRoof", "SlumpedConeTent",
