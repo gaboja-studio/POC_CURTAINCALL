@@ -3,6 +3,7 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.SpaceLink;
 using CurtainCall.Tightrope;
 using CurtainCall.UI.SceneIntegration;
@@ -24,8 +25,6 @@ namespace CurtainCall.WaitingRoom
         const string RequestMessage = "CurtainCall.Rehearsal.Request";
         /// <summary>코스가 링 바닥에서 떠 있는 높이(m). 줄에서 떨어지면 바닥까지 내려와 추락으로 판정된다(추락 깊이 1m).</summary>
         const float CourseHeight = 2.5f;
-        /// <summary>추락 뒤 출발대로 되돌리기까지(초).</summary>
-        const float RecoverSeconds = 1.5f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
         const string RingBoundaryPath = "RoundArena/Frame8Boundary";
         /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄)과 사다리 뒤 막이. 리허설 동안 숨긴다(사용자 요청 2026-11-02·04).</summary>
@@ -42,6 +41,8 @@ namespace CurtainCall.WaitingRoom
         public static bool IsCompleted => instance != null && instance.active && instance.completed;
         /// <summary>리허설 진행 중(대기실 씬·리허설 시간대).</summary>
         public static bool IsActive => instance != null && instance.active;
+        public static bool UsesInitialTutorialRules => instance != null && instance.active && !instance.practice
+            && instance.run != null && instance.run.State.Phase == CampaignPhase.Rehearsal;
         /// <summary>지금 소구간(0부터). 진행 전이면 -1.</summary>
         public static int CurrentStage => instance != null && instance.active ? instance.stage : -1;
         /// <summary>이수 후 선택 재연습 중(CC-219). 최초 리허설과 달리 캠페인 단계·이수 기록을 바꾸지 않는다.</summary>
@@ -389,9 +390,22 @@ namespace CurtainCall.WaitingRoom
 
         // ── 호스트 판정 ─────────────────────────────────────
 
+        /// <summary>공통 튜토리얼 설정에 따라 실제 코스 아래 바닥 착지를 재시도로 처리한다.</summary>
+        public static bool ShouldRestartAfterFloorLanding(NetworkPlayer player, Vector3 feet)
+        {
+            var r = instance;
+            if (!UsesInitialTutorialRules || !GameSettings.WaitingRoom.Tutorial.ResetOnFloorFall
+                || r.completed || r.course == null || player == null || !r.placed.Contains(player.OwnerClientId)
+                || !player.TryGetComponent(out PlayerMover mover)) return false;
+            return feet.y < r.course.transform.position.y - r.course.RopeHeightTolerance
+                && !r.course.TryGetSupportingRopeAt(mover, feet, out _)
+                && WalkableSupport.Contains(mover, feet);
+        }
+
         void HostTick()
         {
-            if (completed) { HostRecoverFallen(); HostTickPracticeSeal(); return; }
+            HostTickPracticeSeal();
+            if (completed) { HostRecoverFallen(); return; }
             if (courseRun != null && !courseStarted && session != null && session.GameState == GameSessionState.Playing)
                 courseStarted = courseRun.StartExternalPerformance();
             HostRecoverFallen();
@@ -401,13 +415,14 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락한 사람은 대가 없이 잠시 뒤 보통 상태로 되돌린다(소유자 화면이 출발대로 옮긴다).</summary>
         void HostRecoverFallen()
         {
+            if (!UsesInitialTutorialRules) { fallenAt.Clear(); return; }
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned) continue;
                 ulong id = player.OwnerClientId;
                 if (player.State != PlayerState.Fallen) { fallenAt.Remove(id); continue; }
                 if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; RecordAction("FALLEN", id); continue; }
-                if (Clock - at < RecoverSeconds) continue;
+                if (Clock - at < GameSettings.WaitingRoom.Tutorial.RecoverSeconds) continue;
                 fallenAt.Remove(id);
                 player.ServerRestoreAll();
             }

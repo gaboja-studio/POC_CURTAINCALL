@@ -59,6 +59,8 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>이번 이용에서 복구할 팔다리 수(구매 때 고른 수).</summary>
         public int BookedLimbs { get; private set; }
+        public long PaidCost { get; private set; }
+        public long PendingRefund { get; private set; }
 
         public bool HasBuyer => Phase != ExpertRoomPhase.Idle;
 
@@ -98,12 +100,16 @@ namespace CurtainCall.WaitingRoom
         /// 성공하면 방을 예약하고 팀 이용 횟수를 한 번 올린다.
         /// </summary>
         public ExpertRefusal BookMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse, Func<bool> spend)
+            => BookMedical(buyer, serviceTime, alive, lostLimbs, parts, maxPerUse, spend, 0);
+
+        public ExpertRefusal BookMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse, Func<bool> spend, long paidCost)
         {
             var refusal = CanBuyMedical(buyer, serviceTime, alive, lostLimbs, parts, maxPerUse);
             if (refusal != ExpertRefusal.None) return refusal;
             if (spend == null || !spend()) return ExpertRefusal.NotEnoughFunds;
             Buyer = buyer;
             BookedLimbs = parts;
+            PaidCost = Math.Max(0, paidCost);
             TeamUses++;
             SetPhase(ExpertRoomPhase.Booked);
             return ExpertRefusal.None;
@@ -116,6 +122,36 @@ namespace CurtainCall.WaitingRoom
             if (who != Buyer) return ExpertRefusal.NotBuyer;
             SetPhase(ExpertRoomPhase.Working);
             return ExpertRefusal.None;
+        }
+
+        /// <summary>사망 등으로 수행할 수 없는 예약의 남은 결제액을 한 번만 환급 대기시킨다.</summary>
+        public bool CancelUnfulfilled()
+        {
+            if (!HasBuyer) return false;
+            PendingRefund += PaidCost;
+            PaidCost = 0;
+            Clear();
+            return true;
+        }
+
+        /// <summary>실제로 복구한 수를 정산한다. 완료된 부위는 환급하지 않는다.</summary>
+        public void RecordRestoration(int restored)
+        {
+            if (Phase != ExpertRoomPhase.Exiting || PaidCost <= 0 || BookedLimbs <= 0) return;
+            int missing = BookedLimbs - Math.Clamp(restored, 0, BookedLimbs);
+            PendingRefund += PaidCost / BookedLimbs * missing;
+            PaidCost = 0;
+            Revision++;
+        }
+
+        public bool TryRefund(Func<long, bool> refund)
+        {
+            if (PendingRefund <= 0 || refund == null) return false;
+            long amount = PendingRefund;
+            PendingRefund = 0;
+            if (!refund(amount)) { PendingRefund = amount; return false; }
+            Revision++;
+            return true;
         }
 
         /// <summary>
@@ -141,14 +177,16 @@ namespace CurtainCall.WaitingRoom
             if (Phase == ExpertRoomPhase.Idle) return;
             Buyer = 0;
             BookedLimbs = 0;
+            PaidCost = 0;
             SetPhase(ExpertRoomPhase.Idle);
         }
 
         /// <summary>세대 교체·방 바뀜: 방을 비우고 가격을 처음으로.</summary>
         public void Reset()
         {
-            if (Phase == ExpertRoomPhase.Idle && TeamUses == 0) return;
+            if (Phase == ExpertRoomPhase.Idle && TeamUses == 0 && PendingRefund == 0) return;
             Clear();
+            PendingRefund = 0;
             TeamUses = 0;
             Revision++;
         }
@@ -156,6 +194,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>참가자: 호스트가 보낸 상태를 그대로 받는다.</summary>
         public void Apply(ExpertRoomPhase phase, ulong buyer, int bookedLimbs, int teamUses, long revision)
         {
+            PaidCost = PendingRefund = 0;
             Phase = phase;
             Buyer = phase == ExpertRoomPhase.Idle ? 0 : buyer;
             BookedLimbs = phase == ExpertRoomPhase.Idle ? 0 : bookedLimbs;

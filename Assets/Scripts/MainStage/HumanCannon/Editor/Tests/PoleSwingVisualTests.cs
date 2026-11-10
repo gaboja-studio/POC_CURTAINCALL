@@ -1,4 +1,5 @@
 using System.Reflection;
+using CurtainCall.Settings;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -9,10 +10,12 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         GameObject root;
         HumanCannonPole pole;
         Transform grip, bar, leftCable, rightCable, leftAnchor, rightAnchor;
+        string savedRules;
 
         [SetUp]
         public void SetUp()
         {
+            savedRules = JsonUtility.ToJson(GameSettings.Poles);
             root = new GameObject("PoleSwingVisualTest");
             root.SetActive(false);
             root.transform.SetPositionAndRotation(new Vector3(3, 2, 5), Quaternion.Euler(0, 90, 0));
@@ -30,7 +33,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [TearDown]
-        public void TearDown() => Object.DestroyImmediate(root);
+        public void TearDown()
+        {
+            // 일반 MonoBehaviour의 OnDestroy는 EditMode 모사에서 실행되지 않을 수 있다.
+            // 실제 Unity 콜백은 WaitingRoomCommonPolePlayTests에서 별도로 검사한다.
+            if (pole != null) DestroySharedVisual();
+            if (root != null) Object.DestroyImmediate(root);
+            JsonUtility.FromJsonOverwrite(savedRules, GameSettings.Poles);
+        }
 
         [Test]
         public void LegacyHorizontalBoostAndUpwardCapCannotOverrideSharedLaunch()
@@ -121,6 +131,184 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(speed, Is.EqualTo(expectedSpeed).Within(0.0001f));
             Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
             Near(pole.ReleaseVelocity(0, 100), pole.Forward * (1.5f * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
+        }
+
+        [TestCase(false, false)] [TestCase(false, true)]
+        [TestCase(true, false)] [TestCase(true, true)]
+        [Category("TutorialCommonRulesRegression")]
+        public void SharedPrefab_KeepsConfiguredWidthAndCenteredGripUnderScaledParents(bool isSwitch, bool nonUniform)
+        {
+            JsonUtility.FromJsonOverwrite("{\"regularBarWidth\":1.8,\"switchBarWidth\":1.8}", GameSettings.Poles);
+            var parent = new GameObject("Scaled scene placement");
+            try
+            {
+                parent.transform.localScale = nonUniform ? new Vector3(3f, .4f, 2f) : Vector3.one * 2f;
+                parent.transform.rotation = Quaternion.Euler(13, 31, 7);
+                root.transform.SetParent(parent.transform, false);
+                root.transform.localRotation = Quaternion.Euler(0, 53, 0);
+                root.transform.localScale = nonUniform ? new Vector3(.7f, 1.9f, 1.1f) : Vector3.one;
+                root.SetActive(true);
+                pole.IsSwitch = isSwitch;
+                RefreshSharedVisual();
+                var visual = pole.CommonVisual;
+                Assert.IsNull(visual.parent, "표시 루트는 배치 부모의 크기·전단을 물려받지 않는다.");
+                Assert.AreEqual(root.scene, visual.gameObject.scene);
+                foreach (float angle in new[] { 0f, -55f, 55f })
+                {
+                    pole.PresentSwing(angle);
+                    Assert.That(ProjectedSize(pole.VisualBar, pole.VisualBar.right), Is.EqualTo(1.8f).Within(.001f));
+                    Near(WorldMeshBounds(pole.VisualBar).center, pole.BarPosition(angle));
+                    Assert.That(Quaternion.Angle(pole.VisualBar.rotation, grip.rotation), Is.LessThan(.001f));
+                }
+                // 배치 부모가 생성 후 변경되어도 외형 길이는 공통값이다.
+                parent.transform.localScale = new Vector3(.3f, 4f, 1.7f);
+                pole.PresentSwing(0);
+                Assert.That(ProjectedSize(pole.VisualBar, pole.VisualBar.right), Is.EqualTo(1.8f).Within(.001f));
+                AssertCommonCable(isSwitch ? "LeftSwingCable" : "LeftCable", "LeftAnchor");
+                AssertCommonCable(isSwitch ? "RightSwingCable" : "RightCable", "RightAnchor");
+                if (isSwitch)
+                {
+                    Assert.IsFalse(visual.Find("LeftCable").gameObject.activeSelf);
+                    Assert.IsFalse(visual.Find("RightCable").gameObject.activeSelf);
+                }
+            }
+            finally
+            {
+                root.transform.SetParent(null, true);
+                Object.DestroyImmediate(parent);
+            }
+        }
+
+        [TestCase(false)] [TestCase(true)]
+        [Category("TutorialCommonRulesRegression")]
+        public void SharedWidth_ResizesBarAndCableSpacingWithoutChangingCableHeightOrPhysics(bool isSwitch)
+        {
+            root.SetActive(true);
+            pole.IsSwitch = isSwitch;
+            RefreshSharedVisual();
+            pole.PresentSwing(0);
+            var visual = pole.CommonVisual;
+            var anchor = visual.Find("LeftAnchor");
+            var source = GameSettings.Poles.Visual(isSwitch).transform;
+            float authoredWidth = ProjectedSize(source.Find("VisualBar"), source.Find("VisualBar").right);
+            Assert.That(authoredWidth, Is.EqualTo(isSwitch ? 4.4f : 1.8f).Within(.001f), "기존 정본 외형의 실측 길이");
+            float height = anchor.position.y - grip.position.y;
+            var feet = pole.HangingPosition(35);
+            var target = pole.GrabPoint(35, 0);
+            var release = pole.ReleaseVelocity(35, 120);
+            float reach = GameSettings.Poles.GrabRadius;
+            string field = isSwitch ? "switchBarWidth" : "regularBarWidth";
+            JsonUtility.FromJsonOverwrite("{\"" + field + "\":2.5}", GameSettings.Poles);
+            pole.PresentSwing(0);
+            Assert.That(ProjectedSize(pole.VisualBar, pole.VisualBar.right), Is.EqualTo(2.5f).Within(.001f));
+            Assert.That(anchor.position.y - grip.position.y, Is.EqualTo(height).Within(.001f));
+            float sourceSpacing = Vector3.Distance(source.Find("LeftAnchor").position, source.Find("RightAnchor").position);
+            Assert.That(Vector3.Distance(anchor.position, visual.Find("RightAnchor").position),
+                Is.EqualTo(sourceSpacing * 2.5f / authoredWidth).Within(.001f));
+            Near(pole.HangingPosition(35), feet);
+            Near(pole.GrabPoint(35, 0), target);
+            Near(pole.ReleaseVelocity(35, 120), release);
+            Assert.AreEqual(reach, GameSettings.Poles.GrabRadius);
+            AssertCommonCable(isSwitch ? "LeftSwingCable" : "LeftCable", "LeftAnchor");
+        }
+
+        [Test]
+        [Category("TutorialCommonRulesRegression")]
+        public void SharedPrefab_PreservesAuthoredRootAndBarRotation()
+        {
+            var source = Object.Instantiate(GameSettings.Poles.Visual(false));
+            try
+            {
+                source.transform.localRotation = Quaternion.Euler(0, 17, 0);
+                var sourceBar = source.transform.Find("VisualBar");
+                sourceBar.localRotation = Quaternion.Euler(0, 26, 0);
+                typeof(PoleSettings).GetField("regularVisual", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(GameSettings.Poles, source);
+                root.SetActive(true);
+                RefreshSharedVisual();
+                pole.PresentSwing(42);
+                var expected = grip.rotation * source.transform.localRotation * sourceBar.localRotation;
+                Assert.That(Quaternion.Angle(pole.VisualBar.rotation, expected), Is.LessThan(.001f),
+                    "매 프레임 Grip.rotation으로 정본의 축 보정을 덮어쓰지 않는다.");
+                Assert.That(ProjectedSize(pole.VisualBar, pole.VisualBar.right),
+                    Is.EqualTo(GameSettings.Poles.BarWidth(false)).Within(.001f));
+            }
+            finally { Object.DestroyImmediate(source); }
+        }
+
+        [Test]
+        [Category("TutorialCommonRulesRegression")]
+        public void SharedVisual_HidesLegacyRenderersAndReusesReplacesAndCleansItsRoot()
+        {
+            var legacyBar = bar.gameObject.AddComponent<MeshRenderer>();
+            var legacyCable = leftCable.gameObject.AddComponent<MeshRenderer>();
+            root.SetActive(true);
+            RefreshSharedVisual();
+            var first = pole.CommonVisual;
+            Assert.IsFalse(legacyBar.enabled);
+            Assert.IsFalse(legacyCable.enabled);
+            RefreshSharedVisual();
+            Assert.AreSame(first, pole.CommonVisual, "같은 정본으로 외형을 중복 생성하지 않는다.");
+            root.SetActive(false);
+            pole.PresentSwing(0);
+            Assert.IsFalse(first.gameObject.activeSelf);
+            root.SetActive(true);
+            pole.PresentSwing(0);
+            Assert.IsTrue(first.gameObject.activeSelf);
+            pole.IsSwitch = true;
+            RefreshSharedVisual();
+            Assert.IsTrue(first == null, "외형 종류 변경 시 이전 표시 루트를 정리한다.");
+            var replacement = pole.CommonVisual;
+            Assert.IsNotNull(replacement);
+            DestroySharedVisual();
+            Assert.IsTrue(replacement == null, "공통 정리 경로가 분리된 표시 루트를 제거한다.");
+        }
+
+        void RefreshSharedVisual() => typeof(HumanCannonPole)
+            .GetMethod("RefreshCommonVisual", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(pole, null);
+
+        void DestroySharedVisual() => typeof(HumanCannonPole)
+            .GetMethod("DestroyCommonVisual", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(pole, null);
+
+        void AssertCommonCable(string cableName, string anchorName)
+        {
+            var visual = pole.CommonVisual;
+            var cable = visual.Find(cableName);
+            var anchor = visual.Find(anchorName);
+            Assert.IsTrue(cable.gameObject.activeInHierarchy, cableName);
+            Near(cable.TransformPoint(Vector3.up * .5f), anchor.position);
+            var midpoint = (visual.Find("LeftAnchor").position + visual.Find("RightAnchor").position) * .5f;
+            Near(cable.TransformPoint(Vector3.down * .5f), pole.VisualBar.position + anchor.position - midpoint);
+        }
+
+        static float ProjectedSize(Transform visual, Vector3 axis)
+        {
+            float min = float.PositiveInfinity, max = float.NegativeInfinity;
+            foreach (var filter in visual.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (filter.sharedMesh == null) continue;
+                var bounds = filter.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var corner = bounds.center + Vector3.Scale(bounds.extents,
+                        new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    float projected = Vector3.Dot(filter.transform.TransformPoint(corner), axis);
+                    min = Mathf.Min(min, projected); max = Mathf.Max(max, projected);
+                }
+            }
+            return max - min;
+        }
+
+        static Bounds WorldMeshBounds(Transform visual)
+        {
+            var bounds = new Bounds(visual.position, Vector3.zero);
+            bool found = false;
+            foreach (var renderer in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!found) { bounds = renderer.bounds; found = true; }
+                else bounds.Encapsulate(renderer.bounds);
+            }
+            return bounds;
         }
 
         void AssertCable(Transform cable, Transform anchor)

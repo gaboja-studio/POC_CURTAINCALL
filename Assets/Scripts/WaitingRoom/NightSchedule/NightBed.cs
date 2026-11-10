@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using CurtainCall.Campaign;
 using CurtainCall.Player;
 using UnityEngine;
@@ -26,12 +26,14 @@ namespace CurtainCall.WaitingRoom
         public static string UnscheduledTitle => WaitingRoomText.Get("night.bed-title", "잠자기");
         public static string UnscheduledNotice => WaitingRoomText.Get("night.bed-unavailable", "리허설이나 포획 중에는 잠들 수 없습니다.");
 
-        public bool IsAvailable => IsNight(out var run) && (run.IsLocalReady || CanSleep);
+        public bool IsAvailable => LocalCanInteract && IsNight(out var run) && (run.IsLocalReady || CanSleep);
+        static bool LocalCanInteract => CurtainCall.Network.PlayerSync.NetworkPlayer.Local == null
+            || PlayerInteraction.CanInteract(CurtainCall.Network.PlayerSync.NetworkPlayer.Local);
         public string ActionLabel => !IsNight(out var run) ? WaitingRoomText.Get("night.bed-not-night", "밤 정비 때 쓸 수 있습니다")
             : run.IsLocalReady ? WaitingRoomText.Format("night.bed-get-up", "일어나기 (준비 취소 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount))
             : WaitingRoomText.Format("night.bed-lie-down", "침대에 눕기 (준비 완료 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount));
 
-        /// <summary>오늘 밤 스케줄표가 확정됐다(고칠 일차가 없으면 참). 스케줄표가 없는 씬 확인에서는 막지 않는다.</summary>
+        /// <summary>일정 호환 조회. 일정 선택은 수면을 막지 않는다.</summary>
         public static bool ScheduleReady => ScheduleBoard.Instance == null || ScheduleBoard.Instance.NightCanEnd();
         static bool CanSleep
         {
@@ -72,7 +74,7 @@ namespace CurtainCall.WaitingRoom
 
         public void Interact()
         {
-            if (!IsNight(out var run)) return;
+            if (!LocalCanInteract || !IsNight(out var run)) return;
             if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice); return; }
             if (!run.IsLocalReady)
             {

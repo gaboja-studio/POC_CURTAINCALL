@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CurtainCall.Network.Session;
@@ -113,7 +113,7 @@ namespace CurtainCall.Campaign
             {
                 if (!state.IsRunning) return;
                 bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
-                    || state.Phase == CampaignPhase.DemoEnding) && host.RefreshNight(NightPlayers());
+                    || state.Phase == CampaignPhase.DemoEnding) && RefreshNight(host);
                 if (host.IsGuideRestWaiting) changed |= host.RefreshGuideRest(Players());
                 changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
@@ -297,6 +297,12 @@ namespace CurtainCall.Campaign
             if (state.Phase == CampaignPhase.Night && value && Network.PlayerSync.NetworkPlayer.Local is { } local
                 && !CanSleep(local.OwnerClientId)) return false;
             if (state.Phase != CampaignPhase.Night && !value) return false;
+            if (state.Phase == CampaignPhase.Night && value)
+            {
+                var localPlayer = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+                if (localPlayer != null ? !CurtainCall.Player.PlayerInteraction.CanInteract(localPlayer)
+                    : session != null && session.ConnectionState != SessionConnectionState.Offline) return false;
+            }
             bool changedReady = localReady != value;
             localReady = value;
             if (changedReady && state.Phase == CampaignPhase.Night && LocalReadyChanged != null)
@@ -309,7 +315,7 @@ namespace CurtainCall.Campaign
                 return HostDo(r =>
                 {
                     bool changed = r.SetReady(me, value);
-                    r.RefreshNight(NightPlayers());
+                    RefreshNight(r);
                     return changed;
                 }, nameof(SetReady));
             }
@@ -337,15 +343,6 @@ namespace CurtainCall.Campaign
         static bool CanSleep(ulong id) => !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
             && p.OwnerClientId == id && (p.State != Network.PlayerSync.PlayerState.Normal
                 || WaitingRoom.Pursuit.PursuitDirector.IsCaptured(p)));
-
-        IReadOnlyCollection<ulong> NightPlayers()
-        {
-            var players = Players();
-            if (state.Phase != CampaignPhase.Night) return players;
-            return players.Where(id => !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
-                && p.OwnerClientId == id && (p.State == Network.PlayerSync.PlayerState.Fallen
-                    || p.State == Network.PlayerSync.PlayerState.Retired))).ToArray();
-        }
 
         void Expired(CampaignSnapshot snapshot)
         {
@@ -424,6 +421,19 @@ namespace CurtainCall.Campaign
         {
             if (offlineRun || session == null || session.NetworkManager == null) return OfflinePlayers;
             return session.NetworkManager.ConnectedClientsIds;
+        }
+
+        bool RefreshNight(RunState current)
+        {
+            var connected = Players();
+            var normal = connected.Where(id =>
+            {
+                var player = CurtainCall.Network.PlayerSync.NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == id);
+                // A connected avatar which has not spawned yet is pending, not a confirmed death.
+                return player == null || (CurtainCall.Player.PlayerInteraction.CanInteract(player)
+                    && !WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player));
+            }).ToArray();
+            return current.RefreshNight(connected, normal);
         }
 
         /// <summary>로그·디버그 화면용 시간대 이름.</summary>
@@ -530,9 +540,10 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out int day);
             reader.ReadValueSafe(out byte phase);
             if (generation != state.Generation || day != state.Day || phase != (byte)state.Phase || !Players().Contains(sender)) return;
-            if (state.Phase == CampaignPhase.Night && value && !CanSleep(sender)) return;
+            if (state.Phase == CampaignPhase.Night && value
+                && (!CurtainCall.Player.PlayerInteraction.CanInteract(sender) || !CanSleep(sender))) return;
             if (!host.SetReady(sender, value)) return;
-            host.RefreshNight(NightPlayers());
+            RefreshNight(host);
             Apply(host.Snapshot);
         }
 

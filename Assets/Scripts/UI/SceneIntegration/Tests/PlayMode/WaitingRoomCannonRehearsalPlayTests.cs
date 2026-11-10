@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -135,7 +135,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Invoke(CannonLesson, "AcceptPlacement", remoteId, round, pose.position);
                 Assert.IsTrue(placed.Contains(remoteId));
                 remote.transform.position = Vector3.down * 50f;
-                yield return CannonWait(() => Get(remote, "State").ToString() == "Fallen", 1f, "배치 후 실제 추락은 정상 사망/복구 경로로 처리");
+                yield return CannonWait(() => Get(remote, "State").ToString() == "Fallen", 1f, "배치 후 실제 추락은 공통 사망 경로로 처리");
                 Assert.AreEqual(1, falls);
                 Call(helper, "Despawn", true); helper = null;
                 yield return null;
@@ -308,12 +308,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                             "Original contextual Korean text must not render as missing-glyph squares: " + label.text);
                 }
             }
-            var condition = Get(LocalPlayer, "LostParts");
-            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
-            Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
-            yield return CannonWait(() => Get(LocalPlayer, "State").ToString() == "Normal", 4, "Practice death must recover after its death animation.");
-            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"));
-            Assert.IsTrue(OnCannonFloor(Field(course, "MiddleFloor")), "Recovery must use the acquired internal checkpoint.");
             Assert.IsFalse(CannonFlag("HasMastered"), "Middle arrival alone is not mastery.");
             CannonStatic("VoteToAbandon", true);
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Majority abandon must return and unlock all controls.");
@@ -394,37 +388,80 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Cleanup must return control.");
         }
 
-        [UnityTest]
+        [UnityTest, Category("TutorialCommonRulesRegression")]
         public IEnumerator W6_CannonRehearsal_AbandonReentryPreservesExistingBody()
         {
             yield return OpenCannonWaitingRoom(2, "Morning");
-            Call(LocalPlayer, "ServerSetOneArm");
-            var condition = Get(LocalPlayer, "LostParts");
-            Assert.AreNotEqual(0, Convert.ToInt32(condition));
+            var enteredCondition = Get(LocalPlayer, "LostParts");
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
             yield return CannonWait(() => Get(CannonLesson, "Course") != null && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Native course placement must finish.");
-            var course = (Component)Get(CannonLesson, "Course");
-            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
-            yield return CannonWait(() => Get(LocalPlayer, "State").ToString() == "Normal", 4, "Training death must recover.");
-            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"), "Recovery must neither add injuries nor heal pre-existing ones.");
-            Assert.IsTrue(OnCannonFloor(Field(course, "StartFloor")));
-            var middle = ((Collider)Field(course, "MiddleFloor")).bounds;
-            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            Call(mover, "Relocate", new Vector3(middle.center.x, middle.max.y, middle.center.z), Quaternion.identity);
-            yield return CannonWait(() => (int)CannonStatic("Checkpoint", LocalId) == 1, 3, "Prepared checkpoint fixture must be accepted by the host.");
-            LocalPlayer.GetType().GetMethod("CompleteFall").Invoke(LocalPlayer, new object[] { 3f, ((Component)LocalPlayer).transform.position, null, null });
-            Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
+            Call(LocalPlayer, "ServerSetOneArm");
+            var condition = Get(LocalPlayer, "LostParts");
+            Assert.AreNotEqual(enteredCondition, condition, "The injury is acquired after entry, so restoring entry condition would fail this test.");
             CannonStatic("VoteToAbandon", true);
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Abandon must finish without mastery.");
             Assert.IsFalse(CannonFlag("HasMastered"));
-            Assert.AreEqual("Normal", Get(LocalPlayer, "State").ToString(), "An abandon during the death animation must not leave a dead player at the entrance.");
-            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"));
+            Assert.AreEqual("Normal", Get(LocalPlayer, "State").ToString());
+            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"), "Ending must not restore the condition captured at entry.");
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
             yield return CannonWait(() => Get(CannonLesson, "Course") != null && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Reentry must place at the first pad again.");
             Assert.AreEqual(0, CannonStatic("Checkpoint", LocalId));
             Assert.IsTrue(OnCannonFloor(Field(Get(CannonLesson, "Course"), "StartFloor")));
+            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"), "Reentry must preserve the new injury.");
             CannonStatic("VoteToAbandon", true);
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Cleanup must unlock the player.");
+            FlowKeys();
+        }
+
+        [UnityTest, Category("TutorialCommonRulesRegression")]
+        public IEnumerator W6_CannonRehearsal_DeadPlayerCanAbandonWithoutRevival() => CannonDeadPlayerReturns(false);
+
+        [UnityTest, Category("TutorialCommonRulesRegression")]
+        public IEnumerator W6_CannonRehearsal_DeadPlayerCanSkipWithoutRevival() => CannonDeadPlayerReturns(true);
+
+        IEnumerator CannonDeadPlayerReturns(bool skip)
+        {
+            yield return OpenCannonWaitingRoom(2, "Morning");
+            Assert.IsTrue((bool)CannonStatic("StartPractice"));
+            yield return CannonWait(() => Get(CannonLesson, "Course") != null
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Place the native rehearsal");
+            Call(LocalPlayer, "ServerSetOneArm");
+            var condition = Get(LocalPlayer, "LostParts");
+            var kill = LocalPlayer.GetType().GetMethod("ServerKill");
+            Assert.IsTrue((bool)kill.Invoke(LocalPlayer, new object[] { Enum.ToObject(kill.GetParameters()[0].ParameterType, 0), null }));
+            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var ragdoll = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerRagdoll"));
+            yield return CannonWait(() => (bool)Get(ragdoll, "IsLimp"), 2f, "Confirmed death must retain its ragdoll");
+            var limpModel = (GameObject)Priv(ragdoll, "limpModel");
+            bool simulated = (bool)Get(mover, "Simulated");
+            bool bodyEnabled = ((CharacterController)Get(mover, "Body")).enabled;
+            yield return new WaitForSecondsRealtime(2f);
+            Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString(), "The old 1.5-second free revival must not run.");
+            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"));
+            Assert.IsFalse(CannonFlag("IsEnding"), "A dead player has not satisfied unanimous arrival.");
+            Assert.IsFalse(CannonFlag("HasMastered"));
+            var panel = Priv(CannonLesson, "votePanel");
+            Assert.IsTrue((bool)Get(panel, "IsVisible"), "The vote must remain usable while dead.");
+            var button = ((UnityEngine.UI.Button[])Priv(panel, "buttons"))[skip ? 0 : 1];
+            Assert.IsTrue(button.IsInteractable());
+            button.onClick.Invoke();
+            yield return CannonWait(() => !CannonFlag("IsActive")
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7f, "A dead owner must finish the return and release the ending lock.");
+            Assert.AreEqual(skip, CannonFlag("HasMastered"), "Keep the established majority skip/abandon result.");
+            Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
+            Assert.AreEqual(condition, Get(LocalPlayer, "LostParts"));
+            Assert.IsFalse((bool)Get(mover, "ControlEnabled"));
+            Assert.AreEqual(simulated, Get(mover, "Simulated"));
+            Assert.AreEqual(bodyEnabled, ((CharacterController)Get(mover, "Body")).enabled);
+            Assert.AreSame(limpModel, Priv(ragdoll, "limpModel"), "Returning must move the existing corpse, never rebuild a living body.");
+            var expected = ((Pose)Priv(CannonLesson, "returnPose")).position;
+            Assert.Less(Vector3.Distance(LocalPlayer.transform.position, expected), 2f);
+            var colliders = limpModel.GetComponentsInChildren<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy).ToArray();
+            Assert.IsNotEmpty(colliders);
+            var bounds = colliders[0].bounds;
+            foreach (var collider in colliders.Skip(1)) bounds.Encapsulate(collider.bounds);
+            Assert.Less(Vector3.Distance(new Vector3(bounds.center.x, bounds.min.y, bounds.center.z), expected), 2f,
+                "Detached ragdoll must return with the player root, even if it fell away from that root.");
             FlowKeys();
         }
     }

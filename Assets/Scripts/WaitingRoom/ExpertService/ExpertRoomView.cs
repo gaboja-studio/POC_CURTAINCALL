@@ -51,7 +51,8 @@ namespace CurtainCall.WaitingRoom
         public float CurtainOpen => open;
         public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
         public Vector3 PresentationPoint => transform.TransformPoint(CurtainCenterLocal()) + Vector3.up;
-        public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer;
+        public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer
+            && (NetworkPlayer.Local == null || PlayerInteraction.CanInteract(NetworkPlayer.Local));
         public string ActionLabel => IsAvailable ? WaitingRoomText.Get("expert-room.ride-lift", "신체 복구 승강기 타기") : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : WaitingRoomText.Get("expert-room.absent", "담당자 부재중");
 
         /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
@@ -161,6 +162,7 @@ namespace CurtainCall.WaitingRoom
 
         public void Interact()
         {
+            if (NetworkPlayer.Local != null && !PlayerInteraction.CanInteract(NetworkPlayer.Local)) return;
             var service = ExpertService.Instance;
             if (service == null) return;
             if (service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer) { service.RequestEnter(); return; }

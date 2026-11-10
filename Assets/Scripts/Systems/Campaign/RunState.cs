@@ -200,17 +200,23 @@ namespace CurtainCall.Campaign
         /// <summary>
         /// 밤 정비 인원을 다시 센다. 나간 사람은 준비 목록에서 빼고, 남은 전원이 준비됐으면 다음 날 아침 쉬는 시간으로 넘어간다.
         /// </summary>
-        public bool RefreshNight(IReadOnlyCollection<ulong> players)
+        public bool RefreshNight(IReadOnlyCollection<ulong> players) => RefreshNight(players, null);
+
+        public bool RefreshNight(IReadOnlyCollection<ulong> players, IReadOnlyCollection<ulong> normalPlayers)
         {
             if (IsGuideRestWaiting) return false;
             if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.Dawn && s.Phase != CampaignPhase.DemoEnding) return false;
-            ready.RemoveWhere(id => !Contains(players, id));
+            // Only living participants prepare for sleep; Dawn still waits for every connected screen.
+            var required = s.Phase == CampaignPhase.Night && normalPlayers != null ? normalPlayers : players;
+            ready.RemoveWhere(id => !Contains(required, id));
             int before = s.ReadyCount, beforeRequired = s.RequiredCount;
             s.ReadyCount = ready.Count;
-            s.RequiredCount = players.Count;
+            s.RequiredCount = required.Count;
 
-            bool gateOpen = s.Phase != CampaignPhase.Night || NightEndGate == null || NightEndGate();
-            if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount && gateOpen)
+            bool nobodyCanPrepare = s.Phase == CampaignPhase.Night && normalPlayers != null && required.Count == 0;
+            // An all-dead party uses the existing timeout completion; living players still need the schedule gate.
+            bool gateOpen = nobodyCanPrepare || s.Phase != CampaignPhase.Night || NightEndGate == null || NightEndGate();
+            if (players.Count > 0 && s.ReadyCount >= s.RequiredCount && gateOpen)
             {
                 if (s.Phase == CampaignPhase.DemoEnding)
                     FailRun(RunEndReason.Deadline);

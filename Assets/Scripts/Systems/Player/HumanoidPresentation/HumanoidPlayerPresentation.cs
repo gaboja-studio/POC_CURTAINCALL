@@ -201,15 +201,10 @@ namespace CurtainCall.Player
                 grip = transform.position + Vector3.up * GameSettings.Tightrope.Hang.HangDrop;
                 return true;
             }
-            var trapeze = TightropeTrapeze.Current;
-            if (trapeze != null && trapeze.IsHeld(network)) { grip = trapeze.GripPoint(network); return true; }
-            var swing = TightropeSwingPole.Current;
-            if (swing != null && swing.IsHeld(network)) { grip = swing.GripPoint(network); return true; }
-            var relay = TightropeRelayGate.Current;
-            int index = relay != null ? relay.HeldPole(network) : -1;
-            if (index >= 0) { grip = relay.PhysicalPole(index).BarPosition(0f); return true; }
+            // 모든 봉은 현재 반동 각도와 실제 탑승 순서의 공통 위치로 손을 맞춘다.
+            // 옛 외줄 어댑터의 중립 봉 위치/고정 높이를 먼저 쓰면 몸 외형만 판정 위치에서 이탈한다.
             var poles = HumanCannonPoleSystem.Current;
-            index = poles != null ? poles.HeldBy(network.OwnerClientId) : -1;
+            int index = poles != null ? poles.HeldBy(network.OwnerClientId) : -1;
             if (index < 0) return false;
             var pole = poles.Pole(index);
             if (pole == null) return false;

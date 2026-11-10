@@ -5,6 +5,49 @@ namespace CurtainCall.WaitingRoom.Tests
     /// <summary>M2 신체 복구: 쉬는 시간·밤 정비 언제든, 1~3개 선택, 1개당 100에서 팀 이용마다 +25, 런 초기화.</summary>
     public sealed class ExpertServiceBookTests
     {
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void UnfulfilledMedicalRefundRetriesAndPaysExactlyOnce()
+        {
+            var book = NewBook();
+            long balance = 500;
+            Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Buyer, true, true, 2, 2, MaxPerUse,
+                () => { balance -= 150; return true; }, 150));
+            Assert.IsTrue(book.CancelUnfulfilled());
+            Assert.IsFalse(book.CancelUnfulfilled(), "반복 취소는 결제액을 다시 쌓지 않는다.");
+            Assert.AreEqual(ExpertRoomPhase.Idle, book.Phase);
+            Assert.AreEqual(ExpertRefusal.None, book.CanBuyMedical(Other, true, true, 1, 1, MaxPerUse));
+            Assert.IsFalse(book.TryRefund(_ => false));
+            Assert.AreEqual(150, book.PendingRefund);
+            int credits = 0;
+            Assert.IsTrue(book.TryRefund(amount => { credits++; balance += amount; return true; }));
+            Assert.IsFalse(book.TryRefund(amount => { credits++; balance += amount; return true; }));
+            Assert.AreEqual(500, balance);
+            Assert.AreEqual(1, credits);
+        }
+
+        [TestCase(0, 225), TestCase(1, 150), TestCase(2, 75), TestCase(3, 0), Category("WaitingRoomCommonRecovery")]
+        public void MedicalRefundOnlyReturnsActuallyUnrestoredParts(int restored, long expected)
+        {
+            var book = NewBook();
+            book.BookMedical(Buyer, true, true, 3, 3, MaxPerUse, () => true, 225);
+            book.Enter(Buyer);
+            Assert.IsTrue(book.Tick(3f));
+            book.RecordRestoration(restored);
+            book.RecordRestoration(0);
+            book.CancelUnfulfilled();
+            Assert.AreEqual(expected, book.PendingRefund, "이미 복구한 부위는 이후 사망·중복 정산에도 환급하지 않는다.");
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NewGenerationDiscardsOldMedicalRefund()
+        {
+            var book = NewBook();
+            book.BookMedical(Buyer, true, true, 1, 1, MaxPerUse, () => true, 50);
+            book.CancelUnfulfilled();
+            book.Reset();
+            Assert.AreEqual(0, book.PendingRefund);
+            Assert.IsFalse(book.TryRefund(_ => { Assert.Fail("이전 세대 구매는 새 세대 자금에 환급하지 않는다."); return true; }));
+        }
         const ulong Buyer = 1, Other = 2;
         const int MaxPerUse = 3;
 

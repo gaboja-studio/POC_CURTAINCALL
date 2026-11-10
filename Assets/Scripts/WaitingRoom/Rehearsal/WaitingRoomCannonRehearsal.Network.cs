@@ -34,7 +34,7 @@ namespace CurtainCall.WaitingRoom
             promptBlock?.SetOpen(false);
             votePanel?.Hide();
             fader?.Cancel();
-            fallenAt.Clear(); conditions.Clear();
+            fallen.Clear();
             lastCarrier = CurtainCall.HumanCannon.CannonSeatState.Nobody;
             local = null; previousState = default;
             room = null;
