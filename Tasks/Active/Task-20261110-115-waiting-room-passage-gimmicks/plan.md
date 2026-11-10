@@ -7,8 +7,12 @@
 - **Base:** dev
 - **Jira:** CC-250~259 (에픽 CC-3)
 
+## JIRA
+CC-250, CC-251, CC-252, CC-253, CC-254, CC-255, CC-256, CC-257, CC-258, CC-259
+
 ## Context
-[M2] 대기실 통로 기믹 기획(Confluence 38764736)을 대기실에 구현한다. 대상 씬은 게임 설정의 실제 대기실 `WaitingRoomPursuit.unity`.
+[M2] 대기실 통로 기믹 기획(Confluence 38764736)을 대기실에 구현한다. 대상 씬은 게임 설정(waitingRoomVariant=Integrated)의 실제 대기실 `WaitingRoom.unity`. 아이디어 구조도: [gimmick-map.png](gimmick-map.png).
+탈출로는 A/B/C 3개(A 제작됨). 대기실→탈출로 길을 여러 개 만들고, 가는 방법·도착 입구에 따라 진입 탈출로가 달라진다. 숙소 환풍구 → 지하 기계실 연결은 구상 확정, 나머지 배치는 제안·확인 단계. 대기실 핵심 배치 구조는 유지하고 통로·공간만 추가·변경한다.
 
 ## 원칙 (사용자 지시 2026-11-10)
 - 기믹은 맨몸으로 열 수 있는 것과 다른 기물이 필요한 것으로 분리한다.
@@ -32,4 +36,4 @@
 - HumanCannonSystem·트램펄린은 씬당 1개 → 트램펄린 구역 1곳. 반동 약 7m라 평지 착지 시 낙사 기준(5m) 초과.
 - 1인 수직 이동 대안 미정(스프링 신발은 3m 이상 낙하에서만 작동).
 - 셔터·조명은 밤 정비 코드(NightDoorLock·NightPower)를 쓰지 않는다. NightPower Light와 겹치지 않게.
-- WaitingRoomPursuit.unity는 대형 씬 YAML. 수정 전 asset-ownership 확인, 겹치는 수정은 알린다.
+- WaitingRoom.unity는 대형 씬 YAML(약 79MB). 수정 전 asset-ownership 확인, 겹치는 수정은 알린다.
