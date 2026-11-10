@@ -5,6 +5,39 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class CannonLandingTests
     {
+        [Test, Category("CommonRulesRegression")]
+        public void SafeLandingUsesActualSupportAtCapsuleEdgeAndRejectsSeparateUpperFloor()
+        {
+            var root = new GameObject("safe edge fixture");
+            var actor = new GameObject("landing capsule");
+            root.transform.position = new Vector3(15000, 0, 15000);
+            actor.transform.position = root.transform.position;
+            try
+            {
+                var tile = root.AddComponent<BoxCollider>();
+                tile.center = Vector3.down * .25f;
+                tile.size = new Vector3(4, .5f, 4);
+                var zone = root.AddComponent<HumanCannonLandingZone>();
+                typeof(HumanCannonLandingZone).GetMethod("OnEnable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(zone, null);
+                var mover = actor.AddComponent<CurtainCall.Player.PlayerMover>();
+                var body = actor.GetComponent<CharacterController>();
+                body.height = 1.5f; body.center = Vector3.up * .75f; body.radius = .3f;
+                var method = typeof(HumanCannonLandingZone).GetMethod("ContainsLanding", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic,
+                    null, new[] { typeof(CurtainCall.Player.PlayerMover), typeof(Vector3) }, null);
+                bool Safe(Vector3 feet) => (bool)method.Invoke(null, new object[] { mover, root.transform.position + feet });
+                Physics.SyncTransforms();
+                Assert.IsTrue(Safe(new Vector3(2.08f, .02f, 0)), "A capsule can still stand on the real top while its centre is beyond the edge.");
+                Assert.IsFalse(Safe(new Vector3(2.5f, .02f, 0)), "No safe support beyond capsule contact.");
+                var upper = new GameObject("ordinary surface"); upper.transform.SetParent(root.transform, false);
+                var above = upper.AddComponent<BoxCollider>(); above.center = Vector3.up * .025f; above.size = new Vector3(2, .05f, 2);
+                Physics.SyncTransforms();
+                Assert.IsFalse(Safe(new Vector3(0, .07f, 0)), "A separate ordinary floor above a safe zone must not inherit its exemption.");
+                above.enabled = false; tile.isTrigger = true;
+                Assert.IsFalse(Safe(new Vector3(0, .02f, 0)), "Triggers are not safe supports.");
+            }
+            finally { Object.DestroyImmediate(actor); Object.DestroyImmediate(root); }
+        }
+
         [TestCase(1, 5, 10)]
         [TestCase(2, 5, 8)]
         [TestCase(3, 5, 5)]

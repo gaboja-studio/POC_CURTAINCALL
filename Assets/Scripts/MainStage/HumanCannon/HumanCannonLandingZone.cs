@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CurtainCall.Player;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -38,6 +39,21 @@ namespace CurtainCall.HumanCannon
         {
             foreach (var zone in zones)
                 if (zone != null && zone.SupportsLanding(feet)) return true;
+            return false;
+        }
+
+        /// <summary>몸 중심이 플랫폼 밖에 있어도 실제 발밑 접촉면이 안전대면 같은 착지다.</summary>
+        internal static bool ContainsLanding(PlayerMover mover, Vector3 feet)
+        {
+            if (!WalkableSupport.TryGetSupport(mover, feet, out var support)) return false;
+            foreach (var zone in zones)
+            {
+                if (zone == null || !zone.isActiveAndEnabled) continue;
+                if (zone.surface == null) zone.surface = zone.GetComponent<BoxCollider>();
+                if (support.collider == zone.surface && Supports(zone.surface, support.point)) return true;
+                foreach (var tile in zone.additionalSurfaces)
+                    if (support.collider == tile && Supports(tile, support.point)) return true;
+            }
             return false;
         }
 

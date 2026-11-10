@@ -92,6 +92,78 @@ namespace CurtainCall.WaitingRoom.EditorTools
             return player;
         }
 
+        [TestCase(false), TestCase(true), Category("WaitingRoomCommonRecovery")]
+        public void CannonRevivalWithoutAnObservedFallenFrameKeepsCheckpointAndClearsArrival(bool middle)
+        {
+            var player = Player(940);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            var mover = player.GetComponent<PlayerMover>();
+            Shared("active", true); Shared("round", 7);
+            var shared = Get(cannon, "shared");
+            List<ulong> List(string name) => (List<ulong>)shared.GetType().GetField(name).GetValue(shared);
+            foreach (string name in new[] { "placed", "arrived", "votes", "skipVotes" }) List(name).Add(player.OwnerClientId);
+            if (middle) List("middle").Add(player.OwnerClientId);
+            Set(cannon, "local", player); Set(cannon, "previousState", PlayerState.Normal); Set(cannon, "placedRound", 7);
+            var walls = Make("Old cannon finish walls"); Set(cannon, "walls", walls);
+            var course = Make("Checkpoint course").AddComponent<RehearsalCannonCourse>();
+            var start = Make("Start floor").AddComponent<BoxCollider>();
+            start.transform.position = new Vector3(9100, 9000, 9000); start.size = new Vector3(12, .4f, 8);
+            var midway = Make("Middle floor").AddComponent<BoxCollider>();
+            midway.transform.position = new Vector3(9200, 9004, 9000); midway.size = start.size;
+            course.StartFloor = start; course.MiddleFloor = midway; Set(cannon, "course", course);
+            var pilot = player.gameObject.AddComponent<HumanCannonPilot>();
+            Set(pilot, "mover", mover); Set(pilot, "player", player);
+            Set(pilot, "previousSimulation", true);
+            typeof(HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true); mover.Simulated = false;
+            Call(cannon, "OnPlayerRevived", player);
+            Assert.IsTrue((bool)Get(cannon, "localRecoveryPending"), "A zero-delay revival need not expose an intermediate Fallen state.");
+            Call(cannon, "ResetLocalRecovery", player);
+            Assert.IsFalse(walls.activeSelf);
+            foreach (string name in new[] { "placed", "arrived", "votes", "skipVotes" }) Assert.IsEmpty(List(name), name);
+            Assert.AreEqual(middle, List("middle").Contains(player.OwnerClientId), "Recovery must keep the last acquired checkpoint.");
+            Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
+            Assert.That(Vector3.Distance(player.transform.position, course.CheckpointPose(middle ? 1 : 0, 0).position), Is.LessThan(.001f));
+            Assert.IsFalse(pilot.IsDriving, "A stale flight must not move the player away from the recovered checkpoint.");
+            Assert.IsTrue(mover.Simulated);
+            Set(cannon, "course", null); // EditMode fixture owns immediate destruction.
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void TutorialCompletionRevivalWaitsForNormalThenReleasesFinishState()
+        {
+            InitialTutorial(true);
+            var player = Player(941);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            Set(rehearsal, "local", player); Set(rehearsal, "placedRound", 3); Set(rehearsal, "lessonReturnedRound", 3);
+            foreach (string name in new[] { "arrived", "votes", "placed" }) ((HashSet<ulong>)Get(rehearsal, name)).Add(player.OwnerClientId);
+            var walls = Make("Old tutorial finish walls"); Set(rehearsal, "finishWalls", walls);
+            var state = (NetworkVariable<PlayerState>)Get(player, "state");
+            state.Value = PlayerState.Fallen;
+            Call(rehearsal, "OnLocalRevived", player);
+            Call(rehearsal, "RecoverLocal");
+            Assert.IsTrue((bool)Get(rehearsal, "localRecoveryPending"), "A revival notification arriving before Normal must wait.");
+            state.Value = PlayerState.Normal;
+            Call(rehearsal, "RecoverLocal");
+            Assert.IsFalse((bool)Get(rehearsal, "localRecoveryPending"));
+            Assert.IsFalse(walls.activeSelf);
+            foreach (string name in new[] { "arrived", "votes", "placed" }) Assert.IsEmpty((HashSet<ulong>)Get(rehearsal, name), name);
+            Assert.AreEqual(-1, Get(rehearsal, "placedRound"), "Completed education must still return to the practice-room deck before the first performance.");
+            Assert.IsTrue(WaitingRoomRehearsal.UsesInitialTutorialRules);
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NewCannonConnectionDropsQueuedRevivalAndOldCheckpoint()
+        {
+            Set(run, "host", null);
+            Set(cannon, "localRecoveryPending", true);
+            var shared = Get(cannon, "shared");
+            ((List<ulong>)shared.GetType().GetField("middle").GetValue(shared)).Add(942);
+            Call(cannon, "ResetConnection");
+            Assert.IsFalse((bool)Get(cannon, "localRecoveryPending"));
+            Assert.AreEqual(0, WaitingRoomCannonRehearsal.Checkpoint(942), "A new room cannot retain the previous rehearsal checkpoint.");
+        }
+
         [TestCase("seat")] [TestCase("flight")] [TestCase("transport")]
         public void CannonEndingRestoresMovementOwnedByNativeDevice(string motion)
         {
@@ -348,6 +420,82 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase, "확정된 전원 사망이면 기존 밤 종료로 진행한다.");
             }
             finally { RunState.NightEndGate = oldGate; }
+        }
+
+        [TestCase(PlayerState.Normal), TestCase(PlayerState.Fallen), TestCase(PlayerState.Retired)]
+        [Category("NightPursuitTransitionRegression")]
+        public void NightWaitsForLastCaptureThenRequiresFreshDawnAcknowledgment(PlayerState duringCapture)
+        {
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => false;
+                var night = new RunState(false, true, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Assert.IsTrue(night.DebugBeginPursuit());
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var player = Player(0);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                var state = (NetworkVariable<PlayerState>)Get(player, "state");
+                state.Value = duringCapture;
+                var go = Make("Pending night capture"); go.SetActive(false);
+                var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                var victim = System.Activator.CreateInstance(victimType, true);
+                victimType.GetField("Object").SetValue(victim, player.gameObject);
+                ((System.Collections.IDictionary)Get(pursuit, "victims")).Add(0UL, victim);
+
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCapturePending(player));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Night, night.Snapshot.Phase, "A captured player is not a completed death while the capture sequence is pending.");
+                Assert.AreEqual(RestTimerState.Pursuit, night.Snapshot.Timer);
+
+                state.Value = PlayerState.Retired;
+                victimType.GetField("Retired").SetValue(victim, true);
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCaptured(player), "The completed victim still cannot interact until morning revival.");
+                Assert.IsFalse(Pursuit.PursuitDirector.IsCapturePending(player));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
+                Assert.AreEqual(1, night.Snapshot.Day);
+                Assert.AreEqual(0, night.Snapshot.ReadyCount);
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase, "Retirement is not the owner's fade-complete acknowledgment.");
+                night.SetReady(0, true);
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.RestTime, night.Snapshot.Phase);
+                Assert.AreEqual(RestKind.Morning, night.Snapshot.Rest);
+                Assert.AreEqual(2, night.Snapshot.Day);
+            }
+            finally { current.SetValue(null, previous); RunState.NightEndGate = oldGate; }
+        }
+
+        [Test, Category("NightPursuitTransitionRegression")]
+        public void DisconnectedPendingCaptureDoesNotBlockTheRemainingDeadPlayers()
+        {
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current");
+            var previous = current.GetValue(null);
+            try
+            {
+                var night = new RunState(false, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var local = Player(0);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(local, true);
+                ((NetworkVariable<PlayerState>)Get(local, "state")).Value = PlayerState.Fallen;
+                var departed = Player(1); // Offline connected roster contains only actor 0.
+                var go = Make("Disconnected pending night capture"); go.SetActive(false);
+                var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                var victim = System.Activator.CreateInstance(victimType, true);
+                victimType.GetField("Object").SetValue(victim, departed.gameObject);
+                ((System.Collections.IDictionary)Get(pursuit, "victims")).Add(1UL, victim);
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCapturePending(departed));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
+            }
+            finally { current.SetValue(null, previous); }
         }
 
         [Test, Category("WaitingRoomCommonRecovery")]
