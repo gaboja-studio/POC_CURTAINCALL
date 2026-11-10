@@ -6,7 +6,7 @@ namespace CurtainCall.Tightrope.Fire
     /// <summary>
     /// 충돌체 없는 화재 표시. 추격 불은 연결된 파티클 불벽이다.
     /// 구간 발화는 줄 위 불꽃 파티클로, 예고가 시작되면 아주 약한 붉은 불꽃에서 노란 불꽃이 점점 섞이며 발화 순간 최대 크기까지 커진다.
-    /// 최대치(발화)에서 줄이 사라지고, 불꽃은 잠시 최대로 타다가 잦아든다.
+    /// 최대치(발화)에서 줄이 끊어지는 순간 새 불꽃을 멈춘다. 남은 불꽃은 위로 올라가며 사라지므로 아래쪽부터 비어 보인다.
     /// </summary>
     [RequireComponent(typeof(TightropeFire))]
     public sealed class FireView : MonoBehaviour
@@ -15,8 +15,6 @@ namespace CurtainCall.Tightrope.Fire
         [SerializeField] Transform chaseEffect;
         /// <summary>줄 불꽃 파티클 머티리얼. 비우면 추격 불벽의 파티클 머티리얼을 같이 쓴다.</summary>
         [SerializeField] Material segmentFlameMaterial;
-        [Tooltip("발화 후 줄이 사라진 자리에서 불꽃이 최대로 타는 시간(초).")]
-        [SerializeField, Min(0f)] float burnHoldSeconds = 2f;
 
         // 불 온도처럼 약할 때는 붉은 불꽃만, 세질수록 노란 불꽃이 섞인다. 파티클마다 두 색 사이에서 고른다.
         static readonly Color WeakCool = new(0.75f, 0.06f, 0.02f, 0.6f), WeakWarm = new(1f, 0.16f, 0.03f, 0.7f);
@@ -31,13 +29,12 @@ namespace CurtainCall.Tightrope.Fire
         bool ownsParticleMaterial;
         FireSettings shown;
         int shownRound = -1;
-        float[] burnVisibleUntil = System.Array.Empty<float>();
 
-        /// <summary>구간 불꽃 세기(0~1). 예고 중 0→1로 커지고, 발화 후 유지 시간 동안 1이다. 표시하지 않으면 -1.</summary>
+        /// <summary>구간 불꽃 세기(0~1). 예고 중 0→1로 커진다. 발화(줄 끊김) 후와 표시하지 않을 때는 -1.</summary>
         public float SegmentIntensity(int index)
         {
-            if (fire == null || fire.Settings == null || index < 0 || index >= burnVisibleUntil.Length) return -1f;
-            if (fire.IsSegmentActive(index)) return burnVisibleUntil[index] < 0f || Time.time < burnVisibleUntil[index] ? 1f : -1f;
+            if (fire == null || fire.Settings == null || index < 0 || index >= segments.Count) return -1f;
+            if (fire.IsSegmentActive(index)) return -1f; // 줄이 끊어지는 순간 불꽃도 아래부터 사라지기 시작한다.
             float remaining = fire.WarningRemaining(index);
             if (remaining < 0f) return -1f;
             float total = fire.Settings.warningSeconds;
@@ -86,7 +83,6 @@ namespace CurtainCall.Tightrope.Fire
             {
                 var segment = settings.segments[i];
                 int lane = segment.lane - 1;
-                if (fire.IsSegmentActive(i) && burnVisibleUntil[i] < 0f) burnVisibleUntil[i] = Time.time + burnHoldSeconds;
                 float intensity = SegmentIntensity(i);
                 bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && intensity >= 0f;
                 fire.GetSegmentSpans(i, segmentSpans);
@@ -142,8 +138,6 @@ namespace CurtainCall.Tightrope.Fire
                 for (int piece = 0; piece < pieces.Length; piece++) pieces[piece] = Flames($"SegmentFire{i + 1}Part{piece + 1}");
                 segments.Add(pieces);
             }
-            burnVisibleUntil = new float[settings.segments.Length];
-            System.Array.Fill(burnVisibleUntil, -1f);
             shown = settings;
             shownRound = fire.Round;
         }

@@ -160,12 +160,12 @@ MonoBehaviour:
       startSide: 0
     - distance: 159
       startSide: 1
-    horizontalFirstSpeed: 9.5
-    horizontalLastSpeed: 12
+    horizontalFirstSpeed: 11.4
+    horizontalLastSpeed: 14.4
     horizontalTravelHalfWidth: 9.5
     horizontalColliderDiameter: 1
     horizontalVisualDiameter: 1.2
-    horizontalAttackTop: 0.2
+    horizontalAttackTop: 0.45
     horizontalThickness: 0.1
     verticalSpawnDistance: 37.5
     verticalEndDistance: 3.75
@@ -218,7 +218,7 @@ MonoBehaviour:
     chaseStart: -6
     chaseSpeed: 0.5
     safeDistance: 165
-    warningSeconds: 2.5
+    warningSeconds: 3
     triggerMode: 1
     laneOrder: 2
     segments:

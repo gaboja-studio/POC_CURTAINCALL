@@ -1183,7 +1183,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.That((float)Get(fire, "ChaseDistance"), Is.GreaterThan(chaseBefore));
             Assert.That(flames.main.startColor.colorMax.g, Is.GreaterThan(warningHot), "발화 때는 노란 불꽃이 더 섞인다.");
             Assert.That(flames.main.startColor.colorMin.g, Is.LessThan(0.3f), "최대 불꽃에도 붉은 불꽃이 남는다.");
-            Assert.That(flames.emission.rateOverTime.constant, Is.GreaterThan(warningRate), "예고보다 발화 때 불꽃이 커야 한다.");
+            Assert.That(flames.emission.rateOverTime.constant, Is.GreaterThan(warningRate), "발화 직전 최대 불꽃은 예고 초반보다 커야 한다.");
+            Assert.IsFalse(flames.isEmitting, "줄이 끊어지는 순간 새 불꽃을 멈춘다.");
+            Assert.That(flames.particleCount, Is.GreaterThan(0), "남은 불꽃은 바로 지우지 않고 위로 올라가며 아래부터 사라진다.");
             int oldRound = (int)Get(run, "Round");
             var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
             Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
