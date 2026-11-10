@@ -62,7 +62,18 @@ namespace CurtainCall.WaitingRoom.Editor
             planeHeight = FloorForHeight(target.position.y, floorHeights); allFloors = false; RefreshFloors();
             Selection.activeGameObject = target.gameObject; selected = target;
             RefreshList(); RefreshDetails(); FrameMap(true);
-            status.text = $"{InteractionLabel(target)} · 위치 보기";
+            bool framed = FrameSceneView(target);
+            status.text = $"{InteractionLabel(target)} · 위치 보기" + (framed ? " · 씬 뷰 이동" : " · 열린 씬 뷰 없음");
+        }
+        // 씬 뷰도 같은 기물로 맞춘다. 렌더러가 없거나 숨은 발견품은 기준 위치 주변 1.5m로 잡는다.
+        static bool FrameSceneView(Transform target)
+        {
+            var view = SceneView.lastActiveSceneView;
+            if (view == null) return false;
+            var bounds = new Bounds(PlacementPoint(target), Vector3.one * 1.5f);
+            foreach (var r in PlacementVisual(target).GetComponentsInChildren<Renderer>()) if (r.enabled) bounds.Encapsulate(r.bounds);
+            view.Frame(bounds, false);
+            return true;
         }
 
         // 가운데 맵: 패널 전체 높이를 쓴다. 설정은 CreateMapControls로 오른쪽 패널에 둔다.
@@ -302,6 +313,32 @@ namespace CurtainCall.WaitingRoom.Editor
             placing = false; ClearCreation(); Selection.activeGameObject = instance;
             status.text = "배치 완료 · 기존 발견품·상호작용 시스템에 연결됨";
         }
+        // 선택한 카드(새 기물·프리팹·기존 대상)를 맵 지점에 배치하거나 재배치한다.
+        void DropAt(Vector2 mouse, Rect rect)
+        {
+            if (existingPaletteSource != null && IsInteractionObject(existingPaletteSource) && OnSelectedFloor(existingPaletteSource)) {
+                selected = existingPaletteSource;
+                Undo.IncrementCurrentGroup(); int group = Undo.GetCurrentGroup();
+                ApplyPlacement(MapWorld(mouse, rect, mapCenter, mapSize, PlacementPoint(selected).y), selected.rotation);
+                Undo.CollapseUndoOperations(group);
+                existingPaletteSource = null; status.text = "기존 상호작용 오브젝트 재배치 완료";
+            } else PlaceMap(mouse, rect);
+        }
+        // 팔레트 카드를 맵 위로 끌어 와 놓으면 Alt+드래그와 같은 배치를 한다.
+        void CardDrop(Event e, Rect rect)
+        {
+            if (DragAndDrop.GetGenericData(CardDragKey) == null) return;
+            if (e.type == EventType.DragExited) { mapPrefabDragging = false; RepaintMap(); return; }
+            if (!rect.Contains(e.mousePosition)) return;
+            bool ready = existingPaletteSource != null || (placing && (HasCreation || InteractionPrefab(prefab)));
+            DragAndDrop.visualMode = ready ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
+            mapPrefabDragging = ready; mapPress = e.mousePosition;
+            if (e.type == EventType.DragPerform && ready) {
+                DragAndDrop.AcceptDrag(); DropAt(e.mousePosition, rect);
+                EndMapDrag(); RefreshDetails(); RefreshPalette();
+            }
+            e.Use(); RepaintMap();
+        }
         void MapInput(Rect rect)
         {
             var e = Event.current;
@@ -309,16 +346,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 placing = false; ClearCreation(); existingPaletteSource = null; EndMapDrag(); RefreshPalette(); e.Use(); return;
             }
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.F) { FrameMap(true); e.Use(); return; }
+            if (e.type is EventType.DragUpdated or EventType.DragPerform or EventType.DragExited) { CardDrop(e, rect); return; }
             if (e.type == EventType.MouseUp) {
-                if (mapPrefabDragging && rect.Contains(e.mousePosition)) {
-                    if (existingPaletteSource != null && IsInteractionObject(existingPaletteSource) && OnSelectedFloor(existingPaletteSource)) {
-                        selected = existingPaletteSource;
-                        Undo.IncrementCurrentGroup(); int group = Undo.GetCurrentGroup();
-                        ApplyPlacement(MapWorld(e.mousePosition, rect, mapCenter, mapSize, PlacementPoint(selected).y), selected.rotation);
-                        Undo.CollapseUndoOperations(group);
-                        existingPaletteSource = null; status.text = "기존 상호작용 오브젝트 재배치 완료";
-                    } else PlaceMap(e.mousePosition, rect);
-                }
+                if (mapPrefabDragging && rect.Contains(e.mousePosition)) DropAt(e.mousePosition, rect);
                 else if (mapPanning && panButton == 0 && panDistance < 3 && rect.Contains(e.mousePosition)) {
                     var hit = PickMap(e.mousePosition, rect);
                     if (hit != null) Selection.activeGameObject = hit.gameObject;

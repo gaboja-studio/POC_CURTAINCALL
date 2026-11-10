@@ -138,6 +138,10 @@ namespace CurtainCall.WaitingRoom.Editor
             bool overTile = hover.rect.width > 0;
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape) { placing = false; ClearCreation(); existingPaletteSource = null; EndMapDrag(); panFloor = float.NaN; e.Use(); return; }
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.F) { FrameMap(true); e.Use(); return; }
+            if (e.type == EventType.DragUpdated && DragAndDrop.GetGenericData(CardDragKey) != null) {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                status.text = "전체 층 보기에서는 배치할 수 없습니다. 표시 층에서 층을 고르세요."; e.Use(); return;
+            }
             if (e.type == EventType.MouseUp) {
                 if (mapPanning && panButton == 0 && panDistance < 3 && overTile) {
                     var hit = PickAllFloors(e.mousePosition, hover.floor, hover.rect);
