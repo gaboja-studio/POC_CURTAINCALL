@@ -58,10 +58,11 @@ namespace CurtainCall.WaitingRoom
             var go = new GameObject(nameof(WaitingRoomCannonRehearsal)); DontDestroyOnLoad(go);
             instance = go.AddComponent<WaitingRoomCannonRehearsal>();
         }
-        void Awake() { AwakeNetwork(); AwakeUi(); HumanCannonTrampoline.ServerBounced += Bounced; }
+        void Awake() { AwakeNetwork(); AwakeUi(); HumanCannonTrampoline.ServerBounced += Bounced; CampaignRun.TrickDiscovered += OnTrickDiscovered; }
         void OnDestroy()
         {
             HumanCannonTrampoline.ServerBounced -= Bounced;
+            CampaignRun.TrickDiscovered -= OnTrickDiscovered;
             DestroyNetwork(); Cleanup(); ReleaseEndingLock();
             if (instance == this) instance = null;
         }
@@ -69,6 +70,7 @@ namespace CurtainCall.WaitingRoom
         {
             TickNetwork();
             if (!UpdatePracticeContext()) return;
+            OfferUnlockedRehearsal();
             if (shared.active && !shared.ending)
             {
                 if (FindRoom()) EnsureCourse();
@@ -109,6 +111,8 @@ namespace CurtainCall.WaitingRoom
             var r = instance;
             if (r == null || !r.Host || !r.CanStart || !r.FindRoom()
                 || Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance") == null) return false;
+            r.prompt = r.pendingUnlockPrompt = false;
+            r.promptBlock.SetOpen(false); r.votePanel.Hide();
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
             r.fallen.Clear(); r.lastCarrier = CannonSeatState.Nobody;
             r.Publish();

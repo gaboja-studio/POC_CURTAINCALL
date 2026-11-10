@@ -230,7 +230,9 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 memoryOnly.SetValue(null, true); memoryEnabled.SetValue(null, false);
                 var flow = Make("Lifecycle first day flow").AddComponent<WaitingRoomFirstDayFlow>();
                 Call(flow, "Awake");
-                Set(flow, "tutorialRun", run); Set(flow, "tutorialDoneKey", run.State.Generation + "/" + run.State.Day);
+                Set(flow, "tutorialRun", run);
+                Set(flow, "tutorialDoneKey", run.State.Generation + "/" + run.State.Day + "/" + run.State.Phase
+                    + "/" + run.State.Rest + "/" + run.State.PerformanceIndex);
                 var player = Player(904); typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
                 if (cannonLesson) Shared("active", true);
                 else { Set(rehearsal, "active", true); Set(rehearsal, "practice", true); }

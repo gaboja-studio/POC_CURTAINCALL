@@ -17,8 +17,8 @@ namespace CurtainCall.WaitingRoom
         }
         void LateUpdate()
         {
-            var phase = CampaignRun.Instance != null ? CampaignRun.Instance.State.Phase : CampaignPhase.None;
-            cut = phase == CampaignPhase.Night || phase == CampaignPhase.Dawn;
+            var state = CampaignRun.Instance != null ? CampaignRun.Instance.State : default;
+            cut = CurtainCall.Settings.GameSettings.Base.Run.IsExplorationLocked(state) || state.Phase == CampaignPhase.Dawn;
             for (int i = 0; i < circuit.Length; i++) if (circuit[i] != null) circuit[i].enabled = !cut && original[i];
         }
         void OnDisable()

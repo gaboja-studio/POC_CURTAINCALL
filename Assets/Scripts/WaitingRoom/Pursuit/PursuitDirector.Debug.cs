@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         internal bool PlayerRecognitionEnabled => !DevMode.Enabled || !debugIgnorePlayers;
         bool CaptureSuppressed => DevMode.Enabled && debugInvulnerable;
         public bool CanDebug => DevMode.Enabled && isActiveAndEnabled && run != null && run.HasAuthority
-            && run.State.Phase == CampaignPhase.RestTime;
+            && IsPursuitPhase(run.State.Phase);
         public bool StageIsForced => forcedStage >= 0;
         public int CurrentStageIndex => !active ? -1 : forcedStage >= 0 ? forcedStage
             : run != null && !run.HasAuthority ? stage : GameSettings.WaitingRoom.Pursuit.StageAt(Elapsed);

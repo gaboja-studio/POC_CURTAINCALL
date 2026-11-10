@@ -43,11 +43,26 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (var day in model.Days) { text.Append(day.Label); foreach (var entry in day.Entries) text.Append(entry.Title).Append(entry.Metadata).Append(entry.ProgressLabel); }
                 fallback?.WarmUpLocalText(boardDisplay, text.ToString());
                 if (!view.IsVisible || !view.SetPresentation(model)) view.Open(model, false);
+                HideConfirmationStamps();
                 RefreshControls();
             }
             boardRaycaster.enabled = editing;
             foreach (var group in view.GetComponentsInChildren<CanvasGroup>(true))
             { group.interactable = editing; group.blocksRaycasts = editing; }
+        }
+
+        void HideConfirmationStamps()
+        {
+            foreach (var text in view.GetComponentsInChildren<TMPro.TMP_Text>(true))
+            {
+                if (text.name == "30_UnconfirmedTMP" || text.name == "20_ConfirmedTMP")
+                    text.transform.parent.gameObject.SetActive(false);
+                if ((text.name == "00_TitleTMP" || text.name == "10_MetadataTMP") && text.GetComponentInParent<ScheduleCardVisual>() != null)
+                {
+                    text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 272);
+                    if (text.name == "10_MetadataTMP") { text.enableAutoSizing = true; text.fontSizeMin = 14; text.fontSizeMax = 18; }
+                }
+            }
         }
 
         void BuildBoardDisplay(ScheduleBoardView target)

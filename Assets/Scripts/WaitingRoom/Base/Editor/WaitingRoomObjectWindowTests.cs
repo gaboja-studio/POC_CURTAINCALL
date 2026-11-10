@@ -8,6 +8,44 @@ namespace CurtainCall.WaitingRoom.Editor
     public sealed class WaitingRoomObjectWindowTests
     {
         [Test]
+        [Category("BreakFlow")]
+        public void SafetyZonesApplyToActualTimerAndPersistThroughSerializationAndUndo()
+        {
+            var scene = EditorSceneManager.NewPreviewScene();
+            var root = new GameObject("SafetyZoneTest"); SceneManager.MoveGameObjectToScene(root, scene);
+            try
+            {
+                var zones = root.AddComponent<ExplorationTimerZones>();
+                BoxCollider Room(string name, Vector3 at)
+                {
+                    var go = new GameObject(name); go.transform.SetParent(root.transform); go.transform.position = at;
+                    var box = go.AddComponent<BoxCollider>(); box.center = Vector3.up; box.size = new Vector3(8, 3, 8); return box;
+                }
+                var lower = Room("Lower", Vector3.zero); var upper = Room("Upper", new Vector3(0, 6, 0));
+                zones.SetSafety(new[] { lower, upper }, false);
+                Assert.IsTrue(zones.IsRunningZone(Vector3.zero));
+                Assert.IsTrue(zones.IsRunningZone(new Vector3(0, 6, 0)));
+                UnityEditor.Undo.RecordObject(zones, "Safety zone test");
+                zones.SetSafety(new[] { lower }, true);
+                UnityEditor.Undo.FlushUndoRecordObjects();
+                Assert.IsFalse(zones.IsRunningZone(Vector3.zero));
+                Assert.IsTrue(zones.IsRunningZone(new Vector3(0, 6, 0)), "Other floors are independent");
+                UnityEditor.Undo.PerformUndo(); zones.RebuildZones();
+                Assert.IsTrue(zones.IsRunningZone(Vector3.zero));
+                var saved = JsonUtility.ToJson(zones);
+                zones.SetSafety(zones.Zones, true);
+                Assert.IsFalse(zones.IsRunningZone(Vector3.zero));
+                JsonUtility.FromJsonOverwrite(saved, zones); zones.RebuildZones();
+                Assert.IsTrue(zones.IsRunningZone(Vector3.zero), "Serialized scene restores safety settings");
+                zones.OutsideIsSafe = false;
+                Assert.IsTrue(zones.IsRunningZone(Vector3.one * 100));
+                zones.OutsideIsSafe = true;
+                Assert.IsFalse(zones.IsRunningZone(Vector3.one * 100));
+            }
+            finally { UnityEditor.Undo.ClearUndo(root); EditorSceneManager.ClosePreviewScene(scene); }
+        }
+
+        [Test]
         public void CabinetRewardPointAndWallFallbackFollowTheirOwner()
         {
             var scene = EditorSceneManager.NewPreviewScene();

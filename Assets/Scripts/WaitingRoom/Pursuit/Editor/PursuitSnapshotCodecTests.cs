@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom.Pursuit.Editor
 {
+    [Category("BreakFlow")]
     public sealed class PursuitSnapshotCodecTests
     {
         static PursuitDirector.Snapshot Sample(int actors)
@@ -31,8 +32,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         public void RoundTripKeepsStateWithinPrecision()
         {
             var s = Sample(26);
+            s.phase = Campaign.CampaignPhase.Night;
             var r = RoundTrip(s, out _);
             Assert.NotNull(r);
+            Assert.AreEqual(Campaign.CampaignPhase.Night, r.phase, "Night snapshots cannot be applied to the preceding daytime rest");
             Assert.AreEqual((s.poseEpoch, s.debugInvulnerable, s.debugIgnorePlayers), (r.poseEpoch, r.debugInvulnerable, r.debugIgnorePlayers));
             Assert.AreEqual((s.generation, s.day, s.performance, s.stage, s.stageForced, s.lightRoom), (r.generation, r.day, r.performance, r.stage, r.stageForced, r.lightRoom));
             Assert.AreEqual(s.elapsed, r.elapsed); Assert.AreEqual(s.lightAt, r.lightAt);

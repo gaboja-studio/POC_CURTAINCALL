@@ -105,8 +105,8 @@ uv.revealed | 숨겨진 단서가 드러났습니다.
 # ── 화면 위쪽 배너 ──
 # 밤 정비 시작 배너
 banner.night-title | 밤 정비
-banner.night-unlimited | 대기실 문이 잠겼습니다 · 제한 시간 없음
-banner.night-timed | 대기실 문이 잠겼습니다 · 정비 시간 시작
+banner.night-unlimited | 밤 정비 · 제한 시간 없음
+banner.night-timed | 밤 정비 · 제한 시간 뒤 추격이 시작됩니다
 # 탐색 시간 경보 배너 제목·소집 경보 본문(방송 본문은 아래 broadcast.notice)
 banner.recall-title | 소집 경보!
 banner.recall-body | 공연 시작을 위해 무대 입구로 모이세요.
@@ -290,7 +290,7 @@ schedule.title | 공연 스케줄
 schedule.context-night | {day}일차 밤 · 준비 {ready}/{total}
 schedule.context-dawn | {day}일차 밤 · 스케줄표를 닫으면 하루 일정을 마칩니다.
 schedule.context-demo-ending | 4일차 아침 · 스케줄표를 닫으면 하루 일정을 마칩니다.
-schedule.context-default | 공연 일정 1~3일 · 밤 정비 때 변경 가능
+schedule.context-default | 공연 일정 1~3일 · 입장 전 변경 가능
 # 일차 이름. {day} = 일차
 schedule.day-label | {day}일차
 # 공연 카드. {n} = 공연 순서(1·2), {title} = 공연 이름
@@ -309,21 +309,21 @@ schedule.tier-reward-line | {tier}단계 · {reward}
 schedule.tier-host-only | {tier}단계 · {reward}\n단계는 호스트가 선택합니다.
 schedule.tier-locked | {tier}단계 · {reward}\n{trick} {prev}단계를 깨면 열립니다.
 schedule.tier-next-performance | {tier}단계 · {reward}\n다음 공연 입장 전까지 바꿀 수 있습니다.
-schedule.tier-rest-only | {tier}단계 · {reward}\n밤 정비 또는 그 공연 직전 쉬는 시간에 바꿀 수 있습니다.
+schedule.tier-rest-only | {tier}단계 · {reward}\n공연 입장 전 쉬는 시간이나 정비 시간에 바꿀 수 있습니다.
 # 카드·확정 버튼에 마우스를 올렸을 때 설명
 schedule.ui-waiting | 일정 정보를 기다리는 중입니다.
 schedule.hover-confirmed | 일정이 확정되었습니다.
 schedule.hover-confirm | 호스트가 편성을 확정합니다. 확정한 일정은 다시 변경할 수 없습니다.
 schedule.hover-day1-fixed | 변경할 수 없습니다.
-schedule.hover-day1-second | 클릭할 때마다 두 번째 공연이 바뀝니다. 고른 뒤 확정하세요.
+schedule.hover-day1-second | 클릭할 때마다 두 번째 공연이 바뀌며 즉시 적용됩니다.
 schedule.context-first-day | 1일차 · 두 번째 공연 선택
-schedule.footer-first-day-host | 두 번째 공연 카드를 클릭해 고른 뒤 확정하세요
+schedule.footer-first-day-host | 두 번째 공연은 입장 전까지 변경할 수 있습니다
 schedule.footer-first-day-guest | 호스트가 두 번째 공연을 고르는 중입니다
 schedule.button-confirm-first-day | 두 번째 공연 확정
 schedule.confirmed-first-day | 두 번째 공연을 확정했습니다.
 schedule.hover-locked | 확정된 일정입니다.
 schedule.hover-editable | 클릭할 때마다 공연이 변경됩니다. 카드 아래에서 난이도를 선택할 수 있습니다.
-schedule.hover-host-edits | 밤 정비 시간에 호스트만 이용 가능
+schedule.hover-host-edits | 공연 입장 전 쉬는 시간에 호스트가 변경할 수 있습니다
 # 화면 아래 안내 줄
 schedule.footer-close-to-continue | 스케줄표를 닫아주세요.
 schedule.footer-ready-at-bed | 숙소로 이동해 하루 일정을 마무리합니다.
@@ -345,7 +345,7 @@ schedule.confirmed-message | 일정이 확정되었습니다
 # ── 숙소 침대(밤 정비) ──
 # 일정 확정 전 침대 안내 패널 제목·본문
 night.bed-title | 잠자기
-night.bed-unscheduled-notice | 하루 일정이 마무리되지 않았습니다. 스케줄표에서 다음날 일정을 정리해주세요.
+night.bed-unscheduled-notice | 리허설이나 포획 중에는 잠들 수 없습니다.
 # 침대 앞 F 안내. {ready}/{total} = 준비한 인원/필요 인원
 night.bed-not-night | 밤 정비 때 이용할 수 있습니다
 night.bed-need-schedule | 스케줄표에서 공연 일정을 확정해주세요.
@@ -508,11 +508,11 @@ first-day.quest.tutorial.body | 대기실 안내를 확인하세요.\n전원이 
 first-day.quest.gather.title | [tutorial] 1일차 · 두 번째 공연 준비
 first-day.quest.gather.body | 다음 공연을 준비하세요.\n무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다.[{inside}/{alive}]
 first-day.quest.second-pick.title | [tutorial] 1일차 · 두 번째 공연 선택
-first-day.quest.second-pick.body | 로비 스케줄표에서 두 번째 공연을 고르고 확정하세요.\n확정해야 무대 입구 집결로 공연이 시작됩니다.
+first-day.quest.second-pick.body | 다음 공연이 기본 편성되어 있습니다. 스케줄표에서 변경할 수 있고, 전원이 무대 입구에 모이면 바로 시작합니다.
 first-day.quest.second-pick-wait.title | [tutorial] 1일차 · 두 번째 공연 선택 대기
 first-day.quest.second-pick-wait.body | 호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.\n확정되면 무대 입구 통로로 모이세요.
 first-day.quest.night-schedule.title | [tutorial] 1일차 밤 · 다음 날 일정 정하기
-first-day.quest.night-schedule.body | 스케줄표에서 다음 날 일정을 정하고 확정하세요.
+first-day.quest.night-schedule.body | 스케줄표에서 다음 공연을 변경할 수 있습니다. 선택 즉시 적용됩니다.
 first-day.quest.night-schedule-wait.title | [tutorial] 1일차 밤 · 일정 확정
 first-day.quest.night-schedule-wait.body | 호스트가 다음 날 일정을 확정해야 합니다.
 first-day.quest.night-bed.title | [tutorial] 1일차 밤 · 취침 준비
@@ -630,3 +630,6 @@ rehearsal.quest.trigger-wait-passenger | 아래 동료가 먼저 손을 놓아�
 rehearsal.quest.trigger-grab.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-open.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-closed.title | [tutorial] 인간 그네
+
+pursuit.quest.sleep | - 살아 있는 모든 플레이어가 숙소 침대에서 수면
+night.bed-unavailable | 리허설이나 포획 중에는 잠들 수 없습니다.

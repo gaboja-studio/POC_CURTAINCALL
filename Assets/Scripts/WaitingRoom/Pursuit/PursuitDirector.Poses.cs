@@ -35,7 +35,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             reader.ReadValueSafe(out int g); reader.ReadValueSafe(out int d); reader.ReadValueSafe(out int p);
             reader.ReadValueSafe(out int epoch); reader.ReadValueSafe(out double stamp); reader.ReadValueSafe(out int count);
             var state = run.State;
-            if (state.Phase != CampaignPhase.RestTime || g != state.Generation || d != state.Day || p != state.PerformanceIndex || epoch != poseEpoch
+            if (!IsPursuitPhase(state.Phase) || g != state.Generation || d != state.Day || p != state.PerformanceIndex || epoch != poseEpoch
                 || count < 0 || count > PosesPerPacket || reader.Length - reader.Position < count * 32) return;
             for (int i = 0; i < count; i++) {
                 reader.ReadValueSafe(out int index); reader.ReadValueSafe(out Vector3 position); reader.ReadValueSafe(out Quaternion rotation);

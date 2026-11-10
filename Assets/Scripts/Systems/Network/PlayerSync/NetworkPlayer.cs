@@ -291,12 +291,13 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         /// <summary>호스트: 포획된 인원이 공연/탈출로에 외팔로 복귀.</summary>
-        public void ServerReleaseFromPursuit()
+        public void ServerReleaseFromPursuit(bool returnToStart = false)
         {
             if (!IsServer) return;
             lostParts.Value = PlayerCondition.OneArmParts;
             state.Value = PlayerState.Normal;
             reviveCount.Value++;
+            if (returnToStart) restartCount.Value++;
         }
 
         /// <summary>
