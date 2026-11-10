@@ -68,10 +68,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool active;
         [Serializable] public sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour, captures; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; }
         [Serializable] public sealed class VictimState { public ulong id; public float elapsed; public bool retired; public int room; public Vector3 anchor; public Quaternion upright; }
-        [Serializable] public sealed class Snapshot { public int generation, day, performance, stage, poseEpoch, lightRoom = -1; public float lightAt = -1; public bool stageForced, debugInvulnerable, debugIgnorePlayers; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
+        [Serializable] public sealed class Snapshot { public int generation, day, performance, stage, poseEpoch, lightRoom = -1; public CampaignPhase phase = CampaignPhase.RestTime; public float lightAt = -1; public bool stageForced, debugInvulnerable, debugIgnorePlayers; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
         public static bool IsCaptured(GameObject player) => Current != null && Current.victims.Values.Any(v => v.Object == player);
         public static bool IsCaptured(NetworkPlayer player) => player != null && IsCaptured(player.gameObject);
+        public static bool IsPursuitPhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         public static Vector3 ArrivalLocal(BoxCollider area, int index, int count)
         {
             if (area == null) return Vector3.zero;
@@ -156,7 +157,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (run == null) return;
             var s = run.State;
-            if (s.Phase != CampaignPhase.RestTime) { if (active) StepChanged(s); return; }
+            if (!IsPursuitPhase(s.Phase)) { if (active) StepChanged(s); return; }
             if (!run.HasAuthority) {
                 foreach (var v in victims.Values) { v.Elapsed += Time.deltaTime; Present(v); }
                 return;
@@ -179,7 +180,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 int living = candidates.Count(IsAvailable);
                 bool pending = victims.Values.Any(v => !v.Retired && v.Object != null);
                 // Final morning fails as soon as everyone is secured. Earlier days wait for the sequence.
-                if (living == 0 && victims.Count > 0 && (s.IsFinalMorning || !pending)) run.NotifyAllPursuitCaught();
+                bool sleeping = candidates.Any(IsSleeping);
+                if (living == 0 && !sleeping && victims.Count > 0 && (s.IsFinalMorning || !pending)) run.NotifyAllPursuitCaught();
             }
             TickPoseBroadcast();
             if (Time.unscaledTime >= sendAt) { sendAt = Time.unscaledTime + .25f; Broadcast(); }
@@ -203,7 +205,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void ResetStep(CampaignSnapshot s)
         {
             // Timer edits preserve test protection; a new visit/run restores normal gameplay.
-            if (s.Phase != CampaignPhase.RestTime || s.Generation != generation || s.Day != day || s.PerformanceIndex != performance)
+            if (!IsPursuitPhase(s.Phase) || s.Generation != generation || s.Day != day || s.PerformanceIndex != performance)
                 ResetDebugProtection();
             foreach (var victim in victims.Values) if (victim.Pose != null) Destroy(victim.Pose);
             victims.Clear(); active = false; Elapsed = -1; stage = -1; forcedStage = -1;
@@ -216,7 +218,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void StepChanged(CampaignSnapshot s)
         {
-            if (s.Phase == CampaignPhase.RestTime) { ResetStep(s); return; }
+            if (IsPursuitPhase(s.Phase)) { ResetStep(s); return; }
             if (run != null && run.HasAuthority && s.Generation == generation && (s.Phase == CampaignPhase.Performance || s.Phase == CampaignPhase.Escape)) {
                 foreach (var victim in victims.Values) {
                     if (victim.Object == null) continue;
@@ -239,9 +241,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public bool IsAvailable(GameObject p)
         {
-            if (p == null || !p.activeInHierarchy || IsCaptured(p)) return false;
+            if (p == null || !p.activeInHierarchy || IsCaptured(p) || IsSleeping(p)) return false;
             var network = p.GetComponent<NetworkPlayer>();
             return network == null || !network.IsSpawned || network.State == PlayerState.Normal;
+        }
+        bool IsSleeping(GameObject p)
+        {
+            if (p == null || run == null || run.State.Phase != CampaignPhase.Night) return false;
+            var player = p.GetComponent<NetworkPlayer>();
+            return player != null && player.IsSpawned ? run.IsPlayerSleeping(player.OwnerClientId) : run.IsLocalReady;
         }
         public GameObject NearestVisible(PursuitActor actor, PursuitStage rule)
         {
@@ -393,7 +401,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             readyClients.Clear();
             ResetContacts();
         }
-        Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
+        Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, phase = run != null ? run.State.Phase : CampaignPhase.RestTime, elapsed = Elapsed, stage = stage,
             poseEpoch = poseEpoch, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
             stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? PursuitTexts.StageAnnouncement(CurrentStageIndex) : "",
             actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
@@ -430,7 +438,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (!IsInitialized || run == null || s == null) return;
             var c = run.State;
-            if (c.Phase != CampaignPhase.RestTime || s.generation != c.Generation || s.day != c.Day || s.performance != c.PerformanceIndex
+            if (!IsPursuitPhase(c.Phase) || s.phase != c.Phase || s.generation != c.Generation || s.day != c.Day || s.performance != c.PerformanceIndex
                 || s.actors == null || s.actors.Length != actors.Count || s.victims == null) return;
             if (s.elapsed < 0 && active) ResetStep(c);
             if (poseEpoch != s.poseEpoch) { ResetContacts(); foreach (var actor in actors) actor.ResetActor(); }

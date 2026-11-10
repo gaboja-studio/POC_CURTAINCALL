@@ -156,11 +156,15 @@ namespace CurtainCall.Settings
                 [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
                 [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
 
+                [Tooltip("이 시간대에 탐색 통로의 문을 잠그고 탐색 구역 전원을 차단합니다. 플레이 중 변경도 즉시 반영됩니다.")]
+                [SerializeField, InspectorName("탐색 잠금")] bool explorationLocked;
+
                 public RestTimeLimitSettings() { }
                 public RestTimeLimitSettings(bool unlimited, float seconds = 300f)
                 { this.unlimited = unlimited; this.seconds = seconds; }
 
                 public bool Unlimited => unlimited;
+                public bool ExplorationLocked => explorationLocked;
                 public float Seconds => float.IsNaN(seconds) || float.IsInfinity(seconds) ? 300f : Mathf.Max(1f, seconds);
             }
 
@@ -172,13 +176,13 @@ namespace CurtainCall.Settings
                     morningRest = new RestTimeLimitSettings(false, restDuration);
                     noonRest = new RestTimeLimitSettings(false, restDuration);
                     guideRest = new RestTimeLimitSettings(false, guideRestDuration);
-                    nightMaintenance = new RestTimeLimitSettings(true);
+                    nightMaintenance = new RestTimeLimitSettings(false);
                     timeLimitsMigrated = true;
                 }
                 morningRest ??= new RestTimeLimitSettings(false, restDuration);
                 noonRest ??= new RestTimeLimitSettings(false, restDuration);
                 guideRest ??= new RestTimeLimitSettings(false, guideRestDuration);
-                nightMaintenance ??= new RestTimeLimitSettings(true);
+                nightMaintenance ??= new RestTimeLimitSettings(false);
             }
 
             public void OnBeforeSerialize() => EnsureTimeLimits();
@@ -198,6 +202,13 @@ namespace CurtainCall.Settings
             public RestTimeLimitSettings NightMaintenance { get { EnsureTimeLimits(); return nightMaintenance; } }
             public float RestDuration => NoonRest.Seconds;
             public float GuideRestDuration => GuideRest.Seconds;
+
+            public bool IsExplorationLocked(CurtainCall.Campaign.CampaignSnapshot state) => state.Phase switch
+            {
+                CurtainCall.Campaign.CampaignPhase.Night => NightMaintenance.ExplorationLocked,
+                CurtainCall.Campaign.CampaignPhase.RestTime => TimeLimit(state.Rest).ExplorationLocked,
+                _ => false,
+            };
 
             public RestTimeLimitSettings TimeLimit(CurtainCall.Campaign.RestKind rest) => rest switch
             {

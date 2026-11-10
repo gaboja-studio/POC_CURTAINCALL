@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// </summary>
     public static class PursuitSnapshotCodec
     {
-        public const byte Version = 4;
+        public const byte Version = 5;
         /// <summary>비신뢰성 순서 전송으로 보낼 최대 크기. 한 패킷(MTU)에 들어가도록 여유를 둔다.</summary>
         public const int UnreliableLimit = 1100;
         const float PositionScale = 100f, PositionLimit = 327f;
@@ -23,6 +23,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             w.WriteValueSafe(Version);
             w.WriteValueSafe(s.generation); w.WriteValueSafe(s.day); w.WriteValueSafe(s.performance);
+            w.WriteValueSafe((byte)s.phase);
             w.WriteValueSafe((short)s.stage); w.WriteValueSafe(s.stageForced);
             w.WriteValueSafe(s.poseEpoch); w.WriteValueSafe(s.debugInvulnerable); w.WriteValueSafe(s.debugIgnorePlayers);
             w.WriteValueSafe(s.elapsed);
@@ -59,6 +60,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (version != Version) return null;
                 var s = new PursuitDirector.Snapshot();
                 r.ReadValueSafe(out s.generation); r.ReadValueSafe(out s.day); r.ReadValueSafe(out s.performance);
+                r.ReadValueSafe(out byte phase); s.phase = (Campaign.CampaignPhase)phase;
                 r.ReadValueSafe(out short stage); s.stage = stage; r.ReadValueSafe(out s.stageForced);
                 r.ReadValueSafe(out s.poseEpoch); r.ReadValueSafe(out s.debugInvulnerable); r.ReadValueSafe(out s.debugIgnorePlayers);
                 r.ReadValueSafe(out s.elapsed);

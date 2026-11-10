@@ -61,6 +61,26 @@ namespace CurtainCall.WaitingRoom
         /// <summary>연계·클로즈업 튜토리얼이 진행 중이다(조작 막힘).</summary>
         public static bool IsSequenceActive => instance != null && instance.sequence;
 
+        /// <summary>본 안내 기록뿐 아니라 마지막 카메라 복귀와 대기열까지 끝난 뒤 전원 대기를 해제한다.</summary>
+        public static bool TimeGuideFinished(CampaignSnapshot state)
+        {
+            if (SceneCurtainTransition.IsActive) return false;
+            if (!Enabled) return instance == null || instance.closeUp == null || !instance.closeUp.IsBusy;
+            if (instance == null || !instance.isActiveAndEnabled || SceneCurtainTransition.IsActive
+                || WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive) return false;
+            string key = state.Generation + "/" + state.Day + "/" + state.Phase + "/" + state.Rest + "/" + state.PerformanceIndex;
+            if (instance.stepKey != key || instance.sequence || instance.closeUp != null && instance.closeUp.IsBusy) return false;
+            foreach (string id in LockedIds) if (Book.IsQueued(id)) return false;
+            if (state.Phase == CampaignPhase.Night)
+            {
+                foreach (string id in NightChain) if (!Book.IsDone(id)) return false;
+                return Book.IsDone("N05");
+            }
+            if (state.Rest == RestKind.Guide)
+                foreach (string id in RestChain) if (!Book.IsDone(id)) return false;
+            return true;
+        }
+
         static bool memoryOnly, memoryEnabled = true;
 
         /// <summary>
@@ -213,8 +233,7 @@ namespace CurtainCall.WaitingRoom
             if (night)
             {
                 foreach (var id in NightChain) b.Enqueue(id);
-                // 잠자기는 스케줄표 일정이 확정된 뒤에 숙소를 비추며 안내한다(확정 전에는 침대를 쓸 수 없다).
-                if (NightBed.ScheduleReady) b.Enqueue("N05");
+                b.Enqueue("N05");
             }
             CheckNearby();
             CheckHeld();

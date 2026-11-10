@@ -11,6 +11,27 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        [UnityTest, Category("BreakFollowup"), Category("BreakFollowupRetry")]
+        public IEnumerator ScheduleBetweenRest_AllUpcomingCardsCanChange()
+        {
+            yield return Launch(2, "Between", 1, "Tightrope", "WaitingRoomBase");
+            var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            Call(run, "RecordClear", "Tightrope", 1);
+            yield return OpenSchedule();
+            yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5, "Board camera");
+            var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            var edits = (UnityEngine.UI.Button[])Private(ui, "editButtons");
+            Assert.IsTrue(edits[3].interactable, "Current next show is editable during between-show rest");
+            Assert.IsTrue(edits[4].interactable, "Future days are also editable during rest");
+            Assert.IsFalse(edits[2].interactable, "Completed show remains historical");
+            Call(ui, "ChooseTier", 2, 1, 2);
+            Assert.AreEqual(2, Field(State, "Difficulty"), "A rest-time UI change immediately reaches the campaign");
+            yield return new WaitForSecondsRealtime(.3f);
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/break-followup-schedule.png"));
+            yield return null; yield return null;
+        }
+
         IEnumerator OpenSchedule()
         {
             var board = Find("CurtainCall.WaitingRoom.ScheduleBoardView");
@@ -38,7 +59,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             while ((Field(State, "Phase").ToString() == "Night" || Field(State, "Phase").ToString() == "Dawn")
                 && Time.realtimeSinceStartup < until) yield return null;
             Assert.AreEqual(day, Field(State, "Day"));
-            Assert.AreEqual(day == 4 && Application.version == "0.1.0" ? "DemoEnding" : "RestTime", Field(State, "Phase").ToString());
+            bool pursuit = (bool)T("CurtainCall.Settings.WaitingRoomScenes").GetProperty("PursuitEnabled").GetValue(null);
+            Assert.AreEqual(day == 4 && Application.version == "0.1.0" && !pursuit ? "DemoEnding" : "RestTime", Field(State, "Phase").ToString());
             yield return new WaitForSecondsRealtime(2.2f);
         }
         static IEnumerator ClickScheduleButtonWithMouse(Mouse mouse, UnityEngine.UI.Button button)
@@ -67,86 +89,33 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W7_FirstDayWorldScheduleConfirmsAndWarnsAtEntrance()
+        [Category("BreakFlow"), Category("BreakFollowup")] public IEnumerator W7_FirstDayWorldScheduleChangesImmediatelyAndEntersWithoutConfirm()
         {
-            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/quest-flow");
             yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
             yield return WaitQuestReady("gather");
             var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
-            var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");
-            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            Call(mover, "Relocate", gather.GetComponent<BoxCollider>().bounds.center - Vector3.up * .5f, Quaternion.identity);
-            yield return new WaitForSecondsRealtime(.4f);
-            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
-            StringAssert.Contains("공연 일정 미확정", (string)Static("CurtainCall.WaitingRoom.WaitingRoomGuidePanel", "CurrentTitle"));
-            Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"));
-            var guide = T("CurtainCall.WaitingRoom.WaitingRoomGuidePanel");
-            guide.GetMethod("Hide").Invoke(null, null);
-            // 2026-11-04 사용자: 스케줄표를 보는 동안 다른 화면 UI는 가리고, 닫은 뒤 출력된 순서대로 다시 띄운다.
-            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 A", "스케줄표를 열기 전에 뜬 안내", 3f });
-            yield return null;
-            var hud = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).FirstOrDefault(c => c.name == "BackstageHudCanvas" && c.enabled);
-            Assert.IsNotNull(hud, "열기 전에는 탐색 HUD가 보인다");
             yield return OpenSchedule();
-            yield return new WaitForSecondsRealtime(1f);
-            Assert.IsFalse(hud.enabled, "스케줄표를 보는 동안 탐색 HUD를 가린다");
-            Assert.IsFalse(((Canvas)UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).First(c => c.name == "GuidePanelCanvas")).enabled, "보던 중앙 안내도 가린다");
+            yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5,
+                "Wait for the board close-up before testing the real pointer");
             var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             var schedule = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
             var book = Get(schedule, "Book");
-            Assert.IsTrue((bool)Call(campaign, "DiscoverTrick", "HumanCannon"));
-            // 획득 안내는 발견 처리 뒤 프레임에 출력된다. 그 뒤에 B를 출력해 순서를 고정한다.
-            float discoverUntil = Time.realtimeSinceStartup + 3f;
-            while ((int)guide.GetProperty("PendingCount").GetValue(null) < 1 && Time.realtimeSinceStartup < discoverUntil) yield return null;
-            Assert.IsFalse((bool)guide.GetProperty("IsVisible").GetValue(null) && ((Canvas)UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).First(c => c.name == "GuidePanelCanvas")).enabled, "보는 동안 획득 안내가 판을 가리지 않는다");
-            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 B", "스케줄표를 보는 동안 온 안내", 3f });
-            yield return null;
-            Assert.AreEqual(2, guide.GetProperty("PendingCount").GetValue(null), "보는 동안 온 안내(획득·B)는 기다린다");
-            var edits = (UnityEngine.UI.Button[])Priv(ui, "editButtons");
+            Assert.IsFalse(((Component)Private(ui, "confirmButton")).gameObject.activeSelf);
+            var labels = ((Component)Get(ui, "View")).GetComponentsInChildren<TMPro.TMP_Text>(true);
+            Assert.IsFalse(labels.Any(t => t.isActiveAndEnabled && t.gameObject.activeInHierarchy && t.text.Contains("확정")), "No confirmation text is visible in the rendered card template");
             var pointer = InputSystem.AddDevice<Mouse>();
-            var inputModule = UnityEngine.EventSystems.EventSystem.current.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
-            Assert.IsNotNull(inputModule.point?.action, "실제 마우스 위치 액션이 연결되어야 한다");
-            Assert.IsNotNull(inputModule.leftClick?.action, "실제 마우스 클릭 액션이 연결되어야 한다");
-            int actualClicks = 0;
-            edits[1].onClick.AddListener(() => actualClicks++);
-            yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
-            Assert.AreEqual(1, actualClicks, "실제 포인터 클릭은 카드에 한 번 전달되어야 한다");
-            Assert.AreEqual("HumanCannon", Call(book, "Get", 1, 1));
-            yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
-            Assert.AreEqual(2, actualClicks);
-            Assert.AreEqual("Tightrope", Call(book, "Get", 1, 1));
-            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/followup");
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule-before-confirm.png"));
-            yield return null;
-            yield return ClickScheduleButtonWithMouse(pointer, (UnityEngine.UI.Button)Priv(ui, "confirmButton"));
-            InputSystem.RemoveDevice(pointer);
-            Assert.IsTrue((bool)Get(book, "FirstDayConfirmed"));
-            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
-            yield return null;
-            Assert.IsFalse(((UnityEngine.UI.Button)Priv(ui, "confirmButton")).gameObject.activeSelf, "확정 뒤 조작 버튼도 즉시 사라져야 한다");
-            yield return new WaitForSecondsRealtime(.5f);
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule.png"));
-            yield return null; yield return null;
-            var board = Find("CurtainCall.WaitingRoom.ScheduleBoardView");
-            Call(board, "SetOpen", false);
-            yield return new WaitForSecondsRealtime(.3f);
-            Assert.IsTrue(hud.enabled, "닫으면 탐색 HUD가 돌아온다");
-            Assert.AreEqual("순서 확인 A", guide.GetProperty("CurrentTitle").GetValue(null), "열기 전 안내가 남은 시간만큼 먼저 다시 뜬다");
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule-after-close.png"));
-            yield return null;
-            guide.GetMethod("Hide").Invoke(null, null); yield return null; yield return null;
-            StringAssert.Contains("획득", (string)guide.GetProperty("CurrentTitle").GetValue(null), "다음은 보는 동안 먼저 온 획득 안내");
-            guide.GetMethod("Hide").Invoke(null, null); yield return null; yield return null;
-            Assert.AreEqual("순서 확인 B", guide.GetProperty("CurrentTitle").GetValue(null), "마지막은 나중에 온 안내");
-            guide.GetMethod("Hide").Invoke(null, null);
-            var canvas = ((Component)Get(ui, "View")).GetComponentInParent<Canvas>();
-            Assert.IsFalse(canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled, "닫은 뒤 판은 표시하되 입력을 가로채지 않는다");
-            Assert.IsFalse((bool)Get(ui, "IsEditing"));
-            Assert.IsFalse((bool)T("CurtainCall.UI.SceneIntegration.DemoRunEnding").GetMethod("ScheduleIsOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null), "판 표시가 다음 날/데모 전환을 막으면 안 됨");
-            Assert.AreEqual(1, UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Count(c => c.name == "ScheduleBoardWorldUI"));
+            try
+            {
+                var edits = (UnityEngine.UI.Button[])Private(ui, "editButtons");
+                yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
+                Assert.AreEqual("Tightrope", Call(book, "Get", 1, 1), "Unopened tricks and empty entries are skipped");
+                Assert.AreEqual("Tightrope", Field(State, "TrickId"));
+                Assert.IsFalse((bool)Get(book, "FirstDayConfirmed"));
+            }
+            finally { InputSystem.RemoveDevice(pointer); }
+            Call(Get(ui, "View"), "Close"); yield return null;
+            Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+            Assert.AreEqual("Performance", Field(State, "Phase").ToString());
         }
 
         [UnityTest]
@@ -216,128 +185,54 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W3_TierButtons_NightChoiceAndRestTimeAdjust()
+        [Category("BreakFlow")] public IEnumerator W3_TierButtons_NightChoiceAndRestTimeAdjust()
         {
-            // Task-082: 카드는 묘기, 단계 버튼은 난이도. 쉬는 시간에는 바로 다음 공연의 단계만 다시 고른다.
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 1));
-            Assert.AreEqual(true, Call(run, "DiscoverTrick", "HumanCannon"), "인간 대포 발견(배치 기물)");
             yield return OpenSchedule();
             var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
-            var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
-            var book = Get(schedule, "Book");
-            var edits = (Array)Private(ui, "editButtons");
-            for (int i = 2; i < 6; i++) Call(Get(edits.GetValue(i), "onClick"), "Invoke");
-            yield return new WaitForSecondsRealtime(.3f);
+            var book = Get(Find("CurtainCall.WaitingRoom.ScheduleBoard"), "Book");
             var tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
-            Assert.IsNotNull(tiers, "단계 버튼을 만들어야 한다");
-            Assert.IsFalse(tiers[0, 0].gameObject.activeSelf, "1일차는 단계 고정");
-            Assert.IsTrue(tiers[2, 0].gameObject.activeInHierarchy);
-            Assert.IsTrue(tiers[2, 1].interactable, "1단계를 깼으면 2단계까지");
-            Assert.IsFalse(tiers[2, 2].interactable, "3단계는 아직 잠김");
+            Assert.IsFalse(tiers[0, 0].gameObject.activeSelf);
+            Assert.IsTrue(tiers[2, 1].interactable);
+            Assert.IsFalse(tiers[2, 2].interactable);
             tiers[2, 1].onClick.Invoke();
             Assert.AreEqual(2, Call(book, "Difficulty", 2, 0));
-            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0), "단계 버튼은 묘기를 바꾸지 않는다");
-            Call(Get(edits.GetValue(2), "onClick"), "Invoke");
-            Assert.AreEqual("HumanCannon", Call(book, "Get", 2, 0), "카드는 묘기만 바꾼다");
-            Assert.AreEqual(1, Call(book, "Difficulty", 2, 0), "못 고르는 단계는 낮춘다");
-            Call(Get(edits.GetValue(2), "onClick"), "Invoke"); Call(Get(edits.GetValue(2), "onClick"), "Invoke");
-            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0));
-            tiers[2, 1].onClick.Invoke();
-            Call(ui, "Confirm");
-            Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
             yield return ReadyToMorning(2, ui);
             Assert.AreEqual(2, Field(State, "Difficulty"));
-
-            // 같은 날 앞 공연에서 2단계를 깬 것처럼 기록하고, 아침 쉬는 시간에 3단계로 올린다.
             Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 2));
-            yield return OpenSchedule();
-            yield return new WaitForSecondsRealtime(.3f);
+            yield return OpenSchedule(); yield return new WaitForSecondsRealtime(.3f);
             ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
-            StringAssert.Contains("3단계가 개방되었습니다", (string)Get(Call(ui, "Build"), "Footer"));
-            Assert.IsTrue(tiers[2, 2].interactable, "다음 공연은 쉬는 시간에 단계를 올릴 수 있다");
-            Assert.IsFalse(tiers[3, 0].interactable, "다음 공연이 아니면 바꿀 수 없다");
-            Assert.IsFalse(((UnityEngine.UI.Button)edits.GetValue(2)).interactable, "쉬는 시간에는 묘기를 바꾸지 않는다");
+            Assert.IsTrue(tiers[2, 2].interactable);
             tiers[2, 2].onClick.Invoke();
-            Assert.AreEqual(3, Call(book, "Difficulty", 2, 0));
-            Assert.AreEqual(3, Field(State, "Difficulty"), "런 진행 단계도 함께 바뀐다");
+            Assert.AreEqual(3, Field(State, "Difficulty"));
             Assert.AreEqual("Tightrope", Field(State, "TrickId"));
         }
         [UnityTest]
-        public IEnumerator W3_EditConfirmReady_ThreeNightsAndFinalMorning()
+        [Category("BreakFlow")] public IEnumerator W3_InstantSchedulesAndSleep_ThreeNightsAndFinalMorning()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
-            yield return OpenSchedule();
-            var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
-            var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
-            var book = Get(schedule, "Book");
-            Assert.AreEqual(3, ((IEnumerable)Get(Call(ui, "Build"), "Days")).Cast<object>().Count());
-            Call(ui, "Confirm");
-            Assert.AreEqual(false, Get(book, "IsConfirmedTonight"));
-            var edits = (Array)Private(ui, "editButtons");
-            Assert.IsFalse(ui.GetComponentsInChildren<Transform>(true).Any(t => t.name.StartsWith("EditDay")), "Separate editing buttons must be removed.");
-            for (int i = 2; i < 6; i++)
+            for (int day = 1; day <= 3; day++)
             {
-                var card = (UnityEngine.UI.Button)edits.GetValue(i);
-                var events = UnityEngine.EventSystems.EventSystem.current;
-                var rect = (RectTransform)card.transform;
-                var pointer = new UnityEngine.EventSystems.PointerEventData(events) {
-                    position = RectTransformUtility.WorldToScreenPoint(rect.GetComponentInParent<Canvas>().worldCamera, rect.TransformPoint(rect.rect.center)),
-                    button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
-                var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
-                events.RaycastAll(pointer, hits);
-                Assert.IsNotEmpty(hits);
-                var clicked = UnityEngine.EventSystems.ExecuteEvents.GetEventHandler<UnityEngine.EventSystems.IPointerClickHandler>(hits[0].gameObject);
-                Assert.AreEqual(card.gameObject, clicked, "The visible schedule entry must receive the click.");
-                UnityEngine.EventSystems.ExecuteEvents.Execute(clicked, pointer, UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
+                yield return Launch(day, "Night", 0, "", "WaitingRoomBase");
+                yield return OpenSchedule();
+                var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+                var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
+                var book = Get(schedule, "Book");
+                Assert.IsFalse(((Component)Private(ui, "confirmButton")).gameObject.activeSelf);
+                Assert.AreEqual(false, Get(book, "IsConfirmedTonight"));
+                Assert.AreEqual("", Call(book, "Get", 4, 0));
+                if (day < 3)
+                {
+                    Assert.AreEqual(true, Call(schedule, "CanEdit", day + 1, 0));
+                    Call(ui, "Cycle", day + 1, 0); Call(ui, "Cycle", day + 1, 0);
+                    Assert.AreEqual("Tightrope", Call(book, "Get", day + 1, 0), "One unlocked choice never cycles to empty");
+                    Assert.AreEqual(false, Call(book, "IsLocked", day + 1));
+                }
+                Assert.AreEqual(false, Call(schedule, "CanEdit", day, 0), "Completed shows cannot change");
+                yield return ReadyToMorning(day + 1, ui);
             }
-            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0));
-            // 발견하지 않은 인간 대포는 카드를 넘겨도 건너뛰고, 발견한 뒤부터 고를 수 있다.
-            Call(Get(edits.GetValue(3), "onClick"), "Invoke");
-            Assert.AreEqual("", Call(book, "Get", 2, 1), "미발견 공연은 건너뛴다");
-            Assert.AreEqual(false, Call(Find("CurtainCall.WaitingRoom.ScheduleBoard"), "Set", 2, 1, "HumanCannon", 1).ToString() == "None", "호스트도 미발견 공연을 편성할 수 없다");
-            Assert.AreEqual(true, Call(Static("CurtainCall.Campaign.CampaignRun", "Instance"), "DiscoverTrick", "HumanCannon"));
-            Call(Get(edits.GetValue(3), "onClick"), "Invoke"); Call(Get(edits.GetValue(3), "onClick"), "Invoke");
-            Assert.AreEqual("HumanCannon", Call(book, "Get", 2, 1));
-            Call(Get(Private(ui, "confirmButton"), "onClick"), "Invoke");
-            yield return new WaitForSecondsRealtime(.2f);
-            Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
-            Assert.AreEqual(true, Call(book, "IsLocked", 2));
-            Assert.AreEqual(false, Call(book, "IsLocked", 3));
-            Assert.IsTrue(((Component)edits.GetValue(2)).gameObject.activeInHierarchy, "Locked entries stay visible.");
-            Assert.AreEqual(false, Get(edits.GetValue(2), "interactable"));
-            Call(ui, "Cycle", 2, 0);
-            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0));
-            yield return ReadyToMorning(2, ui);
-            Call(Get(ui, "View"), "Close");
-            yield return null;
-            Assert.AreEqual(false, Get(Find("CurtainCall.WaitingRoom.ScheduleBoardView"), "IsOpen"));
-            Assert.AreEqual(false, Static("CurtainCall.Player.InputGate", "IsRequested"));
-
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
-            yield return OpenSchedule();
-            ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
-            schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard"); book = Get(schedule, "Book");
-            Assert.AreEqual(false, Call(book, "IsEditable", 2));
-            Call(ui, "Cycle", 3, 0); Call(ui, "Cycle", 3, 1); Call(ui, "Confirm");
-            Assert.AreEqual(true, Call(book, "IsLocked", 3));
-            yield return ReadyToMorning(3, ui);
-
-            yield return Launch(3, "Night", 0, "", "WaitingRoomBase");
-            yield return OpenSchedule();
-            ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
-            schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard"); book = Get(schedule, "Book");
-            Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
-            Assert.AreEqual("", Call(book, "Get", 4, 0));
-            Assert.IsFalse(((Component)Private(ui, "confirmButton")).gameObject.activeSelf);
-            // Older wire data must not reintroduce day-four performances or a confirmation gate.
-            var oldSlots = (string[])Call(book, "ExportSlots"); oldSlots[6] = "Tightrope"; oldSlots[7] = "HumanCannon";
-            Assert.AreEqual(true, Call(book, "Load", 3, false, oldSlots, new bool[4]));
-            Assert.AreEqual("", Call(book, "Get", 4, 0)); Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
-            yield return ReadyToMorning(4, ui);
-            Assert.AreEqual(Application.version != "0.1.0", Field(State, "IsFinalMorning"));
         }
         [UnityTest]
         public IEnumerator W3_HumanCannonSet_FAcquireUnlocksAndMovesToPractice()

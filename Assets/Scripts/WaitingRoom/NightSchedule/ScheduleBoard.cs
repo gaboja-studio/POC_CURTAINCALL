@@ -25,6 +25,7 @@ namespace CurtainCall.WaitingRoom
         ScheduleChannel channel;
         int seenGeneration;
         bool seenRunning;
+        string defaultTrick = "Tightrope";
 
         public static ScheduleBoard Instance { get; private set; }
 
@@ -98,7 +99,7 @@ namespace CurtainCall.WaitingRoom
             channel = new ScheduleChannel("CurtainCall.WaitingRoom.NightSchedule", HandleState, SendTo, HandleReset);
             RunState.NightEndGate = NightCanEnd;
             // 첫날 둘째 공연(CC-215): 호스트가 확정하기 전에는 집결해도 공연으로 넘어가지 않는다.
-            RunState.SecondPerformanceGate = () => book.FirstDayConfirmed;
+            RunState.SecondPerformanceGate = null;
         }
 
         /// <summary>첫날 둘째 공연을 고를 수 있는 시간대(첫 공연 뒤 대기실 안내 완료 후, 확정 전).</summary>
@@ -108,9 +109,28 @@ namespace CurtainCall.WaitingRoom
         public bool NightCanEnd()
         {
             if (WaitingRoomCannonRehearsal.IsActive) return false;
+            return true;
+        }
+
+        /// <summary>이미 시작한 공연은 보존하고 대기실에서는 모든 미래 일정을 즉시 바꿀 수 있다.</summary>
+        public bool CanEdit(int day, int slot)
+        {
             var run = CampaignRun.Instance;
-            int day = run != null ? run.State.Day : 0;
-            return ScheduleBook.EditableDays(day).Length == 0 || book.IsConfirmedTonight;
+            if (run == null || !run.State.IsRunning || day < 1 || day > ScheduleBook.PerformanceDays
+                || slot < 0 || slot >= ScheduleBook.SlotsPerDay) return false;
+            var s = run.State;
+            if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.RestTime) return false;
+            if (day < s.Day || day == s.Day && (s.Phase == CampaignPhase.Night || slot < s.PerformanceIndex)) return false;
+            return day != 1 || slot == 1;
+        }
+
+        void ApplySchedules()
+        {
+            var run = CampaignRun.Instance;
+            if (run == null || !run.HasAuthority) return;
+            if (CanEdit(1, 1)) run.SetFirstDaySecondTrick(book.Get(1, 1));
+            for (int day = 2; day <= ScheduleBook.PerformanceDays; day++)
+                if (day >= run.State.Day) run.SetSetlist(day, book.Setlist(day), book.Tiers(day));
         }
 
         void OnDestroy()
@@ -132,9 +152,12 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Set(int day, int slot, string trickId, int tier)
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (!CanEdit(day, slot)) return Answer(ScheduleRefusal.NotEditable);
             if (!IsUnlocked(trickId)) return Answer(ScheduleRefusal.Locked);
+            if (trickId == CampaignSnapshot.HumanCannonId && !WaitingRoomCannonRehearsal.HasMastered
+                && WaitingRoomCannonRehearsal.RequireBeforeSelection(trickId)) return Answer(ScheduleRefusal.RehearsalRequired);
             var refusal = book.Set(day, slot, trickId, tier, MaxTier(trickId));
-            if (refusal == ScheduleRefusal.None) { Publish(); SelectionChanged?.Invoke(day, slot, string.IsNullOrEmpty(trickId) ? "EMPTY" : trickId, tier); }
+            if (refusal == ScheduleRefusal.None) { ApplySchedules(); Publish(); SelectionChanged?.Invoke(day, slot, trickId, tier); }
             return Answer(refusal);
         }
 
@@ -178,46 +201,13 @@ namespace CurtainCall.WaitingRoom
             return WaitingRoomText.Format("schedule.tier-reward", "호응 상한 {cap} · 완주 보너스 {bonus}", ("cap", rules.Cap), ("bonus", rules.CompletionBonus));
         }
 
-        /// <summary>호스트: 이번 밤 작성을 확정한다. 실행할 일차는 런 공연 순서로 넘긴다.</summary>
+        // 구 리뷰 도구의 호출 호환성. 일정은 Set 시점에 이미 적용되며 별도 확정은 없다.
         public ScheduleRefusal Confirm()
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
-            if (WaitingRoomCannonRehearsal.RequireBeforeConfirm(book)) return Answer(ScheduleRefusal.RehearsalRequired);
-            if (book.Night == 0 && book.IsFirstDaySecondEditable) return ConfirmFirstDay();
-            int night = book.Night;
-            var refusal = book.Confirm();
-            if (refusal != ScheduleRefusal.None) return Answer(refusal);
-
-            var run = CampaignRun.Instance;
-            foreach (int day in ScheduleBook.DaysToApply(night))
-            {
-                var setlist = book.Setlist(day);
-                var tiers = book.Tiers(day);
-                bool applied = run.SetSetlist(day, setlist, tiers);
-                Debug.Log($"[NightSchedule] {night}일차 밤 확정: {day}일차 {string.Join(" → ", setlist)} (단계 {string.Join("/", tiers)}){(applied ? "" : " (런에 넘기지 못함)")}");
-            }
-            Publish();
-            LastMessage = WaitingRoomText.Get("schedule.confirmed", "스케줄표를 확정했습니다.");
-            Confirmed?.Invoke(night);
+            ApplySchedules();
             return ScheduleRefusal.None;
         }
-
-        /// <summary>호스트: 첫날 둘째 공연을 확정하고 런 공연 순서에 넘긴다.</summary>
-        ScheduleRefusal ConfirmFirstDay()
-        {
-            if (book.FirstDayConfirmed) return Answer(ScheduleRefusal.AlreadyConfirmed);
-            if (!book.IsFirstDaySecondEditable) return Answer(ScheduleRefusal.NotEditable);
-            string trick = book.Get(1, 1);
-            if (!IsUnlocked(trick) || !CampaignRun.Instance.SetFirstDaySecondTrick(trick))
-                return Answer(ScheduleRefusal.NotEditable);
-            book.ConfirmFirstDay();
-            Debug.Log($"[NightSchedule] 1일차 둘째 공연 확정: {trick}");
-            Publish();
-            LastMessage = WaitingRoomText.Get("schedule.confirmed-first-day", "두 번째 공연을 확정했습니다.");
-            return ScheduleRefusal.None;
-        }
-
-        // 밤 정비 준비 완료는 M2에서 숙소 침대(NightBed)로 옮겼다. 스케줄표 확정은 밤 종료 조건이 아니다(Task-079).
 
         public static string Explain(ScheduleRefusal refusal) => refusal switch
         {
@@ -271,11 +261,17 @@ namespace CurtainCall.WaitingRoom
             }
 
             // 첫날 둘째 공연 선택: 첫 공연 뒤 가이드 쉬는 시간, 전원 대기실 안내를 마친 뒤부터.
-            bool choice = s.IsRunning && s.Day == 1 && s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide
-                && s.Timer != RestTimerState.WaitingForExit;
+            bool choice = s.IsRunning && s.Day == 1 && s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide;
             if (book.FirstDayChoiceOpen != choice) { book.SetFirstDayChoiceOpen(choice); changed = true; }
 
-            if (changed) Publish();
+            string preferred = s.CannonUnlocked && WaitingRoomCannonRehearsal.HasMastered ? CampaignSnapshot.HumanCannonId : GameSettings.Base.Run.DefaultTrick;
+            if (defaultTrick != preferred) { defaultTrick = preferred; changed = true; }
+            int nextDay = s.Phase == CampaignPhase.Night ? s.Day + 1 : s.Day;
+            int nextSlot = s.Phase == CampaignPhase.Performance ? s.PerformanceIndex + 1 : s.Phase == CampaignPhase.Night ? 0 : s.PerformanceIndex;
+            if (nextSlot >= ScheduleBook.SlotsPerDay) { nextDay++; nextSlot = 0; }
+            changed |= book.FillUpcomingDefaults(defaultTrick, nextDay, nextSlot);
+
+            if (changed) { ApplySchedules(); Publish(); }
         }
 
         void Publish()

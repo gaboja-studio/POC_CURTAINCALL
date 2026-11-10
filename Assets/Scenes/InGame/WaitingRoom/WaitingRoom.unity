@@ -2738991,21 +2738991,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationTimerZones
   runningZones:
-  - Area_P05_PipeZone
-  - PipeLink
-  - F8_PipeCrawl
-  - Area_S05_JunkStorage
-  - Area_S12_CargoBay
-  - F8_Cargo
-  - Area_S11_StageGear
-  - Area_ST_Stairwell
-  - Area_B1_MachineRoom
-  - Area_B1_Office
-  - Area_B1_OfficeLink
   - Area_B1_ChangingRoom
   - Area_B1_EscapeCorridor
   - Area_B1_EscapeEntrance
+  - Area_B1_MachineRoom
+  - Area_B1_Office
+  - Area_B1_OfficeLink
+  - Area_P05_PipeZone
+  - Area_S02_Dormitory
+  - Area_S03_Shop
+  - Area_S04_PropRoom
+  - Area_S05_JunkStorage
+  - Area_S08_ElevatorHall
+  - Area_S09_PracticeRoom
+  - Area_S10_Workshop
+  - Area_S11_StageGear
+  - Area_S12_CargoBay
+  - Area_ST_Stairwell
+  - F8_Cargo
+  - F8_Dorm
+  - F8_PipeCrawl
+  - F8_Practice
+  - F8_PropRoom
+  - Lobby
+  - PipeLink
+  - ServiceGallery
+  - WorkshopBranch
   areas: {fileID: 1872234013}
+  outsideIsSafe: 1
 --- !u!1 &2100520936
 GameObject:
   m_ObjectHideFlags: 0

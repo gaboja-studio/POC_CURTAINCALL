@@ -136,8 +136,8 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var layer in SortingLayer.layers)
                 if (SortingLayer.GetLayerValueFromID(layer.id) > SortingLayer.GetLayerValueFromID(canvas.sortingLayerID))
                     canvas.sortingLayerID = layer.id;
-            banner.Show(message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-title", "소집 경보!") : WaitingRoomText.Get("banner.broadcast-title", "방송"),
-                message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-body", "무대 입구로 모이세요") : message.Message,
+            banner.Show(message.Title ?? (message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-title", "소집 경보!") : WaitingRoomText.Get("banner.broadcast-title", "방송")),
+                message.Message,
                 message.IsRecallAlarm ? BannerState.Danger : BannerState.Normal,
                 announcementSeconds, BannerIcon.Megaphone);
         }

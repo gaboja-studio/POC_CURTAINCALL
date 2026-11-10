@@ -30,7 +30,7 @@ namespace CurtainCall.WaitingRoom
             guideRound = -1;
             actionGuides.Clear(); pendingGuides.Clear();
             returnAt = 0d;
-            prompt = false;
+            prompt = pendingUnlockPrompt = returnToSchedule = discoveryPrompt = false;
             promptBlock?.SetOpen(false);
             votePanel?.Hide();
             fader?.Cancel();

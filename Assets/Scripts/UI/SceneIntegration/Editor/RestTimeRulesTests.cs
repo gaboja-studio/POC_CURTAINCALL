@@ -5,6 +5,7 @@ using NUnit.Framework;
 namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
     /// <summary>M2 쉬는 시간: 시작하자마자 흐르고, 만료 처리는 교체 가능한 잡힘 처리로 넘긴다.</summary>
+    [Category("BreakFlow")]
     public sealed class RestTimeRulesTests
     {
         [Test]
@@ -26,7 +27,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
-        public void FirstDayUnconfirmedScheduleWaitsForGatherButCountdownExpires()
+        public void FirstDayScheduleNeedsNoConfirmationToGather()
         {
             var original = RunState.SecondPerformanceGate;
             try
@@ -35,11 +36,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 RunState.SecondPerformanceGate = () => confirmed;
                 var run = new RunState(); run.StartSession(); run.EndIntro(); run.EndPerformance();
                 run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
-                float remaining = run.Snapshot.TimeRemaining;
-                Assert.IsFalse(run.NotifyAllAtStageEntrance());
-                Assert.IsTrue(run.Tick(1f));
-                Assert.AreEqual(remaining - 1f, run.Snapshot.TimeRemaining, .001f);
-                Assert.IsTrue(run.Tick(10000f));
+                Assert.IsTrue(run.NotifyAllAtStageEntrance());
                 Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
             }
             finally { RunState.SecondPerformanceGate = original; }

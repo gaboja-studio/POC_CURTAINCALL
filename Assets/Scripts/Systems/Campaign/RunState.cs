@@ -30,15 +30,18 @@ namespace CurtainCall.Campaign
         readonly bool demoVersion;
         readonly bool dayPresentation;
         readonly bool pursuitEnabled;
+        readonly bool waitForGuides;
         CampaignSnapshot s;
 
         public RunState() : this(false) { }
         public RunState(bool demoVersion) : this(demoVersion, false) { }
-        public RunState(bool demoVersion, bool dayPresentation, bool pursuitEnabled = false)
+        public RunState(bool demoVersion, bool dayPresentation, bool pursuitEnabled = false) : this(demoVersion, dayPresentation, pursuitEnabled, false) { }
+        public RunState(bool demoVersion, bool dayPresentation, bool pursuitEnabled, bool waitForGuides)
         {
             this.demoVersion = demoVersion;
             this.dayPresentation = dayPresentation;
             this.pursuitEnabled = pursuitEnabled;
+            this.waitForGuides = waitForGuides;
         }
 
         static BaseGameSettings.RunSettings Rules => GameSettings.Base.Run;
@@ -80,7 +83,7 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>가이드 쉬는 시간이 전원 tutorial 완료를 기다리는 중인지.</summary>
-        public bool IsGuideRestWaiting => s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide && s.Timer == RestTimerState.WaitingForExit;
+        public bool IsGuideRestWaiting => (s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night) && s.Timer == RestTimerState.WaitingForExit;
 
         /// <summary>가이드 쉬는 시간 인원을 다시 센다. 나간 사람을 빼고 남은 전원이 tutorial을 마쳤으면 타이머를 시작한다. 바뀌었으면 true.</summary>
         public bool RefreshGuideRest(IReadOnlyCollection<ulong> players)
@@ -115,18 +118,23 @@ namespace CurtainCall.Campaign
         public bool NotifyAllAtStageEntrance()
         {
             if (s.Phase == CampaignPhase.Rehearsal) return EndRehearsal();
-            if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning) return false;
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) || s.IsFinalMorning) return false;
             // 첫 공연 뒤에는 전원이 튜토리얼을 마치기 전까지 집결해도 다음 공연으로 넘어가지 않는다.
             if (IsGuideRestWaiting) return false;
-            if (IsSecondPerformanceSelectionPending) return false;
+            if (s.Phase == CampaignPhase.Night)
+            {
+                if (s.Day >= Rules.DayCount) return false;
+                s.Day++;
+                EnterPerformance(0);
+                return true;
+            }
             EndRest();
             return true;
         }
 
-        /// <summary>첫날 둘째 공연 확정 전 집결 차단. 스케줄표가 걸고, 없으면 막지 않는다.</summary>
+        /// <summary>이전 도구 호환성. 일정 확정은 더 이상 집결을 막지 않는다.</summary>
         public static System.Func<bool> SecondPerformanceGate { get; set; }
-        public bool IsSecondPerformanceSelectionPending => s.Day == 1 && s.Rest == RestKind.Guide
-            && s.Phase == CampaignPhase.RestTime && SecondPerformanceGate != null && !SecondPerformanceGate();
+        public bool IsSecondPerformanceSelectionPending => false;
 
         /// <summary>
         /// 첫날 둘째 공연을 호스트가 고른 묘기로 바꾼다(첫 공연 뒤 가이드 쉬는 시간, 안내 완료 후). 첫 공연 칸은 고정이다.
@@ -134,7 +142,7 @@ namespace CurtainCall.Campaign
         /// </summary>
         public bool SetFirstDaySecondTrick(string trickId)
         {
-            if (!s.IsRunning || s.Day != 1 || s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || IsGuideRestWaiting
+            if (!s.IsRunning || s.Day != 1 || s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide
                 || string.IsNullOrEmpty(trickId) || !s.IsTrickUnlocked(trickId) || Rules.PerformancesPerDay < 2) return false;
             var list = new string[Rules.PerformancesPerDay];
             setlists.TryGetValue(1, out var old);
@@ -156,18 +164,16 @@ namespace CurtainCall.Campaign
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
-                // 밤 정비 만료는 수면으로만 넘긴다. 쉬는 시간 소집·잡힘 이벤트는 호출하지 않는다.
-                if (s.Phase == CampaignPhase.Night)
-                {
-                    CompleteNight();
-                    return true;
-                }
                 // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
                 if (pursuitEnabled) s.Timer = RestTimerState.Pursuit;
                 if (onExpired != null)
                     foreach (System.Action<CampaignSnapshot> observer in onExpired.GetInvocationList())
                         try { observer(s); } catch { /* Observers cannot change progression. */ }
-                if (!pursuitEnabled) EndRest();
+                if (!pursuitEnabled)
+                {
+                    if (s.Phase == CampaignPhase.Night) CompleteNight();
+                    else EndRest();
+                }
                 return true;
             }
             CheckAlarm();
@@ -177,15 +183,17 @@ namespace CurtainCall.Campaign
         /// <summary>밤 준비 / 아침 전환 가림 완료 / 데모 종료 확인. 그 외 시간대면 무시한다.</summary>
         public bool SetReady(ulong clientId, bool value)
         {
+            if (IsGuideRestWaiting) return false;
             if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.Dawn && s.Phase != CampaignPhase.DemoEnding) return false;
             if (s.Phase != CampaignPhase.Night && !value) return false;
             bool changed = value ? ready.Add(clientId) : ready.Remove(clientId);
             return changed;
         }
 
+        public bool IsReady(ulong clientId) => s.Phase == CampaignPhase.Night && ready.Contains(clientId);
+
         /// <summary>
-        /// 호스트: 전원이 누웠어도 밤을 끝내도 되는지(2026-10-30 사용자: 호스트가 스케줄표를 작성해야 다음 날로 넘어간다). 비어 있으면 항상 허용.
-        /// 대기실 스케줄표가 채운다. 조건이 늦게 풀려도 다음 Tick의 <see cref="RefreshNight"/>에서 넘어간다.
+        /// 호스트: 리허설이 진행 중이면 수면 전환을 기다린다. 일정 작성·확정은 종료 조건이 아니다.
         /// </summary>
         public static System.Func<bool> NightEndGate { get; set; }
 
@@ -194,6 +202,7 @@ namespace CurtainCall.Campaign
         /// </summary>
         public bool RefreshNight(IReadOnlyCollection<ulong> players)
         {
+            if (IsGuideRestWaiting) return false;
             if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.Dawn && s.Phase != CampaignPhase.DemoEnding) return false;
             ready.RemoveWhere(id => !Contains(players, id));
             int before = s.ReadyCount, beforeRequired = s.RequiredCount;
@@ -220,7 +229,8 @@ namespace CurtainCall.Campaign
         /// <summary>쉬는 시간 중 탈출 개시(전원 입구 집결) → 탈출로. 쉬는 시간 타이머는 멈춘다.</summary>
         public bool StartEscape()
         {
-            if (s.Phase != CampaignPhase.RestTime) return false;
+            if (IsGuideRestWaiting) return false;
+            if (s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) return false;
             s.Phase = CampaignPhase.Escape;
             s.Timer = RestTimerState.Stopped;
             return true;
@@ -228,13 +238,11 @@ namespace CurtainCall.Campaign
 
         /// <summary>
         /// 탐색 구역 규칙(2026-10-30): 재생 구역에 아무도 없으면 쉬는 시간 타이머를 멈추고, 들어오면 남은 시간부터 다시 흐른다.
-        /// 유한 쉬는 시간에만 적용하며 바뀐 때만 true.
-        /// 마지막 아침(탈출 기한)은 멈추지 않는다: 통로 집결로도 끝나지 않으므로 생활 구역에 머물면 런이 끝나지 않았다(2026-10-31 버그).
+        /// 유한 쉬는 시간·밤 정비에 적용하며 바뀐 때만 true. 마지막 아침도 편집한 안전지대를 따른다.
         /// </summary>
         public bool SetRestTimerPaused(bool paused)
         {
-            if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
-            if (s.IsFinalMorning) paused = false;
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
             var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
             if (s.Timer == wanted) return false;
             s.Timer = wanted;
@@ -339,14 +347,14 @@ namespace CurtainCall.Campaign
 
         public bool DebugResetRestTimer()
         {
-            if (s.Phase != CampaignPhase.RestTime) return false;
-            StartTimer(Rules.TimeLimit(s.Rest));
+            if (s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) return false;
+            StartTimer(s.Phase == CampaignPhase.Night ? Rules.NightMaintenance : Rules.TimeLimit(s.Rest));
             return true;
         }
 
         public bool DebugBeginPursuit()
         {
-            if (s.Phase != CampaignPhase.RestTime || !pursuitEnabled) return false;
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) || !pursuitEnabled) return false;
             s.TimeRemaining = 0;
             s.Timer = RestTimerState.Pursuit;
             return true;
@@ -427,7 +435,11 @@ namespace CurtainCall.Campaign
             RefreshCurrent(1, 0);
         }
 
-        void RefreshCurrent() => RefreshCurrent(s.Day, s.PerformanceIndex);
+        void RefreshCurrent()
+        {
+            if (s.Phase == CampaignPhase.Night || s.Phase == CampaignPhase.Dawn || s.Phase == CampaignPhase.DemoEnding || s.IsFinalMorning) return;
+            RefreshCurrent(s.Day, s.PerformanceIndex);
+        }
 
         // 지금(또는 다음) 공연 묘기와 단계를 함께 맞춘다.
         void RefreshCurrent(int day, int index)
@@ -492,7 +504,7 @@ namespace CurtainCall.Campaign
             // 제한시간은 진입할 때만 적용한다. 도중 설정 변경으로 남은 시간을 재시작하지 않는다.
             StartTimer(rules.TimeLimit(kind));
             // 가이드 쉬는 시간은 전원이 대기실 tutorial을 마친 뒤부터 흐른다(Task-097, 기획서 2장).
-            if (kind == RestKind.Guide)
+            if (kind == RestKind.Guide || waitForGuides)
             {
                 guideRestUnlimited = s.Timer == RestTimerState.Unlimited;
                 s.Timer = RestTimerState.WaitingForExit;
@@ -512,6 +524,14 @@ namespace CurtainCall.Campaign
             StartTimer(Rules.NightMaintenance);
             ready.Clear();
             s.ReadyCount = 0;
+            if (waitForGuides)
+            {
+                guideRestUnlimited = s.Timer == RestTimerState.Unlimited;
+                s.Timer = RestTimerState.WaitingForExit;
+                s.AlarmRaised = false;
+                tutorialDone.Clear();
+                s.RequiredCount = 0;
+            }
         }
 
         // 전원 준비와 제한시간 만료는 같은 밤 종료 경로를 쓴다.
@@ -547,8 +567,9 @@ namespace CurtainCall.Campaign
 
         public bool NotifyAllPursuitCaught()
         {
-            if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Pursuit) return false;
-            EndRest();
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) || s.Timer != RestTimerState.Pursuit) return false;
+            if (s.Phase == CampaignPhase.Night) CompleteNight();
+            else EndRest();
             return true;
         }
 
@@ -562,7 +583,7 @@ namespace CurtainCall.Campaign
 
         void CheckAlarm()
         {
-            if (s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Running
+            if ((s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night) && s.Timer == RestTimerState.Running
                 && !s.AlarmRaised && s.TimeRemaining <= Rules.RecallAlarmLeadTime)
                 s.AlarmRaised = true;
         }

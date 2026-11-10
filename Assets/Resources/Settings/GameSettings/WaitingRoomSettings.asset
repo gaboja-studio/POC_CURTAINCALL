@@ -14,6 +14,68 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.WaitingRoomSettings
   dummySpendAmount: 10
   allowPurchasesDuringRest: 1
+  restPresentation:
+    minute:
+      title: "\uC26C\uB294 \uC2DC\uAC04 1\uBD84 \uB0A8\uC74C"
+      body: "\uC26C\uB294 \uC2DC\uAC04\uC774 1\uBD84 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uC81C\uD55C \uC2DC\uAC04\uC774 \uB05D\uB098\uBA74 \uCD94\uACA9\uC774 \uC2DC\uC791\uB429\uB2C8\uB2E4."
+    thirtySeconds:
+      title: "\uC26C\uB294 \uC2DC\uAC04 30\uCD08 \uB0A8\uC74C"
+      body: "\uC26C\uB294 \uC2DC\uAC04\uC774 30\uCD08 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uBAA8\uB4E0 \uB2E8\uC6D0\uB4E4\uC740 \uACF5\uC5F0\uC7A5 \uC55E\uC73C\uB85C
+        \uBAA8\uC774\uC138\uC694."
+    tenSeconds:
+      title: "\uC26C\uB294 \uC2DC\uAC04 10\uCD08 \uB0A8\uC74C"
+      body: "\uC26C\uB294 \uC2DC\uAC04\uC774 {seconds}\uCD08 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uACE7 \uCD94\uACA9\uC774 \uC2DC\uC791\uB429\uB2C8\uB2E4."
+    pursuitAlertTitle: "\uCD94\uACA9 \uACBD\uBCF4"
+    stageAnnouncements:
+    - 
+    - 
+    - 
+    - 
+    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098"
+    questBody: '{stage}
+
+      {escape}
+
+      {sleep}'
+    stageObjective: "- \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00 \uACF5\uC5F0\uC7A5
+      \uC785\uAD6C\uB85C \uAC00\uC11C \uACF5\uC5F0 \uC9C4\uD589"
+    escapeObjective: "- \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00 \uD0C8\uCD9C\uB85C\uB85C
+      \uC9C4\uC785\uD574 \uD0C8\uCD9C \uC2DC\uB3C4"
+    sleepObjective: 
+  maintenancePresentation:
+    minute:
+      title: "\uC815\uBE44 \uC2DC\uAC04 1\uBD84 \uB0A8\uC74C"
+      body: "\uC815\uBE44 \uC2DC\uAC04\uC774 1\uBD84 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uC81C\uD55C \uC2DC\uAC04\uC774 \uB05D\uB098\uBA74 \uCD94\uACA9\uC774 \uC2DC\uC791\uB429\uB2C8\uB2E4."
+    thirtySeconds:
+      title: "\uC815\uBE44 \uC2DC\uAC04 30\uCD08 \uB0A8\uC74C"
+      body: "\uC815\uBE44 \uC2DC\uAC04\uC774 30\uCD08 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uBAA8\uB4E0 \uB2E8\uC6D0\uB4E4\uC740 \uC989\uC2DC \uCDE8\uCE68\uC744 \uCDE8\uD558\uC138\uC694."
+    tenSeconds:
+      title: "\uC815\uBE44 \uC2DC\uAC04 10\uCD08 \uB0A8\uC74C"
+      body: "\uC815\uBE44 \uC2DC\uAC04\uC774 {seconds}\uCD08 \uB0A8\uC558\uC2B5\uB2C8\uB2E4.
+        \uACE7 \uCD94\uACA9\uC774 \uC2DC\uC791\uB429\uB2C8\uB2E4."
+    pursuitAlertTitle: "\uCD94\uACA9 \uACBD\uBCF4"
+    stageAnnouncements:
+    - 
+    - 
+    - 
+    - 
+    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uB77C"
+    questBody: '{stage}
+
+      {escape}
+
+      {sleep}'
+    stageObjective: "- \uC0DD\uC874\uD55C \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00
+      \uACF5\uC5F0\uC7A5 \uC785\uAD6C\uB85C \uAC00\uC11C \uACF5\uC5F0 \uC9C4\uD589"
+    escapeObjective: "- \uC0DD\uC874\uD55C \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00
+      \uD0C8\uCD9C\uB85C\uB85C \uC9C4\uC785\uD574 \uD0C8\uCD9C \uC2DC\uB3C4"
+    sleepObjective: "- \uC0DD\uC874\uD55C \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00
+      \uC219\uC18C \uCE68\uB300\uC5D0\uC11C \uC218\uBA74"
   bodyRestoreBasePrice: 50
   bodyRestorePriceStep: 25
   bodyRestoreMaxParts: 3

@@ -150,7 +150,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_CannonRehearsal_AcquireWithFAndConfirmWithPointer()
+        [Category("BreakFlow"), Category("BreakFollowup")] public IEnumerator W6_CannonRehearsal_AcquireWithFAndSelectWithPointer()
         {
             WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
             yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
@@ -178,6 +178,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(props.All(p => p.activeInHierarchy));
             Assert.IsNotNull(Find("CurtainCall.WaitingRoom.RehearsalCannonPracticeStation"));
             Assert.IsTrue(CannonFlag("CanPractice"));
+            yield return CannonWait(() => CannonFlag("IsUnlockPromptVisible"), 4, "Unlock itself must offer rehearsal without opening the schedule");
+            Assert.IsFalse((bool)Get(Find("CurtainCall.WaitingRoom.ScheduleBoardView"), "IsOpen"));
+            CannonStatic("AnswerSchedulePrompt", false); yield return null;
+            Assert.IsFalse((bool)Get(Find("CurtainCall.WaitingRoom.ScheduleBoardView"), "IsOpen"), "Declining discovery stays in exploration");
             yield return OpenSchedule();
             yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5,
                 "Wait for the real board close-up before aiming the pointer.");
@@ -187,9 +191,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             {
                 var edits = (UnityEngine.UI.Button[])Priv(ui, "editButtons");
                 yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
-                Assert.AreEqual("HumanCannon", Call(Get(board, "Book"), "Get", 1, 1));
-                yield return ClickScheduleButtonWithMouse(pointer, (UnityEngine.UI.Button)Priv(ui, "confirmButton"));
-                yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Actual confirm click must offer rehearsal.");
+                Assert.AreEqual("Tightrope", Call(Get(board, "Book"), "Get", 1, 1), "The ready default stays selected until rehearsal is completed.");
+                yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Selecting the cannon must offer rehearsal immediately.");
                 Assert.IsFalse((bool)Get(Get(board, "Book"), "FirstDayConfirmed"));
                 var choices = (UnityEngine.UI.Button[])Priv(Priv(CannonLesson, "votePanel"), "buttons");
                 yield return ClickScheduleButtonWithMouse(pointer, choices[1]);
@@ -197,8 +200,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse((bool)Get(Get(board, "Book"), "FirstDayConfirmed"));
                 yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5,
                     "Declining rehearsal must return the camera to the editable board.");
-                yield return ClickScheduleButtonWithMouse(pointer, (UnityEngine.UI.Button)Priv(ui, "confirmButton"));
-                yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Confirm must remain available after declining.");
+                yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
+                yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Selection must remain available after declining.");
                 yield return ClickScheduleButtonWithMouse(pointer, choices[0]);
                 yield return CannonWait(() => CannonFlag("IsActive") && Get(CannonLesson, "Course") != null
                     && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Yes must enter the native lesson and release placement input.");
@@ -211,7 +214,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_CannonRehearsal_SkipLabelAndPointerReturn()
+        [Category("BreakFlow")] public IEnumerator W6_CannonRehearsal_SkipLabelAndPointerReturn()
         {
             yield return OpenCannonWaitingRoom(1, "Night");
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
@@ -237,6 +240,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, clicks);
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Skip returns control");
             Assert.IsTrue(CannonFlag("HasMastered"));
+            yield return null;
+            Assert.AreEqual("HumanCannon", Call(Get(Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance"), "Book"), "Get", 2, 0), "A newly unlocked and rehearsed show becomes the next default without confirmation.");
             Assert.IsFalse((bool)Get(Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "Current"), "IsOpen"));
             Assert.Less(Vector3.Distance(LocalPlayer.transform.position, ((Pose)Priv(CannonLesson, "returnPose")).position), 3f);
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
@@ -247,18 +252,18 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_CannonRehearsal_ConfirmNativeFlightAndCheckpointRecovery()
+        public IEnumerator W6_CannonRehearsal_SelectNativeFlightAndCheckpointRecovery()
         {
             yield return OpenCannonWaitingRoom(1, "Night");
             var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
             for (int day = 2; day <= 3; day++) for (int slot = 0; slot < 2; slot++)
-                Assert.AreEqual("None", Call(board, "Set", day, slot, day == 2 && slot == 0 ? "HumanCannon" : "Tightrope", 1).ToString());
-            Assert.AreEqual("RehearsalRequired", Call(board, "Confirm").ToString());
+                if (day != 2 || slot != 0) Assert.AreEqual("None", Call(board, "Set", day, slot, "Tightrope", 1).ToString());
+            Assert.AreEqual("RehearsalRequired", Call(board, "Set", 2, 0, "HumanCannon", 1).ToString());
             Assert.IsFalse((bool)Get(Get(board, "Book"), "IsConfirmedTonight"));
             CannonStatic("AnswerSchedulePrompt", false);
             Assert.IsFalse(CannonFlag("IsActive"));
             Assert.IsFalse((bool)Get(Get(board, "Book"), "IsConfirmedTonight"), "No must not confirm the schedule.");
-            Assert.AreEqual("RehearsalRequired", Call(board, "Confirm").ToString());
+            Assert.AreEqual("RehearsalRequired", Call(board, "Set", 2, 0, "HumanCannon", 1).ToString());
             CannonStatic("AnswerSchedulePrompt", true);
             yield return CannonWait(() => CannonFlag("IsActive") && Get(CannonLesson, "Course") != null, 6, "The cannon lesson must start in the same waiting room.");
             yield return CannonWait(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 4, "Placement acknowledgement must release movement.");

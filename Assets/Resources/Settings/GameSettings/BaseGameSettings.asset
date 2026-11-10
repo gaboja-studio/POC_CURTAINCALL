@@ -30,15 +30,19 @@ MonoBehaviour:
     morningRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     noonRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     guideRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     nightMaintenance:
-      unlimited: 1
-      seconds: 120
+      unlimited: 0
+      seconds: 300
+      explorationLocked: 0
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
