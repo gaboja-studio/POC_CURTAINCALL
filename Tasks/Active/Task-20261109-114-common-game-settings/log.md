@@ -72,3 +72,4 @@
 - 실제 씬/목마 PlayMode 확인 요청 후 사용자가 즉시 저장·제출로 변경. 해당 PlayMode·다중 클라이언트 검사는 미실행이며 위 자동 검사와 구분. 탈출로/기존 실패14개는 제외.
 - Confluence40960011 전후25행, 인스펙터 수치·검사/미실행 갱신 후 읽기 확인 완료.
 - 제출 직전 Unity 주 프로세스 종료 확인(종료 명령은 시간 초과했으나 실제 프로세스 종료 확인), origin/dev 3c8bc09f로 fast-forward. 새 UI 변경27파일을 원본 그대로 반영했고 봉 수정과 충돌 없음.
+- 저장·제출 완료: 코드 커밋0c04bdac, [PR327](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/327), base dev, PM 팀 검토 요청. DEV3c8bc09f 반영 후 재컴파일 up_to_date·오류0 확인. 기존 다른 작업 변경은 미포함. 병합은 하지 않음.
