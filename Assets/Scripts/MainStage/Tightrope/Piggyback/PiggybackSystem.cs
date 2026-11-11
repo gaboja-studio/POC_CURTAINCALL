@@ -611,6 +611,21 @@ namespace CurtainCall.Tightrope
             ServerBroadcast();
         }
 
+        /// <summary>승강기 등 위치 이동 전에 연결을 끊고 분리 순간 위치도 함께 공유한다.</summary>
+        public void ServerReleaseForRelocation(ulong actor)
+        {
+            if (session == null || !session.IsHost) return;
+            var player = FindPlayer(actor);
+            if (player == null || !IsInStack(player)) return;
+            var placements = new Dictionary<ulong, Vector3>();
+            // 아래 사람이 먼저 순간이동해도 승객을 이동한 사람 앞으로 내려놓지 않는다.
+            for (var rider = player; rider != null; rider = GetAbove(rider))
+                placements[rider.OwnerClientId] = rider.transform.position;
+            if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
+            for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
+            ServerBroadcast(placements: placements);
+        }
+
         string UnlinkTop(ulong riderId, Action transferred)
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";

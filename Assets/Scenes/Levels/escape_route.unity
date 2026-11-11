@@ -65787,9 +65787,9 @@ MonoBehaviour:
   - {fileID: 106499096}
   - {fileID: 1160088807}
   - {fileID: 896403222}
+  fireWithoutCables: 0
   muzzle: {fileID: 285707176}
   projectileVisual: {fileID: 125493362}
-  shotInterval: 1.15
   projectileSpeed: 48
   projectileLifetime: 0
   projectileRadius: 1.1000001
@@ -65813,7 +65813,6 @@ MonoBehaviour:
   sparks: {fileID: 0}
   motor: {fileID: 0}
   carryHandleHeight: 1.05
-  carryMoveSpeed: 3.8
   bladeRadius: 0.5500001
   bladeHalfThickness: 0.04650815
   cableRadius: 0.08
@@ -65823,6 +65822,9 @@ MonoBehaviour:
   doorSpeed: 5
   leftDoorHinge: {fileID: 0}
   rightDoorHinge: {fileID: 0}
+  objectiveZone:
+    m_Center: {x: -3, y: 2, z: 0}
+    m_Extent: {x: 17, y: 5, z: 7}
 --- !u!1 &188339878
 GameObject:
   m_ObjectHideFlags: 0
@@ -174102,9 +174104,9 @@ MonoBehaviour:
   - {fileID: 106499096}
   - {fileID: 1160088807}
   - {fileID: 896403222}
+  fireWithoutCables: 0
   muzzle: {fileID: 1043195834}
   projectileVisual: {fileID: 125493362}
-  shotInterval: 1.15
   projectileSpeed: 48
   projectileLifetime: 0
   projectileRadius: 1.1000001
@@ -174128,7 +174130,6 @@ MonoBehaviour:
   sparks: {fileID: 0}
   motor: {fileID: 0}
   carryHandleHeight: 1.05
-  carryMoveSpeed: 3.8
   bladeRadius: 0.5500001
   bladeHalfThickness: 0.04650815
   cableRadius: 0.08
@@ -174138,6 +174139,9 @@ MonoBehaviour:
   doorSpeed: 5
   leftDoorHinge: {fileID: 0}
   rightDoorHinge: {fileID: 0}
+  objectiveZone:
+    m_Center: {x: -3, y: 2, z: 0}
+    m_Extent: {x: 17, y: 5, z: 7}
 --- !u!1 &432923671
 GameObject:
   m_ObjectHideFlags: 0
@@ -271418,9 +271422,9 @@ MonoBehaviour:
   - {fileID: 106499096}
   - {fileID: 1160088807}
   - {fileID: 896403222}
+  fireWithoutCables: 0
   muzzle: {fileID: 1816119289}
   projectileVisual: {fileID: 125493362}
-  shotInterval: 1.15
   projectileSpeed: 48
   projectileLifetime: 0
   projectileRadius: 1.1000001
@@ -271444,7 +271448,6 @@ MonoBehaviour:
   sparks: {fileID: 0}
   motor: {fileID: 0}
   carryHandleHeight: 1.05
-  carryMoveSpeed: 3.8
   bladeRadius: 0.5500001
   bladeHalfThickness: 0.04650815
   cableRadius: 0.08
@@ -271454,6 +271457,9 @@ MonoBehaviour:
   doorSpeed: 5
   leftDoorHinge: {fileID: 0}
   rightDoorHinge: {fileID: 0}
+  objectiveZone:
+    m_Center: {x: -3, y: 2, z: 0}
+    m_Extent: {x: 17, y: 5, z: 7}
 --- !u!1 &679603185
 GameObject:
   m_ObjectHideFlags: 0
@@ -428883,6 +428889,7 @@ MonoBehaviour:
   revealDelay: 1
   fadeSeconds: 1.8
   endingSeconds: 6
+  resultHeading: "\uD0C8\uCD9C \uC131\uACF5"
 --- !u!1 &1015719704
 GameObject:
   m_ObjectHideFlags: 0
@@ -510357,9 +510364,9 @@ MonoBehaviour:
   - {fileID: 106499096}
   - {fileID: 1160088807}
   - {fileID: 896403222}
+  fireWithoutCables: 0
   muzzle: {fileID: 640703370}
   projectileVisual: {fileID: 125493362}
-  shotInterval: 1.15
   projectileSpeed: 48
   projectileLifetime: 0
   projectileRadius: 1.1000001
@@ -510383,7 +510390,6 @@ MonoBehaviour:
   sparks: {fileID: 1145213681}
   motor: {fileID: 0}
   carryHandleHeight: 1.05
-  carryMoveSpeed: 3.8
   bladeRadius: 0.5500001
   bladeHalfThickness: 0.04650815
   cableRadius: 0.08
@@ -510393,6 +510399,9 @@ MonoBehaviour:
   doorSpeed: 5
   leftDoorHinge: {fileID: 849579060}
   rightDoorHinge: {fileID: 144627066}
+  objectiveZone:
+    m_Center: {x: -3, y: 2, z: 0}
+    m_Extent: {x: 17, y: 5, z: 7}
 --- !u!1 &1257174712
 GameObject:
   m_ObjectHideFlags: 0
@@ -763783,7 +763792,6 @@ MonoBehaviour:
   surfaceHeight: 0.5
   halfSize: {x: 2, y: 2}
   circularSurface: 1
-  usePropOutline: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
   resetPoseOnRestart: 1
 --- !u!1001 &1920089757
@@ -765563,6 +765571,13 @@ MonoBehaviour:
   - {fileID: 1840332903}
   arrivalArea: {fileID: 741851467}
   exitSaw: {fileID: 1256421259}
+  escapeTitle: "\uD0C8\uCD9C\uAD6C \uC5F4\uAE30"
+  arrivalTitle: "\uAC08\uB300\uBC2D \uB3C4\uCC29"
+  escapeBody: "\uC7A5\uC560\uBB3C\uC744 \uD1B5\uACFC\uD574 \uCD9C\uAD6C\uB85C \uAC00\uC138\uC694.
+    \uC808\uB2E8\uAE30\uB85C \uCF00\uC774\uBE14\uC744 \uB04A\uC73C\uBA74 \uBB38\uC774
+    \uC5F4\uB9BD\uB2C8\uB2E4."
+  arrivalBody: "\uC5F4\uB9B0 \uCD9C\uAD6C\uB97C \uC9C0\uB098 \uAC08\uB300\uBC2D\uC5D0
+    \uB3C4\uCC29\uD558\uC138\uC694."
   campaignPosition: {x: -200, y: -16, z: 118.3}
   campaignEuler: {x: 0, y: 180, z: 0}
   hazardPathPosition: {x: -200, y: -16, z: 118.3}
@@ -765577,7 +765592,7 @@ Transform:
   m_GameObject: {fileID: 1923766775}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: -200, y: -16, z: 118.3}
+  m_LocalPosition: {x: -200, y: 400, z: 118.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -785744,10 +785759,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fe37bd3c982a2e469abaff9f592ecc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.TightropeControlsPanel
-  banner: {fileID: 2041850423}
-  holdSeconds: 4
+  guideInterval: 1.5
   sawDistance: 8
   escapeTraversal: 1
+  escapeBalance:
+    title: "\uC678\uC904\uC5D0\uC11C \uADE0\uD615 \uC7A1\uAE30"
+    body: "{forward}\uB85C \uC774\uB3D9\uD558\uACE0 {balance}\uB85C \uAE30\uC6B8\uC5B4\uC9C0\uB294
+      \uBC18\uB300 \uBC29\uD5A5\uC744 \uB204\uB974\uC138\uC694."
+    badge: '{balance}'
+  escapeJump:
+    title: "\uC678\uC904\uC5D0\uC11C \uC810\uD504\uD558\uAE30"
+    body: "{jump}\uB85C \uC810\uD504\uD558\uC138\uC694. \uB3D9\uB8CC \uAC00\uAE4C\uC774\uC5D0\uC11C
+      {interact}\uB85C \uBAA9\uB9C8\uB97C \uD0C0\uAC70\uB098, \uAE38\uAC8C \uB20C\uB7EC
+      \uB9E4\uB2EC\uB9B0 \uB3D9\uB8CC\uB97C \uAD6C\uC870\uD558\uC138\uC694."
+    badge: '{jump}'
 --- !u!1 &1989425511
 GameObject:
   m_ObjectHideFlags: 0
@@ -798731,17 +798756,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3476558858235077903, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
   m_PrefabInstance: {fileID: 1989153970}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2041850423 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1823655846741419, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
-  m_PrefabInstance: {fileID: 1989153970}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2041850421}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79b382584127d40419656a5af80ff2ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.NotificationsV1.SystemBannerView
 --- !u!114 &2041850425
 MonoBehaviour:
   m_ObjectHideFlags: 0

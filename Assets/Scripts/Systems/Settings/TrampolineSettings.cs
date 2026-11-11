@@ -5,7 +5,7 @@ namespace CurtainCall.Settings
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Trampoline", fileName = "TrampolineSettings")]
     public sealed class TrampolineSettings : ScriptableObject
     {
-        [InspectorName("공통 트램펄린 외형"), Tooltip("공연·연습·대기실의 트램펄린 외형 원본. 빨강·파랑 옆면의 RoundCarryTrampolineVisual을 사용한다. 변경 후 Tools/CurtainCall/트램펄린/현재 씬 공통 외형 적용으로 저장된 씬에 반영한다. 반동·배치·발사 궤적은 바꾸지 않는다.")]
+        [InspectorName("공통 트램펄린 외형"), Tooltip("공연·연습·대기실의 트램펄린 외형 원본. 가운데 별무늬가 있는 CC_Trampoline을 사용한다. 변경 후 Tools/CurtainCall/트램펄린/현재 씬 공통 외형 적용으로 저장된 씬에 반영한다. 반동·배치·발사 궤적은 바꾸지 않는다.")]
         [SerializeField] GameObject visualPrefab;
         [InspectorName("반동 상승 속도"), Tooltip("트램펄린에서 튀어 오를 때 위쪽 속도(m/s). 점프 높이(m)가 아니다. 모든 씬의 트램펄린과 스프링 신발 반동의 기준값이며, 신발은 아이템 효과 배율도 곱한다. 기본 12m/s.")]
         [SerializeField, Min(.1f)] float upwardSpeed = 12f;

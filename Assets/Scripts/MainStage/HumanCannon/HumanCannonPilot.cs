@@ -63,6 +63,12 @@ namespace CurtainCall.HumanCannon
             if (system == null || player.State != PlayerState.Normal || InputGate.IsBlocked) return;
             if (groundRequest.Pending || awaitingLanding) return;
             if (ReadPoleInput(input)) return;
+            if (IsFlying)
+            {
+                // 확정된 비행 입력은 발판·운반 장치의 별도 복귀 동기화 대기에 막히면 안 된다.
+                airControl.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
+                return;
+            }
             if (HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.ReadInput(player, input)) return;
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
             if (carried != null)
@@ -78,9 +84,7 @@ namespace CurtainCall.HumanCannon
                 carryTarget.RequestGrab();
                 return;
             }
-            if (IsFlying)
-                airControl.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
-            else if (stationIndex >= 0)
+            if (stationIndex >= 0)
             {
                 var action = CommonInteractionSelection.Allows(player, system)
                     ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) : CannonAction.Sync;
@@ -102,7 +106,7 @@ namespace CurtainCall.HumanCannon
             returnPosition = transform.position;
             returnRotation = transform.rotation;
             hasReturnPose = true;
-            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(player);
             TakeMovement();
             stationIndex = index;
             IsFlying = false;
@@ -117,7 +121,7 @@ namespace CurtainCall.HumanCannon
             airControl.Clear();
             steerPoleMomentum = false;
             airControl.BeginPoleFlight(0f);
-            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(player);
             TakeMovement();
             stationIndex = -1;
             flightStationIndex = index;

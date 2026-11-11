@@ -37,7 +37,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             run.EndIntro();
             Assert.IsFalse(run.AbandonRun(run.Snapshot));
             run.EndPerformance();
-            run.StartEscape();
+            // 첫 공연 뒤 안내를 마친 다음에야 탈출 상태에 진입할 수 있다.
+            Assert.IsTrue(run.SetTutorialDone(0));
+            run.RefreshGuideRest(new ulong[] { 0 });
+            Assert.IsTrue(run.StartEscape());
             var before = run.Snapshot;
             Assert.IsFalse(run.AbandonRun(before));
             Assert.AreEqual(before, run.Snapshot);

@@ -4,6 +4,8 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope;
+using CurtainCall.Network.Session;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -137,6 +139,50 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.IsFalse((bool)Get(room, "localInside"));
             Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
             Assert.Less(Vector3.Distance(local.transform.position, outside.position), .001f);
+        }
+
+        [TestCase(2, 0)] [TestCase(2, 1)]
+        [TestCase(3, 0)] [TestCase(3, 1)] [TestCase(3, 2)]
+        [TestCase(4, 0)] [TestCase(4, 1)] [TestCase(4, 3)]
+        public void MountedBuyerWaitsForDetachAndDoesNotSnapBackAfterEntering(int count, int buyerFloor)
+        {
+            typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(local, true);
+            var previousStack = PiggybackSystem.Current;
+            var stack = Make("Medical mounted stack").AddComponent<PiggybackSystem>();
+            var follow = stack.gameObject.AddComponent<PiggybackFollow>(); Set(follow, "system", stack);
+            var session = Make("Medical authority").AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            Set(stack, "session", session);
+            typeof(PiggybackSystem).GetProperty("Current").SetValue(null, stack);
+            try
+            {
+                var below = (Dictionary<ulong, ulong>)Get(stack, "belowOf");
+                var above = (Dictionary<ulong, ulong>)Get(stack, "aboveOf");
+                var riders = new NetworkPlayer[count];
+                for (int i = 0; i < count; i++)
+                {
+                    riders[i] = i == buyerFloor ? local : Player((ulong)(950 + i));
+                    riders[i].gameObject.AddComponent<PlayerBalance>();
+                    riders[i].transform.position = outside.position + Vector3.up * i * 1.5f;
+                    if (i == 0) continue;
+                    below[riders[i].OwnerClientId] = riders[i - 1].OwnerClientId;
+                    above[riders[i - 1].OwnerClientId] = riders[i].OwnerClientId;
+                }
+                Call(follow, "UpdateLocal", local);
+                Assert.AreEqual(ExpertRefusal.None, book.BookMedical(0, true, true, 1, 1, 3, () => true, 100));
+                Assert.AreEqual(ExpertRefusal.None, book.Enter(0));
+                Call(room, "Bind", service); // Service snapshot deliberately arrives before detach.
+                Assert.IsFalse((bool)Get(room, "localInside"));
+                stack.ServerReleaseForRelocation(0);
+                Call(room, "ReconcileLocalOccupancy");
+                Assert.IsTrue((bool)Get(room, "localInside"));
+                Call(follow, "UpdateLocal", local); // Late follow must not put the buyer beside the old carrier.
+                Assert.Less(Vector3.Distance(local.transform.position, inside.position), .001f);
+                Assert.IsFalse(stack.IsInStack(local));
+                Assert.IsTrue(local.GetComponent<PlayerMover>().Simulated);
+                for (int i = buyerFloor + 1; i < count; i++) Assert.IsFalse(stack.IsInStack(riders[i]));
+            }
+            finally { typeof(PiggybackSystem).GetProperty("Current").SetValue(null, previousStack); }
         }
 
         [TestCase(true), TestCase(false)]

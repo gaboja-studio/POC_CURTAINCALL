@@ -20,6 +20,8 @@ namespace CurtainCall.Settings.EditorTools
         PlayerMover mover;
         System.Func<NetworkPlayer, PlayerState, bool> previousDamageGate;
         CurtainCall.Survival.SurvivalPlace previousPlace;
+        UnityEngine.SceneManagement.Scene testScene;
+        string previousSceneName;
         readonly Vector3 feet = new(6800, 100, 6800);
         static object Get(object target, string name) => target.GetType().GetField(name, Private).GetValue(target);
         static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name, Private).Invoke(target, args);
@@ -29,6 +31,9 @@ namespace CurtainCall.Settings.EditorTools
         [SetUp]
         public void SetUp()
         {
+            testScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            previousSceneName = testScene.name;
+            testScene.name = "FallSegmentRegression";
             previousDamageGate = NetworkPlayer.ServerCanChangeState;
             previousPlace = CurtainCall.Survival.SurvivalRules.ServerPlace;
             NetworkPlayer.ServerCanChangeState = null;
@@ -55,6 +60,33 @@ namespace CurtainCall.Settings.EditorTools
             objects.Clear();
             NetworkPlayer.ServerCanChangeState = previousDamageGate;
             CurtainCall.Survival.SurvivalRules.ServerPlace = previousPlace;
+            testScene.name = previousSceneName;
+        }
+
+        [TestCase("WaitingRoom", 5f)] [TestCase("WaitingRoom", 15f)]
+        [TestCase("WaitingRoomBase", 5f)] [TestCase("WaitingRoomBase", 15f)]
+        [TestCase("WaitingRoomPursuit", 5f)] [TestCase("WaitingRoomPursuit", 15f)]
+        public void WaitingRoomLandingSafetyAppliesToEveryVariant(string sceneName, float height)
+        {
+            var settings = GameSettings.WaitingRoom;
+            string saved = JsonUtility.ToJson(settings);
+            try
+            {
+                testScene.name = sceneName;
+                JsonUtility.FromJsonOverwrite("{\"safeFallLandings\":true}", settings);
+                player.CompleteFall(height, feet);
+                Assert.AreEqual(PlayerState.Normal, player.State);
+                Assert.AreEqual(BodyPart.None, player.LostParts);
+                JsonUtility.FromJsonOverwrite("{\"safeFallLandings\":false}", settings);
+                player.CompleteFall(height, feet);
+                if (height >= GameSettings.Base.BodyDamage.FallDeathHeight) Assert.AreEqual(PlayerState.Fallen, player.State);
+                else Assert.AreEqual(GameSettings.Base.BodyDamage.FallInjuryCutCount, PlayerCondition.CountLimbs(player.LostParts));
+            }
+            finally
+            {
+                JsonUtility.FromJsonOverwrite(saved, settings);
+                testScene.name = "FallSegmentRegression";
+            }
         }
 
         [Test]

@@ -116,3 +116,9 @@
 - 결과: PlayMode `WaitingRooms_Architecture` 3개 통과(Base·추격 천장). EditMode(WaitingRoom) 기존 실패 그대로 — 문구 2·추격 배치 1·카메라 커버리지 Base 1(dev부터)·`RehearsalCannonSourceTests.W6` forwardSpeed(dev PR #328 인간대포 씬 변경 관련, 이 작업과 무관)·편집 모드 DontDestroyOnLoad 2(간헐).
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-11 origin/dev 병합(PR #330 등) — 공간 프리팹 위에 반영
+- 충돌: dev 5af3a8a8이 WaitingRoom·WaitingRoomBase에서 운반 트램펄린 4개 겉모습(CC_PropArt)을 RoundCarryTrampolineVisual → CC_Trampoline으로 교체, Base에 천장·지붕 충돌체(Box 38·Mesh 8) 추가. 우리 쪽은 같은 씬을 프리팹 구조로 재저장해 텍스트 병합 불가.
+- 해결: 씬은 우리 쪽 유지. 트램펄린 교체는 S05·S09·S11 공간 프리팹에 반영(기본 위치·회전·크기, 형제 순서 6 동일). Base의 충돌체 '제거' 오버라이드 46개를 되돌려 프리팹 충돌체 사용.
+- 검증: dev 씬 대비 이름·위치·컴포넌트·참조 비교 차이 0(두 씬 모두, BasementRooms 분할만 다름). dev가 Base에 넣은 BoxCollider 38개 크기·중심 값이 모두 일치(MeshCollider 값은 비교 안 함). 두 씬 오클루전 다시 구움.
+- 테스트: EditMode(WaitingRoom) 338 중 335 통과, 실패 3은 기존(문구 2·추격 배치 1). 카메라 커버리지 Base·W6는 dev 반영으로 통과. PlayMode `WaitingRooms_Architecture` 3개 통과.

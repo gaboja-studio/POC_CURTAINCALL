@@ -287,7 +287,9 @@ namespace CurtainCall.Network.PlayerSync
                 && course.TryGetSupportingRopeAt(mover, feet, out _);
             bool safePlatformLanding = GameSettings.Base.BodyDamage.SafeLandingZones
                 && HumanCannonLandingZone.ContainsLanding(mover, feet);
-            var outcome = ropeLanding || safePlatformLanding ? FallOutcome.Safe : CommonDamageRules.Fall(height);
+            bool safeWaitingRoom = GameSettings.WaitingRoom.SafeFallLandings
+                && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
+            var outcome = ropeLanding || safePlatformLanding || safeWaitingRoom ? FallOutcome.Safe : CommonDamageRules.Fall(height);
             bool protectedFall = EscapeDevelopmentSession.FallInjuriesSuppressed(this);
             if (outcome != FallOutcome.Safe && !protectedFall && rebound != null && rebound())
             { ResetFallTracking(); return true; }
