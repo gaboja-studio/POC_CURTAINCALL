@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class TightropeSwingGapTests
     {
         [TestCase(false, false), TestCase(true, false), TestCase(true, true)]

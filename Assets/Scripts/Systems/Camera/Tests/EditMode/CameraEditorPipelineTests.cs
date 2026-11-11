@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.Cameras.Tests
 {
     /// <summary>공용 카메라 프리팹의 실제 편집 모드 pipeline. 게임 코드의 Awake나 캐시는 강제로 초기화하지 않는다.</summary>
+    [Category("CommonProgressionRegression")]
     public sealed class CameraEditorPipelineTests
     {
         const string RigPath = "Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab";

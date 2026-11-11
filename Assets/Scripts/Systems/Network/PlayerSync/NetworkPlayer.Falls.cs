@@ -266,7 +266,11 @@ namespace CurtainCall.Network.PlayerSync
 
         void AcknowledgeFallLanding(uint sequence, int restart, int revive)
         {
-            if (CurrentFallEpoch(restart, revive) && sequence == fallSequence) landingPending = false;
+            if (!landingPending || !CurrentFallEpoch(restart, revive) || sequence != fallSequence) return;
+            landingPending = false;
+            // Host tracking resets on acceptance; a remote owner only receives this ACK.
+            // Finish this contact without clearing the peak of a jump already in progress.
+            localSupportDrop = false;
         }
 
         static bool FiniteFallPoint(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);

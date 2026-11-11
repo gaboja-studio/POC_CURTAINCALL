@@ -2,42 +2,7 @@
 
 이전 원문: [001](History/001-previous-stages.md), [11/10까지](History/003-log-through-tutorial-followup.md), [11/11 진행 기록](History/004-log-before-completion.md).
 
-## 2026-11-11 후속 회귀·모션 수정
-- 최신 지시로 저장·제출 승인. 이전 제출 금지 해제. 공통 GameSettings 유지·탈출로 제외·기존14개 보류는 유지한다.
-- Unity 종료 후 DEV fb39d3dd 통합. 병합 커밋52f39e4b, 작업 브랜치 fix/common-rule-regressions. 기존 Task112/다른 문서/탈출로 캐시/복구 백업은 제출 제외.
-- 숙소 모서리 오접지·탐색 자격/화면 이용자·추격 해제 제어·같은 방 런 재시작 자금 문제 수정. 집중93검사와 실제 의료 재예약/자금 재시작 검증은 [기존 실행 결과](runtime-play-results.md).
-- 모션11항목과 현재 검사 결과는 [최종 감사](completion-audit.md). 최초 모션6개 수정 전 실패→후 통과, 추가9개/캐릭터36개/리허설120개/공통21개 통과. 네 캐릭터×부상4단계 걷기·점프·착지와 구조 손 접점 확인.
-- 최신 독립 실행 파일 2·3·4인 Relay로 이동·점프·밤→아침 확인. 4인은 목마 두 쌍·스위치/대포/트램펄린 점유자 사망·복귀·재사용 확인. 안정 상태14개에서 불일치0. 다른 PC 원본 끊김은 미확정.
-- 대포 개발용 봇에서 공통 봉 등록 빈 칸의 NullReference를 실제 로그로 확인해 수정. 공중 입력은 옛4.5 대신 공통 설정 사용. 검사 fixture의 리프트 탑승·도착 LateUpdate·수신 위치 준비를 바로잡고 최신 봇으로 실제 역할 교대/발사/반동/R재시작/접속 종료1검사 통과.
-- [Confluence 변경 전후51행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40534020/11+10) 생성. 폴더37355775, wide/표1400px, 번호·장소·전·후·셀 글머리 기호를 읽어 확인.
-- 전체 EditMode1954/1968, 대포64/80, 외줄63/99(1생략)는 최초 넓은 검사 수치다. 이후 집중 재검사와 혼동하지 않으며 전체 통과/모든 버그 해소로 보고하지 않는다.
-- 증거 폴더: .harness/local/common-rules-completion-20261111. 임시 QA 프로브는 Assets 밖에 있고 네 플레이어는 정상 종료했다.
-- 마지막 집중 재검사: 빠른 톱4/재접촉1/봉 접근1/외줄 전멸 부활1/시간 종료1 통과. 게임 규칙을 바꾸지 않고 숨김 봉·공통 피해 간격·입력 프레임·정산 연출 대기시간을 검사 준비에 반영했다.
-
-- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-
-## 2026-11-11 봉 설정 직접 조정 인계
-- Unity 종료 후 origin/dev fetch/merge 확인: ec3e6e4c, Already up to date. 기존 변경 보존.
-- 절대 Y <= -15 즉사 기준 확정. 아직 구현하지 않았고 기존5m/15m 낙하거리 에셋 값 유지.
-- 봉 거리보다 목마 F 우선순위가 선택을 가린 원인을 설명. PoleSettings의 반동 가속도300/감쇠0.4/추가 상승6m/s/수평상한8m/s 확인. 값은 임의 조정하지 않음.
-- 추가 사용자 보고: 튜토리얼 바닥에서 허우적거림/기어가기 잔류. 조사 중이며 실제 새 빌드 재현/해결로 보고하지 않음. 낮은 바닥의 TightropeCourse.CheckLocalFall 반복 요청과 공통 착지/튜토리얼 복귀 연결을 이어서 확인한다.
-- 사용자가 직접 Inspector를 조정하도록 프로젝트 재개 요청. 에디터를 열고 PoleSettings를 선택한다. 직접 조정 중에는 종료/제출하지 않는다. 수정 완료 후 저장·제출은 새로 승인됨.
-
-## 2026-11-11 봉 모션·바닥 잔류 후속 마무리
-- 사용자 최종 지시로 직접 조정 인계를 마치고 에이전트가 수정·저장·제출 진행. 시작/제출 직전 모두 Unity 정상 종료 후 origin/dev ec3e6e4c 확인, 기존 변경 보존.
-- PoleSettings 앞뒤 모션 속도 배율1.6 추가·에셋 저장. 도약 각속도/진자 길이/추가 상승6m/s/수평상한8m/s는 유지하고 호스트 진자 시간과 원격 표시 예측만 같은 배율 적용. 같은 각도/반동 도약 성능 유지, 놓는 타이밍은 달라진다.
-- BaseGameSettings 월드 Y 즉사 기준-15 추가·에셋 저장. 현재 소유자 위치/부활·재시작 번호를 호스트가 검증하며 기존 사망·복귀 경로 사용. 5m/15m 낙하거리 유지. 대포 비행도 같은 기준을 쓰며 경로의 개별 바닥선 직접 사망 제거. 코스 하단 데이터는 기물 회수/배치용 유지.
-- 바닥 지지 상태에도 반복되던 TightropeCourse의 자연 추락 재요청 제거. 기존 최초 교육 ResetOnFloorFall을 실제 접지에서도 재확인하여 착지 이벤트/이전 낙하 구간 대기를 놓친 상태가 바닥에 잔류하지 않게 함.
-- 소구간 완료·재연습 종료/시간대 변경 시 살아 있는 플레이어의 공유 비행·장치 점유도 먼저 해제. 소유자 pilot만 초기화되어 관전자에 비행이 남던 경로 정리.
-- check-work 최종: 안전성·문서/규칙·컴파일·공통 연결 PASS. 사용자 요청으로 자동/플레이 테스트 미실행. 실제 4인 증상 재현/해결 확인으로 보고하지 않음. 기존 실패14개 보류 유지.
-- [오후 전후 표20행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40960011/11+11) 생성 후 재조회: 21행(머리행 포함), 표 안 글머리 기호, 모션/낙하값 저장 확인.
-- 전체 변경을 저장하는 save-work 대신 관련 경로만 stage해 commit/push한다. 기존 Task112·지식 인덱스·탈출로 라벨 캐시·Task083 미리보기는 제외하고 보존한다.
-- 저장: 4a081339, 관련77파일. gh 로그인 RagSpirin 작성자 확인. 기존 미저장 파일을 제외했으므로 new-pr DryRun의 전체 작업트리 청결 안내는 확인한 뒤 동일 dev 방향/본문으로 gh PR 제출.
-- 제출: [PR325](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/325), fix/common-rule-regressions → dev, PM 팀 검토 요청. dev 병합 없음. 사용자 Play/4인 동기화 확인은 미완료로 유지.
-- 오후 최종 check-work 재실행: 안전성·문서/규칙·컴파일·공통 설정 연결/폐기 필드/제작 도구/직렬화 확인 PASS. 앞선 Pipeline 연결 reset은 재실행에서 발생하지 않음. 자동 테스트·플레이 테스트는 모두 생략.
-- 마지막 사용자 낙하 지시로 BaseGameSettings.bodyDamage를 부상5m·사망15m로 저장하고 C# 기본값·Tooltip도 일치시킴. 사지 손실2개·외줄/안전 착지대 보호·트램펄린 재반동 우선은 유지. 변경 뒤 컴파일 오류/경고0. '-15m 이하'의 절대좌표 여부는 질문 중이며 별도 좌표 사망은 미추가.
-- 제출 직전 Unity 비재생·미저장0 확인 후 정상 종료. 14:16 KST origin/dev fetch: fb39d3dd 동일, HEAD에 포함됨. 최신 집중 검사 결과 재사용. 임시 Pipeline 생성 폴더와 preload 설정 복구, 테스트 플레이어 전부 종료.
-- 관련52파일6b772dae 저장·push, [PR324](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/324)를 dev 대상으로 제출하고 gaboja-studio/pm 검토 요청. 직접 병합 없음. 무관한 변경·생성된 QA 스크린샷은 로컬 보존·제출 제외. 이 제출 기록은 문서만 후속 저장한다.
+11/11 초기 후속 수정·봉 인계·PR324/325 원문: [006](History/006-log-through-pole-handoff.md).
 
 ## 2026-11-11 오후 추가 보고
 - Unity 종료·기존 변경 보존 후 origin/dev ec3e6e4c로 fast-forward. 인간대포 최신 씬 요청 때 다시 정상 종료·fetch·동일 HEAD 확인 후 에디터 재개.
@@ -133,3 +98,16 @@
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출 직전 Unity 프로세스 종료 확인 후 origin/dev 재fetch·merge: ec98657e 최신, 추가 변경 없음. 정상 종료 명령은30초 시간 초과했으나 프로세스가 실제 종료된 뒤에만 동기화.
 - 저장·제출: 구현3265dbba·DEV통합e5ff47c7·배치보정454d6371, [PR332](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/332), base dev·PM 팀 검토 요청. 기존 무관 변경은 제외, dev 병합하지 않음.
+
+## 공통 진행 차단 재발 점검
+- Unity 종료 확인 뒤 origin/dev fetch·merge, ec98657e에서 변경 없음. PR332는 OPEN. doctor는 기존 Task ID 중복으로 실패, Unity·연결 정상. Editor.log 조회에서 최근 예외 로그는 확인하지 못해 해당 실플레이와 합성 재현을 구분한다.
+- 실제 코드 경로: 착지를 승인한 호스트만 ResetFallTracking을 실행하고 원격 소유자의 ACK는 landingPending만 해제했다. 호스트 추락 플래그까지 내려간 뒤에도 localSupportDrop이 남는 신규 검사 1/1 실패 확인. 이후 자연 추락 요청과 목마/줄 매달림이 이 잔류 상태에 막힐 수 있다.
+- 대기 중인 현재 착지의 ACK에서만 소유자 추락 표시를 해제. 호스트 플래그/ACK 두 수신 순서와 이전 생명·중복 ACK 경계 검사를 추가. 씬별 규칙과 다음 점프 최고점은 유지.
+- `check-work -CommonRegression`으로 설정 연결·배치와 봉/외줄/목마/추락/대포/치료/밤/재연습 회귀를 실행. 필터 결과 0개는 실패로 처리한다.
+- 첫 검사에서 log/todo 길이 초과로 Unity 단계 미실행. 완료 기록을 원문 그대로 History006/007로 이동해 문서 검사 통과.
+- 최종: `check-work -CommonRegression` 종료0, EditMode451/451 통과(실패/생략0), 컴파일·공통 연결·문서/규칙 통과. 새 재추락 수신 순서2건 모두 통과. 결과 .harness/local/test-results-editmode.json. 실제 PlayMode·다른 PC 다인 검증은 미실행. 이번 수정은 작업 브랜치 로컬에 남김.
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(선행 실패·생략)
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
+- 제출 지시: Unity 정상 종료 후 origin/dev 재fetch·merge, ec98657e 최신(추가 변경 없음). 451개 검사 결과 재사용. 이번 로컬 후속 수정의 제출 대상은 기존 [PR332](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/332). 공연 씬 파일·배치 수정 없음. 기존 무관 변경 제외.

@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public class PoleCrewTests
     {
         const ulong Empty = CannonSeatState.Nobody;
@@ -128,6 +129,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
     }
 
+    [Category("CommonProgressionRegression")]
     public class PoleCrewSnapshotTests
     {
         const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic;

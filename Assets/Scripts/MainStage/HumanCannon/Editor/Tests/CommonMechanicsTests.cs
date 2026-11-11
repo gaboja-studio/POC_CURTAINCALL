@@ -9,6 +9,7 @@ using UnityEngine;
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     [Category("November11CommonFix")]
+    [Category("CommonProgressionRegression")]
     public sealed class CommonMechanicsTests
     {
         static object Call(object target, string name, params object[] args) => target.GetType()

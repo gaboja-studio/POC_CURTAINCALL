@@ -15,6 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.WaitingRoom.EditorTools
 {
+    [Category("CommonProgressionRegression")]
     public sealed class RehearsalArrivalTests
     {
         const BindingFlags Fields = BindingFlags.Instance | BindingFlags.NonPublic;
