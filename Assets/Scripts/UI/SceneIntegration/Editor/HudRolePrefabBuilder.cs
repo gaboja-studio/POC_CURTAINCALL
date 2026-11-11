@@ -135,30 +135,6 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 }
                 finally { PrefabUtility.UnloadPrefabContents(contents); }
             }
-            const string coursePath=Root+"CourseStatus.prefab";
-            if(!File.Exists(coursePath))
-            {
-                var status=(GameObject)PrefabUtility.InstantiatePrefab(assets[(int)HudRole.Status].gameObject);
-                try
-                {
-                    var c=status.GetComponent<HudRoleCard>();
-                    Place(c.Rect,new Vector2(.5f,0),new Vector2(0,48));
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(c.Rect);
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(c);
-                    PrefabUtility.SaveAsPrefabAsset(status,coursePath);
-                }
-                finally { Object.DestroyImmediate(status); }
-            }
-            if(!saved.GetComponent<HudUIManager>().courseStatus)
-            {
-                var contents=PrefabUtility.LoadPrefabContents(managerPath);
-                try
-                {
-                    contents.GetComponent<HudUIManager>().courseStatus=AssetDatabase.LoadAssetAtPath<GameObject>(coursePath).GetComponent<HudRoleCard>();
-                    PrefabUtility.SaveAsPrefabAsset(contents,managerPath);
-                }
-                finally { PrefabUtility.UnloadPrefabContents(contents); }
-            }
             if(saved.GetComponent<HudUIManager>().prefabs.Length < assets.Length)
             {
                 var contents=PrefabUtility.LoadPrefabContents(managerPath);

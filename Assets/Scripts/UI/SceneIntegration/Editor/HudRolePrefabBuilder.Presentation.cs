@@ -72,7 +72,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             finally{PrefabUtility.UnloadPrefabContents(root);}
         }
 
-        // Status (incl. the CourseStatus variant) resizes to its text. The square inventory-slot art has no
+        // Status resizes to its text. The square inventory-slot art has no
         // 9-slice border and warped when stretched, so it uses the same sliced small plate as Guide/ZoneName.
         static void SliceStatusPlate(string path,HudRole role)
         {

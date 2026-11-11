@@ -52280,13 +52280,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.HumanCannonUiBinding
   legacy: {fileID: 0}
-  boundaries:
-    FirstStartZ: 18
-    ShelterStartZ: 72
-    SecondStartZ: 90
-    FinalStartZ: 141.5
-    RaisedMinY: 5
-  sectionLabel: {fileID: 0}
 --- !u!114 &603225746
 MonoBehaviour:
   m_ObjectHideFlags: 0

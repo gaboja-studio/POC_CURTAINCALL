@@ -69,25 +69,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             var fires=scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<HumanCannonFireWall>(true)).ToArray();
             binding.ConfigureCannon(system.Station(0).Muzzle,finish.transform,fires);
             var legacy=scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<HumanCannonCourseSections>(true)).SingleOrDefault();
-            UnityEngine.Object boundaryOwner=legacy!=null ? legacy : ui.GetComponent<HumanCannonUiBinding>();
-            if(boundaryOwner==null) throw new InvalidOperationException("Existing course boundaries required.");
-            var b=new SerializedObject(boundaryOwner).FindProperty("boundaries");
-            var bounds=new HumanCannonCourseSections.Boundaries(b.FindPropertyRelative("FirstStartZ").floatValue,
-                b.FindPropertyRelative("ShelterStartZ").floatValue,b.FindPropertyRelative("SecondStartZ").floatValue,
-                b.FindPropertyRelative("FinalStartZ").floatValue,b.FindPropertyRelative("RaisedMinY").floatValue);
-            if (ui.GetComponent<HumanCannonUiBinding>()==null)
-            {
-                var canvas=new GameObject("HumanCannonSectionCanvas",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler));
-                canvas.transform.SetParent(ui.transform,false); canvas.GetComponent<Canvas>().renderMode=RenderMode.ScreenSpaceOverlay;
-                var scaler=canvas.GetComponent<CanvasScaler>(); scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution=new Vector2(1920,1080); scaler.matchWidthOrHeight=.5f;
-                var label=new GameObject("CurrentSection",typeof(RectTransform),typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-                label.transform.SetParent(canvas.transform,false); label.rectTransform.anchorMin=label.rectTransform.anchorMax=label.rectTransform.pivot=new Vector2(.5f,0);
-                label.rectTransform.anchoredPosition=new Vector2(0,48); label.rectTransform.sizeDelta=new Vector2(544,48);
-                label.font=Resources.Load<TMP_FontAsset>("Fonts/Pretendard-Medium/Pretendard-Medium SDF");
-                label.fontSize=28; label.alignment=TextAlignmentOptions.Center; label.raycastTarget=false; label.text="";
-                ui.AddComponent<HumanCannonUiBinding>().Configure(legacy,bounds,label);
-            }
+            if (ui.GetComponent<HumanCannonUiBinding>()==null) ui.AddComponent<HumanCannonUiBinding>().Configure(legacy);
             var audience=scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<PerformanceAudience>(true)).SingleOrDefault()
                 ?? new GameObject("PerformanceAudience").AddComponent<PerformanceAudience>();
             var values=new SerializedObject(audience);
