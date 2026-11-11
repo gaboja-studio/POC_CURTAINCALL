@@ -18,7 +18,7 @@ namespace CurtainCall.HumanCannon.Tests
             var fixture = new GameObject("Common poles runtime fixture");
             var basePoint = new Vector3(9000, 9000, 9000);
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            floor.transform.SetParent(fixture.transform); floor.transform.position = basePoint + Vector3.down * .5f;
+            floor.transform.SetParent(fixture.transform); floor.transform.position = basePoint + Vector3.down * 2.5f; // 봉 놓기 착지가 공통 부상 구간(5m 이상 15m 미만)에 들도록 바닥을 2m 낮춘다.
             floor.transform.localScale = new Vector3(40, 1, 40);
             var poleObject = new GameObject("Shared switch pole"); poleObject.transform.SetParent(fixture.transform);
             poleObject.transform.position = basePoint + Vector3.up * 4f;
@@ -73,7 +73,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Assert.IsFalse((bool)Get(gate, "IsOpen"), "상단이 놓는 즉시 스위치를 해제한다.");
                 Assert.IsTrue(Flying);
                 yield return WaitUntil(() => !Flying, 6, "공통 봉에서 일반 바닥으로 착지");
-                AssertBody(12); // 약 4m 내려온 실제 착지이므로 공통 낙하 규칙으로 두 다리를 잃는다.
+                AssertBody(12); // 약 6m 내려온 실제 착지이므로 공통 낙하 규칙으로 두 다리를 잃는다.
                 Assert.IsTrue((bool)Get(mover, "Simulated"));
                 Assert.IsNotNull(Get(pole, "VisualBar"));
                 Assert.That(Get(pole, "CommonVisual"), Is.Not.Null);

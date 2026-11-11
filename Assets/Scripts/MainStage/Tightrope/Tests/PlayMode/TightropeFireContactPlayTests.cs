@@ -91,9 +91,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return new WaitForSeconds(.3f);
             Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 1u, round, restart, (double)activated - .01, feet, kind, 0, true));
             Assert.AreEqual("Normal", Get(player, "State").ToString());
-            Assert.IsTrue((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, (double)activated, feet, kind, 0, true));
+            // 발화 후에도 구간 불은 접촉 판정이 없다. 끊어진 줄에서의 추락과 낙사 영역이 결과를 정한다.
+            Assert.IsFalse((bool)Call(fire, "ValidateContact", owner, 2u, round, restart, (double)activated, feet, kind, 0, true));
             Assert.AreEqual("Normal", Get(player, "State").ToString());
-            Assert.AreNotEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
         }
     }
 }

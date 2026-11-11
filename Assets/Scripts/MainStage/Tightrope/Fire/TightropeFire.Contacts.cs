@@ -83,17 +83,8 @@ namespace CurtainCall.Tightrope.Fire
             float distance = course.GetDistance(feet);
             if (distance >= snapshot.safeDistance) return false;
             if (snapshot.chaseEnabled && at >= snapshot.chaseDelay && distance <= FireMath.ChaseDistance(snapshot, at)) return true;
-            float side = course.GetSide(feet);
-            for (int i = 0; i < snapshot.segments.Length; i++) {
-                var segment = snapshot.segments[i]; int lane = segment.lane - 1;
-                if (!IsSegmentActive(i) || lane < 0 || lane >= course.LaneCount || (historical && at < segmentActivatedAt[i])) continue;
-                GetSegmentSpans(i, segmentSpans);
-                foreach (var span in segmentSpans) {
-                    segment.from = span.x; segment.to = span.y;
-                    if (!FireMath.SegmentContains(segment, distance, side, course.Layout.GetLaneSide(lane), course.RopeWalkWidth * .5f + radius)) continue;
-                    kind = FireKind.Segment; index = i; return true;
-                }
-            }
+            // 줄 구간 불은 접촉 판정을 하지 않는다. 최대로 발화하는 순간 그 구간 줄이 사라지므로
+            // 위에 있던 사람은 추락하고 씬의 낙사 영역이 사망을 처리한다(2026-11-10 사용자 결정, Task-115).
             return false;
         }
     }

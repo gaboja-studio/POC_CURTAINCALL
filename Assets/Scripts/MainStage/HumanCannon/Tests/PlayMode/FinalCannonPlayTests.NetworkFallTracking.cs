@@ -62,7 +62,8 @@ namespace CurtainCall.HumanCannon.Tests
                 int revive = (int)Get(Get(player, "reviveCount"), "Value");
                 Call(player, "ResetFallTeleportRpc", destination, restart, revive);
                 // The server receives only later poses, never one within a metre of the destination.
-                player.transform.position = contact + Vector3.up * 1.5f;
+                // 서버 상한(현재 위치+2m) 안의 정상 최고점이 되도록 안전 높이보다 1.5m 아래 자세를 받는다.
+                player.transform.position = contact + Vector3.up * (safeHeight - 1.5f);
                 Call(player, "ReportFallPeakRpc", contact.y + safeHeight, restart, revive, (uint)Get(player, "acceptedFallSequence") + 1u);
                 Call(player, "LateUpdate");
                 Assert.IsTrue((bool)Get(player, "fallTeleportPending"));
