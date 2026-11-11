@@ -79,6 +79,26 @@ namespace CurtainCall.Player
                             throw new ArgumentException("Invalid saved key");
                         action.ApplyBindingOverride(index, path);
                     }
+                    // An older profile may already use Z/X. Preserve its mappings and give only
+                    // the newly introduced vote action an unused key (shown in Settings and on the card).
+                    var assigned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var entries = GetBindings(draft);
+                    foreach (var b in entries)
+                        if (!IsNewVote(b)) assigned.Add(b.Path);
+                    var displaced = new List<BindingEntry>();
+                    foreach (var b in entries)
+                        if (IsNewVote(b) && !assigned.Add(b.Path)) displaced.Add(b);
+                    foreach (var b in displaced)
+                            foreach (char key in "zxcvbnjkluiopghyrt")
+                            {
+                                var free = "<Keyboard>/" + key;
+                                if (!assigned.Add(free)) continue;
+                                draft.FindActionMap(MapName).FindAction(b.ActionName).ApplyBindingOverride(b.BindingIndex, free);
+                                break;
+                            }
+                    bool IsNewVote(BindingEntry b) =>
+                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary") &&
+                        !saved.bindings.Exists(s => s.bindingId == b.BindingId.ToString());
                     if (!TryValidateDraft(draft, out _)) draft.RemoveAllBindingOverrides();
                 }
             }

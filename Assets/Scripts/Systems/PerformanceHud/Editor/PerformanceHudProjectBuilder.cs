@@ -17,7 +17,7 @@ namespace CurtainCall.PerformanceHud.Editor
 {
     public static class PerformanceHudProjectBuilder
     {
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/PerformanceHud/PerformanceHud.unity";
         const string FontRoot = "Assets/Resources/Fonts/PerformanceHud";
         const string Kit = "Assets/_ThirdParty/curtaincall_performance_hud_v1";
@@ -34,7 +34,7 @@ namespace CurtainCall.PerformanceHud.Editor
                 throw new InvalidOperationException("기존 공연 HUD 출력은 덮어쓰지 않습니다.");
             for (int i = 0; i < SceneManager.sceneCount; i++)
                 if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("미저장 씬이 있습니다.");
-            EnsureFolder("Assets/Resources/Prefabs/UIs/PerformanceHud");
+            EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud");
             EnsureFolder("Assets/Scenes/Tests/PerformanceHud");
             var medium = MakeFont("Medium", "Assets/Resources/Fonts/CommonIcons/Pretendard-Medium SDF.asset");
             var semiBold = MakeFont("SemiBold", "Assets/Resources/Fonts/CommonButtons/Pretendard-SemiBold SDF.asset");
@@ -45,7 +45,7 @@ namespace CurtainCall.PerformanceHud.Editor
             if (PrefabUtility.SaveAsPrefabAssetAndConnect(root, PrefabPath, InteractionMode.AutomatedAction) == null)
                 throw new IOException("공연 HUD 프리팹 저장 실패");
             var hud = root.GetComponent<CurtainCall.UI.PerformanceHudV1.PerformanceHUDView>();
-            var cheerAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab");
+            var cheerAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab");
             if (cheerAsset == null) throw new InvalidOperationException("C1 정본 누락");
             var cheer = (GameObject)PrefabUtility.InstantiatePrefab(cheerAsset, root.transform);
             cheer.GetComponent<C1CheerGaugeBinding>().enabled = false;
@@ -75,7 +75,7 @@ namespace CurtainCall.PerformanceHud.Editor
             string[] labels = { "평소", "경고/위험", "겹침", "미수신", "관전 전환", "외줄 전환", "공연 전환", "초기화" };
             UnityEngine.Events.UnityAction[] actions = { preview.Normal, preview.Warning, preview.Overlap, preview.Unavailable,
                 preview.ToggleObserving, preview.ToggleTightrope, preview.TogglePerformance, preview.ResetPreview };
-            var buttonAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab");
+            var buttonAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab");
             if (buttonAsset == null) throw new InvalidOperationException("공용 버튼 정본 누락");
             for (int i = 0; i < labels.Length; i++)
             {

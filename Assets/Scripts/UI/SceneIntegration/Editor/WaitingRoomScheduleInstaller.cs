@@ -24,7 +24,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             var common = EditorSceneManager.OpenScene(CommonWaitingRoomUI.ScenePath, OpenSceneMode.Additive);
             var ui = common.GetRootGameObjects().Single(r => r.name == "UI");
             if (ui.GetComponentInChildren<WaitingRoomScheduleUI>(true) != null) throw new InvalidOperationException("Already installed.");
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/ScheduleUi/SchedulePanel.prefab");
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/ScheduleUi/SchedulePanel.prefab");
             if (asset == null) throw new InvalidOperationException("Missing tested SchedulePanel prefab.");
             var canvas = (GameObject)PrefabUtility.InstantiatePrefab(asset, ui.transform);
             canvas.name = "SchedulePanelCanvas";
@@ -95,7 +95,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         }
         static UnityEngine.UI.Button Button(Transform parent, string name, string kind, float x, float y, float width)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/Prefabs/UIs/CommonButtons/Button_{kind}.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_{kind}.prefab");
             if (prefab == null) throw new InvalidOperationException("Missing tested button prefab.");
             var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             go.name = name;

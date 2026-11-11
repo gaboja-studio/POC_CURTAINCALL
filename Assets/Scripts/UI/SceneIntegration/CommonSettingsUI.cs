@@ -18,7 +18,7 @@ namespace CurtainCall.UI.SceneIntegration
     /// <summary>v2 프리팹의 편집 세션을 기존 로컬 설정·입력·음성·런 서비스에 연결한다.</summary>
     public sealed class CommonSettingsUI : MonoBehaviour
     {
-        public const string PrefabResource = "Prefabs/UIs/SettingsUiV2/C14_Settings_v2";
+        public const string PrefabResource = "Prefabs/UIs/Roles/Retained/SettingsUiV2/C14_Settings_v2";
         // 기존 씬의 C14 참조와 Configure 계약은 보존하되 표시하지 않는다.
         [SerializeField] SettingsPanelView main;
         [SerializeField] SettingsPanelView teammates;
@@ -179,7 +179,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";
-            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", _ => name };
+            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", _ => name };
         }
         void DraftChanged(List<V2Value> values)
         {

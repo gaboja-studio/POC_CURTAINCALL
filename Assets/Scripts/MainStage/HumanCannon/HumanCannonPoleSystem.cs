@@ -107,7 +107,7 @@ namespace CurtainCall.HumanCannon
             var stack = PiggybackSystem.Current;
             return player != null && cannon != null && (cannon.IsFlying(player.OwnerClientId) || CanEnterFromPlatform(player))
                 && HeldBy(player.OwnerClientId) < 0 && !cannon.IsSeated(player.OwnerClientId)
-                && (stack == null || !stack.IsInStack(player) || stack.CanReleaseForPole(player))
+                && (stack == null || !stack.IsInStack(player) || stack.CanReleaseForDevice(player))
                 && HumanCannonCarry.Held(player.OwnerClientId) == null;
         }
 
@@ -349,7 +349,7 @@ namespace CurtainCall.HumanCannon
                 if (seat < 0) return;
                 var stack = PiggybackSystem.Current;
                 bool transferring = stack != null && stack.IsInStack(player);
-                if (transferring && !stack.CanReleaseForPole(player)) return;
+                if (transferring && !stack.CanReleaseForDevice(player)) return;
                 float hold = seat == 0 ? poles[index].HoldSeconds : Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(0) - Clock));
                 if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, false, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
@@ -361,7 +361,7 @@ namespace CurtainCall.HumanCannon
                     stack?.ConsumeTrapezeEntry(player);
                     Publish(index, fromPlatform ? PoleEvent.PlatformGrabbed : PoleEvent.Grabbed, actor, seat);
                 }
-                if (transferring) stack.TryReleaseForPole(player, CompleteCatch);
+                if (transferring) stack.TryReleaseForDevice(player, CompleteCatch);
                 else CompleteCatch();
             }
             else if (action == PoleAction.Release && seat >= 0)

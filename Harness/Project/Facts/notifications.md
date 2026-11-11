@@ -8,7 +8,7 @@ source: Task-20261019-061-cheer-gauge-ui
 ## 언제 읽나
 - C8 배너/오른쪽 토스트를 배치하거나 표시 API·정본·제작 원본·검증 제약을 확인할 때.
 ## 사실
-- 정본은 `Assets/Resources/Prefabs/UIs/Notifications/`의 `SystemNotifications.prefab`(두 슬롯), `SystemBanner.prefab`, `Toast.prefab`. 독립 씬은 `Assets/Scenes/Tests/Notifications/Notifications.unity`.
+- 정본은 `Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/`의 `SystemNotifications.prefab`(두 슬롯), `SystemBanner.prefab`, `Toast.prefab`. 독립 씬은 `Assets/Scenes/Tests/Notifications/Notifications.unity`.
 - 공개 Preview/안전 조립기/PlayMode 테스트는 `Assets/Scripts/Systems/Notifications/`. 생성 진입점 `NotificationsProjectBuilder.Build()` 실제 성공, Unity compile errors[] 통과.
 - private 제공 Runtime/Builder는 원위치 재사용, namespace `CurtainCall.UI.NotificationsV1`/`.Editor`로 격리. 제공 코드를 공개 복제하지 않는다.
 - `Banner.Show(title, subtitle, state, holdSeconds, iconChoice)` / `Toast.Show(message, state, holdSeconds, iconChoice)`를 사용한다. holdSeconds는 호출 시 명시해야 하며 게임 기본 수명을 정의하지 않는다.

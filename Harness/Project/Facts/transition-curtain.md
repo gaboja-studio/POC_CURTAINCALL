@@ -12,7 +12,7 @@ source: Task-20261019-061
 
 ## 경로·소유
 - private 원본 `Assets/_ThirdParty/curtaincall_curtain_v1/`, Runtime `CurtainCall.UI.TransitionCurtainView` 원위치 사용. PNG/자료/GUID 보존, 신규 천/술6 importer 및 제공 Builder의 안전 조립 진입점만 보정.
-- 정본 `Assets/Resources/Prefabs/UIs/TransitionCurtain/TransitionCurtain.prefab`(Canvas 전체), 확인 씬 `Assets/Scenes/Tests/TransitionCurtain/TransitionCurtain.unity`.
+- 정본 `Assets/Resources/Prefabs/UIs/Roles/Retained/TransitionCurtain/TransitionCurtain.prefab`(Canvas 전체), 확인 씬 `Assets/Scenes/Tests/TransitionCurtain/TransitionCurtain.unity`.
 - 공개 코드/검증 `Assets/Scripts/Systems/TransitionCurtain/`. `TransitionCurtainProjectBuilder.Build()`는 기존 출력 덮어쓰기 거절·dirty 씬/Play/import/PrefabStage 거절·additive 격리 조립. 기존 정본 재생성용이 아니다.
 - 공용 Icons 별과 C11 Spectator Static Medium 읽기 전용 참조. 이 의존성 없이 독립 배포되지 않는다.
 - 실행 결과·실패 이력 `Tasks/Done/Task-20261019-061-cheer-gauge-ui/curtain-verification.md`, 개별 경로·SHA 전수 목록은 로컬 비공개 검증자료로 보존하고 공개 저장에서 제외한다.

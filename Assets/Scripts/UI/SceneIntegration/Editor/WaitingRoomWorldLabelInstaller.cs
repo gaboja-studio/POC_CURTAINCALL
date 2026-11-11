@@ -75,7 +75,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }
-        static GameObject Require(string name) => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/WorldLabels/" + name + ".prefab")
+        static GameObject Require(string name) => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/WorldLabels/" + name + ".prefab")
             ?? throw new InvalidOperationException("Missing completed prefab: " + name);
         static WorldLabelView Spawn(string prefab, string name, Transform root)
         {

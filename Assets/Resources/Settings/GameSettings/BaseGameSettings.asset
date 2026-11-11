@@ -117,7 +117,7 @@ MonoBehaviour:
     hazardCutCount: 1
     fallInjuryHeight: 4
     fallInjuryCutCount: 2
-    fallDeathHeight: 6
+    fallDeathHeight: 8
     safeRopeLanding: 1
     safeLandingZones: 1
     restartRecovery: 0

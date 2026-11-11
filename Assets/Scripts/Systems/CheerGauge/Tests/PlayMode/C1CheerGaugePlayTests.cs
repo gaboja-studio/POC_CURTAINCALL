@@ -24,7 +24,7 @@ namespace CurtainCall.CheerGauge.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/CheerGauge/C1CheerGauge");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge");
             Assert.IsNotNull(prefab, "생성된 재사용 프리팹이 필요합니다.");
             root = Object.Instantiate(prefab);
             view = root.GetComponent(GameType("CurtainCall.CheerGauge.C1CheerGaugeView"));

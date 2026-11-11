@@ -16,7 +16,9 @@ namespace CurtainCall.Tightrope
         public Vector3 TrapezeRestingFeet(int index)
         {
             float along = TrapezeGapFrom + (index == 0 ? -1f : Shape.TrapezeLength * (index == 1 ? .38f : .74f));
-            float height = index == 0 ? 1.5f : index == 1 ? 2.1f : .6f;
+            // 첫 협동 봉은 줄 위 5m(발 3.5m + 공통 매달림 1.5m).
+            // 혼자 점프한 몸 중심+잡기 범위를 넘고 목마 윗사람의 점프로 접근한다.
+            float height = index == 0 ? 3.5f : index == 1 ? 2.1f : .6f;
             return GetLanePosition(Shape.TrapezeLane - 1, along) + Vector3.up * height;
         }
 

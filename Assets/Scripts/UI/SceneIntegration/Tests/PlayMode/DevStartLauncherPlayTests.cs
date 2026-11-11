@@ -14,6 +14,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     {
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static object Get(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
+        static Component VisibleRole(string role) => Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.HudRoleCard"),FindObjectsSortMode.None)
+            .Cast<Component>().FirstOrDefault(c => Field(c,"role").ToString()==role && !(bool)Get(c,"Closing"));
         static object Field(object target, string name) => target.GetType().GetField(name).GetValue(target);
         static object Call(object target, string name, params object[] args) => target.GetType().GetMethods().Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static Component Find(string name) => Object.FindFirstObjectByType(T(name)) as Component;

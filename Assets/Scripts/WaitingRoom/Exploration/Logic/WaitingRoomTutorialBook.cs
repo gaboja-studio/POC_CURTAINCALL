@@ -71,6 +71,12 @@ namespace CurtainCall.WaitingRoom
                 if (entry != null && !string.IsNullOrEmpty(entry.id) && entries.ContainsKey(entry.id)) entries[entry.id] = entry;
         }
 
+        public void Register(TutorialEntry entry)
+        {
+            if(entry==null || string.IsNullOrEmpty(entry.id) || entries.ContainsKey(entry.id))return;
+            entries.Add(entry.id,entry);order.Add(entry.id);
+        }
+
         public int QueuedCount => queue.Count;
         public bool IsDone(string id) => done.Contains(id);
         public bool IsQueued(string id) => queue.Contains(id);

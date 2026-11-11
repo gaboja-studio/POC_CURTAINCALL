@@ -5,6 +5,7 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.UI.SceneIntegration;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -72,6 +73,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
         public static bool IsCaptured(GameObject player) => Current != null && Current.victims.Values.Any(v => v.Object == player);
         public static bool IsCaptured(NetworkPlayer player) => player != null && IsCaptured(player.gameObject);
+        public static bool IsCapturePending(NetworkPlayer player) => player != null && Current != null
+            && Current.victims.Values.Any(v => v.Object == player.gameObject && !v.Retired);
         public static bool IsPursuitPhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         public static Vector3 ArrivalLocal(BoxCollider area, int index, int count)
         {
@@ -379,7 +382,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (next == stage) return;
             stage = next;
             var text = PursuitTexts.StageAnnouncement(next);
-            if (!string.IsNullOrEmpty(text)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, text);
+            ShowStageWarning(text);
+        }
+        void ShowStageWarning(string body)
+        {
+            if (!string.IsNullOrEmpty(body))
+                HudUIManager.Current.ShowSystemEvent(body, transform, PursuitTexts.AlertTitle, 4f, HudEventKind.Warning);
         }
         void Bind()
         {
@@ -467,7 +475,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (active && stage != s.stage) {
                 stage = s.stage;
-                if (!string.IsNullOrEmpty(s.announcement)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, s.announcement);
+                ShowStageWarning(s.announcement);
             }
             if (!active) stage = -1;
         }

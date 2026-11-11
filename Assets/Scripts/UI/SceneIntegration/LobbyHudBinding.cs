@@ -27,9 +27,17 @@ namespace CurtainCall.UI.SceneIntegration
         public ToastView toast;
         NetworkSessionManager session;
         CampaignRun campaign;
+        HudRoleCard objective;
         string previousBanner;
         string previousGuide;
         bool wasVisible;
+        CampaignPhase? announcedPhase;
+        [Header("로비 HUD · 시작과 귀환 시 한 번 표시")]
+        [SerializeField] string openingTitle="막이 오릅니다", generationTitle="새 세대가 무대에 섭니다", endingTitle="커튼 콜!";
+        [SerializeField,TextArea] string openingBody="첫 공연을 준비하세요", endingBody="탈출에 성공했습니다.";
+        [Header("출연 명단 · 서명 상태가 바뀔 때 표시")]
+        [SerializeField] string readyTitle="출연 명단 서명";
+        [SerializeField,TextArea] string signGuide="출연 명단에 다가가 서명하세요", signedGuide="서명 완료 · 방장이 커튼 레버로 시작합니다";
         GameObject appearancePanel;
         TMP_Text appearanceLabel;
 
@@ -45,7 +53,10 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if(info!=null) info.SetContext(false);
             if(guide!=null) guide.HideImmediate();
-            if(banner!=null) banner.HideImmediate();
+            if(objective!=null) objective.Close(true); objective=null;
+            HudUIManager.DismissOwned(transform,HudRole.Guide);
+            HudUIManager.DismissOwned(transform,HudRole.SystemEvent);
+            announcedPhase=null;
             if(toast!=null) toast.HideImmediate();
             previousBanner=previousGuide=null;wasVisible=false;
         }
@@ -67,31 +78,31 @@ namespace CurtainCall.UI.SceneIntegration
                 var p=NetworkPlayer.Local; var catalog=CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
                 if(catalog != null && catalog.Valid(p.AppearanceModel,p.AppearanceOutfit)) appearanceLabel.text=catalog.models[p.AppearanceModel].name+" · "+catalog.outfits[p.AppearanceOutfit];
             }
-            string title,sub;
             var state=campaign.State;
-            if(state.Phase==CampaignPhase.Intro)
-            {title=state.IsGenerationChangeIntro?"새 세대가 무대에 섭니다":"막이 오릅니다";sub="첫 공연을 준비하세요";}
-            else if(state.Phase==CampaignPhase.Ending)
-            {title="커튼 콜!";sub=session.IsHost?"커튼 레버로 다시 준비하세요":"방장이 다시 준비할 때까지 기다려주세요";}
-            else
-            {
-                title=$"출연 준비 · 서명 {board.ReadyCount} / {session.PlayerCount}";
-                sub=lever.Prompt(out _).Replace("[F] ","");
-            }
             bool blocked=InputGate.IsBlocked;
-            var key=title+"|"+sub;
-            if(blocked){banner.HideImmediate();previousBanner=null;}
-            else if(key!=previousBanner){banner.Show(title,sub,BannerState.Normal,3600);previousBanner=key;}
-            string action=board.LocalReady?"서명 완료 · 방장이 커튼 레버로 시작합니다":"출연 명단에 다가가 서명하세요";
-            if(blocked || room.FocusedInteraction!=null || session.GameState!=GameSessionState.Waiting)
-            {guide.HideImmediate();previousGuide=null;}
-            else if(previousGuide!=action){guide.ShowKey("F",action,GuideKeyWidth.Normal);previousGuide=action;}
+            bool intro=state.Phase==CampaignPhase.Intro, ending=state.Phase==CampaignPhase.Ending;
+            if(!blocked && announcedPhase!=state.Phase)
+            {
+                announcedPhase=state.Phase;
+                if(intro) HudUIManager.Current.ShowSystemEvent(openingBody,transform,state.IsGenerationChangeIntro?generationTitle:openingTitle);
+                else if(ending) HudUIManager.Current.ShowSystemEvent(endingBody,transform,endingTitle,kind:HudEventKind.Reward);
+            }
+            string title=ending?"다음 공연 준비":readyTitle;
+            string sub=ending?(session.IsHost?"커튼 레버로 다시 준비하세요":"방장이 다시 준비할 때까지 기다려주세요"):lever.Prompt(out _).Replace("[F] ","");
+            string count=ending?"":$"서명 {board.ReadyCount} / {session.PlayerCount}";
+            var key=title+"|"+sub+"|"+count;
+            if(blocked || intro){if(objective!=null) objective.Close(true); objective=null; previousBanner=null;}
+            else if(key!=previousBanner){if(objective==null) objective=HudUIManager.Current.ShowObjective(sub,transform,title,count); else objective.SetText(sub,title,count);previousBanner=key;}
+            string action=board.LocalReady?signedGuide:signGuide;
+            if(blocked || room.FocusedInteraction!=null || session.GameState!=GameSessionState.Waiting || intro || ending)
+            {HudUIManager.DismissOwned(transform,HudRole.Guide);}
+            else if(previousGuide!=action){HudUIManager.Current.ShowGuide(action,transform);previousGuide=action;}
         }
         void Copy(string value)
         {
             if(session==null || value!=session.JoinKey || string.IsNullOrEmpty(value) || InputGate.IsBlocked) return;
             GUIUtility.systemCopyBuffer=value;
-            toast.Show("접속 정보를 복사했습니다",ToastState.Success,2);
+            HudUIManager.Current.ShowFeedback("접속 정보를 복사했습니다",transform,seconds:2);
         }
 
         void CreateAppearanceControls()

@@ -17,7 +17,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 throw new InvalidOperationException("Editor must be idle.");
             for (int i = 0; i < SceneManager.sceneCount; i++)
                 if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save scenes first.");
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/ResultsUi/ResultsPanel.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/ResultsUi/ResultsPanel.prefab");
             if (prefab == null) throw new InvalidOperationException("Tested Assets ResultsPanel required.");
             var setup = EditorSceneManager.GetSceneManagerSetup();
             try
@@ -58,7 +58,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 var curtain = ui.GetComponentInChildren<TransitionCurtainView>(true);
                 if (curtain == null)
                 {
-                    var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/TransitionCurtain/TransitionCurtain.prefab");
+                    var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/TransitionCurtain/TransitionCurtain.prefab");
                     var instance = (GameObject)PrefabUtility.InstantiatePrefab(asset, ui);
                     instance.name = "C16TransitionCurtainCanvas";
                     curtain = instance.GetComponentInChildren<TransitionCurtainView>(true);

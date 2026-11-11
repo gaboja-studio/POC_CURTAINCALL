@@ -22,11 +22,11 @@ namespace CurtainCall.Guides.Editor
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_guides_v1";
         public const string PerformanceKit = "Assets/_ThirdParty/curtaincall_performance_hud_v1";
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Guides/Guides.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/Guides/Guides.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/Guides/Guides.unity";
         public const string FontPath = "Assets/Resources/Fonts/Guides/Pretendard-Medium SDF.asset";
         const string SourceFontPath = Kit + "/Source/Fonts/Pretendard-Medium.ttf";
-        const string ButtonPath = "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string ButtonPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         static readonly string[] Platforms = { "Standalone", "Android", "iPhone", "WebGL", "Web", "Windows Store Apps", "tvOS" };
         public static readonly string[] Labels = { "일반 키", "넓은 키", "아주 넓은 키", "좌클릭", "우클릭", "마우스 이동", "긴 문구", "문자 그대로", "무효·제어 문자", "반복 Show", "차단", "차단 해제", "퇴장", "즉시 숨김", "시간 정지", "배경", "초기화" };
         public static readonly string[] Keys = { "keycap_wide_body", "keycap_wide_frame", "keycap_extra_wide_body", "keycap_extra_wide_frame", "mouse_base", "mouse_left", "mouse_right", "mouse_move", "plate_shadow", "plate_body", "plate_frame", "plate_corners", "keycap_body", "keycap_frame" };
@@ -87,7 +87,7 @@ namespace CurtainCall.Guides.Editor
                     sprites.Add(source.key, ValidateSprite(source, path));
                 }
                 if (medium == null) medium = MakeFont(sourceFont, characters);
-                EnsureFolder("Assets/Resources/Prefabs/UIs/Guides"); EnsureFolder("Assets/Scenes/Tests/Guides");
+                EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/Guides"); EnsureFolder("Assets/Scenes/Tests/Guides");
                 var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive); SceneManager.SetActiveScene(scene);
                 var go = Builder.BuildProject(medium, sprites);
                 if (PrefabUtility.SaveAsPrefabAssetAndConnect(go, PrefabPath, InteractionMode.AutomatedAction) == null) throw new IOException("가이드 프리팹 저장 실패");

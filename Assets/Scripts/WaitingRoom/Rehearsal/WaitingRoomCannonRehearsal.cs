@@ -6,6 +6,7 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace CurtainCall.WaitingRoom
         static WaitingRoomCannonRehearsal instance;
         Shared shared = new();
         readonly HashSet<ulong> fallen = new();
+        readonly Dictionary<ulong, double> fallenAt = new();
         readonly List<GameObject> hidden = new();
         RehearsalCannonCourse course;
         Transform room;
@@ -33,6 +35,7 @@ namespace CurtainCall.WaitingRoom
         ulong lastCarrier = CannonSeatState.Nobody;
         NetworkPlayer local;
         PlayerState previousState;
+        bool localRecoveryPending;
         float nextPlacement, nextPublish;
 
         public static bool IsActive => instance != null && instance.shared.active;
@@ -58,11 +61,12 @@ namespace CurtainCall.WaitingRoom
             var go = new GameObject(nameof(WaitingRoomCannonRehearsal)); DontDestroyOnLoad(go);
             instance = go.AddComponent<WaitingRoomCannonRehearsal>();
         }
-        void Awake() { AwakeNetwork(); AwakeUi(); HumanCannonTrampoline.ServerBounced += Bounced; CampaignRun.TrickDiscovered += OnTrickDiscovered; }
+        void Awake() { AwakeNetwork(); AwakeUi(); HumanCannonTrampoline.ServerBounced += Bounced; CampaignRun.TrickDiscovered += OnTrickDiscovered; NetworkPlayer.Revived += OnPlayerRevived; }
         void OnDestroy()
         {
             HumanCannonTrampoline.ServerBounced -= Bounced;
             CampaignRun.TrickDiscovered -= OnTrickDiscovered;
+            NetworkPlayer.Revived -= OnPlayerRevived;
             DestroyNetwork(); Cleanup(); ReleaseEndingLock();
             if (instance == this) instance = null;
         }
@@ -114,7 +118,7 @@ namespace CurtainCall.WaitingRoom
             r.prompt = r.pendingUnlockPrompt = false;
             r.promptBlock.SetOpen(false); r.votePanel.Hide();
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
-            r.fallen.Clear(); r.lastCarrier = CannonSeatState.Nobody;
+            r.fallen.Clear(); r.fallenAt.Clear(); r.localRecoveryPending = false; r.lastCarrier = CannonSeatState.Nobody;
             r.Publish();
             return true;
         }
@@ -155,8 +159,11 @@ namespace CurtainCall.WaitingRoom
             course.Cannon.SetPracticePlacementGate(id => shared.active && !shared.ending && shared.placed.Contains(id));
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
-            quest.Show(T("title", "인간대포 · 트램펄린 리허설"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
-            ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다."), 10f);
+            quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
+            ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"),
+                GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
+                    ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막 체크포인트에서 다시 시작합니다.")
+                    : T("intro-no-recovery", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다."), 10f);
             if (CampaignRun.Instance.State.Phase == CampaignPhase.Night) CampaignRun.Instance.SetReady(false);
         }
 
@@ -167,7 +174,7 @@ namespace CurtainCall.WaitingRoom
 
         void ShowGuide(string id, string title, string body, float seconds)
         {
-            if (WaitingRoomTutorialPanel.Show(title, body, seconds) && NetworkPlayer.Local != null)
+            if (RehearsalGuide.Show(title, body, seconds) && NetworkPlayer.Local != null)
                 RecordAction("GUIDE_SHOWN", NetworkPlayer.Local.OwnerClientId, guideId: id, host: false);
         }
 
@@ -180,6 +187,8 @@ namespace CurtainCall.WaitingRoom
             foreach (var list in new[] { shared.placed, shared.middle, shared.bounced, shared.arrived, shared.votes, shared.skipVotes })
                 changed |= list.RemoveAll(id => !shared.participants.Contains(id)) > 0;
             fallen.RemoveWhere(id => !shared.participants.Contains(id));
+            foreach (ulong id in fallenAt.Keys.ToArray())
+                if (!shared.participants.Contains(id)) fallenAt.Remove(id);
             foreach (var p in players)
             {
                 ulong id = p.OwnerClientId;
@@ -188,12 +197,27 @@ namespace CurtainCall.WaitingRoom
                     changed |= shared.arrived.Remove(id);
                     if (fallen.Add(id))
                     {
+                        fallenAt[id] = Clock;
+                        changed |= shared.placed.Remove(id);
+                        changed |= shared.votes.Remove(id);
+                        changed |= shared.skipVotes.Remove(id);
                         RecordAction("FALLEN", id);
-                        if (id == lastCarrier) { course.Trampoline.ResetPracticePose(); course.Route.ResetPracticeTransport(); }
+                        if (id == lastCarrier || course.Trampoline.Carrier == id) { course.Trampoline.ResetPracticePose(); course.Route.ResetPracticeTransport(); }
+                    }
+                    if (GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
+                        && fallenAt.TryGetValue(id, out double at) && Clock - at >= GameSettings.WaitingRoom.Rehearsal.RecoverSeconds)
+                    {
+                        HumanCannonSystem.Current?.ServerReleaseForInspection(id);
+                        CurtainCall.Tightrope.TightropeHangSystem.Current?.ServerReleaseForInspection(id);
+                        CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForInspection(id);
+                        p.ServerRestoreAll();
+                        fallen.Remove(id); fallenAt.Remove(id);
+                        changed = true;
                     }
                     continue;
                 }
                 fallen.Remove(id);
+                fallenAt.Remove(id);
                 if (!shared.placed.Contains(id) || p.State != PlayerState.Normal || p.IsAirborne || course.Cannon.IsFlying(id)) continue;
                 if (!shared.middle.Contains(id) && RehearsalCannonCourse.Contains(course.MiddleFloor, p.transform.position)) { shared.middle.Add(id); changed = true; RecordAction("CHECKPOINT", id, "MIDDLE_PLATFORM"); }
                 // 완료 조건은 최종 도착대다. 운반자나 복제 순서로 누락된 반동 기록 때문에 전원을 막지 않는다.
@@ -220,16 +244,36 @@ namespace CurtainCall.WaitingRoom
         {
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
+            if (p.State == PlayerState.Normal && (localRecoveryPending || local == p && previousState == PlayerState.Fallen))
+                ResetLocalRecovery(p);
             if (local == p && previousState == PlayerState.Normal && p.State == PlayerState.Fallen)
-                WaitingRoomTutorialPanel.Show(T("fall-title", "사망"), T("fall", "사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다."), 10f);
+                WaitingRoomGuidePanel.ShowAs(T("fall-title", "사망"), DeathGuide, 10f, RoomNotice.Warning);
             local = p; previousState = p.State;
-            if (p.State != PlayerState.Normal) { quest.Show(T("fall-title", "사망"), T("fall", "사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다.")); return; }
+            if (p.State != PlayerState.Normal) { quest.Show(T("fall-title", "사망"), DeathGuide); return; }
             if (!p.TryGetComponent(out PlayerMover mover)) return;
             PlaceLocalAtCheckpoint(p, mover);
             if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
             { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
             UpdateQuest();
             TickActionGuides();
+        }
+
+        void OnPlayerRevived(NetworkPlayer player)
+        {
+            if (shared.active && !shared.ending && player != null && player == NetworkPlayer.Local)
+                localRecoveryPending = true;
+        }
+
+        void ResetLocalRecovery(NetworkPlayer player)
+        {
+            localRecoveryPending = false;
+            placedRound = -1;
+            nextPlacement = 0f;
+            shared.placed.Remove(player.OwnerClientId);
+            shared.arrived.Remove(player.OwnerClientId);
+            shared.votes.Remove(player.OwnerClientId);
+            shared.skipVotes.Remove(player.OwnerClientId);
+            if (walls != null) walls.SetActive(false);
         }
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover)
@@ -241,6 +285,7 @@ namespace CurtainCall.WaitingRoom
             if (placedRound != shared.round || displacedBeforePlacement)
             {
                 var pose = course.CheckpointPose(Checkpoint(p.OwnerClientId), Mathf.Max(0, p.Slot));
+                if (p.TryGetComponent(out HumanCannonPilot pilot)) pilot.ClearMotionForInspection();
                 mover.SetStartPose(pose.position, pose.rotation, true);
                 if (p.TryGetComponent(out PlayerBalance balance)) balance.SetBalanceActive(false);
                 CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(pose.rotation);
@@ -257,5 +302,8 @@ namespace CurtainCall.WaitingRoom
             if (!shared.ending) ReleaseEndingLock();
         }
         static string T(string key, string fallback) => WaitingRoomText.Get("cannon-rehearsal." + key, fallback);
+        static string DeathGuide => GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
+            ? T("fall-recover", "잠시 뒤 마지막 체크포인트에서 다시 시작합니다.")
+            : T("fall", "사망했습니다. 넘기기·포기에 투표할 수 있습니다.");
     }
 }

@@ -16,8 +16,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
     {
         public const string ScenePath = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
         public const string CannonScenePath = "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity";
-        public const string HudPath = "Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab";
-        public const string CheerPath = "Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab";
+        public const string HudPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab";
+        public const string CheerPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab";
 
         [MenuItem("Tools/Curtain Call UI/Install shared performance UI scenes")]
         public static void Apply()

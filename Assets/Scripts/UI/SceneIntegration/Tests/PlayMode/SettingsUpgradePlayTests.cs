@@ -258,7 +258,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.25f);
                 var view = Get(settings, "Main");
                 Assert.AreEqual("CurtainCall.UI.SettingsV2.SettingsPanelView", view.GetType().FullName);
-                Assert.IsNotNull(Resources.Load<GameObject>("Prefabs/UIs/SettingsUiV2/C14_Settings_v2"));
+                Assert.IsNotNull(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/SettingsUiV2/C14_Settings_v2"));
                 var body = (RectTransform)((Component)view).transform.Find("00_Visuals/10_Body");
                 Assert.AreEqual(new Vector2(944, 552), body.rect.size);
                 Assert.IsFalse((bool)Call(view, "IsPageEnabled", 0));

@@ -36,7 +36,7 @@ namespace CurtainCall.Guides.Tests
         public IEnumerator SetUp()
         {
             previousScale = Time.timeScale; Time.timeScale = 1;
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Guides/Guides");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Guides/Guides");
             Assert.NotNull(prefab);
             instance = Object.Instantiate(prefab);
             view = instance.GetComponentsInChildren<MonoBehaviour>(true).Single(x => x != null && x.GetType().FullName == "CurtainCall.UI.GuidesV1.GuideView");
@@ -175,7 +175,7 @@ namespace CurtainCall.Guides.Tests
             var parent = new GameObject("C7_EarlyAwakeTest"); parent.SetActive(false);
             try
             {
-                var clone = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Guides/Guides"), parent.transform);
+                var clone = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Guides/Guides"), parent.transform);
                 clone.SetActive(true);
                 var target = clone.GetComponentsInChildren<MonoBehaviour>(true).Single(x => x != null && x.GetType().FullName == "CurtainCall.UI.GuidesV1.GuideView");
                 var presenter = target.gameObject.AddComponent<GuideEarlyAwakePresenter>();

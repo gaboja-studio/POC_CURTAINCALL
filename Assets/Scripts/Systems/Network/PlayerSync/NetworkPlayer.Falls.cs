@@ -20,7 +20,11 @@ namespace CurtainCall.Network.PlayerSync
         bool fallTracking, fallAirborne, landingPending, naturalFallQueued;
         int fallScene, fallRestart, fallRevive;
         uint fallSequence, acceptedFallSequence;
-        float nextLandingReport;
+        uint ownerPeakSequence;
+        float ownerFallPeak;
+        float nextLandingReport, nextSupportReport;
+        float pendingLandingPeak;
+        Vector3 pendingLandingFeet;
         float reportedPeak;
         bool fallTeleportPending;
         Vector3 fallTeleportDestination;
@@ -29,6 +33,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             fallPeak = transform.position.y;
             reportedPeak = fallPeak;
+            ownerPeakSequence = 0; ownerFallPeak = fallPeak;
             fallTracking = true; fallAirborne = landingPending = false;
             fallTeleportPending = naturalFallQueued = false;
             fallScene = SceneManager.GetActiveScene().handle;
@@ -43,14 +48,39 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         [Rpc(SendTo.Server, RequireOwnership = true)]
-        void ReportFallPeakRpc(float peak, int restart, int revive)
+        void ReportFallPeakRpc(float peak, int restart, int revive, uint sequence)
+            => AcceptFallPeak(peak, restart, revive, sequence);
+
+        bool AcceptFallPeak(float peak, int restart, int revive, uint sequence)
         {
-            if (CurrentFallEpoch(restart, revive) && State == PlayerState.Normal && !HeldAboveGround()
-                && float.IsFinite(peak) && peak <= transform.position.y + 2f)
-            {
-                fallPeak = Mathf.Max(fallPeak, peak);
-                fallAirborne = true;
-            }
+            if (!IsServer || !CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || HeldAboveGround()
+                || sequence == 0 || !NewerFallSequence(sequence, acceptedFallSequence)
+                || NewerFallSequence(ownerPeakSequence, sequence) || !float.IsFinite(peak)
+                || peak > transform.position.y + 2f) return false;
+            ownerFallPeak = ownerPeakSequence == sequence ? Mathf.Max(ownerFallPeak, peak) : peak;
+            ownerPeakSequence = sequence;
+            fallPeak = Mathf.Max(fallPeak, peak);
+            fallAirborne = true;
+            return true;
+        }
+
+        static bool NewerFallSequence(uint sequence, uint previous) => unchecked((int)(sequence - previous)) > 0;
+
+        [Rpc(SendTo.Server, RequireOwnership = true)]
+        void ReportFallSupportRpc(uint sequence, int restart, int revive, Vector3 feet)
+            => AcceptFallSupport(sequence, restart, revive, feet);
+
+        bool AcceptFallSupport(uint sequence, int restart, int revive, Vector3 feet)
+        {
+            // A walking owner may never become airborne while interpolation briefly loses the host's
+            // support probe. Only an acknowledged segment can replace that stale host-only peak.
+            if (!IsServer || !CurrentFallEpoch(restart, revive) || sequence != acceptedFallSequence
+                || NewerFallSequence(ownerPeakSequence, sequence)
+                || State != PlayerState.Normal || HeldAboveGround() || !FiniteFallPoint(feet)
+                || (feet - transform.position).sqrMagnitude > 25f || !WalkableSupport.Contains(mover, feet)
+                || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId)) return false;
+            WaitForFallTeleport(feet);
+            return true;
         }
 
         [Rpc(SendTo.Server, RequireOwnership = true)]
@@ -101,6 +131,8 @@ namespace CurtainCall.Network.PlayerSync
                 || EscapeSceneTransfer.HoldingForDeparture || EscapeDevelopmentSession.AwaitingEntrance)
             { ResetFallTracking(); return; }
 
+            if (IsOwner && landingPending && Time.unscaledTime >= nextLandingReport) SendPendingFallLanding();
+
             Vector3 feet = transform.position;
             bool flying = HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId);
             bool grounded = !flying && WalkableSupport.Contains(mover, feet)
@@ -110,40 +142,94 @@ namespace CurtainCall.Network.PlayerSync
                 fallAirborne = true;
                 fallPeak = Mathf.Max(fallPeak, feet.y);
                 if (IsOwner && !IsServer && fallPeak > reportedPeak + .1f)
-                { reportedPeak = fallPeak; ReportFallPeakRpc(fallPeak, RestartVersion, reviveCount.Value); }
+                { reportedPeak = fallPeak; ReportFallPeakRpc(fallPeak, RestartVersion, reviveCount.Value, fallSequence + 1u); }
                 return;
             }
-            if (!fallAirborne) { fallPeak = feet.y; return; }
+            if (!fallAirborne)
+            {
+                fallPeak = reportedPeak = feet.y;
+                if (IsOwner && !IsServer && !landingPending && Time.unscaledTime >= nextSupportReport)
+                {
+                    nextSupportReport = Time.unscaledTime + .25f;
+                    ReportFallSupportRpc(fallSequence, RestartVersion, reviveCount.Value, feet);
+                }
+                return;
+            }
             // Flight landings are resolved by HumanCannonSystem with its revision/segment validation.
-            if (flying || !IsOwner || landingPending && Time.unscaledTime < nextLandingReport) return;
-            if (!landingPending) { fallSequence++; landingPending = true; }
+            if (flying || !IsOwner) return;
+            QueueFallLanding(fallPeak, feet);
+            SendPendingFallLanding();
+        }
+
+        void QueueFallLanding(float peak, Vector3 feet)
+        {
+            fallSequence++;
+            landingPending = true;
+            pendingLandingPeak = peak; pendingLandingFeet = feet;
+            // The host owner does not send peak RPCs to itself. Preserve its measured segment before
+            // starting the next one, so the server's upper-bound check still accepts a real high fall.
+            if (IsServer && IsOwner) { ownerPeakSequence = fallSequence; ownerFallPeak = peak; }
+            // Begin the next movement segment immediately. An old ACK cannot erase its jump peak,
+            // and retransmissions retain the original contact instead of a later point down the stairs.
+            fallAirborne = false;
+            fallPeak = reportedPeak = feet.y;
+        }
+
+        void SendPendingFallLanding()
+        {
             nextLandingReport = Time.unscaledTime + .25f;
-            ReportFallLandingRpc(fallSequence, RestartVersion, reviveCount.Value, fallPeak, feet);
+            ReportFallLandingRpc(fallSequence, RestartVersion, reviveCount.Value, pendingLandingPeak, pendingLandingFeet);
         }
 
         [Rpc(SendTo.Server, RequireOwnership = true)]
         void ReportFallLandingRpc(uint sequence, int restart, int revive, float peak, Vector3 feet)
         {
-            if (!CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || HeldAboveGround()
-                || sequence == 0 || unchecked((int)(sequence - acceptedFallSequence)) <= 0
+            if (AcceptFallLanding(sequence, restart, revive, peak, feet)) ConfirmFallLandingRpc(sequence, restart, revive);
+        }
+
+        bool AcceptFallLanding(uint sequence, int restart, int revive, float peak, Vector3 feet)
+        {
+            if (!IsServer || !CurrentFallEpoch(restart, revive) || sequence == 0) return false;
+            // A retry of an already accepted landing needs its ACK, never another damage evaluation.
+            if (sequence == acceptedFallSequence) return true;
+            float observedPeak = Mathf.Max(fallPeak, transform.position.y);
+            if (ownerPeakSequence == sequence) observedPeak = Mathf.Max(observedPeak, ownerFallPeak);
+            if (State != PlayerState.Normal || HeldAboveGround() || !NewerFallSequence(sequence, acceptedFallSequence)
                 || !float.IsFinite(peak) || !FiniteFallPoint(feet)
                 || (feet - transform.position).sqrMagnitude > 25f
-                || peak < feet.y || peak > Mathf.Max(fallPeak, transform.position.y) + 2f
+                || peak < feet.y || peak > observedPeak + 2f
                 || !WalkableSupport.Contains(mover, feet)
-                || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId)) return;
+                || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId)) return false;
             acceptedFallSequence = sequence;
-            bool waitingForTeleport = fallTeleportPending;
-            bool rebounded = CompleteFall(Mathf.Max(peak, fallPeak) - feet.y, feet, TryOrdinarySpringRebound);
+            uint futureSequence = NewerFallSequence(ownerPeakSequence, sequence) ? ownerPeakSequence : 0;
+            float futurePeak = ownerFallPeak;
+            float segmentPeak = ownerPeakSequence == sequence ? Mathf.Max(peak, ownerFallPeak) : peak;
+            // The owner reports the peak/contact of this exact segment. A host pose or owner peak
+            // belonging to the following jump is an upper-bound check, not extra height for this landing.
+            bool rebounded = CompleteFall(segmentPeak - feet.y, feet, TryOrdinarySpringRebound);
             // Valid owner landings can finish even if the exact teleport destination frame was skipped.
-            // If this pose is also delayed, keep waiting at its reported feet instead of sampling the old server height.
-            if (waitingForTeleport && !rebounded && State == PlayerState.Normal) WaitForFallTeleport(feet);
-            ConfirmFallLandingRpc(sequence, restart, revive);
+            // Every accepted ordinary landing uses reported contact, even when the server pose is delayed.
+            if (!rebounded && State == PlayerState.Normal)
+            {
+                WaitForFallTeleport(feet);
+                if (futureSequence != 0)
+                {
+                    ownerPeakSequence = futureSequence; ownerFallPeak = futurePeak;
+                    fallPeak = Mathf.Max(fallPeak, futurePeak); fallAirborne = true;
+                }
+            }
+            return true;
         }
 
         [Rpc(SendTo.Owner)]
         void ConfirmFallLandingRpc(uint sequence, int restart, int revive)
         {
-            if (CurrentFallEpoch(restart, revive) && sequence == fallSequence && landingPending) ResetFallTracking();
+            AcknowledgeFallLanding(sequence, restart, revive);
+        }
+
+        void AcknowledgeFallLanding(uint sequence, int restart, int revive)
+        {
+            if (CurrentFallEpoch(restart, revive) && sequence == fallSequence) landingPending = false;
         }
 
         static bool FiniteFallPoint(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
@@ -165,7 +251,7 @@ namespace CurtainCall.Network.PlayerSync
             bool ropeLanding = GameSettings.Base.BodyDamage.SafeRopeLanding && course != null && course.IsTraversalActive
                 && course.TryGetSupportingRopeAt(mover, feet, out _);
             bool safePlatformLanding = GameSettings.Base.BodyDamage.SafeLandingZones
-                && HumanCannonLandingZone.ContainsLanding(feet);
+                && HumanCannonLandingZone.ContainsLanding(mover, feet);
             var outcome = ropeLanding || safePlatformLanding ? FallOutcome.Safe : CommonDamageRules.Fall(height);
             bool protectedFall = EscapeDevelopmentSession.FallInjuriesSuppressed(this);
             if (outcome != FallOutcome.Safe && !protectedFall && rebound != null && rebound())

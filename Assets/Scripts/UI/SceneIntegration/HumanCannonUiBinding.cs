@@ -52,11 +52,13 @@ namespace CurtainCall.UI.SceneIntegration
 
         void Clear()
         {
+            HideGuide();
             if (owned != null) owned.ReleaseHints(this);
             if (practiceGuide != null) practiceGuide.HideImmediate();
             if (practiceTooltip != null) practiceTooltip.HideImmediate();
             owned = null; shownGuide = shownTarget = null;
             if (sectionLabel != null) sectionLabel.gameObject.SetActive(false);
+            HideSection(); ResetLessons();
         }
 
         void LateUpdate()
@@ -76,15 +78,22 @@ namespace CurtainCall.UI.SceneIntegration
             var cannon = HumanCannonSystem.Current;
             bool available = player != null && player.IsSpawned && player.State == PlayerState.Normal
                 && cannon != null && !InputGate.IsBlocked;
-            if (sectionLabel != null)
+            if (sectionLabel && available)
             {
-                sectionLabel.gameObject.SetActive(available);
-                if (available) sectionLabel.text = Sections[(int)HumanCannonCourseSections.SectionAt(player.transform.position, boundaries)];
+                string section=Sections[(int)HumanCannonCourseSections.SectionAt(player.transform.position,boundaries)];
+                sectionLabel.gameObject.SetActive(false);
+                if(section!=lastSection)
+                {
+                    lastSection=section;
+                    HudUIManager.Current.ShowStatus(section,transform,bottomCenter:true);
+                }
             }
+            else HideSection();
+            if (!practice && (player == null || player.State != PlayerState.Normal || HumanCannonDestination.Current?.PerformanceOpen != true)) ResetLessons();
             if (!available)
             {
                 if (practice) { HideGuide(); HideTooltip(); }
-                else { owned.HideHints(); shownGuide = shownTarget = null; }
+                else { HideGuide(); owned.HideHints(); shownTarget = null; }
                 return;
             }
             var pilot = player.GetComponent<HumanCannonPilot>();
@@ -101,16 +110,27 @@ namespace CurtainCall.UI.SceneIntegration
             bool holdingF = reader != null && reader.Current.InteractHoldProgress > 0;
             bool hasInteractTarget = poles != null && poles.FindGrabbable(player) >= 0
                 || carryTarget != null || cannon.FindBoardableStation(player) >= 0;
-            if (!space.PresentationOnly && !holding && !seated && !cannon.IsFlying(player.OwnerClientId)
+            if (!practice && !space.PresentationOnly && HumanCannonDestination.Current?.PerformanceOpen == true)
+            {
+                var id=HumanCannonDestination.Current.PerformanceId;
+                if (id != lessonRun || player != lessonPlayer) { ResetLessons();lessonRun=id;lessonPlayer=player; }
+                var profile=PerformanceHudProfile.Current;
+                if (holding) Teach(profile.cPole,reader);
+                else if (seated) Teach(profile.cFire,reader);
+                else if (carried is HumanCannonTrampoline) Teach(profile.cCarry,reader);
+                else if (carryTarget is HumanCannonTrampoline) Teach(profile.cGrab,reader);
+                else if (cannon.FindBoardableStation(player)>=0) Teach(profile.cBoard,reader);
+            }
+            if (space != null && !space.PresentationOnly && !holding && !seated && !cannon.IsFlying(player.OwnerClientId)
                 && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carried is HumanCannonTrampoline))
             { HideGuide(); return; }
             if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
             bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
             if (commonPrompt && (holding || seated || carrying)) HideGuide();
-            else if (holding) ShowGuide(reader != null ? reader.BindingLabel("Action", "Space") : "Space", "봉 놓기", GuideKeyWidth.Wide);
+            else if (holding) ShowAction(poles?.Pole(pilot.HeldPole)?.transform,reader != null ? reader.BindingLabel("Action", "Space") : "Space", "봉 놓기");
             else if (riding) HideGuide();
-            else if (carrying) ShowGuide((reader != null ? reader.BindingLabel("Interact", "F") : "F") + " 길게", carried.CarryName + " 놓기", GuideKeyWidth.ExtraWide);
-            else if (seated) ShowGuide((reader != null ? reader.BindingLabel("Interact", "F") : "F") + (holdingF ? " 길게" : ""), holdingF ? "내리기" : "발사", holdingF ? GuideKeyWidth.ExtraWide : GuideKeyWidth.Normal);
+            else if (carrying) ShowAction(carried.Handle,(reader != null ? reader.BindingLabel("Interact", "F") : "F") + " 길게", carried.CarryName + " 놓기");
+            else if (seated) ShowAction(cannon.SeatedStation(player.OwnerClientId)?.Seat,(reader != null ? reader.BindingLabel("Interact", "F") : "F") + (holdingF ? " 길게" : ""), holdingF ? "내리기" : "발사");
             else HideGuide();
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
@@ -157,29 +177,63 @@ namespace CurtainCall.UI.SceneIntegration
             }
             if (nearest < 0) return false;
             var phase = route.TransportState(nearest).Phase;
+            bool live = practiceTooltip == null && HumanCannonDestination.Current?.PerformanceOpen == true;
             string text;
             if (route.TrapOpen(nearest)) text = "발판이 열려 있습니다. 접근에 주의하세요";
             else if (phase == DeparturePhase.Moving) text = "이동 중 · 도착할 때까지 대기하세요";
             else if (phase == DeparturePhase.Arrived) text = "도착 · 걸어서 내리세요";
             else if (phase == DeparturePhase.Returning) text = "출발점으로 돌아가는 중";
-            else if (!carrying) text = "트램펄린 운반자가 이용할 수 있습니다";
+            else if (!carrying)
+            {
+                text = live ? "탑승 조건 · 트램펄린 필요" : "트램펄린 운반자가 이용할 수 있습니다";
+                if (live) Teach(PerformanceHudProfile.Current.liftCarry,player.GetComponent<PlayerInputReader>());
+            }
             else if (nearest == 1 && !route.ShelterReady) text = "단원들이 쉼터에 도착할 때까지 대기하세요";
-            else if (route.CanStart(player, nearest)) text = route.IsBoarding(nearest)
+            else if (route.CanStart(player, nearest))
+            {
+                if (live) Teach(PerformanceHudProfile.Current.liftBoard,player.GetComponent<PlayerInputReader>());
+                text = live ? (route.IsBoarding(nearest) ? $"자동 출발까지 {route.BoardingRemaining(nearest):0.0}초" : "자동 출발 준비") : route.IsBoarding(nearest)
                 ? $"자동 출발까지 {route.BoardingRemaining(nearest):0.0}초 · 발판에서 대기하세요"
                 : "자동 출발 준비 · 발판에서 대기하세요";
-            else text = "트램펄린을 들고 혼자 발판에 올라가세요";
+            }
+            else
+            {
+                text = live ? "탑승 조건 · 운반자 1명" : "트램펄린을 들고 혼자 발판에 올라가세요";
+                if (live) Teach(PerformanceHudProfile.Current.liftCarry,player.GetComponent<PlayerInputReader>());
+            }
             ShowTooltip("transport:" + nearest + ":" + text, "리프트", text, point);
             return true;
         }
 
-        void ShowGuide(string key, string action, GuideKeyWidth width)
+        string lessonRun;
+        NetworkPlayer lessonPlayer;
+        readonly System.Collections.Generic.HashSet<PerformanceHudProfile.Cue> seenLessons = new();
+        readonly System.Collections.Generic.List<HudRoleCard> lessons = new();
+        void Teach(PerformanceHudProfile.Cue cue,PlayerInputReader reader)
         {
-            if (Guide == null) return;
-            string id = key + action;
-            if (shownGuide != id || !Guide.HasRuntimePresentation)
-                if (Guide.ShowKey(key, action, width)) shownGuide = id;
+            if (!seenLessons.Add(cue)) return;
+            lessons.RemoveAll(c=>!c || c.Closing);
+            lessons.Add(HudUIManager.Current.ShowGuide(PerformanceHudProfile.Format(cue.body,reader),transform,
+                PerformanceHudProfile.Format(cue.title,reader),key:PerformanceHudProfile.Format(cue.badge,reader)));
         }
-        void HideGuide() { if (Guide != null) Guide.HideImmediate(); shownGuide = null; }
+        void ResetLessons()
+        {
+            foreach(var card in lessons) if(card && !card.Closing)card.Close(true);
+            lessons.Clear(); seenLessons.Clear(); lessonRun=null; lessonPlayer=null;
+        }
+        string lastSection;
+        HudRoleCard fallbackAction;
+        void HideSection() { if(lastSection!=null)HudUIManager.DismissOwned(transform,HudRole.Status);lastSection=null; }
+        void ShowAction(Transform target,string key,string action)
+        {
+            if (!target || !Camera.main) { HideGuide(); return; }
+            string id = target.GetInstanceID() + key + action;
+            if (shownGuide == id) return;
+            HideGuide();
+            fallbackAction = HudUIManager.Current.ShowInteraction(action, target,key,Camera.main);
+            shownGuide = id;
+        }
+        void HideGuide() { if (fallbackAction != null) fallbackAction.Close(true); fallbackAction=null; shownGuide=null; }
         void HideTooltip() { if (Tooltip != null) Tooltip.HideImmediate(); shownTarget = null; }
 
         public static Vector2 ClampTooltip(Vector2 target, Vector2 size, Vector2 viewport)

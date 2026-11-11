@@ -11,6 +11,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     {
         const string CannonRehearsalType = "CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal";
         static object CannonLesson => T(CannonRehearsalType).GetField("instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetValue(null);
+        static UnityEngine.UI.Button[] CannonVoteButtons() =>
+            ((RectTransform)Get(Priv(CannonLesson,"votePanel"),"VisibleSurface")).GetComponentsInChildren<UnityEngine.UI.Button>();
         static bool CannonFlag(string property) => (bool)Static(CannonRehearsalType, property);
         static object CannonStatic(string method, params object[] args) => T(CannonRehearsalType).GetMethod(method).Invoke(null, args);
         static IEnumerator CannonWait(Func<bool> condition, float seconds, string message)
@@ -194,15 +196,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual("Tightrope", Call(Get(board, "Book"), "Get", 1, 1), "The ready default stays selected until rehearsal is completed.");
                 yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Selecting the cannon must offer rehearsal immediately.");
                 Assert.IsFalse((bool)Get(Get(board, "Book"), "FirstDayConfirmed"));
-                var choices = (UnityEngine.UI.Button[])Priv(Priv(CannonLesson, "votePanel"), "buttons");
-                yield return ClickScheduleButtonWithMouse(pointer, choices[1]);
+                yield return ClickScheduleButtonWithMouse(pointer, CannonVoteButtons()[1]);
                 Assert.IsFalse(CannonFlag("IsActive"));
                 Assert.IsFalse((bool)Get(Get(board, "Book"), "FirstDayConfirmed"));
                 yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5,
                     "Declining rehearsal must return the camera to the editable board.");
                 yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
                 yield return CannonWait(() => (bool)Priv(CannonLesson, "prompt"), 3, "Selection must remain available after declining.");
-                yield return ClickScheduleButtonWithMouse(pointer, choices[0]);
+                yield return ClickScheduleButtonWithMouse(pointer, CannonVoteButtons()[0]);
                 yield return CannonWait(() => CannonFlag("IsActive") && Get(CannonLesson, "Course") != null
                     && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Yes must enter the native lesson and release placement input.");
                 Assert.IsFalse((bool)Get(Get(board, "Book"), "FirstDayConfirmed"));
@@ -223,12 +224,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(CannonFlag("HasMastered"));
             Assert.IsFalse(CannonFlag("IsEnding"));
             var panel = Priv(CannonLesson, "votePanel");
-            var buttons = (UnityEngine.UI.Button[])Priv(panel, "buttons");
+            var buttons = CannonVoteButtons();
             Assert.AreEqual(2, buttons.Count(b => b.gameObject.activeInHierarchy && b.IsInteractable()));
             Canvas.ForceUpdateCanvases();
             var label = buttons[0].GetComponentInChildren<TMPro.TMP_Text>();
             label.ForceMeshUpdate(true);
-            Assert.AreEqual("리허설 넘기기", label.text);
+            StringAssert.EndsWith("리허설 넘기기", label.text);
             Assert.IsFalse(label.isTextTruncated, "넘기기 버튼은 생략 없이 표시");
             Assert.AreEqual(label.text.Length, label.textInfo.characterCount);
             CursorTestKey("Escape"); yield return null; yield return null; CursorTestKey(null);
@@ -442,7 +443,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(CannonFlag("HasMastered"));
             var panel = Priv(CannonLesson, "votePanel");
             Assert.IsTrue((bool)Get(panel, "IsVisible"), "The vote must remain usable while dead.");
-            var button = ((UnityEngine.UI.Button[])Priv(panel, "buttons"))[skip ? 0 : 1];
+            var button = CannonVoteButtons()[skip ? 0 : 1];
             Assert.IsTrue(button.IsInteractable());
             button.onClick.Invoke();
             yield return CannonWait(() => !CannonFlag("IsActive")

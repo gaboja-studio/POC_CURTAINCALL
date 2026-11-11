@@ -426,6 +426,11 @@ namespace CurtainCall.Campaign
         bool RefreshNight(RunState current)
         {
             var connected = Players();
+            // Captured players cannot prepare for sleep, but are not finished until the
+            // capture sequence retires them. An empty ready roster must not cut it short.
+            if (current.Snapshot.Phase == CampaignPhase.Night && connected.Any(id =>
+                CurtainCall.Network.PlayerSync.NetworkPlayer.All.Any(player => player != null && player.IsSpawned
+                    && player.OwnerClientId == id && WaitingRoom.Pursuit.PursuitDirector.IsCapturePending(player)))) return false;
             var normal = connected.Where(id =>
             {
                 var player = CurtainCall.Network.PlayerSync.NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == id);

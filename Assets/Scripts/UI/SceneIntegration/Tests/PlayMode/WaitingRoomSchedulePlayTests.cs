@@ -94,6 +94,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
             yield return WaitQuestReady("gather");
             var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            var guide = T("CurtainCall.WaitingRoom.WaitingRoomGuidePanel");
+            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 A", "열기 전 안내", 3f,false,false });
+            var roleCanvas = ((Component)Static("CurtainCall.UI.SceneIntegration.HudUIManager","Current")).GetComponent<Canvas>();
             yield return OpenSchedule();
             yield return CannonWait(() => !(bool)Get(Find("Unity.Cinemachine.CinemachineBrain"), "IsBlending"), 5,
                 "Wait for the board close-up before testing the real pointer");
@@ -103,6 +106,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(((Component)Private(ui, "confirmButton")).gameObject.activeSelf);
             var labels = ((Component)Get(ui, "View")).GetComponentsInChildren<TMPro.TMP_Text>(true);
             Assert.IsFalse(labels.Any(t => t.isActiveAndEnabled && t.gameObject.activeInHierarchy && t.text.Contains("확정")), "No confirmation text is visible in the rendered card template");
+            Assert.IsFalse(roleCanvas.enabled,"열려 있는 스케줄표 위에 역할 HUD가 겹치지 않는다");
+            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 B", "보는 동안 온 안내", 3f,false,false });
+            Assert.GreaterOrEqual((int)guide.GetProperty("PendingCount").GetValue(null),1);
             var pointer = InputSystem.AddDevice<Mouse>();
             try
             {
@@ -139,7 +145,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 probe = new GameObject("PanelStackProbe");
                 panel = Activator.CreateInstance(T("CurtainCall.WaitingRoom.WaitingRoomRightPanel"), probe.transform, "NewQuestProbe", 300f, 400f, null);
                 Assert.IsTrue((bool)Call(panel, "Show", "추가 퀘스트", "새로 쌓인 패널만 느낌표를 표시합니다."));
-                Assert.IsTrue((bool)T(GuideType).GetMethod("Show").Invoke(null, new object[] { "설명", "설명은 왼쪽, 퀘스트는 오른쪽에 표시합니다.", 5f }));
+                Assert.IsTrue((bool)T(GuideType).GetMethod("Show").Invoke(null, new object[] { "설명", "설명은 왼쪽, 퀘스트는 오른쪽에 표시합니다.", 5f,null }));
                 yield return new WaitForSecondsRealtime(.35f); Canvas.ForceUpdateCanvases();
                 var nextView = (Component)Priv(panel, "view");
                 var title0 = firstView.GetComponentsInChildren<TMPro.TMP_Text>(true).Single(t => t.name == "60_TitleTMP");

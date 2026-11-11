@@ -12,8 +12,15 @@ namespace CurtainCall.WaitingRoom
         static void Load()
         {
             var file = Resources.Load<TextAsset>(TextsPath);
-            if (file == null) { WaitingRoomText.Clear(); Debug.LogWarning("[WaitingRoomText] 문구 파일이 없어 코드 기본 문구를 씁니다."); return; }
-            WaitingRoomText.Install(file.text);
+            if (file == null) { WaitingRoomText.Clear(); Debug.LogWarning("[WaitingRoomText] 문구 파일이 없어 코드 기본 문구를 씁니다."); }
+            else WaitingRoomText.Install(file.text);
+            var profile=WaitingRoomHudProfile.Current;
+            if(profile){Apply(profile.copy);Apply(profile.rehearsalCopy);}
+        }
+        static void Apply(RoomCopy[] rows)
+        {
+            if(rows==null)return;
+            foreach(var row in rows)if(row!=null)WaitingRoomText.SetOverride(row.id,row.text);
         }
     }
 }

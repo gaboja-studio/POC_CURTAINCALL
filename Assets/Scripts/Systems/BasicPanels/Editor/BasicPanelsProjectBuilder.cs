@@ -13,7 +13,7 @@ namespace CurtainCall.BasicPanels.Editor
 {
     public static class BasicPanelsProjectBuilder
     {
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/BasicPanels/BasicPanels.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/BasicPanels/BasicPanels.unity";
         const string FontRoot = "Assets/Resources/Fonts/BasicPanels";
         const string Kit = "Assets/_ThirdParty/curtaincall_panels_v1";
@@ -31,7 +31,7 @@ namespace CurtainCall.BasicPanels.Editor
                 if (SceneManager.GetSceneAt(i).isDirty)
                     throw new InvalidOperationException("열린 씬에 미저장 변경이 있습니다.");
             EnsureFolder(FontRoot);
-            EnsureFolder("Assets/Resources/Prefabs/UIs/BasicPanels");
+            EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels");
             EnsureFolder("Assets/Scenes/Tests/BasicPanels");
             var medium = MakeFont("Medium");
             var semiBold = MakeFont("SemiBold");

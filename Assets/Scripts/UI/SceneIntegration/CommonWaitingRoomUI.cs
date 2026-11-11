@@ -62,15 +62,15 @@ namespace CurtainCall.UI.SceneIntegration
                 hud.SetContext(false, false, false, false);
                 if (dayClock != null) dayClock.Hide();
                 if (restTimer != null) restTimer.Hide();
-                if (wasActive) { captions.HideImmediate(); notifications.HideAllImmediate(); }
+                if (wasActive) { DismissMessages(); captions.HideImmediate(); notifications.HideAllImmediate(); }
                 wasActive = false; fundsReceived = false; clockInitialized = false;
                 return;
             }
             var state = run.State;
             bool rest = state.Phase == CampaignPhase.RestTime;
             if ((!wasActive || state.Phase != lastPhase) && state.Phase == CampaignPhase.Night)
-                notifications.Banner.Show(WaitingRoomText.Get("banner.night-title", "밤 정비"), state.Timer == RestTimerState.Unlimited
-                    ? WaitingRoomText.Get("banner.night-unlimited", "대기실 문이 잠겼습니다 · 제한 시간 없음") : WaitingRoomText.Get("banner.night-timed", "대기실 문이 잠겼습니다 · 정비 시간 시작"), BannerState.Normal, announcementSeconds);
+                WaitingRoomHudProfile.Emit(WaitingRoomHudProfile.Current.nightBegins,transform,WaitingRoomText.Get("banner.night-title","밤 정비"),
+                    state.Timer==RestTimerState.Unlimited ? WaitingRoomText.Get("banner.night-unlimited","대기실 문이 잠겼습니다 · 제한 시간 없음") : WaitingRoomText.Get("banner.night-timed","대기실 문이 잠겼습니다 · 정비 시간 시작"),announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
             // 기존 두 W1은 숨기고 v2.8 남은 시간/무한대 타이머만 표시한다.
             hud.SetContext(true, false, rest && space.LocalInGatherArea, true);
@@ -118,6 +118,8 @@ namespace CurtainCall.UI.SceneIntegration
             HudLayout.PlaceBanner(banner, false, TimerBannerTop);
         }
 
+        HudRoleCard currentBroadcast;
+        public HudRoleCard CurrentBroadcast => currentBroadcast;
         void AttachAnnouncer(ExplorationTimerAnnouncer next)
         {
             if (ReferenceEquals(announcer, next)) return;
@@ -128,18 +130,12 @@ namespace CurtainCall.UI.SceneIntegration
 
         public void PresentAnnouncement(ExplorationAnnouncement message)
         {
-            var banner = notifications.Banner;
-            var canvas = banner.GetComponent<Canvas>();
-            if (canvas == null) canvas = banner.gameObject.AddComponent<Canvas>();
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = short.MaxValue;
-            foreach (var layer in SortingLayer.layers)
-                if (SortingLayer.GetLayerValueFromID(layer.id) > SortingLayer.GetLayerValueFromID(canvas.sortingLayerID))
-                    canvas.sortingLayerID = layer.id;
-            banner.Show(message.Title ?? (message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-title", "소집 경보!") : WaitingRoomText.Get("banner.broadcast-title", "방송")),
-                message.Message,
-                message.IsRecallAlarm ? BannerState.Danger : BannerState.Normal,
-                announcementSeconds, BannerIcon.Megaphone);
+            var config=WaitingRoomHudProfile.Current;
+            currentBroadcast=WaitingRoomHudProfile.Emit(message.IsRecallAlarm?config.recall:config.broadcast,transform,
+                message.Title ?? (message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-title","소집 경보!") : WaitingRoomText.Get("banner.broadcast-title","방송")),
+                message.Message,announcementSeconds);
+            if(currentBroadcast.TryGetComponent<HudEventAppearance>(out var appearance))appearance.PrioritizeBroadcast();
+            if(message.IsRecallAlarm)WaitingRoomTutorial.RecallPresented();
         }
 
         void AttachCarry(PropCarry next)
@@ -182,11 +178,12 @@ namespace CurtainCall.UI.SceneIntegration
 
         void PresentCarryMessage(string message)
         {
-            if (!string.IsNullOrWhiteSpace(message)) notifications.Toast.Show(message, ToastState.Normal, announcementSeconds);
+            if (!string.IsNullOrWhiteSpace(message)) WaitingRoomHudProfile.Emit(WaitingRoomHudProfile.Current.carryResult,transform,"",message,announcementSeconds);
         }
 
         void OnDisable()
         {
+            DismissMessages();
             AttachAnnouncer(null); AttachCarry(null); AttachOthers(null, null);
             if (hud != null) hud.ResetForRuntime();
             if (dayClock != null) dayClock.Hide();
@@ -194,6 +191,10 @@ namespace CurtainCall.UI.SceneIntegration
             if (captions != null) captions.HideImmediate();
             if (notifications != null) notifications.HideAllImmediate();
             wasActive = false; fundsReceived = false; clockInitialized = false;
+        }
+        void DismissMessages()
+        {
+            foreach(var role in new[]{HudRole.SystemEvent,HudRole.Guide,HudRole.Feedback})HudUIManager.DismissOwned(transform,role);
         }
     }
 }

@@ -18,12 +18,16 @@ namespace CurtainCall.WaitingRoom
         float blend;
         int day;
         bool morning;
+        CurtainCall.Network.PlayerSync.NetworkPlayer restingPlayer;
+        bool beganWithNetworkPlayer;
         public bool IsResting => view != null;
         public void Begin(Bounds bed, Quaternion rotation)
         {
             if (view != null) return;
             day = CampaignRun.Instance.State.Day;
             morning = false; blend = 0;
+            restingPlayer = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+            beganWithNetworkPlayer = restingPlayer != null;
             blocker = gameObject.AddComponent<UIInputBlocker>();
             blocker.BlockWhileActive = false; blocker.SetOpen(true);
             var go = new GameObject("BedRestCamera"); go.transform.SetParent(transform, false);
@@ -36,10 +40,11 @@ namespace CurtainCall.WaitingRoom
         }
         void Update()
         {
-            if (view == null) return;
+            if (view == null) { if (blocker != null || beganWithNetworkPlayer) End(); return; }
             var run = CampaignRun.Instance;
             if (run == null) { End(); return; }
             var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+            if (beganWithNetworkPlayer && (restingPlayer == null || player != restingPlayer)) { End(); return; }
             if (player != null && !PlayerInteraction.CanInteract(player))
             {
                 if (run.State.Phase == CampaignPhase.Night && run.IsLocalReady) run.SetReady(false);
@@ -61,14 +66,17 @@ namespace CurtainCall.WaitingRoom
         }
         void End()
         {
-            if (view != null)
-            {
-                var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
-                if (player != null) player.SetRestingBed(-1);
-            }
-            if (view != null) Destroy(view.gameObject);
+            // A replacement local avatar can already be using another bed. Clear only this session's owner.
+            if (restingPlayer != null) restingPlayer.SetRestingBed(-1);
+            restingPlayer = null; beganWithNetworkPlayer = false;
+            if (view != null) DestroyPresentation(view.gameObject);
             view = null;
-            if (blocker != null) { blocker.SetOpen(false); Destroy(blocker); }
+            if (blocker != null) { blocker.SetOpen(false); DestroyPresentation(blocker); }
+            blocker = null;
+        }
+        static void DestroyPresentation(Object target)
+        {
+            if (Application.isPlaying) Destroy(target); else DestroyImmediate(target);
         }
         void OnDisable() => End();
     }

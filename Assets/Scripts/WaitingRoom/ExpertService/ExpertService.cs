@@ -158,6 +158,19 @@ namespace CurtainCall.WaitingRoom
             return player != null && !PlayerInteraction.CanInteract(player) && book.CancelUnfulfilled();
         }
 
+        // Requests can arrive before Update in the frame in which the previous buyer dies.
+        // Release and settle that reservation before checking occupancy or spending the next buyer's money.
+        void RefreshReservation()
+        {
+            var before = book.Phase;
+            long revision = book.Revision;
+            WatchRun();
+            CancelUnavailableBuyer();
+            if (rewards != null)
+                book.TryRefund(amount => rewards.TryRefundPurchase(amount, seenGeneration, "미수행 신체 복구 환급"));
+            if (book.Revision != revision) Publish(before);
+        }
+
         /// <summary>③ 수화기 창: 고를 수 있는 최대 개수로 신체 복구를 산다. 결과는 <see cref="LastMessage"/>로 온다.</summary>
         public void RequestMedical() => RequestMedicalTracked("");
         /// <summary>③ 수화기 창: <paramref name="parts"/>개(1~3) 신체 복구를 산다.</summary>
@@ -195,6 +208,7 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) BuyMedical(ulong buyer, int parts)
         {
+            RefreshReservation();
             var player = Find(buyer);
             bool alive = PlayerInteraction.CanInteract(player);
             int lost = player != null ? PlayerCondition.CountLimbs(player.LostParts) : 0;
@@ -210,11 +224,10 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Enter(ulong who)
         {
+            RefreshReservation();
             var player = Find(who);
             if (player == null || !PlayerInteraction.CanInteract(player))
             {
-                var oldPhase = book.Phase;
-                if (CancelUnavailableBuyer()) Publish(oldPhase);
                 return Reject(who, "MEDICAL_ENTER", ExpertRefusal.NotAlive);
             }
             var entrance = FindFirstObjectByType<ExpertRoomView>();

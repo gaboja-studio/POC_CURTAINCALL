@@ -13,7 +13,7 @@ source: Task-20261019-061, PM UI 리소스 작업 확장·동작 확인 후 정�
 
 ## 사실
 
-- 정본: `Assets/Resources/Prefabs/UIs/CommonButtons/Button_{Confirm,Cancel,Settings,General}.prefab`. 확인 씬 `Assets/Scenes/Tests/CommonButtons/CommonButtons.unity`은 이 프리팹 인스턴스4개를 사용한다. 게임 메뉴에는 아직 연결하지 않았다.
+- 정본: `Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_{Confirm,Cancel,Settings,General}.prefab`. 확인 씬 `Assets/Scenes/Tests/CommonButtons/CommonButtons.unity`은 이 프리팹 인스턴스4개를 사용한다. 게임과 역할 프리팹은 이동한 정본을 사용한다. 옛 경로의 4개 Variant는 외부 패널 조립기 호환용이다.
 - 기본192×56/최소128×56, Body만 Raycast Target. Shadow/Body/Content(Icon·LabelTMP)/Focus 분리, 취소X·설정톱니. Body alpha0.92, Shadow0.32/Y=-1, foreground alpha1.
 - private `Assets/_ThirdParty/curtaincall_buttons_v1/`의 PNG20장과 Runtime/CurtainCallButton.cs, SemiBold TTF가 실행 의존성이다. 원본 그림·코드를 공개 폴더에 복사하지 않는다. .meta/GUID와 OFL LICENSE를 유지한다.
 - SemiBold TMP는 `Assets/Resources/Fonts/CommonButtons/Pretendard-SemiBold SDF.asset`. Dynamic 원본 TTF를 지우면 안 된다. 제공 OFL은 폰트 고지이며 그림/코드 공개 허가가 아니다.

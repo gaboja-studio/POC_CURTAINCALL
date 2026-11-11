@@ -62,7 +62,7 @@ namespace CurtainCall.WaitingRoom
             bool wasInReach = inReach;
             inReach = ShopReach.Focused == (IShopTarget)this;
             // 침대에 다가갔을 때 아직 잘 수 없으면 바로 안내한다.
-            if (inReach && !wasInReach && !IsAvailable && IsNight(out _)) WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice);
+            if (inReach && !wasInReach && !IsAvailable && IsNight(out _)) WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice,transform);
         }
 
         /// <summary>밤 정비 때만 닿는다. 낮에는 다른 대상의 F를 가로채지 않는다.</summary>
@@ -75,7 +75,7 @@ namespace CurtainCall.WaitingRoom
         public void Interact()
         {
             if (!LocalCanInteract || !IsNight(out var run)) return;
-            if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice); return; }
+            if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice,transform); return; }
             if (!run.IsLocalReady)
             {
                 var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;

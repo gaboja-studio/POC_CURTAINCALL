@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools
     /// <summary>제공 조립기로 프리팹을 생성하고 공통 대기실 HUD에 직렬화된 참조로 연결한다.</summary>
     public static class RestTimerProjectBuilder
     {
-        public const string Output = "Assets/Resources/Prefabs/UIs/RestTimerV28";
+        public const string Output = "Assets/Resources/Prefabs/UIs/Roles/Retained/RestTimerV28";
         public const string Prefab = Output + "/W1_RestTimer_v2_8.prefab";
 
         [MenuItem("Tools/Curtain Call/대기실 타이머/v2.8 생성 및 연결")]

@@ -101,7 +101,7 @@ namespace CurtainCall.UI.SceneIntegration
         public static UnityEngine.UI.Button Button(string name, Transform parent, string label,
             float x, float y, float width, float height, TMP_FontAsset font)
         {
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/CommonButtons/Button_General");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_General");
             var go = UnityEngine.Object.Instantiate(prefab, parent, false); go.name = name;
             Place((RectTransform)go.transform, x, y, width, height);
             var text = go.GetComponentInChildren<TMP_Text>(true);

@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools
     /// <summary>패키지 조립기를 재사용하며 프로젝트 전용 폰트와 런 연결 컴포넌트를 저장한다.</summary>
     public static class DayClockProjectBuilder
     {
-        public const string Output = "Assets/Resources/Prefabs/UIs/DayClock";
+        public const string Output = "Assets/Resources/Prefabs/UIs/Roles/Retained/DayClock";
         public const string Prefab = Output + "/W1_DayClock_v2_7.prefab";
         const string FontRoot = "Assets/Resources/Fonts/DayClock/V24";
         const string Kit = "Assets/_ThirdParty/curtaincall_dayclock_v2";

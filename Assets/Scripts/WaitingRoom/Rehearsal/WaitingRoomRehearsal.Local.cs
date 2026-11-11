@@ -1,6 +1,7 @@
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.Tightrope;
 using UnityEngine;
 
@@ -12,14 +13,13 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed partial class WaitingRoomRehearsal
     {
-        /// <summary>우측 퀘스트 패널 위치(1920×1080 UI 단위). 밤 할 일 패널과 같은 자리를 쓴다(리허설과 밤은 겹치지 않는다).</summary>
-        const float QuestTop = 300f, QuestWidth = 400f;
         const float IntroSeconds = 10f;
 
         WaitingRoomRightPanel quest;
         RehearsalPathGuide guide;
         NetworkPlayer local;
         int placedRound = -1;
+        bool localRecoveryPending;
         PlayerMover placementLock;
         bool placementControl;
         float nextPlacementSend;
@@ -32,15 +32,17 @@ namespace CurtainCall.WaitingRoom
         GameObject finishWalls;
         int lessonReturnedRound = -1;
         string lastQuest = "";
+        string lastDeviceGuide="";
         string rescueGuide = "";
         StageEntranceGather gather;
         CameraCursorExclusion skipCursorRegion;
-        // 오른쪽 아래는 투표 패널(1920×1080 기준 높이 230+여백 36) 자리다. IMGUI 버튼은 그 위에 둔다.
-        Rect SkipButtonRect => new Rect(Mathf.Max(12f, Screen.width - 292f), Screen.height - 106f - 360f * Screen.height / 1080f, 280f, 38f);
+        // 호스트 보조 버튼은 투표 열 바깥, 왼쪽 하단 마이크 위에 둔다.
+        Rect SkipButtonRect => new Rect(28f, Screen.height - 130f, 280f, 38f);
 
         void AwakeLocal()
         {
-            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth, "first-day.panel.") { GuideStyle = true };
+            NetworkPlayer.Revived += OnLocalRevived;
+            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas");
             guide = gameObject.AddComponent<RehearsalPathGuide>();
             guide.VisibilityChanged += PathVisibility;
             skipCursorRegion = gameObject.AddComponent<CameraCursorExclusion>();
@@ -50,8 +52,8 @@ namespace CurtainCall.WaitingRoom
         // 실제 공연과 동일한 HUD 프리팹·균형 표시 바인딩을 사용한다. 입력과 균형 판정을 새로 만들지 않는다.
         void BuildPerformanceUi()
         {
-            var hudPrefab = Resources.Load<GameObject>("Prefabs/UIs/PerformanceHud/PerformanceHud");
-            var cheerPrefab = Resources.Load<GameObject>("Prefabs/UIs/CheerGauge/C1CheerGauge");
+            var hudPrefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud");
+            var cheerPrefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge");
             if (hudPrefab == null || cheerPrefab == null)
             { Debug.LogError("[Rehearsal] 기존 공연 HUD 프리팹이 없습니다."); return; }
             var hudRoot = Instantiate(hudPrefab, courseRoot.transform, false);
@@ -99,26 +101,30 @@ namespace CurtainCall.WaitingRoom
 
         void DestroyLocal()
         {
+            NetworkPlayer.Revived -= OnLocalRevived;
             if (guide != null) guide.VisibilityChanged -= PathVisibility;
             ReleasePlacementLock();
         }
 
         void ShowGuide(string id, string title, string body, float seconds)
         {
-            if (WaitingRoomTutorialPanel.Show(title, body, seconds)) RecordLocal("GUIDE_SHOWN", guideId: id);
+            if (RehearsalGuide.Show(title, body, seconds)) RecordLocal("GUIDE_SHOWN", guideId: id);
         }
 
         void ActivateLocal()
         {
+            localRecoveryPending = false;
             WaitingRoomFirstDayFlow.SuspendForRehearsal();
-            placedRound = -1; lastQuest = "";
+            placedRound = -1; lastQuest = ""; lastDeviceGuide="";
             rescueGuide = "";
             introductionUntil = Time.unscaledTime + IntroSeconds;
             gather = null;
             if (practice)
                 ShowGuide("PRACTICE_INTRO",
                     WaitingRoomText.Get("rehearsal.practice-title", "자유 연습"),
-                    WaitingRoomText.Get("rehearsal.practice-intro", "고른 소구간부터 다시 연습합니다. 추락해도 대가가 없고, 호스트가 언제든 연습을 끝낼 수 있습니다."),
+                    GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
+                        ? WaitingRoomText.Get("rehearsal.practice-intro", "사망하면 잠시 뒤 소구간 출발대에서 다시 시작합니다. 호스트가 언제든 연습을 끝낼 수 있습니다.")
+                        : WaitingRoomText.Get("rehearsal.practice-intro-no-recovery", "공통 부상·사망 규칙이 적용됩니다. 호스트가 언제든 연습을 끝낼 수 있습니다."),
                     IntroSeconds);
             else
                 ShowGuide("INTRO",
@@ -172,21 +178,36 @@ namespace CurtainCall.WaitingRoom
         void Bind(NetworkPlayer player)
         {
             if (local == player) return;
-            if (local != null) local.StateChanged -= OnLocalStateChanged;
             local = player;
-            if (local != null) local.StateChanged += OnLocalStateChanged;
+            localRecoveryPending = false;
         }
 
-        /// <summary>추락 복구(호스트가 보통 상태로 되돌림) → 그 소구간 출발대로. 재시도 퀘스트는 LocalTick이 다시 띄운다.</summary>
-        void OnLocalStateChanged(PlayerState previous, PlayerState next)
+        // 0초 복귀는 원격에 Fallen 상태가 보이기 전에 Normal로 합쳐질 수 있다.
+        // 확정 부활 번호의 신호를 받고, Normal과 코스가 준비된 뒤 배치한다.
+        void OnLocalRevived(NetworkPlayer player)
         {
-            if (!active || previous != PlayerState.Fallen || next != PlayerState.Normal) return;
+            if (active && player != null && player == NetworkPlayer.Local)
+            {
+                Bind(player);
+                localRecoveryPending = true;
+            }
+        }
+
+        void RecoverLocal()
+        {
+            if (!localRecoveryPending || local == null || local.State != PlayerState.Normal || !completed && course == null) return;
+            localRecoveryPending = false;
+            arrived.Remove(local.OwnerClientId);
+            votes.Remove(local.OwnerClientId);
+            placed.Remove(local.OwnerClientId);
+            lessonReturnedRound = -1;
+            if (finishWalls != null) finishWalls.SetActive(false);
             if (completed) { placedRound = -1; return; }
             if (course == null) return;
             PlaceLocalAtStart(recovery: true);
             laneHintShown = false; mountHints.Clear(); actionGuideAfter = Time.unscaledTime + 4f;
             ShowGuide("FALL_RECOVERY", WaitingRoomText.Get("rehearsal.fall-title", "추락"),
-                WaitingRoomText.Get("rehearsal.fall", "리허설 진행 중에는 패널티가 없습니다. 마지막 체크포인트에서 다시 시작합니다."), 4f);
+                WaitingRoomText.Get("rehearsal.fall", "온전한 몸으로 소구간 출발대에서 다시 시작합니다."), 4f);
         }
 
         /// <summary>
@@ -204,7 +225,7 @@ namespace CurtainCall.WaitingRoom
             lessonReturnedRound = -1;
             ReleasePlacementLock();
             nextPlacementSend = 0f;
-            placedRound = -1; lastQuest = "";
+            placedRound = -1; lastQuest = ""; lastDeviceGuide="";
             finishWalls = null;
             laneHintShown = false; mountHints.Clear(); pendingStageIntro = false; actionGuideAfter = 0f; laneIntroAt = 0f;
             var s = Stage;
@@ -221,7 +242,7 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             DrawPracticeButtons();
-            // 기획서의 호스트 전용 즉시 클리어. 화면 오른쪽 가운데(투표·연습 버튼과 겹치지 않게).
+            // 호스트 전용 즉시 클리어.
             if (!CanClearCurrentStage) return;
             if (GUI.Button(DevClearRect, WaitingRoomText.Get("rehearsal.clear-button", "현재 구간 즉시 클리어 · 다음")))
                 TryClearCurrentStage();
@@ -229,17 +250,18 @@ namespace CurtainCall.WaitingRoom
                 WaitingRoomText.Get("rehearsal.clear-button-hint", "호스트 전용 · Esc로 커서 해제"));
         }
 
-        Rect DevClearRect => new Rect(SkipButtonRect.x, Screen.height * .5f - 19f, SkipButtonRect.width, 38f);
+        Rect DevClearRect => new Rect(SkipButtonRect.x, SkipButtonRect.y - 78f, SkipButtonRect.width, 38f);
 
         void LocalTick()
         {
             bool devClear = CanClearCurrentStage;
             skipCursorRegion.enabled = devClear || CanVote || (practice && HasAuthority);
-            // 오른쪽 세로 띠: 호스트 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
+            // 호스트 버튼 영역: 호스트 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
             float top = devClear ? DevClearRect.y - 22f : SkipButtonRect.y - 114f;
             skipCursorRegion.SetScreenRect(new Rect(SkipButtonRect.x, top, SkipButtonRect.width, SkipButtonRect.yMax - top));
             Bind(NetworkPlayer.Local);
             if (local == null || !local.IsSpawned || !local.TryGetComponent(out PlayerMover mover)) { quest.Hide(); return; }
+            RecoverLocal();
             PlaceLocal(mover);
             UpdatePlacement(mover);
             if (completed) { TickCompleted(); return; }
@@ -319,7 +341,7 @@ namespace CurtainCall.WaitingRoom
                 return false;
             }
             // Native seven-second hangs must not wait behind the ten-second stage introduction.
-            if (WaitingRoomTutorialPanel.Show(RescueTitle(key), RescueText(key), IntroSeconds)) rescueGuide = key;
+            if (RehearsalGuide.Show(RescueTitle(key), RescueText(key), IntroSeconds)) rescueGuide = key;
             return true;
         }
 
@@ -343,7 +365,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>튜토리얼 도착대 네 둘레의 보이지 않는 벽. 재연습에서는 생성하지 않는다.</summary>
         GameObject BuildFinishWalls()
         {
-            const float Height = 4f, Thickness = .3f;
+            const float Height = 4f, Thickness = RehearsalArrivalWalls.Thickness;
             if (!course.TryGetFinishPlatformBounds(out var floor)) return null;
             float side = floor.center.x, half = floor.extents.x;
             float near = floor.min.z - .4f - Thickness * .5f, far = floor.max.z + Thickness * .5f;
@@ -471,6 +493,7 @@ namespace CurtainCall.WaitingRoom
         {
             bool normal = local.State == PlayerState.Normal;
             bool bodyEnabled = mover.Body != null && mover.Body.enabled;
+            if (normal && local.TryGetComponent(out CurtainCall.HumanCannon.HumanCannonPilot pilot)) pilot.ClearMotionForInspection();
             if (normal && local.TryGetComponent(out PlayerBalance balance)) { balance.ResetBalance(); balance.SetBalanceActive(false); }
             mover.SetStartPose(position, rotation, true);
             // Ending practice can move a corpse off the removed course, but cannot revive its movement.
@@ -488,14 +511,24 @@ namespace CurtainCall.WaitingRoom
             if (s == null || course == null) { quest.Hide(); return; }
             string body = QuestFor(s, mover);
             if (string.IsNullOrEmpty(body)) { quest.Hide(); lastQuest = ""; return; }
-            if (body == lastQuest && quest.Visible) return;
-            if (quest.Show(QuestTitle(questKey), body)) lastQuest = body;
+            string title=QuestTitle(questKey);
+            if(questKey is "pole-single" or "pole-next" or "pole-grab" or "trigger-open" or "trigger-closed" or "trigger-grab" or "trigger-hold"
+                or "trapeze-attach" or "trapeze-grab" or "trapeze-mount" or "trapeze-lane" or "lane-platform")
+            {
+                if(lastDeviceGuide!=questKey && RehearsalGuide.Show(title.Replace("[tutorial] ",""),body,IntroSeconds))
+                    lastDeviceGuide=questKey;
+                title=s.DisplayTitle;
+                body=WaitingRoomText.Get("rehearsal.stage."+s.Id+".goal","도착대까지 이동하세요.");
+            }
+            else lastDeviceGuide="";
+            if (body == lastQuest && quest.Visible && quest.Title==title) return;
+            if (quest.Show(title, body)) lastQuest = body;
         }
 
         string QuestFor(RehearsalStage s, PlayerMover mover)
         {
             if (local.State == PlayerState.Fallen)
-                return UsesInitialTutorialRules
+                return RecoversAfterDeath
                     ? Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.")
                     : Quest("practice-fallen", "사망했습니다. 호스트가 연습을 종료할 수 있습니다.");
             string rescue = RescueQuestKey();
