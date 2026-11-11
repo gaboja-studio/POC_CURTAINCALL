@@ -57,6 +57,12 @@ namespace CurtainCall.Tightrope
         [Tooltip("자리 번호 0, 1, 2… 순서의 출발 위치. 코스가 줄 위치에 맞춰 옮긴다. 같은 오브젝트의 PlayerSpawnPoints에도 같은 순서로 넣는다.")]
         [SerializeField] Transform[] spawnPoints;
 
+        [Header("공연 단계")]
+        [Tooltip("테스트용 단계 고정(1~3). 1이면 캠페인 공연에서 대기실에서 고른 단계를 쓴다. 2 이상이면 캠페인 단계와 상관없이 이 단계로 고정한다 — 테스트가 끝나면 1로 되돌린다.")]
+        [SerializeField, Range(1, TightropeSettings.StageCount)] int startStage = 1;
+        /// <summary>테스트로 고정한 단계(2 이상). 고정이 없으면 0.</summary>
+        public int TestStage => startStage > 1 ? TightropeSettings.ClampStage(startStage) : 0;
+
         [Header("기존 레벨의 외줄 구간")]
         [Tooltip("이미 제작된 줄 충돌체를 사용한다. 공연장 생성·스폰 이동·외줄 전용 그네 자동 추가를 하지 않는다.")]
         [SerializeField] bool useSceneGeometry;
@@ -172,7 +178,35 @@ namespace CurtainCall.Tightrope
         /// <summary>지금 코스 모양 값. 플레이 중에는 만들 때 붙잡아 둔 값(온라인이면 호스트 값), 플레이 전에는 세팅 그대로.</summary>
         public TightropeSettings.CourseSettings Shape => Application.isPlaying ? (shape ??= Settings.Clone()) : Settings;
 
-        TightropeSettings.CourseSettings Settings => useSceneGeometry ? sceneShape : GameSettings.Tightrope.Course;
+        TightropeSettings.CourseSettings Settings => useSceneGeometry ? sceneShape : GameSettings.Tightrope.CourseFor(stage);
+
+        int stage = 1;
+        /// <summary>지금 코스가 쓰는 공연 단계(1~3). 대기실 스케줄에서 고른 단계를 공연 시작 전에 맞춘다.</summary>
+        public int Stage => stage;
+        /// <summary>공연 단계가 바뀌었을 때. 톱날 등 단계 값을 쓰는 기물이 다시 만든다.</summary>
+        public event Action StageChanged;
+
+        /// <summary>
+        /// 공연 단계를 바꾸고, 그 단계 코스 값이 지금과 다르면 다시 만든다. 모든 화면이 같은 캠페인 단계로 각자 부른다.
+        /// 장면 지형 코스는 단계 값을 쓰지 않는다. 진행 중 판에 부르지 않는다.
+        /// </summary>
+        public bool ApplyStage(int value)
+        {
+            value = TightropeSettings.ClampStage(value);
+            if (value == stage) return false;
+            stage = value;
+            if (Application.isPlaying && !useSceneGeometry)
+            {
+                string json = Settings.ToJson();
+                if (shape == null || shape.ToJson() != json)
+                {
+                    shape = TightropeSettings.CourseSettings.FromJson(json);
+                    Rebuild();
+                }
+            }
+            StageChanged?.Invoke();
+            return true;
+        }
 
         /// <summary>코스 모양 계산(읽기 전용).</summary>
         public CourseLayout Layout => Application.isPlaying ? (layout ??= CreateLayout()) : CreateLayout();
@@ -450,6 +484,7 @@ namespace CurtainCall.Tightrope
         void Awake()
         {
             if (current == null) current = this;
+            stage = TightropeSettings.ClampStage(startStage);
             Rebuild();
             if (useSceneGeometry)
             {

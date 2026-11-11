@@ -39,6 +39,7 @@ namespace CurtainCall.SpaceLink
 
         void Update()
         {
+            ApplyStage();
             var session = NetworkSessionManager.Instance;
             if (run == null || started || submitted || session == null || !session.IsHost
                 || !entry.IsCurrentPerformance || !entry.LocalPlaced) return;
@@ -62,6 +63,18 @@ namespace CurtainCall.SpaceLink
             started = true;
             attemptId = run.Results.AttemptId;
             round = run.Round;
+        }
+
+        /// <summary>
+        /// 대기실 스케줄에서 고른 단계(캠페인 상태, 모든 화면에 동기화)의 코스·톱날로 맞춘다.
+        /// 호스트·클라이언트가 각자 같은 값으로 부르며, 판이 시작된 뒤에는 바꾸지 않는다.
+        /// </summary>
+        void ApplyStage()
+        {
+            if (run == null || entry == null || campaign == null || !entry.IsCurrentPerformance
+                || started || run.State != TightropeRunState.Waiting) return;
+            var course = run.GetComponent<TightropeCourse>();
+            if (course != null) course.ApplyStage(course.TestStage > 0 ? course.TestStage : campaign.State.Difficulty);
         }
 
         bool SamePerformance()

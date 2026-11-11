@@ -14,8 +14,10 @@ namespace CurtainCall.Tightrope
         const ulong Nobody = ulong.MaxValue;
         const int MaxPoleTotal = 3;
         int practicePoleCount = MaxPoleTotal;
-        bool practiceLowPoles;
-        int PoleTotal => practicePoleCount;
+        bool practiceLesson, practiceLowPoles;
+        int PoleTotal => practiceLesson ? practicePoleCount : TightropeCourse.TrapezePerformancePoles.Length;
+        /// <summary>공연은 정해진 봉 자리만 쓰고(2번 교대 봉 제외), 리허설 수업은 앞에서부터 쓴다.</summary>
+        int RestingSlot(int index) => practiceLesson ? index : TightropeCourse.TrapezePerformancePoles[index];
         sealed class PoleState
         {
             public HumanCannonPole Physics;
@@ -46,7 +48,7 @@ namespace CurtainCall.Tightrope
         public void ConfigurePracticeLesson(int count = 2, bool lowPoles = false)
         {
             if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true })
-            { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLowPoles = lowPoles; }
+            { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLesson = true; practiceLowPoles = lowPoles; }
         }
         void Awake()
         {
@@ -77,7 +79,7 @@ namespace CurtainCall.Tightrope
             {
                 Vector3 feet = practiceLowPoles
                     ? course.GetLanePosition(Lane, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
-                    : course.TrapezeRestingFeet(i);
+                    : course.TrapezeRestingFeet(RestingSlot(i));
                 poles[i].Physics.transform.SetPositionAndRotation(feet + Vector3.up * GameSettings.Poles.HangLength,
                     Quaternion.LookRotation(course.Forward));
             }
