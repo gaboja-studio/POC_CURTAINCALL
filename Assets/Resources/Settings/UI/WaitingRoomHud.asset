@@ -246,3 +246,22 @@ MonoBehaviour:
     text: 
   - id: tutorial.team-wait-title
     text: "\uB3D9\uB8CC \uAE30\uB2E4\uB9AC\uB294 \uC911"
+  rehearsalCopy:
+  - id: rehearsal.intro-title
+    text: "\uC678\uC904 \uD0C0\uAE30 \uB9AC\uD5C8\uC124"
+  - id: rehearsal.intro
+    text: "\uC548\uB0B4\uC5D0 \uB530\uB77C \uB9AC\uD5C8\uC124 \uC9C4\uD589\n(\uCD94\uB77D
+      \uC2DC \uCD9C\uBC1C\uC810\uC5D0\uC11C \uB2E4\uC2DC \uC2DC\uC791)"
+  - id: rehearsal.practice-title
+    text: "\uC678\uC904 \uD0C0\uAE30 \uC5F0\uC2B5"
+  - id: rehearsal.practice-intro
+    text: "\uC790\uC720\uB86D\uAC8C \uC6D0\uD558\uB294 \uAD6C\uAC04\uBD80\uD130 \uC678\uC904\uD0C0\uAE30\uB97C
+      \uC5F0\uC2B5\n(\uCD94\uB77D \uC2DC \uCD9C\uBC1C\uC9C0\uC5D0\uC11C \uB2E4\uC2DC
+      \uC2DC\uC791)"
+  - id: rehearsal.practice-intro-no-recovery
+    text: "\uC790\uC720\uB86D\uAC8C \uC6D0\uD558\uB294 \uAD6C\uAC04\uBD80\uD130 \uC678\uC904\uD0C0\uAE30\uB97C
+      \uC5F0\uC2B5"
+  - id: rehearsal.stage.1.guide-title
+    text: "\uC678\uC904 \uC774\uB3D9"
+  - id: rehearsal.stage.1.intro
+    text: '{move} {forward}'

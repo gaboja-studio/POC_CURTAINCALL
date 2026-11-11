@@ -44,15 +44,23 @@ namespace CurtainCall.UI.SceneIntegration
 
         public static string Format(string template, PlayerInputReader input)
         {
+            string text = FormatKeys(template, input);
+            return text.Contains("{seconds}")
+                ? text.Replace("{seconds}", CurtainCall.Settings.GameSettings.Poles.HoldSeconds.ToString("0.#"))
+                : text;
+        }
+
+        internal static string FormatKeys(string template, PlayerInputReader input, string interact = "F", string jump = "Space")
+        {
+            if (string.IsNullOrEmpty(template) || !template.Contains("{")) return template ?? "";
             string Action(string name,string fallback) => input ? input.BindingLabel(name,fallback) : fallback;
             string Part(string name,string part,string fallback) => input ? input.BindingPartLabel(name,part,fallback) : fallback;
-            if (string.IsNullOrEmpty(template) || !template.Contains("{")) return template ?? "";
             string ws = Part("Move","positive","W")+"/"+Part("Move","negative","S");
             string ad = Part("Posture","negative","A")+"/"+Part("Posture","positive","D");
-            return template.Replace("{interact}",Action("Interact","F")).Replace("{jump}",Action("Action","Space"))
+            string action = Action("Action",jump);
+            return template.Replace("{interact}",Action("Interact",interact)).Replace("{jump}",action).Replace("{action}",action)
                 .Replace("{forward}",ws).Replace("{balance}",ad).Replace("{move}",ws+" · "+ad)
-                .Replace("{side}",Action("DirectionLeft","Q")+"/"+Action("DirectionRight","E"))
-                .Replace("{seconds}",CurtainCall.Settings.GameSettings.Poles.HoldSeconds.ToString("0.#"));
+                .Replace("{side}",Action("DirectionLeft","Q")+"/"+Action("DirectionRight","E"));
         }
     }
 }

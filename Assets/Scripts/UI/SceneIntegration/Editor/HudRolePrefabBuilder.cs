@@ -221,6 +221,11 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                     {
                         var label=button.GetComponentInChildren<TMP_Text>(true);
                         label.text="{choice}";
+                        label.enableAutoSizing=true;
+                        label.fontSizeMin=10;
+                        label.fontSizeMax=28;
+                        label.textWrappingMode=TextWrappingModes.Normal;
+                        label.overflowMode=TextOverflowModes.Overflow;
                         PrefabUtility.RecordPrefabInstancePropertyModifications(label);
                     }
                 }

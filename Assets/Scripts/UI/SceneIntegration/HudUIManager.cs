@@ -34,14 +34,20 @@ namespace CurtainCall.UI.SceneIntegration
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset() => instance = null;
 
-        HudRoleCard Add(HudRole role, string content, Transform owner, string title, string condition, float? seconds,HudRoleCard skin=null,HudEventKind kind=HudEventKind.Notice,string badgeKey=null,Camera camera=null)
+        HudRoleCard Add(HudRole role, string content, Transform owner, string title, string condition, float? seconds,HudRoleCard skin=null,HudEventKind kind=HudEventKind.Notice,string badgeKey=null,Camera camera=null,bool upperRightEvent=false)
         {
             // Remove older cards (including cards still playing their exit) before the new card enters.
             int kept=0, capacity=presentation.For(role).Capacity;
             foreach(var old in cards)
-                if(old && old.gameObject.activeSelf && old.role==role && ++kept>=capacity)old.Close(true);
+                if(old && old.gameObject.activeSelf && old.role==role && old.UpperRightEvent==upperRightEvent && ++kept>=capacity)old.Close(true);
             var card = Instantiate(skin ? skin : prefabs[(int)role],transform,false);
             if(card.TryGetComponent<HudEventAppearance>(out var style)) style.Select(kind);
+            if (upperRightEvent)
+            {
+                card.UpperRightEvent=true;
+                card.Rect.anchorMin=card.Rect.anchorMax=card.Rect.pivot=Vector2.one;
+                card.Rect.anchoredPosition=new Vector2(-32,-24);
+            }
             card.BadgeKey=badgeKey;card.WorldCamera=camera;
             cards.Insert(0,card); card.Open(owner,content,title,condition,seconds);
             Arrange();
@@ -49,10 +55,18 @@ namespace CurtainCall.UI.SceneIntegration
         }
         public HudRoleCard ShowObjective(string content, Transform owner, string title, string condition = "") =>
             Add(HudRole.Objective,content,owner,title,condition,null);
-        public HudRoleCard ShowGuide(string content, Transform owner, string title = "", float? seconds = null,string key=null) =>
-            Add(HudRole.Guide,content,owner,title,"",seconds,badgeKey:key);
+        public HudRoleCard ShowGuide(string content, Transform owner, string title = "", float? seconds = null,string key=null)
+        {
+            foreach (var card in cards)
+                if (card && card.role==HudRole.Guide && card.isActiveAndEnabled && !card.Closing &&
+                    card.Owner && card.Owner.gameObject.activeInHierarchy && card.MatchesGuide(title,content,key))
+                    return card;
+            return Add(HudRole.Guide,content,owner,title,"",seconds,badgeKey:key);
+        }
         public HudRoleCard ShowSystemEvent(string content, Transform owner, string title, float? seconds = null,HudEventKind kind=HudEventKind.Notice) =>
             Add(HudRole.SystemEvent,content,owner,title,"",seconds,null,kind);
+        internal HudRoleCard ShowDeathWarning(string content, Transform owner, string title, float seconds) =>
+            Add(HudRole.SystemEvent,content,owner,title,"",seconds,kind:HudEventKind.Warning,upperRightEvent:true);
         public HudRoleCard ShowZoneName(string content, Transform owner)
             => Add(HudRole.ZoneName,content,owner,"","",null);
         public HudRoleCard ShowFeedback(string content, Transform owner, string title = "", float? seconds = null) =>
@@ -149,19 +163,19 @@ namespace CurtainCall.UI.SceneIntegration
             }
             votesCovered = covered;
         }
-        readonly float[] displacement = new float[System.Enum.GetValues(typeof(HudRole)).Length];
+        static readonly int UpperRightEventLane = System.Enum.GetValues(typeof(HudRole)).Length;
+        readonly float[] displacement = new float[UpperRightEventLane+1];
         readonly Dictionary<Transform,float> worldOffsets=new();
         void Arrange()
         {
             worldOffsets.Clear();
             System.Array.Clear(displacement,0,displacement.Length);
-            // Lay out independent roles first, then objectives, then votes. Never assign
-            // anchors or pivots: even stretched or asymmetric prefab rectangles stay intact.
-            for (int phase=0;phase<3;phase++)
+            // Lay out independent roles, alerts, objectives and votes in that order.
+            for (int phase=0;phase<4;phase++)
             foreach(var c in cards)
             {
                 if(!c || !c.gameObject.activeSelf) continue;
-                int order=c.role==HudRole.Objective || c.role==HudRole.SystemEvent ? 1 : c.role==HudRole.Vote ? 2 : 0;
+                int order=c.role switch { HudRole.SystemEvent=>1, HudRole.Objective=>2, HudRole.Vote=>3, _=>0 };
                 if(order!=phase) continue;
                 var r=c.Rect;
                 var mode=presentation.For(c.role).mode;
@@ -188,18 +202,22 @@ namespace CurtainCall.UI.SceneIntegration
                 float offset=0;
                 if(c.avoidPreviousLane && phase>0)
                 {
-                    var predecessor=c.role==HudRole.SystemEvent ? HudRole.ZoneName : phase==1 ? HudRole.Feedback : HudRole.Objective;
+                    var predecessor=c.role switch {
+                        HudRole.SystemEvent=>c.UpperRightEvent ? HudRole.Feedback : HudRole.ZoneName,
+                        HudRole.Objective=>HudRole.Feedback, _=>HudRole.Objective
+                    };
                     var basePivot=(Vector2)r.localPosition + c.BasePosition-r.anchoredPosition;
                     foreach(var other in cards)
                     {
-                        if(!other || !other.gameObject.activeSelf || other.role!=predecessor) continue;
+                        if(!other || !other.gameObject.activeSelf ||
+                            (other.role!=predecessor && !(phase>=2 && other.UpperRightEvent))) continue;
                         var prev=other.Rect;
                         if(basePivot.x+r.rect.xMin >= prev.localPosition.x+prev.rect.xMax ||
                            basePivot.x+r.rect.xMax <= prev.localPosition.x+prev.rect.xMin) continue;
                         offset=Mathf.Min(offset,prev.localPosition.y+prev.rect.yMin-c.stackGap-basePivot.y-r.rect.yMax);
                     }
                 }
-                int lane=(int)c.role;
+                int lane=c.UpperRightEvent ? UpperRightEventLane : (int)c.role;
                 if(step!=0)offset+=displacement[lane];
                 var placed=c.BasePosition+Vector2.up*offset;
                 if(r.anchoredPosition!=placed) r.anchoredPosition=placed;
