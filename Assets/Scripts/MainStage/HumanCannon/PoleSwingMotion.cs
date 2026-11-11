@@ -18,6 +18,11 @@ namespace CurtainCall.HumanCannon
                 || !Finite(length) || length <= 0 || !Finite(acceleration) || acceleration < 0
                 || !Finite(maxAngle) || maxAngle < 0 || !Finite(maxSpeed) || maxSpeed < 0
                 || !Finite(damping) || damping < 0) return;
+            if (Math.Abs(input) < .01f && Math.Abs(angleDegrees) < .01f && Math.Abs(angularSpeedDegrees) < .01f)
+            {
+                angleDegrees = angularSpeedDegrees = 0;
+                return;
+            }
 
             // 긴 프레임은 최대 0.25초/30회로 제한해 적분 폭주와 무한 반복을 막는다.
             double elapsed = Math.Min(dt, 0.25);
@@ -25,10 +30,16 @@ namespace CurtainCall.HumanCannon
             double step = elapsed / count;
             double angle = Clamp(angleDegrees, maxAngle);
             double speed = Clamp(angularSpeedDegrees, maxSpeed);
-            double drive = Clamp(input, 1) * acceleration;
+            double requestedDrive = Clamp(input, 1) * acceleration;
             double decay = Math.Exp(-damping * step);
+            double maximumEnergy = (double)gravity / length * (1 - Math.Cos(maxAngle * DegreesToRadians));
             for (int i = 0; i < count; i++)
             {
+                // Push during the matching half of the swing, then let gravity bring it back.
+                // Holding a direction builds energy over successive passes instead of pinning
+                // the bar at a tilted equilibrium. Alternating W/S can pump both halves.
+                double drive = requestedDrive * speed >= 0
+                    ? requestedDrive * Math.Max(0, Math.Cos(angle * DegreesToRadians)) : 0;
                 double restoring = -(double)gravity / length * Math.Sin(angle * DegreesToRadians) * RadiansToDegrees;
                 speed = Clamp((speed + (restoring + drive) * step) * decay, maxSpeed);
                 angle += speed * step;
@@ -41,6 +52,14 @@ namespace CurtainCall.HumanCannon
                 {
                     angle = -maxAngle;
                     if (speed < 0) speed = 0;
+                }
+                if (gravity > 0)
+                {
+                    // Limit total pendulum energy, not only the angle. Excess input cannot
+                    // bank a hidden launch boost or slam into the end stop at full speed.
+                    double potential = (double)gravity / length * (1 - Math.Cos(angle * DegreesToRadians));
+                    double speedAtAngle = Math.Sqrt(Math.Max(0, 2 * (maximumEnergy - potential))) * RadiansToDegrees;
+                    speed = Clamp(speed, speedAtAngle);
                 }
             }
             angleDegrees = (float)angle;
@@ -64,6 +83,22 @@ namespace CurtainCall.HumanCannon
             double speed = angularSpeedDegrees * DegreesToRadians * length;
             double horizontal = speed * Math.Cos(angle);
             return FiniteVector(planar.x * horizontal, speed * Math.Sin(angle), planar.z * horizontal);
+        }
+
+        /// <summary>현재 운동 에너지와 올라간 높이를 최저점에서의 속도로 환산한다.</summary>
+        public static float StoredSpeed(float angleDegrees, float angularSpeedDegrees, float length,
+            float gravity, float motionSpeed, float maxAngle, float maxSpeed)
+        {
+            if (!Finite(angleDegrees) || !Finite(angularSpeedDegrees) || !Finite(length) || length <= 0
+                || !Finite(gravity) || gravity < 0 || !Finite(motionSpeed) || motionSpeed <= 0
+                || !Finite(maxAngle) || maxAngle < 0 || !Finite(maxSpeed) || maxSpeed < 0) return 0;
+            double angle = Clamp(angleDegrees, maxAngle) * DegreesToRadians;
+            double speed = Clamp(angularSpeedDegrees, maxSpeed) * DegreesToRadians * length;
+            double squared = speed * speed + 2d * gravity * length * (1 - Math.Cos(angle));
+            if (gravity > 0)
+                squared = Math.Min(squared, 2d * gravity * length * (1 - Math.Cos(maxAngle * DegreesToRadians)));
+            double result = Math.Sqrt(Math.Max(0, squared)) * motionSpeed;
+            return result <= float.MaxValue ? (float)result : 0;
         }
 
         static bool TryPlanarForward(Vector3 forward, out Vector3 planar)

@@ -33,7 +33,7 @@ namespace CurtainCall.HumanCannon
             public readonly Rider[] Riders = new Rider[PoleGateState.MaxRiders];
             public readonly Dictionary<ulong, uint> LastDeparture = new();
             public uint ResetRevision;
-            public float Angle, Speed;
+            public float Angle, Speed, ReleaseDirection;
             double nextIdleSnapshot;
             double receivedAngleAt = double.NegativeInfinity;
             PoleAnglePresentation presentation;
@@ -48,7 +48,7 @@ namespace CurtainCall.HumanCannon
 
             public bool SnapshotDue(double now, double idlePhase)
             {
-                if (State.Count != 0) return true;
+                if (State.Count != 0 || Mathf.Abs(Angle) > .01f || Mathf.Abs(Speed) > .01f) return true;
                 if (now < nextIdleSnapshot) return false;
                 // Recover missed initial sync without sending every stationary pole in one burst.
                 nextIdleSnapshot = Math.Floor(now - idlePhase) + 1d + idlePhase;
@@ -144,7 +144,7 @@ namespace CurtainCall.HumanCannon
             }
             return closest;
         }
-        float SwingAngle(int index) => states[index].State.IsOccupied ? states[index].Angle : 0f;
+        float SwingAngle(int index) => states[index].Angle;
 
         public Quaternion RiderRotation(int index, ulong actor)
         {
@@ -241,9 +241,10 @@ namespace CurtainCall.HumanCannon
                         float input = Clock - rider.LastInput <= .3 ? rider.Input : 0f;
                         drive += pole.SwingDrive(ref rider.SwingInput, input, Time.deltaTime);
                     }
-                    if (runtime.State.Count > 0)
-                        pole.Step(ref runtime.Angle, ref runtime.Speed, SharedDrive(drive, drivers),
-                            Time.deltaTime, GameSettings.Base.Character.Gravity);
+                    float sharedDrive = SharedDrive(drive, drivers);
+                    if (Mathf.Abs(sharedDrive) >= .01f) runtime.ReleaseDirection = Mathf.Sign(sharedDrive);
+                    pole.Step(ref runtime.Angle, ref runtime.Speed, sharedDrive,
+                        Time.deltaTime, GameSettings.Base.Character.Gravity);
                 }
                 if (pole.LinkedGate != null)
                 {
@@ -313,7 +314,7 @@ namespace CurtainCall.HumanCannon
             {
                 if (poles[i] == null) continue;
                 var runtime = states[i];
-                float angle = runtime.State.IsOccupied ? runtime.DisplayAngle(Time.unscaledTimeAsDouble) : 0f;
+                float angle = runtime.DisplayAngle(Time.unscaledTimeAsDouble);
                 poles[i].PresentSwing(angle);
                 for (int seat = 0; seat < runtime.State.Capacity; seat++)
                 {
@@ -354,7 +355,7 @@ namespace CurtainCall.HumanCannon
                 float hold = seat == 0 ? poles[index].HoldSeconds : Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(0) - Clock));
                 if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, false, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
-                if (runtime.State.Count == 1) runtime.Angle = runtime.Speed = 0f;
+                if (runtime.State.Count == 1) runtime.ReleaseDirection = 0f;
                 runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment,
                     JoinedRevision = runtime.State.Revision };
                 void CompleteCatch()
@@ -369,6 +370,9 @@ namespace CurtainCall.HumanCannon
             {
                 if (revision < runtime.Riders[seat].JoinedRevision) return;
                 if (IsReleaseBlockedByPassenger(actor)) return;
+                // A final Swing and Release can arrive in the same host frame. Use the
+                // accepted inputs now rather than the direction from the previous Update.
+                RefreshReleaseDirection(runtime);
                 ReleasePassengers(index, seat);
                 if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, poles[index].WarningSeconds))
                     Publish(index, PoleEvent.Released, actor, seat);
@@ -381,6 +385,21 @@ namespace CurtainCall.HumanCannon
                 rider.SwingInput.Observe(rider.Input);
                 rider.InputSequence = sequence; rider.LastInput = Clock;
             }
+        }
+
+        void RefreshReleaseDirection(Runtime runtime)
+        {
+            float sum = 0f;
+            int drivers = 0;
+            for (int seat = 0; seat < runtime.State.Capacity; seat++)
+            {
+                if (!GameSettings.Poles.CanDrive(seat) || runtime.State.OccupantAt(seat) == CannonSeatState.Nobody) continue;
+                drivers++;
+                var rider = runtime.Riders[seat];
+                if (Clock - rider.LastInput <= .3) sum += rider.Input;
+            }
+            float drive = SharedDrive(sum, drivers);
+            if (Mathf.Abs(drive) >= .01f) runtime.ReleaseDirection = Mathf.Sign(drive);
         }
 
         void Apply(int index, PoleEvent action, ulong actor, int station = 0, uint launch = 0, uint segment = 0)
@@ -428,7 +447,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < states.Length; i++)
             {
                 var runtime = states[i];
-                runtime.State.Reset(); runtime.Angle = runtime.Speed = 0f;
+                runtime.State.Reset(); runtime.Angle = runtime.Speed = runtime.ReleaseDirection = 0f;
                 runtime.ResetRevision = runtime.State.Revision; runtime.LastDeparture.Clear();
                 for (int seat = 0; seat < runtime.Riders.Length; seat++) runtime.Riders[seat] = new Rider();
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);

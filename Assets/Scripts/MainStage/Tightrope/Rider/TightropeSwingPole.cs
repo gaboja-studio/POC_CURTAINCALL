@@ -75,7 +75,7 @@ namespace CurtainCall.Tightrope
         Vector3 PredictLanding(bool withInput)
         {
             Vector3 origin = WorldFeet(OwnAngle, assignedLane);
-            Vector3 velocity = physicalPole.ReleaseVelocity(OwnAngle, common != null ? common.SpeedAt(sharedIndex) : 0);
+            Vector3 velocity = common != null ? common.ReleaseVelocityAt(sharedIndex) : Vector3.zero;
             if (withInput) velocity += course.Forward * AirControlSpeed;
             float gravity = GameSettings.Base.Character.Gravity;
             float drop = Mathf.Max(0, origin.y - course.transform.position.y);

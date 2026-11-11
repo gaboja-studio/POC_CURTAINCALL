@@ -65,9 +65,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Vector3 release = pole.ReleaseVelocity(angle, 120);
                 pole.PresentSwing(angle);
                 Near(bar.position, feet + Vector3.up * 1.5f);
-                Vector3 pivot = fixedGrip + Vector3.up * 1.5f;
-                Near(bar.position, pivot + PoleSwingMotion.Offset(angle, 1.5f, pole.Forward));
-                Assert.That(Vector3.Distance(pivot, bar.position), Is.EqualTo(1.5f).Within(0.001f));
+                Vector3 pivot = fixedGrip + Vector3.up * pole.SwingLength;
+                Near(bar.position, pivot + PoleSwingMotion.Offset(angle, pole.SwingLength, pole.Forward));
+                Assert.That(Vector3.Distance(pivot, bar.position), Is.EqualTo(pole.SwingLength).Within(0.001f));
                 Near(grip.position, fixedGrip);
                 Near(leftAnchor.position, fixedLeft); Near(rightAnchor.position, fixedRight);
                 Near(pole.HangingPosition(angle), feet);
@@ -96,25 +96,27 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(-35f, -70f)]
         [TestCase(35f, 70f)]
-        public void ReleaseVelocity_IsDerivativeOfActualBodyArcPlusUpwardBoost(float angle, float speed)
+        public void ReleaseVelocity_ConvertsCurrentEnergyAndKeepsChosenDirection(float angle, float speed)
         {
-            const float deltaTime = 0.0001f;
-            Vector3 finiteDifference = (pole.HangingPosition(angle + speed * deltaTime)
-                - pole.HangingPosition(angle - speed * deltaTime)) / (2 * deltaTime);
-            Vector3 tangent = pole.ReleaseVelocity(angle, speed) - Vector3.up * 6;
-            Assert.That(Vector3.Distance(tangent, finiteDifference), Is.LessThan(0.02f));
-            Vector3 pivot = grip.position + Vector3.up * 1.5f;
-            Assert.That(Vector3.Dot(tangent, pole.BarPosition(angle) - pivot), Is.EqualTo(0).Within(0.001f));
-            Assert.That(tangent.magnitude, Is.EqualTo(1.5f * Mathf.Abs(speed) * Mathf.Deg2Rad).Within(0.001f));
+            var rules = GameSettings.Poles;
+            var velocity = pole.ReleaseVelocity(angle, speed, 0, 1f);
+            Assert.That(Vector3.Dot(velocity, pole.Forward), Is.GreaterThan(0));
+            Assert.That(velocity.y, Is.EqualTo(rules.ReleaseUpwardSpeed));
+            Near(pole.ReleaseVelocity(angle, speed, 0, -1f), -Vector3.ProjectOnPlane(velocity, Vector3.up)
+                + Vector3.up * rules.ReleaseUpwardSpeed);
+            float previous = rules.SwingMotionSpeed;
+            JsonUtility.FromJsonOverwrite("{\"swingMotionSpeed\":0.5}", rules);
+            float slower = Vector3.ProjectOnPlane(pole.ReleaseVelocity(angle, speed), Vector3.up).magnitude;
+            Assert.That(slower, Is.EqualTo(Vector3.ProjectOnPlane(velocity, Vector3.up).magnitude * .5f / previous).Within(.001f));
         }
 
         [Test]
-        public void MissingCeilingAnchor_PreservesLegacyShortPendulum()
+        public void MissingCeilingAnchor_PreservesSharedPendulum()
         {
             Set("rightAnchor", null);
-            Assert.That(pole.SwingLength, Is.EqualTo(1.5f));
-            Near(pole.HangingPosition(35), grip.position + PoleSwingMotion.Offset(35, 1.5f, pole.Forward));
-            Near(pole.ReleaseVelocity(35, 70), PoleSwingMotion.Velocity(35, 70, 1.5f, pole.Forward) + Vector3.up * 6);
+            Assert.That(pole.SwingLength, Is.EqualTo(GameSettings.Poles.SwingLength));
+            Near(pole.HangingPosition(35), grip.position + Vector3.up * (pole.SwingLength - pole.HangLength)
+                + PoleSwingMotion.Offset(35, pole.SwingLength, pole.Forward));
             pole.PresentSwing(35);
             Near(bar.position, pole.HangingPosition(35) + Vector3.up * 1.5f);
         }
@@ -122,15 +124,18 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [Test]
         public void CeilingGeometryCannotChangeSharedGravityAndVelocity()
         {
-            Assert.That(pole.SwingLength, Is.EqualTo(1.5f).Within(0.001f));
+            var rules = GameSettings.Poles;
+            Assert.That(pole.SwingLength, Is.EqualTo(rules.SwingLength).Within(0.001f));
             float expectedAngle = 30, expectedSpeed = 0;
-            PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f, 9.81f, 1.5f, 300, 80, 180, 0.4f);
+            PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f * rules.SwingMotionSpeed, 9.81f,
+                rules.SwingLength, rules.SwingAcceleration, rules.MaxSwingAngle, rules.MaxSwingSpeed, rules.SwingDamping);
             float angle = 30, speed = 0;
             pole.Step(ref angle, ref speed, 0, 0.1f, 9.81f);
             Assert.That(angle, Is.EqualTo(expectedAngle).Within(0.0001f));
             Assert.That(speed, Is.EqualTo(expectedSpeed).Within(0.0001f));
             Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
-            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (1.5f * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
+            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (rules.SwingLength * 100 * Mathf.Deg2Rad * rules.SwingMotionSpeed)
+                + Vector3.up * rules.ReleaseUpwardSpeed);
         }
 
         [TestCase(false, false)] [TestCase(false, true)]
