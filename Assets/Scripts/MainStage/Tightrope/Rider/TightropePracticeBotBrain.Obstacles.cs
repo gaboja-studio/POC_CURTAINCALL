@@ -131,7 +131,7 @@ namespace CurtainCall.Tightrope
             if (input.Move <= 0f) return;
             for (int i = 0; i < saws.HorizontalCount; i++)
             {
-                float gap = saws.Settings.GetHorizontalDistance(i) - distance;
+                float gap = saws.HorizontalLineDistance(i) - distance;
                 if (gap < .7f || gap > .95f || !saws.TryGetHorizontalPosition(i, out _)) continue;
                 input.ActionPressed = true;
                 nextJumpAt = Time.time + .8f;

@@ -123,7 +123,7 @@ namespace CurtainCall.HumanCannon
             {
                 GUILayout.Space(8);
                 GUILayout.Label("비행 중 봉 아래 F: 잡기 / W·S: 반동");
-                GUILayout.Label("봉에서 Space 또는 F 길게: 놓기 도약");
+                GUILayout.Label("봉에서 Space: 도약 / F 길게: 아래로 내려오기");
                 GUILayout.Label("노랑·검정 봉 유지: 지상 관문 톱 수납 / 놓기·사망: 예고 후 재동작");
                 GUILayout.Label("몸통 높이 왕복 톱은 계속 이동 / W·S로 앞뒤 회피");
                 GUILayout.Label("협동: 위 봉 잡기 → 지상 담당 통과 → 너머에서 다시 받기");

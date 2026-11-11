@@ -19,9 +19,12 @@ namespace CurtainCall.HumanCannon
             {
                 polePumpInput = input.Move;
                 poles.RequestSwing(HeldPole, input.Move);
-                if (input.ActionPressed ||
-                    latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
-                    poles.RequestRelease(HeldPole);
+                // Space spends the stored swing; holding F only lets go below the grip.
+                // Resolve the latch even on a jump frame so a stale hold cannot release the next pole.
+                bool drop = latch.Read(input.InteractTapped, input.InteractLongPressed,
+                    input.InteractHoldProgress) == CannonAction.Cancel;
+                if (input.ActionPressed) poles.RequestRelease(HeldPole);
+                else if (drop) poles.RequestDrop(HeldPole);
                 return true;
             }
             return input.InteractTapped && TryRequestNearbyPole();

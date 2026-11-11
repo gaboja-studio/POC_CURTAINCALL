@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class PoleGatePassageTests
     {
         const float Radius = 0.4f;

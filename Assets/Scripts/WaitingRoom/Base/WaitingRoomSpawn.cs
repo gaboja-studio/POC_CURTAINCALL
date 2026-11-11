@@ -1,6 +1,7 @@
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -111,11 +112,11 @@ namespace CurtainCall.WaitingRoom
         static bool InInitialRehearsal() => CampaignRun.Instance != null
             && CampaignRun.Instance.State.Phase == CampaignPhase.Rehearsal;
 
-        static void PlaceOnPracticeFloor(NetworkPlayer player)
+        void PlaceOnPracticeFloor(NetworkPlayer player)
         {
             if (player == null || !player.TryGetComponent(out PlayerMover mover)) return;
-            var room = GameObject.Find("S09_PracticeRoom");
-            var deck = room != null ? room.transform.Find("LegacyRing/PracticeRing/DeckCollider") : null;
+            var room = WaitingRoomScenes.FindPracticeRoom(gameObject.scene);
+            var deck = room != null ? room.Find("LegacyRing/PracticeRing/DeckCollider") : null;
             var floor = deck != null ? deck.GetComponent<Collider>() : null;
             if (floor == null)
             {

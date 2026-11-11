@@ -32,7 +32,7 @@ namespace CurtainCall.Tightrope.Saws
         public bool IsHorizontalSafeForTeamPassage(int index)
         {
             if (index < 0 || index >= settings.HorizontalCount || !isActiveAndEnabled || run == null || run.State != TightropeRunState.Running) return false;
-            float distance = settings.GetHorizontalDistance(index), elapsed = GameElapsed;
+            float distance = HorizontalLineDistance(index), elapsed = GameElapsed;
             foreach (var passage in teamPassages) if (passage.IsOpen(elapsed) && passage.Contains(distance)) return true;
             return false;
         }
@@ -75,7 +75,7 @@ namespace CurtainCall.Tightrope.Saws
         void PauseTracks(TeamPassageWindow passage)
         {
             for (int i = 0; i < tracks.Length; i++)
-                if (passage.Contains(settings.GetHorizontalDistance(i))) tracks[i].Pause(passage.Start, passage.End - passage.Start);
+                if (passage.Contains(HorizontalLineDistance(i))) tracks[i].Pause(passage.Start, passage.End - passage.Start);
         }
 
         void RebuildHorizontalTracks()
@@ -101,7 +101,7 @@ namespace CurtainCall.Tightrope.Saws
             float offset = 0f, elapsed = GameElapsed;
             foreach (var passage in teamPassages)
             {
-                if (!passage.IsOpen(elapsed) || !passage.Contains(settings.GetHorizontalDistance(index))) continue;
+                if (!passage.IsOpen(elapsed) || !passage.Contains(HorizontalLineDistance(index))) continue;
                 float down = Mathf.Clamp01((elapsed - passage.Start) / Mathf.Max(0.1f, settings.verticalLowerDuration));
                 float up = Mathf.Clamp01((passage.End - elapsed) / Mathf.Max(0.1f, settings.teamPassageWarning));
                 offset = Mathf.Max(offset, Mathf.Min(down, up) * settings.verticalLowerDepth);

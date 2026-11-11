@@ -37,7 +37,7 @@ namespace CurtainCall.Settings
         [InspectorName("도약 추가 상승 속도"), Tooltip("손을 놓을 때의 위쪽 도약 속도(m/s). 기본 6m/s. 현재 반동 에너지는 수평 도약 힘으로 바꾸므로 끝점에서도 축적한 반동으로 멀리 뛴다. 마지막 반동 입력 방향으로 도약하며, 입력 이력이 없으면 움직이는 방향을 따른다. 반동이 없는 봉은 수평 추진 없이 위로만 뛴다.")]
         [SerializeField, Min(0f)] float releaseUpwardSpeed = 6f;
         [InspectorName("도약 수평 속도 상한"), Tooltip("현재 반동 에너지에서 계산한 수평 도약 속도의 상한(m/s). 기본 4.5m/s. 봉의 왕복 모션은 유지하고 손을 놓은 뒤의 수평 속도만 제한한다. 반동이 적으면 이보다 느리며 운반 레일 속도는 더하지 않는다.")]
-        [SerializeField, Min(0f)] float horizontalSpeedLimit = 4.5f;
+        [SerializeField, Min(0f)] float horizontalSpeedLimit = 5f;
         [Header("기존 인간대포 봉 외형")]
         [InspectorName("일반 봉 외형"), Tooltip("일반 봉에 공통으로 표시할 기존 외형 프리팹. 조작·반동 수치는 바꾸지 않는다. 변경 후 코스를 다시 생성한다.")]
         [SerializeField] GameObject regularVisual;

@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace CurtainCall.Settings
 {
@@ -37,6 +38,24 @@ namespace CurtainCall.Settings
         public static bool IsWaitingRoom(string name) => name == BaseName || HasPursuit(name);
         public static bool HasPursuit(string name) => name == PursuitName || name == IntegratedName;
         public static bool IsWaitingRoom(Scene scene) => scene.IsValid() && IsWaitingRoom(scene.name);
+        public static Transform FindPracticeRoom()
+        {
+            var active = SceneManager.GetActiveScene();
+            var roomScene = IsWaitingRoom(active) ? active : SceneManager.GetSceneByName(GameSettings.Base.SpaceTransition.WaitingRoomScene);
+            return FindPracticeRoom(roomScene);
+        }
+        public static Transform FindPracticeRoom(Scene scene)
+        {
+            if (!scene.IsValid() || !scene.isLoaded) return null;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root.name != "WaitingRoom_LayoutA" || !root.activeInHierarchy) continue;
+                // PursuitSystem also contains a room marker named S09_PracticeRoom.
+                var room = root.transform.Find("S09_PracticeRoom");
+                if (room != null && room.gameObject.activeInHierarchy) return room;
+            }
+            return null;
+        }
         public static bool IsLoaded => SceneManager.GetSceneByName(BaseName).isLoaded || SceneManager.GetSceneByName(PursuitName).isLoaded
             || SceneManager.GetSceneByName(IntegratedName).isLoaded;
         public static bool PursuitEnabled => HasPursuit(GameSettings.Base.SpaceTransition.WaitingRoomScene) && GameSettings.WaitingRoom.Pursuit.Enabled;

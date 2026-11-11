@@ -32,6 +32,9 @@ namespace CurtainCall.Settings
         [SerializeField] Tightrope.Fire.FireSettings fire = new();
         [Header("추락 매달림·동료 끌어올리기 (M2)")]
         [SerializeField] HangSettings hang = new();
+        [Header("공연 단계 추가 배치 (2단계부터)")]
+        [Tooltip("대기실 스케줄에서 고른 외줄 단계에만 1단계 위에 더 놓는 기물. 첫 칸이 2단계, 둘째 칸이 3단계다. 1단계(위 코스·톱날 칸)를 고치면 모든 단계에 같이 반영된다.")]
+        [SerializeField] StageSettings[] laterStages = { new(), new() };
 
         /// <summary>인스펙터에서 값을 바꿨을 때(에디터). 코스가 다시 만들지 판단하는 데 쓴다.</summary>
         public event Action Changed;
@@ -47,7 +50,53 @@ namespace CurtainCall.Settings
         public Tightrope.Fire.FireSettings Fire => fire;
         public HangSettings Hang => hang ??= new HangSettings();
 
-        void OnValidate() => Changed?.Invoke();
+        /// <summary>공연 단계 수(대기실 스케줄의 1~3단계).</summary>
+        public const int StageCount = 3;
+        public static int ClampStage(int stage) => Mathf.Clamp(stage, 1, StageCount);
+
+        /// <summary>그 단계의 코스 값. 지금은 모든 단계가 1단계 코스를 쓴다(추가 배치는 기물만).</summary>
+        public CourseSettings CourseFor(int stage) => course;
+
+        [NonSerialized] Tightrope.Saws.SawSettings[] stageSaws;
+
+        /// <summary>그 단계의 톱날 값 = 1단계 톱날 + 그 단계 추가 톱날. 추가가 없으면 1단계 값 그대로.</summary>
+        public Tightrope.Saws.SawSettings SawsFor(int stage)
+        {
+            var extra = LaterStage(stage)?.extraHorizontalSaws;
+            if (extra == null || extra.Length == 0) return saws;
+            stageSaws ??= new Tightrope.Saws.SawSettings[StageCount];
+            return stageSaws[ClampStage(stage) - 1] ??= saws.WithExtraHorizontalSaws(extra);
+        }
+
+        /// <summary>그 단계의 추격 불 속도(m/s). 2·3단계 값이 0보다 작으면 1단계(불 칸의 chaseSpeed).</summary>
+        public float FireChaseSpeedFor(int stage)
+        {
+            float own = LaterStage(stage)?.fireChaseSpeed ?? -1f;
+            return own >= 0f ? own : fire.chaseSpeed;
+        }
+
+        StageSettings LaterStage(int stage)
+        {
+            int index = ClampStage(stage) - 2;
+            return index >= 0 && laterStages != null && index < laterStages.Length ? laterStages[index] : null;
+        }
+
+        void OnValidate()
+        {
+            stageSaws = null;
+            Changed?.Invoke();
+        }
+
+        /// <summary>2단계부터 그 단계에만 1단계 위에 더 놓는 기물.</summary>
+        [Serializable]
+        public sealed class StageSettings
+        {
+            [Tooltip("이 단계에만 나오는 가로 톱날(위치·출발 쪽·수평). 톱날 밀도와 상관없이 항상 나오고, 1단계 목록의 마지막 톱날을 작동시키는 장애물 순서와 함께 작동한다. 속도는 1단계 첫·마지막 톱날 거리 비율을 따른다.")]
+            public Tightrope.Saws.HorizontalSawEntry[] extraHorizontalSaws = Array.Empty<Tightrope.Saws.HorizontalSawEntry>();
+
+            [Tooltip("이 단계의 추격 불 속도(m/s). 0보다 작으면 1단계(불 칸의 chaseSpeed)와 같다.")]
+            public float fireChaseSpeed = -1f;
+        }
 
         /// <summary>
         /// M2(2026-10-27) 균형 추락 매달림: 추락 게이지가 넘치면 줄을 잡고 버티고, 근처 동료가 F로 끌어올린다.
@@ -226,7 +275,10 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class RopeMovementSettings
         {
-            [Tooltip("모든 외줄 지지 폭(m). 탈출로 기준.")]
+            [Tooltip("켜면 보이는 외줄의 굵기로 지지 폭을 맞춘다. 생성 코스는 줄 굵기, 배치된 줄은 자체 메시/콜라이더 폭을 사용한다. 모든 씬 공통.")]
+            [SerializeField] bool matchVisualSupportWidth = true;
+            public bool MatchVisualSupportWidth => matchVisualSupportWidth;
+            [Tooltip("외줄 외형에 지지 폭 맞추기를 끈 경우 사용하는 공통 지지 폭(m).")]
             [SerializeField, Min(.01f)] float supportWidth = .55f;
             [Tooltip("발과 줄 윗면의 높이 허용(m). 모든 씬 공통.")]
             [SerializeField, Min(.01f)] float supportHeightTolerance = .3f;

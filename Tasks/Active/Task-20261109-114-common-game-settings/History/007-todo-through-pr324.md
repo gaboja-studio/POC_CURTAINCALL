@@ -1,0 +1,13 @@
+- [x] 공통 이동·점프·외줄·봉·추락·상호작용 GameSettings 연결 및 Inspector 설명
+- [x] 승인된 튜토리얼 보호·재연습 복귀·4m 부상/8m 사망·안전 착지 적용
+- [x] 이전 제출 PR317/319/322와 DEV 병합 내용 보존
+- [x] 작업 재개 전 Unity 종료·DEV fb39d3dd 통합, 수정 보존
+- [x] 추가 진행 막힘·끼임·작은 점프 오사망의 정적/회귀/실행 파일 조사
+- [x] 숙소 모서리 접지·탐색 자격·화면 소유자·추격 제어·런 자금 수명 수정
+- [x] 이동·목마·부상·부활·봉/외줄/대포 모션의 재현·수정·실제 화면 대조
+- [x] 4캐릭터×생존 부상4단계·구조 손 접점·모션 회귀 확인
+- [x] 최신 빌드 2·3·4인 Relay 동기화 확인: [범위/한계](completion-audit.md)
+- [x] 4인 기물 점유자 사망→해제·복귀·다른 이용자 재사용 확인
+- [x] 최종빌드 폴더에 [변경 전후51행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40534020/11+10) 게시·폭/글머리 기호/내용 확인
+- [x] 대포 연습 봇 최신 코드·검사 준비 수정 후 집중 검사 마무리
+- [x] 최종 check-work·Unity 종료 후 DEV 확인·관련52파일 commit/push·[dev PR324](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/324), PM팀 검토 요청

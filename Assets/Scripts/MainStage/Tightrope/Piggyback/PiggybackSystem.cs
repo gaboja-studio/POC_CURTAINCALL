@@ -30,6 +30,7 @@ namespace CurtainCall.Tightrope
         const string RequestMessage = "CurtainCall.Tightrope.PiggybackRequest";
         const string LinksMessage = "CurtainCall.Tightrope.PiggybackLinks";
         const string ResultMessage = "CurtainCall.Tightrope.PiggybackResult";
+        const int SceneHeaderBytes = 132;
 
         enum Request : byte { Interact, Release, Sync, LaneLanding }
 
@@ -105,9 +106,9 @@ namespace CurtainCall.Tightrope
             if (TightropeTrapeze.Current != null && (TightropeTrapeze.Current.IsCrossing(climber) || TightropeTrapeze.Current.IsCrossing(target))) return false;
             if (IsInStack(climber) && (!predictTopRelease || GetAbove(climber) != null
                 || BottomOf(climber.OwnerClientId) == BottomOf(target.OwnerClientId))) return false;
-            if (climber.State != PlayerState.Normal || target.State != PlayerState.Normal) return false;
+            if (climber.State != PlayerState.Normal || target.State != PlayerState.Normal || climber.IsDroppingFromSupport) return false;
             for (var member = FindPlayer(BottomOf(target.OwnerClientId)); member != null; member = GetAbove(member))
-                if (member.State != PlayerState.Normal || member.IsAirborne || UsingDevice(member)) return false;
+                if (member.State != PlayerState.Normal || member.IsAirborne || member.IsDroppingFromSupport || UsingDevice(member)) return false;
             return true;
         }
 
@@ -125,7 +126,8 @@ namespace CurtainCall.Tightrope
             }
             var manager = Messaging;
             if (manager == null) return;
-            using var writer = new FastBufferWriter(21, Allocator.Temp);
+            using var writer = new FastBufferWriter(SceneHeaderBytes + 21, Allocator.Temp);
+            writer.WriteValueSafe(ActiveSceneName());
             writer.WriteValueSafe((byte)Request.LaneLanding);
             writer.WriteValueSafe(target.OwnerClientId);
             writer.WriteValueSafe(landing);
@@ -166,11 +168,20 @@ namespace CurtainCall.Tightrope
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
         }
 
         static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (NetworkPlayer.All.Count > 0) EnsureExists();
+        }
+
+        static void OnActiveSceneChanged(Scene previous, Scene next)
+        {
+            if (!previous.IsValid() || previous == next || Current == null) return;
+            Current.GetComponent<PiggybackFollow>()?.ReleaseForSceneChange();
+            Current.LeaveGameplay();
         }
 
         public static void EnsureExists()
@@ -274,12 +285,12 @@ namespace CurtainCall.Tightrope
                 if (player == null || !player.TryGetComponent(out PlayerBalance balance)) continue;
                 int size = 1;
                 float sum = 0f;
-                if (player.State == PlayerState.Normal && !balance.HasFallen)
+                if (player.State == PlayerState.Normal && !balance.HasFallen && !IsReleasedForFall(player))
                 {
                     size = GetStackSize(player);
                     for (var upper = GetAbove(player); upper != null; upper = GetAbove(upper))
                         if (upper.State == PlayerState.Normal && upper.TryGetComponent(out PlayerBalance upperBalance)
-                            && upperBalance.IsActive && !upperBalance.HasFallen)
+                            && upperBalance.IsActive && !upperBalance.HasFallen && !IsReleasedForFall(upper))
                             sum += upperBalance.Value;
                 }
                 if (size > 1 && player.State == PlayerState.Normal && !balance.HasFallen)
@@ -356,6 +367,9 @@ namespace CurtainCall.Tightrope
         public bool WasDropped(NetworkPlayer player) =>
             player != null && lastDropped.Contains(player.OwnerClientId);
 
+        internal bool IsReleasedForFall(NetworkPlayer player) => player != null
+            && (player.IsDroppingFromSupport || TryGetComponent(out PiggybackFollow follow) && follow.IsReleasedForFall(player));
+
         bool IsInStack(ulong id) => belowOf.ContainsKey(id) || aboveOf.ContainsKey(id);
 
         ulong BottomOf(ulong id)
@@ -404,7 +418,11 @@ namespace CurtainCall.Tightrope
 
         void HandleInteract() { if (CommonInteractionSelection.Consume(NetworkPlayer.Local, this)) SendRequest(Request.Interact); }
 
-        void HandleRelease() { if (CommonInteractionSelection.Consume(NetworkPlayer.Local, this)) SendRequest(Request.Release); }
+        void HandleRelease()
+        {
+            var local = NetworkPlayer.Local;
+            if (!IsReleasedForFall(local) && CommonInteractionSelection.Consume(local, this)) SendRequest(Request.Release);
+        }
 
         void SendRequest(Request request)
         {
@@ -419,7 +437,8 @@ namespace CurtainCall.Tightrope
             }
             var manager = Messaging;
             if (manager == null) return;
-            using var writer = new FastBufferWriter(1, Allocator.Temp);
+            using var writer = new FastBufferWriter(SceneHeaderBytes + 1, Allocator.Temp);
+            writer.WriteValueSafe(ActiveSceneName());
             writer.WriteValueSafe((byte)request);
             manager.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer);
         }
@@ -428,9 +447,11 @@ namespace CurtainCall.Tightrope
 
         void HandleRequestMessage(ulong senderId, FastBufferReader reader)
         {
+            if (!IsCurrentSceneMessage(ref reader, 1)) return;
             reader.ReadValueSafe(out byte request);
             if ((Request)request == Request.LaneLanding)
             {
+                if (!reader.TryBeginRead(sizeof(ulong) + 3 * sizeof(float))) return;
                 reader.ReadValueSafe(out ulong target);
                 reader.ReadValueSafe(out Vector3 landing);
                 Reply(senderId, ServerTryLaneLink(senderId, target, landing));
@@ -495,6 +516,9 @@ namespace CurtainCall.Tightrope
                 if (!CanStand(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
+                if (climber.TryGetComponent(out PlayerMover climberMover) && climberMover.FreeMovement
+                    && other.TryGetComponent(out PlayerMover carrierMover) && carrierMover.FreeMovement
+                    && !PiggybackFollow.HasRoomForPassenger(climberMover, PiggybackFollow.HeadAboveStack(this, other))) continue;
                 Vector3 center = PlayerInteraction.Center(other);
                 float distance = (center - PlayerInteraction.Center(climber)).sqrMagnitude;
                 if (!PlayerInteraction.InRange(climber, center, reach) || distance > best
@@ -505,7 +529,9 @@ namespace CurtainCall.Tightrope
             return target;
         }
 
-        static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne
+        // A grounded owner can still be waiting for the previous fall to finish.
+        // Do not attach a new link that ServerResolveFalls would immediately detach.
+        static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne && !player.IsDroppingFromSupport
             && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)
             && (TightropeCourse.Current != null && player.TryGetComponent(out PlayerMover mover)
                 && TightropeCourse.Current.TryGetSupportingRope(mover, out _) || GroundSupport(player) != null);
@@ -532,7 +558,7 @@ namespace CurtainCall.Tightrope
         {
             var local = NetworkPlayer.Local;
             if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
-                || local.State != PlayerState.Normal || UsingDevice(local)) return false;
+                || local.State != PlayerState.Normal || UsingDevice(local) || IsReleasedForFall(local)) return false;
             if (input.InteractLongPressed && GetBelow(local) != null && CommonInteractionSelection.Consume(local, this))
             { RequestLocalRelease(); return true; }
             if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))
@@ -780,6 +806,7 @@ namespace CurtainCall.Tightrope
         {
             if (belowOf.Count == 0) return;
             List<ulong> dropped = null, shocked = null;
+            var fallingRiders = new List<NetworkPlayer>();
             bool changed = false;
             var members = new List<ulong>(belowOf.Keys);
             members.AddRange(aboveOf.Keys);
@@ -797,12 +824,7 @@ namespace CurtainCall.Tightrope
                 {
                     var upper = FindPlayer(up);
                     // M2 목마 낙하: 아래부터 먼저 떨어진 순서로 근처 줄을 한 줄에 한 명씩 잡고, 잡을 줄이 없으면 낙사한다.
-                    if (upper != null && upper.State == PlayerState.Normal)
-                    {
-                        if (hangs != null && TightropeCourse.Current != null)
-                            hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
-                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerReleaseIntoFall();
-                    }
+                    if (upper != null && upper.State == PlayerState.Normal) fallingRiders.Add(upper);
                     (dropped ??= new List<ulong>()).Add(up);
                 }
 
@@ -817,6 +839,14 @@ namespace CurtainCall.Tightrope
             }
 
             if (!changed) return;
+            // Detach first. Fall/grip callbacks must never observe the old head-follow relationship.
+            foreach (var upper in fallingRiders)
+            {
+                var hangs = TightropeHangSystem.Current;
+                if (hangs != null && TightropeCourse.Current != null)
+                    hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
+                else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerReleaseIntoFall();
+            }
             ServerBroadcast(dropped, shocked);
         }
 
@@ -901,7 +931,8 @@ namespace CurtainCall.Tightrope
             int dropCount = dropped?.Count ?? 0;
             int shockCount = shocked?.Count ?? 0;
             int placementBytes = placements == null ? 0 : 4 + placements.Count * 20;
-            var writer = new FastBufferWriter(16 + (belowOf.Count * 2 + dropCount + shockCount) * 8 + placementBytes, Allocator.Temp);
+            var writer = new FastBufferWriter(SceneHeaderBytes + 16 + (belowOf.Count * 2 + dropCount + shockCount) * 8 + placementBytes, Allocator.Temp);
+            writer.WriteValueSafe(ActiveSceneName());
             writer.WriteValueSafe(belowOf.Count);
             foreach (var pair in belowOf)
             {
@@ -930,6 +961,7 @@ namespace CurtainCall.Tightrope
         void HandleLinksMessage(ulong senderId, FastBufferReader reader)
         {
             if (senderId != NetworkManager.ServerClientId) return;
+            if (!IsCurrentSceneMessage(ref reader, 16)) return;
             // 이전 공연의 늦은 연결 패킷이 휴식·다른 묘기에 목마를 되살리지 않는다.
             if (!IsGameplayActive) { LeaveGameplay(); return; }
             belowOf.Clear();
@@ -961,6 +993,20 @@ namespace CurtainCall.Tightrope
                 }
             }
             ApplyEvents(dropped, shocked, shock, placements);
+        }
+
+        static FixedString128Bytes ActiveSceneName() => new(SceneManager.GetActiveScene().name);
+
+        static bool IsCurrentSceneMessage(ref FastBufferReader reader, int minimumPayloadBytes)
+        {
+            if (!reader.TryBeginRead(sizeof(int))) return false;
+            var activeScene = ActiveSceneName();
+            int start = reader.Position;
+            reader.ReadValueSafe(out int length);
+            if (length != activeScene.Length || reader.Length - reader.Position < length + minimumPayloadBytes) return false;
+            reader.Seek(start);
+            reader.ReadValueSafe(out FixedString128Bytes scene);
+            return scene.Equals(activeScene);
         }
 
         static List<ulong> ReadIds(FastBufferReader reader)

@@ -3,12 +3,14 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
+using CurtainCall.WaitingRoom;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     [Category("November11CommonFix")]
+    [Category("CommonProgressionRegression")]
     public sealed class CommonMechanicsTests
     {
         static object Call(object target, string name, params object[] args) => target.GetType()
@@ -92,6 +94,230 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
         static void Set(object target, string name, object value) => target.GetType()
             .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+
+        [TestCase("ordinary jump", true)]
+        [TestCase("ordinary fall", true)]
+        [TestCase("cannon flight", false)]
+        [TestCase("rope hang", false)]
+        [TestCase("mounted rider", false)]
+        public void DelayedTrampolineGrabRechecksThePlayersCurrentActivity(string activity, bool allowed)
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            const ulong actor = 713UL;
+            var root = new GameObject("Carry activity test");
+            root.transform.position = new Vector3(3500, 45, 3500);
+            var types = new[] { typeof(HumanCannonSystem), typeof(TightropeHangSystem), typeof(PiggybackSystem) };
+            var saved = System.Array.ConvertAll(types, t => t.GetProperty("Current").GetValue(null));
+            NetworkPlayer player = null;
+            GameObject Child(string name) { var child = new GameObject(name); child.transform.SetParent(root.transform, false); return child; }
+            try
+            {
+                var cannon = Child("Cannon").AddComponent<HumanCannonSystem>();
+                Call(cannon, "ResetSeats");
+                types[0].GetProperty("Current").SetValue(null, cannon);
+                var hangs = Child("Rope hang").AddComponent<TightropeHangSystem>();
+                types[1].GetProperty("Current").SetValue(null, hangs);
+                var stack = Child("Piggyback").AddComponent<PiggybackSystem>();
+                types[2].GetProperty("Current").SetValue(null, stack);
+                player = Child("Player").AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                var mover = player.GetComponent<PlayerMover>();
+                Call(mover, "Awake"); Call(player, "Awake");
+                var trampoline = Child("Trampoline").AddComponent<HumanCannonTrampoline>();
+                trampoline.transform.localPosition = Vector3.forward * 1.5f;
+                var handle = Child("Handle").transform;
+                handle.SetParent(trampoline.transform, false);
+                handle.localPosition = Vector3.back;
+                Set(trampoline, "handle", handle);
+                Set(trampoline, "carryBody", trampoline.gameObject.AddComponent<BoxCollider>());
+                Physics.SyncTransforms();
+                Assert.IsTrue(trampoline.CanGrab(player), "The starting pickup is in range and unobstructed.");
+                switch (activity)
+                {
+                    case "ordinary jump": mover.LaunchJump(0f); break;
+                    case "ordinary fall": mover.ResetExternalMotion(true); break;
+                    case "cannon flight":
+                        ((CannonFlightState)typeof(HumanCannonSystem).GetField("flying", fields).GetValue(cannon)).Begin(actor, 0, 1);
+                        break;
+                    case "rope hang":
+                        ((TightropeHangBook)typeof(TightropeHangSystem).GetField("book", fields).GetValue(hangs)).Begin(actor, 0, 4f, 7d);
+                        break;
+                    case "mounted rider":
+                        var carrier = Child("Carrier").AddComponent<NetworkPlayer>();
+                        typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(carrier, actor + 1);
+                        var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+                        all.Add(carrier);
+                        try
+                        {
+                            ((System.Collections.IDictionary)typeof(PiggybackSystem).GetField("belowOf", fields).GetValue(stack)).Add(actor, actor + 1);
+                            Assert.AreEqual(allowed, trampoline.CanGrab(player));
+                        }
+                        finally { all.Remove(carrier); }
+                        return;
+                }
+                Assert.AreEqual(allowed, trampoline.CanGrab(player));
+            }
+            finally
+            {
+                if (player != null) typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                for (int i = 0; i < types.Length; i++) types[i].GetProperty("Current").SetValue(null, saved[i]);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void CheckpointCleanupReleasesTheTrampolineEvenWhenItsCarrierHasFallen()
+        {
+            var root = new GameObject("Carry recovery host"); root.SetActive(false);
+            try
+            {
+                const ulong actor = 714UL;
+                var session = root.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                Set(session, "_networkManager", root.GetComponent<Unity.Netcode.NetworkManager>());
+                session.GetType().GetProperty("ConnectionState").SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
+                var player = root.AddComponent<NetworkPlayer>();
+                var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                ((Unity.Netcode.NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", fields).GetValue(player)).Value = PlayerState.Fallen;
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                all.Add(player);
+                try
+                {
+                    var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                    Set(trampoline, "session", session);
+                    var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", fields).GetValue(trampoline);
+                    Assert.IsTrue(ownership.TryApply(CannonAction.Board, actor, ownership.Revision));
+                    trampoline.ServerReleaseForInspection(actor);
+                    Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                }
+                finally
+                {
+                    all.Remove(player);
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                }
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CarryReleaseSurvivesTheChangeFromPlatformToRopeControls(bool onRope)
+        {
+            var root = new GameObject("Carry input handoff");
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var oldLocal = local.GetValue(null);
+            const BindingFlags gateFields = BindingFlags.Static | BindingFlags.NonPublic;
+            var rearming = typeof(InputGate).GetField("rearming", gateFields);
+            var blockedFrame = typeof(InputGate).GetField("blockedFrame", gateFields);
+            var previousRearming = rearming.GetValue(null);
+            var previousBlockedFrame = blockedFrame.GetValue(null);
+            var blockers = (System.Collections.Generic.HashSet<object>)typeof(InputGate).GetField("blockers", gateFields).GetValue(null);
+            var previousBlockers = new System.Collections.Generic.HashSet<object>(blockers);
+            var scheme = ScriptableObject.CreateInstance<TightropeControlScheme>();
+            NetworkPlayer player = null;
+            HumanCannonTrampoline trampoline = null;
+            PlayerControlContext context = null;
+            try
+            {
+                rearming.SetValue(null, false);
+                blockedFrame.SetValue(null, -1);
+                blockers.Clear();
+                const ulong actor = 715UL;
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var sessionRoot = new GameObject("Host"); sessionRoot.SetActive(false); sessionRoot.transform.SetParent(root.transform);
+                var session = sessionRoot.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                Set(session, "_networkManager", sessionRoot.GetComponent<Unity.Netcode.NetworkManager>());
+                session.GetType().GetProperty("ConnectionState").SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
+                player = root.AddComponent<NetworkPlayer>();
+                Call(player.GetComponent<PlayerMover>(), "Awake"); Call(player, "Awake");
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                all.Add(player); local.SetValue(null, player);
+                var pilot = root.AddComponent<HumanCannonPilot>();
+                Set(pilot, "player", player);
+                Set(pilot, "system", sessionRoot.AddComponent<HumanCannonSystem>());
+                var deviceRoot = new GameObject("Held trampoline"); deviceRoot.transform.SetParent(root.transform);
+                trampoline = deviceRoot.AddComponent<HumanCannonTrampoline>();
+                Set(trampoline, "session", session);
+                var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", fields).GetValue(trampoline);
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, actor, ownership.Revision));
+                HumanCannonCarry.Register(trampoline);
+                Call(pilot, "ReadInput", default(PlayerInputFrame));
+                Call(pilot, "ReadInput", default(PlayerInputFrame));
+                var input = new PlayerInputFrame { InteractLongPressed = true, InteractHeld = true, InteractHoldProgress = 1f };
+                if (onRope)
+                {
+                    context = new PlayerControlContext(root);
+                    scheme.Enter(context);
+                    scheme.Tick(context, input);
+                }
+                else Call(pilot, "ReadInput", input);
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+            }
+            finally
+            {
+                if (context != null) scheme.Exit(context);
+                if (trampoline != null) HumanCannonCarry.Unregister(trampoline);
+                if (player != null)
+                {
+                    all.Remove(player);
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                }
+                local.SetValue(null, oldLocal);
+                blockers.UnionWith(previousBlockers);
+                rearming.SetValue(null, previousRearming);
+                blockedFrame.SetValue(null, previousBlockedFrame);
+                Object.DestroyImmediate(scheme);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void UvLampPausesForPhysicalCarryWithoutLosingItsInventorySlot()
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            const ulong actor = 716UL;
+            var root = new GameObject("Carry with UV inventory");
+            var inventoryInstance = typeof(PropCarry).GetProperty("Instance");
+            var oldInventory = inventoryInstance.GetValue(null);
+            NetworkPlayer player = null;
+            HumanCannonTrampoline trampoline = null;
+            try
+            {
+                player = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                var reader = root.AddComponent<PlayerInputReader>();
+                var inventory = root.AddComponent<PropCarry>();
+                inventoryInstance.SetValue(null, inventory);
+                var held = (System.Collections.Generic.Dictionary<ulong, System.Collections.Generic.List<PropItem>>)
+                    typeof(PropCarry).GetField("receivedHeld", fields).GetValue(inventory);
+                held.Add(actor, new() { new PropItem(13, ItemUses.UvLamp, "UV") });
+                var equipped = typeof(UvFlashlight).GetMethod("Equipped", BindingFlags.Static | BindingFlags.NonPublic);
+                bool CanLight() => (bool)equipped.Invoke(null, new object[] { player, reader });
+                Assert.IsTrue(CanLight());
+                trampoline = root.AddComponent<HumanCannonTrampoline>();
+                HumanCannonCarry.Register(trampoline);
+                var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", fields).GetValue(trampoline);
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, actor, ownership.Revision));
+                Assert.IsFalse(CanLight(), "A hidden UV prop must not keep shining during physical carry.");
+                Assert.IsTrue(ownership.TryApply(CannonAction.Release, actor, ownership.Revision));
+                Assert.IsTrue(CanLight());
+                Assert.That(inventory.Held(actor)[0].Uid, Is.EqualTo(13));
+            }
+            finally
+            {
+                if (trampoline != null) HumanCannonCarry.Unregister(trampoline);
+                if (player != null) typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                inventoryInstance.SetValue(null, oldInventory);
+                Object.DestroyImmediate(root);
+            }
+        }
 
         [Test, Category("CommonRulesRegression")]
         public void RemoteCannonOccupancyExcludesPiggybackWithoutAnOwnerPilot()

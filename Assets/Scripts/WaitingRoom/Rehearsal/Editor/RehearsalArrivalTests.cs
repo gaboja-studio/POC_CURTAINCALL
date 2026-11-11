@@ -10,11 +10,13 @@ using CurtainCall.Tightrope;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.WaitingRoom.EditorTools
 {
+    [Category("CommonProgressionRegression")]
     public sealed class RehearsalArrivalTests
     {
         const BindingFlags Fields = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -350,6 +352,38 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(rehearsal, "EnsureCourse");
             Assert.That(wall.gameObject.activeInHierarchy, Is.EqualTo(originallyActive));
             Assert.That(practiceLanes.activeSelf, Is.False, "집결 경로에 옛 연습 기물을 되돌리지 않는다.");
+        }
+
+        [TestCase(WaitingRoomSceneVariant.Base)]
+        [TestCase(WaitingRoomSceneVariant.Pursuit)]
+        [TestCase(WaitingRoomSceneVariant.Integrated)]
+        public void ActualPracticeRoomSuppliesTheDeckAndFitsEveryLesson(WaitingRoomSceneVariant variant)
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(WaitingRoomScenes.Path(variant));
+            try
+            {
+                var room = WaitingRoomScenes.FindPracticeRoom(scene);
+                Assert.IsNotNull(room, "Use the physical practice room in the saved scene.");
+                var deck = room.Find("LegacyRing/PracticeRing/DeckCollider")?.GetComponent<Collider>();
+                var boundary = room.Find("RoundArena/Frame8Boundary/WallColliders");
+                Assert.IsNotNull(deck);
+                Assert.IsNotNull(room.Find("Corridor/FloorCollider")?.GetComponent<Collider>());
+                Assert.IsNotNull(boundary);
+                var bounds = deck.bounds;
+                var center = new Vector3(bounds.center.x, bounds.max.y, bounds.center.z);
+                var pose = Make("Saved rehearsal bounds").transform;
+                foreach (var lesson in RehearsalStage.All)
+                {
+                    var shape = TightropeSettings.CourseSettings.FromJson(lesson.CourseJson);
+                    pose.position = center + new Vector3(0f, 2.5f, -(lesson.Finish - 1f) * .5f);
+                    Assert.IsTrue(RehearsalPlatformLayout.TryMeasureInnerRadius(boundary, center, pose.position.y, out float radius));
+                    float scale = RehearsalPlatformLayout.FitFinishScale(shape, pose, center, boundary, 2f);
+                    Assert.IsTrue(RehearsalPlatformLayout.FitsInsideRoom(TightropeCourse.PreviewStartPlatformBounds(shape), pose, center, radius, 0f), lesson.Id);
+                    Assert.IsTrue(TightropeCourse.PreviewFinishPlatformBounds(shape, scale, out var finish), lesson.Id);
+                    Assert.IsTrue(RehearsalPlatformLayout.FitsInsideRoom(finish, pose, center, radius, RehearsalArrivalWalls.Thickness), lesson.Id);
+                }
+            }
+            finally { EditorSceneManager.ClosePreviewScene(scene); }
         }
 
         [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]

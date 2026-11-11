@@ -95,8 +95,11 @@ namespace CurtainCall.Tightrope.Saws
         TightropeOutline[] horizontalOutlines = Array.Empty<TightropeOutline>();
         // 얇은 가로 톱은 멀리서 화면 고정 두께 테두리에 묻히므로 거리에 따라 테두리를 줄여 없앤다.
         const float HorizontalOutlineWidth = 3f, HorizontalOutlineFullDistance = 5f, HorizontalOutlineHiddenDistance = 14f;
-        public int ActiveHorizontalCount => TrickSettings.SawCount(HorizontalCount, GameSettings.Tightrope.SawDensity);
-        public bool IsHorizontalEnabled(int index) => TrickSettings.IncludesSaw(index, HorizontalCount, GameSettings.Tightrope.SawDensity);
+        public int ActiveHorizontalCount => TrickSettings.SawCount(settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity)
+            + HorizontalCount - settings.BaseHorizontalCount;
+        /// <summary>플레이에 나오는 가로 톱날인지. 1단계 목록은 톱날 밀도로 고르고, 단계 추가 톱날은 항상 나온다.</summary>
+        public bool IsHorizontalEnabled(int index) => settings.IsStageExtra(index)
+            || TrickSettings.IncludesSaw(index, settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity);
 
         // 가로 톱날(모든 화면): 작동·정지 기록. 시각은 게임 경과 시간
         HorizontalSawTrack[] tracks = Array.Empty<HorizontalSawTrack>();
@@ -135,7 +138,10 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>톱날 조정값(외줄 세팅 에셋의 톱날 칸, 쓸 때마다 읽는다).</summary>
         public SawSettings Settings => settings;
 
-        static SawSettings settings => GameSettings.Tightrope.Saws;
+        /// <summary>코스 공연 단계의 톱날 값(2·3단계 값이 없으면 1단계).</summary>
+        SawSettings settings => builtSettings ??= ResolveStageSettings();
+        SawSettings builtSettings;
+        SawSettings ResolveStageSettings() => GameSettings.Tightrope.SawsFor(course != null ? course.Stage : 1);
 
         /// <summary>
         /// 톱날 판정이 났을 때(모든 화면). 호스트가 확정한 결과다. 020(신체 손상)이 이 신호로 부위를 잃게 한다.
@@ -174,14 +180,30 @@ namespace CurtainCall.Tightrope.Saws
 
         Vector3 HorizontalPositionAtSide(int index, float side)
         {
-            // 같은 기울기의 평행 레일을 사용해 인접 톱의 왕복 경로가 X자로 교차하지 않게 한다.
-            float slope = TrickSettings.DiagonalSlope(0, GameSettings.Tightrope.SawDiagonalDegrees);
-            float reach = settings.horizontalTravelHalfWidth * Mathf.Abs(slope) + settings.horizontalColliderDiameter * .5f;
-            float distance = Mathf.Clamp(settings.GetHorizontalDistance(index), reach, Mathf.Max(reach, course.FinishDistance - reach));
+            float distance = HorizontalCenterDistance(index, out float slope);
+            // 수평 레일은 오른쪽 끝(+반폭) 위치에 맞춰 왼쪽을 올린다.
+            float along = settings.IsLevel(index) ? settings.horizontalTravelHalfWidth * slope
+                : side * (settings.IsMirrored(index) ? -slope : slope);
             return course.transform.position
-                + course.Forward * (distance + side * slope)
+                + course.Forward * (distance + along)
                 + course.Right * side
                 + Vector3.up * settings.HorizontalCenterHeight;
+        }
+
+        float HorizontalCenterDistance(int index, out float slope)
+        {
+            // 같은 기울기의 평행 레일을 사용해 인접 톱의 왕복 경로가 X자로 교차하지 않게 한다.
+            slope = TrickSettings.DiagonalSlope(0, GameSettings.Tightrope.SawDiagonalDegrees);
+            float reach = settings.horizontalTravelHalfWidth * Mathf.Abs(slope) + settings.horizontalColliderDiameter * .5f;
+            return Mathf.Clamp(settings.GetHorizontalDistance(index), reach, Mathf.Max(reach, course.FinishDistance - reach));
+        }
+
+        /// <summary>가로 톱날 레일의 대표 진행 거리(m). 사선은 설정 위치, 수평 레일은 실제로 가로지르는 위치.</summary>
+        public float HorizontalLineDistance(int index)
+        {
+            if (index < 0 || index >= settings.HorizontalCount) return float.NaN;
+            if (!settings.IsLevel(index) || course == null) return settings.GetHorizontalDistance(index);
+            return HorizontalCenterDistance(index, out float slope) + settings.horizontalTravelHalfWidth * slope;
         }
 
         // 일반 진입 톱의 사선은 양옆 경계에서 반사한다. 협동 관문은 선택된 줄을 직진한다.
@@ -232,6 +254,7 @@ namespace CurtainCall.Tightrope.Saws
         {
             current = this;
             if (run != null) run.RunRestarted += HandleRunRestarted;
+            if (course != null) course.StageChanged += HandleStageChanged;
         }
 
         void Start()
@@ -245,6 +268,18 @@ namespace CurtainCall.Tightrope.Saws
                 return;
             }
             run.RunRestarted += HandleRunRestarted;
+            course.StageChanged += HandleStageChanged;
+            builtSettings = ResolveStageSettings();
+            BuildViews();
+            ResetObstacles();
+        }
+
+        /// <summary>공연 단계가 바뀌어 톱날 값이 달라지면 겉모습과 작동 기록을 새로 만든다.</summary>
+        void HandleStageChanged()
+        {
+            var next = ResolveStageSettings();
+            if (builtSettings == next) return;
+            builtSettings = next;
             BuildViews();
             ResetObstacles();
         }
@@ -254,6 +289,7 @@ namespace CurtainCall.Tightrope.Saws
             if (pathRoot != null) pathRoot.gameObject.SetActive(false);
             if (current == this) current = null;
             if (run != null) run.RunRestarted -= HandleRunRestarted;
+            if (course != null) course.StageChanged -= HandleStageChanged;
             Unregister();
             ClearTeamPassages();
             ResetCooperativeGates();

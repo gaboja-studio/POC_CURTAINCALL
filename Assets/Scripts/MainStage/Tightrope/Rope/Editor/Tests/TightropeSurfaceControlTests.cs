@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed partial class TightropeSurfaceControlTests
     {
         readonly List<Object> objects = new();

@@ -36,6 +36,7 @@ namespace CurtainCall.Tightrope
         bool ownsControls;
         PlayerControlScheme returnScheme;
         Vector3? previousForward;
+        Vector3? fallingRopeForward;
         float previousSpacing;
         bool ownsAxes;
         TightropeBodyPenalty injuryPolicy;
@@ -49,7 +50,7 @@ namespace CurtainCall.Tightrope
         public void SuspendForReview(bool value)
         {
             ReviewSuspended = value;
-            if (value) { ReleaseControls(); ReleaseInjuryPolicies(); }
+            if (value) { fallingRopeForward = null; ReleaseControls(); ReleaseInjuryPolicies(); }
         }
 
         /// <summary>작성된 줄이 사라지기 직전 정상 조작권을 돌려준다. 이동·부활·사망을 요청하지 않는다.</summary>
@@ -169,6 +170,7 @@ namespace CurtainCall.Tightrope
         void Unbind()
         {
             ReleaseControls();
+            fallingRopeForward = null;
             player = null;
             controller = null;
             mover = null;
@@ -200,19 +202,31 @@ namespace CurtainCall.Tightrope
             if (player == null || mover == null) return;
             if (!course.IsTraversalActive)
             {
+                fallingRopeForward = null;
                 ReleaseControls();
                 SuppressUnassignedBalance();
                 return;
             }
             if (HasExternalControls && !CanBorrowCannonControls)
             {
+                fallingRopeForward = null;
                 ReleaseControls();
                 return;
             }
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
-            if (player.IsDroppingFromSupport) { ApplyPlatformMode(); return; }
+            var stack = PiggybackSystem.Current;
+            bool releasedForFall = player.IsDroppingFromSupport || stack != null && stack.IsReleasedForFall(player);
+            // The owner can land before the host clears either the drop flag or the old stack link.
+            if (releasedForFall && (mover.IsAirborne || player.IsAirborne || !course.TryGetSupportingRope(mover, out _)))
+            {
+                if (onRope == true) fallingRopeForward = mover.CourseForward;
+                if (!mover.IsAirborne && !player.IsAirborne && WalkableSupport.Contains(mover, mover.transform.position))
+                    fallingRopeForward = null;
+                ApplyPlatformMode();
+                return;
+            }
 
             if (onRope == true && (CannonPilot != null && CannonPilot.IsDriving
                 || (mover.IsAirborne && course.PastSceneRopeEnd(player.transform.position, mover.BodyRadius))))
@@ -227,8 +241,7 @@ namespace CurtainCall.Tightrope
                 if (onRope != true) Apply(true);
                 return;
             }
-            var stack = PiggybackSystem.Current;
-            if (course.IsTraversalActive && stack != null && stack.isActiveAndEnabled
+            if (!releasedForFall && stack != null && stack.isActiveAndEnabled
                 && stack.IsInStack(player))
             {
                 var carrier = stack.GetCarrier(player);
@@ -255,11 +268,14 @@ namespace CurtainCall.Tightrope
             bool rope = course.TryGetSupportingRope(mover, out int lane);
             if (!rope)
             {
+                fallingRopeForward = null;
                 ApplyPlatformMode();
                 return;
             }
             if (onRope == rope && StillOwnsControls)
             {
+                // A short fall can land between updates without ever changing the assigned scheme.
+                if (releasedForFall && (mover.FreeMovement || balance != null && !balance.IsActive)) Apply(true);
                 if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
                 // 공용 재시작·초기화 뒤에도 일반 바닥에서는 균형 계산을 시작하지 않는다.
                 if (!rope) SuppressUnassignedBalance();
@@ -322,7 +338,13 @@ namespace CurtainCall.Tightrope
             {
                 previousForward = mover.CourseForwardOverride;
                 previousSpacing = mover.LaneSpacing;
-                Vector3 enteringForward = player.transform.forward;
+                bool enteringWithVelocity = !fallingRopeForward.HasValue && mover.GroundVelocity.sqrMagnitude > .0001f;
+                Vector3 enteringForward = fallingRopeForward
+                    ?? (enteringWithVelocity ? mover.GroundVelocity.normalized : player.transform.forward);
+                // Platform movement turns the model toward travel even while S is held.
+                // Taking that facing as W would reverse S at the platform/rope boundary.
+                if (enteringWithVelocity && player.TryGetComponent(out PlayerInputReader input) && input.Current.Move < -.01f)
+                    enteringForward = -enteringForward;
                 mover.CourseForwardOverride = course.TraversalForwardAt(player.transform.position, enteringForward);
                 mover.LaneSpacing = course.LaneSpacing;
                 ownsAxes = true;
@@ -336,6 +358,11 @@ namespace CurtainCall.Tightrope
             ownsControls = true;
             if (controller != null) controller.SetScheme(appliedScheme);
             mover.FreeMovement = !rope;
+            if (rope)
+            {
+                mover.FreeAirControl = false;
+                fallingRopeForward = null;
+            }
             if (balance != null) balance.SetBalanceActive(rope);
             LocalModeChanged?.Invoke(rope);
         }

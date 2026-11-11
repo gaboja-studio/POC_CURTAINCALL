@@ -3,6 +3,7 @@ using NUnit.Framework;
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
     /// <summary>M2 외줄 추락 매달림 규칙(tightrope-course-rules.md #1-1): 7초 버팀·2초 끌어올리기 중 정지·끊김·한 줄에 한 명.</summary>
+    [Category("CommonProgressionRegression")]
     public sealed class TightropeHangBookTests
     {
         static bool AllLanes(int lane, float distance) => true;

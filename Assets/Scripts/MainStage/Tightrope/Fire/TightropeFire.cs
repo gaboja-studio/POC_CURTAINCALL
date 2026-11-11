@@ -169,9 +169,13 @@ namespace CurtainCall.Tightrope.Fire
                 HandleConnection(session.ConnectionState);
             }
             if (run == null || session == null) return;
-            if (session.IsHost && (snapshot == null || round != run.Round)) HandleRound();
+            // 판 시작 전에 공연 단계가 바뀌면(대기실에서 고른 단계) 그 단계 불 값으로 다시 잡는다.
+            if (session.IsHost && (snapshot == null || round != run.Round
+                || course != null && snapshotStage != course.Stage && run.State == TightropeRunState.Waiting)) HandleRound();
             ApplyBlocks();
         }
+
+        int snapshotStage;
 
         void HandleRound()
         {
@@ -182,6 +186,8 @@ namespace CurtainCall.Tightrope.Fire
             var settings = GameSettings.Tightrope.Fire ?? new FireSettings();
             int seed = settings.laneOrder != FireLaneOrder.Configured ? UnityEngine.Random.Range(0, int.MaxValue) : 0;
             snapshot = settings.Snapshot(course.FinishDistance, course.LaneCount, seed);
+            snapshotStage = course.Stage;
+            snapshot.chaseSpeed = Mathf.Max(0f, GameSettings.Tightrope.FireChaseSpeedFor(snapshotStage));
             round = run.Round;
             ClearContactReports();
             activeMask = appliedMask = 0;
