@@ -80,6 +80,8 @@ namespace CurtainCall.Tightrope
                 Vector3 feet = practiceLowPoles
                     ? course.GetLanePosition(Lane, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
                     : course.TrapezeRestingFeet(RestingSlot(i));
+                if (practiceLesson && !practiceLowPoles && i == 0)
+                    feet -= Vector3.up * GameSettings.WaitingRoom.Tutorial.FirstTrapezeLowering;
                 poles[i].Physics.transform.SetPositionAndRotation(feet + Vector3.up * GameSettings.Poles.HangLength,
                     Quaternion.LookRotation(course.Forward));
             }

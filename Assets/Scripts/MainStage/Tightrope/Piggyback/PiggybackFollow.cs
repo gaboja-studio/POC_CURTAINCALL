@@ -299,7 +299,7 @@ namespace CurtainCall.Tightrope
         void UpdateLocal(NetworkPlayer local)
         {
             if (IsCrossing(local))
-            { ReleaseForTrapeze(local); return; }
+            { ReleaseForDevice(local); return; }
             var below = local != null ? system.GetBelow(local) : null;
 
             if (launchedAt >= 0f)
@@ -379,7 +379,7 @@ namespace CurtainCall.Tightrope
             Release();
         }
 
-        internal bool ReleaseForTrapeze(NetworkPlayer player)
+        internal bool ReleaseForDevice(NetworkPlayer player)
         {
             if (player == null || !player.IsLocal || localMover == null || localMover.gameObject != player.gameObject) return false;
             var released = localMover;

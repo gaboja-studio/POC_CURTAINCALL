@@ -22,7 +22,7 @@ namespace CurtainCall.WaitingRoom.Editor
             public Vector2 Offset; public void Keep(Rect r) => KeepOut.Add(new Rect(r.position + Offset, r.size));
             public Transform Put(string prefab, float x, float z, float yaw, float scale = 1, float? baseY = null, bool collide = true, float search = 1.2f, float tilt = 0)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(prefab + ".prefab");
+                var asset = CommonPropAsset(prefab);
                 if (asset == null) { CircusLog.Add("missing " + prefab); return null; }
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, Group);
                 var t = go.transform; t.localScale = Vector3.one * scale; t.rotation = Quaternion.Euler(tilt, yaw, 0);

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09111abbbb10f94489d5ade3a37646fd, type: 3}
   m_Name: WaitingRoomSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.WaitingRoomSettings
+  safeFallLandings: 1
   dummySpendAmount: 10
   allowPurchasesDuringRest: 1
   restPresentation:
@@ -289,7 +290,8 @@ MonoBehaviour:
     recoverSeconds: 1.5
     openPracticeDoorWhileOccupied: 1
     waitForRecoveryBeforePerformance: 1
-    keepFinishBarrier: 1
+    keepFinishBarrier: 0
+    firstTrapezeLowering: 0.5
   rehearsal:
     recoverAfterDeath: 1
     recoverSeconds: 1.5

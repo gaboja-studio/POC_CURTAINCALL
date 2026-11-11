@@ -10,6 +10,12 @@ namespace CurtainCall.Settings
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Waiting Room Settings", fileName = "WaitingRoomSettings")]
     public sealed class WaitingRoomSettings : ScriptableObject
     {
+        [Header("대기실 낙하 안전")]
+        [SerializeField, InspectorName("대기실 전체 착지 피해 면제")]
+        [Tooltip("켜면 대기실·기본 대기실·추격 대기실에서 바닥이나 발판에 착지할 때 낙하 높이로 인한 부상·사망을 받지 않는다. 최초 튜토리얼의 바닥 추락 후 출발점 복귀, 위험물 피해, 월드 Y 사망선은 유지한다. 기본 켬.")]
+        bool safeFallLandings = true;
+        public bool SafeFallLandings => safeFallLandings;
+
         [Header("더미 검증 전용 — 정식 상품 가격 아님")]
         [SerializeField, Min(1)] int dummySpendAmount = 10;
 
@@ -120,13 +126,17 @@ namespace CurtainCall.Settings
             [Tooltip("최초 튜토리얼을 끝낸 뒤 집결할 때 죽은 동료의 복귀를 기다린다. 복귀한 동료도 입구에 모여야 공연으로 이동한다. 기본 켬.")]
             bool waitForRecoveryBeforePerformance = true;
             [SerializeField, InspectorName("튜토리얼 도착 지점 투명 벽")]
-            [Tooltip("최초 튜토리얼에서 도착한 사람은 도착대의 투명 벽 안에서 동료를 기다린다. 첫 공연 이후 선택 재연습은 양방향 이동을 유지한다. 기본 켬.")]
-            bool keepFinishBarrier = true;
+            [Tooltip("켜면 최초 튜토리얼 도착대에서 되돌아가는 길을 막는다. 양 끝 진입·양방향 이동을 위해 기본 끔. 재연습에는 적용하지 않는다.")]
+            bool keepFinishBarrier;
+            [SerializeField, Min(0f), InspectorName("목마 연습 첫 그네 낮춤 높이")]
+            [Tooltip("목마로 첫 그네를 잡는 외줄 연습에서 첫 봉을 공연 배치보다 낮추는 거리(m). 최초 튜토리얼과 같은 소구간 재연습에 적용. 기본 0.5m. 봉의 공통 크기·흔들림·잡기 거리·도약 수치는 유지한다.")]
+            float firstTrapezeLowering = .5f;
             public bool ResetOnFloorFall => resetOnFloorFall;
             public float RecoverSeconds => Mathf.Max(0f, recoverSeconds);
             public bool OpenPracticeDoorWhileOccupied => openPracticeDoorWhileOccupied;
             public bool WaitForRecoveryBeforePerformance => waitForRecoveryBeforePerformance;
             public bool KeepFinishBarrier => keepFinishBarrier;
+            public float FirstTrapezeLowering => Mathf.Max(0f, firstTrapezeLowering);
         }
 
         public int DummySpendAmount => Mathf.Max(1, dummySpendAmount);

@@ -174,11 +174,15 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static Transform PlaceKit(string path, Transform g, Vector3 at, float yaw, float scale)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(Kit + path + ".prefab"); if (asset == null) return null;
+            var asset = CommonPropAsset(Kit + path); if (asset == null) return null;
             var t = ((GameObject)PrefabUtility.InstantiatePrefab(asset, g)).transform; t.localScale = Vector3.one * scale; t.rotation = Quaternion.Euler(0, yaw, 0);
             var b = Bounds(t); t.position += new Vector3(at.x - b.center.x, at.y - b.min.y, at.z - b.center.z);
             return t;
         }
+
+        static GameObject CommonPropAsset(string path) => path.EndsWith("/CarryTrampoline") || path.EndsWith("/RoundCarryTrampolineVisual")
+            ? CurtainCall.Settings.GameSettings.Trampoline.VisualPrefab
+            : AssetDatabase.LoadAssetAtPath<GameObject>(path + ".prefab");
 
         static void Sign(Transform g, string text, Vector3 at, float yaw)
         {
