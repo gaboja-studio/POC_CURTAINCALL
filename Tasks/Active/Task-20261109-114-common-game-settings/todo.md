@@ -14,7 +14,7 @@
 - [x] 4인 기물 점유자 사망→해제·복귀·다른 이용자 재사용 확인
 - [x] 최종빌드 폴더에 [변경 전후51행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40534020/11+10) 게시·폭/글머리 기호/내용 확인
 - [x] 대포 연습 봇 최신 코드·검사 준비 수정 후 집중 검사 마무리
-- [ ] 최종 check-work·Unity 종료 후 DEV 확인·관련 변경만 commit/push/dev PR
+- [x] 최종 check-work·Unity 종료 후 DEV 확인·관련52파일 commit/push·[dev PR324](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/324), PM팀 검토 요청
 
 ## 미확정·범위 밖
 - [ ] 원래 서로 다른 PC의 밤→아침 연결 종료: 원본 로그 미확보, 이번 Relay에서는 미재현

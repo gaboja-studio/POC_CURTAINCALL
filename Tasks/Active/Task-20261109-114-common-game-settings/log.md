@@ -16,3 +16,4 @@
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출 직전 Unity 비재생·미저장0 확인 후 정상 종료. 14:16 KST origin/dev fetch: fb39d3dd 동일, HEAD에 포함됨. 최신 집중 검사 결과 재사용. 임시 Pipeline 생성 폴더와 preload 설정 복구, 테스트 플레이어 전부 종료.
+- 관련52파일6b772dae 저장·push, [PR324](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/324)를 dev 대상으로 제출하고 gaboja-studio/pm 검토 요청. 직접 병합 없음. 무관한 변경·생성된 QA 스크린샷은 로컬 보존·제출 제외. 이 제출 기록은 문서만 후속 저장한다.
