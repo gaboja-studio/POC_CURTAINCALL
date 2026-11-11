@@ -41,5 +41,7 @@ namespace CurtainCall.Player
 
         /// <summary>UV 등(기본 마우스 우클릭)을 누르고 있는지. 장비를 든 동안만 손전등이 켜진다(2026-10-30 확정).</summary>
         public bool UvLightHeld;
+        /// <summary>운반 장치 사용(기본 V, 공통 키 설정에서 변경). 누른 프레임에 한 번만 전달한다.</summary>
+        public bool UseDevicePressed;
     }
 }

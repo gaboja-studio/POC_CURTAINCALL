@@ -288,8 +288,9 @@ namespace CurtainCall.Cameras
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
-                follow.FollowOffset = Vector3.up * framing.Height - selectedForward * Mathf.Max(0f, framing.Distance);
-                composer.TargetOffset = new Vector3(0f, framing.LookHeight, framing.LookAhead);
+                float postureDrop = !useSpectator && mover != null ? framing.LookHeight * (1f - mover.PostureHeightScale) : 0f;
+                follow.FollowOffset = Vector3.up * (framing.Height - postureDrop) - selectedForward * Mathf.Max(0f, framing.Distance);
+                composer.TargetOffset = new Vector3(0f, framing.LookHeight - postureDrop, framing.LookAhead);
             }
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
         }
@@ -314,7 +315,8 @@ namespace CurtainCall.Cameras
             }
             else if (IsFreeThirdPerson)
             {
-                SetPose(ref state, FreeThirdPersonPose(selected, local.transform.position, yaw, pitch, out var rotation), rotation);
+                float drop = mover != null ? selected.LookHeight * (1f - mover.PostureHeightScale) : 0f;
+                SetPose(ref state, FreeThirdPersonPose(selected, local.transform.position - Vector3.up * drop, yaw, pitch, out var rotation), rotation);
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
             state.Lens.FieldOfView = Mathf.Clamp(selected.FieldOfView, 1f, 179f);
@@ -492,6 +494,8 @@ namespace CurtainCall.Cameras
         static bool BlocksCamera(Collider obstacle)
         {
             if (obstacle == null || obstacle is CharacterController) return false;
+            var held = NetworkPlayer.Local != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(NetworkPlayer.Local.OwnerClientId) : null;
+            if (held != null && obstacle.transform.IsChildOf(held.CarryRoot)) return false;
             if (CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(obstacle)) return false;
             var ropes = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
             if (ropes != null && ropes.IsTimedSupport(obstacle)) return false;

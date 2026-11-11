@@ -21,7 +21,6 @@ namespace CurtainCall.HumanCannon
         [Tooltip("원형 천의 반동 판정. 기존 씬은 기본값인 사각형을 유지한다.")]
         [SerializeField] bool circularSurface;
         [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
-        [SerializeField] bool usePropOutline;
         [SerializeField] Vector2 loadHalfSize;
         [Tooltip("테스트용 모두 재시작 시 트램폴린도 최초 위치로 돌린다.")]
         [SerializeField] bool resetPoseOnRestart = true;
@@ -42,15 +41,59 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock[] idleHandleProperties;
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
+        Collider carryBody;
+        CharacterController ignoredCarrierBody;
+        bool previousCarrierIgnored;
+        Vector3 lastSafeCarrierFeet;
+        ulong collisionCarrier = CannonSeatState.Nobody;
+
+        void RefreshCarryBody(NetworkPlayer carrier)
+        {
+            if (carryBody == null)
+            {
+                carryBody = GetComponent<Collider>();
+                if (carryBody == null)
+                {
+                    var shape = CurtainCall.Settings.GameSettings.Trampoline.CarryCollisionMesh;
+                    if (shape != null)
+                    {
+                        var mesh = gameObject.AddComponent<MeshCollider>();
+                        mesh.sharedMesh = shape;
+                        mesh.convex = true;
+                        carryBody = mesh;
+                    }
+                    else carryBody = gameObject.AddComponent<BoxCollider>();
+                }
+            }
+            if (carryBody is MeshCollider commonMesh && CurtainCall.Settings.GameSettings.Trampoline.CarryCollisionMesh is { } sharedShape
+                && commonMesh.sharedMesh != sharedShape)
+            {
+                commonMesh.sharedMesh = sharedShape;
+                commonMesh.convex = true;
+            }
+            if (carryBody is BoxCollider box)
+            {
+                box.center = new Vector3(0, surfaceHeight * .5f, 0);
+                box.size = new Vector3(LoadHalfSize.x * 2f, surfaceHeight, LoadHalfSize.y * 2f);
+            }
+            var next = carrier != null && carrier.TryGetComponent(out PlayerMover mover) ? mover.Body : null;
+            if (next != ignoredCarrierBody)
+            {
+                if (ignoredCarrierBody != null) Physics.IgnoreCollision(ignoredCarrierBody, carryBody, previousCarrierIgnored);
+                ignoredCarrierBody = next;
+                if (next != null) previousCarrierIgnored = Physics.GetIgnoreCollision(next, carryBody);
+            }
+            if (next != null && next.enabled && next.gameObject.activeInHierarchy) Physics.IgnoreCollision(next, carryBody, true);
+        }
         public static HumanCannonTrampoline Current { get; private set; }
         public ulong Carrier => ownership.Occupant;
         public Transform Handle => handle != null ? handle : transform;
-        public Vector3 GrabPoint => usePropOutline ? Handle.position + transform.up * (.6f * transform.lossyScale.y) : Surface;
+        public Vector3 GrabPoint => UsePropOutline ? Handle.position + transform.up * (CurtainCall.Settings.GameSettings.Trampoline.GrabPointHeight * transform.lossyScale.y) : Surface;
         public float CarryHandleHeight => carryHandleHeight;
         public Vector3 Surface => transform.position + Vector3.up * surfaceHeight;
         public Vector2 HalfSize => halfSize;
         public bool CircularSurface => circularSurface;
-        public bool UsePropOutline => usePropOutline;
+        public bool UsePropOutline => CurtainCall.Settings.GameSettings.Trampoline.UsePropOutline;
         public bool RequireCarrierForBounce => CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce;
         bool BounceReady => !CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce || Carrier != CannonSeatState.Nobody
             && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal;
@@ -66,6 +109,7 @@ namespace CurtainCall.HumanCannon
 
         void OnEnable()
         {
+            RefreshCarryBody(null);
             if (Current != null && Current != this)
             {
                 Debug.LogError("[HumanCannon] 1단계 테스트에는 트램폴린을 하나만 둡니다.", this);
@@ -117,6 +161,7 @@ namespace CurtainCall.HumanCannon
 
         void LateUpdate()
         {
+            if (!ownership.IsOccupied) { RefreshCarryBody(null); collisionCarrier = CannonSeatState.Nobody; }
             PresentHandleOwnership();
             previousSurface = Surface;
             previousRotation = transform.rotation;
@@ -171,13 +216,22 @@ namespace CurtainCall.HumanCannon
 
         void FollowCarrier(NetworkPlayer carrier, bool alignToCarrier = false)
         {
+            RefreshCarryBody(carrier);
+            if (collisionCarrier != Carrier || alignToCarrier) { collisionCarrier = Carrier; lastSafeCarrierFeet = carrier.transform.position; }
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
             // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
             if (HumanCannonCarry.TryFollowPose(carrier, transform, Handle, carryHandleHeight, alignToCarrier,
                 out var position, out var rotation, out var carrierRotation))
             {
+                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier))
+                {
+                    if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body.enabled)
+                        mover.Body.Move(lastSafeCarrierFeet - carrier.transform.position);
+                    return;
+                }
                 transform.SetPositionAndRotation(position, rotation);
                 carrier.transform.rotation = carrierRotation;
+                lastSafeCarrierFeet = carrier.transform.position;
             }
         }
 
@@ -196,8 +250,12 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
-            return PlayerInteraction.InRange(player, GrabPoint, radius, transform);
+            return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
+                && HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
+                && HumanCannonCarry.CanMove(transform, carryBody, position, rotation, player, false);
         }
+
+        public void RequestUse() { } // 반동은 접촉으로 동작하며 사용 키는 소비하지 않는다.
 
         public void RequestGrab()
         {
@@ -235,7 +293,7 @@ namespace CurtainCall.HumanCannon
         {
             contact = default;
             if (!BounceReady) return false;
-            bool hit = usePropOutline
+            bool hit = UsePropOutline
                 ? TrampolineOutline.TryTouch(from, to, previousSurface, Surface, previousRotation, transform.rotation, ContactBounds(), radius, height, out contact)
                 : TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation, transform.rotation, ContactBounds(), radius, height, out contact);
             return hit && !BounceBlocked(contact);
@@ -267,7 +325,7 @@ namespace CurtainCall.HumanCannon
         {
             Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
             var bounds = ContactBounds();
-            if (usePropOutline)
+            if (UsePropOutline)
                 return TrampolineOutline.Contains(relative, bounds, 1f) && (player.transform.position - contact).sqrMagnitude <= 25f;
             bounds.Expand(new Vector3(2f, 4f, 2f));
             return bounds.Contains(relative) && (player.transform.position - contact).sqrMagnitude <= 25f;
@@ -378,6 +436,9 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            if (carryBody != null && ignoredCarrierBody != null) Physics.IgnoreCollision(ignoredCarrierBody, carryBody, previousCarrierIgnored);
+            ignoredCarrierBody = null;
+            collisionCarrier = CannonSeatState.Nobody;
             HumanCannonCarry.Unregister(this);
             localGrabPending = false;
             RestoreHandleAppearance();

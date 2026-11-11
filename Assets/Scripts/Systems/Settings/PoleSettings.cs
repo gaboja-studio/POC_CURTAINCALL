@@ -21,6 +21,8 @@ namespace CurtainCall.Settings
         [InspectorName("매달린 사람 사이 간격"), Tooltip("위아래로 매달린 사람들의 발 사이 수직 간격(m). 기본 1.45m. 인원을 늘리면 이 간격만큼 사슬이 길어진다.")]
         [SerializeField, Min(.2f)] float passengerSeparation = 1.45f;
         [Header("앞뒤 운동 — 외형 케이블 길이와 독립")]
+        [InspectorName("앞뒤 모션 속도 배율"), Tooltip("봉과 매달린 사람이 앞뒤로 왕복하는 속도(배). 1은 기존 속도, 기본 1.6은 더 빠르고 가벼운 움직임이다. 도약 계산에 쓰는 각속도·추가 상승 속도·수평 속도 상한에는 곱하지 않는다. 같은 각도·반동에서 도약 성능은 유지되며, 그 각도에 도달하는 시간과 놓는 타이밍은 달라진다. 일반 봉·스위치 봉·원격 화면에 공통 적용한다.")]
+        [SerializeField, Range(.5f, 2f)] float swingMotionSpeed = 1.6f;
         [InspectorName("반동 계산용 진자 길이"), Tooltip("봉의 흔들림 이동 범위와 관성을 계산하는 길이(m). 천장에 보이는 줄 길이는 바꾸지 않는다. 길어지면 같은 각도에서 이동 폭과 도약 관성이 커진다. 기본 1.5m.")]
         [SerializeField, Min(.1f)] float swingLength = 1.5f;
         [InspectorName("최대 흔들림 각도"), Tooltip("중립 위치에서 앞뒤로 기울 수 있는 최대 각도(도). 기본 앞뒤 각각 80도. 1~85도 범위.")]
@@ -54,6 +56,7 @@ namespace CurtainCall.Settings
         public float GrabRadius => GameSettings.Base.Interaction.Distance;
         public float HangLength => Mathf.Max(.2f, hangLength);
         public float PassengerSeparation => Mathf.Max(.2f, passengerSeparation);
+        public float SwingMotionSpeed => float.IsFinite(swingMotionSpeed) ? Mathf.Clamp(swingMotionSpeed, .5f, 2f) : 1.6f;
         public float SwingLength => Mathf.Max(.1f, swingLength);
         public float MaxSwingAngle => Mathf.Clamp(maxSwingAngle, 1f, 85f);
         public float MaxSwingSpeed => Mathf.Max(1f, maxSwingSpeed);

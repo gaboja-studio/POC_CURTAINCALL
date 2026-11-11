@@ -163,7 +163,8 @@ namespace CurtainCall.Player
             bool sprinting = network != null ? network.PresentationSprinting : mover.IsSprinting;
             JumpKind jump = network != null ? network.CurrentJump : mover.CurrentJump;
             var stack = PiggybackSystem.Current;
-            if (jump == JumpKind.None && stack != null && stack.TryGetComponent<PiggybackFollow>(out var follow))
+            if (stack != null && stack.GetBelow(network) != null && !PiggybackSystem.UsingDevice(network)
+                && stack.TryGetComponent<PiggybackFollow>(out var follow))
                 jump = follow.PresentationJump(network);
             // Remote movement is not simulated here. Its old local mover state must not
             // override the grounded state sent by its owner.

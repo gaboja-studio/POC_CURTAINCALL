@@ -60,7 +60,8 @@ namespace CurtainCall.HumanCannon
                 if (double.IsNegativeInfinity(receivedAngleAt)) return Angle; // Host simulation.
                 // Brief network jitter must not stop the rider at every packet boundary.
                 // Prediction is visual only and stops after 100 ms without a fresh snapshot.
-                float predicted = Angle + Speed * Mathf.Clamp((float)(now - receivedAngleAt), 0f, .1f);
+                float predicted = Angle + Speed * GameSettings.Poles.SwingMotionSpeed
+                    * Mathf.Clamp((float)(now - receivedAngleAt), 0f, .1f);
                 return Mathf.Clamp(presentation.Sample(predicted, now), -MaxDisplayAngle, MaxDisplayAngle);
             }
 

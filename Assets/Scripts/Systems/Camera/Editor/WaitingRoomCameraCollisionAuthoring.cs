@@ -75,7 +75,56 @@ namespace CurtainCall.Cameras.Editor
             }
             Undo.CollapseUndoOperations(undo);
             if (added + changed != 0) EditorSceneManager.MarkSceneDirty(scene);
-            return $"{scene.name}: reviewed={targets.Length}, added={added}, updated={changed}, mesh={targets.Count(f => f.sharedMesh.name != "Cube")}";
+            return $"{scene.name}: reviewed={targets.Length}, added={added}, updated={changed}, mesh={targets.Count(f => f.sharedMesh.name != "Cube")}; {ApplyPhysicalCeilings(scene)}";
+        }
+
+        // Physical ceilings are separate from camera coverage: never fill hollow passages with a bounds box.
+        public static string ApplyPhysicalCeilings(Scene scene)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || !WaitingRoomScenes.IsWaitingRoom(scene))
+                throw new InvalidOperationException("Open a waiting room outside Play mode.");
+            var names = new HashSet<string> { "Ceiling", "CeilingPanel", "RoofSlab", "RoofSheet", "PassageRoof",
+                "PassageFloorCeiling", "BranchFloorCeiling", "DomeCap", "CanvasRoof", "GalleryRoof", "StageApproachRoof",
+                "LiftShaftCap", "CarRoof", "Enclosed ceiling", "Vault", "SealedActualVaultTransition" };
+            int count = 0;
+            foreach (var filter in Collect(scene).Where(f => names.Contains(f.name)))
+            {
+                if (filter.GetComponents<Collider>().Any(c => c.enabled && !c.isTrigger)) continue;
+                if (filter.sharedMesh.name == "Cube")
+                {
+                    var collider = Undo.AddComponent<BoxCollider>(filter.gameObject);
+                    collider.center = filter.sharedMesh.bounds.center;
+                    collider.size = filter.sharedMesh.bounds.size;
+                }
+                else
+                {
+                    string folder = "Assets/Resources/Models/WaitingRoomCollision";
+                    if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder("Assets/Resources/Models", "WaitingRoomCollision");
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(filter.sharedMesh, out string guid, out long localId);
+                    string path = folder + "/roof-" + guid + "-" + localId + ".asset";
+                    var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+                    if (mesh == null)
+                    {
+                        mesh = UnityEngine.Object.Instantiate(filter.sharedMesh);
+                        mesh.name = filter.sharedMesh.name + " physical two sided";
+                        var front = mesh.triangles;
+                        var both = new int[front.Length * 2];
+                        Array.Copy(front, both, front.Length);
+                        for (int i = 0; i < front.Length; i += 3) {
+                            both[front.Length + i] = front[i + 2]; both[front.Length + i + 1] = front[i + 1]; both[front.Length + i + 2] = front[i];
+                        }
+                        mesh.subMeshCount = 1; mesh.triangles = both;
+                        AssetDatabase.CreateAsset(mesh, path);
+                    }
+                    var collider = Undo.AddComponent<MeshCollider>(filter.gameObject);
+                    collider.cookingOptions = MeshColliderCookingOptions.CookForFasterSimulation;
+                    collider.sharedMesh = mesh;
+                }
+                if (PrefabUtility.IsPartOfPrefabInstance(filter)) PrefabUtility.RecordPrefabInstancePropertyModifications(filter.gameObject);
+                count++;
+            }
+            if (count != 0) EditorSceneManager.MarkSceneDirty(scene);
+            return $"{scene.name}: physical ceilings added={count}";
         }
 
         [MenuItem("Tools/CurtainCall/Camera/현재 대기실 벽·천장 충돌 보완")]

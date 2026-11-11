@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -163,9 +164,10 @@ namespace CurtainCall.HumanCannon
             }
             pendingLandingReports.Remove(player.OwnerClientId);
             bool safe = IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
-            if (!safe && position.y < FlightFloorHeight)
+            if (CommonDamageRules.IsBelowWorldDeathY(position.y))
             {
                 ApplyLanding(player.OwnerClientId, index, revision, segment, false);
+                PublishLanding(player.OwnerClientId, index, revision, segment, false);
                 ServerFallDeath(player);
                 return;
             }
@@ -175,11 +177,17 @@ namespace CurtainCall.HumanCannon
                 () => ApplyLanding(player.OwnerClientId, index, revision, segment, safe))) return;
             // 지지면에 닿아 비행이 끝났어도 사망한 착지를 교육 성공/통과로 알리지 않는다.
             NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe && player.State == PlayerState.Normal);
+            PublishLanding(player.OwnerClientId, index, revision, segment, safe);
+        }
+
+        void PublishLanding(ulong actor, int index, uint revision, uint segment, bool safe)
+        {
+            if (messaging == null || session == null || !session.IsHost) return;
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
             {
                 if (client == NetworkManager.ServerClientId) continue;
                 using var writer = new FastBufferWriter(LandingSize, Allocator.Temp);
-                writer.WriteValueSafe(player.OwnerClientId);
+                writer.WriteValueSafe(actor);
                 writer.WriteValueSafe(index);
                 writer.WriteValueSafe(revision);
                 writer.WriteValueSafe(segment);

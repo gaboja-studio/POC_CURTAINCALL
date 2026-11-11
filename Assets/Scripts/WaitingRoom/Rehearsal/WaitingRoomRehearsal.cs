@@ -69,6 +69,7 @@ namespace CurtainCall.WaitingRoom
         {
             var r = instance;
             if (r == null || !r.practice || !r.HasAuthority) return false;
+            r.ReleaseLessonDevices();
             r.practice = false; r.version++; r.Publish();
             Debug.Log("[Rehearsal] 선택 재연습 종료");
             return true;
@@ -195,7 +196,7 @@ namespace CurtainCall.WaitingRoom
             bool inWaitingRoom = !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null
                 && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
             // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
-            if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) { practice = false; version++; Publish(); }
+            if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) EndPractice();
             bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
             HostTickVotes();
             TickVoteUi();
@@ -478,8 +479,22 @@ namespace CurtainCall.WaitingRoom
             AdvanceStage();
         }
 
+        void ReleaseLessonDevices()
+        {
+            // Finishing a lesson can teleport living players too. Clear the shared
+            // device state before relocation, not only the owner's local pilot.
+            foreach (var player in NetworkPlayer.All)
+            {
+                if (player == null || !player.IsSpawned) continue;
+                HumanCannonSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
+                TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
+                PiggybackSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
+            }
+        }
+
         void AdvanceStage()
         {
+            ReleaseLessonDevices();
             arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
             lessonProgress.Clear(); lessonSamples.Clear(); lessonRound = -1;
             stage++;

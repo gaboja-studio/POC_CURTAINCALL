@@ -27,6 +27,7 @@ namespace CurtainCall.Player
             public int Frame = int.MinValue;
             public bool Held, Consumed;
             public Candidate Choice;
+            public PiggybackSystem LongRelease;
         }
         static readonly Dictionary<int, Gesture> gestures = new();
         public static readonly object Idle = new();
@@ -49,7 +50,17 @@ namespace CurtainCall.Player
             {
                 var input = reader.Current;
                 if (!gesture.Held)
-                { gesture.Choice = Choose(actor); gesture.Consumed = false; }
+                {
+                    gesture.Choice = Choose(actor); gesture.Consumed = false; gesture.LongRelease = null;
+                    // A mounted rider can tap to catch a nearby pole; holding the same key still dismounts.
+                    if (gesture.Choice.Target is HumanCannonPole && actor.TryGetComponent(out NetworkPlayer rider)
+                        && HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(rider.OwnerClientId) < 0
+                        && PiggybackSystem.Current != null && PiggybackSystem.Current.GetBelow(rider) != null)
+                        gesture.LongRelease = PiggybackSystem.Current;
+                }
+                if (!gesture.Consumed && input.InteractLongPressed && gesture.LongRelease != null
+                    && actor.TryGetComponent(out NetworkPlayer mounted) && gesture.LongRelease.GetBelow(mounted) != null)
+                    gesture.Choice = new Candidate(gesture.LongRelease, 0, 0, "piggyback-release");
                 gesture.Held = input.InteractHeld;
                 gesture.Frame = Time.frameCount;
             }
@@ -91,7 +102,14 @@ namespace CurtainCall.Player
                 var cannon = HumanCannonSystem.Current;
                 if (cannon != null && cannon.IsSeated(player.OwnerClientId)) Add(cannon, center, 0, "cannon-seated");
                 var stack = PiggybackSystem.Current;
-                if (stack != null && stack.GetBelow(player) != null) Add(stack, center, 0, "piggyback-held");
+                int grabbable = poles != null ? poles.FindGrabbable(player) : -1;
+                if (stack != null && stack.GetBelow(player) != null)
+                {
+                    // Only hand control from the active piggyback to a reachable pole;
+                    // nearby shops or loose devices must not steal the same tap.
+                    if (grabbable >= 0) Add(poles.Pole(grabbable), center, 0, "piggyback-to-pole");
+                    else Add(stack, center, 0, "piggyback-held");
+                }
                 var hang = TightropeHangSystem.Current;
                 if (hang != null)
                 {
@@ -101,7 +119,7 @@ namespace CurtainCall.Player
                 }
                 if (poles != null)
                 {
-                    int index = poles.FindGrabbable(player);
+                    int index = grabbable;
                     if (index >= 0) Add(poles.Pole(index), poles.InteractionPoint(index, player), 2, "pole:" + index);
                 }
                 var carry = HumanCannonCarry.FindGrabbable(player);

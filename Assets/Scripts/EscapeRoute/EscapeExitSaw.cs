@@ -23,7 +23,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] ParticleSystem sparks;
         [SerializeField] AudioSource motor;
         [SerializeField, Min(0)] float carryHandleHeight = 1.05f;
-        [SerializeField, Min(.1f)] float carryMoveSpeed = 3f;
+        Vector3 authoredCarryScale;
+        bool hasAuthoredCarryScale;
         [SerializeField, Min(.05f)] float bladeRadius = .5f;
         [SerializeField, Min(.01f)] float bladeHalfThickness = .12f;
         [SerializeField, Min(.01f)] float cableRadius = .08f;
@@ -35,7 +36,6 @@ namespace CurtainCall.EscapeRoute
         Quaternion closedLeftDoorRotation, closedRightDoorRotation;
         float doorAngle;
         CannonSeatState ownership = new();
-        readonly Collider[] overlaps = new Collider[48];
         readonly RaycastHit[] floorHits = new RaycastHit[24];
         readonly RouteResetBarrier resetBarrier = new();
         NetworkSessionManager session;
@@ -57,7 +57,7 @@ namespace CurtainCall.EscapeRoute
         public Vector3 CarryFocus => blade != null ? blade.position : CarryRoot.position + Vector3.up;
         public Vector2 CarryHalfSize => loadCollider != null
             ? new Vector2(loadCollider.bounds.extents.x, loadCollider.bounds.extents.z) : new Vector2(.7f, .7f);
-        public float CarryMoveSpeed => carryMoveSpeed;
+        public float CarryMoveSpeed => CurtainCall.Settings.GameSettings.Base.CarryDevices.SawCarrySpeed;
         public string CarryName => "휴대 절단기";
         public float CutProgress01 => ProjectileMode ? RequiredCableCount > 0 ? CutCableCount / (float)RequiredCableCount : 0
             : Mathf.Clamp01(cutProgress / Mathf.Max(.1f, cutSeconds));
@@ -91,17 +91,26 @@ namespace CurtainCall.EscapeRoute
         }
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
-            : ProjectileMode && RequiredCableCount == 0 ? $"들고 서 있으면 {shotInterval:0.#}초마다 톱날 발사 · F를 길게 눌러 내려놓기"
-            : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하면 {shotInterval:0.#}초마다 톱날 발사"
+            : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용(추격자 공격 불가)"
+            : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하고 {UseKey}로 발사"
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
         bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null
             && session.GameState == GameSessionState.Playing;
         bool Ready => SessionReady && CarryRoot.gameObject.activeInHierarchy;
         bool ProjectileSessionReady => SessionReady && (CarryRoot.gameObject.activeInHierarchy || scaleWithCrew);
+        string UseKey => NetworkPlayer.Local != null && NetworkPlayer.Local.TryGetComponent(out PlayerInputReader input)
+            ? input.BindingLabel("UseDevice", "V") : "V";
+
+        void ApplyCommonSize()
+        {
+            if (!hasAuthoredCarryScale) { authoredCarryScale = CarryRoot.localScale; hasAuthoredCarryScale = true; }
+            CarryRoot.localScale = authoredCarryScale * CurtainCall.Settings.GameSettings.Base.CarryDevices.SawScale;
+        }
 
         void OnEnable()
         {
+            ApplyCommonSize();
             if (!devices.Contains(this)) devices.Add(this);
             if (Current == null) Current = this;
             InitializePose();
@@ -125,6 +134,7 @@ namespace CurtainCall.EscapeRoute
         void Start() { initialized = false; InitializePose(); }
         void Update()
         {
+            ApplyCommonSize();
             Attach();
             WatchObjectiveZone();
             if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
@@ -165,6 +175,7 @@ namespace CurtainCall.EscapeRoute
         }
         public void RequestGrab() { if (CanGrab(NetworkPlayer.Local)) RequestAction(1); }
         public void RequestDrop() { if (NetworkPlayer.Local != null && Carrier == NetworkPlayer.Local.OwnerClientId) RequestAction(2); }
+        public void RequestUse() { if (NetworkPlayer.Local != null && Carrier == NetworkPlayer.Local.OwnerClientId) RequestAction(3); }
         public void ServerReleaseForInspection(ulong actor)
         {
             if (session == null || !session.IsHost || Carrier != actor) return;
@@ -192,7 +203,7 @@ namespace CurtainCall.EscapeRoute
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
-            carryBlocked = !PoseFits(position, rotation, carrier);
+            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align);
             if (carryBlocked)
             {
                 // 원본 CharacterController 충돌로 운반자의 마지막 유효 위치까지 되돌린다.
@@ -207,22 +218,7 @@ namespace CurtainCall.EscapeRoute
         }
         bool PoseFits(Vector3 position, Quaternion rotation, NetworkPlayer carrier)
         {
-            if (loadCollider == null) return true;
-            Vector3 center = CarryRoot.InverseTransformPoint(loadCollider.transform.TransformPoint(loadCollider.center));
-            Vector3 half = Vector3.Scale(loadCollider.size * .5f, loadCollider.transform.lossyScale);
-            half = new Vector3(Mathf.Max(.01f, Mathf.Abs(half.x) - .02f), Mathf.Max(.01f, Mathf.Abs(half.y) - .02f), Mathf.Max(.01f, Mathf.Abs(half.z) - .02f));
-            Vector3 at = position + rotation * Vector3.Scale(center, CarryRoot.lossyScale);
-            Quaternion relative = Quaternion.Inverse(CarryRoot.rotation) * loadCollider.transform.rotation;
-            int count = Physics.OverlapBoxNonAlloc(at, half, overlaps, rotation * relative, ~0, QueryTriggerInteraction.Ignore);
-            if (count == overlaps.Length) return false;
-            for (int i = 0; i < count; i++)
-            {
-                var hit = overlaps[i];
-                if (hit == null || hit.transform.IsChildOf(CarryRoot)
-                    || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
-                return false;
-            }
-            return true;
+            return HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, false);
         }
         void HostStep(float deltaTime)
         {

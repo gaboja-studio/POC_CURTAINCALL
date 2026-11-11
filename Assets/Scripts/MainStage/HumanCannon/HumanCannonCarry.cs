@@ -20,11 +20,52 @@ namespace CurtainCall.HumanCannon
         bool CanGrab(NetworkPlayer player);
         void RequestGrab();
         void RequestDrop();
+        void RequestUse();
         void ServerReleaseForInspection(ulong actor);
     }
 
     public static class HumanCannonCarry
     {
+        static Collider[] obstacles = new Collider[64];
+
+        // Both carried devices use the actual body, including the swept translation and intermediate turns.
+        public static bool CanMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier, bool sweep = true)
+        {
+            if (body == null) return false;
+            var bounds = body is BoxCollider box ? new Bounds(box.center, box.size)
+                : body is MeshCollider mesh && mesh.sharedMesh != null ? mesh.sharedMesh.bounds : new Bounds(Vector3.zero, Vector3.one);
+            Vector3 localCenter = root.InverseTransformPoint(body.transform.TransformPoint(bounds.center));
+            Vector3 localBody = root.InverseTransformPoint(body.transform.position);
+            Vector3 half = Vector3.Scale(bounds.extents, body.transform.lossyScale);
+            float skin = CurtainCall.Settings.GameSettings.Base.CarryDevices.CollisionSkin;
+            half = new Vector3(Mathf.Max(.001f, Mathf.Abs(half.x) - skin), Mathf.Max(.001f, Mathf.Abs(half.y) - skin), Mathf.Max(.001f, Mathf.Abs(half.z) - skin));
+            Quaternion relative = Quaternion.Inverse(root.rotation) * body.transform.rotation;
+            int steps = sweep ? Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(root.position, position) / .05f),
+                Mathf.CeilToInt(Quaternion.Angle(root.rotation, rotation) / 3f)) : 1;
+            if (steps > 256) return false; // A teleport must be reconciled, not swept through an entire room.
+            for (int step = 1; step <= steps; step++)
+            {
+                float t = step / (float)steps;
+                var pose = sweep ? Quaternion.Slerp(root.rotation, rotation, t) : rotation;
+                var at = (sweep ? Vector3.Lerp(root.position, position, t) : position) + pose * Vector3.Scale(localCenter, root.lossyScale);
+                int count;
+                do {
+                    count = Physics.OverlapBoxNonAlloc(at, half, obstacles, pose * relative, ~0, QueryTriggerInteraction.Ignore);
+                    if (count < obstacles.Length) break;
+                    System.Array.Resize(ref obstacles, obstacles.Length * 2);
+                } while (true);
+                for (int i = 0; i < count; i++)
+                {
+                    var hit = obstacles[i];
+                    if (hit == null || hit.transform.IsChildOf(root) || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
+                    var bodyPosition = (sweep ? Vector3.Lerp(root.position, position, t) : position) + pose * Vector3.Scale(localBody, root.lossyScale);
+                    if (Physics.ComputePenetration(body, bodyPosition, pose * relative, hit, hit.transform.position, hit.transform.rotation,
+                        out _, out float depth) && depth > skin) return false;
+                }
+            }
+            return true;
+        }
+
         static readonly List<IHumanCannonCarry> devices = new();
         public static void Register(IHumanCannonCarry device) { if (!devices.Contains(device)) devices.Add(device); }
         public static void Unregister(IHumanCannonCarry device) => devices.Remove(device);
