@@ -68,7 +68,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             CollectionAssert.AreEquivalent(All<HumanCannonStation>(), stations);
             for (int i = 0; i < 6; i++)
             {
-                Assert.That(stations[i].transform.position.y, Is.EqualTo(i < 3 ? 4f : 6f).Within(0.001f));
+                // DEV c8228c0c: 첫 출발대 높이는 5m, 쉼터는 6m.
+                Assert.That(stations[i].transform.position.y, Is.EqualTo(i < 3 ? 5f : 6f).Within(0.001f));
                 Assert.That(stations[i].transform.position.z, Is.EqualTo(i < 3 ? 3f : 79f).Within(0.001f));
                 Assert.That(stations[i].Muzzle, Is.Not.Null);
             }
@@ -356,7 +357,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         {
             // 2026-10-30 담당자 결정: 시작 지점 아래 안전 바닥과 복귀 계단을 삭제하고 낙하는 코스 아래 추락 처리에 맡긴다(2026-11-03부터 외줄타기와 같은 공용 사망).
             var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
-            Assert.That(lift.StartPosition.y, Is.EqualTo(4));
+            Assert.That(lift.StartPosition.y, Is.EqualTo(5));
             Assert.That(Find("SplitRouteCourse/LiftSafetyLesson"), Is.Null);
             float fallHeight = Field<float>(All<HumanCannonRouteSystem>().Single(), "fallHeight");
             var start = FloorBounds(Find("Ground"));

@@ -66,7 +66,8 @@ namespace CurtainCall.Control.Editor.Tests
             var draft = Draft();
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
-            Assert.AreEqual(14, entries.Count); // 방향 전환과 투표 선택 2개 포함
+            Assert.AreEqual(15, entries.Count); // 방향 전환·투표 선택 2개·장치 사용 키 포함
+            Assert.AreEqual("<Keyboard>/v", draft.FindAction("Common/UseDevice").bindings[0].effectivePath);
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -155,7 +156,7 @@ namespace CurtainCall.Control.Editor.Tests
             string saved = PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey);
             draft.FindAction("Common/Move").ApplyBindingOverride(1, "");
             draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/s");
-            Assert.AreEqual(14, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
+            Assert.AreEqual(15, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
             Assert.IsFalse(InputBindingPreferences.TryApply(draft, out var error));
             StringAssert.Contains("할당되지 않은", error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey));

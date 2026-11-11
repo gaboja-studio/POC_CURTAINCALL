@@ -28,7 +28,7 @@ namespace CurtainCall.WaitingRoom
         float laneIntroAt;
         readonly System.Collections.Generic.HashSet<ulong> mountHints = new();
         // 추락 복귀는 늘 소구간 출발대다(사용자 2026-11-03: 줄 위 체크포인트는 외줄 UI가 다시 켜지지 않아 제거).
-        // 튜토리얼 도착자만 대기시킨다. 이후 재연습에서는 도착대와 줄 사이를 자유롭게 왕복한다.
+        // 도착 기록과 이동 제한은 별개다. 공통 설정 기본값은 양 끝 진입을 위해 벽을 끈다.
         GameObject finishWalls;
         int lessonReturnedRound = -1;
         string lastQuest = "";
@@ -349,15 +349,16 @@ namespace CurtainCall.WaitingRoom
 
         void TrackPersonalProgress(PlayerMover mover)
         {
-            bool block = UsesInitialTutorialRules && CurtainCall.Settings.GameSettings.WaitingRoom.Tutorial.KeepFinishBarrier && course != null && Stage != null
+            bool completed = UsesInitialTutorialRules && course != null && Stage != null
                 && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
-            if (block && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
+            if (completed && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
             {
                 // 한 번의 도약/다음 봉 잡기가 끝나면 연습을 마친다. 공연의 연속 봉 코스를 재현하지 않는다.
                 Pose pose = course.GetFinishPose(Mathf.Max(0, local.Slot));
                 Relocate(mover, pose.position, pose.rotation);
                 lessonReturnedRound = round;
             }
+            bool block = completed && CurtainCall.Settings.GameSettings.WaitingRoom.Tutorial.KeepFinishBarrier;
             if (block && finishWalls == null) finishWalls = BuildFinishWalls();
             if (finishWalls != null && finishWalls.activeSelf != block) finishWalls.SetActive(block);
         }

@@ -121,7 +121,12 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             // The cloth is at Surface; applique and seam thread protrude by at most 10 mm.
             Assert.That(bounds.max.y, Is.InRange(trampoline.Surface.y, trampoline.Surface.y + .01f));
             Assert.That(fabric.sharedMesh.vertices.Any(v => Mathf.Abs(fabric.transform.TransformPoint(v).y - trampoline.Surface.y) < .001f), Is.True);
-            Assert.That(trampoline.Handle.GetComponentsInChildren<Renderer>().Any(r => r.enabled), Is.True);
+            // FBX 손잡이 메시 원점과 잡기 앵커가 달라도 실제 손잡이에 점유 피드백이 연결되어야 한다.
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(HumanCannonTrampoline).GetMethod("PresentHandleOwnership", flags).Invoke(trampoline, null);
+            var feedback = (Renderer[])typeof(HumanCannonTrampoline).GetField("handleRenderers", flags).GetValue(trampoline);
+            var visibleHandle = art.GetComponentsInChildren<Renderer>().Single(r => r.enabled && r.name == "Handle");
+            CollectionAssert.Contains(feedback, visibleHandle);
             Near(new Vector3(-2.8f, 0, 0), trampoline.transform.InverseTransformPoint(trampoline.Handle.position), "Original handle offset");
             Assert.That(TrampolineContact.Contains(new Vector2(1.9f, 1.9f), trampoline.HalfSize, .25f, true), Is.False);
             Assert.That(TrampolineContact.Contains(new Vector2(1.59f, 1.59f), trampoline.HalfSize, .25f, true), Is.True);

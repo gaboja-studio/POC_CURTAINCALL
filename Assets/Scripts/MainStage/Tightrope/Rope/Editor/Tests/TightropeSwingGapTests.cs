@@ -8,6 +8,30 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
 {
     public sealed class TightropeSwingGapTests
     {
+        [TestCase(false, false), TestCase(true, false), TestCase(true, true)]
+        public void OnlyConfiguredCooperativeLessonLowersItsFirstPole(bool lesson, bool lowPoles)
+        {
+            var root = new GameObject("first lesson pole placement"); root.SetActive(false);
+            try
+            {
+                var course = root.AddComponent<TightropeCourse>();
+                root.AddComponent<TightropeRun>().SetPracticeMode(true);
+                var trapeze = root.AddComponent<TightropeTrapeze>();
+                if (lesson) trapeze.ConfigurePracticeLesson(2, lowPoles);
+                typeof(TightropeTrapeze).GetMethod("Awake", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    .Invoke(trapeze, null);
+                for (int i = 0; i < 2; i++)
+                {
+                    Vector3 expected = lesson && lowPoles
+                        ? course.GetLanePosition(course.Shape.TrapezeLane - 1, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
+                        : course.TrapezeRestingFeet(i);
+                    if (lesson && !lowPoles && i == 0) expected -= Vector3.up * GameSettings.WaitingRoom.Tutorial.FirstTrapezeLowering;
+                    Assert.That(Vector3.Distance(trapeze.PoleFeet(i), expected), Is.LessThan(.001f));
+                }
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test, Category("CommonRulesRegression")]
         public void CooperativeTrapezeEntryIsAboveSoloReachAndWithinMountedJumpReach()
         {

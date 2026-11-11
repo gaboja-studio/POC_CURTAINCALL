@@ -474,14 +474,18 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(arrived.Contains(701), Is.True, "왕복 이동과 이수 기록은 분리한다.");
         }
 
-        [Test]
-        public void TutorialStillBlocksArrivedPlayerUntilPracticeStarts()
+        [TestCase(false), TestCase(true)]
+        public void TutorialFinishBarrierUsesCommonSettingAndNeverBlocksPractice(bool block)
         {
             var instance = typeof(WaitingRoomRehearsal).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
             var previous = instance.GetValue(null);
             var previousRun = CampaignRun.Instance;
+            var settings = GameSettings.WaitingRoom.Tutorial;
+            var barrier = settings.GetType().GetField("keepFinishBarrier", Fields);
+            bool previousBarrier = settings.KeepFinishBarrier;
             try
             {
+            barrier.SetValue(settings, block);
             var campaign = Make("Initial tutorial run").AddComponent<CampaignRun>();
             var state = new RunState(); state.StartSession(true); state.EndIntro();
             Set(campaign, "host", state); Set(campaign, "state", state.Snapshot);
@@ -493,6 +497,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
             ((HashSet<ulong>)Get(rehearsal, "arrived")).Add(701);
             Call(rehearsal, "TrackPersonalProgress", mover);
             var walls = (GameObject)Get(rehearsal, "finishWalls");
+            if (!block)
+            {
+                Assert.That(walls, Is.Null, "양방향 설정이면 최초 튜토리얼에서도 도착벽을 만들지 않는다.");
+                Vector3 before = player.transform.position;
+                mover.Body.Move(-course.Forward * 2f);
+                Call(rehearsal, "TrackPersonalProgress", mover);
+                Assert.That(Vector3.Dot(before - player.transform.position, course.Forward), Is.GreaterThan(1.9f));
+                Assert.That(((HashSet<ulong>)Get(rehearsal, "arrived")).Contains(701), Is.True);
+                return;
+            }
             Assert.That(walls, Is.Not.Null);
             Assert.That(walls.activeSelf, Is.True);
             Set(rehearsal, "practice", true);
@@ -501,6 +515,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             }
             finally
             {
+                barrier.SetValue(settings, previousBarrier);
                 instance.SetValue(null, previous);
                 typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
             }

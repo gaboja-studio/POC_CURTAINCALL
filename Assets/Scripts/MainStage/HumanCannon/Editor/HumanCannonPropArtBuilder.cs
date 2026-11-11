@@ -79,6 +79,12 @@ namespace CurtainCall.HumanCannon.EditorTools
                     var model = (GameObject)PrefabUtility.InstantiatePrefab(source);
                     model.transform.SetParent(axis, false); // retain FBX root scale/rotation
                     foreach (var renderer in model.GetComponentsInChildren<Renderer>()) renderer.sharedMaterial = material;
+                    if (name == "CC_Trampoline")
+                    {
+                        var handle = new GameObject("Handle").transform;
+                        handle.SetParent(root.transform, false);
+                        handle.localPosition = new Vector3(-2.8f, 0, 0);
+                    }
                     PrefabUtility.SaveAsPrefabAsset(root, Art + "/Prefabs/" + name + ".prefab");
                 }
                 finally { Object.DestroyImmediate(root); }
@@ -157,7 +163,10 @@ namespace CurtainCall.HumanCannon.EditorTools
             if (EditorApplication.isPlayingOrWillChangePlaymode || !scene.IsValid() || scene.isDirty)
                 throw new InvalidOperationException("Use a saved scene outside Play mode.");
             var targets = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true))
-                .Where(t => t.GetComponent<HumanCannonTrampoline>() != null || t.name == "PracticeTrampoline" || t.name == "CarryTrampoline").ToArray();
+                .Where(t => t.GetComponent<HumanCannonTrampoline>() != null || t.name == "PracticeTrampoline"
+                    || t.name == "CarryTrampoline" || t.name == "RoundCarryTrampolineVisual"
+                    || t.name != VisualName && PrefabUtility.IsAnyPrefabInstanceRoot(t.gameObject)
+                    && PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(t.gameObject) == Art + "/Prefabs/CC_Trampoline.prefab").ToArray();
             foreach (var target in targets) ApplyCommonTrampoline(target.gameObject);
             if (targets.Length > 0)
             {

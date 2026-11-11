@@ -51,7 +51,7 @@ namespace CurtainCall.HumanCannon
         internal void HoldPole(int index, int station, uint launch, uint segment)
         {
             if (HeldPole == index) return;
-            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(player);
             TakeMovement();
             // 외줄 옆점프/일반 점프의 옛 목표가 다음 착지에 다시 적용되지 않게 한다.
             mover.ResetExternalMotion(true);

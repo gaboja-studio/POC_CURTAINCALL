@@ -99,6 +99,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void ReleaseVelocity_ConvertsCurrentEnergyAndKeepsChosenDirection(float angle, float speed)
         {
             var rules = GameSettings.Poles;
+            // Exercise motion-speed scaling without the separately tested release cap clipping it.
+            JsonUtility.FromJsonOverwrite("{\"horizontalSpeedLimit\":100}", rules);
             var velocity = pole.ReleaseVelocity(angle, speed, 0, 1f);
             Assert.That(Vector3.Dot(velocity, pole.Forward), Is.GreaterThan(0));
             Assert.That(velocity.y, Is.EqualTo(rules.ReleaseUpwardSpeed));
@@ -134,7 +136,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(angle, Is.EqualTo(expectedAngle).Within(0.0001f));
             Assert.That(speed, Is.EqualTo(expectedSpeed).Within(0.0001f));
             Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
-            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (rules.SwingLength * 100 * Mathf.Deg2Rad * rules.SwingMotionSpeed)
+            Near(pole.ReleaseVelocity(0, 100), pole.Forward * Mathf.Min(rules.HorizontalSpeedLimit, rules.SwingLength * 100 * Mathf.Deg2Rad * rules.SwingMotionSpeed)
                 + Vector3.up * rules.ReleaseUpwardSpeed);
         }
 

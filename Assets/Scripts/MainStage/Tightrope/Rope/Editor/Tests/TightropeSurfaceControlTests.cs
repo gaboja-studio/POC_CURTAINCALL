@@ -424,7 +424,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             {
                 local.SetValue(null, player);
                 Assert.That(course.UsesRopeRules(player), Is.False);
-                Assert.That(Invoke(course, "IsBelowFallDepth", mover), Is.True, "높이만 비교하면 정상 발판도 추락으로 오인한다.");
+                Assert.That(Invoke(course, "IsBelowFallDepth", mover), Is.EqualTo(aboveFloor > 0f),
+                    "현재 공통 규칙은 실제 발판에 지지된 사람을 자연 추락 대상으로 보지 않는다.");
                 Invoke(course, "CheckLocalFall");
                 Assert.That(balance.HasFallen, Is.False, "외줄 이탈은 일반 낙하이며 실제 착지 높이가 피해를 결정한다.");
             }
