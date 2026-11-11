@@ -35,7 +35,7 @@ namespace CurtainCall.HumanCannon
                 poles[existing] = pole;
                 var state = states[existing];
                 state.State.Reset(); state.ResetRevision = state.State.Revision;
-                state.Angle = state.Speed = 0f; state.LastDeparture.Clear();
+                state.Angle = state.Speed = state.ReleaseDirection = 0f; state.LastDeparture.Clear();
                 for (int seat = 0; seat < state.Riders.Length; seat++) state.Riders[seat] = new Rider();
                 return existing;
             }
