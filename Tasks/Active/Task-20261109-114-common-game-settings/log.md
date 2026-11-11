@@ -107,3 +107,4 @@
 - 목마·외줄 집중 EditMode 38/38. 수정 전 재현 4건 실패. 증거 .harness/local/piggyback-input-submit/. 실제 플레이는 사용자 확인.
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
+- 제출 직전 Unity 종료 후 DEV 868c3f43을 다시 확인. 공통 EditMode 504/504와 GameSettings 연결 통과. 수정 커밋 bc7bc22e를 [PR #333](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/333)으로 제출하고 PM 팀 검토 요청.
