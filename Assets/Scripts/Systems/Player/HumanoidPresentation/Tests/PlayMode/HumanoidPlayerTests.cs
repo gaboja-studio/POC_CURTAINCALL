@@ -19,11 +19,12 @@ namespace CurtainCall.Tests.HumanoidPresentation
         public Component Mover;
         public bool Sprint;
         public bool Crouch;
+        public float Forward = 1f;
         void Update()
         {
             if (Mover == null) return;
             var type = Mover.GetType();
-            type.GetMethod("SetMoveInput", new[] { typeof(float), typeof(float) }).Invoke(Mover, new object[] { 0f, 1f });
+            type.GetMethod("SetMoveInput", new[] { typeof(float), typeof(float) }).Invoke(Mover, new object[] { 0f, Forward });
             type.GetMethod("SetLocomotionInput").Invoke(Mover, new object[] { Sprint, Crouch });
         }
     }
@@ -82,6 +83,30 @@ namespace CurtainCall.Tests.HumanoidPresentation
             yield return null;
             Application.runInBackground = previousBackground;
             ShowBloodSetting.SetValue(null, previousShowBlood);
+        }
+
+        [UnityTest, Category("CommonMotionRegression")]
+        public IEnumerator StoppingAfterALeglessLandingDoesNotReplayTheLanding()
+        {
+            var player = Player();
+            yield return null;
+            Mask(player, 12);
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, true);
+            var driver = player.AddComponent<HumanoidMovementTestInput>();
+            driver.Mover = mover;
+            yield return new WaitForSeconds(.3f);
+            Call(mover, "RequestJump");
+            yield return null; yield return null;
+            Assert.IsTrue((bool)Get(mover, "IsAirborne"));
+            float deadline = Time.time + 3f;
+            while ((bool)Get(mover, "IsAirborne") && Time.time < deadline) yield return null;
+            Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+            yield return new WaitForSeconds(.3f);
+            driver.enabled = false;
+            yield return null; yield return null;
+            Assert.That((string)Get(Model(player), "Motion"), Does.StartWith("ItemCrawl"),
+                "Stopping long after landing must not replay an old landing pose.");
         }
 
         [UnityTest]
@@ -493,7 +518,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Assert.That((int)Get(view, "Stage"), Is.EqualTo(3));
             Assert.That((int)Get(view, "PieceCount"), Is.Zero);
             yield return null;
-            Assert.That((string)Get(view, "Motion"), Is.EqualTo("Crawl"));
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("ItemCrawl_Cut3"));
             Assert.That(((Animator)view.GetType().GetField("Animator").GetValue(view)).speed, Is.GreaterThan(0));
         }
 
@@ -514,7 +539,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Crawl"), "첫 표시부터 서 있는 기본 상태 대신 기어가기 상태");
                 Assert.IsFalse(animator.IsInTransition(0), "정지 속도로 느려진 전환을 기다리지 않는다");
                 yield return null;
-                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Crawl"));
+                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName(mask == 12 ? "ItemCrawl_Cut2" : "ItemCrawl_Cut3"));
             }
         }
 
@@ -835,7 +860,8 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 } while (!landed && Time.realtimeSinceStartup < end);
                 Assert.That(sawAir, Is.True, "실제 Mover 점프 진입");
                 Assert.That(landed, Is.True, "경사 바닥에 실제 착지");
-                Assert.That((string)Get(view, "Motion"), Is.EqualTo("Crawl"));
+                yield return new WaitForSeconds(.2f);
+                Assert.That((string)Get(view, "Motion"), Is.EqualTo("ItemCrawl_Cut2"));
                 TestContext.WriteLine($"Crawl 10-degree slope and jump/landing: skin plane clearance={minimum:F4}..{maximum:F4} m. Contact quality is not asserted.");
             }
             finally { Object.Destroy(mesh); }
@@ -976,6 +1002,10 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 keyboard = InputSystem.AddDevice<Keyboard>("Key Pickup Walk Test");
                 keyboard.MakeCurrent();
                 var player = Player();
+                // This fixture has no network session. An unspawned network actor is
+                // deliberately ineligible under the common interaction rules.
+                Object.Destroy(player.GetComponent(TypeFor("CurtainCall.Network.PlayerSync.NetworkPlayer")));
+                yield return null;
                 var controller = (Behaviour)Part(player, "PlayerController");
                 Call(controller, "SetScheme", Resources.Load<ScriptableObject>("Settings/Control/PlatformControlScheme"));
                 controller.enabled = true;
@@ -1012,7 +1042,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             }
         }
 
-        /// <summary>반대 키 동시 입력은 정지가 아니라 마지막에 누른 방향이다. 먼저 누른 키는 다시 누르기 전까지 뗀 것으로 본다.</summary>
+        /// <summary>반대 키 동시 입력은 마지막에 누른 방향이다. 그 키를 떼면 아직 누른 이전 키로 돌아간다.</summary>
         [UnityTest]
         public IEnumerator OppositeKeysFollowLastPressedDirection()
         {
@@ -1043,7 +1073,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return Press(Key.W, Key.S);
                 Assert.That(Read("Move"), Is.EqualTo(-1f), "W then S: S wins");
                 yield return Press(Key.W);
-                Assert.That(Read("Move"), Is.EqualTo(0f), "S released: W was treated as released");
+                Assert.That(Read("Move"), Is.EqualTo(1f), "S released: the still-held W resumes");
                 yield return Press(Key.W, Key.S);
                 Assert.That(Read("Move"), Is.EqualTo(-1f), "S pressed again");
                 yield return Press(Key.S);
@@ -1286,6 +1316,67 @@ namespace CurtainCall.Tests.HumanoidPresentation
             valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, 0));
             yield return null;
             Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Clean"));
+        }
+
+        [UnityTest]
+        [Category("CommonMotionRegression")]
+        public IEnumerator LocomotionRateFollowsSlowerMovementWithoutSlowingTheUpperBody()
+        {
+            var player = Player(); yield return null;
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, true);
+            var input = player.AddComponent<HumanoidMovementTestInput>(); input.Mover = mover;
+            yield return new WaitForSeconds(.5f);
+            var animator = (Animator)Model(player).GetType().GetField("Animator").GetValue(Model(player));
+            float normal = animator.GetFloat("LocomotionRate");
+            Assert.That(normal, Is.GreaterThan(.5f));
+            Mask(player, 4); // The actual shared one-leg penalty, applied by BodyDamageEffects.
+            yield return new WaitForSeconds(.5f);
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            float expected = (float)Call(Get(settings, "BodyDamage"), "MoveMultiplier", 1);
+            Assert.That(animator.GetFloat("LocomotionRate") / normal, Is.EqualTo(expected).Within(.08f),
+                "Slower physical movement must slow the walking cycle too.");
+            Assert.That(animator.speed, Is.EqualTo(1f), "The whole Animator must not slow the hand/interaction layers.");
+        }
+
+        [UnityTest]
+        [Category("CommonMotionRegression")]
+        public IEnumerator BackwardRopeMovementReversesTheWalkingCycle()
+        {
+            var player = Player(); yield return null;
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, false);
+            Call(Part(player, "PlayerBalance"), "SetBalanceActive", true);
+            var input = player.AddComponent<HumanoidMovementTestInput>(); input.Mover = mover; input.Forward = -1f;
+            yield return new WaitForSeconds(.5f);
+            var model = Model(player);
+            var animator = (Animator)model.GetType().GetField("Animator").GetValue(model);
+            Assert.That((string)Get(model, "Motion"), Is.EqualTo("Tightrope"));
+            Assert.That(animator.GetFloat("LocomotionRate"), Is.LessThan(-.1f));
+            float phase = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+            yield return new WaitForSeconds(.2f);
+            Assert.That(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, Is.LessThan(phase),
+                "The feet must step backwards while the player keeps the selected rope facing.");
+            Assert.That(animator.speed, Is.EqualTo(1f));
+        }
+
+        [UnityTest]
+        [Category("CommonMotionRegression")]
+        public IEnumerator ExternalMovementDoesNotKeepThePreviousWalkingPose()
+        {
+            var player = Player();
+            yield return null;
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, true);
+            var input = player.AddComponent<HumanoidMovementTestInput>();
+            input.Mover = mover;
+            yield return null; yield return null;
+            Assert.That((string)Get(Model(player), "Motion"), Is.EqualTo("Walk"));
+            input.enabled = false;
+            mover.GetType().GetProperty("Simulated").SetValue(mover, false);
+            yield return null; yield return null;
+            Assert.That((bool)Get(mover, "IsMoving"), Is.False, "A transport owns movement; the last walking input is no longer locomotion.");
+            Assert.That((string)Get(Model(player), "Motion"), Is.EqualTo("Idle"));
         }
 
         [UnityTest]

@@ -44,6 +44,25 @@ namespace CurtainCall.Player
         Vector3 basePosition;
         bool initialized;
         int stateHash;
+        public const string LocomotionRateParameter = "LocomotionRate";
+        RuntimeAnimatorController rateController;
+        bool hasLocomotionRate;
+
+        /// <summary>발동작만 실제 속도·방향을 따른다. 상체 상호작용/운반 레이어의 시간은 유지한다.</summary>
+        public void PlayLocomotion(string motion, float rate)
+        {
+            if (Animator == null || !Animator.isActiveAndEnabled) return;
+            if (rateController != Animator.runtimeAnimatorController)
+            {
+                rateController = Animator.runtimeAnimatorController;
+                hasLocomotionRate = false;
+                foreach (var parameter in Animator.parameters)
+                    if (parameter.name == LocomotionRateParameter && parameter.type == AnimatorControllerParameterType.Float)
+                    { hasLocomotionRate = true; break; }
+            }
+            if (hasLocomotionRate) Animator.SetFloat(LocomotionRateParameter, float.IsFinite(rate) ? rate : 0f);
+            Play(motion);
+        }
 
         bool positionCaptured;
 

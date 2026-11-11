@@ -151,6 +151,7 @@ namespace CurtainCall.HumanCannon.Tests
         {
             DisableEnhancementThreats();
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            ShowHiddenPole(poles, 1);
             var pole = (Component)Call(poles, "Pole", 1);
             // Authored pole saws were removed from the current course. Keep the sweep
             // regression independent of that layout without restoring obsolete scene objects.

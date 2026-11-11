@@ -132,7 +132,7 @@ namespace CurtainCall.Player
             if(model.Stage>=2&&moving&&!inAir && !action)
             {
                 itemLayerState=null;
-                model.Play(ItemVisualAssets.State("ItemCrawl",model.Stage));
+                PlayLocomotion(ItemVisualAssets.State("ItemCrawl",model.Stage));
                 return true;
             }
             if (motion == null) { itemLayerState = null; itemAction = null; return false; }

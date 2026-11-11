@@ -48,6 +48,8 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator TeleportDestinationFrameCanBeSkippedAndValidLandingStillCompletes()
         {
             DisableEnhancementThreats();
+            var rules = Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage");
+            float safeHeight = (float)Get(rules, "FallInjuryHeight") * .75f;
             Vector3 contact = new Vector3(5200, 100, 5200);
             Vector3 destination = contact + Vector3.right * 4f + Vector3.up * 2f;
             var floor = new GameObject("skipped teleport pose landing floor");
@@ -61,16 +63,16 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(player, "ResetFallTeleportRpc", destination, restart, revive);
                 // The server receives only later poses, never one within a metre of the destination.
                 player.transform.position = contact + Vector3.up * 1.5f;
-                Call(player, "ReportFallPeakRpc", contact.y + 3f, restart, revive, (uint)Get(player, "acceptedFallSequence") + 1u);
+                Call(player, "ReportFallPeakRpc", contact.y + safeHeight, restart, revive, (uint)Get(player, "acceptedFallSequence") + 1u);
                 Call(player, "LateUpdate");
                 Assert.IsTrue((bool)Get(player, "fallTeleportPending"));
-                Assert.That(Call(player, "FallHeightAt", contact), Is.EqualTo(3f));
+                Assert.That(Call(player, "FallHeightAt", contact), Is.EqualTo(safeHeight).Within(.001f));
                 player.transform.position = contact;
                 Physics.SyncTransforms();
                 Call(player, "LateUpdate");
                 Assert.IsTrue((bool)Get(player, "fallTeleportPending"));
                 uint sequence = (uint)Get(player, "acceptedFallSequence") + 1u;
-                Call(player, "ReportFallLandingRpc", sequence, restart, revive, contact.y + 3f, contact);
+                Call(player, "ReportFallLandingRpc", sequence, restart, revive, contact.y + safeHeight, contact);
                 Assert.That(Get(player, "acceptedFallSequence"), Is.EqualTo(sequence));
                 Assert.IsFalse((bool)Get(player, "fallTeleportPending"));
                 Assert.That(Call(player, "FallHeightAt", contact), Is.EqualTo(0f));
@@ -152,6 +154,8 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator PreviousLifeLandingCannotDamageRevivedPlayerAtValidFloor()
         {
             DisableEnhancementThreats();
+            var rules = Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage");
+            float fatalHeight = (float)Get(rules, "FallDeathHeight") + 2f;
             Vector3 contact = new Vector3(5000, 100, 5000);
             var floor = new GameObject("fall epoch test floor");
             floor.transform.position = contact - Vector3.up * .5f;
@@ -165,9 +169,9 @@ namespace CurtainCall.HumanCannon.Tests
                 int oldRevive = (int)Get(generation, "Value");
                 Put(generation, "Value", oldRevive + 1);
                 // A new, valid fall may have the same geometry as the delayed report from the previous life.
-                Call(player, "BeginFallAt", contact + Vector3.up * 10f);
+                Call(player, "BeginFallAt", contact + Vector3.up * fatalHeight);
                 uint accepted = (uint)Get(player, "acceptedFallSequence");
-                Call(player, "ReportFallLandingRpc", accepted + 1u, restart, oldRevive, contact.y + 10f, contact);
+                Call(player, "ReportFallLandingRpc", accepted + 1u, restart, oldRevive, contact.y + fatalHeight, contact);
                 Assert.That(Get(player, "acceptedFallSequence"), Is.EqualTo(accepted));
                 Assert.That(Get(player, "State").ToString(), Is.EqualTo("Normal"));
                 Assert.That(Convert.ToInt32(Get(player, "LostParts")), Is.EqualTo(0));

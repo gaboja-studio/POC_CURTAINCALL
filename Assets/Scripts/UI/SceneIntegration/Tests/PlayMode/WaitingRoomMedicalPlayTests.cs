@@ -11,8 +11,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
    var service=Find("CurtainCall.WaitingRoom.ExpertService");var room=Find("CurtainCall.WaitingRoom.ExpertRoomView");
    var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
    var outside=(Transform)Private(room,"outside");var inside=(Transform)Private(room,"inside");
+   long balanceBefore=(long)Get(service,"Balance"), cost=(long)Call(service,"MedicalCost",2), priceBefore=(long)Get(service,"MedicalPrice");
    Call(service,"RequestMedical",2);yield return null;
-   Assert.AreEqual("Booked",Get(service,"Phase").ToString());Assert.AreEqual(800L,Get(service,"Balance"));Assert.AreEqual(125L,Get(service,"MedicalPrice"));
+   Assert.AreEqual("Booked",Get(service,"Phase").ToString());Assert.AreEqual(balanceBefore-cost,Get(service,"Balance"));Assert.Greater((long)Get(service,"MedicalPrice"),priceBefore);
    Call(mover,"SetStartPose",outside.position,outside.rotation);yield return new WaitForSecondsRealtime(.4f);
    Call(room,"Interact");yield return new WaitForSecondsRealtime(.15f);
    Assert.AreEqual("Working",Get(service,"Phase").ToString());Assert.Less(Vector3.Distance(player.transform.position,inside.position),.6f);

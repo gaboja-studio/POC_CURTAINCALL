@@ -112,7 +112,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (overlay != null) Destroy(overlay);
             if (blood != null) Destroy(blood);
             foreach (var b in struggle) if (b.Key != null) b.Key.localRotation = b.Value;
-            if (mover != null) mover.SetControlEnabled(priorControl);
+            if (mover != null) mover.SetControlEnabled(priorControl && PlayerInteraction.CanInteract(mover));
             if (visual != null) { visual.localPosition = position; visual.localRotation = rotation; }
             if (model != null && model.Animator != null) model.Animator.enabled = priorAnimator;
             // Cuts may have changed the required local height while this pose owned

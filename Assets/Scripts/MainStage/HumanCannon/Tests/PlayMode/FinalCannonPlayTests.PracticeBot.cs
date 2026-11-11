@@ -96,8 +96,17 @@ namespace CurtainCall.HumanCannon.Tests
                 yield return null;
                 Call(trampoline, "RequestGrab");
                 yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor, 3, "이번에는 사람이 트램폴린을 운반함");
+                // 손잡이 대기 위치는 출발 리프트 밖이다. 역할 교대가 사람의 이동까지 대신하지 않는다.
+                Call(mover, "SetStartPose", (Vector3)Get(Call(route, "Transport", 0), "StartPosition") + Vector3.up * .02f,
+                    Quaternion.identity, true);
                 yield return WaitUntil(() => Get(Call(route, "TransportState", 0), "Phase").ToString() == "Arrived", 12,
                     "운반자 혼자 출발 리프트 이용");
+                // Phase 변경과 같은 프레임의 LateUpdate가 마지막 리프트 배치를 적용한다.
+                yield return new WaitForEndOfFrame();
+                // 리프트는 코스 바깥쪽에 도착한다. 실제 받기 검사의 운반자를 중앙 수신 위치에 준비한다.
+                Vector3 catchFeet = player.transform.position; catchFeet.x = 0f;
+                Call(mover, "SetStartPose", catchFeet, Quaternion.identity, true);
+                SetCarryView(director, 0f, 0f);
                 yield return WaitUntil(() => (bool)Call(system, "IsFlying", bot), 6, "봇이 운반자 준비 후 실제 대포 발사");
                 Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"), "사람은 운반 카메라를 유지함");
                 yield return WaitUntil(() => MarkerVisible(bot), 3, "원격 봇의 공중 위치도 사람 화면에 원형 표시");
