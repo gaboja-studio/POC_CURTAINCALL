@@ -10,7 +10,7 @@ namespace CurtainCall.HumanCannon
         const double RadiansToDegrees = 180.0 / Math.PI;
 
         public static void Step(ref float angleDegrees, ref float angularSpeedDegrees, float input, float dt,
-            float gravity, float length, float acceleration, float maxAngle, float maxSpeed, float damping)
+            float gravity, float length, float acceleration, float maxAngle, float maxSpeed, float damping, bool braking = false)
         {
             if (!Finite(angleDegrees)) angleDegrees = 0;
             if (!Finite(angularSpeedDegrees)) angularSpeedDegrees = 0;
@@ -18,7 +18,7 @@ namespace CurtainCall.HumanCannon
                 || !Finite(length) || length <= 0 || !Finite(acceleration) || acceleration < 0
                 || !Finite(maxAngle) || maxAngle < 0 || !Finite(maxSpeed) || maxSpeed < 0
                 || !Finite(damping) || damping < 0) return;
-            if (Math.Abs(input) < .01f && Math.Abs(angleDegrees) < .01f && Math.Abs(angularSpeedDegrees) < .01f)
+            if ((braking || Math.Abs(input) < .01f) && Math.Abs(angleDegrees) < .01f && Math.Abs(angularSpeedDegrees) < .01f)
             {
                 angleDegrees = angularSpeedDegrees = 0;
                 return;
@@ -32,16 +32,24 @@ namespace CurtainCall.HumanCannon
             double speed = Clamp(angularSpeedDegrees, maxSpeed);
             double requestedDrive = Clamp(input, 1) * acceleration;
             double decay = Math.Exp(-damping * step);
-            double maximumEnergy = (double)gravity / length * (1 - Math.Cos(maxAngle * DegreesToRadians));
+            double gravityOverLength = (double)gravity / length;
+            double maximumEnergy = gravityOverLength * (1 - Math.Cos(maxAngle * DegreesToRadians));
+            double brakeStep = Math.Abs(requestedDrive) * step;
+            // Cap brake torque near rest to the pendulum's critical damping, so it
+            // can return to center under gravity instead of locking at an angle.
+            double brakeFraction = braking && gravity > 0 ? 1 - Math.Exp(-2 * Math.Sqrt(gravityOverLength) * step) : 1;
             for (int i = 0; i < count; i++)
             {
                 // Push during the matching half of the swing, then let gravity bring it back.
                 // Holding a direction builds energy over successive passes instead of pinning
                 // the bar at a tilted equilibrium. Alternating W/S can pump both halves.
-                double drive = requestedDrive * speed >= 0
+                double drive = !braking && requestedDrive * speed >= 0
                     ? requestedDrive * Math.Max(0, Math.Cos(angle * DegreesToRadians)) : 0;
-                double restoring = -(double)gravity / length * Math.Sin(angle * DegreesToRadians) * RadiansToDegrees;
-                speed = Clamp((speed + (restoring + drive) * step) * decay, maxSpeed);
+                double restoring = -gravityOverLength * Math.Sin(angle * DegreesToRadians) * RadiansToDegrees;
+                speed += (restoring + drive) * step;
+                if (braking)
+                    speed -= Math.Sign(speed) * Math.Min(brakeStep, Math.Abs(speed) * brakeFraction);
+                speed = Clamp(speed * decay, maxSpeed);
                 angle += speed * step;
                 if (angle >= maxAngle)
                 {
@@ -57,9 +65,8 @@ namespace CurtainCall.HumanCannon
                 {
                     // Limit total pendulum energy, not only the angle. Excess input cannot
                     // bank a hidden launch boost or slam into the end stop at full speed.
-                    double potential = (double)gravity / length * (1 - Math.Cos(angle * DegreesToRadians));
-                    double speedAtAngle = Math.Sqrt(Math.Max(0, 2 * (maximumEnergy - potential))) * RadiansToDegrees;
-                    speed = Clamp(speed, speedAtAngle);
+                    double potential = gravityOverLength * (1 - Math.Cos(angle * DegreesToRadians));
+                    speed = Clamp(speed, EnergySpeedLimit(maximumEnergy, potential));
                 }
             }
             angleDegrees = (float)angle;
@@ -84,6 +91,30 @@ namespace CurtainCall.HumanCannon
             double horizontal = speed * Math.Cos(angle);
             return FiniteVector(planar.x * horizontal, speed * Math.Sin(angle), planar.z * horizontal);
         }
+
+        public static float AddCatchMomentum(float angleDegrees, float angularSpeedDegrees, float approachSpeed,
+            float length, float gravity, float motionSpeed, float maxAngle, float maxSpeed)
+        {
+            if (!Finite(approachSpeed) || approachSpeed == 0f || !Finite(angleDegrees) || !Finite(angularSpeedDegrees)
+                || !Finite(length) || length <= 0 || !Finite(gravity) || gravity < 0
+                || !Finite(motionSpeed) || motionSpeed <= 0 || !Finite(maxAngle) || maxAngle < 0
+                || !Finite(maxSpeed) || maxSpeed < 0) return angularSpeedDegrees;
+            double angle = Clamp(angleDegrees, maxAngle) * DegreesToRadians;
+            // Project horizontal approach onto the pendulum tangent and convert world speed to the swing clock.
+            double delta = approachSpeed * Math.Cos(angle) / ((double)length * motionSpeed) * RadiansToDegrees;
+            double limit = maxSpeed;
+            if (gravity > 0)
+            {
+                double gravityOverLength = (double)gravity / length;
+                double maximum = gravityOverLength * (1 - Math.Cos(maxAngle * DegreesToRadians));
+                double potential = gravityOverLength * (1 - Math.Cos(angle));
+                limit = Math.Min(limit, EnergySpeedLimit(maximum, potential));
+            }
+            return (float)Clamp(angularSpeedDegrees + delta, limit);
+        }
+
+        static double EnergySpeedLimit(double maximumEnergy, double potential) =>
+            Math.Sqrt(Math.Max(0, 2 * (maximumEnergy - potential))) * RadiansToDegrees;
 
         /// <summary>현재 운동 에너지와 올라간 높이를 최저점에서의 속도로 환산한다.</summary>
         public static float StoredSpeed(float angleDegrees, float angularSpeedDegrees, float length,

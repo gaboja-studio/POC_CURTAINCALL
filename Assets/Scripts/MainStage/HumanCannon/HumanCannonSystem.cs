@@ -448,8 +448,15 @@ namespace CurtainCall.HumanCannon
         void HandleRevivedMotion(NetworkPlayer player)
         {
             pendingLandingReports.Remove(player.OwnerClientId);
-            if (session != null && session.IsHost) flying.RemoveWhere(id => id == player.OwnerClientId, SendFlightRemoved);
-            else flying.Remove(player.OwnerClientId);
+            if (session != null && session.IsHost)
+            {
+                ServerReleaseForInspection(player.OwnerClientId);
+                return;
+            }
+            flying.Remove(player.OwnerClientId);
+            foreach (var seat in seats)
+                if (seat.State.Occupant == player.OwnerClientId)
+                    seat.State.Receive(seat.State.Revision, CannonSeatState.Nobody);
             if (player == boundPlayer && pilot != null) pilot.ReleaseMovement();
         }
 

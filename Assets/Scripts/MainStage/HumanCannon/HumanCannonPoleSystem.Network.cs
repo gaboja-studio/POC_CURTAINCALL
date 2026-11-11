@@ -34,7 +34,15 @@ namespace CurtainCall.HumanCannon
         {
             var player = NetworkPlayer.Local;
             if (player == null || player.State != PlayerState.Normal || InputGate.IsBlocked || !Valid(index)) return;
-            if (action is PoleAction.Grab or PoleAction.PlatformGrab) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player,poles[index],"POLE");
+            if (action is PoleAction.Grab or PoleAction.PlatformGrab)
+            {
+                var pole = poles[index];
+                CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player, pole, "POLE");
+                // The owner has the movement result before HoldPole clears it. This field carries m/s on grab packets.
+                if (player.TryGetComponent(out PlayerMover mover) && mover.Body is { enabled: true } body
+                    && (action == PoleAction.Grab || mover.Simulated && mover.IsAirborne))
+                    input = Vector3.Dot(body.velocity, pole.Forward);
+            }
             uint revision = states[index].State.Revision;
             double observedElapsed = poles[index].Loop != null ? poles[index].Loop.Elapsed : -1d;
             if (session != null && session.IsHost)

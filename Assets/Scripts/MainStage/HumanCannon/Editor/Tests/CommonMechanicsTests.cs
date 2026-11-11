@@ -95,6 +95,79 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         static void Set(object target, string name, object value) => target.GetType()
             .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
 
+        [TestCase(false, 0f)]
+        [TestCase(false, 4f)]
+        [TestCase(true, -4f)]
+        public void HostCatchStartsTheCommonSwingAndSecondRiderKeepsItsSpeed(bool fromFlight, float approach)
+        {
+            var root = new GameObject("Host pole catch");
+            root.transform.position = new Vector3(15000f, 50f, 15000f);
+            var currentCannon = typeof(HumanCannonSystem).GetProperty("Current");
+            var savedCannon = currentCannon.GetValue(null);
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var crew = new System.Collections.Generic.List<NetworkPlayer>();
+            var request = typeof(HumanCannonPoleSystem).GetNestedType("PoleAction", BindingFlags.NonPublic);
+            GameObject Child(string name, bool active = true)
+            {
+                var child = new GameObject(name);
+                child.SetActive(active);
+                child.transform.SetParent(root.transform, false);
+                return child;
+            }
+            NetworkPlayer Actor(ulong id, Vector3 grab)
+            {
+                var player = Child("Rider").AddComponent<NetworkPlayer>();
+                player.transform.position = grab - Vector3.up;
+                Call(player.GetComponent<PlayerMover>(), "Awake");
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, id);
+                crew.Add(player);
+                all.Add(player);
+                return player;
+            }
+            try
+            {
+                var session = Child("Session", false).AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                session.GetType().GetProperty("ConnectionState").SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
+                var cannon = Child("Cannon", false).AddComponent<HumanCannonSystem>();
+                Call(cannon, "ResetSeats");
+                currentCannon.SetValue(null, cannon);
+                var poles = Child("Pole system", false).AddComponent<HumanCannonPoleSystem>();
+                Set(poles, "session", session);
+                var pole = Child("Pole").AddComponent<HumanCannonPole>();
+                pole.IsSwitch = fromFlight;
+                int index = poles.Register(pole);
+                var first = Actor(1701, pole.GrabPoint(0f, 0));
+                uint launch = 20u;
+                if (fromFlight) Call(cannon, "BeginPoleFlight", first.OwnerClientId, launch);
+                Physics.SyncTransforms();
+                Call(poles, "HandleRequest", first.OwnerClientId, System.Enum.Parse(request, fromFlight ? "Grab" : "PlatformGrab"),
+                    index, poles.State(index).Revision, CannonFlightState.PoleEntrySource, launch, 0u, approach, 0u, -1d);
+
+                Assert.That(poles.State(index).SeatOf(first.OwnerClientId), Is.Zero);
+                float speed = poles.SpeedAt(index);
+                var velocity = PoleSwingMotion.Velocity(0f, speed, pole.SwingLength, pole.Forward) * GameSettings.Poles.SwingMotionSpeed;
+                Assert.That(Vector3.Dot(velocity, pole.Forward), Is.EqualTo(approach).Within(.001f));
+
+                var second = Actor(1702, pole.GrabPoint(0f, 1));
+                Physics.SyncTransforms();
+                Call(poles, "HandleRequest", second.OwnerClientId, System.Enum.Parse(request, "PlatformGrab"),
+                    index, poles.State(index).Revision, 0, 0u, 0u, 100f, 0u, -1d);
+                Assert.That(poles.State(index).SeatOf(second.OwnerClientId), Is.EqualTo(1));
+                Assert.AreEqual(speed, poles.SpeedAt(index));
+            }
+            finally
+            {
+                currentCannon.SetValue(null, savedCannon);
+                foreach (var player in crew)
+                {
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                    all.Remove(player);
+                }
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase("ordinary jump", true)]
         [TestCase("ordinary fall", true)]
         [TestCase("cannon flight", false)]
@@ -167,6 +240,41 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ReviveClearsOnlyThePreviousCannonOccupant(bool host)
+        {
+            var root = new GameObject("Cannon seat recovery");
+            root.SetActive(false);
+            try
+            {
+                const ulong actor = 713UL, other = 714UL;
+                var session = root.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                Set(session, "_networkManager", root.GetComponent<Unity.Netcode.NetworkManager>());
+                var connection = host ? CurtainCall.Network.Session.SessionConnectionState.Host
+                    : CurtainCall.Network.Session.SessionConnectionState.Client;
+                session.GetType().GetProperty("ConnectionState").SetValue(session, connection);
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                cannon.ConfigurePractice(new HumanCannonStation[2], -10f);
+                Call(cannon, "ResetSeats");
+                Set(cannon, "session", session);
+                var player = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var seats = (System.Array)typeof(HumanCannonSystem).GetField("seats", fields).GetValue(cannon);
+                var first = (CannonSeatState)seats.GetValue(0).GetType().GetField("State").GetValue(seats.GetValue(0));
+                var second = (CannonSeatState)seats.GetValue(1).GetType().GetField("State").GetValue(seats.GetValue(1));
+                Assert.IsTrue(first.TryApply(CannonAction.Board, actor, first.Revision));
+                Assert.IsTrue(second.TryApply(CannonAction.Board, other, second.Revision));
+
+                Call(cannon, "HandleRevivedMotion", player);
+                Assert.IsFalse(cannon.IsSeated(actor));
+                Assert.IsTrue(cannon.IsSeated(other));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void CheckpointCleanupReleasesTheTrampolineEvenWhenItsCarrierHasFallen()
         {
@@ -200,6 +308,50 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 }
             }
             finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void RevivedPassengerIsNotCarriedByThePreviousTrip(bool host)
+        {
+            var root = new GameObject("Transport recovery");
+            root.SetActive(false);
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var route = root.AddComponent<HumanCannonRouteSystem>();
+            try
+            {
+                current.SetValue(null, null);
+                route.ConfigurePractice(null, -10f);
+                Call(route, "OnEnable");
+                var session = root.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                var connection = host ? CurtainCall.Network.Session.SessionConnectionState.Host
+                    : CurtainCall.Network.Session.SessionConnectionState.Client;
+                session.GetType().GetProperty("ConnectionState").SetValue(session, connection);
+                Set(route, "session", session);
+                var player = root.AddComponent<NetworkPlayer>();
+                const ulong actor = 717UL;
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                var travel = route.TransportState(0);
+                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 10d, 8f));
+                Assert.IsTrue(route.IsRiding(actor));
+
+                Call(route, "ReleaseRevivedPassenger", player);
+                Assert.IsFalse(route.IsRiding(actor));
+                Assert.IsFalse(route.IsRiding(CannonSeatState.Nobody));
+                Assert.AreEqual(0.5f, travel.Progress(14d));
+                Assert.IsTrue(travel.Tick(18d));
+                Assert.IsTrue(travel.TryReturn(20d));
+                Assert.IsTrue(travel.Tick(28d));
+                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 30d, 8f));
+                Assert.IsTrue(route.IsRiding(actor));
+            }
+            finally
+            {
+                Call(route, "OnDisable");
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
         }
 
         [TestCase(false)]
