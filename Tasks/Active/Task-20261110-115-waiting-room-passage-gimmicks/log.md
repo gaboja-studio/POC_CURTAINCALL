@@ -93,3 +93,12 @@
 - 주의: 방 구조를 다시 생성·삭제하는 옛 에디터 도구(WaitingRoomLayoutA·StructureA*Fix·WaitingRoomOverlapFix 등)는 프리팹 인스턴스 자식을 지우지 못한다. 다시 쓰려면 프리팹을 열어 실행하거나 도구를 고쳐야 함. 방 수정은 이제 프리팹 모드에서 하고, 씬에서 고친 값은 Apply 여부를 확인할 것.
 - EditMode 테스트(WaitingRoom 필터) 323개 중 318 통과, 5 실패는 모두 변경 전부터 있던 것: 문구 파일 키 2건, 편집 모드 DontDestroyOnLoad 2건, 추격 배치 비교 1건(PursuitSystem/S04_PropRoom/Mannequin_Male_04 Size=Medium, HEAD에도 동일·프리팹 밖). PlayMode·실제 플레이 미실행.
 - 함께 바뀐 파일 아님: Pretendard SDF 폰트 2개·escape-labels.asset·_ThirdParty 셰이더 2개는 에디터 사용 중 생긴 기존 변경으로 손대지 않음.
+
+## 2026-11-11 공간 프리팹 장소 기준 재분류(사용자 지적·승인)
+- 문제: 1차 프리팹화가 기존 하이어라키 묶음을 그대로 따라, 다른 방의 외벽·연결 통로·메자닌·지하 세부물이 로비·S11·계단실 프리팹 안에 있었음.
+- 옮김(월드 위치 유지): `S01_Lobby/Frame8Lobby/OuterSkin_{S04,S10,P05,S05}` → 각 방 / `Passage_F8_*` 6개·ServiceGallery·CargoDockConnection·PipeJunkLink → `FacilityConnections`(새 프리팹) / `DarkOuterShell`(시설 전체 외피) → `ExteriorEnclosure`(새 프리팹) / `S11_StageGear/HallMezzanine` → S12_CargoBay / `ST_Stairwell/EnvironmentDetail`의 OfficeLink·EscapeCorridor·EscapeEntrance·SealedExit·PlantOverhead·OldBoiler → 해당 B1 방, BasementRooms는 하위 21개를 위치대로 B1_Office(10)·B1_ChangingRoom(11)에 나눔. 계단실에는 EnvironmentDetail/Stairwell만 남음. 로비에는 돔·원형 바닥·벽 충돌체·AbandonedFactory 유지.
+- 방법: 관련 방 14곳 프리팹 연결을 풀고 재부모화 후 같은 경로에 다시 저장(GUID 유지). 프리팹 24개(방 22 + 연결 통로 + 외피).
+- 메자닌은 S11·S12 영역에 거의 반씩 걸쳐 있음(렌더러 517/573). 화물 적재장 위 데크 기준으로 S12에 넣음.
+- 검증: 메모리 비교 참조 5,278개 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 참조·컴포넌트 전부 일치, 위치 차이 최대 0.01m(반올림 경계). 오클루전 다시 구움. EditMode(WaitingRoom) 323 중 318 통과, 실패 5건은 이전과 같은 기존 실패.
+- 경로가 바뀐 곳: 옛 생성 도구(WaitingRoomLayoutA.M2/Polish2/Polish4/Polish5, StructureADoorVisualFix)는 옛 경로를 찾는다(이미 프리팹화로 재실행 불가 상태). CameraViewsPlayTests의 `S01_Lobby/Frame8Lobby/PipeJunkLink` 경로는 WaitingRoomBase·추격 씬 전용이라 영향 없음.
+- 프리팹 밖에 남긴 것: SecurityCctv·NightMaintenance 문·SupportFinishing 깃발 줄·BasementEscapeConnection·탐색 타이머 영역 등 여러 방에 걸친 시스템 묶음.
