@@ -1,6 +1,8 @@
 using System.Reflection;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -36,6 +38,72 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
         static void Set(object target, string name, object value) => target.GetType()
             .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+
+        [Test, Category("CommonRulesRegression")]
+        public void RemoteCannonOccupancyExcludesPiggybackWithoutAnOwnerPilot()
+        {
+            var current = typeof(HumanCannonSystem).GetField("<Current>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = current.GetValue(null);
+            var root = new GameObject("cannon occupancy"); root.SetActive(false);
+            var actor = new GameObject("remote actor without pilot"); actor.SetActive(false);
+            try
+            {
+                var station = root.AddComponent<HumanCannonStation>();
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                cannon.ConfigurePractice(new[] { station }, -10f);
+                Call(cannon, "ResetSeats");
+                current.SetValue(null, cannon);
+                var player = actor.AddComponent<NetworkPlayer>();
+                Assert.IsNull(actor.GetComponent<HumanCannonPilot>());
+                var occupied = typeof(PiggybackSystem).GetMethod("UsingDevice", BindingFlags.Static | BindingFlags.NonPublic);
+                var following = typeof(PiggybackFollow).GetMethod("IsCrossing", BindingFlags.Static | BindingFlags.NonPublic);
+                var seats = (System.Array)typeof(HumanCannonSystem).GetField("seats", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(cannon);
+                var runtime = seats.GetValue(0);
+                var seat = (CannonSeatState)runtime.GetType().GetField("State").GetValue(runtime);
+                Assert.IsFalse((bool)occupied.Invoke(null, new object[] { player }));
+                Assert.IsTrue(seat.TryApply(CannonAction.Board, player.OwnerClientId, seat.Revision));
+                Assert.IsTrue((bool)occupied.Invoke(null, new object[] { player }), "Remote seat occupancy must block a new shoulder mount.");
+                Assert.IsTrue((bool)following.Invoke(null, new object[] { player }), "Seat movement must take precedence over an older piggyback snapshot.");
+                Assert.IsTrue(seat.TryApply(CannonAction.Launch, player.OwnerClientId, seat.Revision));
+                Call(cannon, "Apply", 0, CannonAction.Launch, player.OwnerClientId, Vector3.zero, Quaternion.identity, Vector3.up);
+                Assert.IsTrue((bool)occupied.Invoke(null, new object[] { player }), "Remote cannon flight must remain mutually exclusive with piggyback.");
+                Assert.IsTrue((bool)following.Invoke(null, new object[] { player }));
+                Call(cannon, "Apply", 0, CannonAction.Release, player.OwnerClientId, Vector3.zero, Quaternion.identity, Vector3.zero);
+                Assert.IsFalse((bool)occupied.Invoke(null, new object[] { player }));
+            }
+            finally
+            {
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test, Category("CommonRulesRegression")]
+        public void PiggybackDeviceEligibilityDoesNotGrantClientTransferAuthority()
+        {
+            var root = new GameObject("client piggyback query"); root.SetActive(false);
+            var actor = new GameObject("client rider"); actor.SetActive(false);
+            NetworkPlayer player = null;
+            try
+            {
+                var stack = root.AddComponent<PiggybackSystem>();
+                player = actor.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem)
+                    .GetField("belowOf", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stack);
+                below[player.OwnerClientId] = 1UL;
+                Assert.IsTrue((bool)Call(stack, "CanReleaseForDevice", player), "The owner can see an available pole while mounted, without host authority.");
+                Assert.IsFalse((bool)Call(stack, "TryReleaseForDevice", player, null), "Only the host may mutate the shared links.");
+                Assert.IsTrue(stack.IsInStack(player), "A client-side query or transfer attempt must leave the link intact.");
+            }
+            finally
+            {
+                if (player != null) typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(root);
+            }
+        }
 
         [Test]
         public void LegacyTrampolineValuesCannotOverrideCommonBounceCarryAndCarrierRequirement()

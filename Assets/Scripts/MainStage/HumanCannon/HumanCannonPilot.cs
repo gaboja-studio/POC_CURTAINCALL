@@ -101,6 +101,7 @@ namespace CurtainCall.HumanCannon
             returnPosition = transform.position;
             returnRotation = transform.rotation;
             hasReturnPose = true;
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
             TakeMovement();
             stationIndex = index;
             IsFlying = false;
@@ -115,6 +116,7 @@ namespace CurtainCall.HumanCannon
             airControl.Clear();
             steerPoleMomentum = false;
             airControl.BeginPoleFlight(0f);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
             TakeMovement();
             stationIndex = -1;
             flightStationIndex = index;

@@ -23,7 +23,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 group=group,role=role,label=label,when=when,title=title==null?null:prefix+title,body=body==null?null:prefix+body});
             void Quest(string key,string label,string when,string role=objective)=>Add(role,label,when,"quest."+key+".title","quest."+key);
             Add(guide,"첫 리허설 시작","첫 공연 전 외줄 리허설에 진입했을 때","intro-title","intro");
-            Add(guide,"자유 연습 시작","전원 동의 후 연습을 시작하거나 호스트가 소구간 재연습을 시작할 때","practice-title","practice-intro");
+            Add(guide,"자유 연습 시작 · 복귀 켬","재연습을 시작하고 사망 후 복귀가 켜져 있을 때","practice-title","practice-intro");
+            Add(guide,"자유 연습 시작 · 복귀 끔","재연습을 시작하고 사망 후 복귀가 꺼져 있을 때","practice-title","practice-intro-no-recovery");
             foreach(var (id,name) in new[]{("1","외줄타기"),("2-1","인간 그네"),("2-2","연속 그네"),("2-3","트리거 그네"),("3","목마와 공중그네")})
             {
                 Add(guide,id+" "+name+" 소개","이 구간 코스가 준비됐을 때. 첫 구간은 시작 소개가 끝난 뒤 표시합니다.","stage."+id+".guide-title","stage."+id+".intro");
@@ -45,7 +46,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             Quest("rescue-pull","끌어올리기","내가 매달린 동료를 끌어올리는 동안","학습 가이드 + 팀 임무");
             Quest("balance","균형 잡기","일반 외줄 진행 중 다른 장치·도착 조건이 없을 때");
             Quest("wait-team","도착 대기","내가 도착해 다른 단원을 기다릴 때");
-            Quest("fallen","추락","내 캐릭터가 추락 상태일 때");
+            Quest("fallen","추락 후 복귀 대기","추락 후 소구간 출발대로 복귀할 때까지");
+            Quest("practice-fallen","사망 후 대기","재연습에서 사망 후 복귀가 꺼져 있을 때");
             Quest("lane-jump","옆줄 이동","첫째 줄의 체크포인트를 지나 옆줄로 건너야 할 때");
             Quest("lane-platform","중간 발판","옆줄 구간의 중간 발판에서 자유 이동 중일 때",guide);
             Quest("trapeze","공중그네 상태","공중그네를 잡거나 도약한 동안. {hint}는 장치의 현재 상태 설명입니다.");
@@ -68,7 +70,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             Add(vote,"선택 방법 안내","버튼에는 현재 설정한 키가 자동 표시됩니다. 이 문구는 투표 카드 아래에 표시됩니다.",null,"vote-panel.hint");
 
             group="인간대포";prefix="cannon-rehearsal.";
-            Add(guide,"시작 소개","연습 코스가 준비되어 시작대에 배치될 때","title","intro");
+            Add(guide,"시작 소개 · 복귀 켬","연습을 시작하고 사망 후 복귀가 켜져 있을 때","title","intro");
+            Add(guide,"시작 소개 · 복귀 끔","연습을 시작하고 사망 후 복귀가 꺼져 있을 때","title","intro-no-recovery");
             void Cannon(string key,string label,string when)=>Add(guide,label,when,"guide."+key+".title","guide."+key+".body");
             Cannon("cannon","대포 탑승·발사","대포 탑승 가능 거리 안에 들어가거나 이미 탑승했을 때");
             Cannon("trampoline","트램펄린 잡기","중간 도착을 기록한 뒤 트램펄린 4m 안에 들어왔을 때");
@@ -77,12 +80,14 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             Cannon("transport","운송 발판","내가 운송 발판을 타고 있을 때");
             Cannon("bounce","반동 착지","내가 트램펄린 반동을 받은 기록이 생겼을 때");
             Cannon("safe","안전 지역","중간 도착 이후 아래층 안전 구역에 들어갔을 때");
-            Add("시스템 경고","사망","내 상태가 정상에서 추락으로 바뀐 순간","fall-title","fall");
+            Add("시스템 경고","사망 · 복귀 켬","내가 사망했고 체크포인트로 복귀할 예정일 때","fall-title","fall-recover");
+            Add("시스템 경고","사망 · 복귀 끔","내가 사망했고 자동 복귀하지 않을 때","fall-title","fall");
             Add(guide,"다시 연습하기","넘기기 가결 후 대기실로 돌아오면 이수 결과와 별도로 표시합니다.","retry-title","retry-body");
             Add(objective,"첫 대포","중간 도착대에 도착하기 전","first-title","first");
             Add(objective,"다음 지점","중간 도착 이후 아래층 안전 구역 밖에 있을 때","quest-title","second");
             Add(objective,"안전 지역 이동","중간 도착 이후 아래층 안전 구역에 있을 때","safe-title","safe-body");
-            Add(objective,"사망 후 대기","리허설에 남아 넘기기·포기에 투표할 수 있는 동안","fall-title","fall");
+            Add(objective,"체크포인트 복귀 대기","사망 후 체크포인트에서 다시 시작할 때까지","fall-title","fall-recover");
+            Add(objective,"사망 후 대기 · 복귀 끔","리허설에 남아 넘기기·포기에 투표할 수 있는 동안","fall-title","fall");
             Add(objective,"이수 후 목표","성공으로 리허설이 끝난 뒤 대기실에 돌아왔을 때","completed-title","complete");
             Add(vote,"공연 발견 후 확인","인간대포 공연을 처음 해금했을 때","unlocked-title","unlocked-body");
             Add(vote,"공연 선택 전 확인","인간대포를 선택하려는데 리허설 이수 기록이 없을 때","required-title","required");

@@ -24,12 +24,12 @@ namespace CurtainCall.HumanCannon.Tests
             Call(player, "ResetFallTeleportRpc", destination, restart, revive);
             Assert.IsTrue((bool)Get(player, "fallTeleportPending"));
             Call(player, "LateUpdate");
-            Call(player, "ReportFallPeakRpc", oldPosition.y + 3f, restart, revive);
+            Call(player, "ReportFallPeakRpc", oldPosition.y + 3f, restart, revive, accepted + 1u);
             Call(player, "ReportFallLandingRpc", accepted + 1u, restart, revive, oldPosition.y, oldPosition);
             Assert.IsFalse((bool)Get(player, "fallAirborne"), "옛 서버 위치에서 낙하를 다시 시작하지 않는다.");
             Assert.That(Call(player, "FallHeightAt", destination), Is.EqualTo(0f));
             Assert.That(Get(player, "acceptedFallSequence"), Is.EqualTo(accepted));
-            Call(player, "ReportFallPeakRpc", destination.y + 1f, restart, revive);
+            Call(player, "ReportFallPeakRpc", destination.y + 1f, restart, revive, accepted + 1u);
             Assert.That(Call(player, "FallHeightAt", destination), Is.EqualTo(1f), "대기 중에도 유효한 소유자 최고점 보고는 기록한다.");
 
             // Bypass mover.Teleported deliberately: this is the later NetworkTransform position delivery.
@@ -61,7 +61,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(player, "ResetFallTeleportRpc", destination, restart, revive);
                 // The server receives only later poses, never one within a metre of the destination.
                 player.transform.position = contact + Vector3.up * 1.5f;
-                Call(player, "ReportFallPeakRpc", contact.y + 3f, restart, revive);
+                Call(player, "ReportFallPeakRpc", contact.y + 3f, restart, revive, (uint)Get(player, "acceptedFallSequence") + 1u);
                 Call(player, "LateUpdate");
                 Assert.IsTrue((bool)Get(player, "fallTeleportPending"));
                 Assert.That(Call(player, "FallHeightAt", contact), Is.EqualTo(3f));
@@ -133,7 +133,7 @@ namespace CurtainCall.HumanCannon.Tests
             Call(player, "BeginFallAt", contact + Vector3.up);
             Put(player, "fallSequence", 77u);
             Put(player, "landingPending", true);
-            Call(player, "ReportFallPeakRpc", contact.y + 2f, restart, oldRevive);
+            Call(player, "ReportFallPeakRpc", contact.y + 2f, restart, oldRevive, 78u);
             Call(player, "ResetFallTeleportRpc", contact + Vector3.up * 20f, restart, oldRevive);
             Call(player, "ConfirmFallLandingRpc", 77u, restart, oldRevive);
             Call(player, "ReleaseIntoFallRpc", restart, oldRevive);
@@ -143,7 +143,7 @@ namespace CurtainCall.HumanCannon.Tests
             Assert.IsTrue((bool)Get(player, "landingPending"), "지난 생명의 응답이 현재 착지 대기를 지우면 안 된다.");
             Assert.IsFalse((bool)Get(player, "fallTeleportPending"));
             Assert.IsFalse((bool)Get(player, "IsDroppingFromSupport"));
-            Call(player, "ReportFallPeakRpc", contact.y + 2f, restart, oldRevive + 1);
+            Call(player, "ReportFallPeakRpc", contact.y + 2f, restart, oldRevive + 1, 78u);
             Assert.That(Call(player, "FallHeightAt", contact), Is.EqualTo(2f), "현재 생명의 보고는 계속 허용한다.");
             yield return null;
         }

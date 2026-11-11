@@ -495,8 +495,8 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float fallInjuryHeight = 4f;
             [InspectorName("낙하 부상 절단 개수"), Tooltip("부상 높이 이상·사망 높이 미만으로 착지할 때 잃는 사지 수(개, 1~4). 이미 다친 상태에서는 남은 사지를 모두 잃어 사망할 수 있다. 기본 2개.")]
             [SerializeField, Range(1, 4)] int fallInjuryCutCount = 2;
-            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 6m.")]
-            [SerializeField, Min(0f)] float fallDeathHeight = 6f;
+            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발이나 트램펄린 반동이 먼저 성공하면 피해를 막는다. 기본 8m.")]
+            [SerializeField, Min(0f)] float fallDeathHeight = 8f;
             [SerializeField, InspectorName("외줄 착지 낙하 피해 면제")]
             [Tooltip("실제로 외줄 위에 정상 착지하면 높이에 관계없이 낙하 부상·사망 없이 줄을 탄다. 모든 씬 공통. 줄에서 떨어져 아래 바닥에 착지한 경우에는 일반 낙하 높이 기준을 적용한다. 기본 켬.")]
             bool safeRopeLanding = true;

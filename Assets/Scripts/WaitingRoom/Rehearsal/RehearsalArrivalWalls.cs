@@ -5,9 +5,10 @@ namespace CurtainCall.WaitingRoom
     /// <summary>Local arrival barriers keep an arrived owner on the platform without blocking incoming peers.</summary>
     public static class RehearsalArrivalWalls
     {
+        public const float Thickness = .3f;
         public static GameObject Create(Transform parent, string name, Bounds floor)
         {
-            const float thickness = .3f, height = 4f;
+            const float thickness = Thickness, height = 4f;
             var root = new GameObject(name); root.transform.SetParent(parent, true);
             void Wall(string side, Vector3 point, Vector3 size)
             {

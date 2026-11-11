@@ -5,6 +5,29 @@ namespace CurtainCall.WaitingRoom.Tests
     /// <summary>M2 신체 복구: 쉬는 시간·밤 정비 언제든, 1~3개 선택, 1개당 100에서 팀 이용마다 +25, 런 초기화.</summary>
     public sealed class ExpertServiceBookTests
     {
+        [Test, Category("MedicalReservationRecovery")]
+        public void NextBuyerCompletesServiceWhilePreviousDeathRefundIsPending()
+        {
+            var book = NewBook();
+            book.BookMedical(Buyer, true, true, 2, 2, MaxPerUse, () => true, 150);
+            book.Enter(Buyer);
+            Assert.IsTrue(book.CancelUnfulfilled());
+            Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Other, true, true, 1, 1, MaxPerUse, () => true, 125));
+            Assert.AreEqual(125, book.PaidCost);
+            Assert.AreEqual(150, book.PendingRefund);
+            Assert.AreEqual(ExpertRefusal.NotBuyer, book.Enter(Buyer));
+            Assert.AreEqual(ExpertRefusal.None, book.Enter(Other));
+            long refunded = 0;
+            Assert.IsTrue(book.TryRefund(amount => { refunded += amount; return true; }));
+            Assert.IsTrue(book.Tick(3f));
+            book.RecordRestoration(1);
+            Assert.IsFalse(book.Tick(2f));
+            Assert.AreEqual(ExpertRoomPhase.Idle, book.Phase);
+            Assert.AreEqual(150, refunded, "Only the previous unfulfilled payment is refunded.");
+            Assert.AreEqual(0, book.PendingRefund);
+            Assert.AreEqual(2, book.TeamUses);
+        }
+
         [Test, Category("WaitingRoomCommonRecovery")]
         public void UnfulfilledMedicalRefundRetriesAndPaysExactlyOnce()
         {

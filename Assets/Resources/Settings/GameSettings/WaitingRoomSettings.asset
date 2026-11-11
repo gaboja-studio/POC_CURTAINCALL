@@ -290,3 +290,6 @@ MonoBehaviour:
     openPracticeDoorWhileOccupied: 1
     waitForRecoveryBeforePerformance: 1
     keepFinishBarrier: 1
+  rehearsal:
+    recoverAfterDeath: 1
+    recoverSeconds: 1.5

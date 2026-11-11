@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -43,6 +44,7 @@ namespace CurtainCall.WaitingRoom
         public static bool IsActive => instance != null && instance.active;
         public static bool UsesInitialTutorialRules => instance != null && instance.active && !instance.practice
             && instance.run != null && instance.run.State.Phase == CampaignPhase.Rehearsal;
+        bool RecoversAfterDeath => UsesInitialTutorialRules || practice && GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath;
         /// <summary>지금 소구간(0부터). 진행 전이면 -1.</summary>
         public static int CurrentStage => instance != null && instance.active ? instance.stage : -1;
         /// <summary>이수 후 선택 재연습 중(CC-219). 최초 리허설과 달리 캠페인 단계·이수 기록을 바꾸지 않는다.</summary>
@@ -315,15 +317,14 @@ namespace CurtainCall.WaitingRoom
         void EnsureCourse()
         {
             int wanted = active && !completed ? stage : -1;
-            // 코스 벽은 마지막 단계와 함께 사라진다. 집결 중에는 연습실 외곽 벽으로 보호한다.
-            if (wanted < 0) SetRingBoundaryHidden(false);
+            // 교육 코스에는 대체 외곽 벽이 없다. 진행·집결 모두 기존 연습실 경계를 유지한다.
+            SetRingBoundaryHidden(false);
             if (builtStage == wanted && builtRound == round) return;
             DestroyCourse();
             builtStage = wanted; builtRound = round;
             if (wanted >= 0)
             {
                 BuildCourse(RehearsalStage.All[wanted]);
-                SetRingBoundaryHidden(course != null);
             }
             OnCourseChanged();
         }
@@ -342,8 +343,11 @@ namespace CurtainCall.WaitingRoom
             courseRoot.name = $"RehearsalCourse_{s.Id}";
             courseRoot.transform.position = ringCenter + new Vector3(0f, CourseHeight, -(s.Finish - 1f) * .5f);
             course = courseRoot.GetComponent<TightropeCourse>();
-            course.FinishPlatformScale = 2f;
-            course.ImportShape(s.CourseJson);
+            string courseJson = s.CourseJson;
+            var courseShape = TightropeSettings.CourseSettings.FromJson(courseJson);
+            var boundary = ringRoom != null ? ringRoom.Find(RingBoundaryPath + "/WallColliders") : null;
+            course.FinishPlatformScale = RehearsalPlatformLayout.FitFinishScale(courseShape, courseRoot.transform, ringCenter, boundary, 2f);
+            course.ImportShape(courseJson);
             course.SetLocked(true, "리허설 단계 배치");
             // 리허설 단계는 이미 호스트가 공유한다. 공연 대기실용 모양 동기화가 덮어쓰지 않게 한다.
             var shapeSync = courseRoot.GetComponent<CourseShapeSync>();
@@ -415,17 +419,28 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락한 사람은 대가 없이 잠시 뒤 보통 상태로 되돌린다(소유자 화면이 출발대로 옮긴다).</summary>
         void HostRecoverFallen()
         {
-            if (!UsesInitialTutorialRules) { fallenAt.Clear(); return; }
+            if (!RecoversAfterDeath) { fallenAt.Clear(); return; }
+            bool changed = false;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned) continue;
                 ulong id = player.OwnerClientId;
                 if (player.State != PlayerState.Fallen) { fallenAt.Remove(id); continue; }
+                // A previous arrival must not imprison a retry at the finish barrier.
+                changed |= arrived.Remove(id);
+                changed |= votes.Remove(id);
+                changed |= placed.Remove(id);
+                lessonSamples.Remove(id);
                 if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; RecordAction("FALLEN", id); continue; }
-                if (Clock - at < GameSettings.WaitingRoom.Tutorial.RecoverSeconds) continue;
+                float delay = practice ? GameSettings.WaitingRoom.Rehearsal.RecoverSeconds : GameSettings.WaitingRoom.Tutorial.RecoverSeconds;
+                if (Clock - at < delay) continue;
                 fallenAt.Remove(id);
+                HumanCannonSystem.Current?.ServerReleaseForInspection(id);
+                TightropeHangSystem.Current?.ServerReleaseForInspection(id);
+                PiggybackSystem.Current?.ServerReleaseForInspection(id);
                 player.ServerRestoreAll();
             }
+            if (changed) { version++; Publish(); }
         }
 
         void HostJudgeStage()

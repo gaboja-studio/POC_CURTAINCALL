@@ -7,8 +7,13 @@ namespace CurtainCall.Player
     public static class WalkableSupport
     {
         static readonly RaycastHit[] hits = new RaycastHit[32];
-        public static bool Contains(PlayerMover mover, Vector3 feet)
+        public static bool Contains(PlayerMover mover, Vector3 feet) => TryGetSupport(mover, feet, out _);
+
+        public static bool TryGetSupport(PlayerMover mover, Vector3 feet, out RaycastHit support)
         {
+            support = default;
+            bool found = false;
+            float nearest = float.PositiveInfinity;
             var body = mover != null ? mover.GetComponent<CharacterController>() : null;
             float radius = body != null ? Mathf.Max(.02f, body.radius - .02f) : .28f;
             int count = Physics.SphereCastNonAlloc(feet + Vector3.up * (radius + .12f), radius, Vector3.down,
@@ -23,9 +28,12 @@ namespace CurtainCall.Player
                 // 구형 캐스트의 모서리/초기 겹침 법선은 면의 실제 경사와 다를 수 있다.
                 if (!hit.collider.Raycast(new Ray(hit.point + Vector3.up * .08f, Vector3.down), out var face, .18f)
                     || face.normal.y < minNormal) continue;
-                return true;
+                if (hit.distance >= nearest) continue;
+                nearest = hit.distance;
+                support = face;
+                found = true;
             }
-            return false;
+            return found;
         }
     }
 }

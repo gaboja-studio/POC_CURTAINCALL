@@ -73,6 +73,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
         public static bool IsCaptured(GameObject player) => Current != null && Current.victims.Values.Any(v => v.Object == player);
         public static bool IsCaptured(NetworkPlayer player) => player != null && IsCaptured(player.gameObject);
+        public static bool IsCapturePending(NetworkPlayer player) => player != null && Current != null
+            && Current.victims.Values.Any(v => v.Object == player.gameObject && !v.Retired);
         public static bool IsPursuitPhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         public static Vector3 ArrivalLocal(BoxCollider area, int index, int count)
         {

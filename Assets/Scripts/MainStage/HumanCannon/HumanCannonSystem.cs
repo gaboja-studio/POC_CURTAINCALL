@@ -204,6 +204,7 @@ namespace CurtainCall.HumanCannon
         {
             if (player == null || player.State != PlayerState.Normal || player.IsAirborne || IsFlying(player.OwnerClientId)) return -1;
             if (HumanCannonCarry.Held(player.OwnerClientId) != null) return -1;
+            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return -1;
             for (int i = 0; i < seats.Length; i++)
                 if (seats[i].State.Occupant == player.OwnerClientId) return -1;
             int nearest = -1;
@@ -294,6 +295,9 @@ namespace CurtainCall.HumanCannon
                         && ValidIndex(index) && seats[index].State.Revision == revision && FindBoardableStation(player) == index,
                     () => HandleRequest(actor, index, action, revision, segment, landingPosition, true))) return;
             }
+            var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            bool transferring = (action is CannonAction.Board or CannonAction.Launch) && stack != null && stack.IsInStack(player);
+            if (transferring && !stack.CanReleaseForDevice(player)) return;
             if (!runtime.State.TryApply(action, actor, revision)) return;
 
             Vector3 position = station.Seat.position;
@@ -315,7 +319,9 @@ namespace CurtainCall.HumanCannon
                 rotation = station.Muzzle.rotation;
                 velocity = station.LaunchVelocity;
             }
-            Publish(index, action, actor, position, rotation, velocity);
+            void CompleteTransfer() => Publish(index, action, actor, position, rotation, velocity);
+            if (transferring) stack.TryReleaseForDevice(player, CompleteTransfer);
+            else CompleteTransfer();
         }
 
         void Publish(int index, CannonAction action, ulong actor, Vector3 position, Quaternion rotation, Vector3 velocity)

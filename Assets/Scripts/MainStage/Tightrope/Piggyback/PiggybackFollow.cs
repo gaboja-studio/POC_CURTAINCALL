@@ -36,12 +36,7 @@ namespace CurtainCall.Tightrope
         PlayerMover controlRestore; // 내려놓은 뒤 한 프레임 조작을 껐다가 켤 이동 부품(위에서 누른 SB가 내려놓는 순간 점프로 나가지 않게)
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
 
-        static bool IsCrossing(NetworkPlayer player) => player != null &&
-            (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)
-            || CurtainCall.HumanCannon.HumanCannonPoleSystem.Current != null
-                && CurtainCall.HumanCannon.HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
-            || CurtainCall.HumanCannon.HumanCannonSystem.Current != null
-                && CurtainCall.HumanCannon.HumanCannonSystem.Current.IsFlying(player.OwnerClientId));
+        static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player);
 
         void Update() => UpdateCarriedAirborne(NetworkPlayer.Local);
 

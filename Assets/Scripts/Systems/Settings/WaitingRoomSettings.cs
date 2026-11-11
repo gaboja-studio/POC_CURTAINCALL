@@ -87,6 +87,23 @@ namespace CurtainCall.Settings
         [SerializeField] TutorialSettings tutorial = new();
         public TutorialSettings Tutorial => tutorial ??= new();
 
+        [Header("재연습 공통 규칙")]
+        [SerializeField] RehearsalSettings rehearsal = new();
+        public RehearsalSettings Rehearsal => rehearsal ??= new();
+
+        [Serializable]
+        public sealed class RehearsalSettings
+        {
+            [SerializeField, InspectorName("재연습 사망 후 체크포인트 복귀")]
+            [Tooltip("외줄·인간대포 재연습 중 사망하면 온전한 몸으로 마지막 체크포인트에 복귀합니다. 외줄은 현재 소구간 출발대, 인간대포는 마지막으로 도착한 중간 도착대입니다. 일반 공연에는 적용하지 않습니다.")]
+            bool recoverAfterDeath = true;
+            [SerializeField, Min(0f), InspectorName("재연습 사망 복귀 대기 시간")]
+            [Tooltip("재연습 중 사망 후 체크포인트로 돌아오기까지 기다리는 시간(초). 기본 1.5초.")]
+            float recoverSeconds = 1.5f;
+            public bool RecoverAfterDeath => recoverAfterDeath;
+            public float RecoverSeconds => Mathf.Max(0f, recoverSeconds);
+        }
+
         [System.Serializable]
         public sealed class TutorialSettings
         {

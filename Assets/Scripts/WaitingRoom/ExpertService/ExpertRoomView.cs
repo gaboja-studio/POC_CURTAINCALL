@@ -50,7 +50,11 @@ namespace CurtainCall.WaitingRoom
         /// <summary>커튼이 열린 정도(0 닫힘 ~ 1 다 열림). 테스트 확인용.</summary>
         public float CurtainOpen => open;
         public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
-        public Vector3 PresentationPoint => transform.TransformPoint(CurtainCenterLocal()) + Vector3.up;
+        // The lift's door meshes are centred above the player. Use the existing boarding point at
+        // common body-centre height so an injured customer's reduced reach still reaches the entrance.
+        public Vector3 PresentationPoint => outside != null
+            ? outside.position + Vector3.up * (CurtainCall.Settings.GameSettings.Base.Character.CapsuleHeight * .5f)
+            : transform.TransformPoint(CurtainCenterLocal());
         public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer
             && (NetworkPlayer.Local == null || PlayerInteraction.CanInteract(NetworkPlayer.Local));
         public string ActionLabel => IsAvailable ? WaitingRoomText.Get("expert-room.ride-lift", "신체 복구 승강기 타기") : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : WaitingRoomText.Get("expert-room.absent", "담당자 부재중");
@@ -62,6 +66,9 @@ namespace CurtainCall.WaitingRoom
         string signText;
         UIInputBlocker workInput;
         bool localInside;
+        NetworkPlayer cabinOwner;
+        PlayerMover cabinMover;
+        bool cabinHadNetworkOwner;
 
         void Awake()
         {
@@ -77,6 +84,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (workInput != null) workInput.SetOpen(false);
             localInside = false;
+            cabinOwner = null; cabinMover = null; cabinHadNetworkOwner = false;
             ShopReach.Remove(this);
             Bind(null);
         }
@@ -86,13 +94,8 @@ namespace CurtainCall.WaitingRoom
             ShopReach.Pump();
             var service = ExpertService.Instance;
             if (service != bound) Bind(service);
-            if (service == null)
-            {
-                if (localInside) MoveLocal(outside, true);
-                return;
-            }
-            // A cleared reservation (phase change/disconnect/reset) must not strand the owner in the cabin.
-            if (localInside && service.Phase != ExpertRoomPhase.Working) MoveLocal(outside, true);
+            ReconcileLocalOccupancy();
+            if (service == null) return;
 
             GuideAfterBooking(service);
             float target = ShouldOpen(service) ? 1f : 0f;
@@ -139,18 +142,39 @@ namespace CurtainCall.WaitingRoom
 
         void Bind(ExpertService service)
         {
+            if (localInside && bound != service) MoveLocal(outside, true);
             if (bound != null) bound.PhaseChanged -= HandlePhase;
             bound = service;
+            cabinOwner = null; cabinMover = null; cabinHadNetworkOwner = false;
             if (bound != null) bound.PhaseChanged += HandlePhase;
+            ReconcileLocalOccupancy();
         }
 
         void HandlePhase(ExpertRoomPhase before, ExpertRoomPhase after)
         {
             if (after == ExpertRoomPhase.Working || (before == ExpertRoomPhase.Working && after == ExpertRoomPhase.Exiting)) PlayClank();
-            if (localInside && after != ExpertRoomPhase.Working) { MoveLocal(outside, true); return; }
-            if (!bound.LocalIsBuyer) return;
-            if (after == ExpertRoomPhase.Working) MoveLocal(inside, false);
-            else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside, true);
+            ReconcileLocalOccupancy();
+        }
+
+        // A phase event is not guaranteed when binding late or receiving a snapshot for a different buyer.
+        // The current reservation and local life state own the cabin/input lock, not a previous event.
+        void ReconcileLocalOccupancy()
+        {
+            if (bound == null || bound.Phase != ExpertRoomPhase.Working)
+            {
+                if (localInside) MoveLocal(outside, true);
+                cabinOwner = null; cabinMover = null; cabinHadNetworkOwner = false;
+                return;
+            }
+            // Keep this identity until Working ends. A despawned last player is not an offline
+            // avatar, and a replacement Local must not inherit the old cabin's lock or teleport.
+            bool sameOwner = !cabinHadNetworkOwner || cabinOwner != null
+                && cabinOwner == NetworkPlayer.Local && cabinOwner.IsSpawned;
+            bool workingHere = bound != null && bound.Phase == ExpertRoomPhase.Working && bound.LocalIsBuyer
+                && sameOwner
+                && (NetworkPlayer.Local != null ? PlayerInteraction.CanInteract(NetworkPlayer.Local) : NetworkPlayer.All.Count == 0);
+            if (localInside && !workingHere) MoveLocal(outside, true);
+            else if (!localInside && workingHere) MoveLocal(inside, false);
         }
 
         // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
@@ -192,11 +216,23 @@ namespace CurtainCall.WaitingRoom
         // 내 캐릭터만 옮긴다. 다른 화면은 공용 NetworkPlayer 위치 동기화로 같은 자리를 본다.
         void MoveLocal(Transform point, bool returned)
         {
+            var mover = returned ? cabinMover : NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
+            // Death/despawn or missing scene points must never retain this room's global input lock.
+            if (returned)
+            {
+                localInside = false;
+                if (workInput != null) workInput.SetOpen(false);
+            }
             if (point == null) return;
-            var mover = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
-            if (mover == null && NetworkPlayer.All.Count == 0) mover = FindFirstObjectByType<PlayerMover>();
+            if (!returned && mover == null && NetworkPlayer.All.Count == 0) mover = FindFirstObjectByType<PlayerMover>();
             if (mover == null) return;
             localInside = !returned;
+            if (!returned)
+            {
+                cabinOwner = NetworkPlayer.Local;
+                cabinMover = mover;
+                cabinHadNetworkOwner = cabinOwner != null;
+            }
             if (workInput == null)
             {
                 workInput = gameObject.AddComponent<UIInputBlocker>();
@@ -204,7 +240,15 @@ namespace CurtainCall.WaitingRoom
             }
             workInput.SetOpen(localInside);
             // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 커튼 앞(로비)이라 재시작 위치도 로비에 남는다.
+            var movingPlayer = mover.GetComponent<NetworkPlayer>();
+            bool normal = movingPlayer == null || PlayerInteraction.CanInteract(movingPlayer);
+            bool bodyEnabled = mover.Body != null && mover.Body.enabled;
             mover.SetStartPose(point.position, point.rotation);
+            if (!normal)
+            {
+                if (mover.Body != null) mover.Body.enabled = bodyEnabled;
+                mover.SetControlEnabled(false);
+            }
             if (LocalMoved != null)
                 foreach (System.Action<ExpertRoomView, PlayerMover, bool> observer in LocalMoved.GetInvocationList())
                     try { observer(this, mover, returned); } catch (System.Exception error) { Debug.LogException(error, this); }
