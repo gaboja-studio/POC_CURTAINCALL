@@ -107,3 +107,12 @@
 - dev 4a081339(카메라 충돌면 보강 등)가 WaitingRoom.unity를 수정해 프리팹화 씬과 충돌. 브랜치에서 이 씬을 바꾼 커밋은 프리팹 커밋 2개뿐이라 dev 씬을 그대로 받고 같은 재분류·프리팹 저장(24개, GUID 유지)을 다시 적용.
 - 검증: dev 씬 대비 참조 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 dev 컴포넌트·참조 전부 포함(차이는 BasementRooms 분할뿐, 위치 오차 ≤0.01m 반올림). 오클루전 다시 구움.
 - EditMode(WaitingRoom) 323 중 319 통과. 실패 4: 기존 3건(문구 2·추격 배치 비교 1) + `WaitingRoomCameraCoverageTests` WaitingRoomBase 케이스("Repeated repair must not dirty the scene") — WaitingRoomBase는 dev 버전 그대로(이 브랜치 미수정)라 dev 쪽 실패로 판단, 담당자 확인 필요.
+
+## 2026-11-11 WaitingRoomBase도 공간 프리팹 연결(사용자 요청)
+- 같은 장소 재분류 후 방 24곳을 WaitingRoom 공간 프리팹에 `ConvertToPrefabInstance`로 연결. Base 내용은 그대로 유지: 프리팹에만 있는 것(천장 충돌체 등 컴포넌트 46개, 휴대 절단기·환풍구 절단 벽 등 오브젝트)은 제거 오버라이드, Base에만 있는 원래 벽 조각 7개(숙소 6·기계실 1)는 추가 오버라이드.
+- 함정: 같은 이름 형제가 여럿이면 연결 시 Unity가 프리팹 쪽 복사본으로 바꿔 넣어 외부 참조가 끊기고 Base 전용 컴포넌트가 빠진다. 방마다 원본 복제본을 떠 두고 연결 후 모든 오브젝트·컴포넌트 값을 복제본과 맞추고 외부 참조(방당 최대 65개)를 새 오브젝트로 다시 연결해 해결. 작업 중 에디터 활성 씬이 바뀌어 한 번 중단 — 이후 매 단계 씬 경로 확인.
+- 검증: 저장·재오픈 후 Base 원본과 이름·위치·컴포넌트·참조 비교 차이 0(BasementRooms 분할과 TMP 자동 생성 SubMeshUI 4개 제외, 위치 ≤0.01m 반올림). 씬 75MB→16MB, 공간 프리팹 파일 변경 없음. Base 오클루전 다시 구움(Base 폴더 기존 데이터 갱신).
+- 테스트 수정: `CameraViewsPlayTests` 천장 목록의 PipeJunkLink 경로를 FacilityConnections로(추격 씬은 옛 경로라 둘 다 찾음), `WaitingRoomTextTests.TargetKeysMatchSceneTargets`가 공간 프리팹·오버라이드의 targetId도 읽게 함.
+- 결과: PlayMode `WaitingRooms_Architecture` 3개 통과(Base·추격 천장). EditMode(WaitingRoom) 기존 실패 그대로 — 문구 2·추격 배치 1·카메라 커버리지 Base 1(dev부터)·`RehearsalCannonSourceTests.W6` forwardSpeed(dev PR #328 인간대포 씬 변경 관련, 이 작업과 무관)·편집 모드 DontDestroyOnLoad 2(간헐).
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
