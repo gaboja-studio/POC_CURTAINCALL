@@ -103,6 +103,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 FinishRoleArt(path,role);
                 UpgradeBadgeAndFont(path,role);
                 RefinePlate(path,role);
+                SliceStatusPlate(path,role);
                 assets[(int)role]=AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<HudRoleCard>();
             }
             var managerPath=Root+"HudUIManager.prefab";
