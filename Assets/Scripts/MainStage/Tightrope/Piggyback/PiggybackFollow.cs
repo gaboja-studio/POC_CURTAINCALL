@@ -38,6 +38,16 @@ namespace CurtainCall.Tightrope
 
         static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player);
 
+        /// <summary>목마가 위치를 맡은 위 사람의 표시용 점프. 이동·높이·균형 판정은 바꾸지 않는다.</summary>
+        public JumpKind PresentationJump(NetworkPlayer player)
+        {
+            if (system == null || !system.IsGameplayActive || player == null || IsCrossing(player)) return JumpKind.None;
+            var below = system.GetBelow(player);
+            if (below == null) return JumpKind.None;
+            if (player.IsLocal ? hopping : RemoteHop(player, below) > 0f) return JumpKind.InPlace;
+            return Bottom(below).CurrentJump;
+        }
+
         void Update() => UpdateCarriedAirborne(NetworkPlayer.Local);
 
         /// <summary>맨 아래의 공유된 공중 상태와 내 제자리 점프를 합친다. 둘 다 끝나야 착지 충격을 한 번 받는다.</summary>

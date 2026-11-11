@@ -1,5 +1,8 @@
 # Project Pitfalls
 
+- [Player/](Player/index.md) — 가구 모서리 부양과 실제 발 지지 판정을 확인할 때
+- [Reward/](Reward/index.md) — 같은 방 재시작 후 기존 참가자의 자금·장부만 갱신되지 않을 때
+
 - [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 시선 조작·출발 정렬·매달림 카메라 압착·절단 후 단차를 확인할 때
 
 - [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 패널이 비거나 새 방의 안내 잠금·재연습 설명 덮임이 발생할 때

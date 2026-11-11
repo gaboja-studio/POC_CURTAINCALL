@@ -70,7 +70,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)Get(trapeze, "IsActive"));
             Assert.AreEqual(2, Get(trapeze, "PoleCount"));
             Assert.AreEqual((int)Get(source, "TrapezeLane") - 1, Get(trapeze, "LaneIndex"));
-            Assert.Greater(((Vector3)Call(trapeze, "PoleFeet", 1, false)).y, ((Vector3)Call(trapeze, "PoleFeet", 0, false)).y);
+            // The cooperative entry pole was raised to prevent solo boarding. The second pole
+            // need not be higher; both lesson poles must follow the common course placement.
+            for (int pole = 0; pole < 2; pole++)
+                Assert.Less(Vector3.Distance((Vector3)Call(trapeze, "PoleFeet", pole, false),
+                    (Vector3)Call(course, "TrapezeRestingFeet", pole)), .01f);
             Assert.IsNull(Call(trapeze, "PoleVisual", 2));
             Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole")), "HasGap"));
             Assert.AreSame(Resources.Load("Prefabs/Objects/ETCs/TightropeArtKit/TightropeArtProfile"), Get(course, "ArtProfile"));

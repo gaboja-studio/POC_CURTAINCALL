@@ -211,7 +211,11 @@ namespace CurtainCall.Reward
 
         void HandleStep(CampaignSnapshot step)
         {
-            if (step.Phase == CampaignPhase.None && session != null && session.GameState == GameSessionState.Waiting) Clear();
+            // Campaign None is the host's run-end boundary. The separate session variable
+            // can still be Ended, or coalesce Waiting into Playing during a quick restart.
+            // Clear only at this campaign transition; a later session update must not
+            // retire a new reward snapshot that arrived before its new campaign snapshot.
+            if (step.Phase == CampaignPhase.None) Clear();
             SyncCampaign();
         }
 

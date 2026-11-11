@@ -124,6 +124,7 @@ namespace CurtainCall.ItemArt.EditorTools
                         if(state==null)state=machine.AddState(name);state.motion=clip;state.writeDefaultValues=true;
                     }
                 }
+                CurtainCall.HumanoidPresentationEditor.HumanoidPlayerBuilder.ConfigureLocomotion(controller);
                 EditorUtility.SetDirty(controller);
             }
             return controllers.Count;

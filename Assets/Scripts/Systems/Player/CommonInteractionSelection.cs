@@ -124,7 +124,8 @@ namespace CurtainCall.Player
                 {
                     if (target is IShopPresentation display && !display.IsAvailable) continue;
                     if (target is ExplorationGate gate && (!gate.ConditionsMet || gate.UsesKey && !gate.LocalHasKey)) continue;
-                    if (target is IExplorationTarget tool && !string.IsNullOrEmpty(tool.ToolId) && !ExplorationTargets.LocalHolds(tool.ToolId)) continue;
+                    if (target is IExplorationTarget tool && !string.IsNullOrEmpty(tool.ToolId)
+                        && !ExplorationTargets.LocalHolds(tool.ToolId) && !ExplorationTargets.AllowsBareHands(tool)) continue;
                     float distance = target.Reach(actor.transform.position, actor);
                     var next = new Candidate(target, 2, distance, "shop:" + (target is IShopPresentation view ? Path(view.VisualRoot) : target.GetType().FullName));
                     if (Better(next, best)) best = next;

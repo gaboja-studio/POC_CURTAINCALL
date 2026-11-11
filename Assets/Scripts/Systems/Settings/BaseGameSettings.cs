@@ -415,6 +415,25 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class PresentationSettings
         {
+            [Header("이동 애니메이션")]
+            [InspectorName("걷기 모션 기준 속도"), Tooltip("걷기 애니메이션을 1배속으로 재생할 실제 이동 속도(m/s). 실제 이동이 느려지면 발동작도 함께 느려진다. 게임 이동 속도는 바꾸지 않는다.")]
+            [SerializeField, Min(.01f)] float walkAnimationSpeed = 3f;
+            [InspectorName("달리기 모션 기준 속도"), Tooltip("달리기 애니메이션의 1배속 기준(m/s). 이동·부상 설정 변경에 맞춰 발동작 속도만 조정한다.")]
+            [SerializeField, Min(.01f)] float runAnimationSpeed = 6f;
+            [InspectorName("앉아 걷기 모션 기준 속도"), Tooltip("앉아 걷기 애니메이션의 1배속 기준(m/s). 충돌 높이와 이동 속도에는 영향이 없다.")]
+            [SerializeField, Min(.01f)] float crouchAnimationSpeed = 1.5f;
+            [InspectorName("외줄 걷기 모션 기준 속도"), Tooltip("외줄 걷기 애니메이션의 1배속 기준(m/s). 뒤로 이동하면 발동작도 뒤로 재생한다. 줄 이동·균형 규칙은 바꾸지 않는다.")]
+            [SerializeField, Min(.01f)] float ropeAnimationSpeed = .5f;
+            [InspectorName("기어가기 모션 기준 속도"), Tooltip("부상 후 기어가기 애니메이션의 1배속 기준(m/s). 남은 팔의 동작 속도를 실제 이동량에 맞춘다.")]
+            [SerializeField, Min(.01f)] float crawlAnimationSpeed = 1.5f;
+            public float LocomotionAnimationSpeed(string motion) => Mathf.Max(.01f, motion switch
+            {
+                "Run" => runAnimationSpeed, "CrouchWalk" => crouchAnimationSpeed,
+                "Tightrope" => ropeAnimationSpeed, "Crawl" => crawlAnimationSpeed,
+                _ when motion != null && motion.StartsWith("ItemCrawl") => crawlAnimationSpeed,
+                _ => walkAnimationSpeed,
+            });
+
             [Serializable]
             public sealed class InteractionAnimationPolicy
             {

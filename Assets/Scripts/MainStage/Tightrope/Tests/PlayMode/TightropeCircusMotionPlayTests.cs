@@ -48,7 +48,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 camera.Render();RenderTexture.active=rt;var tex=new Texture2D(1100,850,TextureFormat.RGB24,false);
                 tex.ReadPixels(new Rect(0,0,1100,850),0,0);tex.Apply();
                 string directory=Environment.GetEnvironmentVariable("CURTAINCALL_MOTION_EVIDENCE_DIR")
-                    ?? "Tasks/Active/Task-20261030-083-cannon-character-animation/Previews";
+                    ?? ".harness/local/cannon-motion";
                 System.IO.Directory.CreateDirectory(directory);
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory,name+".png"),tex.EncodeToPNG());Object.Destroy(tex);
             }
@@ -63,7 +63,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             for(int stage=0;stage<4;stage++)
             {
                 Call(player,"ServerRestoreAll");if(stage>0)Call(player,"ServerCut",stage);
-                yield return StandOnRopeForSawTest(1,4f);
+                // An injured rescuer also uses the common reduced interaction reach.
+                yield return StandOnRopeForSawTest(1,stage==3?5f:4f);
                 var helper=SpawnHandholdHelper(1,6.2f);
                 var target=helper.GetComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
                 try
