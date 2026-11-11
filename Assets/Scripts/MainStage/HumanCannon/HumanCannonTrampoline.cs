@@ -2,6 +2,7 @@ using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -139,6 +140,11 @@ namespace CurtainCall.HumanCannon
             if (!ownership.IsOccupied) return;
             var carrier = FindPlayer(Carrier);
             if (carrier != null && carrier.State == PlayerState.Normal) return;
+            ReleaseLostCarrier(carrier);
+        }
+
+        void ReleaseLostCarrier(NetworkPlayer carrier)
+        {
             // 들고 낙사하면 시작 지점에 가장 가까운 생존자 발밑 지면으로 옮긴다(2026-11-05 사용자 요청).
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
@@ -247,10 +253,8 @@ namespace CurtainCall.HumanCannon
         public bool CanGrab(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
-                || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
-            var cannon = HumanCannonSystem.Current;
-            if (cannon == null || cannon.IsSeated(player.OwnerClientId)) return false;
-            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
+                || HumanCannonSystem.Current == null || HumanCannonCarry.HasOccupiedHands(player)
+                || PiggybackSystem.Current?.GetBelow(player) != null) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
             return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
@@ -289,7 +293,9 @@ namespace CurtainCall.HumanCannon
         public void ServerReleaseForInspection(ulong actor)
         {
             if (session == null || !session.IsHost || Carrier != actor) return;
-            HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+            var carrier = FindPlayer(actor);
+            if (carrier == null || carrier.State != PlayerState.Normal) ReleaseLostCarrier(carrier);
+            else HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
         }
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact)

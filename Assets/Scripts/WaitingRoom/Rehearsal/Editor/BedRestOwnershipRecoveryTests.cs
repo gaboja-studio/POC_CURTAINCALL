@@ -5,6 +5,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using NUnit.Framework;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -97,6 +98,57 @@ namespace CurtainCall.WaitingRoom.EditorTools
             rest.Begin(new Bounds(Vector3.zero, Vector3.one), Quaternion.identity);
             Call(rest, "Update");
             Assert.IsTrue(rest.IsResting);
+        }
+
+        NetworkBedPose PoseAtBed(out PlayerModelSlot slot, out GameObject modelPrefab)
+        {
+            var bed = new GameObject("Bed pose test");
+            objects.Add(bed);
+            var nightBed = bed.AddComponent<NightBed>();
+            owner.SetRestingBed(nightBed.BedIndex);
+            Assert.That(owner.RestingBed, Is.GreaterThanOrEqualTo(0));
+            slot = owner.gameObject.AddComponent<PlayerModelSlot>();
+            Set(slot, "fitToHeight", false);
+            modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Rabbit.prefab");
+            slot.SetModel(modelPrefab);
+            var pose = owner.gameObject.AddComponent<NetworkBedPose>();
+            Call(pose, "Awake");
+            Call(pose, "LateUpdate");
+            Assert.IsTrue(pose.IsLying);
+            Assert.IsFalse(slot.CurrentModel.GetComponent<HumanoidModel>().Animator.enabled);
+            return pose;
+        }
+
+        [Test]
+        public void EndingBedPoseDoesNotReactivateDetachedRagdollAnimator()
+        {
+            var pose = PoseAtBed(out var slot, out _);
+            var detached = slot.DetachModel();
+            objects.Add(detached);
+            var model = detached.GetComponent<HumanoidModel>();
+            model.StopMotion();
+            ((NetworkVariable<PlayerState>)Get(owner, "state")).Value = PlayerState.Fallen;
+            owner.SetRestingBed(-1);
+            Call(pose, "LateUpdate");
+            Assert.IsFalse(pose.IsLying);
+            Assert.IsFalse(model.Animator.enabled);
+        }
+
+        [Test]
+        public void AReplacementAvatarKeepsItsBedPoseAndCanWake()
+        {
+            var pose = PoseAtBed(out var slot, out var modelPrefab);
+            var detached = slot.DetachModel();
+            objects.Add(detached);
+            slot.SetModel(modelPrefab);
+            var animator = slot.CurrentModel.GetComponent<HumanoidModel>().Animator;
+            Call(pose, "LateUpdate");
+            Assert.IsTrue(pose.IsLying);
+            Assert.IsFalse(animator.enabled);
+            Assert.IsFalse(detached.GetComponent<HumanoidModel>().Animator.enabled);
+            owner.SetRestingBed(-1);
+            Call(pose, "LateUpdate");
+            Assert.IsTrue(animator.enabled);
         }
     }
 }

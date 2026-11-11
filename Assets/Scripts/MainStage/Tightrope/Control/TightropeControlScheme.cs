@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using CurtainCall.HumanCannon;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope.Control;
 using CurtainCall.Tightrope;
@@ -143,19 +144,18 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             if (context.Balance != null)
                 context.Balance.SetCorrectionInput(input.Posture * viewSign);
 
-            bool requestedCannonPole = input.InteractTapped && TryRequestCannonPoleExit(context);
+            bool requestedCannonPole = false;
+            if (context.Mover != null && context.Mover.TryGetComponent(out HumanCannonPilot pilot))
+            {
+                if (pilot.TryHandleCarryInput(input)) return;
+                requestedCannonPole = input.InteractTapped && pilot.TryRequestNearbyPole();
+            }
             if (context.Interaction != null)
             {
                 if (input.InteractTapped && !requestedCannonPole)
                     context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }
-        }
-
-        static bool TryRequestCannonPoleExit(PlayerControlContext context)
-        {
-            return context.Mover != null && context.Mover.TryGetComponent(out CurtainCall.HumanCannon.HumanCannonPilot pilot)
-                && pilot.TryRequestNearbyPole();
         }
 
         static void CancelCatch(PlayerControlContext context)

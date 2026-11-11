@@ -21,15 +21,19 @@ namespace CurtainCall.WaitingRoom
             var run = CampaignRun.Instance;
             bool sleeping = run != null && (run.State.Phase == CampaignPhase.Night || run.State.Phase == CampaignPhase.Dawn);
             int id = player != null ? player.RestingBed : -1;
+            if (!sleeping || id < 0 || player.State != PlayerState.Normal) { Restore(); return; }
             var beds = NightBed.AllBeds();
-            if (!sleeping || id < 0 || id >= beds.Length) { Restore(); return; }
+            if (id >= beds.Length) { Restore(); return; }
             var model = GetComponent<PlayerModelSlot>();
-            if (model == null) return;
-            if (visual != model.Slot) { Restore(); visual = model.Slot; }
+            if (model == null || model.CurrentModel == null) { Restore(); return; }
+            var slot = model.Slot;
+            var nextAnimator = model.CurrentModel.GetComponentInChildren<Animator>();
+            if (visual != slot || animator != nextAnimator) Restore();
             if (!posed)
             {
+                visual = slot;
                 originalPosition = visual.localPosition; originalRotation = visual.localRotation;
-                animator = visual.GetComponentInChildren<Animator>();
+                animator = nextAnimator;
                 animatorEnabled = animator != null && animator.enabled;
                 posed = true;
             }
@@ -42,8 +46,14 @@ namespace CurtainCall.WaitingRoom
         void Restore()
         {
             if (!posed) return;
-            if (visual != null) { visual.localPosition = originalPosition; visual.localRotation = originalRotation; }
-            if (animator != null) animator.enabled = animatorEnabled;
+            if (visual != null)
+            {
+                visual.localPosition = originalPosition; visual.localRotation = originalRotation;
+                // The old model may already belong to a ragdoll instead of this slot.
+                if (animator != null && animator.transform.IsChildOf(visual)) animator.enabled = animatorEnabled;
+            }
+            animator = null;
+            visual = null;
             posed = false;
         }
         void OnDisable() => Restore();

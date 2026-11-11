@@ -1,6 +1,7 @@
 using System.Reflection;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -18,8 +19,18 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var root = new GameObject("Cannon input fixture"); root.SetActive(false);
             var actor = new GameObject("Cannon input actor"); actor.SetActive(false);
             var previousRoute = HumanCannonRouteSystem.Current;
+            // Binding tests can request release in the same EditMode frame.
+            // This fixture supplies direct flight input, so restore that transient state afterward.
+            const BindingFlags gateFlags = BindingFlags.Static | BindingFlags.NonPublic;
+            var rearming = typeof(InputGate).GetField("rearming", gateFlags);
+            var blockedFrame = typeof(InputGate).GetField("blockedFrame", gateFlags);
+            var previousRearming = rearming.GetValue(null);
+            var previousBlockedFrame = blockedFrame.GetValue(null);
             try
             {
+                Assert.IsFalse(InputGate.IsRequested, InputGate.Describe());
+                rearming.SetValue(null, false);
+                blockedFrame.SetValue(null, -1);
                 if (pendingTransportReset)
                 {
                     var route = root.AddComponent<HumanCannonRouteSystem>();
@@ -38,7 +49,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 float speed = CurtainCall.Settings.GameSettings.Base.AirControl.Speed;
                 var velocity = forward * 7.0704784f + Vector3.up * 12;
                 Vector3 movement = Vector3.zero;
-                Assert.IsFalse(CurtainCall.Player.InputGate.IsBlocked, "검사 준비 중 공통 입력 잠금이 없어야 한다.");
+                Assert.IsFalse(InputGate.IsBlocked, InputGate.Describe());
                 for (int i = 0; i < 60; i++)
                 {
                     read.Invoke(pilot, new object[] { new CurtainCall.Player.PlayerInputFrame { Posture = side } });
@@ -52,6 +63,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 Object.DestroyImmediate(actor); Object.DestroyImmediate(root);
                 typeof(HumanCannonRouteSystem).GetProperty("Current").SetValue(null, previousRoute);
+                rearming.SetValue(null, previousRearming);
+                blockedFrame.SetValue(null, previousBlockedFrame);
             }
         }
 

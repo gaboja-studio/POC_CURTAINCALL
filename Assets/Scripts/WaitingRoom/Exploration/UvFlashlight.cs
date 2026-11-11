@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CurtainCall.Cameras;
+using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using UnityEngine;
@@ -120,7 +121,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var p in NetworkPlayer.All)
             {
                 if (p == null || p.IsLocal) continue;
-                bool on = p.UvOn;
+                bool on = p.UvOn && PlayerInteraction.CanInteract(p) && !HumanCannonCarry.HasOccupiedHands(p);
                 if (!remote.TryGetValue(p, out var light) || light == null)
                 {
                     if (!on) continue;
@@ -169,7 +170,7 @@ namespace CurtainCall.WaitingRoom
         static bool Equipped(NetworkPlayer player, PlayerInputReader reader)
         {
             var carry = PropCarry.Instance;
-            if (carry == null) return false;
+            if (carry == null || !PlayerInteraction.CanInteract(reader) || HumanCannonCarry.HasOccupiedHands(player)) return false;
             ulong id = player != null ? player.OwnerClientId : carry.LocalClientId;
             foreach (var item in carry.Held(id)) if (item.ItemId == ItemUses.UvLamp) return true;
             return false;

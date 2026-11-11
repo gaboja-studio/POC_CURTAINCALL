@@ -75,7 +75,7 @@ namespace CurtainCall.Player
                 frame.ActionPressed = false; frame.SprintHeld = false;
             }
             if (presentation != null && presentation.InteractionActionLocked)
-                frame.ActionPressed = false;
+                frame.InteractTapped = false;
             if (Scheme != null && (InputGate.IsBlocked || InputInterceptor == null || !InputInterceptor(context, frame)))
                 Scheme.Tick(context, frame);
         }
