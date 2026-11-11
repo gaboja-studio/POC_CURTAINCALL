@@ -72,7 +72,9 @@ namespace CurtainCall.UI.SceneIntegration
                         IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : Fill(lockedSlotFormat, ("n", i + 1)),
                         QuantityLabel = "" }); // 남은 사용 횟수는 칸 아래 내구도 바로 보인다(2026-11-02 사용자)
                 }
-                slots.SetSlots(data);
+                string itemName = selected.Uid == 0 ? Fill(emptyHandText)
+                    : Fill(PropCarry.IsHoldable(selected.ItemId) ? holdingFormat : equipmentSelectedFormat, ("item", ItemCatalog.DisplayName(selected)));
+                HudUIManager.ShowInventory(itemName,slots,data,selectedLabel);
                 for (int i = 0; i < VisibleSlotCount; i++)
                 {
                     var view = slots.GetSlot(i);
@@ -92,8 +94,6 @@ namespace CurtainCall.UI.SceneIntegration
                 }
                 PlayUseMark(id, useMark, held);
                 // 도구는 손에 들고(손 아이콘 표시), 장비는 칸만 고른다(손에 들지 않고 슬롯에서 자동 적용). 2026-11-01 사용자.
-                selectedLabel.text = selected.Uid == 0 ? Fill(emptyHandText)
-                    : Fill(PropCarry.IsHoldable(selected.ItemId) ? holdingFormat : equipmentSelectedFormat, ("item", ItemCatalog.DisplayName(selected)));
                 if (heldIndicator != null) heldIndicator.enabled = selected.Uid != 0 && CurtainCall.ItemArt.ItemVisualAssets.IsTool(selected.ItemId) && (!uvHeld || selected.ItemId == ItemUses.UvLamp);
             }
             // 손 아이콘 위치는 씬 레이아웃이 정한다(LabelArea 크기 맞춤 → 이름 칸 폭 = 글자 폭, 손 아이콘은 이름 칸 왼쪽에 고정). 2026-11-02 사용자.

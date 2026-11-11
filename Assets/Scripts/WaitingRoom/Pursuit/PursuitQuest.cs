@@ -42,7 +42,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             instance = go.AddComponent<PursuitQuest>();
         }
 
-        void Awake() => panel = new WaitingRoomRightPanel(transform, "PursuitQuestCanvas", Top, Width, "first-day.panel.") { GuideStyle = true };
+        void Awake() => panel = new WaitingRoomRightPanel(transform, "PursuitQuestCanvas");
 
         void Update()
         {
@@ -59,12 +59,13 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var s = run.State;
             var state = ExplorationState.Instance;
             bool visited = state != null && state.HasVisited(ExplorationState.EscapeEntranceVisit);
-            panel.Show(PursuitTexts.QuestTitle, PursuitTexts.QuestBody(!s.IsFinalMorning, visited));
+            bool night = s.Phase == CampaignPhase.Night;
+            panel.Show(PursuitTexts.QuestTitleFor(s.Phase), PursuitTexts.QuestBody(!s.IsFinalMorning && (!night || s.Day < CurtainCall.Settings.GameSettings.Base.Run.DayCount), visited, night));
         }
 
         static bool ShouldShow(CampaignSnapshot s)
         {
-            if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Pursuit || SceneCurtainTransition.IsActive) return false;
+            if (!PursuitDirector.IsPursuitPhase(s.Phase) || s.Timer != RestTimerState.Pursuit || SceneCurtainTransition.IsActive) return false;
             var local = NetworkPlayer.Local;
             // 접속하지 않은 씬 확인(오프라인 추격 시작)에서는 내 캐릭터 상태 없이 띄운다.
             if (local == null) return NetworkPlayer.All.Count == 0;

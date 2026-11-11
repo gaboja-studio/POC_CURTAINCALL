@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aca020fec4f3274d8314ca92c1b85b9, type: 3}
   m_Name: PoleSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.PoleSettings
+  capacity: 2
+  topRiderOnlySwing: 1
+  preventReleaseWithPassengers: 1
   holdSeconds: 30
   hangLength: 1.5
   passengerSeparation: 1.45
@@ -23,4 +26,6 @@ MonoBehaviour:
   releaseUpwardSpeed: 6
   horizontalSpeedLimit: 8
   regularVisual: {fileID: 7892668123284070195, guid: dc92592624059b0479f5c1d1b5883676, type: 3}
+  regularBarWidth: 1.8
   switchVisual: {fileID: 5761493341537780504, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  switchBarWidth: 1.8

@@ -13,7 +13,7 @@ source: Task-20261019-061
 
 ## 사실
 
-- 디자인 정본: `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab`. 확인 씬은 `Assets/Scenes/Tests/CheerGauge/C1CheerGauge.unity`이며 기존 공연 씬에는 아직 배치하지 않았다.
+- 디자인 정본: `Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab`. 확인 씬은 `Assets/Scenes/Tests/CheerGauge/C1CheerGauge.unity`이며 기존 공연 씬에는 아직 배치하지 않았다.
 - 사용자 수정: RingRoot 190×190, Roof (0,38), Flag (10,76), Roof 좌우 분할 계층. 초기 제공 문서의 좌표보다 현재 프리팹이 우선한다. 프리팹은 ‘—’ 대기 상태, 합계155는 확인 씬의 샘플이다.
 - 키트 루트는 private `Assets/_ThirdParty/curtaincall_c1_v1/`. 필수 파일과 상위 폴더의 `.meta`/GUID를 유지한다. 공개 Assets로 PNG·원본을 옮기지 않는다.
   - `Assets/CurtainCallUI/C1/Sprites/`: `ui_hud_cheergauge_{shadow,center,track,fill,highlight,bezel,roof,flag}_normal@2x.png` 8장.

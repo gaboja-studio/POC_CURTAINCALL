@@ -1,3 +1,4 @@
+using CurtainCall.UI.SceneIntegration;
 using System.Linq;
 using CurtainCall.Campaign;
 using CurtainCall.HumanCannon;
@@ -15,6 +16,26 @@ namespace CurtainCall.WaitingRoom
         UIInputBlocker promptBlock, placementBlock, endingBlock;
         GameObject walls;
         bool prompt;
+        bool pendingUnlockPrompt, returnToSchedule, discoveryPrompt;
+        int unlockPromptGeneration;
+        public static bool IsUnlockPromptVisible => instance != null && instance.prompt && instance.discoveryPrompt;
+
+        void OnTrickDiscovered(string trickId, ulong actor)
+        {
+            if (!Host || trickId != CampaignSnapshot.HumanCannonId || HasMastered) return;
+            pendingUnlockPrompt = true;
+            unlockPromptGeneration = CampaignRun.Instance.State.Generation;
+        }
+
+        void OfferUnlockedRehearsal()
+        {
+            if (!pendingUnlockPrompt || !Host) return;
+            if (CampaignRun.Instance.State.Generation != unlockPromptGeneration || !CampaignRun.Instance.State.CannonUnlocked || HasMastered) { pendingUnlockPrompt = false; return; }
+            if (!CanStart) return;
+            pendingUnlockPrompt = false;
+            returnToSchedule = false; discoveryPrompt = true; prompt = true;
+            FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
+        }
         int endingRound = -1, returnedRound = -1, notifiedRound = -1;
         double returnAt;
         PlayerMover endingMover;
@@ -31,7 +52,7 @@ namespace CurtainCall.WaitingRoom
 
         void AwakeUi()
         {
-            quest = new WaitingRoomRightPanel(transform, "CannonRehearsalQuestCanvas", 300f, 400f, "first-day.panel.") { GuideStyle = true };
+            quest = new WaitingRoomRightPanel(transform, "CannonRehearsalQuestCanvas");
             votePanel = gameObject.AddComponent<RehearsalVotePanel>();
             fader = gameObject.AddComponent<RehearsalScreenFader>();
             promptBlock = gameObject.AddComponent<UIInputBlocker>(); promptBlock.BlockWhileActive = false;
@@ -53,6 +74,17 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
 
+        /// <summary>확정 단계 없이 인간대포를 처음 선택하면 기존 리허설 안내를 연다.</summary>
+        public static bool RequireBeforeSelection(string trickId)
+        {
+            var r = instance;
+            if (trickId != CampaignSnapshot.HumanCannonId || r == null || HasMastered) return false;
+            r.returnToSchedule = true; r.discoveryPrompt = false; r.pendingUnlockPrompt = false;
+            FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
+            r.prompt = true;
+            return true;
+        }
+
         public static void AnswerSchedulePrompt(bool yes)
         {
             var r = instance;
@@ -60,9 +92,9 @@ namespace CurtainCall.WaitingRoom
             r.prompt = false; r.promptBlock.SetOpen(false); r.votePanel.Hide();
             if (yes)
             {
-                if (!StartPractice()) WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"), T("unavailable", "연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요."), 5f);
+                if (!StartPractice()) WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"), T("unavailable", "연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요."), 5f,true);
             }
-            else FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(true);
+            else if (r.returnToSchedule) FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(true);
         }
 
         void TickUi()
@@ -72,10 +104,10 @@ namespace CurtainCall.WaitingRoom
             promptBlock.SetOpen(prompt && !shared.active);
             if (prompt && !shared.active)
             {
-                votePanel.Show(T("required-title", "인간대포 리허설"),
-                    T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
-                    new RehearsalVotePanel.Choice(T("yes", "예"), true, () => AnswerSchedulePrompt(true)),
-                    new RehearsalVotePanel.Choice(T("no", "아니오"), true, () => AnswerSchedulePrompt(false)));
+                votePanel.Show(discoveryPrompt ? T("unlocked-title", "새 공연 해금 · 인간대포 리허설") : T("required-title", "인간대포 리허설"),
+                    discoveryPrompt ? T("unlocked-body", "인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?") : T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
+                    new HudVoteChoice(T("yes", "예"), true, () => AnswerSchedulePrompt(true)),
+                    new HudVoteChoice(T("no", "아니오"), true, () => AnswerSchedulePrompt(false)));
                 return;
             }
             placementBlock.SetOpen(shared.active && !shared.ending && local != null && !shared.placed.Contains(local.OwnerClientId));
@@ -85,8 +117,8 @@ namespace CurtainCall.WaitingRoom
             string body = WaitingRoomText.Format("cannon-rehearsal.vote-body", "과반수 동의 시 넘기기는 이수 처리, 포기는 미이수로 종료합니다.\n넘기기 {skip}/{required} · 포기 {abandon}/{required}",
                 ("skip", shared.skipVotes.Count), ("abandon", shared.votes.Count), ("required", shared.participants.Count / 2 + 1));
             votePanel.Show(T("vote-title", "리허설 넘기기 / 포기"), body,
-                new RehearsalVotePanel.Choice(skip ? T("cancel-skip", "넘기기 취소") : T("skip", "리허설 넘기기"), true, () => VoteToSkip(!skip)),
-                new RehearsalVotePanel.Choice(yes ? T("cancel-abandon", "포기 취소") : T("abandon", "리허설 포기"), true, () => VoteToAbandon(!yes)));
+                new HudVoteChoice(skip ? T("cancel-skip", "넘기기 취소") : T("skip", "리허설 넘기기"), true, () => VoteToSkip(!skip)),
+                new HudVoteChoice(yes ? T("cancel-abandon", "포기 취소") : T("abandon", "리허설 포기"), true, () => VoteToAbandon(!yes)));
             if (course != null) course.DeviceUi.PracticeTooltipExclusion = votePanel.VisibleSurface;
         }
 
@@ -98,9 +130,9 @@ namespace CurtainCall.WaitingRoom
             if (walls != null) walls.SetActive(arrived);
             if (arrived) { quest.Hide(); return; }
             if (!shared.middle.Contains(id))
-                quest.Show("[tutorial] 공연 준비", T("first", "F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요."));
+                quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요."));
             else if (ReachedLowerArea())
-                quest.Show("[tutorial] 안전 지역으로 이동하기", "도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요.");
+                quest.Show(T("safe-title", "[tutorial] 안전 지역으로 이동하기"), T("safe-body", "도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요."));
             else
                 quest.Show(T("quest-title", "[tutorial] 인간대포와 트램펄린"),
                     T("second", "인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다."));
@@ -119,7 +151,7 @@ namespace CurtainCall.WaitingRoom
 
         void QueueGuide(string key, string title, string body)
         {
-            if (actionGuides.Add(key)) pendingGuides.Enqueue((title, body));
+            if (actionGuides.Add(key)) pendingGuides.Enqueue((T("guide."+key+".title",title), T("guide."+key+".body",body)));
         }
 
         void TickActionGuides()
@@ -128,11 +160,11 @@ namespace CurtainCall.WaitingRoom
             ulong id = local.OwnerClientId;
             bool carrier = course.Trampoline.Carrier == id;
             if (course.Cannon.FindBoardableStation(local) >= 0 || course.Cannon.IsSeated(id))
-                QueueGuide("cannon", "인간대포 발사하기", "인간대포 앞에서 F를 눌러 탑승합니다. 다시 F를 누르면 대포가 발사됩니다. 발사 후에는 트램펄린에 착지해야 합니다.");
+                QueueGuide("cannon", "인간대포 발사하기", "인간대포 앞에서 {interact}를 눌러 탑승합니다. 다시 {interact}를 누르면 대포가 발사됩니다. 발사 후에는 트램펄린에 착지해야 합니다.");
             if (shared.middle.Contains(id) && Vector3.Distance(local.transform.position, course.Trampoline.transform.position) < 4f)
-                QueueGuide("trampoline", "트램펄린 이용하기", "트램펄린 앞에서 F를 눌러 트램펄린을 잡습니다. 트램펄린 이용자는 대포로 발사되는 다른 공연 준비자를 안전하게 받아줘야 합니다.");
+                QueueGuide("trampoline", "트램펄린 이용하기", "트램펄린 앞에서 {interact}를 눌러 트램펄린을 잡습니다. 트램펄린 이용자는 대포로 발사되는 다른 공연 준비자를 안전하게 받아줘야 합니다.");
             if (carrier)
-                QueueGuide("carry", "트램펄린 이용하기", "트램펄린을 쥔 상태에서 자유롭게 이동이 가능하며, 다시 F를 길게 누르면 트램펄린을 놓습니다.");
+                QueueGuide("carry", "트램펄린 이용하기", "트램펄린을 쥔 상태에서 자유롭게 이동이 가능하며, 다시 {interact}를 길게 누르면 트램펄린을 놓습니다.");
             if (course.Route.IsRiding(id))
             {
                 if (carrier) QueueGuide("catch", "받아주기", "트램펄린을 이용해 다른 공연 준비자를 받아주며 다음 장소까지 안전하게 이동합니다.");
@@ -143,7 +175,7 @@ namespace CurtainCall.WaitingRoom
             if (ReachedLowerArea()) QueueGuide("safe", "안전지역", "모든 공연 준비자가 도착 지점에 도착해야 합니다.");
             if (pendingGuides.Count == 0 || WaitingRoomTutorialPanel.IsVisible) return;
             var next = pendingGuides.Peek();
-            if (WaitingRoomTutorialPanel.Show(next.title, next.body, 10f)) pendingGuides.Dequeue();
+            if (RehearsalGuide.Show(next.title, next.body, 10f,next.body.Contains("{interact}")?"{interact}":null)) pendingGuides.Dequeue();
         }
 
         void BeginEnding(bool success, bool skipped = false)
@@ -151,9 +183,6 @@ namespace CurtainCall.WaitingRoom
             if (shared.ending) return;
             shared.ending = true; shared.successful = success; shared.skipped = skipped; shared.mastered |= success; shared.endAt = Clock + 3d;
             RecordAction("ENDING", reason: skipped ? "MAJORITY_SKIP" : success ? "ALL_ARRIVED" : "MAJORITY_ABANDON");
-            foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen && conditions.TryGetValue(player.OwnerClientId, out var condition))
-                    player.ServerRestoreCondition(condition);
             Publish();
         }
 
@@ -173,11 +202,15 @@ namespace CurtainCall.WaitingRoom
             if (returnedRound != shared.round && Clock >= returnAt && FindRoom())
             {
                 var p = NetworkPlayer.Local;
-                if (p != null && p.IsSpawned && p.State == PlayerState.Normal && p.TryGetComponent(out PlayerMover mover))
+                if (p != null && p.IsSpawned && p.TryGetComponent(out PlayerMover mover))
                 {
                     CaptureEndingMover();
+                    bool normal = p.State == PlayerState.Normal;
+                    bool bodyEnabled = mover.Body != null && mover.Body.enabled;
                     mover.SetStartPose(returnPose.position, returnPose.rotation, true);
-                    CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
+                    if (!normal && mover.Body != null) mover.Body.enabled = bodyEnabled;
+                    if (!normal) mover.SetControlEnabled(false);
+                    if (normal) CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
                     // 종료 상태를 받을 때까지 복귀 위치에서 서로 밀리지 않게 고정한다.
                     mover.Simulated = false;
                     returnedRound = shared.round;
@@ -190,12 +223,14 @@ namespace CurtainCall.WaitingRoom
                 if (notifiedRound == shared.round) return;
                 notifiedRound = shared.round;
                 WaitingRoomGuidePanel.Show(T("end-title", "리허설 종료"), shared.skipped
-                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
                     : shared.successful
-                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
                     : T("abandoned", "리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다."), 10f);
+                if(shared.skipped)
+                    RehearsalGuide.Show(T("retry-title", "다시 연습하기"), T("retry-body", "연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다."),6,"{interact}");
                 if (shared.successful)
-                    quest.Show("[tutorial] 리허설 종료", T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
+                    quest.Show(T("completed-title", "[tutorial] 리허설 종료"), T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
             }
         }
 
@@ -208,9 +243,8 @@ namespace CurtainCall.WaitingRoom
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
-            // The reliable ending message may precede the revival NetworkVariable on a remote owner.
-            restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
-            restoreSimulation = player.State == PlayerState.Fallen || mover.Simulated;
+            restoreControl = player.State == PlayerState.Normal && mover.ControlEnabled;
+            restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
         }
 
@@ -219,7 +253,8 @@ namespace CurtainCall.WaitingRoom
             if (endingBlock != null) endingBlock.SetOpen(false);
             if (placementBlock != null && !shared.active) placementBlock.SetOpen(false);
             if (endingMover == null) return;
-            endingMover.SetControlEnabled(restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
+            bool normal = endingMover.TryGetComponent(out NetworkPlayer player) && player.State == PlayerState.Normal;
+            endingMover.SetControlEnabled(normal && restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
         }
     }
 }

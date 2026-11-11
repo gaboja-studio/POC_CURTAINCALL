@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
-            public bool Hold, ScreenGuide, NoOutline;
+            public bool Hold, ScreenGuide, NoOutline, Device;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -161,17 +161,31 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var candidate in candidates)
                 if (candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
             if (focused == null)
-                foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
+                foreach (var candidate in selected) if (candidate.Lobby) { focused = candidate; break; }
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
+            // Selection, line of sight, and input still use the original gameplay target.
+            Vector3 displayPoint=focused.Point;
+            RoomPromptAppearance display=null;
+            if(focused.WaitingRoom && focused.Root)
+            {
+                if(focused.Root.TryGetComponent<WaitingRoomPromptDisplay>(out var custom) && custom.isActiveAndEnabled)display=custom.hud;
+                else if(focused.Root.TryGetComponent<ShopPhone>(out var phone))display=phone.hud;
+            }
+            if(display!=null)
+            {
+                displayPoint=display.At(focused.Root,displayPoint);
+                if(focused.Available && focused.Focused && !string.IsNullOrWhiteSpace(display.availableAction))
+                    focused.Action=display.availableAction;
+            }
             ShowPrompt(reader, focused);
             if (focused.ScreenGuide && promptAnchor != null && promptAnchor.parent is RectTransform parent)
                 promptAnchor.anchoredPosition = new Vector2(parent.rect.xMin + promptAnchor.rect.width * .5f + 24,
                     parent.rect.yMin + promptAnchor.rect.height + 144);
-            else PositionPrompt(focused.Point, camera);
+            else PositionPrompt(displayPoint, camera);
         }
         void ShowPrompt(PlayerInputReader reader, Candidate focused)
         {
-            bool cannonOrPole = focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
+            bool cannonOrPole = focused.Device || focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
                 || focused.Root.GetComponent<HumanCannonPole>() != null);
             string helper = focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요");
             var availability = focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable;
@@ -189,7 +203,7 @@ namespace CurtainCall.UI.SceneIntegration
             helper = FormatControlLabels(helper, interactKey, jumpKey,
                 reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
                 reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"));
-            bool presented = prompt.Show(key, focused.Action, availability, focused.Hold, progress, helper);
+            bool presented = HudUIManager.ShowInteraction(focused.Action, prompt, key, availability, focused.Hold, progress, helper);
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
             string deviceText = key + focused.Action + helper;
@@ -316,7 +330,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (hangs == null || canvas == null) return;
             if (rescueTrack == null)
             {
-                var prefab = Resources.Load<GameObject>("Prefabs/UIs/Interaction/InteractionPrompt");
+                var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt");
                 if (prefab == null) return;
                 foreach (var image in prefab.GetComponentsInChildren<Image>(true))
                 {
@@ -348,7 +362,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         RectTransform CreateRescueRing(RectTransform parent)
         {
-            var template = Resources.Load<GameObject>("Prefabs/UIs/Interaction/RescueProgress");
+            var template = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Interaction/RescueProgress");
             if (template != null)
             {
                 var instance = Instantiate(template, parent, false);
@@ -377,8 +391,10 @@ namespace CurtainCall.UI.SceneIntegration
             var player = NetworkPlayer.Local;
             var system = PiggybackSystem.Current;
             var course = TightropeCourse.Current;
+            // 대기실은 외줄 코스 없이 바닥에서 목마를 쓴다(통로 기믹 CC-251). 안내 패널도 같은 기존 목마 안내를 띄운다.
+            bool waitingRoom = CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
             if (player == null || player.State != PlayerState.Normal || system == null || !system.isActiveAndEnabled
-                || course == null || !course.IsGameplayActive || UsingTightropeDevice(player)) return;
+                || !waitingRoom && (course == null || !course.IsGameplayActive) || UsingTightropeDevice(player)) return;
             if (system.GetBelow(player) != null)
             {
                 bool canRelease = system.GetAbove(player) == null;
@@ -432,8 +448,10 @@ namespace CurtainCall.UI.SceneIntegration
                     : course != null && course.TryGetComponent(out CourseControlSwitcher switcher) ? switcher.FindCannonPoleExit(player) : -1;
                 if (exitPole >= 0 && exitPoles != null && exitPoles.Pole(exitPole) is { } pole)
                 {
-                    Add(pole.transform, exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
+                    Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
+                        exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
                     candidates[candidates.Count - 1].Pole = true;
+                    candidates[candidates.Count - 1].Device = true;
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
                     if (locks != null && locks.IsHelperPole(pole))
                         candidates[candidates.Count - 1].Helper = locks.HelperInstruction(pole);
@@ -507,8 +525,10 @@ namespace CurtainCall.UI.SceneIntegration
                             Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
                         string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
                             ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
-                        Add(pole.transform, poles.InteractionPoint(i, player), label, true, i == focused, feet);
+                        Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
+                            poles.InteractionPoint(i, player), label, true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
+                        candidates[candidates.Count - 1].Device = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
                         else if (pole.RiderCapacity > 1) candidates[candidates.Count - 1].Helper = "W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다";
                     }

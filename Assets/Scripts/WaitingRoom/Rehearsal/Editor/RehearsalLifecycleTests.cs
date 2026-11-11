@@ -3,11 +3,14 @@ using System.Reflection;
 using CurtainCall.Campaign;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Reward;
 using CurtainCall.Settings;
 using CurtainCall.SpaceLink;
 using CurtainCall.Survival;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -90,6 +93,78 @@ namespace CurtainCall.WaitingRoom.EditorTools
             typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
             All.Add(player); players.Add(player);
             return player;
+        }
+
+        [TestCase(false), TestCase(true), Category("WaitingRoomCommonRecovery")]
+        public void CannonRevivalWithoutAnObservedFallenFrameKeepsCheckpointAndClearsArrival(bool middle)
+        {
+            var player = Player(940);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            var mover = player.GetComponent<PlayerMover>();
+            Shared("active", true); Shared("round", 7);
+            var shared = Get(cannon, "shared");
+            List<ulong> List(string name) => (List<ulong>)shared.GetType().GetField(name).GetValue(shared);
+            foreach (string name in new[] { "placed", "arrived", "votes", "skipVotes" }) List(name).Add(player.OwnerClientId);
+            if (middle) List("middle").Add(player.OwnerClientId);
+            Set(cannon, "local", player); Set(cannon, "previousState", PlayerState.Normal); Set(cannon, "placedRound", 7);
+            var walls = Make("Old cannon finish walls"); Set(cannon, "walls", walls);
+            var course = Make("Checkpoint course").AddComponent<RehearsalCannonCourse>();
+            var start = Make("Start floor").AddComponent<BoxCollider>();
+            start.transform.position = new Vector3(9100, 9000, 9000); start.size = new Vector3(12, .4f, 8);
+            var midway = Make("Middle floor").AddComponent<BoxCollider>();
+            midway.transform.position = new Vector3(9200, 9004, 9000); midway.size = start.size;
+            course.StartFloor = start; course.MiddleFloor = midway; Set(cannon, "course", course);
+            var pilot = player.gameObject.AddComponent<HumanCannonPilot>();
+            Set(pilot, "mover", mover); Set(pilot, "player", player);
+            Set(pilot, "previousSimulation", true);
+            typeof(HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true); mover.Simulated = false;
+            Call(cannon, "OnPlayerRevived", player);
+            Assert.IsTrue((bool)Get(cannon, "localRecoveryPending"), "A zero-delay revival need not expose an intermediate Fallen state.");
+            Call(cannon, "ResetLocalRecovery", player);
+            Assert.IsFalse(walls.activeSelf);
+            foreach (string name in new[] { "placed", "arrived", "votes", "skipVotes" }) Assert.IsEmpty(List(name), name);
+            Assert.AreEqual(middle, List("middle").Contains(player.OwnerClientId), "Recovery must keep the last acquired checkpoint.");
+            Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
+            Assert.That(Vector3.Distance(player.transform.position, course.CheckpointPose(middle ? 1 : 0, 0).position), Is.LessThan(.001f));
+            Assert.IsFalse(pilot.IsDriving, "A stale flight must not move the player away from the recovered checkpoint.");
+            Assert.IsTrue(mover.Simulated);
+            Set(cannon, "course", null); // EditMode fixture owns immediate destruction.
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void TutorialCompletionRevivalWaitsForNormalThenReleasesFinishState()
+        {
+            InitialTutorial(true);
+            var player = Player(941);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            Set(rehearsal, "local", player); Set(rehearsal, "placedRound", 3); Set(rehearsal, "lessonReturnedRound", 3);
+            foreach (string name in new[] { "arrived", "votes", "placed" }) ((HashSet<ulong>)Get(rehearsal, name)).Add(player.OwnerClientId);
+            var walls = Make("Old tutorial finish walls"); Set(rehearsal, "finishWalls", walls);
+            var state = (NetworkVariable<PlayerState>)Get(player, "state");
+            state.Value = PlayerState.Fallen;
+            Call(rehearsal, "OnLocalRevived", player);
+            Call(rehearsal, "RecoverLocal");
+            Assert.IsTrue((bool)Get(rehearsal, "localRecoveryPending"), "A revival notification arriving before Normal must wait.");
+            state.Value = PlayerState.Normal;
+            Call(rehearsal, "RecoverLocal");
+            Assert.IsFalse((bool)Get(rehearsal, "localRecoveryPending"));
+            Assert.IsFalse(walls.activeSelf);
+            foreach (string name in new[] { "arrived", "votes", "placed" }) Assert.IsEmpty((HashSet<ulong>)Get(rehearsal, name), name);
+            Assert.AreEqual(-1, Get(rehearsal, "placedRound"), "Completed education must still return to the practice-room deck before the first performance.");
+            Assert.IsTrue(WaitingRoomRehearsal.UsesInitialTutorialRules);
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NewCannonConnectionDropsQueuedRevivalAndOldCheckpoint()
+        {
+            Set(run, "host", null);
+            Set(cannon, "localRecoveryPending", true);
+            var shared = Get(cannon, "shared");
+            ((List<ulong>)shared.GetType().GetField("middle").GetValue(shared)).Add(942);
+            Call(cannon, "ResetConnection");
+            Assert.IsFalse((bool)Get(cannon, "localRecoveryPending"));
+            Assert.AreEqual(0, WaitingRoomCannonRehearsal.Checkpoint(942), "A new room cannot retain the previous rehearsal checkpoint.");
         }
 
         [TestCase("seat")] [TestCase("flight")] [TestCase("transport")]
@@ -221,16 +296,28 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public void FirstDayTeamWaitDoesNotLockPlayersInsideRehearsal(bool cannonLesson)
         {
             var oldFlow = Singleton<WaitingRoomFirstDayFlow>().GetValue(null);
+            var hudSingleton = Singleton<CurtainCall.UI.SceneIntegration.HudUIManager>();
+            var oldHud = hudSingleton.GetValue(null);
             var memoryOnly = typeof(WaitingRoomTutorial).GetField("memoryOnly", Static);
             var memoryEnabled = typeof(WaitingRoomTutorial).GetField("memoryEnabled", Static);
             var oldMemory = memoryOnly.GetValue(null); var oldEnabled = memoryEnabled.GetValue(null);
             try
             {
+                // The shared HUD is normally created with DontDestroyOnLoad. Supply the real
+                // prefab explicitly for this EditMode fixture, without that PlayMode-only call.
+                if (oldHud == null)
+                {
+                    var hud = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/HudUIManager"));
+                    hud.hideFlags = HideFlags.HideAndDontSave; objects.Add(hud);
+                    hudSingleton.SetValue(null, hud.GetComponent<CurtainCall.UI.SceneIntegration.HudUIManager>());
+                }
                 // This owner has finished/disabled the guide; a teammate still needs it.
                 memoryOnly.SetValue(null, true); memoryEnabled.SetValue(null, false);
                 var flow = Make("Lifecycle first day flow").AddComponent<WaitingRoomFirstDayFlow>();
                 Call(flow, "Awake");
-                Set(flow, "tutorialRun", run); Set(flow, "tutorialDoneKey", run.State.Generation + "/" + run.State.Day);
+                Set(flow, "tutorialRun", run);
+                Set(flow, "tutorialDoneKey", run.State.Generation + "/" + run.State.Day + "/" + run.State.Phase
+                    + "/" + run.State.Rest + "/" + run.State.PerformanceIndex);
                 var player = Player(904); typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
                 if (cannonLesson) Shared("active", true);
                 else { Set(rehearsal, "active", true); Set(rehearsal, "practice", true); }
@@ -248,6 +335,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             {
                 memoryOnly.SetValue(null, oldMemory); memoryEnabled.SetValue(null, oldEnabled);
                 Singleton<WaitingRoomFirstDayFlow>().SetValue(null, oldFlow);
+                hudSingleton.SetValue(null, oldHud);
             }
         }
 
@@ -300,6 +388,505 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 memoryOnly.SetValue(null, oldMemory); memoryEnabled.SetValue(null, oldEnabled);
                 Singleton<WaitingRoomFirstDayFlow>().SetValue(null, oldFlow);
             }
+        }
+
+        [TestCase(PlayerState.Normal, true, true, true)]
+        [TestCase(PlayerState.Normal, false, true, false)]
+        [TestCase(PlayerState.Fallen, true, true, false)]
+        [TestCase(PlayerState.Retired, true, true, false)]
+        [TestCase(PlayerState.Arrived, true, true, false)]
+        [TestCase(PlayerState.Normal, true, false, false)]
+        [Category("PursuitRecovery"), Category("WaitingRoomCommonRecovery")]
+        public void RemovingCapturePoseRestoresControlOnlyForAnEligibleSurvivor(
+            PlayerState finalState, bool priorControl, bool spawned, bool expectedControl)
+        {
+            var player = Player(942);
+            var mover = player.GetComponent<PlayerMover>();
+            var pose = player.gameObject.AddComponent<Pursuit.PursuitVictimPose>();
+            // Exercise teardown without creating the capture HUD or loading visual assets.
+            Set(pose, "mover", mover); Set(pose, "priorControl", priorControl);
+            mover.SetControlEnabled(priorControl); Call(pose, "LateUpdate");
+            Assert.IsFalse(mover.ControlEnabled);
+            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = finalState;
+            typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, spawned);
+
+            // These EditMode components never enter Unity's Start lifecycle. Invoke the
+            // teardown explicitly, and start enabled so blocked cases prove it ran too.
+            mover.SetControlEnabled(true);
+            Call(pose, "OnDestroy");
+
+            Assert.AreEqual(expectedControl, mover.ControlEnabled,
+                "Dawn capture cleanup must not reactivate a dead, retired or despawned player before revival.");
+        }
+
+        static void ReceiveRewardSnapshot(PerformanceRewards rewards, RewardSnapshot snapshot)
+        {
+            var dataType = typeof(PerformanceRewards).Assembly.GetType("CurtainCall.Reward.RewardStateData", true);
+            var data = dataType.GetMethod("From").Invoke(null, new object[] { snapshot });
+            string json = JsonUtility.ToJson(data);
+            using var writer = new FastBufferWriter(FastBufferWriter.GetWriteSize(json), Allocator.Temp);
+            writer.WriteValueSafe(json);
+            using var reader = new FastBufferReader(writer, Allocator.Temp);
+            Call(rewards, "ReadState", NetworkManager.ServerClientId, reader, false);
+        }
+
+        [TestCase(0), TestCase(1), TestCase(2), Category("RewardLobbyBoundaryRegression")]
+        public void LobbyRewardResetUsesCampaignBoundaryOnceAcrossSessionMessageOrders(int order)
+        {
+            // 0: Waiting first; 1: Campaign None first; 2: Waiting is coalesced out.
+            var session = Make("Reward client session").AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Client);
+            typeof(NetworkSessionManager).GetProperty("GameState").SetValue(session,
+                order == 2 ? GameSessionState.Playing : GameSessionState.Ended);
+            var rewards = Make("Reward lobby lifecycle").AddComponent<PerformanceRewards>();
+            Set(rewards, "campaign", run); Set(rewards, "session", session);
+            var previous = new PerformanceRewardModel("6dc1b9c8804243e2bcf10d96c3490d0a", 4);
+            var next = new PerformanceRewardModel("3c6e0000000000000000000000000000", 2);
+            Assert.IsTrue(next.DebugGrant(850, 2));
+            var oldSnapshot = previous.Snapshot(); var newSnapshot = next.Snapshot();
+            Set(rewards, "state", oldSnapshot); Set(rewards, "ledgerPage", oldSnapshot);
+            var handler = (System.Action<CampaignSnapshot>)System.Delegate.CreateDelegate(
+                typeof(System.Action<CampaignSnapshot>), rewards,
+                typeof(PerformanceRewards).GetMethod("HandleStep", Private));
+            run.StepChanged += handler;
+            var running = run.State;
+            try
+            {
+                ReceiveRewardSnapshot(rewards, newSnapshot);
+                Assert.AreSame(oldSnapshot, rewards.State,
+                    "로비 경계를 보기 전 다른 자금 세션은 기존 보호대로 거절한다.");
+                if (order == 0) Call(session, "SetGameState", GameSessionState.Waiting);
+                Call(run, "Apply", default(CampaignSnapshot));
+                Assert.IsNull(rewards.State, "Campaign None 자체가 이전 런의 자금을 초기화한다.");
+                Assert.AreEqual(oldSnapshot.SessionId, Get(rewards, "retiredSession"));
+
+                // New reward state may precede both the next campaign and a delayed Waiting.
+                ReceiveRewardSnapshot(rewards, newSnapshot);
+                Assert.AreEqual(850, rewards.Balance);
+                if (order == 1) Call(session, "SetGameState", GameSessionState.Waiting);
+                Call(run, "Apply", default(CampaignSnapshot)); // Repeated None is not another step.
+                Call(rewards, "SyncCampaign");
+                Assert.AreEqual(newSnapshot.SessionId, rewards.State.SessionId);
+                Assert.AreEqual(850, rewards.Balance, "늦은 로비 상태나 중복 None이 새 자금 세션을 지우지 않는다.");
+                Assert.AreEqual(oldSnapshot.SessionId, Get(rewards, "retiredSession"));
+                Call(session, "SetGameState", GameSessionState.Playing);
+                Call(run, "Apply", running);
+                Assert.AreEqual(850, rewards.Balance);
+                ReceiveRewardSnapshot(rewards, oldSnapshot);
+                Assert.AreEqual(newSnapshot.SessionId, rewards.State.SessionId, "폐기한 이전 세션은 되살리지 않는다.");
+                var unrelated = new PerformanceRewardModel("4c6e0000000000000000000000000000", 9).Snapshot();
+                ReceiveRewardSnapshot(rewards, unrelated);
+                Assert.AreEqual(newSnapshot.SessionId, rewards.State.SessionId, "로비 전환 외 타세션 보호는 유지한다.");
+
+                // A second genuine run-end must reset again, including same-frame restart.
+                Call(run, "Apply", default(CampaignSnapshot));
+                Assert.IsNull(rewards.State);
+                Assert.AreEqual(newSnapshot.SessionId, Get(rewards, "retiredSession"));
+                ReceiveRewardSnapshot(rewards, unrelated);
+                Assert.AreEqual(unrelated.SessionId, rewards.State.SessionId);
+            }
+            finally { run.StepChanged -= handler; }
+        }
+
+        ExplorationState ExplorationLifecycleFixture()
+        {
+            var state = Make("Exploration lifecycle service").AddComponent<ExplorationState>();
+            var channelType = typeof(ExplorationState).Assembly.GetType("CurtainCall.WaitingRoom.ShopChannel", true);
+            Set(state, "channel", System.Activator.CreateInstance(channelType, new object[] {
+                "ExplorationLifecycleTests", (System.Action<ulong, string>)((_, __) => { }),
+                (System.Action<string>)(_ => { }), (System.Action<string>)(_ => { }),
+                (System.Action)(() => { }), (System.Action)(() => { })
+            }));
+            return state;
+        }
+
+        ExplorationGate ExplorationLifecycleGate(ExplorationGateKind kind)
+        {
+            var gate = Make("Exploration lifecycle gate").AddComponent<ExplorationGate>();
+            Set(gate, "targetId", "exploration-lifecycle-regression");
+            Set(gate, "kind", kind);
+            gate.transform.position = new Vector3(9000, 100.75f, 9001);
+            return gate;
+        }
+
+        [TestCase(PlayerState.Fallen), TestCase(PlayerState.Retired), TestCase(PlayerState.Arrived)]
+        [Category("ExplorationInteractionLifecycle")]
+        public void ExplorationRejectsLateUseFromNonNormalActor(PlayerState blockedState)
+        {
+            var actor = Player(960);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(actor, true);
+            actor.GetComponent<PlayerMover>().SetStartPose(new Vector3(9000, 100, 9000), Quaternion.identity);
+            var state = ExplorationLifecycleFixture();
+            var gate = ExplorationLifecycleGate(ExplorationGateKind.Open);
+            Physics.SyncTransforms();
+            Assert.GreaterOrEqual(gate.Reach(actor.transform.position, actor), 0f);
+            ((NetworkVariable<PlayerState>)Get(actor, "state")).Value = blockedState;
+            var result = ((bool ok, string text, string reason))Call(state, "UseCore", actor.OwnerClientId, gate.TargetId, null, gate);
+            Assert.IsFalse(result.ok);
+            Assert.AreEqual("NOT_ALIVE", result.reason);
+            Assert.AreEqual(0, state.Hits(gate.TargetId));
+            Assert.IsFalse(state.IsOpen(gate.TargetId), "도착이 늦은 요청으로 탐색 진행을 바꾸지 않는다.");
+        }
+
+        [Test, Category("ExplorationInteractionLifecycle")]
+        public void ExplorationCooperationDoesNotCountPartnerWhoDiedAfterPressing()
+        {
+            var first = Player(961); var second = Player(962);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(first, true);
+            first.GetComponent<PlayerMover>().SetStartPose(new Vector3(8999.5f, 100, 9000), Quaternion.identity);
+            second.GetComponent<PlayerMover>().SetStartPose(new Vector3(9000.5f, 100, 9000), Quaternion.identity);
+            var state = ExplorationLifecycleFixture();
+            var gate = ExplorationLifecycleGate(ExplorationGateKind.Cooperative);
+            Physics.SyncTransforms();
+            var pending = ((bool ok, string text, string reason))Call(state, "UseCore", first.OwnerClientId, gate.TargetId, null, gate);
+            Assert.AreEqual("PARTNER_REQUIRED", pending.reason, "첫 단원의 정상 요청이 협동 대기에 들어간다.");
+            ((NetworkVariable<PlayerState>)Get(first, "state")).Value = PlayerState.Fallen;
+            var result = ((bool ok, string text, string reason))Call(state, "UseCore", second.OwnerClientId, gate.TargetId, null, gate);
+            Assert.IsFalse(result.ok);
+            Assert.AreEqual("PARTNER_REQUIRED", result.reason);
+            Assert.IsFalse(state.IsOpen(gate.TargetId), "동시 입력 시간 안이어도 사망한 단원은 협동 인원에서 제외한다.");
+        }
+
+        void InvalidateExplorationPanelOwner(NetworkPlayer actor, bool replaceOwner)
+        {
+            if (replaceOwner)
+            {
+                typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(actor, false);
+                var replacement = Player(actor.OwnerClientId);
+                replacement.GetComponent<PlayerMover>().SetStartPose(actor.transform.position, Quaternion.identity);
+                replacement.gameObject.AddComponent<PlayerInputReader>();
+                typeof(NetworkPlayer).GetProperty("Local").SetValue(null, replacement);
+            }
+            else
+            {
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(actor, true);
+                ((NetworkVariable<PlayerState>)Get(actor, "state")).Value = PlayerState.Fallen;
+            }
+        }
+
+        [TestCase(false), TestCase(true), Category("ExplorationInteractionLifecycle")]
+        public void ClueOverviewReleasesLockWhenOpeningActorDiesOrIsReplaced(bool replaceOwner)
+        {
+            var actor = Player(0); actor.gameObject.AddComponent<PlayerInputReader>();
+            actor.GetComponent<PlayerMover>().SetStartPose(new Vector3(9000, 100, 9000), Quaternion.identity);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, actor);
+            var clue = Make("Exploration lifecycle clue").AddComponent<ClueInspectable>(); Call(clue, "Awake");
+            clue.transform.position = actor.transform.position;
+            var previousClue = ClueInspectable.Current;
+            var blocker = (UIInputBlocker)Get(clue, "blocker");
+            try
+            {
+                // Open-session fixture omits only the camera copy and panel artwork.
+                typeof(ClueInspectable).GetProperty("Current").SetValue(null, clue);
+                Set(clue, "openedBy", actor); Set(clue, "openedByNetworkPlayer", true);
+                blocker.SetOpen(true);
+                InvalidateExplorationPanelOwner(actor, replaceOwner);
+                Call(clue, "Update");
+                Assert.IsFalse(clue.IsOpen);
+                Assert.IsFalse(blocker.IsBlocking, "사망/교체 뒤 남아 있던 단서 입력 잠금을 해제한다.");
+                Assert.IsNull(Get(clue, "openedBy"));
+            }
+            finally
+            {
+                clue.SetOpen(false);
+                typeof(ClueInspectable).GetProperty("Current").SetValue(null, previousClue);
+            }
+        }
+
+        [TestCase(false), TestCase(true), Category("ExplorationInteractionLifecycle")]
+        public void ExplorationPanelReleasesLockWhenOpeningActorDiesOrIsReplaced(bool replaceOwner)
+        {
+            var actor = Player(0); actor.gameObject.AddComponent<PlayerInputReader>();
+            actor.GetComponent<PlayerMover>().SetStartPose(new Vector3(9000, 100, 9000), Quaternion.identity);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, actor);
+            var state = ExplorationLifecycleFixture();
+            var previousState = ExplorationState.Instance;
+            var gate = ExplorationLifecycleGate(ExplorationGateKind.Keypad); Call(gate, "Awake");
+            var blocker = (UIInputBlocker)Get(gate, "inputBlocker");
+            try
+            {
+                typeof(ExplorationState).GetProperty("Instance").SetValue(null, state);
+                Set(gate, "panel", true); Set(gate, "panelOpenedBy", actor); Set(gate, "panelOpenedByNetworkPlayer", true);
+                blocker.SetOpen(true);
+                Physics.SyncTransforms();
+                Assert.IsTrue(state.CanReachLocal(gate));
+                InvalidateExplorationPanelOwner(actor, replaceOwner);
+                Call(gate, "Update");
+                Assert.IsFalse((bool)Get(gate, "panel"));
+                Assert.IsFalse(blocker.IsBlocking, "사망/교체 뒤 남아 있던 암호 패널 입력 잠금을 해제한다.");
+                Assert.IsNull(Get(gate, "panelOpenedBy"));
+            }
+            finally
+            {
+                Call(gate, "ClosePanel");
+                typeof(ExplorationState).GetProperty("Instance").SetValue(null, previousState);
+            }
+        }
+
+        [TestCase(PlayerState.Fallen), TestCase(PlayerState.Retired), TestCase(PlayerState.Arrived), Category("WaitingRoomCommonRecovery")]
+        public void NonNormalPlayersCannotSelectShopTargetsOrderOrPrepareForSleep(PlayerState blockedState)
+        {
+            var player = Player(0);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            Assert.IsTrue(PlayerInteraction.CanInteract(player));
+            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = blockedState;
+            Assert.IsFalse(PlayerInteraction.CanInteract(player));
+            Assert.IsFalse(PlayerInteraction.CanInteract(player.OwnerClientId));
+            Assert.IsNull(CommonInteractionSelection.Selected(player));
+            var shop = Make("Blocked shop request").AddComponent<WaitingRoomShop>();
+            var purchase = ((bool ok, string text))Call(shop, "Buy", "spring-shoes", player.OwnerClientId);
+            Assert.IsFalse(purchase.ok);
+            StringAssert.Contains("살아", purchase.text);
+            var night = new RunState(false, true);
+            night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+            Set(run, "host", night); Set(run, "state", night.Snapshot);
+            Assert.IsFalse(run.SetReady(true), "로컬/호스트 준비 요청도 사망 상태를 거절한다.");
+            var bed = Make("Blocked bed").AddComponent<NightBed>();
+            Assert.IsFalse(bed.IsAvailable);
+            bed.Interact();
+            Assert.IsFalse(run.IsLocalReady);
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NightDoesNotTreatAnUnspawnedConnectedAvatarAsDead()
+        {
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => true;
+                var night = new RunState(false, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Night, night.Snapshot.Phase, "접속자의 캐릭터 생성은 기다린다.");
+                var player = Player(0);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase, "확정된 전원 사망이면 기존 밤 종료로 진행한다.");
+            }
+            finally { RunState.NightEndGate = oldGate; }
+        }
+
+        [TestCase(PlayerState.Normal), TestCase(PlayerState.Fallen), TestCase(PlayerState.Retired)]
+        [Category("NightPursuitTransitionRegression")]
+        public void NightWaitsForLastCaptureThenRequiresFreshDawnAcknowledgment(PlayerState duringCapture)
+        {
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => false;
+                var night = new RunState(false, true, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Assert.IsTrue(night.DebugBeginPursuit());
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var player = Player(0);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                var state = (NetworkVariable<PlayerState>)Get(player, "state");
+                state.Value = duringCapture;
+                var go = Make("Pending night capture"); go.SetActive(false);
+                var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                var victim = System.Activator.CreateInstance(victimType, true);
+                victimType.GetField("Object").SetValue(victim, player.gameObject);
+                ((System.Collections.IDictionary)Get(pursuit, "victims")).Add(0UL, victim);
+
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCapturePending(player));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Night, night.Snapshot.Phase, "A captured player is not a completed death while the capture sequence is pending.");
+                Assert.AreEqual(RestTimerState.Pursuit, night.Snapshot.Timer);
+
+                state.Value = PlayerState.Retired;
+                victimType.GetField("Retired").SetValue(victim, true);
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCaptured(player), "The completed victim still cannot interact until morning revival.");
+                Assert.IsFalse(Pursuit.PursuitDirector.IsCapturePending(player));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
+                Assert.AreEqual(1, night.Snapshot.Day);
+                Assert.AreEqual(0, night.Snapshot.ReadyCount);
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase, "Retirement is not the owner's fade-complete acknowledgment.");
+                night.SetReady(0, true);
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.RestTime, night.Snapshot.Phase);
+                Assert.AreEqual(RestKind.Morning, night.Snapshot.Rest);
+                Assert.AreEqual(2, night.Snapshot.Day);
+            }
+            finally { current.SetValue(null, previous); RunState.NightEndGate = oldGate; }
+        }
+
+        [Test, Category("NightPursuitTransitionRegression")]
+        public void DisconnectedPendingCaptureDoesNotBlockTheRemainingDeadPlayers()
+        {
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current");
+            var previous = current.GetValue(null);
+            try
+            {
+                var night = new RunState(false, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var local = Player(0);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(local, true);
+                ((NetworkVariable<PlayerState>)Get(local, "state")).Value = PlayerState.Fallen;
+                var departed = Player(1); // Offline connected roster contains only actor 0.
+                var go = Make("Disconnected pending night capture"); go.SetActive(false);
+                var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                var victim = System.Activator.CreateInstance(victimType, true);
+                victimType.GetField("Object").SetValue(victim, departed.gameObject);
+                ((System.Collections.IDictionary)Get(pursuit, "victims")).Add(1UL, victim);
+                Assert.IsTrue(Pursuit.PursuitDirector.IsCapturePending(departed));
+                Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
+            }
+            finally { current.SetValue(null, previous); }
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void MedicalReservationCancelsOnDeathAndRejectsDeadEntry()
+        {
+            var player = Player(930);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
+            var service = Make("Dead medical reservation").AddComponent<ExpertService>();
+            var book = new ExpertServiceBook(3f, 2f);
+            book.BookMedical(player.OwnerClientId, true, true, 2, 2, 3, () => true, 150);
+            Set(service, "book", book);
+            Assert.IsTrue((bool)Call(service, "CancelUnavailableBuyer"));
+            Assert.IsFalse((bool)Call(service, "CancelUnavailableBuyer"));
+            Assert.AreEqual(150, book.PendingRefund);
+            Assert.AreEqual(ExpertRoomPhase.Idle, book.Phase);
+            var enter = ((bool ok, string text))Call(service, "Enter", player.OwnerClientId);
+            Assert.IsFalse(enter.ok);
+            StringAssert.Contains("살아", enter.text);
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void OnlyTheFirstGenerationUsesInitialEducationRestrictions()
+        {
+            var state = run.State;
+            state.Generation = 1; state.Day = 1; state.PerformanceIndex = 0; state.Phase = CampaignPhase.Performance;
+            Set(run, "state", state);
+            Assert.IsTrue(WaitingRoomRehearsal.IsPreTutorialRestricted);
+            state.Generation = 2; Set(run, "state", state);
+            Assert.IsFalse(WaitingRoomRehearsal.IsPreTutorialRestricted);
+            state.Phase = CampaignPhase.Rehearsal; Set(run, "state", state);
+            Assert.IsFalse(WaitingRoomRehearsal.IsPreTutorialRestricted);
+        }
+
+        void InitialTutorial(bool completed)
+        {
+            var state = new RunState();
+            state.StartSession(true); state.EndIntro();
+            Set(run, "host", state); Set(run, "state", state.Snapshot);
+            Set(rehearsal, "active", true); Set(rehearsal, "practice", false); Set(rehearsal, "completed", completed);
+            Set(rehearsal, "practiceAreaFound", true);
+            Set(rehearsal, "practiceArea", new Bounds(Vector3.zero, Vector3.one * 10f));
+        }
+
+        [TestCase(false), TestCase(true), Category("TutorialCommonRules")]
+        public void TutorialPracticeGateTracksOccupantsBeforeAndAfterCompletion(bool completed)
+        {
+            var rules = GameSettings.WaitingRoom.Tutorial;
+            string saved = JsonUtility.ToJson(rules);
+            try
+            {
+                JsonUtility.FromJsonOverwrite("{\"openPracticeDoorWhileOccupied\":true}", rules);
+                InitialTutorial(completed);
+                var player = Player(910);
+                Set(rehearsal, "practiceSealed", true);
+                Call(rehearsal, "HostTickPracticeSeal");
+                Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "실내 단원이 있으면 교육 중과 완료 후 모두 문이 열린다.");
+                player.transform.position = Vector3.right * 20f;
+                Call(rehearsal, "HostTickPracticeSeal");
+                Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "모두 나가면 문이 닫힌다.");
+                int sealedVersion = (int)Get(rehearsal, "version");
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
+                player.transform.position = Vector3.zero;
+                Call(rehearsal, "HostTickPracticeSeal");
+                Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "죽은 단원도 방 안에 있으면 복구 전부터 문을 다시 연다.");
+                Assert.That((int)Get(rehearsal, "version"), Is.GreaterThan(sealedVersion), "다시 열린 문도 새 상태 버전으로 공유한다.");
+            }
+            finally { JsonUtility.FromJsonOverwrite(saved, rules); }
+        }
+
+        [Test, Category("TutorialCommonRules")]
+        public void TutorialPracticeGateReadsSharedPolicyInsteadOfForcingOccupancyOverride()
+        {
+            var rules = GameSettings.WaitingRoom.Tutorial;
+            string saved = JsonUtility.ToJson(rules);
+            try
+            {
+                JsonUtility.FromJsonOverwrite("{\"openPracticeDoorWhileOccupied\":false}", rules);
+                InitialTutorial(false);
+                Player(911);
+                Call(rehearsal, "HostTickPracticeSeal");
+                Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "공통 정책을 끄면 교육 미완료의 기존 잠금을 유지한다.");
+                JsonUtility.FromJsonOverwrite("{\"openPracticeDoorWhileOccupied\":true}", rules);
+                Call(rehearsal, "HostTickPracticeSeal");
+                Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+            }
+            finally { JsonUtility.FromJsonOverwrite(saved, rules); }
+        }
+
+        [Test, Category("TutorialCommonRules")]
+        public void TutorialEntranceWaitsForRecoveryThenStartsPerformance()
+        {
+            var rules = GameSettings.WaitingRoom.Tutorial;
+            string saved = JsonUtility.ToJson(rules);
+            try
+            {
+                JsonUtility.FromJsonOverwrite("{\"waitForRecoveryBeforePerformance\":true}", rules);
+                InitialTutorial(true);
+                var alive = Player(912);
+                var recovering = Player(913);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(recovering, true);
+                ((NetworkVariable<PlayerState>)Get(recovering, "state")).Value = PlayerState.Fallen;
+                var gather = Make("Tutorial stage entrance").AddComponent<StageEntranceGather>(); Call(gather, "Awake");
+                alive.transform.position = Vector3.zero;
+                recovering.transform.position = Vector3.right * 20f;
+                Physics.SyncTransforms();
+                Call(gather, "Update");
+                Assert.AreEqual(CampaignPhase.Rehearsal, run.State.Phase, "살아 있는 동료가 모두 집결해도 튜토리얼 복구를 기다린다.");
+                ((NetworkVariable<PlayerState>)Get(recovering, "state")).Value = PlayerState.Normal;
+                Call(gather, "Update");
+                Assert.AreEqual(CampaignPhase.Rehearsal, run.State.Phase, "복구한 동료도 직접 집결해야 한다.");
+                recovering.transform.position = Vector3.zero;
+                Physics.SyncTransforms();
+                Call(gather, "Update");
+                Assert.AreEqual(CampaignPhase.Performance, run.State.Phase);
+            }
+            finally { JsonUtility.FromJsonOverwrite(saved, rules); }
+        }
+
+        [Test, Category("TutorialCommonRules")]
+        public void TutorialRecoveryWaitStopsWhenPolicyIsOffOrInitialTutorialEnds()
+        {
+            var rules = GameSettings.WaitingRoom.Tutorial;
+            string saved = JsonUtility.ToJson(rules);
+            try
+            {
+                InitialTutorial(true);
+                var recovering = Player(914);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(recovering, true);
+                ((NetworkVariable<PlayerState>)Get(recovering, "state")).Value = PlayerState.Fallen;
+                var gather = Make("Tutorial recovery boundary").AddComponent<StageEntranceGather>();
+                JsonUtility.FromJsonOverwrite("{\"waitForRecoveryBeforePerformance\":false}", rules);
+                Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"));
+                JsonUtility.FromJsonOverwrite("{\"waitForRecoveryBeforePerformance\":true}", rules);
+                Assert.IsTrue((bool)Call(gather, "MustWaitForTutorialRecovery"));
+                Set(rehearsal, "practice", true);
+                Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"), "일반 재연습은 최초 교육 복구 대기를 쓰지 않는다.");
+                Set(rehearsal, "practice", false);
+                var state = (RunState)Get(run, "host"); state.EndRehearsal(); state.EndPerformance();
+                Set(run, "state", state.Snapshot);
+                Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"), "첫 공연 뒤 일반 집결은 기존 생존자 기준을 유지한다.");
+            }
+            finally { JsonUtility.FromJsonOverwrite(saved, rules); }
         }
     }
 }

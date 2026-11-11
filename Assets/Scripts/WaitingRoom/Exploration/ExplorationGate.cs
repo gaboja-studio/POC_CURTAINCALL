@@ -1,4 +1,5 @@
 using System.Linq;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -8,7 +9,7 @@ namespace CurtainCall.WaitingRoom
     public enum ExplorationGateKind { Open, Monitor, Keypad, Cooperative, Breakable }
 
     /// <summary>F 공통 대상. 열쇠/단서/패드 등 선행 대상의 열린 상태를 조건으로 사용한다.</summary>
-    public sealed class ExplorationGate : MonoBehaviour, IExplorationTarget, IShopTarget, IShopPresentation
+    public sealed class ExplorationGate : MonoBehaviour, IBareHandTarget, IShopTarget, IShopPresentation
     {
         [SerializeField] string targetId = "gate";
         [SerializeField] string label = "조사";
@@ -26,6 +27,8 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] GameObject[] hideOnOpen;
         [SerializeField] string toolId = "";
         [SerializeField, Min(1)] int requiredHits = 1;
+        [Tooltip("부수기(Breakable) 대상을 맨몸으로 열 때 필요한 수(통로 기믹 CC-255, 2026-11-10 사용자: 상자 맨몸 5·뽑개 1). 0이면 맨몸 불가. 섞어 치면 비율로 합산.")]
+        [SerializeField, Min(0)] int bareHandHits = 5;
         [SerializeField, Min(.1f)] float cooperationWindow = .75f;
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] string password = "0000";
@@ -65,6 +68,9 @@ namespace CurtainCall.WaitingRoom
         }
         public bool IsMonitor => kind == ExplorationGateKind.Monitor;
         public bool IsBreakable => kind == ExplorationGateKind.Breakable;
+        public bool AllowsBareHands => IsBreakable && bareHandHits > 0 && !string.IsNullOrEmpty(toolId);
+        public int BareHits => bareHandHits;
+        public int ToolHits => requiredHits;
         public bool NeedsPartner => kind == ExplorationGateKind.Cooperative;
         public float CooperationWindow => cooperationWindow;
         public bool NeedsPassword => kind == ExplorationGateKind.Keypad;
@@ -129,10 +135,24 @@ namespace CurtainCall.WaitingRoom
         }
         public bool IsAvailable => Visible && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
         public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
+            : AllowsBareHands ? StrikeLabel()
             : UsesKey && !LocalHasKey ? Label + " — 맞는 열쇠를 선택하세요"
             : NeedsPartner ? (HasKeySlots ? WaitingRoomText.Format("gate.needs-two-keys", "{label} — 두 명이 각자 열쇠 구멍에서 함께 F", ("label", Label))
                 : WaitingRoomText.Format("gate.needs-two", "{label} — 두 명이 함께 F", ("label", Label))) : Label;
+        // 맨몸 겸용 부수기 대상: 친 적이 있으면 지금 방식(맨몸/뽑개) 기준 진행을 함께 보여 준다.
+        string StrikeLabel()
+        {
+            bool tool = ExplorationTargets.LocalHolds(toolId);
+            if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label;
+            var (n, total) = ExplorationTargets.StrikeCount(this, tool);
+            return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total));
+        }
+        public string DescribeStrike(bool opened, int done, int total, bool withTool) => opened
+            ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
+            : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", done), ("total", total));
         UIInputBlocker inputBlocker;
+        NetworkPlayer panelOpenedBy;
+        bool panelOpenedByNetworkPlayer;
         bool panel;
         ExplorationPanel panelView;
         string entered = "";
@@ -155,11 +175,12 @@ namespace CurtainCall.WaitingRoom
             : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
         public void Interact()
         {
-            if (!ConditionsMet || ExplorationState.Instance == null) return;
+            if (!ConditionsMet || ExplorationState.Instance == null || !LocalCanUsePanel) return;
             if (NeedsPassword || kind == ExplorationGateKind.Monitor)
             {
                 if (panel) return;
                 panel = true; entered = ""; openedFrame = Time.frameCount; inputBlocker.SetOpen(true);
+                panelOpenedBy = NetworkPlayer.Local; panelOpenedByNetworkPlayer = panelOpenedBy != null;
                 if (kind == ExplorationGateKind.Monitor && !Opened) ExplorationState.Instance.RequestUse(targetId);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
                 if (monitorCamera != null)
@@ -169,15 +190,24 @@ namespace CurtainCall.WaitingRoom
                 }
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
                 if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
-                panelView.Open(Label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : MonitorText, NeedsPassword, value => ExplorationState.Instance?.RequestCode(targetId, value), ClosePanel, false, monitorFeed);
+                panelView.Open(Label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : MonitorText, NeedsPassword, value => {
+                    if (!PanelOwnerCanUse) { ClosePanel(); return; }
+                    ExplorationState.Instance?.RequestCode(targetId, value);
+                }, ClosePanel, false, monitorFeed);
             }
             else ExplorationState.Instance.RequestUse(targetId);
         }
         void ClosePanel()
         {
             panel = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
+            panelOpenedBy = null; panelOpenedByNetworkPlayer = false;
             if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Answered;
         }
+        static bool LocalCanUsePanel => NetworkPlayer.Local != null
+            ? PlayerInteraction.CanInteract(NetworkPlayer.Local)
+            : NetworkPlayer.All.Count == 0 && PlayerInteraction.CanInteract(FindFirstObjectByType<PlayerInputReader>());
+        bool PanelOwnerCanUse => LocalCanUsePanel
+            && (!panelOpenedByNetworkPlayer || panelOpenedBy != null && panelOpenedBy == NetworkPlayer.Local);
         // 오답: 경고음 + 입력 비움, 다시 입력 가능. 정답: 짧은 확인음 뒤 패널이 닫힌다.
         void Answered(string text)
         {
@@ -216,6 +246,7 @@ namespace CurtainCall.WaitingRoom
             if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !Opened);
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
+            if (!PanelOwnerCanUse) { ClosePanel(); return; }
             if (NeedsPassword && Opened) Play(ref chime, "KeypadRight", .3f, 880f, false);
             if (panelView != null && NeedsPassword && ExplorationState.Instance != null && lastPanelMessage != ExplorationState.Instance.LastMessage)
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }

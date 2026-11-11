@@ -54,7 +54,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         }
         static GameObject Instance(string path,Transform parent,int order)
         {
-            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/"+path+".prefab");
+            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/"+path+".prefab");
             if(prefab==null)throw new InvalidOperationException(path);
             var go=(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent);
             var canvas=go.GetComponent<Canvas>();canvas.sortingOrder=order;

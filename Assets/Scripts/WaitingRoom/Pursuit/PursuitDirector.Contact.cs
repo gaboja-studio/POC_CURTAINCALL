@@ -44,7 +44,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (run == null || run.HasAuthority || !IsInitialized || !active || messaging == null || manager == null
                 || !receivedSnapshot || CaptureSuppressed || !PlayerRecognitionEnabled || Time.unscaledTime < contactSendAt) return;
             var campaign = run.State;
-            if (campaign.Phase != CampaignPhase.RestTime || campaign.Timer != RestTimerState.Pursuit) return;
+            if (!IsPursuitPhase(campaign.Phase) || campaign.Timer != RestTimerState.Pursuit) return;
             var player = NetworkPlayer.Local;
             if (player == null || !player.IsSpawned || !player.IsOwner || !IsAvailable(player.gameObject)
                 || !actor.IsActivated || actor.State != PursuitMotion.Run || actor.Behaviour != PursuitBehaviour.Chase
@@ -82,7 +82,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         PursuitContactRejection ValidateContact(ulong sender, PursuitContact contact, double now, out PursuitActor actor, out GameObject player)
         {
             actor = null; player = null;
-            if (run == null || !run.HasAuthority || !IsInitialized || !active || run.State.Phase != CampaignPhase.RestTime
+            if (run == null || !run.HasAuthority || !IsInitialized || !active || !IsPursuitPhase(run.State.Phase)
                 || run.State.Timer != RestTimerState.Pursuit || CaptureSuppressed || !PlayerRecognitionEnabled) return PursuitContactRejection.State;
             if (contact.Generation != generation || contact.Day != day || contact.Performance != performance || contact.Epoch != poseEpoch)
                 return PursuitContactRejection.Epoch;

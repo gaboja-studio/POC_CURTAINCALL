@@ -19,7 +19,7 @@ namespace CurtainCall.Spectator.Tests
         GameObject instance;
         MonoBehaviour view;
         float previousScale;
-        GameObject Prefab=>Resources.Load<GameObject>("Prefabs/UIs/Spectator/Spectator");
+        GameObject Prefab=>Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Spectator/Spectator");
         RectTransform Root=>(RectTransform)view.transform;
         CanvasGroup Group=>view.GetComponent<CanvasGroup>();
         TMP_Text[] Labels=>instance.GetComponentsInChildren<TMP_Text>(true);
@@ -243,7 +243,7 @@ namespace CurtainCall.Spectator.Tests
         {
 #if UNITY_EDITOR
             var type=AppDomain.CurrentDomain.GetAssemblies().Select(x=>x.GetType("CurtainCall.Spectator.Editor.SpectatorProjectBuilder")).FirstOrDefault(x=>x!=null);Assert.NotNull(type);
-            string path="Assets/Resources/Prefabs/UIs/Spectator/Spectator.prefab";string before=UnityEditor.AssetDatabase.AssetPathToGUID(path);
+            string path="Assets/Resources/Prefabs/UIs/Roles/Retained/Spectator/Spectator.prefab";string before=UnityEditor.AssetDatabase.AssetPathToGUID(path);
             var ex=Assert.Throws<TargetInvocationException>(()=>type.GetMethod("Build").Invoke(null,null));Assert.IsInstanceOf<InvalidOperationException>(ex.InnerException);
             Assert.AreEqual(before,UnityEditor.AssetDatabase.AssetPathToGUID(path));
 #endif

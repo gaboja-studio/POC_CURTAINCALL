@@ -53,9 +53,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator NoGameDataHidesHudAndDisableRestoresLegacyCanvas()
         {
-            root = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/PerformanceHud/PerformanceHud"));
+            root = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud"));
             root.SetActive(false);
-            var cheerRoot = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/CheerGauge/C1CheerGauge"), root.transform);
+            var cheerRoot = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge"), root.transform);
             var stock = (Behaviour)cheerRoot.GetComponent(GameType("CurtainCall.CheerGauge.C1CheerGaugeBinding"));
             stock.enabled = false;
             legacy = new GameObject("Legacy", typeof(RectTransform), typeof(Canvas));

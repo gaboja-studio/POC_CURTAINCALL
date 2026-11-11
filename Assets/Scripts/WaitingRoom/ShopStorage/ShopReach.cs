@@ -80,7 +80,7 @@ namespace CurtainCall.WaitingRoom
             if (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted) return;
 
             var reader = LocalReader();
-            if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked) return;
+            if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked || !PlayerInteraction.CanInteract(reader)) return;
 
             Vector3 feet = reader.transform.position;
             float best = float.MaxValue;
@@ -100,7 +100,8 @@ namespace CurtainCall.WaitingRoom
             {
                 if (Focused is IShopPresentation presentation && presentation.IsAvailable)
                 {
-                    bool allowed = Focused is not IExplorationTarget tool || string.IsNullOrEmpty(tool.ToolId) || ExplorationTargets.LocalHolds(tool.ToolId);
+                    bool allowed = Focused is not IExplorationTarget tool || string.IsNullOrEmpty(tool.ToolId) || ExplorationTargets.LocalHolds(tool.ToolId)
+                        || ExplorationTargets.AllowsBareHands(tool); // 맨몸 겸용 대상은 도구 없이도 친다(CC-255)
                     if (Focused is ExplorationGate gate && gate.UsesKey) allowed &= gate.ConditionsMet && gate.LocalHasKey;
                     var actor = reader.GetComponent<HumanoidPlayerPresentation>();
                     if (allowed && actor != null && Focused is IExplorationTarget usedTool &&

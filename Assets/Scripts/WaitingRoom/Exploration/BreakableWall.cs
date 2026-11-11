@@ -9,13 +9,16 @@ namespace CurtainCall.WaitingRoom
     /// 결정(2026-10-29 사용자): 모든 탐색은 F, 6번이면 무너지고 칠 때마다 금이 늘고 낡아 보인다, 손을 떼도 진행은 남는다.
     /// 판정·공유는 <see cref="ExplorationState"/>, 이 컴포넌트는 받은 진행을 모든 화면에 똑같이 그린다(늦게 들어와도 같은 모습).
     /// </summary>
-    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IExplorationTarget, IShopOutlineOptional
+    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IBareHandTarget, IShopOutlineOptional
     {
         [SerializeField] string targetId = "restroom-breach";
         [SerializeField] string label = "금 간 벽";
         [SerializeField] string toolId = ItemUses.StakePuller;
         [SerializeField] string toolName = "천막 말뚝 뽑개";
+        [Tooltip("천막 말뚝 뽑개로 칠 때 필요한 타격 수.")]
         [SerializeField, Min(1)] int requiredHits = 6;
+        [Tooltip("맨몸으로 칠 때 필요한 타격 수(통로 기믹 CC-255, 2026-11-10 사용자: 벽 맨몸 15·뽑개 6). 0이면 맨몸으로 칠 수 없다. 섞어 치면 비율로 합산.")]
+        [SerializeField, Min(0)] int bareHandHits = 15;
 
         [Tooltip("닿는 수평 거리(m, 벽 중심에서).")]
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
@@ -55,21 +58,43 @@ namespace CurtainCall.WaitingRoom
         public string ToolName => ItemCatalog.Get(toolId)?.displayName ?? toolName;
         public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
         public int RequiredHits => requiredHits;
+        public bool AllowsBareHands => bareHandHits > 0;
+        public int BareHits => bareHandHits;
+        public int ToolHits => requiredHits;
 
         public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
         public bool HideOutline => !showOutline;
         public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
         public bool IsAvailable => !Opened;
-        public string ActionLabel => Opened ? WaitingRoomText.Get("wall.collapsed", "무너진 벽")
-            : HoldsTool() ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", Hits), ("total", requiredHits))
-            : WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
+        public string ActionLabel
+        {
+            get
+            {
+                if (Opened) return WaitingRoomText.Get("wall.collapsed", "무너진 벽");
+                bool tool = HoldsTool();
+                if (!tool && !AllowsBareHands)
+                    return WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
+                var (n, total) = ExplorationTargets.StrikeCount(this, tool);
+                return tool ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", n), ("total", total))
+                    : WaitingRoomText.Format("wall.strike-bare", "맨몸으로 내려치기 ({n}/{total})", ("n", n), ("total", total));
+            }
+        }
 
-        int Hits => ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
+        // 금·조각 연출 단계(0~requiredHits). 맨몸 겸용이면 진행 단위를 뽑개 타격 기준 단계로 환산한다.
+        int Hits
+        {
+            get
+            {
+                int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
+                if (!AllowsBareHands) return units;
+                return units * requiredHits / StrikeProgress.Total(bareHandHits, requiredHits);
+            }
+        }
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
 
         Vector3[] basePos;
         Quaternion[] baseRot;
-        int shownHits = -1;
+        int shownHits = -1, shownUnits = -1;
         bool shownOpen, inReach;
         float shake, collapse = -1f, messageUntil;
         string message = "";
@@ -117,6 +142,11 @@ namespace CurtainCall.WaitingRoom
             ShopReach.Pump();
             inReach = ShopReach.Focused == (IShopTarget)this;
             int hits = Hits; bool open = Opened;
+            // 맨몸 타격은 금 단계가 오르지 않아도 칠 때마다 흔들림·타격음을 낸다.
+            int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
+            bool struck = shownUnits >= 0 && units > shownUnits && !open && hits == shownHits;
+            shownUnits = units;
+            if (struck) { shake = .18f; Play(thud); }
             if (hits != shownHits || open != shownOpen) Apply(hits, open, shownHits < 0);
             Animate();
         }
@@ -194,8 +224,9 @@ namespace CurtainCall.WaitingRoom
 
         // ---- 탐색 대상 판정(판정 화면) ----
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= requiredHits;
-        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("wall.broken", "{label:이} 무너졌습니다.", ("label", Label))
-            : WaitingRoomText.Format("wall.hit-progress", "{label} 내려침 {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
+        public string Describe(bool success, int attemptNumber) => DescribeStrike(success, attemptNumber, requiredHits, true);
+        public string DescribeStrike(bool opened, int done, int total, bool withTool) => opened ? WaitingRoomText.Format("wall.broken", "{label:이} 무너졌습니다.", ("label", Label))
+            : WaitingRoomText.Format("wall.hit-progress", "{label} 내려침 {n}/{total}", ("label", Label), ("n", done), ("total", total));
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
         public int RewardUidOffset => 0;

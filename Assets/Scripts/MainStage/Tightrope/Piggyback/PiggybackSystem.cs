@@ -97,6 +97,7 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
+            if (UsingDevice(climber) || UsingDevice(target)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
@@ -106,7 +107,7 @@ namespace CurtainCall.Tightrope
                 || BottomOf(climber.OwnerClientId) == BottomOf(target.OwnerClientId))) return false;
             if (climber.State != PlayerState.Normal || target.State != PlayerState.Normal) return false;
             for (var member = FindPlayer(BottomOf(target.OwnerClientId)); member != null; member = GetAbove(member))
-                if (member.State != PlayerState.Normal || member.IsAirborne) return false;
+                if (member.State != PlayerState.Normal || member.IsAirborne || UsingDevice(member)) return false;
             return true;
         }
 
@@ -539,12 +540,15 @@ namespace CurtainCall.Tightrope
             return false;
         }
 
-        static bool UsingDevice(NetworkPlayer player) =>
-            player.TryGetComponent(out HumanCannonPilot pilot) && pilot.IsDriving
+        internal static bool UsingDevice(NetworkPlayer player) => player != null && (
+            HumanCannonSystem.Current != null
+                && (HumanCannonSystem.Current.IsSeated(player.OwnerClientId) || HumanCannonSystem.Current.IsFlying(player.OwnerClientId))
+            || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
+            || player.TryGetComponent(out HumanCannonPilot pilot) && pilot.IsDriving
             ||
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
             || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
-            || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player);
+            || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player));
 
         static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
             * (climber != null && climber.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f);
@@ -583,17 +587,18 @@ namespace CurtainCall.Tightrope
 
         string ServerTryUnlink(ulong riderId) => UnlinkTop(riderId, null);
 
-        internal bool CanReleaseForPole(NetworkPlayer rider) => session != null && session.IsHost
-            && rider != null && rider.IsSpawned && rider.State == PlayerState.Normal && IsInStack(rider);
+        // 로컬 접근 표시에도 쓰는 조회다. 실제 연결 해제 권한은 아래 실행 함수에서만 검사한다.
+        internal bool CanReleaseForDevice(NetworkPlayer rider) => rider != null && rider.IsSpawned
+            && rider.State == PlayerState.Normal && IsInStack(rider);
 
-        // 탈출로 봉은 목마의 어느 역할에서도 잡을 수 있다. 내 아래 연결과 내 위 사슬을 해제한다.
-        internal bool TryReleaseForPole(NetworkPlayer rider, Action transferred)
+        // 공통 기물로 이동을 넘길 때 내 아래 연결과 내 위 사슬을 해제한다.
+        internal bool TryReleaseForDevice(NetworkPlayer rider, Action transferred)
         {
-            if (!CanReleaseForPole(rider)) return false;
+            if (session == null || !session.IsHost || !CanReleaseForDevice(rider)) return false;
             ulong actor = rider.OwnerClientId;
             if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
             for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
-            transferred?.Invoke(); // 봉 조작권을 먼저 공유한 뒤 원격 목마 Follow를 해제한다.
+            transferred?.Invoke(); // 기물 점유를 먼저 공유한 뒤 원격 목마 Follow를 해제한다.
             ServerBroadcast();
             return true;
         }

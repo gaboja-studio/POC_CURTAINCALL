@@ -1,5 +1,6 @@
 using CurtainCall.Player;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.UI.SceneIntegration;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,8 +48,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 image.transform.SetParent(overlay.transform, false);
                 var rect = image.GetComponent<RectTransform>(); rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
                 shade = image.GetComponent<UnityEngine.UI.Image>(); shade.raycastTarget = false;
-                WaitingRoomItemBrokenNotice.ShowMessage(WaitingRoomText.Get("pursuit.captured-title", "포획"),
-                    WaitingRoomText.Get("pursuit.captured", "마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다."));
+                HudUIManager.Current.ShowSystemEvent(
+                    WaitingRoomText.Get("pursuit.captured", "마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다."),
+                    transform, WaitingRoomText.Get("pursuit.captured-title", "포획"), 4f, HudEventKind.Warning);
             }
             if (mover != null) { priorControl = mover.ControlEnabled; mover.SetControlEnabled(false); }
             model = GetComponent<HumanoidPlayerPresentation>()?.Model;
@@ -110,7 +112,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (overlay != null) Destroy(overlay);
             if (blood != null) Destroy(blood);
             foreach (var b in struggle) if (b.Key != null) b.Key.localRotation = b.Value;
-            if (mover != null) mover.SetControlEnabled(priorControl);
+            if (mover != null) mover.SetControlEnabled(priorControl && PlayerInteraction.CanInteract(mover));
             if (visual != null) { visual.localPosition = position; visual.localRotation = rotation; }
             if (model != null && model.Animator != null) model.Animator.enabled = priorAnimator;
             // Cuts may have changed the required local height while this pose owned

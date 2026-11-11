@@ -74,6 +74,32 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator WaitingRoomZoneLabel_FollowsLocalActorAcrossAuthoredRooms()
+        {
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var zones=Find("CurtainCall.WaitingRoom.ExplorationTimerZones");
+            var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            var mover=player ? player.GetComponent(T("CurtainCall.Player.PlayerMover")) : Find("CurtainCall.Player.PlayerMover");
+            Assert.IsNotNull(mover);Assert.IsNotNull(zones);
+            Component previous=null;
+            foreach(var pair in new[]{("Area_S09_PracticeRoom","연습실"),("Area_S03_Shop","상점")})
+            {
+                var box=zones.GetComponentsInChildren<BoxCollider>().First(b=>b.name==pair.Item1);
+                var pos=box.transform.TransformPoint(box.center)-Vector3.up*.35f;
+                Call(mover,"Relocate",pos,mover.transform.rotation);
+                float until=Time.realtimeSinceStartup+3;Component card=null;
+                while(Time.realtimeSinceStartup<until)
+                {
+                    card=Private(zones,"zoneCard") as Component;
+                    if(card && (string)Get(card,"Content")==pair.Item2)break;
+                    yield return null;
+                }
+                Assert.IsTrue(card);Assert.AreEqual(pair.Item2,(string)Get(card,"Content"));
+                if(!ReferenceEquals(previous,null))Assert.IsTrue(!previous || !previous.gameObject.activeSelf,"새 구역만 활성");previous=card;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ExplorationWarnings_UseTopBannerAboveAllUi()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
@@ -81,8 +107,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var notifications = Private(ui, "notifications");
             var banner = (Component)Get(notifications, "Banner");
             var captions = Private(ui, "captions");
-            var panel = (RectTransform)banner.transform;
-            var position = panel.anchoredPosition;
             Call(captions, "HideImmediate");
             // 표시 경로만 합성한다. 각 초의 실제 발생 시점은 변경하지 않는다.
             foreach (int seconds in new[] { 60, 30, 20, 10 })
@@ -91,17 +115,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     seconds, seconds == 60, $"공연 {seconds}초 전입니다");
                 Call(ui, "PresentAnnouncement", announcement);
                 yield return new WaitForSecondsRealtime(.25f);
-                Assert.IsTrue((bool)Get(banner, "IsVisible"));
-                Assert.IsFalse((bool)Get(captions, "IsVisible"), "탐색 경고가 하단 자막에 중복 표시되면 안 됩니다.");
-                Assert.AreEqual(1f, panel.anchorMin.y);
-                Assert.AreEqual(1f, panel.anchorMax.y);
-                Assert.AreEqual(position, panel.anchoredPosition, "기존 상단 알림 위치를 유지해야 합니다.");
-                var canvas = banner.GetComponent<Canvas>();
-                Assert.IsTrue(canvas.overrideSorting);
-                Assert.AreEqual(short.MaxValue, canvas.sortingOrder);
-                foreach (var layer in SortingLayer.layers)
-                    Assert.GreaterOrEqual(SortingLayer.GetLayerValueFromID(canvas.sortingLayerID),
-                        SortingLayer.GetLayerValueFromID(layer.id));
+                var card=(Component)Get(ui,"CurrentBroadcast");
+                Assert.IsNotNull(card);
+                var appearance=card.GetComponent(T("CurtainCall.UI.SceneIntegration.HudEventAppearance"));
+                Assert.AreEqual(seconds==60?"Warning":"Notice",Get(appearance,"Kind").ToString());
+                var canvas=card.GetComponent<Canvas>();
+                Assert.IsTrue(canvas.overrideSorting);Assert.AreEqual(short.MaxValue,canvas.sortingOrder);
+                Assert.That(SortingLayer.GetLayerValueFromID(canvas.sortingLayerID),Is.EqualTo(SortingLayer.layers.Max(l=>SortingLayer.GetLayerValueFromID(l.id))));
+                Assert.IsFalse((bool)Get(banner,"IsVisible"),"legacy banner must not duplicate the role card");
+                Assert.IsFalse((bool)Get(captions,"IsVisible"));
+                Assert.AreEqual(new Vector2(.5f,1),((RectTransform)card.transform).anchorMin);
             }
         }
 

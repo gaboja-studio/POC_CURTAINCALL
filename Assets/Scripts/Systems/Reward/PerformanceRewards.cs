@@ -211,7 +211,11 @@ namespace CurtainCall.Reward
 
         void HandleStep(CampaignSnapshot step)
         {
-            if (step.Phase == CampaignPhase.None && session != null && session.GameState == GameSessionState.Waiting) Clear();
+            // Campaign None is the host's run-end boundary. The separate session variable
+            // can still be Ended, or coalesce Waiting into Playing during a quick restart.
+            // Clear only at this campaign transition; a later session update must not
+            // retire a new reward snapshot that arrived before its new campaign snapshot.
+            if (step.Phase == CampaignPhase.None) Clear();
             SyncCampaign();
         }
 
@@ -419,6 +423,14 @@ namespace CurtainCall.Reward
         public bool TryGrantDiscoveryFunds(long amount)
         {
             if (!HasAuthority || model == null || campaign == null || ending || pendingTransition || !model.GrantIncome(amount, campaign.State.Day, "낡은 상자 발견 자금")) return false;
+            Publish(); return true;
+        }
+
+        /// <summary>호스트가 이미 결제한 미수행 구매분만 같은 세대의 공동 자금에 반환한다.</summary>
+        public bool TryRefundPurchase(long amount, int generation, string description)
+        {
+            if (!HasAuthority || model == null || campaign == null || generation != campaign.State.Generation
+                || model.Generation != generation || !model.GrantIncome(amount, campaign.State.Day, description)) return false;
             Publish(); return true;
         }
 

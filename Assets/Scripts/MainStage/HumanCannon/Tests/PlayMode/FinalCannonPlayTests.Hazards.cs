@@ -135,6 +135,8 @@ namespace CurtainCall.HumanCannon.Tests
             Call(mover, "SetStartPose", contact + Vector3.right * 8, Quaternion.identity, true);
             yield return null;
             yield return null;
+            float cooldown = (float)Get(Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage"), "HazardHitCooldown");
+            yield return new WaitForSeconds(cooldown);
             Call(mover, "SetStartPose", contact, Quaternion.identity, true);
             yield return WaitUntil(() => Convert.ToInt32(Get(player, "LostParts")) == 12, 2, "벗어난 뒤 재접촉 오른다리 절단");
             yield return new WaitForSeconds(0.2f);

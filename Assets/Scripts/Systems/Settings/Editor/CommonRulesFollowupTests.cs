@@ -13,11 +13,69 @@ namespace CurtainCall.Settings.EditorTools.Tests
 {
     public sealed class CommonRulesFollowupTests
     {
-        sealed class ReachTarget : CurtainCall.WaitingRoom.IShopTarget
+        class ReachTarget : CurtainCall.WaitingRoom.IShopTarget
         {
             public float Distance;
             public float Reach(Vector3 feet, Component actor = null) => Distance;
             public void Interact() { }
+        }
+
+        sealed class BareHandReachTarget : ReachTarget, CurtainCall.WaitingRoom.IBareHandTarget
+        {
+            public bool AllowsBareHands { get; set; }
+            public string TargetId => "bare-hand-selection-regression";
+            public string ToolId => "missing-bare-hand-selection-tool";
+            public string ToolName => ToolId;
+            public string Label => TargetId;
+            public int BareHits => 5;
+            public int ToolHits => 1;
+            public string RewardItemId => "";
+            public Vector3 RewardPoint => Vector3.zero;
+            public int RewardUidOffset => 0;
+            public bool Resolve(int attemptNumber, System.Random rng) => true;
+            public string Describe(bool success, int attemptNumber) => "";
+            public string DescribeStrike(bool opened, int done, int total, bool withTool) => "";
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        [Category("BareHandInteractionSelection")]
+        public void BareHandPolicyControlsFSelectionWithoutBypassingSingleConsumer(bool allowsBareHands)
+        {
+            var actor = new GameObject("Bare-hand F arbitration actor");
+            actor.transform.position = new Vector3(4000, 100, 4000);
+            var toolTarget = new BareHandReachTarget { Distance = .2f, AllowsBareHands = allowsBareHands };
+            var fallback = new ReachTarget { Distance = .4f };
+            bool locked = CurtainCall.WaitingRoom.ShopReach.Locked;
+            try
+            {
+                CurtainCall.WaitingRoom.ShopReach.Locked = false;
+                CurtainCall.WaitingRoom.ShopReach.Add(toolTarget);
+                CurtainCall.WaitingRoom.ShopReach.Add(fallback);
+                var reader = actor.AddComponent<PlayerInputReader>();
+                typeof(InputGate).GetMethod("Reset", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
+                typeof(PlayerInputReader).GetProperty("Current").SetValue(reader,
+                    new PlayerInputFrame { InteractHeld = true, InteractTapped = true });
+                Assert.IsFalse(CurtainCall.WaitingRoom.ExplorationTargets.LocalHolds(toolTarget.ToolId));
+                object selected = allowsBareHands ? toolTarget : fallback;
+                object rejected = allowsBareHands ? fallback : toolTarget;
+                Assert.AreSame(selected, CommonInteractionSelection.Selected(reader),
+                    "맨손 허용 대상만 도구 없이 선택하고, 도구가 필수인 대상은 제외한다.");
+                Assert.IsFalse(CommonInteractionSelection.Consume(reader, rejected));
+                Assert.IsTrue(CommonInteractionSelection.Consume(reader, selected));
+                Assert.IsFalse(CommonInteractionSelection.Consume(reader, selected));
+                reader.ClearPendingInput();
+                Assert.IsFalse(CommonInteractionSelection.Consume(reader, toolTarget));
+                Assert.IsFalse(CommonInteractionSelection.Consume(reader, fallback));
+            }
+            finally
+            {
+                CurtainCall.WaitingRoom.ShopReach.Remove(toolTarget);
+                CurtainCall.WaitingRoom.ShopReach.Remove(fallback);
+                CurtainCall.WaitingRoom.ShopReach.Locked = locked;
+                Object.DestroyImmediate(actor);
+                typeof(InputGate).GetMethod("Reset", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
+            }
         }
 
         [Test]
@@ -51,11 +109,13 @@ namespace CurtainCall.Settings.EditorTools.Tests
                 typeof(InputGate).GetMethod("Reset", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
             }
         }
-        [TestCase(2.999f, FallOutcome.Safe)]
-        [TestCase(3f, FallOutcome.Injured)]
-        [TestCase(4.999f, FallOutcome.Injured)]
-        [TestCase(5f, FallOutcome.Dead)]
+        [TestCase(3.999f, FallOutcome.Safe)]
+        [TestCase(4f, FallOutcome.Injured)]
+        [TestCase(6f, FallOutcome.Injured)]
+        [TestCase(7.999f, FallOutcome.Injured)]
+        [TestCase(8f, FallOutcome.Dead)]
         [TestCase(50f, FallOutcome.Dead)]
+        [Category("TutorialCommonRules")]
         public void FallThresholdsIncludeTheirLowerBoundary(float height, FallOutcome expected)
             => Assert.That(CommonDamageRules.Fall(height), Is.EqualTo(expected));
 

@@ -41,13 +41,15 @@ namespace CurtainCall.HumanCannon
         public float MaxReleaseUpwardSpeed => 0f;
         public float HangLength => Rules.HangLength;
         internal float MaxSwingAngle => Rules.MaxSwingAngle;
-        public int RiderCapacity => PoleSettings.Capacity;
+        public int RiderCapacity => Rules.Capacity;
         public float RiderSpacing => Rules.PassengerSeparation;
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;
         public float SwingLength => Rules.SwingLength;
         public Vector3 HangingPosition(float angle) => BarPosition(angle) - Vector3.up * HangLength;
-        public Vector3 SeatOffset(int seat) => Vector3.down * (Mathf.Clamp(seat, 0, RiderCapacity - 1) * RiderSpacing);
+        public Vector3 SeatOffset(int seat) => Vector3.down * (Mathf.Clamp(seat, 0, PoleGateState.MaxRiders - 1) * RiderSpacing);
         public Vector3 HangingPosition(float angle, int seat) => HangingPosition(angle) + SeatOffset(seat);
+        public Vector3 GrabPoint(float angle, int seat) => seat <= 0 ? BarPosition(angle)
+            : HangingPosition(angle, seat - 1) + Vector3.up * (HangLength * .5f);
 
         /// <summary>외형 케이블 길이와 무관한 공통 진자. 모든 봉의 이동 범위와 관성이 같다.</summary>
         public Vector3 BarPosition(float angle)
@@ -76,14 +78,28 @@ namespace CurtainCall.HumanCannon
         public void PresentSwing(float angle)
         {
             EnsureCommonVisual();
-            if (commonVisual != null) commonVisual.gameObject.SetActive(PresentationVisible);
+            PresentCommonRoot();
             if (visualBar == null) return;
             Vector3 position = BarPosition(angle);
+            Quaternion rotation = Grip.rotation;
+            if (commonVisual != null)
+            {
+                position += commonVisual.TransformPoint(authoredBarPosition) - Grip.position;
+                rotation = commonVisual.rotation * authoredBarRotation;
+            }
             if ((visualBar.position - position).sqrMagnitude > .0000000001f
-                || Quaternion.Angle(visualBar.rotation, Grip.rotation) > .00001f)
-                visualBar.SetPositionAndRotation(position, Grip.rotation);
-            PresentCable(leftCable, leftAnchor, position);
-            PresentCable(rightCable, rightAnchor, position);
+                || Quaternion.Angle(visualBar.rotation, rotation) > .00001f)
+                visualBar.SetPositionAndRotation(position, rotation);
+            if (commonVisual != null)
+            {
+                PresentCommonCable(commonLeftCable, position);
+                PresentCommonCable(commonRightCable, position);
+            }
+            else
+            {
+                PresentCable(leftCable, leftAnchor, position);
+                PresentCable(rightCable, rightAnchor, position);
+            }
         }
 
         void PresentCable(Transform cable, Transform anchor, Vector3 barPosition)
@@ -126,7 +142,7 @@ namespace CurtainCall.HumanCannon
             var route = Loop;
             if (route != null && !route.IsSynchronized) return false;
             RefreshMovingPose();
-            Vector3 target = seat == 0 ? BarPosition(angle) : HangingPosition(angle) + Vector3.up * (HangLength * .5f);
+            Vector3 target = GrabPoint(angle, seat);
             if (observedElapsed >= 0d)
             {
                 if (route == null || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d

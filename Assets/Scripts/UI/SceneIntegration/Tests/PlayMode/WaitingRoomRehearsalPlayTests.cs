@@ -601,11 +601,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.GreaterOrEqual(stable, 3, key + ": " + QuestTransitionState());
             var owner = T(FirstDayFlowType).GetField("instance", Any | System.Reflection.BindingFlags.Static).GetValue(null);
             var panel = Priv(owner, "firstDayQuest");
-            var root = (GameObject)Priv(panel, "root");
-            foreach (var label in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
-                Assert.IsNotNull(label.font, key + ": 전환 뒤 패널 폰트가 삭제되면 안 된다");
-            var view = (Component)Priv(panel, "view");
-            Assert.IsTrue((bool)Get(view, "IsVisible"), key + ": 표시 플래그뿐 아니라 실제 툴팁이 보여야 한다");
+            var card = (Component)Priv(panel, "card");
+            Assert.IsNotNull(card, key + ": 현재 임무 카드");
+            Assert.AreEqual("Objective", Field(card, "role").ToString());
+            Assert.IsTrue(card.gameObject.activeInHierarchy && !(bool)Get(card, "Closing"), key + ": 실제 임무 카드 표시");
+            Assert.AreEqual(title, Get(card, "Title"));
+            Assert.IsNotEmpty((string)Get(card, "Content"), key + ": 임무 설명 유지");
+            foreach (var label in card.GetComponentsInChildren<TMPro.TMP_Text>())
+                Assert.IsNotNull(label.font, key + ": 전환 후 임무 폰트");
         }
 
         [UnityTest]

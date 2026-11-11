@@ -51,7 +51,8 @@ namespace CurtainCall.Player
         {
             yield return new WaitForSeconds(seconds);
             bool exists = target is not Object obj || obj != null;
-            if (exists && presentation.IsAvailable && !condition.AllLimbsLost && target.Reach(transform.position, this)>=0 && ExplorationTargets.LocalHolds(tool.ToolId))
+            if (exists && presentation.IsAvailable && !condition.AllLimbsLost && target.Reach(transform.position, this)>=0
+                && (ExplorationTargets.LocalHolds(tool.ToolId) || ExplorationTargets.AllowsBareHands(tool)))
                 target.Interact();
             yield return new WaitForSeconds(.5f);
             toolUse = null;
@@ -131,7 +132,7 @@ namespace CurtainCall.Player
             if(model.Stage>=2&&moving&&!inAir && !action)
             {
                 itemLayerState=null;
-                model.Play(ItemVisualAssets.State("ItemCrawl",model.Stage));
+                PlayLocomotion(ItemVisualAssets.State("ItemCrawl",model.Stage));
                 return true;
             }
             if (motion == null) { itemLayerState = null; itemAction = null; return false; }

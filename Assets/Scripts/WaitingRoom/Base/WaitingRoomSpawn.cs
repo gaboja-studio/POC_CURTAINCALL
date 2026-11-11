@@ -14,15 +14,66 @@ namespace CurtainCall.WaitingRoom
     public sealed class WaitingRoomSpawn : MonoBehaviour
     {
         NetworkPlayer waitingSlot;
+        NetworkPlayer morningRevival;
+        int revivalGeneration, revivalDay;
         /// <summary>이 화면에서 내 캐릭터의 대기실 출발 배치가 끝났다.</summary>
         public static event System.Action<NetworkPlayer> PlayerPlaced;
         public static int LastPlacedScene { get; private set; } = -1;
         public static NetworkPlayer LastPlacedPlayer { get; private set; }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetPlacement() { LastPlacedScene = -1; LastPlacedPlayer = null; }
-        void OnEnable() => NetworkPlayer.LocalSpawned += Spawned;
+        void OnEnable()
+        {
+            NetworkPlayer.LocalSpawned += Spawned;
+            NetworkPlayer.Revived += Revived;
+        }
 
-        void OnDisable() { NetworkPlayer.LocalSpawned -= Spawned; StopWaiting(); }
+        void OnDisable()
+        {
+            NetworkPlayer.LocalSpawned -= Spawned;
+            NetworkPlayer.Revived -= Revived;
+            morningRevival = null;
+            StopWaiting();
+        }
+
+        // Night and the following morning use the same loaded scene, so Start does not run again.
+        // Revival and campaign/Normal updates travel separately; reconcile either arrival order locally.
+        void Revived(NetworkPlayer player)
+        {
+            var run = CampaignRun.Instance;
+            if (player == null || player != NetworkPlayer.Local || run == null || PracticeOwnsPlacement) return;
+            var state = run.State;
+            if (state.Phase != CampaignPhase.Dawn && !(state.Phase == CampaignPhase.RestTime && state.Rest == RestKind.Morning)) return;
+            morningRevival = player;
+            revivalGeneration = state.Generation;
+            revivalDay = state.Day + (state.Phase == CampaignPhase.Dawn ? 1 : 0);
+            TryPlaceMorningRevival();
+        }
+
+        void Update() => TryPlaceMorningRevival();
+
+        static bool PracticeOwnsPlacement => WaitingRoomRehearsal.IsActive || WaitingRoomCannonRehearsal.IsActive;
+
+        void TryPlaceMorningRevival()
+        {
+            if (morningRevival == null) return;
+            var run = CampaignRun.Instance;
+            if (run == null || morningRevival != NetworkPlayer.Local || !morningRevival.IsSpawned || PracticeOwnsPlacement)
+            { morningRevival = null; return; }
+            var state = run.State;
+            if (state.Generation != revivalGeneration || state.Day > revivalDay
+                || (state.Phase != CampaignPhase.Dawn && !(state.Phase == CampaignPhase.RestTime && state.Rest == RestKind.Morning)))
+            { morningRevival = null; return; }
+            if (state.Phase != CampaignPhase.RestTime || state.Day != revivalDay
+                || morningRevival.State != PlayerState.Normal || morningRevival.Slot == NetworkPlayer.NoSlot) return;
+            var player = morningRevival;
+            morningRevival = null;
+            DisableBalance(player);
+            var mover = player.GetComponent<PlayerMover>();
+            PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out Vector3 position, out Quaternion rotation);
+            mover.SetStartPose(position, rotation);
+            Placed(player);
+        }
 
         void Start()
         {

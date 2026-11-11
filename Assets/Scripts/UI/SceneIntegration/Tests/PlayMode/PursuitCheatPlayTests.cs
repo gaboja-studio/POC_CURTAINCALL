@@ -10,7 +10,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        [UnityTest]
+        [UnityTest, Category("SpaceRoleHud")]
         public IEnumerator PursuitCheats_TimerStageCaptureCancelAndRepeat()
         {
             yield return PursuitHost();
@@ -36,6 +36,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreSame(stages.GetValue(stages.Length - 1), Get(director, "CurrentStageRules"));
             yield return null;
             Assert.AreEqual(stages.Length - 1, Get(director, "CurrentStageIndex"));
+            var warning = VisibleRole("SystemEvent");
+            Assert.IsNotNull(warning);
+            Assert.AreEqual("Warning",Get(warning.GetComponent(T("CurtainCall.UI.SceneIntegration.HudEventAppearance")),"Kind").ToString());
             Assert.IsFalse((bool)Call(director, "DebugSetStage", stages.Length));
             Assert.IsTrue((bool)Call(director, "DebugSetStage", -1));
             Assert.IsFalse((bool)Get(director, "StageIsForced"));

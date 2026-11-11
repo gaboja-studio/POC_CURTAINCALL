@@ -62,6 +62,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
         [TearDown]
         public void TearDown()
         {
+            if (course != null)
+            {
+                var materials = (Dictionary<Color, Material>)Get(course, "courseMaterials");
+                foreach (var material in materials.Values) if (material != null) Object.DestroyImmediate(material);
+                materials.Clear(); // EditMode fixture owns immediate cleanup of generated runtime art.
+            }
             foreach (var player in players)
             {
                 All.Remove(player);
@@ -290,13 +296,13 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(cannon, "course", arena);
             var player = Participant(701, false);
             player.transform.position = course.transform.position + Vector3.down * 3f;
-            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>(), false);
+            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>());
             Assert.That(RehearsalCannonCourse.Contains(arena.StartFloor, player.transform.position), Is.True);
             var shared = Get(cannon, "shared");
             ((List<ulong>)shared.GetType().GetField("placed").GetValue(shared)).Add(701);
             var progressing = course.transform.position + Vector3.forward * 10f;
             player.transform.position = progressing;
-            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>(), false);
+            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>());
             Assert.That(player.transform.position, Is.EqualTo(progressing), "배치 승인 뒤 정상 진행자는 끌어오지 않는다.");
             Set(cannon, "course", null);
         }
@@ -314,8 +320,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
             StringAssert.Contains("이동하며 Space", guide);
         }
 
-        [TestCase(true)] [TestCase(false)]
-        public void RingBoundaryReturnsDuringGatheringBeforeLeavingRehearsal(bool originallyActive)
+        [TestCase(true)] [TestCase(false), Category("WaitingRoomCommonRecovery")]
+        public void RingBoundaryRemainsDuringCourseAndGathering(bool originallyActive)
         {
             var room = Make("Fixture practice room");
             var arena = Make("RoundArena"); arena.transform.SetParent(room.transform);
@@ -330,13 +336,74 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(rehearsal, "SetRingBoundaryHidden", true);
             Assert.That(boundary.activeSelf, Is.False);
 
+            // 이미 생성된 코스의 반복 Ensure도 기존 외곽 경계를 복원·유지한다.
+            Set(rehearsal, "builtStage", 0);
+            Call(rehearsal, "EnsureCourse");
+            Assert.That(wall.gameObject.activeInHierarchy, Is.EqualTo(originallyActive), "교육 코스에는 대체 외곽벽이 없으므로 원래 경계를 유지한다.");
+            Assert.That(Get(rehearsal, "course"), Is.SameAs(course));
+
             // 코스가 정리되고 참가자는 아직 리허설 집결 상태에 있다.
             Set(rehearsal, "completed", true);
             Set(rehearsal, "course", null);
             Set(rehearsal, "courseRoot", null);
+            Set(rehearsal, "builtStage", -1); // Geometry is already cleared; this check does not instantiate Play-only completion UI.
             Call(rehearsal, "EnsureCourse");
             Assert.That(wall.gameObject.activeInHierarchy, Is.EqualTo(originallyActive));
             Assert.That(practiceLanes.activeSelf, Is.False, "집결 경로에 옛 연습 기물을 되돌리지 않는다.");
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        [Category("RehearsalPlatformLayoutRegression")]
+        public void EveryLessonFitsGeneratedStartFinishAndArrivalWallsInsideTheExistingRoom(int stage)
+        {
+            var lesson = RehearsalStage.All[stage];
+            var shape = TightropeSettings.CourseSettings.FromJson(lesson.CourseJson);
+            Vector3 center = new(9000f, 9000f, 9000f);
+            course.transform.position = center + new Vector3(0f, 2.5f, -(lesson.Finish - 1f) * .5f);
+            var boundary = Make("Measured room walls").transform;
+            const int segments = 160;
+            const float inner = 26f, thickness = .5f;
+            float step = Mathf.PI * 2f / segments;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = (i + .5f) * step;
+                var outward = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
+                var wall = new GameObject("WallCollider").AddComponent<BoxCollider>();
+                wall.transform.SetParent(boundary, false);
+                wall.transform.SetPositionAndRotation(center + outward * (inner * Mathf.Cos(step * .5f) + thickness * .5f) + Vector3.up * 6f,
+                    Quaternion.LookRotation(new Vector3(-outward.z, 0, outward.x)));
+                wall.size = new Vector3(thickness, 12f, 2f * inner * Mathf.Sin(step * .5f) + .05f);
+            }
+            Assert.IsTrue(RehearsalPlatformLayout.TryMeasureInnerRadius(boundary, center, course.transform.position.y, out float measured));
+            Assert.That(measured, Is.InRange(25.98f, 26.01f));
+            float scale = RehearsalPlatformLayout.FitFinishScale(shape, course.transform, center, boundary, 2f);
+            Assert.That(scale, Is.InRange(1f, 2f));
+            if (stage is 1 or 3) Assert.AreEqual(2f, scale, "Already fitting decks retain their requested expansion.");
+            else Assert.Less(scale, 2f, "Only the overflowing expansion is limited.");
+            Assert.IsTrue(TightropeCourse.PreviewFinishPlatformBounds(shape, scale, out var preview));
+            JsonUtility.FromJsonOverwrite(lesson.CourseJson, Get(course, "sceneShape"));
+            course.FinishPlatformScale = scale;
+            Assert.IsTrue(course.TryGetFinishPlatformBounds(out var actual));
+            Assert.AreEqual(preview, actual, "Generation must use the same fitted bounds as the placement calculation.");
+            Assert.AreEqual(lesson.Finish, actual.min.z, "The finish entrance and traversal distance do not move.");
+            var generated = new GameObject("Generated fitted platforms").transform;
+            generated.SetParent(course.transform, false); Set(course, "generated", generated);
+            var start = TightropeCourse.PreviewStartPlatformBounds(shape);
+            var startObject = (GameObject)Call(course, "CreateBox", "StartPlatform", start.center, start.size, Color.white, true);
+            var finishObject = (GameObject)Call(course, "CreateBox", "FinishPlatform", actual.center, actual.size, Color.white, true);
+            var walls = (GameObject)Call(rehearsal, "BuildFinishWalls"); walls.SetActive(true);
+            Physics.SyncTransforms();
+            void Fits(Collider collider, string role)
+            {
+                var b = collider.bounds;
+                foreach (float x in new[] { b.min.x, b.max.x })
+                    foreach (float z in new[] { b.min.z, b.max.z })
+                        Assert.That(Vector2.Distance(new Vector2(x, z), new Vector2(center.x, center.z)) + GameSettings.Base.Character.CapsuleRadius,
+                            Is.LessThanOrEqualTo(measured + .01f), $"Lesson {lesson.Id}: {role} must leave room for the common capsule.");
+            }
+            Fits(startObject.GetComponent<Collider>(), "start platform");
+            Fits(finishObject.GetComponent<Collider>(), "finish platform");
+            foreach (var wall in walls.GetComponentsInChildren<Collider>()) Fits(wall, wall.name);
         }
 
         [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
@@ -410,6 +477,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
         [Test]
         public void TutorialStillBlocksArrivedPlayerUntilPracticeStarts()
         {
+            var instance = typeof(WaitingRoomRehearsal).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = instance.GetValue(null);
+            var previousRun = CampaignRun.Instance;
+            try
+            {
+            var campaign = Make("Initial tutorial run").AddComponent<CampaignRun>();
+            var state = new RunState(); state.StartSession(true); state.EndIntro();
+            Set(campaign, "host", state); Set(campaign, "state", state.Snapshot);
+            typeof(CampaignRun).GetProperty("Instance").SetValue(null, campaign);
+            Set(rehearsal, "run", campaign); instance.SetValue(null, rehearsal);
             var player = Participant(701);
             var mover = player.GetComponent<PlayerMover>();
             Set(rehearsal, "local", player);
@@ -421,6 +498,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(rehearsal, "practice", true);
             Call(rehearsal, "TrackPersonalProgress", mover);
             Assert.That(walls.activeSelf, Is.False, "튜토리얼 벽이 남아 있어도 재연습을 막으면 안 된다.");
+            }
+            finally
+            {
+                instance.SetValue(null, previous);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
+            }
         }
 
         [Test]

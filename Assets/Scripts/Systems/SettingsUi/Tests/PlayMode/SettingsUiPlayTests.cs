@@ -71,7 +71,7 @@ namespace CurtainCall.SettingsUi.Tests
         [UnitySetUp] public IEnumerator SetUp()
         {
             previousScale = Time.timeScale; Time.timeScale = 1; requests = 0; request = null;
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/SettingsUi/SettingsPanel");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/SettingsUi/SettingsPanel");
             Assert.NotNull(prefab);
             instance = Object.Instantiate(prefab);
             view = instance.GetComponentsInChildren<MonoBehaviour>(true).Single(x => x != null && x.GetType().FullName == "CurtainCall.UI.SettingsPanelView");
@@ -283,7 +283,7 @@ namespace CurtainCall.SettingsUi.Tests
         {
             foreach (string name in new[] { "CommonTab", "CommonSlider", "CommonToggle" })
             {
-                var prefab = Resources.Load<GameObject>("Prefabs/UIs/SettingsUi/" + name); Assert.NotNull(prefab);
+                var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/SettingsUi/" + name); Assert.NotNull(prefab);
                 var control = Object.Instantiate(prefab, instance.transform, false);
                 foreach (var node in control.GetComponentsInChildren<Transform>(true))
                     foreach (var component in node.GetComponents<Component>()) Assert.NotNull(component);

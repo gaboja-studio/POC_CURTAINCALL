@@ -22,5 +22,5 @@ source: Task-20261019-061
 - 생산20PNG=신규8+정본12이며 누적182 이력과 구분한다. 전체 원본/PNG/GUID/자료를 보존하고 신규 importer만 보정한다. 기존 정본/폰트 재작성은 하지 않는다.
 
 ## 확인 방법
-- 산출물: `Assets/Resources/Prefabs/UIs/ScheduleUi/SchedulePanel.prefab`, `Assets/Scenes/Tests/ScheduleUi/ScheduleUi.unity`. 확인 씬 Play 후 기본 데모를 명시적으로 연다. 검증 기록은 Task의 `schedule-ui-verification.md`다.
+- 산출물: `Assets/Resources/Prefabs/UIs/Roles/Retained/ScheduleUi/SchedulePanel.prefab`, `Assets/Scenes/Tests/ScheduleUi/ScheduleUi.unity`. 확인 씬 Play 후 기본 데모를 명시적으로 연다. 검증 기록은 Task의 `schedule-ui-verification.md`다.
 - `Scripts/check-work.ps1`와 W3 선택 PlayMode 검사를 사용한다. 합성 입력/실행 캡처·물리 입력·사람 외형 승인은 구분한다. 실게임/실기기/공동 검증은 별도다.

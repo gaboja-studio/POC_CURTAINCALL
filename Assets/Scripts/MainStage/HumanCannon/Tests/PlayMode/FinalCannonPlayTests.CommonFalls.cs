@@ -13,6 +13,8 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator CommonSpringShoesReboundFromOrdinaryFatalHeightAndConsumeOnce()
         {
             DisableEnhancementThreats();
+            var rules = Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage");
+            float fatalHeight = (float)Get(rules, "FallDeathHeight");
             var equipment = new GameObject("ordinary spring equipment");
             var carry = equipment.AddComponent(GameType("CurtainCall.WaitingRoom.PropCarry"));
             var floor = new GameObject("spring test floor");
@@ -28,7 +30,7 @@ namespace CurtainCall.HumanCannon.Tests
                 yield return WaitUntil(() => (bool)Get(carry, "HasAuthority"), 3, "equipment authority");
                 var item = Activator.CreateInstance(GameType("CurtainCall.WaitingRoom.PropItem"), 987654, "spring-shoes", "test shoes", 2);
                 Assert.AreEqual("None", Call(carry, "Receive", Actor, item).ToString());
-                Call(mover, "SetStartPose", new Vector3(3000, 105.3f, 3000), Quaternion.identity, true);
+                Call(mover, "SetStartPose", new Vector3(3000, 100f + fatalHeight + .3f, 3000), Quaternion.identity, true);
                 Physics.SyncTransforms();
                 yield return WaitUntil(() => (int)Get(Call(carry, "Equipped", Actor, "spring-shoes"), "Uses") == 1, 4, "ordinary fall consumes one spring use");
                 Assert.AreEqual("Normal", Get(player, "State").ToString());
@@ -43,16 +45,28 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator CommonFallOrdinaryFloorUsesActualHeightAndTeleportClearsPreviousPeak()
         {
             DisableEnhancementThreats();
+            var rules = Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage");
+            float injuryHeight = (float)Get(rules, "FallInjuryHeight");
+            float fatalHeight = (float)Get(rules, "FallDeathHeight");
             var floor = new GameObject("ordinary untagged fall floor");
             var box = floor.AddComponent<BoxCollider>(); box.size = new Vector3(20, 1, 20);
             floor.transform.position = new Vector3(3000, 99.5f, 3000);
             try
             {
-                Call(mover, "SetStartPose", new Vector3(3000, 103.3f, 3000), Quaternion.identity, true);
+                Call(mover, "SetStartPose", new Vector3(3000, 100f + injuryHeight - .3f, 3000), Quaternion.identity, true);
+                Physics.SyncTransforms();
+                yield return WaitUntil(() => player.transform.position.y < 100.1f
+                    && ((CharacterController)Get(mover, "Body")).isGrounded && !(bool)Get(mover, "IsAirborne"),
+                    4, "ordinary fall below the configured injury height lands");
+                yield return null;
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")), "부상 높이 미만의 실제 낙하는 무피해");
+                Assert.AreEqual("Normal", Get(player, "State").ToString());
+
+                Call(mover, "SetStartPose", new Vector3(3000, 100f + injuryHeight + .3f, 3000), Quaternion.identity, true);
                 Physics.SyncTransforms();
                 yield return WaitUntil(() => player.transform.position.y < 102f, 2, "fall is already in progress");
                 Call(player, "RequestNaturalFall");
-                yield return WaitUntil(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 4, "3m ordinary fall injury");
+                yield return WaitUntil(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 4, "ordinary fall at configured injury height");
                 var condition = player.GetComponent(GameType("CurtainCall.Player.PlayerCondition"));
                 Assert.AreEqual(2, Get(condition, "LostCount"));
                 Assert.AreEqual("Normal", Get(player, "State").ToString());
@@ -62,8 +76,10 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(mover, "SetStartPose", new Vector3(3000, 100.5f, 3000), Quaternion.identity, true);
                 yield return new WaitForSeconds(.7f);
                 Assert.AreEqual(before, Get(player, "LostParts"), "순간이동 전 높이를 다음 낙하에 더하지 않는다");
-                Call(mover, "SetStartPose", new Vector3(3000, 105.3f, 3000), Quaternion.identity, true);
-                yield return WaitUntil(() => Get(player, "State").ToString() == "Fallen", 4, "5m ordinary fall death");
+                Call(player, "ServerRestoreAll");
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")), "사망 높이는 온전한 몸으로 검증한다");
+                Call(mover, "SetStartPose", new Vector3(3000, 100f + fatalHeight + .3f, 3000), Quaternion.identity, true);
+                yield return WaitUntil(() => Get(player, "State").ToString() == "Fallen", 4, "ordinary fall at configured death height");
             }
             finally { Object.Destroy(floor); }
         }

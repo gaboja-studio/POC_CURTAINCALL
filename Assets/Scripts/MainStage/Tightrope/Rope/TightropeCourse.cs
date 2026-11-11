@@ -414,7 +414,19 @@ namespace CurtainCall.Tightrope
         /// <summary>도착대의 코스 좌표 경계. 메시·충돌체·리허설 도착/벽 판정이 같은 치수를 사용한다.</summary>
         public bool TryGetFinishPlatformBounds(out Bounds floor)
         {
-            var l = Layout;
+            return FinishPlatformBounds(Shape, Layout, FinishPlatformScale, out floor);
+        }
+
+        public static bool PreviewFinishPlatformBounds(TightropeSettings.CourseSettings shape, float scale, out Bounds floor)
+            => FinishPlatformBounds(shape, new CourseLayout(shape.LaneCount, shape.LaneSpacing, shape.FinishDistance, shape.LaneEndDistances), scale, out floor);
+
+        public static Bounds PreviewStartPlatformBounds(TightropeSettings.CourseSettings shape)
+            => new(new Vector3(0f, -shape.PlatformThickness * .5f, -shape.StartPlatformLength * .5f),
+                new Vector3((Mathf.Max(1, shape.LaneCount) - 1) * Mathf.Max(.01f, shape.LaneSpacing) + shape.SideMargin * 2f,
+                    shape.PlatformThickness, shape.StartPlatformLength));
+
+        static bool FinishPlatformBounds(TightropeSettings.CourseSettings shape, CourseLayout l, float requestedScale, out Bounds floor)
+        {
             float min = float.MaxValue, max = float.MinValue;
             for (int lane = 0; lane < l.LaneCount; lane++)
             {
@@ -423,10 +435,10 @@ namespace CurtainCall.Tightrope
             }
             floor = default;
             if (min > max) return false;
-            float scale = float.IsFinite(FinishPlatformScale) ? Mathf.Max(.1f, FinishPlatformScale) : 1f;
-            float length = Shape.FinishPlatformLength * scale;
-            floor = new Bounds(new Vector3((min + max) * .5f, -Shape.PlatformThickness * .5f, l.FinishDistance + length * .5f),
-                new Vector3((max - min + Shape.SideMargin * 2f) * scale, Shape.PlatformThickness, length));
+            float scale = float.IsFinite(requestedScale) ? Mathf.Max(.1f, requestedScale) : 1f;
+            float length = shape.FinishPlatformLength * scale;
+            floor = new Bounds(new Vector3((min + max) * .5f, -shape.PlatformThickness * .5f, l.FinishDistance + length * .5f),
+                new Vector3((max - min + shape.SideMargin * 2f) * scale, shape.PlatformThickness, length));
             return true;
         }
 
@@ -674,11 +686,9 @@ namespace CurtainCall.Tightrope
 
             var l = layout;
             var c = Shape;
-            float width = (l.LaneCount - 1) * l.LaneSpacing + c.SideMargin * 2f;
-
             // 시작 플랫폼: 출발선 뒤, 모든 줄 폭
-            var startPlatform = CreateBox("StartPlatform", new Vector3(0f, -c.PlatformThickness * 0.5f, -c.StartPlatformLength * 0.5f),
-                new Vector3(width, c.PlatformThickness, c.StartPlatformLength), platformColor, true);
+            var startFloor = PreviewStartPlatformBounds(c);
+            var startPlatform = CreateBox("StartPlatform", startFloor.center, startFloor.size, platformColor, true);
             TightropeOutline.AttachToHierarchy(startPlatform);
 
             // 색상 경계와 무관하게 지지면은 연속이다. 불탄 줄은 메시와 지지면을 함께 제거한다.

@@ -220,6 +220,9 @@ namespace CurtainCall.HumanCannon.Tests
             yield return null;
             Assert.AreEqual(-1, Get(pilot, "HeldPole"), "현재 설정의25% 접근 여유 밖에서는 잡지 않는다.");
             Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), target + approach * (reach - .25f) - centerOffset, grip.rotation, Vector3.zero);
+            // A real F gesture is selected once per frame. Let the enabled reader
+            // observe the new approach after this test-only relocation.
+            yield return null;
             Assert.IsTrue((bool)Call(poles, "CanGrab", 1, player), "The configured near-side approach is actually grabbable before checking presentation.");
             AssertPoleInteractionUI(pole, true);
             Input(tapped: true);
@@ -250,7 +253,8 @@ namespace CurtainCall.HumanCannon.Tests
                 Physics.SyncTransforms();
                 Call(ui, "LateUpdate");
                 var highlighted = (System.Collections.IEnumerable)Get(ui, "Highlighted");
-                bool found = highlighted.Cast<Transform>().Contains(pole.transform);
+                var visual = (Transform)Get(pole, "CommonVisual") ?? pole.transform;
+                bool found = highlighted.Cast<Transform>().Contains(visual);
                 Assert.AreEqual(expected, found, "잡기 범위·점유에 맞춰 기존 외곽선이 표시/해제되어야 한다. "
                     + $"material={Get(ui, "material") != null}, blocked={StaticGet("CurtainCall.Player.InputGate", "IsBlocked")}, "
                     + string.Join("; ", ((IEnumerable)Get(ui, "candidates")).Cast<object>().Select(c =>
@@ -264,7 +268,7 @@ namespace CurtainCall.HumanCannon.Tests
                 {
                     Assert.AreEqual("F", Get(Get(prompt, "keyLabel"), "text"));
                     StringAssert.Contains("잡기", (string)Get(Get(prompt, "actionLabel"), "text"));
-                    Assert.IsTrue(pole.GetComponentsInChildren<MeshRenderer>().Any(r => r.name == "__InteractionOutline" && r.enabled));
+                    Assert.IsTrue(visual.GetComponentsInChildren<MeshRenderer>().Any(r => r.name == "__InteractionOutline" && r.enabled));
                 }
                 if (held) {
                     StringAssert.AreEqualIgnoringCase("Space", (string)Get(Get(prompt, "keyLabel"), "text"));

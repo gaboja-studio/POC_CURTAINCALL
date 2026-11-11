@@ -23,7 +23,7 @@ namespace CurtainCall.SettingsUi.Editor
     public static class SettingsUiProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_settings_v1";
-        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/SettingsUi";
+        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/SettingsUi";
         public const string PrefabPath = PrefabFolder + "/SettingsPanel.prefab";
         public const string TabPrefabPath = PrefabFolder + "/CommonTab.prefab";
         public const string SliderPrefabPath = PrefabFolder + "/CommonSlider.prefab";

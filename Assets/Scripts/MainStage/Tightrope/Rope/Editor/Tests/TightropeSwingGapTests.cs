@@ -8,6 +8,27 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
 {
     public sealed class TightropeSwingGapTests
     {
+        [Test, Category("CommonRulesRegression")]
+        public void CooperativeTrapezeEntryIsAboveSoloReachAndWithinMountedJumpReach()
+        {
+            var root = new GameObject("cooperative entry placement"); root.SetActive(false);
+            try
+            {
+                var course = root.AddComponent<TightropeCourse>();
+                var floor = course.GetLanePosition(course.Shape.TrapezeLane - 1, course.TrapezeGapFrom - 1f);
+                float barHeight = course.TrapezeRestingFeet(0).y - floor.y + GameSettings.Poles.HangLength;
+                float body = GameSettings.Base.Character.CapsuleHeight;
+                float reach = GameSettings.Base.Interaction.Distance;
+                float soloJump = GameSettings.Tightrope.RopeMovement.JumpHeight;
+                float soloReach = body * .5f + soloJump + reach;
+                float mountedReach = body + body * .5f + soloJump * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier + reach;
+                Assert.That(barHeight, Is.EqualTo(5f).Within(.001f));
+                Assert.That(barHeight, Is.GreaterThan(soloReach), "A solo jump cannot bypass the cooperative entry.");
+                Assert.That(barHeight, Is.LessThan(mountedReach), "The existing upper rider jump must still reach without changing common motion or grab range.");
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void GapOnlyAppliesToCoursesLongEnoughForBothApproaches()
         {

@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b95331f031cd55145beb99e3549a6aec, type: 3}
+  m_Name: PerformanceHud
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.PerformanceHudProfile
+  ropeGoal:
+    title: "\uB3C4\uCC29 \uBC1C\uD310\uAE4C\uC9C0 \uAC74\uB108\uAE30"
+    body: "\uC678\uC904\uC758 \uC7A5\uC560\uBB3C\uC744 \uC9C0\uB098 \uBC18\uB300\uD3B8
+      \uB3C4\uCC29 \uBC1C\uD310\uC5D0 \uB3C4\uB2EC\uD558\uC138\uC694."
+    badge: 
+  cannonGoal:
+    title: "\uBAA9\uC801\uC9C0\uC5D0 \uCC29\uC9C0\uD558\uAE30"
+    body: "\uB300\uD3EC\uC640 \uD2B8\uB7A8\uD384\uB9B0\uC73C\uB85C \uCF54\uC2A4\uB97C
+      \uAC74\uB108\uC138\uC694. \uC0B4\uC544 \uC788\uB294 \uB2E8\uC6D0 \uD55C \uBA85\uC774
+      \uB9C8\uC9C0\uB9C9 \uCC29\uC9C0\uD310\uC5D0 \uB2FF\uC73C\uBA74 \uC131\uACF5\uD569\uB2C8\uB2E4."
+    badge: 
+  approach:
+    title: "\uC678\uC904\uC5D0 \uC62C\uB77C\uAC00\uAE30"
+    body: "\uC904 \uC704\uB85C \uAC78\uC5B4\uAC00\uBA74 \uC790\uB3D9\uC73C\uB85C
+      \uC62C\uB77C\uD0D1\uB2C8\uB2E4."
+    badge: '{move}'
+  balance:
+    title: "\uC678\uC904\uC5D0\uC11C \uADE0\uD615 \uC7A1\uAE30"
+    body: "{forward}\uB85C \uC774\uB3D9\uD558\uACE0 {balance}\uB85C \uAE30\uC6B8\uC5B4\uC9C0\uB294
+      \uBC18\uB300 \uBC29\uD5A5\uC744 \uB204\uB974\uC138\uC694."
+    badge: '{balance}'
+  lane:
+    title: "\uC606\uC904\uB85C \uC774\uB3D9\uD558\uAE30"
+    body: "{side}\uB97C \uB204\uB978 \uCC44 {jump}\uB85C \uC810\uD504\uD558\uC138\uC694."
+    badge: '{side}'
+  sawGate:
+    title: "\uD1B1\uB0A0 \uB4A4 \uBC84\uD2BC \uB204\uB974\uAE30"
+    body: "\uBAA9\uB9C8\uB97C \uC774\uC6A9\uD558\uAC70\uB098 \uC606\uC904\uB85C \uC774\uB3D9\uD574
+      \uD1B1\uB0A0 \uB4A4\uC758 \uBC84\uD2BC\uC744 \uB204\uB974\uC138\uC694."
+    badge: 
+  sawJump:
+    title: "\uD1B1\uB0A0 \uB6F0\uC5B4\uB118\uAE30"
+    body: "\uB2E4\uAC00\uC624\uB294 \uD1B1\uB0A0\uC5D0 \uB9DE\uCDB0 {jump}\uB85C
+      \uC810\uD504\uD558\uC138\uC694."
+    badge: '{jump}'
+  relayHeld:
+    title: "\uB3D9\uB8CC\uAC00 \uAC74\uB108\uB3C4\uB85D \uBC84\uD2F0\uAE30"
+    body: "\uCD5C\uB300 {seconds}\uCD08 \uB3D9\uC548 \uBC84\uD2F8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    badge: 
+  relayNear:
+    title: "\uC911\uACC4\uBD09\uC5D0 \uB9E4\uB2EC\uB9AC\uAE30"
+    body: "{interact}\uB85C \uBD09\uC5D0 \uB9E4\uB2EC\uB824 \uB3D9\uB8CC\uAC00 \uAC74\uB110
+      \uAE38\uC744 \uB9CC\uB4DC\uC138\uC694."
+    badge: '{interact}'
+  lower:
+    title: "\uB2E4\uC74C \uBD09\uC73C\uB85C \uAC74\uB108\uAC00\uAE30"
+    body: "\uD0C0\uC774\uBC0D\uC5D0 \uB9DE\uCDB0 \uC810\uD504\uD55C \uB4A4 \uB2E4\uC74C
+      \uBD09\uC744 \uC7A1\uC73C\uC138\uC694."
+    badge: '{jump}'
+  upper:
+    title: "\uACF5\uC911\uADF8\uB124 \uD754\uB4E4\uAE30"
+    body: "{forward}\uB85C \uBC18\uB3D9\uC744 \uB9CC\uB4DC\uC138\uC694."
+    badge: '{forward}'
+  attach:
+    title: "\uB3D9\uB8CC\uC5D0\uAC8C \uB9E4\uB2EC\uB9AC\uAE30"
+    body: "\uB9E4\uB2EC\uB9B0 \uB3D9\uB8CC\uC5D0\uAC8C \uAC00\uAE4C\uC774 \uAC00\uC11C
+      {interact}\uB97C \uB204\uB974\uC138\uC694."
+    badge: '{interact}'
+  pole:
+    title: "\uACF5\uC911\uADF8\uB124 \uC7A1\uAE30"
+    body: "\uBD09 \uAC00\uAE4C\uC774\uC5D0\uC11C {interact}\uB85C \uC7A1\uC73C\uC138\uC694.
+      \uC810\uD504 \uC911\uC5D0\uB3C4 \uC7A1\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    badge: '{interact}'
+  cBoard:
+    title: "\uB300\uD3EC\uC5D0 \uD0D1\uC2B9\uD558\uAE30"
+    body: "\uB300\uD3EC \uAC00\uAE4C\uC774\uC5D0\uC11C {interact}\uB97C \uB204\uB974\uC138\uC694."
+    badge: '{interact}'
+  cFire:
+    title: "\uBC1C\uC0AC\uD558\uAC70\uB098 \uB0B4\uB9AC\uAE30"
+    body: "{interact}\uB97C \uC9E7\uAC8C \uB20C\uB7EC \uBC1C\uC0AC\uD558\uACE0, \uAE38\uAC8C
+      \uB20C\uB7EC \uB0B4\uB9AC\uC138\uC694."
+    badge: '{interact}'
+  cCarry:
+    title: "\uD2B8\uB7A8\uD384\uB9B0 \uC6B4\uBC18\uD558\uAE30"
+    body: "\uB3D9\uB8CC\uAC00 \uCC29\uC9C0\uD560 \uC704\uCE58\uB85C \uD2B8\uB7A8\uD384\uB9B0\uC744
+      \uC62E\uAE30\uC138\uC694. {interact}\uB97C \uAE38\uAC8C \uB204\uB974\uBA74
+      \uB0B4\uB824\uB193\uC2B5\uB2C8\uB2E4."
+    badge: '{interact}'
+  cGrab:
+    title: "\uD2B8\uB7A8\uD384\uB9B0 \uC7A1\uAE30"
+    body: "\uC190\uC7A1\uC774 \uAC00\uAE4C\uC774\uC5D0\uC11C {interact}\uB97C \uB20C\uB7EC
+      \uD2B8\uB7A8\uD384\uB9B0\uC744 \uB4DC\uC138\uC694."
+    badge: '{interact}'
+  cPole:
+    title: "\uBD09\uC5D0\uC11C \uB6F0\uC5B4\uB0B4\uB9AC\uAE30"
+    body: "{jump}\uB97C \uB20C\uB7EC \uBD09\uC744 \uB193\uC73C\uC138\uC694."
+    badge: '{jump}'
+  liftCarry:
+    title: "\uB9AC\uD504\uD2B8 \uC774\uC6A9\uD558\uAE30"
+    body: "\uD2B8\uB7A8\uD384\uB9B0\uC744 \uB4E4\uACE0 \uD63C\uC790 \uBC1C\uD310\uC5D0
+      \uC62C\uB77C\uAC00\uC138\uC694."
+    badge: 
+  liftBoard:
+    title: "\uC790\uB3D9 \uCD9C\uBC1C \uAE30\uB2E4\uB9AC\uAE30"
+    body: "\uBC1C\uD310 \uC704\uC5D0\uC11C \uAE30\uB2E4\uB9AC\uBA74 \uB9AC\uD504\uD2B8\uAC00
+      \uC790\uB3D9\uC73C\uB85C \uCD9C\uBC1C\uD569\uB2C8\uB2E4."
+    badge: 

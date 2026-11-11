@@ -8,7 +8,7 @@ source: human (PM 툴팁 묶음 구현·저장 요청) + code
 ## 언제 읽나
 근접/패널 설명을 배치·호출·검증하거나 제공 키트를 다시 조립할 때.
 ## 정본·의존성
-- `Assets/Resources/Prefabs/UIs/Tooltips/Tooltips.prefab`: Canvas 포함·모드 전환1개, `80_Tooltips/C15_Tooltip/Motion` 아래 Image8/TMP2.
+- `Assets/Resources/Prefabs/UIs/Roles/Retained/Tooltips/Tooltips.prefab`: Canvas 포함·모드 전환1개, `80_Tooltips/C15_Tooltip/Motion` 아래 Image8/TMP2.
 - 독립 씬 `Assets/Scenes/Tests/Tooltips/Tooltips.unity`, 공개 `Assets/Scripts/Systems/Tooltips/`의 Preview·안전 Builder·PlayMode 테스트.
 - private `curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/`: Runtime/Builder 원위치 재사용, `CurtainCall.UI.TooltipsV1` 격리. 제공 PNG/코드 공개 복제 금지.
 - 신규 PNG7(판4/아래 선1/꼬리2), 기존 PNG 재사용0. 전체49실파일/PNG14·폰트/도구/문서/제작 원본 보존. Task 전수 CSV가 최초 SHA 기준.

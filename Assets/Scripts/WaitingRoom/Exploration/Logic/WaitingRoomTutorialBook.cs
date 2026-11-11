@@ -45,9 +45,9 @@ namespace CurtainCall.WaitingRoom
             new TutorialEntry("G11A", "소집 경보", "종이 울렸습니다. 시간이 끝나기 전에 무대 입구 통로로 돌아가세요."),
             new TutorialEntry("G12", "열쇠 구멍", "2개의 열쇠 구멍이 보입니다."),
             // ② 밤 정비
-            new TutorialEntry("N01", "오늘 밤 할 일", "스케줄표에서 내일 일정을 확정하고, 숙소 침대에서 하루를 마무리하세요."),
+            new TutorialEntry("N01", "오늘 밤 할 일", "다음 공연은 스케줄표에서 언제든 바꿀 수 있습니다. 탐색과 준비를 마치고 숙소 침대에서 하루를 마무리하세요."),
             new TutorialEntry("N02", "기물 사기", "상점 수화기로 기물을 살 수 있습니다. 산 물건은 아래 배송구로 떨어집니다. 토큰은 팀이 함께 씁니다."),
-            new TutorialEntry("N03", "내일 공연 정하기", "로비 스케줄표에서 내일 공연 순서와 난이도를 정합니다. 호스트가 확정해야 다음 날로 넘어갑니다."),
+            new TutorialEntry("N03", "내일 공연 정하기", "로비 스케줄표에서 공연과 난이도를 고르면 바로 적용됩니다. 공연 입장 전까지 변경할 수 있습니다."),
             new TutorialEntry("N04", "물려줄 선반", "선반 4칸에 올린 기물은 런에 실패해 처음부터 다시 시작해도 남습니다."),
             new TutorialEntry("N05", "잠자리", "준비가 끝나면 숙소의 자기 침대에서 [{interact}]를 누르세요. 모두 누우면 다음 날이 됩니다."),
             // 상황 안내
@@ -69,6 +69,12 @@ namespace CurtainCall.WaitingRoom
             if (overrides == null) return;
             foreach (var entry in overrides)
                 if (entry != null && !string.IsNullOrEmpty(entry.id) && entries.ContainsKey(entry.id)) entries[entry.id] = entry;
+        }
+
+        public void Register(TutorialEntry entry)
+        {
+            if(entry==null || string.IsNullOrEmpty(entry.id) || entries.ContainsKey(entry.id))return;
+            entries.Add(entry.id,entry);order.Add(entry.id);
         }
 
         public int QueuedCount => queue.Count;

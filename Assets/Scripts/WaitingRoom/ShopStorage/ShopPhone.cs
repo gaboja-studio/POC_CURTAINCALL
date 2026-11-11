@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("수화기에 닿는 수평 거리(m).")]
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] bool showLegacyUi = true;
+        [InspectorName("대상 안내 UI")] public RoomPromptAppearance hud=new();
         public bool IsOpen => open;
 
         UIInputBlocker blocker;
@@ -48,7 +49,8 @@ namespace CurtainCall.WaitingRoom
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             // 창을 연 채로 밀려나거나 순간이동(공연 전환)하면 닫는다.
             bool away = !ShopReach.TryLocalFeet(out var feet) || Flat(feet - transform.position) > CommonReach + .5f;
-            if (escape || away || WaitingRoomShop.Instance == null) SetOpen(false);
+            if (escape || away || WaitingRoomShop.Instance == null
+                || CurtainCall.Network.PlayerSync.NetworkPlayer.Local is { } player && !PlayerInteraction.CanInteract(player)) SetOpen(false);
         }
 
         public float Reach(Vector3 feet, Component actor = null)
@@ -58,7 +60,8 @@ namespace CurtainCall.WaitingRoom
 
         public void Interact()
         {
-            if (WaitingRoomShop.Instance != null) SetOpen(true);
+            if (WaitingRoomShop.Instance != null && (CurtainCall.Network.PlayerSync.NetworkPlayer.Local == null
+                || PlayerInteraction.CanInteract(CurtainCall.Network.PlayerSync.NetworkPlayer.Local))) SetOpen(true);
         }
 
         public void SetOpen(bool value)

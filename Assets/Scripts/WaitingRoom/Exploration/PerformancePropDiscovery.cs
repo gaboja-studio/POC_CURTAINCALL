@@ -68,9 +68,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         // 획득 안내(모든 화면). 기존 패널 이미지로 만든 안내 패널을 쓴다.
-        void ShowGuide() => WaitingRoomGuidePanel.Show(WaitingRoomText.Format("narration.performance-unlocked-title", "{trick} 획득!", ("trick", trickName)),
+        void ShowGuide() => WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Format("narration.performance-unlocked-title", "{trick} 획득!", ("trick", trickName)),
             WaitingRoomText.Format(trickId == CampaignSnapshot.HumanCannonId ? "narration.cannon-unlocked-body" : "narration.performance-unlocked-body",
-                trickId == CampaignSnapshot.HumanCannonId ? "'{trick}' 공연이 해금되었습니다. 스케줄표에서 처음 확정하기 전에 리허설을 이수해야 합니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다."
-                    : "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.", ("trick", trickName)), noticeSeconds);
+                trickId == CampaignSnapshot.HumanCannonId ? "리허설을 마치면 스케줄표에서 이 공연을 선택할 수 있습니다.\n{trick}·트램펄린은 연습실로 옮겨졌습니다."
+                    : "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.", ("trick", trickName)), noticeSeconds,WaitingRoomHudProfile.Current.equipmentUnlocked);
     }
 }

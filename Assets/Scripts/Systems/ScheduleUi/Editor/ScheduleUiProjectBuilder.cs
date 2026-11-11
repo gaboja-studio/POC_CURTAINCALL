@@ -19,7 +19,7 @@ namespace CurtainCall.UI.ScheduleV1.Editor
     public static class ScheduleUiProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_schedule_v1";
-        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/ScheduleUi";
+        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/ScheduleUi";
         public const string PrefabPath = PrefabFolder + "/SchedulePanel.prefab";
         public const string SceneFolder = "Assets/Scenes/Tests/ScheduleUi";
         public const string ScenePath = SceneFolder + "/ScheduleUi.unity";

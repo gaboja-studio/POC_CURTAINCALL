@@ -30,15 +30,19 @@ MonoBehaviour:
     morningRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     noonRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     guideRest:
       unlimited: 0
       seconds: 300
+      explorationLocked: 0
     nightMaintenance:
-      unlimited: 1
-      seconds: 120
+      unlimited: 0
+      seconds: 300
+      explorationLocked: 0
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
@@ -67,6 +71,7 @@ MonoBehaviour:
     longPressTime: 0.5
   interaction:
     distance: 2.5
+    prioritizeRescue: 1
   airControl:
     speed: 3
     responseSeconds: 0.1
@@ -85,6 +90,11 @@ MonoBehaviour:
   hudLayout:
     balancePosition: 0
   presentation:
+    walkAnimationSpeed: 3
+    runAnimationSpeed: 6
+    crouchAnimationSpeed: 1.5
+    ropeAnimationSpeed: 0.5
+    crawlAnimationSpeed: 1.5
     strike:
       allowMovement: 0
       allowInterrupt: 1
@@ -108,6 +118,13 @@ MonoBehaviour:
   sync:
     balanceSendThreshold: 0.5
   bodyDamage:
+    hazardHitCooldown: 1
+    hazardCutCount: 1
+    fallInjuryHeight: 4
+    fallInjuryCutCount: 2
+    fallDeathHeight: 8
+    safeRopeLanding: 1
+    safeLandingZones: 1
     restartRecovery: 0
     oneLegJumpHeight: 0.75
     twoLegJumpHeight: 0.5

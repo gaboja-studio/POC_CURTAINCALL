@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [TestCase("Toast", "Toast", "60_MessageTMP")]
         public void LongMessageGrowsDownwardAndShortMessageRestoresHeight(string prefab, string viewName, string labelName)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Notifications/" + prefab + ".prefab");
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/" + prefab + ".prefab");
             var instance = Object.Instantiate(asset);
             try
             {
@@ -47,7 +47,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         public void InteractionWidensForLongTextWrapsToThreeLinesAndRestoresShortSize()
         {
             // 2026-11-01 사용자: [F] 안내(도구 힌트 등)가 잘리지 않게. 넓힐 수 있으면 넓히고(최대 640), 그래도 길면 3줄까지.
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab");
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab");
             var instance = Object.Instantiate(asset);
             try
             {
@@ -90,7 +90,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [Test]
         public void CannonAndPolePromptFitsLongKeysAndAllHelperLinesThenRestoresOtherPrompts()
         {
-            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab"));
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab"));
             try
             {
                 var view = instance.GetComponentInChildren<CurtainCall.UI.InteractionV1.InteractionPromptView>(true);
@@ -117,7 +117,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [Test]
         public void VisibleDeviceGuideRefitsWhenOnlyItsKeyOrHelperVisibilityChanges()
         {
-            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab"));
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab"));
             try
             {
                 var view = instance.GetComponentInChildren<CurtainCall.UI.InteractionV1.InteractionPromptView>(true);
@@ -147,8 +147,8 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         public void CannonAndPoleKoreanGlyphsAreWarmedOnRuntimeCopiesOnly(bool separateToast)
         {
             var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(separateToast
-                ? "Assets/Resources/Prefabs/UIs/Notifications/Toast.prefab"
-                : "Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab"));
+                ? "Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/Toast.prefab"
+                : "Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab"));
             var owner = new GameObject("Offline cannon prompt fonts"); owner.SetActive(false);
             owner.AddComponent<CommonInteractionUI>();
             if (!separateToast) instance.transform.SetParent(owner.transform, false);
@@ -190,7 +190,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [Test]
         public void MechanismToastKeepsAllLinesAndOtherToastKeepsOriginalLimit()
         {
-            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Notifications/Toast.prefab"));
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/Toast.prefab"));
             try
             {
                 var label = instance.GetComponentInChildren<TMP_Text>(true);

@@ -16,7 +16,7 @@ namespace CurtainCall.EscapeRoute
         MaterialPropertyBlock tint;
         bool initialized, lastReturn;
         uint lastOpen, lastLatched;
-        UiRuntimeFontFallback fonts;
+        HudRoleCard feedback;
 
         void Update()
         {
@@ -30,20 +30,10 @@ namespace CurtainCall.EscapeRoute
             bool returnOpen = ready && ropes.ReturnOpen;
             ObserveState(ready, open, latched, returnOpen);
             PresentReturn(returnOpen);
-            if (!ready || toast == null || toast.IsVisible || pending.Count == 0) return;
-            if (fonts == null)
-                fonts = FindFirstObjectByType<CommonInteractionUI>()?.GetComponent<UiRuntimeFontFallback>();
-            if (fonts == null) return; // 공통 UI가 로드된 뒤 원래 순서대로 안내한다.
+            if (!ready || !EscapeCampaignContent.IsTraversalActive || (feedback && !feedback.Closing) || pending.Count == 0) return;
             int index = pending.Dequeue();
-            bool active = index < 0 ? returnOpen : locks.IsOpen(index);
             string message = index < 0 ? "복귀 버튼 → 복귀 계단 열림" : locks.Feedback(index);
-            fonts.WarmUpLocalText(toast.transform, message);
-            var layout = toast.GetComponent<NotificationTextLayout>();
-            if (layout == null) layout = toast.gameObject.AddComponent<NotificationTextLayout>();
-            layout.SetDeviceText(true);
-            toast.Show(message, active ? ToastState.Success : ToastState.Normal, 2.4f,
-                active ? ToastIcon.Megaphone : ToastIcon.Warning);
-            layout.RefreshLayout();
+            feedback = HudUIManager.Current.ShowFeedback(message, transform, seconds:2.4f);
         }
 
         internal void ObserveState(bool ready, uint open, uint latched, bool returnOpen)
@@ -70,6 +60,8 @@ namespace CurtainCall.EscapeRoute
         void ResetFeedback()
         {
             initialized = false; pending.Clear();
+            if (feedback) feedback.Close(true);
+            feedback = null;
             if (toast != null) toast.HideImmediate();
         }
         void OnDisable() => ResetFeedback();

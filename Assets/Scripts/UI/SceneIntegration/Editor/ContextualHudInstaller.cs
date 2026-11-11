@@ -27,7 +27,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 var root = scene.GetRootGameObjects().First(x => x.name == "UI");
                 if (root.GetComponentInChildren<CommonInventoryUI>(true) == null)
                 {
-                    var canvas = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/BackstageHud/InventorySlotTemplate.prefab"),root.transform);
+                    var canvas = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/BackstageHud/InventorySlotTemplate.prefab"),root.transform);
                     canvas.name = "C5_InventoryCanvas";
                     canvas.AddComponent<CanvasGroup>();
                     canvas.GetComponent<Canvas>().sortingOrder = 110;
@@ -57,21 +57,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                     if (path.Contains("Tightrope"))
                     {
                         var old = scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<TightropeControlsPanel>(true)).FirstOrDefault();
-                        if (old != null && old.banner == null)
-                        {
-                            var parent = old.GetComponentInParent<Canvas>().transform.parent;
-                            UnityEngine.Object.DestroyImmediate(old.gameObject);
-                            var bannerObject = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Notifications/SystemBanner.prefab"), parent);
-                            bannerObject.name = "ContextualControlsBanner";
-                            var banner = bannerObject.GetComponentInChildren<SystemBannerView>(true);
-                            var bs = bannerObject.GetComponent<CanvasScaler>(); bs.referenceResolution = new Vector2(1920,1080); bs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; bs.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-                            var br = (RectTransform)banner.transform; br.anchorMin = br.anchorMax = new Vector2(.5f,1); br.pivot = new Vector2(.5f,1); br.anchoredPosition = new Vector2(0,-110);
-                            var guideFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/SettingsUi/Pretendard-SemiBold SDF.asset");
-                            foreach (var label in bannerObject.GetComponentsInChildren<TMP_Text>(true))
-                            { label.font = guideFont; label.fontSharedMaterial = guideFont.material; }
-                            var owner = bannerObject.AddComponent<TightropeControlsPanel>(); owner.banner = banner;
-                            foreach (var c in bannerObject.GetComponentsInChildren<Component>(true)) if (c != null && PrefabUtility.IsPartOfPrefabInstance(c)) PrefabUtility.RecordPrefabInstancePropertyModifications(c);
-                        }
+                        if (old == null) new GameObject("TightropeControlGuides",typeof(TightropeControlsPanel));
                     }
                     EditorSceneManager.SaveScene(scene);
                 }

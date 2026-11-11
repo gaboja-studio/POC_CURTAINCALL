@@ -54,6 +54,7 @@ namespace CurtainCall.Player
             slot.ModelChanged += BindModel;
             condition.Changed += Changed;
             NetworkPlayer.Restarted += Restarted;
+            NetworkPlayer.Revived += Restarted;
             BindModel();
         }
 
@@ -115,6 +116,14 @@ namespace CurtainCall.Player
         void Restarted(NetworkPlayer player)
         {
             if (player.gameObject != gameObject) return;
+            RestoreHangAlignment();
+            ClearItemVisual();
+            ResetCircusMotion();
+            ResetRescueMotion();
+            airborne = false;
+            landUntil = 0f;
+            presentationSampleReady = false;
+            presentationVelocity = Vector3.zero;
             if (model != null) model.ClearPieces();
             if (detached != null) detached.ClearPieces();
         }
@@ -150,11 +159,16 @@ namespace CurtainCall.Player
                 return;
             }
             if (balance != null && balance.HasFallen) { ResetCircusMotion(); return; }
-            if (PresentCircusMotion()) return;
             bool moving = network != null ? network.PresentationMoving : mover.IsMoving;
             bool sprinting = network != null ? network.PresentationSprinting : mover.IsSprinting;
-            JumpKind jump = network != null && network.IsSpawned && !network.IsOwner ? network.CurrentJump : mover.CurrentJump;
-            bool inAir = jump != JumpKind.None || mover.IsAirborne;
+            JumpKind jump = network != null ? network.CurrentJump : mover.CurrentJump;
+            var stack = PiggybackSystem.Current;
+            if (jump == JumpKind.None && stack != null && stack.TryGetComponent<PiggybackFollow>(out var follow))
+                jump = follow.PresentationJump(network);
+            // Remote movement is not simulated here. Its old local mover state must not
+            // override the grounded state sent by its owner.
+            bool inAir = jump != JumpKind.None || ((network == null || !network.IsSpawned || network.IsOwner) && mover.IsAirborne);
+            if (PresentCircusMotion(inAir, moving)) return;
             bool carrying = network != null && network.IsSpawned
                 && HumanCannonCarry.Held(network.OwnerClientId) != null;
             // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
@@ -173,7 +187,17 @@ namespace CurtainCall.Player
             }
             if (condition.LostLegCount == 2)
             {
-                model.Play(CurtainCall.ItemArt.ItemVisualAssets.State("ItemCrawl",model.Stage), moving && !inAir ? 1f : .0001f);
+                // The crawl is a ground pose. Reuse the existing injury-aware air
+                // and impact clips so surviving arms still react during a jump.
+                if (inAir)
+                {
+                    model.Play(CircusVariant(presentationVelocity.y > 0f ? "TrampolineRise" : "PanicFall"));
+                    return;
+                }
+                if (Time.time < landUntil) { model.Play(CircusVariant("FlightLand")); return; }
+                string crawl = CurtainCall.ItemArt.ItemVisualAssets.State("ItemCrawl",model.Stage);
+                if (moving && !inAir) PlayLocomotion(crawl);
+                else model.Play(crawl, .0001f);
                 return;
             }
             if (inAir)
@@ -182,8 +206,18 @@ namespace CurtainCall.Player
                 return;
             }
             if (Time.time < landUntil) { model.Play("JumpLand"); return; }
-            if (mover.IsCrouched) { model.Play(moving ? "CrouchWalk" : "Crouch"); return; }
-            model.Play(moving ? balance != null && balance.IsActive ? "Tightrope" : sprinting ? "Run" : "Walk" : "Idle");
+            if (mover.IsCrouched)
+            { if (moving) PlayLocomotion("CrouchWalk"); else model.Play("Crouch"); return; }
+            if (moving) PlayLocomotion(balance != null && balance.IsActive ? "Tightrope" : sprinting ? "Run" : "Walk");
+            else model.Play("Idle");
+        }
+
+        void PlayLocomotion(string motion)
+        {
+            var velocity = Vector3.ProjectOnPlane(presentationVelocity, Vector3.up);
+            float speed = velocity.magnitude;
+            if (balance != null && balance.IsActive && Vector3.Dot(velocity, transform.forward) < 0f) speed = -speed;
+            model.PlayLocomotion(motion, speed / GameSettings.Base.Presentation.LocomotionAnimationSpeed(motion));
         }
 
         bool TryHangGrip(out Vector3 grip, out Vector3 axis)
@@ -201,15 +235,10 @@ namespace CurtainCall.Player
                 grip = transform.position + Vector3.up * GameSettings.Tightrope.Hang.HangDrop;
                 return true;
             }
-            var trapeze = TightropeTrapeze.Current;
-            if (trapeze != null && trapeze.IsHeld(network)) { grip = trapeze.GripPoint(network); return true; }
-            var swing = TightropeSwingPole.Current;
-            if (swing != null && swing.IsHeld(network)) { grip = swing.GripPoint(network); return true; }
-            var relay = TightropeRelayGate.Current;
-            int index = relay != null ? relay.HeldPole(network) : -1;
-            if (index >= 0) { grip = relay.PhysicalPole(index).BarPosition(0f); return true; }
+            // 모든 봉은 현재 반동 각도와 실제 탑승 순서의 공통 위치로 손을 맞춘다.
+            // 옛 외줄 어댑터의 중립 봉 위치/고정 높이를 먼저 쓰면 몸 외형만 판정 위치에서 이탈한다.
             var poles = HumanCannonPoleSystem.Current;
-            index = poles != null ? poles.HeldBy(network.OwnerClientId) : -1;
+            int index = poles != null ? poles.HeldBy(network.OwnerClientId) : -1;
             if (index < 0) return false;
             var pole = poles.Pole(index);
             if (pole == null) return false;
@@ -336,6 +365,7 @@ namespace CurtainCall.Player
             if (slot != null) slot.ModelChanged -= BindModel;
             if (condition != null) condition.Changed -= Changed;
             NetworkPlayer.Restarted -= Restarted;
+            NetworkPlayer.Revived -= Restarted;
             if (model != null) model.ClearPieces();
             if (detached != null) detached.ClearPieces();
             model = null;

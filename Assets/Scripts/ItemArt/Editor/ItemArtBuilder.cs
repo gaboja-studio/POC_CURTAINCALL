@@ -124,6 +124,7 @@ namespace CurtainCall.ItemArt.EditorTools
                         if(state==null)state=machine.AddState(name);state.motion=clip;state.writeDefaultValues=true;
                     }
                 }
+                CurtainCall.HumanoidPresentationEditor.HumanoidPlayerBuilder.ConfigureLocomotion(controller);
                 EditorUtility.SetDirty(controller);
             }
             return controllers.Count;
@@ -145,7 +146,7 @@ namespace CurtainCall.ItemArt.EditorTools
         }
         static void InstallShopIcons()
         {
-            string path="Assets/Resources/Prefabs/UIs/ShopUi/ShopPanel.prefab";
+            string path="Assets/Resources/Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel.prefab";
             var root=PrefabUtility.LoadPrefabContents(path);
             try
             {

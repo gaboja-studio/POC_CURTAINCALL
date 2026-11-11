@@ -31,7 +31,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.05f)] float blinkSeconds = .25f;
 
         [Tooltip("밤 정비 동안 화면 위쪽에 띄우는 안내.")]
-        [SerializeField] string notice = "밤 정비 — 대기실 문이 잠겼습니다 · 탐색 시간 없음";
+        [SerializeField] string notice = "현재 시간대의 탐색 잠금 설정이 켜져 있습니다";
         [SerializeField] bool showLegacyNotice = true;
 
         GUIStyle style;
@@ -81,7 +81,8 @@ namespace CurtainCall.WaitingRoom
             if (run == null) return false;
             var phase = run.State.Phase;
             if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
-            return phase == CampaignPhase.Night || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
+            return CurtainCall.Settings.GameSettings.Base.Run.IsExplorationLocked(run.State)
+                || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
         }
 
         void Apply(bool locked, bool initial)

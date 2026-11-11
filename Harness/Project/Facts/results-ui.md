@@ -11,7 +11,7 @@ source: Task-20261019-061
 - 결과 표시 자료를 공급하거나 확인 콜백·장식 동전을 연결하기 전. 실제 정산·게임 진행 규칙은 이 UI가 소유하지 않는다.
 
 ## 산출물·보존
-- 프리팹: `Assets/Resources/Prefabs/UIs/ResultsUi/ResultsPanel.prefab`.
+- 프리팹: `Assets/Resources/Prefabs/UIs/Roles/Retained/ResultsUi/ResultsPanel.prefab`.
 - 독립 씬: `Assets/Scenes/Tests/ResultsUi/ResultsUi.unity`. Play 시작 Hidden, Preview28버튼으로 명시적으로 연다.
 - 공개 코드: `Assets/Scripts/Systems/ResultsUi/`. 제공 Runtime/Builder는 private 원위치 재사용, 버튼은 기존 ResultsV1 격리 유지.
 - 신규6/재사용19 Sprite, 시트25조각 RGBA·정본19 SHA 일치 확인. 기존 importer/PNG/GUID/폰트·제작 자료는 보존한다.

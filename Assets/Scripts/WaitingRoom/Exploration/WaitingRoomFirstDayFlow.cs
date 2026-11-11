@@ -39,8 +39,8 @@ namespace CurtainCall.WaitingRoom
         void Awake()
         {
             instance = this;
-            firstDayQuest = new WaitingRoomRightPanel(transform, "FirstDayQuestCanvas", 300f, 400f, "first-day.panel.") { GuideStyle = true };
-            teamWait = new WaitingRoomRightPanel(transform, "FirstDayTeamWaitCanvas", 300f, 400f) { GuideStyle = true };
+            firstDayQuest = new WaitingRoomRightPanel(transform, "FirstDayQuestCanvas", WaitingRoomHudProfile.Current.mission==RoomPersistent.PlayerStatus ? CurtainCall.UI.SceneIntegration.HudRole.Status : CurtainCall.UI.SceneIntegration.HudRole.Objective);
+            teamWait = new WaitingRoomRightPanel(transform, "FirstDayTeamWaitCanvas", WaitingRoomHudProfile.Current.waitingForTeam==RoomPersistent.PlayerStatus ? CurtainCall.UI.SceneIntegration.HudRole.Status : CurtainCall.UI.SceneIntegration.HudRole.Objective);
         }
         void Update()
         {
@@ -64,15 +64,12 @@ namespace CurtainCall.WaitingRoom
         }
         bool GuideDone()
         {
-            if (!WaitingRoomTutorial.Enabled) return true;
-            if (WaitingRoomTutorial.IsSequenceActive) return false;
-            var seen = WaitingRoomTutorial.SeenIds.Split(',');
-            return System.Array.IndexOf(seen, "G01") >= 0 && System.Array.IndexOf(seen, "G11") >= 0;
+            return CampaignRun.Instance != null && WaitingRoomTutorial.TimeGuideFinished(CampaignRun.Instance.State);
         }
         bool GuideWaiting(CampaignRun run)
         {
             var s = run.State;
-            return s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide
+            return (s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night)
                 && s.Timer == RestTimerState.WaitingForExit;
         }
         void LateUpdate()
@@ -83,15 +80,16 @@ namespace CurtainCall.WaitingRoom
             // CampaignRun survives leaving/rehosting a room and the new run reuses generation/day 1.
             // End the acknowledgement period even when the component instance stays the same.
             if (tutorialRun != run || !waiting) { tutorialRun = run; tutorialDoneKey = ""; }
-            bool ready = waiting && GuideDone();
+            // Rehearsal suspends the ordinary guide, including its completion acknowledgement.
+            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+            bool ready = !rehearsing && waiting && GuideDone();
             if (ready)
             {
-                string key = run.State.Generation + "/" + run.State.Day;
+                string key = run.State.Generation + "/" + run.State.Day + "/" + run.State.Phase + "/" + run.State.Rest + "/" + run.State.PerformanceIndex;
                 if (tutorialDoneKey != key && run.NotifyTutorialDone()) tutorialDoneKey = key;
                 waiting = GuideWaiting(run);
             }
             // Rehearsal suspends teammates' ordinary guide; waiting for that guide here would deadlock it.
-            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
             bool teamLocked = !rehearsing && waiting && ready && player != null && player.State == PlayerState.Normal
                 && !SceneCurtainTransition.IsActive;
             InputGate.SetBlocking(teamLock, teamLocked);
@@ -113,26 +111,24 @@ namespace CurtainCall.WaitingRoom
             {
                 if (dayTransition == null) dayTransition = FindFirstObjectByType<DemoRunEnding>();
                 if (InputGate.IsBlocked || dayTransition != null && dayTransition.IsDayTitleVisible) { firstDayQuest.Hide(); return; }
-                firstDayQuest.Show("[tutorial] 다음 공연 준비하기",
-                    "대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요.");
+                firstDayQuest.Show(WaitingRoomText.Get("first-day.quest.prepare.title","[tutorial] 다음 공연 준비하기"),
+                    WaitingRoomText.Get("first-day.quest.prepare.body","대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요."));
                 return;
             }
             if (s.Day != 1) { firstDayQuest.Hide(); return; }
             string quest;
             // 추격 시간에는 추격 퀘스트(PursuitQuest)가 같은 자리를 쓴다.
-            if (s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Pursuit) { firstDayQuest.Hide(); return; }
+            if ((s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night) && s.Timer == RestTimerState.Pursuit) { firstDayQuest.Hide(); return; }
             if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
                 quest = s.Timer == RestTimerState.WaitingForExit ? "tutorial" : "gather";
             else if (s.Phase == CampaignPhase.Night)
             {
-                quest = run.IsLocalReady ? "night-wait" : NightBed.ScheduleReady ? "night-bed"
-                    : run.HasAuthority ? "night-schedule" : "night-schedule-wait";
+                quest = run.IsLocalReady ? "night-wait" : "night-bed";
             }
             else { firstDayQuest.Hide(); return; }
             if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
             if (gather == null) { firstDayQuest.Hide(); return; }
             // 정본의 밤 할 일 패널을 가리지 않고 그 아래에 연결 퀘스트를 놓는다.
-            firstDayQuest.SetMinimumTop(0f);
             firstDayQuest.Show(WaitingRoomText.Get("first-day.quest." + quest + ".title", "오늘 할 일"),
                 WaitingRoomText.Format("first-day.quest." + quest + ".body", "화면 안내에 따라 오늘 일정을 진행하세요.",
                     ("ready", s.ReadyCount), ("total", s.RequiredCount),

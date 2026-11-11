@@ -58,6 +58,7 @@ namespace CurtainCall.Player
         float verticalSpeed;
         Vector3 groundVelocity; // 땅에서의 수평 속도
         Vector3 airVelocity;    // 이륙 수평 속력을 보존하며 공중 입력은 방향을 바꾼다.
+        Vector3 unsupportedSlideVelocity;
         float laneTargetSide;   // 옆줄 점프 도착 줄의 옆 좌표(CourseRight 방향 월드 좌표)
         bool laneAlongLimited;  // 옆줄 점프 착지 지점을 앞뒤로 보정했으면 그 거리에서 멈춘다
         float laneTargetAlong;  // 보정한 착지 지점의 앞뒤 좌표(CourseForward 방향 월드 좌표)
@@ -293,6 +294,7 @@ namespace CurtainCall.Player
             ClearPendingInput();
             verticalSpeed = 0f;
             groundVelocity = Vector3.zero;
+            unsupportedSlideVelocity = Vector3.zero;
             IsMoving = false;
             ClearJump();
             if (airborne) CurrentJump = JumpKind.Fall;
@@ -414,7 +416,9 @@ namespace CurtainCall.Player
             IgnoreOtherPlayers();
             verticalSpeed = 0f;
             groundVelocity = Vector3.zero;
+            unsupportedSlideVelocity = Vector3.zero;
             SetAirborne(false);
+            IsMoving = false;
             ClearJump();
             Teleported?.Invoke();
         }
@@ -556,7 +560,9 @@ namespace CurtainCall.Player
                 || CurtainCall.EscapeRoute.EscapeSceneTransfer.HoldingForDeparture
                 || CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
             {
+                IsMoving = false;
                 ClearPendingInput();
+                unsupportedSlideVelocity = Vector3.zero;
                 return;
             }
 
@@ -634,6 +640,7 @@ namespace CurtainCall.Player
             controller.Move(step + Vector3.up * displacement.y);
             // 땅에서 걷다가 내리막·계단 때문에 발이 뜨면 같은 프레임에 발밑 땅으로 붙인다(전진 후 낙하 반복 방지).
             if (grounded && CurrentJump == JumpKind.None && !controller.isGrounded) SnapToGround(step.magnitude);
+            SlideOffUnsupportedEdge(step);
 
             // 입력은 한 프레임만 유효하다. 조작 규칙이 매 프레임 다시 넣는다.
             moveInput = 0f;
@@ -691,6 +698,51 @@ namespace CurtainCall.Player
             // Confirm the supporting surface itself before accepting a ground snap.
             return hit.collider.Raycast(new Ray(hit.point + Vector3.up * 0.05f, Vector3.down), out var face, 0.1f)
                 && face.normal.y >= minNormalY;
+        }
+
+        // PhysX can report a rounded capsule touching a furniture corner as grounded even
+        // though there is no walkable face beneath its feet. Only idle free movement sheds
+        // this false support; real platforms, input, jumps and externally driven motion keep
+        // their existing paths. Gravity supplies the slide rather than a scene-specific push.
+        void SlideOffUnsupportedEdge(Vector3 horizontalStep)
+        {
+            if (!FreeMovement || CurrentJump != JumpKind.None || !controller.isGrounded
+                || horizontalStep.sqrMagnitude > 0f || moveInput != 0f || sideInput != 0f
+                || WalkableSupport.TryGetSupport(this, transform.position, out var support)
+                    && Mathf.Abs(transform.position.y - support.point.y) <= controller.skinWidth + Physics.defaultContactOffset)
+            {
+                unsupportedSlideVelocity = Vector3.zero;
+                return;
+            }
+
+            float radius = BodyRadius, skin = controller.skinWidth;
+            int count = Physics.SphereCastNonAlloc(transform.position + Vector3.up * (radius * 2f + skin), radius,
+                Vector3.down, groundHits, (radius + skin) * 2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            float minNormalY = Mathf.Cos(controller.slopeLimit * Mathf.Deg2Rad);
+            float nearest = float.PositiveInfinity;
+            Vector3 normal = Vector3.zero;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = groundHits[i];
+                if (hit.collider == null || hit.distance <= 0f || hit.distance >= nearest
+                    || hit.normal.y <= 0f || hit.normal.y >= minNormalY
+                    || hit.collider.transform.IsChildOf(transform) || hit.collider.GetComponentInParent<PlayerMover>() != null) continue;
+                nearest = hit.distance;
+                normal = hit.normal;
+            }
+            if (normal == Vector3.zero)
+            {
+                unsupportedSlideVelocity = Vector3.zero;
+                return;
+            }
+
+            Vector3 acceleration = Vector3.ProjectOnPlane(Vector3.down * EffectiveGravity, normal);
+            // Keep its downward component too, so the corrective Move still samples the
+            // contact below instead of turning a horizontal-only Move into a false takeoff.
+            unsupportedSlideVelocity += acceleration * Time.deltaTime;
+            Vector3 correction = Vector3.ClampMagnitude(unsupportedSlideVelocity * Time.deltaTime, skin);
+            Vector3 horizontalCorrection = LimitAgainstPlayers(new Vector3(correction.x, 0f, correction.z));
+            controller.Move(horizontalCorrection + Vector3.up * correction.y);
         }
 
         bool CanLaneJump(int direction)

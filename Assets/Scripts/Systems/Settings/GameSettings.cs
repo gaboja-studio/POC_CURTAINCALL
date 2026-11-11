@@ -20,10 +20,10 @@ namespace CurtainCall.Settings
         [Tooltip("외줄 묘기 세팅(코스·진행·줄 위 동작·목마·보상).")]
         [SerializeField] TightropeSettings tightrope;
 
-        [Tooltip("인간대포 세팅(일반 점프 높이·이번 빌드 톱날 배치 비율·사선 각도).")]
+        [Tooltip("인간대포 코스 세팅(이번 빌드 톱날 배치 비율·사선 각도). 일반 바닥 점프는 Base Settings, 봉은 Poles, 트램펄린은 Trampoline에서 조정한다.")]
         [SerializeField] HumanCannonSettings humanCannon;
 
-        [Tooltip("모든 씬 공통 봉 조작·2인 연결·반동·도약·외형.")]
+        [Tooltip("일반 봉·스위치 봉의 공통 인원(1~4명)·반동 조작·매달림 시간·도약·외형. 이 칸에 연결된 PoleSettings 에셋을 선택해 조정한다.")]
         [SerializeField] PoleSettings poles;
         [Tooltip("모든 씬 공통 트램펄린 반동·운반·운반자 조건.")]
         [SerializeField] TrampolineSettings trampoline;

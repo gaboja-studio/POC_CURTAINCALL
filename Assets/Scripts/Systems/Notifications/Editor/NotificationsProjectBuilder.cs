@@ -20,7 +20,7 @@ namespace CurtainCall.Notifications.Editor
     public static class NotificationsProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_notifications_v1";
-        public const string PrefabRoot = "Assets/Resources/Prefabs/UIs/Notifications";
+        public const string PrefabRoot = "Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications";
         public const string ScenePath = "Assets/Scenes/Tests/Notifications/Notifications.unity";
         const string FontRoot = "Assets/Resources/Fonts/Notifications";
         static readonly string[] Names = { "SystemNotifications", "SystemBanner", "Toast" };
@@ -60,10 +60,10 @@ namespace CurtainCall.Notifications.Editor
                 }
             }
             string[] dependencies = {
-                "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab",
-                "Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab",
-                "Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab",
-                "Assets/Resources/Prefabs/UIs/BackstageHud/BackstageHud.prefab" };
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/BackstageHud/BackstageHud.prefab" };
             foreach (string path in dependencies)
                 if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) throw new InvalidOperationException("의존 프리팹 누락: " + path);
             string characters = Characters();

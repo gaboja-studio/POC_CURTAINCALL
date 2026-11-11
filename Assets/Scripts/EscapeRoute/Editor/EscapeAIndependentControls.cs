@@ -77,7 +77,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var ui = group.Find("장치 작동 알림");
             if (ui == null)
             {
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Notifications/SystemNotifications.prefab");
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/SystemNotifications.prefab");
                 if (prefab == null) throw new InvalidOperationException("Existing notifications prefab required");
                 var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, group);
                 Undo.RegisterCreatedObjectUndo(instance, "Device notification UI"); instance.name = "장치 작동 알림"; ui = instance.transform;

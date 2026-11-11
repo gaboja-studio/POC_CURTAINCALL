@@ -94,8 +94,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 var next = pending.Dequeue();
                 if (next.expires < Time.unscaledTime) continue;
-                bool displayed = next.intended > 0 ? view.TryShowCheer(next.slot, System.Math.Max(1, next.actual))
-                    : view.TryShowBoo(next.slot, -next.actual);
+                bool displayed = HudUIManager.ShowScoreFeedback(null,view,next.slot,next.intended > 0 ? System.Math.Max(1,next.actual) : -next.actual,next.intended > 0);
                 if (displayed && next.actual == 0 && amount != null) amount.text = string.Empty;
                 break;
             }
@@ -107,7 +106,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!context || view == null || amount == null || local == null || local.Slot < 0 || local.Slot > 3) return;
             // 제공 뷰는 양수 변화량을 요구한다. 정보성 손잡기는 같은 연출만 쓰고 숫자를 즉시 비운다.
             // 임의 점수를 지급하거나 +1을 화면에 표시하지 않는다.
-            if (view.TryShowCheer(local.Slot, 1, "손 잡아줌")) amount.text = string.Empty;
+            if (HudUIManager.ShowScoreFeedback("손 잡아줌",view,local.Slot,1,true)) amount.text = string.Empty;
         }
 
         public void Clear()
