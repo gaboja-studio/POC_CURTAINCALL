@@ -81,3 +81,44 @@
 - 2026-11-11 배터리 자리(사용자: 소켓 바로 앞): 설비실 소켓 앞 바닥(26.95,-5,76.7)에 FoundItemSpot(utility-room-battery, uid 51, 세대마다 1개). 배터리 모델 `Resources/ItemArt/Prefabs/power-battery.prefab`(Synty 자동차 배터리 0.55배, 약 27cm). 인벤토리 아이콘은 아직 없음. 씬 저장.
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-11 대기실 공간 프리팹화(사용자 요청)
+- 결정(사용자): 위치 `Assets/Resources/Prefabs/Spaces/WaitingRoom/`(새 분류), 범위는 WaitingRoom.unity만(WaitingRoomPursuit는 그대로).
+- `WaitingRoom_LayoutA` 아래 방 22곳을 같은 이름 프리팹으로 저장하고 씬 오브젝트를 인스턴스로 연결: S01~S12, LG_Lounge, P05_PipeZone, ST_Stairwell, WC_WestCorridor(꺼진 상태 유지), B1_* 6곳. 방이 아닌 묶음(ExplorationTimer·SecurityCctv·NightMaintenance·StructureAExploration·Frame8*·외벽 등)과 레거시 `WaitingRoomGreybox`는 씬에 그대로 둠. 방 안의 기존 중첩 프리팹은 중첩으로 유지.
+- 네트워크 오브젝트는 방 안에 없음. 방 밖에서 방 안을 가리키는 참조(PursuitRoom·NightPower·StructureA 경로 등)와 방 안에서 씬을 가리키는 참조는 그대로 연결(후자는 인스턴스 덮어쓰기, 22개 합계 376개).
+- 검증: 변환 전/후·저장 후 다시 연 씬 모두 컴포넌트 96,376개·씬 참조 5,278개·전체 Transform 위치/회전/크기/활성 상태 차이 0건. 씬 파일 약 74MB → 16MB, 프리팹 22개 합 63MB.
+- 오클루전 컬링: 기존 데이터(`Scenes/Tests/WaitingRoom/Base/WaitingRoomBase/OcclusionCullingData.asset`, WaitingRoomBase와 공유)는 렌더러 ID로 연결돼 프리팹 안 렌더러와 끊김 → WaitingRoom 전용으로 다시 구움(`Scenes/InGame/WaitingRoom/WaitingRoom/OcclusionCullingData.asset`). 공유 원본은 수정 안 함.
+- 주의: 방 구조를 다시 생성·삭제하는 옛 에디터 도구(WaitingRoomLayoutA·StructureA*Fix·WaitingRoomOverlapFix 등)는 프리팹 인스턴스 자식을 지우지 못한다. 다시 쓰려면 프리팹을 열어 실행하거나 도구를 고쳐야 함. 방 수정은 이제 프리팹 모드에서 하고, 씬에서 고친 값은 Apply 여부를 확인할 것.
+- EditMode 테스트(WaitingRoom 필터) 323개 중 318 통과, 5 실패는 모두 변경 전부터 있던 것: 문구 파일 키 2건, 편집 모드 DontDestroyOnLoad 2건, 추격 배치 비교 1건(PursuitSystem/S04_PropRoom/Mannequin_Male_04 Size=Medium, HEAD에도 동일·프리팹 밖). PlayMode·실제 플레이 미실행.
+- 함께 바뀐 파일 아님: Pretendard SDF 폰트 2개·escape-labels.asset·_ThirdParty 셰이더 2개는 에디터 사용 중 생긴 기존 변경으로 손대지 않음.
+
+## 2026-11-11 공간 프리팹 장소 기준 재분류(사용자 지적·승인)
+- 문제: 1차 프리팹화가 기존 하이어라키 묶음을 그대로 따라, 다른 방의 외벽·연결 통로·메자닌·지하 세부물이 로비·S11·계단실 프리팹 안에 있었음.
+- 옮김(월드 위치 유지): `S01_Lobby/Frame8Lobby/OuterSkin_{S04,S10,P05,S05}` → 각 방 / `Passage_F8_*` 6개·ServiceGallery·CargoDockConnection·PipeJunkLink → `FacilityConnections`(새 프리팹) / `DarkOuterShell`(시설 전체 외피) → `ExteriorEnclosure`(새 프리팹) / `S11_StageGear/HallMezzanine` → S12_CargoBay / `ST_Stairwell/EnvironmentDetail`의 OfficeLink·EscapeCorridor·EscapeEntrance·SealedExit·PlantOverhead·OldBoiler → 해당 B1 방, BasementRooms는 하위 21개를 위치대로 B1_Office(10)·B1_ChangingRoom(11)에 나눔. 계단실에는 EnvironmentDetail/Stairwell만 남음. 로비에는 돔·원형 바닥·벽 충돌체·AbandonedFactory 유지.
+- 방법: 관련 방 14곳 프리팹 연결을 풀고 재부모화 후 같은 경로에 다시 저장(GUID 유지). 프리팹 24개(방 22 + 연결 통로 + 외피).
+- 메자닌은 S11·S12 영역에 거의 반씩 걸쳐 있음(렌더러 517/573). 화물 적재장 위 데크 기준으로 S12에 넣음.
+- 검증: 메모리 비교 참조 5,278개 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 참조·컴포넌트 전부 일치, 위치 차이 최대 0.01m(반올림 경계). 오클루전 다시 구움. EditMode(WaitingRoom) 323 중 318 통과, 실패 5건은 이전과 같은 기존 실패.
+- 경로가 바뀐 곳: 옛 생성 도구(WaitingRoomLayoutA.M2/Polish2/Polish4/Polish5, StructureADoorVisualFix)는 옛 경로를 찾는다(이미 프리팹화로 재실행 불가 상태). CameraViewsPlayTests의 `S01_Lobby/Frame8Lobby/PipeJunkLink` 경로는 WaitingRoomBase·추격 씬 전용이라 영향 없음.
+- 프리팹 밖에 남긴 것: SecurityCctv·NightMaintenance 문·SupportFinishing 깃발 줄·BasementEscapeConnection·탐색 타이머 영역 등 여러 방에 걸친 시스템 묶음.
+
+## 2026-11-11 origin/dev 병합(공간 프리팹 재적용)
+- dev 4a081339(카메라 충돌면 보강 등)가 WaitingRoom.unity를 수정해 프리팹화 씬과 충돌. 브랜치에서 이 씬을 바꾼 커밋은 프리팹 커밋 2개뿐이라 dev 씬을 그대로 받고 같은 재분류·프리팹 저장(24개, GUID 유지)을 다시 적용.
+- 검증: dev 씬 대비 참조 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 dev 컴포넌트·참조 전부 포함(차이는 BasementRooms 분할뿐, 위치 오차 ≤0.01m 반올림). 오클루전 다시 구움.
+- EditMode(WaitingRoom) 323 중 319 통과. 실패 4: 기존 3건(문구 2·추격 배치 비교 1) + `WaitingRoomCameraCoverageTests` WaitingRoomBase 케이스("Repeated repair must not dirty the scene") — WaitingRoomBase는 dev 버전 그대로(이 브랜치 미수정)라 dev 쪽 실패로 판단, 담당자 확인 필요.
+
+## 2026-11-11 WaitingRoomBase도 공간 프리팹 연결(사용자 요청)
+- 같은 장소 재분류 후 방 24곳을 WaitingRoom 공간 프리팹에 `ConvertToPrefabInstance`로 연결. Base 내용은 그대로 유지: 프리팹에만 있는 것(천장 충돌체 등 컴포넌트 46개, 휴대 절단기·환풍구 절단 벽 등 오브젝트)은 제거 오버라이드, Base에만 있는 원래 벽 조각 7개(숙소 6·기계실 1)는 추가 오버라이드.
+- 함정: 같은 이름 형제가 여럿이면 연결 시 Unity가 프리팹 쪽 복사본으로 바꿔 넣어 외부 참조가 끊기고 Base 전용 컴포넌트가 빠진다. 방마다 원본 복제본을 떠 두고 연결 후 모든 오브젝트·컴포넌트 값을 복제본과 맞추고 외부 참조(방당 최대 65개)를 새 오브젝트로 다시 연결해 해결. 작업 중 에디터 활성 씬이 바뀌어 한 번 중단 — 이후 매 단계 씬 경로 확인.
+- 검증: 저장·재오픈 후 Base 원본과 이름·위치·컴포넌트·참조 비교 차이 0(BasementRooms 분할과 TMP 자동 생성 SubMeshUI 4개 제외, 위치 ≤0.01m 반올림). 씬 75MB→16MB, 공간 프리팹 파일 변경 없음. Base 오클루전 다시 구움(Base 폴더 기존 데이터 갱신).
+- 테스트 수정: `CameraViewsPlayTests` 천장 목록의 PipeJunkLink 경로를 FacilityConnections로(추격 씬은 옛 경로라 둘 다 찾음), `WaitingRoomTextTests.TargetKeysMatchSceneTargets`가 공간 프리팹·오버라이드의 targetId도 읽게 함.
+- 결과: PlayMode `WaitingRooms_Architecture` 3개 통과(Base·추격 천장). EditMode(WaitingRoom) 기존 실패 그대로 — 문구 2·추격 배치 1·카메라 커버리지 Base 1(dev부터)·`RehearsalCannonSourceTests.W6` forwardSpeed(dev PR #328 인간대포 씬 변경 관련, 이 작업과 무관)·편집 모드 DontDestroyOnLoad 2(간헐).
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-11 origin/dev 병합(PR #330 등) — 공간 프리팹 위에 반영
+- 충돌: dev 5af3a8a8이 WaitingRoom·WaitingRoomBase에서 운반 트램펄린 4개 겉모습(CC_PropArt)을 RoundCarryTrampolineVisual → CC_Trampoline으로 교체, Base에 천장·지붕 충돌체(Box 38·Mesh 8) 추가. 우리 쪽은 같은 씬을 프리팹 구조로 재저장해 텍스트 병합 불가.
+- 해결: 씬은 우리 쪽 유지. 트램펄린 교체는 S05·S09·S11 공간 프리팹에 반영(기본 위치·회전·크기, 형제 순서 6 동일). Base의 충돌체 '제거' 오버라이드 46개를 되돌려 프리팹 충돌체 사용.
+- 검증: dev 씬 대비 이름·위치·컴포넌트·참조 비교 차이 0(두 씬 모두, BasementRooms 분할만 다름). dev가 Base에 넣은 BoxCollider 38개 크기·중심 값이 모두 일치(MeshCollider 값은 비교 안 함). 두 씬 오클루전 다시 구움.
+- 테스트: EditMode(WaitingRoom) 338 중 335 통과, 실패 3은 기존(문구 2·추격 배치 1). 카메라 커버리지 Base·W6는 dev 반영으로 통과. PlayMode `WaitingRooms_Architecture` 3개 통과.
