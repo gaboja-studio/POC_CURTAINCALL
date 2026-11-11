@@ -299,7 +299,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [Test]
         public void ReleaseUsesLatestDriverInputEvenBeforeNextSimulationTick()
         {
-            Deliver(Two, 8, releaseDirection: 1f);
+            Deliver(Two, 8, speed: -5f, releaseDirection: 1f);
             var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
             var top = riders.GetValue(0);
             top.GetType().GetField("Input").SetValue(top, -1f);
@@ -307,8 +307,40 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var passenger = riders.GetValue(1);
             passenger.GetType().GetField("Input").SetValue(passenger, 1f);
             passenger.GetType().GetField("LastInput").SetValue(passenger, receiver.Clock);
-            typeof(HumanCannonPoleSystem).GetMethod("RefreshReleaseDirection", Instance).Invoke(receiver, new[] { runtime });
+            typeof(HumanCannonPoleSystem).GetMethod("RefreshSwingDrive", Instance).Invoke(receiver, new[] { runtime });
             Assert.That(runtime.GetType().GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
+        }
+
+        [Test]
+        public void BrakeStaysActiveThroughDirectionChangesUntilTheDriverLetsGo()
+        {
+            Deliver(Two, 8, speed: 30f, releaseDirection: 1f);
+            var type = runtime.GetType();
+            var riders = (Array)type.GetField("Riders").GetValue(runtime);
+            var top = riders.GetValue(0);
+            var input = top.GetType().GetField("Input");
+            top.GetType().GetField("LastInput").SetValue(top, receiver.Clock);
+            var refresh = typeof(HumanCannonPoleSystem).GetMethod("RefreshSwingDrive", Instance);
+            var braking = type.GetProperty("Braking");
+
+            input.SetValue(top, -1f);
+            refresh.Invoke(receiver, new[] { runtime });
+            Assert.IsTrue((bool)braking.GetValue(runtime));
+            Assert.That(type.GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(0f));
+
+            type.GetField("Speed").SetValue(runtime, -20f);
+            refresh.Invoke(receiver, new[] { runtime });
+            Assert.IsTrue((bool)braking.GetValue(runtime), "Holding the brake never turns it into a pump at the turn.");
+
+            input.SetValue(top, 0f);
+            refresh.Invoke(receiver, new[] { runtime });
+            Assert.IsFalse((bool)braking.GetValue(runtime));
+            type.GetField("Speed").SetValue(runtime, 0f);
+            type.GetField("Angle").SetValue(runtime, 0f);
+            input.SetValue(top, -1f);
+            refresh.Invoke(receiver, new[] { runtime });
+            Assert.IsFalse((bool)braking.GetValue(runtime));
+            Assert.That(type.GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
         }
 
         [Test]

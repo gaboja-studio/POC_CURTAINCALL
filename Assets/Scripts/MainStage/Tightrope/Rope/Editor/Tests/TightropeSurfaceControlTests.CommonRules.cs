@@ -128,10 +128,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    Assert.IsFalse(mover.FreeMovement);
   }
 
-  [TestCase(false, false)] [TestCase(false, true)]
-  [TestCase(true, false)] [TestCase(true, true)]
+  [TestCase(false, false, false)] [TestCase(false, true, false)]
+  [TestCase(true, false, false)] [TestCase(true, true, false)]
+  [TestCase(false, false, true)] [TestCase(true, true, true)]
   [Category("PiggybackRopeFlow")]
-  public void FallenRiderRegainsSoloRopeInputBeforeOldMountLinkArrives(bool tickWhileFalling, bool reverse)
+  public void FallenRiderRegainsSoloRopeInputBeforeOldMountLinkArrives(bool tickWhileFalling, bool reverse, bool carrierDied)
   {
    WithMountedPair((stack, follow, passenger) =>
    {
@@ -148,10 +149,21 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     if (reverse) passenger.ReverseCourseDirection();
     var originalForward = passenger.CourseForward;
 
-    Invoke(follow, "ReleaseForFall", rider);
     const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
     var localDrop = typeof(NetworkPlayer).GetField("localSupportDrop", fields);
-    localDrop.SetValue(rider, true);
+    if (carrierDied)
+    {
+     var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+     spawned.SetValue(player, false);
+     ((Unity.Netcode.NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", fields).GetValue(player)).Value = PlayerState.Fallen;
+     spawned.SetValue(player, true);
+     Invoke(follow, "LateUpdate");
+    }
+    else
+    {
+     Invoke(follow, "ReleaseForFall", rider);
+     localDrop.SetValue(rider, true);
+    }
     passenger.FreeMovement = true;
     riderBalance.SetBalanceActive(false);
     passenger.ResetExternalMotion(true);
@@ -281,6 +293,142 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     hangCurrent.SetValue(null,previousHang);
     local.SetValue(null,previousLocal); current.SetValue(null,previous);
    }
+  }
+
+  [TestCase(2, 0, PlayerState.Fallen)]
+  [TestCase(3, 1, PlayerState.Fallen)]
+  [TestCase(4, 2, PlayerState.Fallen)]
+  [TestCase(4, 3, PlayerState.Fallen)]
+  [TestCase(4, 0, PlayerState.Retired)]
+  public void InterruptedStackStopsFollowingBeforeTheHostUnlinks(int count, int interrupted, PlayerState state)
+  {
+   const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+   var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+   var oldPlayers = all.ToArray();
+   var localProperty = typeof(NetworkPlayer).GetProperty("Local");
+   var currentProperty = typeof(PiggybackSystem).GetProperty("Current");
+   var previousLocal = localProperty.GetValue(null);
+   var previousStack = currentProperty.GetValue(null);
+   var stack = MakeObject("Stack pending host unlink").AddComponent<PiggybackSystem>();
+   var follow = stack.gameObject.AddComponent<PiggybackFollow>();
+   var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", fields).GetValue(stack);
+   var above = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", fields).GetValue(stack);
+   var actors = new NetworkPlayer[count];
+   try
+   {
+    all.Clear(); currentProperty.SetValue(null, stack);
+    for (int i = 0; i < count; i++)
+    {
+     var actor = i == count - 1 ? player : MakeObject("Stack participant").AddComponent<NetworkPlayer>();
+     if (actor != player)
+     {
+      Invoke(actor.GetComponent<PlayerMover>(), "Awake");
+      Invoke(actor, "Awake");
+     }
+     typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(actor, (ulong)i);
+     actors[i] = actor;
+     all.Add(actor);
+     if (i > 0) { below[(ulong)i] = (ulong)(i - 1); above[(ulong)(i - 1)] = (ulong)i; }
+    }
+    localProperty.SetValue(null, player);
+    typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, true);
+    Invoke(follow, "Awake");
+    Invoke(follow, "LateUpdate");
+    Assert.IsFalse(mover.Simulated);
+
+    var removed = actors[interrupted];
+    ((Unity.Netcode.NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", fields).GetValue(removed)).Value = state;
+    var fallenFeet = origin + new Vector3(1, -2, 3);
+    removed.transform.position = fallenFeet;
+    if (removed != player) player.transform.position = fallenFeet + Vector3.right;
+    var previousFeet = player.transform.position;
+
+    Invoke(follow, "LateUpdate");
+    Assert.AreEqual(fallenFeet, removed.transform.position);
+    Assert.AreEqual(previousFeet, player.transform.position);
+    Assert.IsNotNull(stack.GetBelow(player), "The host unlink is intentionally delayed.");
+    Assert.IsFalse((bool)Invoke(player, "HeldAboveGround"));
+    Assert.IsTrue(mover.Simulated, "No passenger may keep the movement lock from the old stack.");
+
+    Invoke(stack, "ServerResolveFalls");
+    Assert.IsNull(stack.GetBelow(player));
+    for (int i = 1; i < interrupted; i++)
+     Assert.AreSame(actors[i - 1], stack.GetBelow(actors[i]), "The surviving lower part of the stack stays attached.");
+   }
+   finally
+   {
+    all.Clear(); all.AddRange(oldPlayers);
+    localProperty.SetValue(null, previousLocal); currentProperty.SetValue(null, previousStack);
+   }
+  }
+
+  [TestCase(1)] [TestCase(2)] [TestCase(3)]
+  public void NonfatalLimbLossKeepsMountedSupportAndRiderJumpInput(int lost)
+  {
+   WithMountedPair((stack, follow, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var condition = rider.gameObject.AddComponent<PlayerCondition>();
+    condition.SetLostParts(PlayerCondition.PartsForLostCount(lost));
+    var damage = rider.gameObject.AddComponent<CurtainCall.Damage.BodyDamageEffects>();
+    Invoke(damage, "Awake");
+    Invoke(damage, "Update");
+    var reader = rider.GetComponent<PlayerInputReader>() ?? rider.gameObject.AddComponent<PlayerInputReader>();
+    var field = typeof(PlayerInputReader).GetProperty("Current");
+    field.SetValue(reader, new PlayerInputFrame { ActionPressed = true });
+    Invoke(follow, "LateUpdate");
+    Assert.AreEqual(PlayerState.Normal, rider.State);
+    Assert.AreSame(player, stack.GetBelow(rider));
+    Assert.IsTrue((bool)Invoke(rider, "HeldAboveGround"));
+    Assert.IsFalse(passenger.Simulated);
+    Assert.AreEqual(passenger.JumpAllowed ? JumpKind.InPlace : JumpKind.None, follow.PresentationJump(rider));
+    Assert.AreEqual(GameSettings.Base.BodyDamage.JumpHeightForLostLegs(condition.LostLegCount), passenger.JumpHeightMultiplier);
+   });
+  }
+
+  [TestCase(0)]
+  [TestCase(1)]
+  public void MountedJumpHonorsTheSameInjuryInputLocksAsTheGround(int direction)
+  {
+   WithMountedPair((_, follow, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var reader = rider.GetComponent<PlayerInputReader>() ?? rider.gameObject.AddComponent<PlayerInputReader>();
+    passenger.FreeMovement = direction == 0;
+    passenger.LaneJumpFilter = _ => true;
+    passenger.JumpAllowed = passenger.LaneJumpAllowed = false;
+    typeof(PlayerInputReader).GetProperty("Current").SetValue(reader,
+     new PlayerInputFrame { ActionPressed = true, AuxDirection = direction });
+    Invoke(follow, "UpdateHop", rider);
+    Assert.AreEqual(JumpKind.None, follow.PresentationJump(rider));
+    Assert.IsFalse(passenger.Simulated);
+    passenger.JumpAllowed = passenger.LaneJumpAllowed = true;
+    Invoke(follow, "UpdateHop", rider);
+    Assert.AreEqual(direction == 0 ? JumpKind.InPlace : JumpKind.Lane, follow.PresentationJump(rider));
+   });
+  }
+
+  [Test]
+  public void RelocatingAHangingPlayerClearsTheGripWithoutStartingAnotherFall()
+  {
+   var root = MakeObject("Previous rope grip");
+   root.SetActive(false);
+   var hangs = root.AddComponent<TightropeHangSystem>();
+   const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+   var book = (TightropeHangBook)typeof(TightropeHangSystem).GetField("book", fields).GetValue(hangs);
+   book.Begin(player.OwnerClientId, 0, 4f, 7d, 0d);
+   Invoke(hangs, "BindLocal", player, mover, balance);
+   Assert.IsTrue(hangs.IsHanging(player));
+   Assert.IsFalse(mover.Body.enabled);
+
+   var checkpoint = origin + new Vector3(2, 0, 3);
+   mover.Relocate(checkpoint, Quaternion.identity);
+   Assert.IsFalse(hangs.IsHanging(player));
+   Assert.IsFalse(mover.IsAirborne);
+   Assert.IsTrue(mover.Simulated);
+   Assert.IsTrue(mover.Body.enabled);
+   Assert.IsFalse(balance.IsSuspended);
+   Assert.AreEqual(checkpoint, player.transform.position);
   }
 
   public enum RecoverySurface { RopeStart, RopeEnd, AdjacentRope, Platform }

@@ -35,6 +35,14 @@ namespace CurtainCall.HumanCannon
             return true;
         }
 
+        public bool TryReleaseRider(ulong actor)
+        {
+            if (actor == CannonSeatState.Nobody || Rider != actor) return false;
+            Rider = CannonSeatState.Nobody;
+            Revision++;
+            return true;
+        }
+
         public bool Tick(double now)
         {
             if (Phase != DeparturePhase.Moving && Phase != DeparturePhase.Returning || !ValidTime(now)
@@ -69,8 +77,7 @@ namespace CurtainCall.HumanCannon
             bool valid = phase switch
             {
                 DeparturePhase.Waiting => rider == CannonSeatState.Nobody && startedAt == 0 && duration == 0,
-                DeparturePhase.Moving or DeparturePhase.Arrived or DeparturePhase.Returning => rider != CannonSeatState.Nobody
-                    && ValidTravel(startedAt, duration),
+                DeparturePhase.Moving or DeparturePhase.Arrived or DeparturePhase.Returning => ValidTravel(startedAt, duration),
                 _ => false
             };
             if (!valid) return false;

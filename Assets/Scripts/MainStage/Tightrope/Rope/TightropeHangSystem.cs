@@ -77,14 +77,16 @@ namespace CurtainCall.Tightrope
         void OnEnable()
         {
             Current = this;
-            NetworkPlayer.Restarted += RemovePendingHangOnRestart;
+            NetworkPlayer.Restarted += ClearPlayerHang;
+            NetworkPlayer.Revived += ClearPlayerHang;
             PlayerBalance.GaugeFallCatcher = CatchLocalGaugeFall;
             PlayerController.InputInterceptor = InterceptInput;
         }
 
         void OnDisable()
         {
-            NetworkPlayer.Restarted -= RemovePendingHangOnRestart;
+            NetworkPlayer.Restarted -= ClearPlayerHang;
+            NetworkPlayer.Revived -= ClearPlayerHang;
             if (PlayerController.InputInterceptor == InterceptInput) PlayerController.InputInterceptor = null;
             if (PlayerBalance.GaugeFallCatcher == (Func<PlayerBalance, bool>)CatchLocalGaugeFall) PlayerBalance.GaugeFallCatcher = null;
             if (localPullHeld) Send(Request.Cancel);
@@ -112,9 +114,18 @@ namespace CurtainCall.Tightrope
             UpdateLocal();
         }
         int lastRound;
-        void RemovePendingHangOnRestart(NetworkPlayer player)
+        void ClearPlayerHang(NetworkPlayer player)
         {
-            if (player != null) pendingHangs.Remove(player.OwnerClientId);
+            if (player == null) return;
+            ulong actor = player.OwnerClientId;
+            pendingHangs.Remove(actor);
+            bool changed = book.Remove(actor);
+            foreach (var hang in book.All)
+                if (hang.Rescuer == actor) changed |= book.CancelPull(hang.Id);
+            if (localHang?.Player == player) DetachLocalHang();
+            if (player.IsLocal) localPullHeld = false;
+            UpdateRescuerBalance();
+            if (changed && IsHost) Publish();
         }
 
         // ── 호스트 ────────────────────────────────────────────
@@ -341,23 +352,31 @@ namespace CurtainCall.Tightrope
 
         void OnLocalTeleported()
         {
-            if (!placing) ReleaseLocal(false);
+            if (!placing && localHang != null) ClearPlayerHang(localHang.Player);
         }
 
-        /// <summary>몸을 놓는다. <paramref name="onRope"/>면 줄 위 그 지점으로 올리고 균형을 처음부터 시작한다.</summary>
-        void ReleaseLocal(bool onRope, Vector3 rope = default)
+        LocalHang DetachLocalHang()
         {
             var held = localHang;
             localHang = null;
-            if (held == null) return;
+            if (held == null) return null;
             if (held.Balance != null) held.Balance.IsSuspended = false;
-            if (held.Mover == null) return;
+            if (held.Mover == null) return held;
             var mover = held.Mover;
             mover.Teleported -= OnLocalTeleported;
             // 매달림은 목마가 끊긴 뒤라 줄 위 단독 상태로 돌아간다(목마 위층의 추종 값은 되살리지 않는다).
             if (mover.Body != null) mover.Body.enabled = true;
             mover.ClearPendingInput();
             mover.Simulated = true;
+            return held;
+        }
+
+        /// <summary>몸을 놓는다. <paramref name="onRope"/>면 줄 위 그 지점으로 올리고 균형을 처음부터 시작한다.</summary>
+        void ReleaseLocal(bool onRope, Vector3 rope = default)
+        {
+            var held = DetachLocalHang();
+            if (held == null || held.Mover == null) return;
+            var mover = held.Mover;
             if (!onRope) { mover.ResetExternalMotion(true); return; }
             held.Balance?.ResetBalance();
             mover.Relocate(rope, RopeRotationAt(rope));

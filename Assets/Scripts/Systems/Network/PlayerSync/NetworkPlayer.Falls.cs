@@ -119,7 +119,7 @@ namespace CurtainCall.Network.PlayerSync
             || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(OwnerClientId) >= 0
             || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsSeated(OwnerClientId)
             || TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(this)
-            || !IsDroppingFromSupport && PiggybackSystem.Current != null && PiggybackSystem.Current.GetBelow(this) != null;
+            || PiggybackSystem.Current != null && PiggybackSystem.Current.GetSupportingPlayer(this) != null;
 
         void LateUpdate()
         {
