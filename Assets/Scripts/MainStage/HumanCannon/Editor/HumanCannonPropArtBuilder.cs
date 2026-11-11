@@ -95,7 +95,7 @@ namespace CurtainCall.HumanCannon.EditorTools
             if (scene.path != HumanCannonTestSceneBuilder.ScenePath && scene.path != Waiting)
                 throw new InvalidOperationException("Only HumanCannon and WaitingRoomBase are supported.");
             var cannon = AssetDatabase.LoadAssetAtPath<GameObject>(Art + "/Prefabs/CC_Cannon.prefab");
-            var trampoline = AssetDatabase.LoadAssetAtPath<GameObject>(Art + "/Prefabs/CC_Trampoline.prefab");
+            var trampoline = CurtainCall.Settings.GameSettings.Trampoline.VisualPrefab;
             if (!cannon || !trampoline) throw new InvalidOperationException("Build prop prefabs first.");
             var all = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(true)).ToArray();
             int cannons = 0, trampolines = 0;
@@ -110,24 +110,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                     { Replace(station.transform, cannon); cannons++; }
                     foreach (var t in all.Select(t => t.GetComponent<HumanCannonTrampoline>()).Where(c => c != null))
                     {
-                        var visual = Replace(t.transform, trampoline);
-                        var config = new SerializedObject(t);
-                        config.FindProperty("usePropOutline").boolValue = true;
-                        config.ApplyModifiedProperties();
-                        // Route the visible grip through the original Handle, so held tint remains functional.
-                        var old = t.Handle.Find(GripName);
-                        if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
-                        var source = visual.GetComponentsInChildren<MeshFilter>().Single(f => f.name == "Handle");
-                        var grip = new GameObject(GripName);
-                        Undo.RegisterCreatedObjectUndo(grip, "Create grip art");
-                        grip.transform.SetParent(t.Handle, false);
-                        grip.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
-                        grip.transform.localScale = new Vector3(source.transform.lossyScale.x / t.Handle.lossyScale.x,
-                            source.transform.lossyScale.y / t.Handle.lossyScale.y, source.transform.lossyScale.z / t.Handle.lossyScale.z);
-                        grip.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
-                        grip.AddComponent<MeshRenderer>().sharedMaterial = source.GetComponent<Renderer>().sharedMaterial;
-                        source.GetComponent<Renderer>().enabled = false;
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(source.GetComponent<Renderer>());
+                        ApplyCommonTrampoline(t.gameObject);
                         trampolines++;
                     }
                 }
@@ -146,6 +129,42 @@ namespace CurtainCall.HumanCannon.EditorTools
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
             return $"{scene.path}: cannons={cannons}, trampolines={trampolines}; gameplay components and colliders retained";
+        }
+
+        /// <summary>외형과 손잡이 참조만 교체한다. 루트 배치·기물 수치·충돌·대포는 유지한다.</summary>
+        public static void ApplyCommonTrampoline(GameObject target)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Stop Play mode first.");
+            var prefab = CurtainCall.Settings.GameSettings.Trampoline.VisualPrefab;
+            if (prefab == null || prefab.transform.Find("Handle") == null)
+                throw new InvalidOperationException("TrampolineSettings needs a common visual with a Handle.");
+            var visual = Replace(target.transform, prefab);
+            if (target.TryGetComponent<HumanCannonTrampoline>(out var trampoline))
+            {
+                var data = new SerializedObject(trampoline);
+                data.FindProperty("handle").objectReferenceValue = visual.transform.Find("Handle");
+                data.ApplyModifiedProperties();
+                EditorUtility.SetDirty(trampoline);
+                if (PrefabUtility.IsPartOfPrefabInstance(trampoline)) PrefabUtility.RecordPrefabInstancePropertyModifications(trampoline);
+            }
+        }
+
+        [MenuItem("Tools/CurtainCall/트램펄린/현재 씬 공통 외형 적용")]
+        static void ApplyCommonTrampolinesOpenScene() => Debug.Log(ApplyCommonTrampolines(SceneManager.GetActiveScene()));
+
+        public static string ApplyCommonTrampolines(Scene scene)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || !scene.IsValid() || scene.isDirty)
+                throw new InvalidOperationException("Use a saved scene outside Play mode.");
+            var targets = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true))
+                .Where(t => t.GetComponent<HumanCannonTrampoline>() != null || t.name == "PracticeTrampoline" || t.name == "CarryTrampoline").ToArray();
+            foreach (var target in targets) ApplyCommonTrampoline(target.gameObject);
+            if (targets.Length > 0)
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Trampoline visual save failed.");
+            }
+            return scene.name + ": common trampoline visuals=" + targets.Length;
         }
 
         static GameObject Replace(Transform target, GameObject prefab)

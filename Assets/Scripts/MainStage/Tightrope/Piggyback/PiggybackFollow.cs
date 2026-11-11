@@ -37,6 +37,8 @@ namespace CurtainCall.Tightrope
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
 
         static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player);
+        public float LocalHopHeight(NetworkPlayer player) => player != null && player.IsLocal && hopping && launchedAt < 0f
+            && system != null && system.GetBelow(player) != null ? Mathf.Max(0f, hopHeight) : 0f;
 
         /// <summary>목마가 위치를 맡은 위 사람의 표시용 점프. 이동·높이·균형 판정은 바꾸지 않는다.</summary>
         public JumpKind PresentationJump(NetworkPlayer player)
@@ -169,11 +171,10 @@ namespace CurtainCall.Tightrope
             above.transform.SetPositionAndRotation(HeadOf(below) + Vector3.up * hop, rotation);
         }
 
-        /// <summary>남의 위 사람: 위치 공유로 받은 높이가 머리보다 높으면 제자리 점프 중인 높이로 본다.</summary>
+        /// <summary>두 사람의 위치 보간 시차를 점프로 오인하지 않고 소유자가 보낸 실제 목마 점프 높이를 쓴다.</summary>
         static float RemoteHop(NetworkPlayer above, NetworkPlayer below)
         {
-            float hop = above.transform.position.y - HeadOf(below).y;
-            return hop >= RemoteHopMin ? hop : 0f;
+            return above.PiggybackHopHeight;
         }
 
         /// <summary>내 캐릭터가 맨 위에 있을 때 SB 입력을 처리하고 제자리 점프 높이를 갱신한다.</summary>

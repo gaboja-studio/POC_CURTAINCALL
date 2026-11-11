@@ -115,7 +115,7 @@ namespace CurtainCall.UI.SceneIntegration
             voteInput = InputBindingPreferences.CreateDraft();
             firstVote = voteInput.FindAction("Common/VotePrimary", true);
             secondVote = voteInput.FindAction("Common/VoteSecondary", true);
-            voteLabels = new[] { firstVote.GetBindingDisplayString(0), secondVote.GetBindingDisplayString(0) };
+            voteLabels = new[] { InputBindingPreferences.KeyLabel(firstVote.bindings[0].effectivePath), InputBindingPreferences.KeyLabel(secondVote.bindings[0].effectivePath) };
             firstVote.Enable(); secondVote.Enable();
             foreach (var card in cards)
                 if (card && card.role == HudRole.Vote) card.SetShortcutLabels(voteLabels);

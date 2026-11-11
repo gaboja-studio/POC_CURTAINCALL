@@ -9,11 +9,11 @@ namespace CurtainCall.EscapeRoute
     public sealed partial class EscapeExitSaw
     {
         [SerializeField] EscapeCuttableCable[] cables = Array.Empty<EscapeCuttableCable>();
-        [Tooltip("배선 없이도 들고 있으면 톱날을 발사한다(대기실 휴대 절단기, 통로 기믹 CC-253). 끊을 배선은 CC-256에서 연결한다.")]
+        [Tooltip("연결된 배선이 없어도 사용 키로 톱날을 발사할 수 있습니다. 배선 대상은 별도로 연결합니다.")]
         [SerializeField] bool fireWithoutCables;
         [SerializeField] Transform muzzle;
         [SerializeField] GameObject projectileVisual;
-        [SerializeField, Min(.1f)] float shotInterval = 2f;
+        float shotInterval => CurtainCall.Settings.GameSettings.Base.CarryDevices.SawShotInterval;
         [SerializeField, Min(.1f)] float projectileSpeed = 18f;
         [Tooltip("0이면 시간/사거리 제한 없이 지형에 닿을 때 소멸한다.")]
         [SerializeField, Min(0f)] float projectileLifetime = 2.5f;
@@ -38,11 +38,10 @@ namespace CurtainCall.EscapeRoute
         readonly Vector3[] cutPoints = new Vector3[32];
         readonly RaycastHit[] shotHits = new RaycastHit[64];
         readonly Collider[] shotOverlaps = new Collider[64];
-        uint cutMask, shotSerial, shootingEpoch, lastPresentedShot, courseEpoch;
+        uint cutMask, shotSerial, lastPresentedShot, courseEpoch;
         float shotWait, recoilTime;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
-        bool shotArmed;
         Vector3 recoilRest;
         public bool ProjectileMode => fireWithoutCables || cables != null && cables.Length > 0;
         public int RequiredCableCount => BitCount(RequiredMask);
@@ -72,7 +71,7 @@ namespace CurtainCall.EscapeRoute
         void InitializeProjectilePresentation() { if (recoilVisual != null) recoilRest = recoilVisual.localPosition; }
         void ClearShots()
         {
-            shots.Clear(); shotArmed = false; shotWait = Mathf.Max(.1f, shotInterval); recoilTime = 0;
+            shots.Clear(); shotWait = 0; recoilTime = 0;
             for (int i = 0; i < projectilePool.Length; i++) if (projectilePool[i] != null) projectilePool[i].SetActive(false);
             if (recoilVisual != null) recoilVisual.localPosition = recoilRest;
             if (launchAudio != null) launchAudio.Stop();
@@ -82,11 +81,11 @@ namespace CurtainCall.EscapeRoute
         {
             // 발사된 무제한 톱날은 장치를 내려놓거나 다른 사람이 들어도 계속 이동한다.
             if (!UnlimitedProjectiles) { ClearShots(); return; }
-            shotArmed = false; shotWait = Mathf.Max(.1f, shotInterval); recoilTime = 0;
+            shotWait = 0; recoilTime = 0;
         }
         void ResetProjectileCourse()
         {
-            ClearShots(); cutMask = shotSerial = shootingEpoch = lastPresentedShot = 0;
+            ClearShots(); cutMask = shotSerial = lastPresentedShot = 0;
             Array.Clear(cutPoints, 0, cutPoints.Length);
             PresentCables(false);
         }
@@ -106,11 +105,8 @@ namespace CurtainCall.EscapeRoute
             uint beforeMask = cutMask;
             int beforeCount = shots.Count;
             StepProjectiles(deltaTime, true);
-            bool eligible = !carryBlocked && ownership.IsOccupied && Grounded(carrier)
-                && Vector3.Distance(Handle.position, carrier.transform.position + Vector3.up * carryHandleHeight) < .3f;
-            bool fired = AdvanceShotClock(deltaTime, eligible);
-            if (fired) SpawnProjectile();
-            if (cutting || beforeMask != cutMask || beforeCount != shots.Count || fired)
+            shotWait = Mathf.Max(0, shotWait - deltaTime);
+            if (cutting || beforeMask != cutMask || beforeCount != shots.Count)
             {
                 cutting = false; stateRevision++;
                 Publish(); nextPublish = Time.unscaledTimeAsDouble + .1;
@@ -118,19 +114,13 @@ namespace CurtainCall.EscapeRoute
             else if (Time.unscaledTimeAsDouble >= nextPublish)
             { nextPublish = Time.unscaledTimeAsDouble + .1; Publish(); }
         }
-        bool AdvanceShotClock(float deltaTime, bool eligible)
+        bool TryFire(NetworkPlayer carrier)
         {
-            if (!eligible || !float.IsFinite(deltaTime) || deltaTime < 0)
-            { shotArmed = false; shotWait = Mathf.Max(.1f, shotInterval); return false; }
-            if (!shotArmed || shootingEpoch != ownership.Revision)
-            {
-                shotArmed = true; shootingEpoch = ownership.Revision; shotWait = Mathf.Max(.1f, shotInterval);
-                return false;
-            }
-            shotWait = Mathf.Max(0, shotWait - deltaTime);
-            if (shotWait > 0 || shots.Count >= MaxProjectiles) return false;
-            // 느린 프레임 뒤에도 한 발만 발사하고 다음 간격은 새로 센다.
+            if (!ProjectileMode || carryBlocked || carrier == null || Carrier != carrier.OwnerClientId || !Grounded(carrier)
+                || Vector3.Distance(Handle.position, carrier.transform.position + Vector3.up * carryHandleHeight) >= .3f
+                || shotWait > 0 || shots.Count >= MaxProjectiles) return false;
             shotWait = Mathf.Max(.1f, shotInterval);
+            SpawnProjectile();
             return true;
         }
         void SpawnProjectile()

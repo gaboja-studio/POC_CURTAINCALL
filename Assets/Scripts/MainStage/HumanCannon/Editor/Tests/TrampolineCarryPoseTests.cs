@@ -3,8 +3,43 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
+        [Test]
+        public void CarriedBodyCannotSkipAcrossAThinWallBetweenClearEndpoints()
+        {
+            var root = new GameObject("Carry sweep probe");
+            var wall = new GameObject("Thin wall");
+            try {
+                root.transform.position = new Vector3(12000, 100, 12000);
+                var body = root.AddComponent<BoxCollider>(); body.size = new Vector3(1, .5f, 1);
+                var obstacle = wall.AddComponent<BoxCollider>(); obstacle.size = new Vector3(4, 4, .05f);
+                wall.transform.position = root.transform.position + Vector3.forward * 2;
+                Physics.SyncTransforms();
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.forward, Quaternion.identity, null));
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.forward * 4, Quaternion.identity, null));
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.forward * 4, Quaternion.identity, null, false));
+            } finally { Object.DestroyImmediate(root); Object.DestroyImmediate(wall); }
+        }
+
+        [Test]
+        public void RotatingCarriedBodyCannotSweepThroughAnObstacle()
+        {
+            var root = new GameObject("Turning carry probe");
+            var wall = new GameObject("Corner obstacle");
+            try {
+                root.transform.position = new Vector3(12000, 100, 12000);
+                var body = root.AddComponent<BoxCollider>(); body.size = new Vector3(4, .5f, .3f);
+                wall.AddComponent<BoxCollider>().size = Vector3.one * .2f;
+                wall.transform.position = root.transform.position + new Vector3(1.3f, 0, -1.3f);
+                Physics.SyncTransforms();
+                var turn = Quaternion.Euler(0, 90, 0);
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, root.transform.position, turn, null, false));
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, root.transform.position, turn, null));
+            } finally { Object.DestroyImmediate(root); Object.DestroyImmediate(wall); }
+        }
+
         [TestCase(0f, 1f)]
         [TestCase(0f, -1f)]
         [TestCase(1f, 0f)]

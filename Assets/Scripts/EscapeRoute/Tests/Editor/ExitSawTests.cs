@@ -9,6 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.EscapeRoute.Tests
 {
+    [Category("November11CommonFix")]
     public sealed partial class ExitSawTests
     {
         const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;

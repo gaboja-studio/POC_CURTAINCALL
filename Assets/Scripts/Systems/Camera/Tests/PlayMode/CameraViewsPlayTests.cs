@@ -31,6 +31,32 @@ namespace CurtainCall.Cameras.Tests
 
         Component Mover => local.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
 
+        [UnityTest, Category("November11CommonFix")]
+        public IEnumerator FreeThirdPersonCrouchLowersViewAndStaysInsideLowPassage()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(new Vector3(1000, 30, 1000));
+            var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
+            Call(director, "RequestView", director, preset, 999, Vector3.forward);
+            SetView(0, 0); yield return Seconds(1f);
+            float standing = Camera.main.transform.position.y;
+            Call(Mover, "SetRemoteCrouched", true); yield return Seconds(.3f);
+            float crouched = Camera.main.transform.position.y;
+            Assert.Less(crouched, standing - .3f, "Crouching changes the actual third-person camera, not just its collision pivot.");
+            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try {
+                roof.transform.position = local.transform.position + new Vector3(0, 1.2f, -2f);
+                roof.transform.localScale = new Vector3(1.3f, .15f, 6f); Physics.SyncTransforms();
+                yield return Frames(3);
+                Assert.Less(Camera.main.transform.position.y + Camera.main.nearClipPlane, roof.GetComponent<Collider>().bounds.min.y,
+                    "The view and near plane stay underneath a low ventilation ceiling.");
+                roof.SetActive(false); Physics.SyncTransforms();
+                Call(Mover, "SetRemoteCrouched", false); yield return Seconds(1.5f);
+                Assert.That(Camera.main.transform.position.y, Is.EqualTo(standing).Within(.1f));
+            } finally { Call(director, "ReleaseView", director); Object.Destroy(roof); }
+        }
+
         [UnityTest]
         public IEnumerator EscapeWallRetractsArmWithoutTurningTheViewOrMovementHeading()
         {
@@ -177,14 +203,14 @@ namespace CurtainCall.Cameras.Tests
             finally { Object.Destroy(wall); }
         }
 
-        [UnityTest]
-        public IEnumerator WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera()
+        [UnityTest, Category("November11CommonFix")]
+        public IEnumerator WaitingRoomPursuit_PhysicalCeilingBlocksPlayerAndCamera()
         {
             yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
             var roof = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Shell/Ceiling");
             Assert.IsNotNull(roof);
             Assert.IsNotNull(roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface")));
-            Assert.IsNull(roof.GetComponent<Collider>(), "Camera-only bounds must not add player/NavMesh obstacles.");
+            Assert.IsNotNull(roof.GetComponent<Collider>(), "Physical ceilings must also stop trampoline flights.");
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             var bounds = roof.GetComponent<Renderer>().bounds;
@@ -204,8 +230,10 @@ namespace CurtainCall.Cameras.Tests
                 float withoutSurface = Camera.main.transform.position.y;
                 surface.enabled = true;
                 yield return Frames(2);
-                Assert.Greater(withoutSurface, Camera.main.transform.position.y + .2f,
-                    "The real decorative ceiling must shorten the arm independently of physics colliders.");
+                Assert.Less(withoutSurface, bounds.min.y, "Physical ceiling also blocks the camera with decoration coverage disabled.");
+                var body = (CharacterController)Get(Mover, "Body");
+                var collision = body.Move(Vector3.up * 10f);
+                Assert.IsTrue((collision & CollisionFlags.Above) != 0, "Trampoline-like upward motion must hit the real ceiling.");
             }
             finally { surface.enabled = true; foreach (var other in others) if (other != null) other.enabled = true; }
         }

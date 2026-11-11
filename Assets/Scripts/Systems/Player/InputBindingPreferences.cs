@@ -37,9 +37,17 @@ namespace CurtainCall.Player
                 PartName = binding.name;
                 BindingIndex = index;
                 Path = binding.effectivePath;
-                DisplayName = action.GetBindingDisplayString(index);
+                DisplayName = KeyLabel(binding.effectivePath);
                 IsPartOfComposite = binding.isPartOfComposite;
             }
+        }
+
+        /// <summary>현재 IME/자판의 문자 대신 재지정된 물리 키 이름을 표시한다(F가 ㄹ로 바뀌지 않는다).</summary>
+        public static string KeyLabel(string path, string fallback = "")
+        {
+            if (string.IsNullOrEmpty(path)) return fallback;
+            string label = InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+            return string.IsNullOrWhiteSpace(label) ? fallback : label;
         }
 
         [Serializable] sealed class SavedBindings
@@ -79,15 +87,14 @@ namespace CurtainCall.Player
                             throw new ArgumentException("Invalid saved key");
                         action.ApplyBindingOverride(index, path);
                     }
-                    // An older profile may already use Z/X. Preserve its mappings and give only
-                    // the newly introduced vote action an unused key (shown in Settings and on the card).
+                    // Preserve older mappings when a newly introduced action shares their default key.
                     var assigned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     var entries = GetBindings(draft);
                     foreach (var b in entries)
-                        if (!IsNewVote(b)) assigned.Add(b.Path);
+                        if (!IsNewAction(b)) assigned.Add(b.Path);
                     var displaced = new List<BindingEntry>();
                     foreach (var b in entries)
-                        if (IsNewVote(b) && !assigned.Add(b.Path)) displaced.Add(b);
+                        if (IsNewAction(b) && !assigned.Add(b.Path)) displaced.Add(b);
                     foreach (var b in displaced)
                             foreach (char key in "zxcvbnjkluiopghyrt")
                             {
@@ -96,8 +103,8 @@ namespace CurtainCall.Player
                                 draft.FindActionMap(MapName).FindAction(b.ActionName).ApplyBindingOverride(b.BindingIndex, free);
                                 break;
                             }
-                    bool IsNewVote(BindingEntry b) =>
-                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary") &&
+                    bool IsNewAction(BindingEntry b) =>
+                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary" || b.ActionName == "UseDevice") &&
                         !saved.bindings.Exists(s => s.bindingId == b.BindingId.ToString());
                     if (!TryValidateDraft(draft, out _)) draft.RemoveAllBindingOverrides();
                 }

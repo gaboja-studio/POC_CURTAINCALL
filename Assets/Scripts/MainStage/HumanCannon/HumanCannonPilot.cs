@@ -69,6 +69,7 @@ namespace CurtainCall.HumanCannon
             {
                 if (CommonInteractionSelection.Allows(player, carried) && latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
                     carried.RequestDrop();
+                else if (input.UseDevicePressed) carried.RequestUse();
                 return;
             }
             var carryTarget = HumanCannonCarry.FindGrabbable(player);
@@ -269,7 +270,8 @@ namespace CurtainCall.HumanCannon
             var collision = mover.Body.Move(displacement);
             if ((collision & CollisionFlags.Above) != 0 && velocity.y > 0f) velocity.y = 0f;
             // 운반자의 정상 몸 점프는 여기로 들어오지 않는다. 코스 밖으로 떨어진 비행도 종료한다.
-            if (((collision & CollisionFlags.Below) != 0 && velocity.y <= 0f) || transform.position.y < system.FlightFloorHeight)
+            if (((collision & CollisionFlags.Below) != 0 && velocity.y <= 0f)
+                || transform.position.y <= GameSettings.Base.BodyDamage.WorldDeathY)
             {
                 // 호스트가 쿠션/일반 바닥을 확정할 때까지 착지 위치와 비행 식별자를 유지한다.
                 awaitingLanding = true;

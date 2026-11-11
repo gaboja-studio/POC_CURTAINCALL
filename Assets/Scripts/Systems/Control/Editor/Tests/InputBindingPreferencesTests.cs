@@ -7,8 +7,21 @@ using UnityEngine.InputSystem;
 
 namespace CurtainCall.Control.Editor.Tests
 {
+    [Category("November11CommonFix")]
     public sealed class InputBindingPreferencesTests
     {
+        [Test]
+        public void InstructionKeyLabelsUsePhysicalNamesAndDeviceUseCanBeRebound()
+        {
+            Assert.That(InputBindingPreferences.KeyLabel("<Keyboard>/f"), Is.EqualTo("F"));
+            Assert.That(InputBindingPreferences.KeyLabel("<Keyboard>/t"), Is.EqualTo("T"));
+            var draft = InputBindingPreferences.CreateDraft(); owned.Add(draft);
+            var use = draft.FindAction("Common/UseDevice", true);
+            Assert.That(use.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/v"));
+            use.ApplyBindingOverride(0, "<Keyboard>/y");
+            Assert.IsTrue(InputBindingPreferences.TryValidateDraft(draft, out var error), error);
+            Assert.That(InputBindingPreferences.KeyLabel(use.bindings[0].effectivePath), Is.EqualTo("Y"));
+        }
         readonly List<Object> owned = new();
         bool hadPreferences;
         string previousPreferences;

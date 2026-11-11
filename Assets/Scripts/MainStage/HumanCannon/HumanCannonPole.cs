@@ -120,8 +120,10 @@ namespace CurtainCall.HumanCannon
             if ((cable.localScale - scale).sqrMagnitude > .0000000001f) cable.localScale = scale;
         }
 
+        // Speed stays in the original swing clock for release momentum. Only the time
+        // spent traversing the same swing changes; the rider and bar share this pose.
         public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
-            PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, SwingLength,
+            PoleSwingMotion.Step(ref angle, ref speed, input, dt * Rules.SwingMotionSpeed, gravity, SwingLength,
                 Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping);
 
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)

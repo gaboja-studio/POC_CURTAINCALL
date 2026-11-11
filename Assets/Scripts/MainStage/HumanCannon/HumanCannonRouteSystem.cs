@@ -24,7 +24,7 @@ namespace CurtainCall.HumanCannon
         [SerializeField] int shelterStationIndex = 3;
         [Tooltip("쉼터 구간 불꽃에 대응하는 대포 수. 뒤의 최종 대포는 불꽃을 작동시키지 않는다. 탑승 제한은 아니다.")]
         [Min(0), SerializeField] int shelterStationCount = 3;
-        [Tooltip("코스 밖 추락 사망 높이(m). 지상 담당의 틈새 추락에도 공용 사망 처리를 사용한다.")]
+        [Tooltip("기물 회수와 코스 아래 여부를 판단하는 배치 높이(m). 플레이어 사망 기준은 BaseGameSettings의 월드 Y 즉사 기준이다.")]
         [SerializeField] float fallHeight = -10f;
 
         sealed class Transit
@@ -61,8 +61,6 @@ namespace CurtainCall.HumanCannon
         public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
         public float FallHeight => fallHeight;
 
-        // 호스트: 이번 추락을 이미 처리한 사람(다시 코스 위로 올라오면 지운다).
-        readonly System.Collections.Generic.HashSet<ulong> fallen = new();
         public int AliveFlyers { get; private set; }
         public int ArrivedFlyers { get; private set; }
         public bool ShelterReady => AliveFlyers == ArrivedFlyers;
@@ -142,13 +140,8 @@ namespace CurtainCall.HumanCannon
             }
             RelocateLocalFall();
             if (session == null || !session.IsHost) return;
-            // 코스 밖 낭떠러지 추락은 외줄타기 낙사와 같이 공용 사망(2026-11-03). 같은 추락은 한 번만 처리한다.
-            foreach (var player in NetworkPlayer.All)
-            {
-                if (player == null || !player.IsSpawned || (cannon != null && !cannon.IsPracticeReady(player.OwnerClientId))) continue;
-                if (player.transform.position.y >= fallHeight) { fallen.Remove(player.OwnerClientId); continue; }
-                if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallDeath(player);
-            }
+            // Player void death is handled by NetworkPlayer's shared world-Y rule.
+            // This course's lower bound remains a prop-recovery/layout boundary only.
             bool changed = false;
             int alive = AliveFlyers, arrived = ArrivedFlyers;
             CountShelterFlyers();
