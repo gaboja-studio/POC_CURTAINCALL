@@ -549,6 +549,9 @@ namespace CurtainCall.Tightrope
             if (mover == null) return false;
             if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return false;
             if (mover.IsPlannedLaneFlight) return false; // 목마 분리 점프 등 유효한 옆줄 착지 궤적은 낙하 실패가 아니다.
+            // A lower platform is still ground. Re-arming natural fall every time the
+            // landing resets its flag leaves remote actors in a repeating falling pose.
+            if (WalkableSupport.Contains(mover, mover.transform.position)) return false;
             // 복합 코스의 낮은 줄 착지/그네·대포 인계는 옆의 높은 줄 바닥선으로
             // 사망시키지 않는다. 실제 허공 추락은 기존 깊이 판정을 계속 사용한다.
             if (useSceneGeometry && (!mover.Simulated || TryGetSupportingRope(mover, out _))) return false;

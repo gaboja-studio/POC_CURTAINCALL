@@ -102,3 +102,8 @@
 - 검증: 메모리 비교 참조 5,278개 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 참조·컴포넌트 전부 일치, 위치 차이 최대 0.01m(반올림 경계). 오클루전 다시 구움. EditMode(WaitingRoom) 323 중 318 통과, 실패 5건은 이전과 같은 기존 실패.
 - 경로가 바뀐 곳: 옛 생성 도구(WaitingRoomLayoutA.M2/Polish2/Polish4/Polish5, StructureADoorVisualFix)는 옛 경로를 찾는다(이미 프리팹화로 재실행 불가 상태). CameraViewsPlayTests의 `S01_Lobby/Frame8Lobby/PipeJunkLink` 경로는 WaitingRoomBase·추격 씬 전용이라 영향 없음.
 - 프리팹 밖에 남긴 것: SecurityCctv·NightMaintenance 문·SupportFinishing 깃발 줄·BasementEscapeConnection·탐색 타이머 영역 등 여러 방에 걸친 시스템 묶음.
+
+## 2026-11-11 origin/dev 병합(공간 프리팹 재적용)
+- dev 4a081339(카메라 충돌면 보강 등)가 WaitingRoom.unity를 수정해 프리팹화 씬과 충돌. 브랜치에서 이 씬을 바꾼 커밋은 프리팹 커밋 2개뿐이라 dev 씬을 그대로 받고 같은 재분류·프리팹 저장(24개, GUID 유지)을 다시 적용.
+- 검증: dev 씬 대비 참조 끊김 0, 저장·재오픈 후 이름·위치 기준 비교에서 dev 컴포넌트·참조 전부 포함(차이는 BasementRooms 분할뿐, 위치 오차 ≤0.01m 반올림). 오클루전 다시 구움.
+- EditMode(WaitingRoom) 323 중 319 통과. 실패 4: 기존 3건(문구 2·추격 배치 비교 1) + `WaitingRoomCameraCoverageTests` WaitingRoomBase 케이스("Repeated repair must not dirty the scene") — WaitingRoomBase는 dev 버전 그대로(이 브랜치 미수정)라 dev 쪽 실패로 판단, 담당자 확인 필요.

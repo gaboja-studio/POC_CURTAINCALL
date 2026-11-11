@@ -19,6 +19,8 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 Assert.That(table.ContainsKey(id),id);
             Assert.AreEqual("1/2",SceneIntegration.Editor.WaitingRoomHudProfileEditor.RehearsalSample("cannon-rehearsal.vote-body","{skip}/{required}"));
             Assert.AreEqual("E → Enter",RehearsalGuide.Format("{interact} → {action}","E","Enter"));
+            Assert.AreEqual("W/S 이동",RehearsalGuide.Format("{forward} 이동","F","Space"));
+            Assert.AreEqual("W/S · A/D → Enter · {required}",RehearsalGuide.Format("{move} → {jump} · {required}","E","Enter"));
         }
         [Test] public void CopyPreviewPairsFieldsAndOnlyFillsTokensBoundByThatCaller()
         {

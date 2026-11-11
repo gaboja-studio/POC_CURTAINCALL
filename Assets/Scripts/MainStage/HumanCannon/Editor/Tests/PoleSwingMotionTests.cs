@@ -135,7 +135,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(30)]
         [TestCase(60)]
         [TestCase(120)]
-        public void DefaultPole_ForwardAndBackwardInputReachWideSymmetricSwingWithinOnePointTwoSeconds(int framesPerSecond)
+        public void DefaultPole_StartsSmallAndBuildsBoundedSymmetricSwing(int framesPerSecond)
         {
             var root = new GameObject("DefaultPoleSwingTest");
             try
@@ -143,10 +143,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var pole = root.AddComponent<HumanCannonPole>();
                 AssertVector(pole.HangingPosition(0), pole.Grip.position + Vector3.down * 1.5f);
                 float forwardAngle = 0, forwardSpeed = 0, backwardAngle = 0, backwardSpeed = 0;
-                float peakAngle = 0, peakDistance = 0;
+                float peakAngle = 0, firstPeak = 0;
                 float dt = 1f / framesPerSecond;
                 float gravity = GameSettings.Base.Character.Gravity;
-                for (int frame = 0; frame < Mathf.FloorToInt(1.2f * framesPerSecond); frame++)
+                for (int frame = 0; frame < 8 * framesPerSecond; frame++)
                 {
                     pole.Step(ref forwardAngle, ref forwardSpeed, 1, dt, gravity);
                     pole.Step(ref backwardAngle, ref backwardSpeed, -1, dt, gravity);
@@ -159,13 +159,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     float forwardDistance = Vector3.Dot(forwardOffset, pole.Forward);
                     Assert.That(Vector3.Dot(backwardOffset, pole.Forward), Is.EqualTo(-forwardDistance).Within(0.0001f));
                     Assert.That(backwardOffset.y, Is.EqualTo(forwardOffset.y).Within(0.0001f));
-                    Assert.That(forwardOffset.magnitude, Is.EqualTo(1.5f).Within(0.0001f));
-                    Assert.That(backwardOffset.magnitude, Is.EqualTo(1.5f).Within(0.0001f));
+                    Vector3 pivotOffset = Vector3.up * (pole.SwingLength - pole.HangLength);
+                    Assert.That((forwardOffset - pivotOffset).magnitude, Is.EqualTo(pole.SwingLength).Within(0.0001f));
+                    Assert.That((backwardOffset - pivotOffset).magnitude, Is.EqualTo(pole.SwingLength).Within(0.0001f));
+                    Assert.That(Mathf.Abs(forwardAngle), Is.LessThanOrEqualTo(GameSettings.Poles.MaxSwingAngle));
+                    if (frame < framesPerSecond) firstPeak = Mathf.Max(firstPeak, forwardAngle);
                     peakAngle = Mathf.Max(peakAngle, forwardAngle);
-                    peakDistance = Mathf.Max(peakDistance, forwardDistance);
                 }
-                Assert.That(peakAngle, Is.GreaterThanOrEqualTo(75f), "실제 봉 기본값으로 1.2초 안에 넓은 반동에 도달해야 합니다.");
-                Assert.That(peakDistance, Is.GreaterThanOrEqualTo(1.4f));
+                Assert.That(firstPeak, Is.InRange(20f, 50f), "첫 왕복은 가볍게 출발하되 최대 반동에 바로 닿지 않는다.");
+                Assert.That(peakAngle, Is.GreaterThanOrEqualTo(GameSettings.Poles.MaxSwingAngle - 1f));
             }
             finally { Object.DestroyImmediate(root); }
         }
@@ -173,7 +175,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(30)]
         [TestCase(60)]
         [TestCase(120)]
-        public void DefaultPole_FirstForwardFortyFiveDegreeReleaseProvidesCrossingVelocity(int framesPerSecond)
+        public void DefaultPole_EndPointRetainsEnergyAndNoInputReducesLaunchRange(int framesPerSecond)
         {
             var root = new GameObject("DefaultPoleReleaseTest");
             try
@@ -182,17 +184,18 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 float angle = 0, speed = 0;
                 float dt = 1f / framesPerSecond;
                 float gravity = GameSettings.Base.Character.Gravity;
-                int frame = 0;
-                while (angle < 45f && frame < Mathf.FloorToInt(0.7f * framesPerSecond))
-                {
+                for (int frame = 0; frame < 6 * framesPerSecond; frame++)
                     pole.Step(ref angle, ref speed, 1, dt, gravity);
-                    frame++;
-                }
-                Assert.That(angle, Is.GreaterThanOrEqualTo(45f), "첫 전진 반동에서 0.7초 안에 도약 각도를 확보해야 합니다.");
-                Vector3 velocity = pole.ReleaseVelocity(angle, speed);
-                Assert.IsTrue(float.IsFinite(velocity.x) && float.IsFinite(velocity.y) && float.IsFinite(velocity.z));
-                Assert.That(Vector3.Dot(velocity, pole.Forward), Is.GreaterThanOrEqualTo(1.7f));
-                Assert.That(velocity.y, Is.GreaterThanOrEqualTo(7.5f));
+                float charged = Vector3.ProjectOnPlane(pole.ReleaseVelocity(angle, speed), Vector3.up).magnitude;
+                for (int frame = 0; frame < 8 * framesPerSecond; frame++)
+                    pole.Step(ref angle, ref speed, 0, dt, gravity);
+                float faded = Vector3.ProjectOnPlane(pole.ReleaseVelocity(angle, speed), Vector3.up).magnitude;
+                Assert.That(faded, Is.LessThan(charged * .6f));
+                var end = pole.ReleaseVelocity(GameSettings.Poles.MaxSwingAngle, 0);
+                Assert.That(Vector3.Dot(end, pole.Forward), Is.InRange(9f, GameSettings.Poles.HorizontalSpeedLimit));
+                Assert.That(end.y, Is.EqualTo(GameSettings.Poles.ReleaseUpwardSpeed));
+                var resting = pole.ReleaseVelocity(0, 0);
+                Assert.That(Vector3.ProjectOnPlane(resting, Vector3.up).magnitude, Is.Zero);
             }
             finally { Object.DestroyImmediate(root); }
         }

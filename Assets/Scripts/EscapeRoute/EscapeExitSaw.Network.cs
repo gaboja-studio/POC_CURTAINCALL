@@ -47,6 +47,10 @@ namespace CurtainCall.EscapeRoute
                 if (!DoorOpen) cutProgress = 0;
                 cutting = carryBlocked = false;
             }
+            else if (action == 3)
+            {
+                if (Carrier != actor || !FollowCarrier(player, false) || !TryFire(player)) return;
+            }
             else return;
             Changed();
         }
@@ -75,7 +79,7 @@ namespace CurtainCall.EscapeRoute
             if (session == null || !session.IsHost || reader.Length - reader.Position != RequestSize) return;
             reader.ReadValueSafe(out byte action); reader.ReadValueSafe(out uint expected); reader.ReadValueSafe(out int token);
             if (action == 0 && token >= 0) SendState(sender, token);
-            else if ((action == 1 || action == 2) && token == 0) { HandleAction(sender, action, expected); SendState(sender, 0); }
+            else if ((action == 1 || action == 2 || action == 3) && token == 0) { HandleAction(sender, action, expected); SendState(sender, 0); }
         }
         void Publish()
         {

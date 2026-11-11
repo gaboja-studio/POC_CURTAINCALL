@@ -69,11 +69,21 @@ namespace CurtainCall.Settings.EditorTools
                 }
                 if (data.FindProperty("poles")?.objectReferenceValue is PoleSettings poles)
                     if (poles.Visual(false) == null || poles.Visual(true) == null) errors.Add("봉 공통 외형 연결 누락");
+                if (data.FindProperty("trampoline")?.objectReferenceValue is TrampolineSettings trampoline)
+                {
+                    if (trampoline.VisualPrefab == null || trampoline.VisualPrefab.transform.Find("Handle") == null)
+                        errors.Add("트램펄린 공통 외형/손잡이 연결 누락");
+                    if (trampoline.CarryCollisionMesh == null) errors.Add("트램펄린 공통 운반 충돌 모양 누락");
+                }
             }
             foreach (var entry in Retired)
                 foreach (var field in entry.fields.Split(' '))
                     if (entry.type.GetField(field, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) != null)
                         errors.Add("폐기 설정 재도입: " + entry.type.Name + "." + field);
+            // 제외 중인 탈출로 씬의 옛 직렬화는 이번 작업에서 재저장하지 않는다.
+            // 실제 개별 필드와 제작 도구의 재도입은 계속 금지한다.
+            if (typeof(HumanCannonTrampoline).GetField("usePropOutline", BindingFlags.NonPublic | BindingFlags.Instance) != null)
+                errors.Add("폐기 설정 재도입: HumanCannonTrampoline.usePropOutline");
             // 씬 연결 어댑터에는 공통 동작 수치를 저장할 자리를 만들지 않는다.
             foreach (var type in new[] { typeof(TightropeSwingPole), typeof(TightropeTrapeze), typeof(TightropeRelayGate) })
                 foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -89,7 +99,7 @@ namespace CurtainCall.Settings.EditorTools
         {
             // forward/upward launch speeds remain map trajectory data for cannons.
             var names = Retired.Where(e => e.type == typeof(HumanCannonPole) || e.type == typeof(HumanCannonStation) || e.type == typeof(HumanCannonPoleSystem) || e.type == typeof(TightropeSettings.CourseSettings) || e.type == typeof(TightropeSettings.HangSettings))
-                .SelectMany(e => e.fields.Split(' ')).Concat(new[] { "requireCarrierForBounce", "groundBounceAirControlSpeed", "fireSeversLimbs", "bidirectionalSceneTraversal" }).Distinct();
+                .SelectMany(e => e.fields.Split(' ')).Concat(new[] { "requireCarrierForBounce", "groundBounceAirControlSpeed", "fireSeversLimbs", "bidirectionalSceneTraversal", "usePropOutline" }).Distinct();
             var oldWrite = new Regex("(?:FindProperty|FindPropertyRelative|SetPoleFloat)\\([^\\n;]*\"(?:" + string.Join("|", names) + ")\"");
             foreach (string folder in new[] { "Assets/Scripts/EscapeRoute/Editor", "Assets/Scripts/MainStage/HumanCannon/Editor", "Assets/Scripts/WaitingRoom/Rehearsal/Editor" })
                 foreach (string path in Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories))

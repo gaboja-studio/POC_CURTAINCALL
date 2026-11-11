@@ -175,7 +175,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 ("severedCable", severed.gameObject), ("indicator", lamp), ("sparks", sparks) })
                 data.FindProperty(pair.Item1).objectReferenceValue = pair.Item2;
             data.FindProperty("carryHandleHeight").floatValue = 1.05f;
-            data.FindProperty("carryMoveSpeed").floatValue = 3;
             data.FindProperty("bladeRadius").floatValue = .55f;
             data.FindProperty("bladeHalfThickness").floatValue = .12f;
             data.FindProperty("cableRadius").floatValue = .08f;

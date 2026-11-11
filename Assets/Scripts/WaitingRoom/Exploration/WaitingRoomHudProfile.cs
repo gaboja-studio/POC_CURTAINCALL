@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
 using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
 
@@ -102,8 +104,18 @@ namespace CurtainCall.WaitingRoom
             foreach(T step in Enum.GetValues(typeof(T)))Add(step);
             return result.ToArray();
         }
+        internal static PlayerInputReader LocalInput =>
+            NetworkPlayer.Local ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
+
+        public static string FormatKeys(string text) => PerformanceHudProfile.FormatKeys(text, null);
+        internal static string FormatLocalKeys(string text) =>
+            string.IsNullOrEmpty(text) || !text.Contains("{") ? text : PerformanceHudProfile.FormatKeys(text, LocalInput);
+
         public static HudRoleCard Emit(RoomNotice role,Transform owner,string title,string body,float seconds,string key=null)
         {
+            title=FormatLocalKeys(title);
+            body=FormatLocalKeys(body);
+            key=FormatLocalKeys(key);
             var hud=HudUIManager.Current;
             return role switch {
                 RoomNotice.Guide=>hud.ShowGuide(body,owner,title,seconds,key),

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.CommonIcons;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
 using CurtainCall.Reward;
 using CurtainCall.Settings;
 using CurtainCall.UI.BackstageHudV1;
@@ -36,6 +38,9 @@ namespace CurtainCall.UI.SceneIntegration
         int clockDay, clockPerformance;
         float clockTotal;
         bool clockInitialized;
+        WaitingRoomUiBinding observedDeathSpace;
+        readonly Dictionary<NetworkPlayer,bool> observedDeaths = new();
+        readonly List<string> newDeaths = new();
         public BackstageHUDView Hud => hud;
         /// <summary>이전 하루 시계의 직렬화 참조. 호환용으로 보존하며 실제 표시에서는 비활성화한다.</summary>
         public DayClockView DayClockDisplay => dayClock;
@@ -49,6 +54,7 @@ namespace CurtainCall.UI.SceneIntegration
         void LateUpdate()
         {
             var space = CommonUiSceneLoader.CurrentWaitingRoom;
+            ObserveDeaths(space);
             var run = CampaignRun.Instance;
             bool active = space != null && run != null && !WaitingRoomCannonRehearsal.IsActive
                 && (run.State.Phase == CampaignPhase.RestTime || run.State.Phase == CampaignPhase.Night);
@@ -181,9 +187,34 @@ namespace CurtainCall.UI.SceneIntegration
             if (!string.IsNullOrWhiteSpace(message)) WaitingRoomHudProfile.Emit(WaitingRoomHudProfile.Current.carryResult,transform,"",message,announcementSeconds);
         }
 
+        void ObserveDeaths(WaitingRoomUiBinding space)
+        {
+            if (observedDeathSpace != space)
+            {
+                if (observedDeathSpace) HudUIManager.DismissOwned(transform,HudRole.SystemEvent);
+                observedDeathSpace = space;
+                observedDeaths.Clear();
+            }
+            if (!space) return;
+            newDeaths.Clear();
+            foreach (var player in NetworkPlayer.All)
+            {
+                if (!player || !player.IsSpawned) continue;
+                bool dead = player.State is PlayerState.Fallen or PlayerState.Retired;
+                if (dead && observedDeaths.TryGetValue(player,out bool wasDead) && !wasDead)
+                    newDeaths.Add(player == NetworkPlayer.Local ? "나" : player.Slot >= 0
+                        ? $"단원 {player.Slot + 1}" : WaitingRoomShop.PlayerLabel(player.OwnerClientId));
+                observedDeaths[player] = dead;
+            }
+            if (newDeaths.Count > 0)
+                HudUIManager.Current.ShowDeathWarning("",transform,string.Join(", ",newDeaths) + " 사망",announcementSeconds);
+        }
+
         void OnDisable()
         {
             DismissMessages();
+            observedDeathSpace = null;
+            observedDeaths.Clear();
             AttachAnnouncer(null); AttachCarry(null); AttachOthers(null, null);
             if (hud != null) hud.ResetForRuntime();
             if (dayClock != null) dayClock.Hide();

@@ -29,6 +29,7 @@ namespace CurtainCall.Player
         InputAction sprint;
         InputAction crouch;
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
+        InputAction useDevice;
         float interactPressedAt = -1f; // 누르고 있지 않으면 음수
         bool interactLongSent;
         // 반대 키 동시 입력은 마지막에 누른 방향. 그 키를 떼면 아직 누르고 있는 이전 키 방향으로 돌아간다.
@@ -48,7 +49,7 @@ namespace CurtainCall.Player
                     var entry = binding.bindings[i];
                     if (!entry.isComposite && !entry.isPartOfComposite && !string.IsNullOrEmpty(entry.effectivePath)
                         && (entry.effectivePath.StartsWith("<Keyboard>/") || entry.effectivePath.StartsWith("<Mouse>/")))
-                        return binding.GetBindingDisplayString(i);
+                        return InputBindingPreferences.KeyLabel(entry.effectivePath, fallback);
                 }
             return fallback;
         }
@@ -60,7 +61,7 @@ namespace CurtainCall.Player
                 {
                     var entry = binding.bindings[i];
                     if (entry.isPartOfComposite && entry.name == partName && !string.IsNullOrEmpty(entry.effectivePath)
-                        && entry.effectivePath.StartsWith("<Keyboard>/")) return binding.GetBindingDisplayString(i);
+                        && entry.effectivePath.StartsWith("<Keyboard>/")) return InputBindingPreferences.KeyLabel(entry.effectivePath, fallback);
                 }
             return fallback;
         }
@@ -89,6 +90,7 @@ namespace CurtainCall.Player
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
             uvLight = commonMap.FindAction("UvLight", false);
+            useDevice = commonMap.FindAction("UseDevice", false);
         }
 
         public bool ControlsReleased
@@ -166,6 +168,7 @@ namespace CurtainCall.Player
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
                 UvLightHeld = uvLight != null && uvLight.IsPressed(),
+                UseDevicePressed = useDevice != null && useDevice.WasPressedThisFrame(),
             };
             CommonInteractionSelection.Selected(this);
         }

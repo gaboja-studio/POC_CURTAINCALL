@@ -39,7 +39,7 @@ namespace CurtainCall.EscapeRoute.Tests
         bool ProjectileSnapshot(uint version, uint owner, ulong actor, uint mask, Vector3[] points, Array entries,
             uint course = 0, int token = 0)
             => (bool)Call(saw, "ApplySnapshot", version, owner, actor, device.position, device.rotation, 0f, (byte)0,
-                token, mask, points, entries, 2f, course);
+                token, mask, points, entries, 0f, course);
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
@@ -101,31 +101,31 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void AutomaticShotWaitsTwoSecondsAndNeverCatchesUpWithABurst()
+        public void HeldLauncherNeverFiresAutomaticallyAndManualShotsRespectCooldown()
         {
-            Fixture();
-            Assert.That(Call(saw, "AdvanceShotClock", 0f, true), Is.False);
-            Assert.That(Call(saw, "AdvanceShotClock", 1.99f, true), Is.False);
-            Assert.That(Call(saw, "AdvanceShotClock", .02f, true), Is.True);
-            Assert.That(Call(saw, "AdvanceShotClock", 0f, true), Is.False);
-            Assert.That(Call(saw, "AdvanceShotClock", 20f, true), Is.True);
-            Assert.That(Call(saw, "AdvanceShotClock", 0f, true), Is.False);
-            Call(saw, "AdvanceShotClock", 1f, true); Call(saw, "AdvanceShotClock", 0f, false);
-            Assert.That(Call(saw, "AdvanceShotClock", 0f, true), Is.False);
-            Assert.That(Call(saw, "AdvanceShotClock", 1.99f, true), Is.False, "공중/막힘에서 돌아와도 새 안전 간격을 센다.");
+            Fixture(true); var player = Player(41); Own(41);
+            SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
+            Call(saw, "HostStep", 30f);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
+            Assert.That(Call(saw, "TryFire", player), Is.True);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
+            Assert.That(Call(saw, "TryFire", player), Is.False, "A repeated request cannot bypass the common cooldown.");
+            Call(saw, "HostStep", 30f);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0), "Waiting never queues another shot.");
+            Assert.That(Call(saw, "TryFire", player), Is.True);
         }
         [Test]
-        public void HostRequiresAGroundedCarrierAndRestartsIntervalAfterAirborne()
+        public void ManualFireRejectsNonCarrierAirborneAndBlockedCarrier()
         {
-            Fixture(true); var player = Player(41);
+            Fixture(true); var player = Player(41); Own(41);
             SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
-            Call(saw, "HostStep", 3f); Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
-            Own(41); Call(saw, "HostStep", 0f);
-            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover")); Set(mover, "IsAirborne", true);
-            Call(saw, "HostStep", 3f); Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
-            Set(mover, "IsAirborne", false); Call(saw, "HostStep", 0f); Call(saw, "HostStep", 1.99f);
-            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
-            Call(saw, "HostStep", .02f); Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
+            var other = Player(42);
+            Assert.That(Call(saw, "TryFire", other), Is.False);
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover, "IsAirborne", true); Assert.That(Call(saw, "TryFire", player), Is.False);
+            Set(mover, "IsAirborne", false); Set(saw, "carryBlocked", true);
+            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Set(saw, "carryBlocked", false); Assert.That(Call(saw, "TryFire", player), Is.True);
         }
         [Test]
         public void ProjectileCutsMultipleStrandsAlongPathButStopsBeforeWall()

@@ -145,7 +145,7 @@ namespace CurtainCall.Tightrope
         {
             if (!Active || !Valid(index) || HolderAt(index) == Nobody) return false;
             Vector3 origin = Feet(index, lower);
-            Vector3 velocity = poles[index].Physics.ReleaseVelocity(SwingAngle(index), SwingSpeed(index));
+            Vector3 velocity = common.ReleaseVelocityAt(poles[index].Index, lower ? 1 : 0);
             Vector3 target = index + 1 < PoleTotal ? poles[index + 1].Physics.BarPosition(SwingAngle(index + 1))
                 : course.GetLanePosition(Lane, course.TrapezeGapTo + 1f);
             for (float time = .04f; time <= 3f; time += .04f)

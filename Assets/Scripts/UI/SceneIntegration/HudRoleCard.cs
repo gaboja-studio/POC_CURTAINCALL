@@ -35,6 +35,7 @@ namespace CurtainCall.UI.SceneIntegration
         [Tooltip("Objectives clear feedback above them; votes clear objectives above them.")]
         public bool avoidPreviousLane;
         internal Vector2 BasePosition;
+        internal bool UpperRightEvent;
         static readonly Regex tokens = new Regex(@"\{(title|content|condition)\}");
         string[] formats;
         bool[] enabledRows;
@@ -45,6 +46,8 @@ namespace CurtainCall.UI.SceneIntegration
         public bool Closing { get; private set; }
         public string Title => title.text;
         public string Content => body.text;
+        internal bool MatchesGuide(string heading,string text,string key) =>
+            lastHeading==(heading??"") && lastText==(text??"") && (BadgeKey??"").Trim()==(key??"").Trim();
         internal Transform Owner;
         internal Camera WorldCamera;
         public void Extend(float seconds) { if (timed) remaining = Mathf.Max(remaining,seconds); }

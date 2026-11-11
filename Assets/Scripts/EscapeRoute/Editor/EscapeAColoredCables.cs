@@ -127,7 +127,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             data.FindProperty("launchFlash").objectReferenceValue = null;
             data.FindProperty("launchAudio").objectReferenceValue = source;
             data.FindProperty("recoilVisual").objectReferenceValue = recoil;
-            data.FindProperty("shotInterval").floatValue = 2;
             data.FindProperty("projectileSpeed").floatValue = 36;
             data.FindProperty("projectileLifetime").floatValue = 0;
             data.FindProperty("projectileRadius").floatValue = .55f;

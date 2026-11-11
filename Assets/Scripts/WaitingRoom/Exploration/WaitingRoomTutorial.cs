@@ -324,7 +324,8 @@ namespace CurtainCall.WaitingRoom
         bool ShowEntry(TutorialEntry entry,string body,float seconds)
         {
             var cue=WaitingRoomHudProfile.Current.Cue(entry.id);
-            return WaitingRoomTutorialPanel.ShowAs(cue?.role ?? RoomNotice.Guide,entry.title,body,seconds,BadgeFor(entry.body));
+            return WaitingRoomTutorialPanel.ShowAs(cue?.role ?? RoomNotice.Guide,
+                WaitingRoomTutorialBook.Format(entry.title, interactKey, uvKey),body,seconds,BadgeFor(entry.body));
         }
         public static void RecallPresented(){if(Enabled && instance && instance.isActiveAndEnabled)Book.MarkDone("G11A");}
         bool TryContinueCloseUp(WaitingRoomTutorialBook b)
