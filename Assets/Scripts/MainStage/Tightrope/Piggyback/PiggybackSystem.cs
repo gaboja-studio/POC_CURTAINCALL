@@ -780,6 +780,7 @@ namespace CurtainCall.Tightrope
         {
             if (belowOf.Count == 0) return;
             List<ulong> dropped = null, shocked = null;
+            var fallingRiders = new List<NetworkPlayer>();
             bool changed = false;
             var members = new List<ulong>(belowOf.Keys);
             members.AddRange(aboveOf.Keys);
@@ -797,12 +798,7 @@ namespace CurtainCall.Tightrope
                 {
                     var upper = FindPlayer(up);
                     // M2 목마 낙하: 아래부터 먼저 떨어진 순서로 근처 줄을 한 줄에 한 명씩 잡고, 잡을 줄이 없으면 낙사한다.
-                    if (upper != null && upper.State == PlayerState.Normal)
-                    {
-                        if (hangs != null && TightropeCourse.Current != null)
-                            hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
-                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerReleaseIntoFall();
-                    }
+                    if (upper != null && upper.State == PlayerState.Normal) fallingRiders.Add(upper);
                     (dropped ??= new List<ulong>()).Add(up);
                 }
 
@@ -817,6 +813,14 @@ namespace CurtainCall.Tightrope
             }
 
             if (!changed) return;
+            // Detach first. Fall/grip callbacks must never observe the old head-follow relationship.
+            foreach (var upper in fallingRiders)
+            {
+                var hangs = TightropeHangSystem.Current;
+                if (hangs != null && TightropeCourse.Current != null)
+                    hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
+                else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerReleaseIntoFall();
+            }
             ServerBroadcast(dropped, shocked);
         }
 

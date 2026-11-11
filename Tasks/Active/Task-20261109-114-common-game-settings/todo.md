@@ -63,3 +63,12 @@
 - [x] 대포 발사 뒤 A/D: 발판 복귀 대기 조건에서 보정0m 재현·비행 입력 우선 처리
 - [x] 최종 check-work·Confluence32행 기록·Unity 종료 후 최신 DEV a976362e 확인
 - [x] 관련46파일 저장5af3a8a8·push·[PR330](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/330), PM 팀 검토 요청
+
+## 11/11 녹화 후속
+- [x] Unity 정상 종료 후 DEV92176fcd 반영, 기존 수정 보존
+- [x] 녹화 원본 확보(14:28.8)
+- [x] 영상 전체 구간 검토·증상 시각/원인 분리 기록
+- [x] 봉 긴 F 낙하/Space 도약 분리·공통 수평5m/s
+- [x] 외줄 양 끝 진입·왕복 및 시각/지지 범위 일치
+- [x] 목마 추락 인계·줄 재진입 수정
+- [x] 관련 비플레이 검사·check-work 및 문서/결과 기록

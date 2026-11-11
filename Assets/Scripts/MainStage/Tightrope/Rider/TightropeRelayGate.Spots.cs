@@ -83,7 +83,7 @@ namespace CurtainCall.Tightrope
             {
                 if (common.IsReleaseBlockedByPassenger(local.OwnerClientId))
                     return $"{LaneName(OpenedLane(held))} 연결 중 · 아래 동료가 먼저 손을 놓아야 합니다";
-                return $"{LaneName(OpenedLane(held))} 연결 중 · 동료가 건널 때까지 잡고 있으세요\nSpace / F 길게 놓기";
+                return $"{LaneName(OpenedLane(held))} 연결 중 · 동료가 건널 때까지 잡고 있으세요\nSpace 도약 · F 길게 아래로 내려오기";
             }
             for (int i = 0; i < PoleCount; i++)
                 if (CanUsePole(i, local)) return $"F로 봉 잡기 · 잡는 동안 {LaneName(spotList[i].TargetLane)}이 이어져요";

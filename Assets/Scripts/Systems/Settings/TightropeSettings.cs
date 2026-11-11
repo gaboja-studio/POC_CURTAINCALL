@@ -226,7 +226,10 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class RopeMovementSettings
         {
-            [Tooltip("모든 외줄 지지 폭(m). 탈출로 기준.")]
+            [Tooltip("켜면 보이는 외줄의 굵기로 지지 폭을 맞춘다. 생성 코스는 줄 굵기, 배치된 줄은 자체 메시/콜라이더 폭을 사용한다. 모든 씬 공통.")]
+            [SerializeField] bool matchVisualSupportWidth = true;
+            public bool MatchVisualSupportWidth => matchVisualSupportWidth;
+            [Tooltip("외줄 외형에 지지 폭 맞추기를 끈 경우 사용하는 공통 지지 폭(m).")]
             [SerializeField, Min(.01f)] float supportWidth = .55f;
             [Tooltip("발과 줄 윗면의 높이 허용(m). 모든 씬 공통.")]
             [SerializeField, Min(.01f)] float supportHeightTolerance = .3f;

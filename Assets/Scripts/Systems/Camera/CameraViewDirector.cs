@@ -380,7 +380,9 @@ namespace CurtainCall.Cameras
             var subject = anchor.GetComponent<NetworkPlayer>();
             var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
             bool hanging = hangs != null && hangs.IsHanging(subject);
-            if (hanging) pivot = HangingCameraPivot(pivot);
+            // Cannon seats and low beams can also contain the pivot. Clear the query
+            // origin for every third-person view before casting the camera arm.
+            pivot = HangingCameraPivot(pivot);
             Vector3 offset = state.GetFinalPosition() - pivot;
             float desired = offset.magnitude;
             if (desired < .001f) { collisionDistance = -1f; return; }
@@ -422,7 +424,7 @@ namespace CurtainCall.Cameras
 
         Vector3 HangingCameraPivot(Vector3 pivot)
         {
-            // At a rope end the chest anchor can sit inside the landing or within the cast radius
+            // The chest anchor can sit inside a landing/cannon or within the cast radius
             // of a support beam. A cast starting there reports zero in every direction.
             // Move only the camera's query origin out of authored boxes, never the player.
             float radius = CollisionRadius + CollisionPadding;

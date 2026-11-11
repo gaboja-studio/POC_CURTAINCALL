@@ -442,7 +442,7 @@ namespace CurtainCall.UI.SceneIntegration
                     Action = seated != null ? holdingInput ? "대포에서 내리기" : ready ? "대포 발사" : "대포 가동 대기" : "그네에서 도약",
                     Hold = seated != null && holdingInput,
                     Helper = seated != null ? ready ? "F를 짧게 눌러 발사 · F를 길게 눌러 내리기" : "전원·포신 가동을 기다리세요 · F를 길게 눌러 내리기"
-                        : "W/S로 반동 · Space로 도약 · F를 길게 눌러 놓기" });
+                        : "W/S로 반동 · Space로 도약 · F를 길게 눌러 아래로 내려오기" });
                 return;
             }
             if (player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme)

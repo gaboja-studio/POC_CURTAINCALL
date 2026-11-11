@@ -212,7 +212,10 @@ namespace CurtainCall.Tightrope
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
-            if (player.IsDroppingFromSupport) { ApplyPlatformMode(); return; }
+            // The owner may already have landed while the host's fall acknowledgement is in transit.
+            if (player.IsDroppingFromSupport
+                && (mover.IsAirborne || !course.TryGetSupportingRope(mover, out _)))
+            { ApplyPlatformMode(); return; }
 
             if (onRope == true && (CannonPilot != null && CannonPilot.IsDriving
                 || (mover.IsAirborne && course.PastSceneRopeEnd(player.transform.position, mover.BodyRadius))))
@@ -322,7 +325,12 @@ namespace CurtainCall.Tightrope
             {
                 previousForward = mover.CourseForwardOverride;
                 previousSpacing = mover.LaneSpacing;
-                Vector3 enteringForward = player.transform.forward;
+                Vector3 enteringForward = mover.GroundVelocity.sqrMagnitude > .0001f
+                    ? mover.GroundVelocity.normalized : player.transform.forward;
+                // Platform movement turns the model toward travel even while S is held.
+                // Taking that facing as W would reverse S at the platform/rope boundary.
+                if (player.TryGetComponent(out PlayerInputReader input) && input.Current.Move < -.01f)
+                    enteringForward = -enteringForward;
                 mover.CourseForwardOverride = course.TraversalForwardAt(player.transform.position, enteringForward);
                 mover.LaneSpacing = course.LaneSpacing;
                 ownsAxes = true;

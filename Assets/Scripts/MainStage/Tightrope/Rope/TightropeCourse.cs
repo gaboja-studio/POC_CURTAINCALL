@@ -179,7 +179,8 @@ namespace CurtainCall.Tightrope
 
         public int LaneCount => Layout.LaneCount;
         public float LaneSpacing => Layout.LaneSpacing;
-        public float RopeWalkWidth => GameSettings.Tightrope.Course.RopeWalkWidth;
+        public float RopeWalkWidth => !useSceneGeometry && GameSettings.Tightrope.RopeMovement.MatchVisualSupportWidth
+            ? Shape.RopeThickness : GameSettings.Tightrope.Course.RopeWalkWidth;
         public float RopeHeightTolerance => GameSettings.Tightrope.Course.RopeHeightTolerance;
 
         /// <summary>도착 거리(m, 출발선에서).</summary>
@@ -242,7 +243,7 @@ namespace CurtainCall.Tightrope
             lane = NoLane;
             if (Mathf.Abs(position.y - RopeHeightAt(position)) > RopeHeightTolerance) return false;
             if (!TryGetRopePoint(position, out int nearest, out float distance) || !IsLaneUsable(nearest, distance)) return false;
-            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > RopeWalkWidth * 0.5f + radius) return false;
+            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > RopeWidthAt(nearest) * 0.5f + radius) return false;
             lane = nearest;
             return true;
         }
@@ -614,9 +615,25 @@ namespace CurtainCall.Tightrope
                 if (scale <= .0001f) continue;
                 if (!originalRopeSizes.ContainsKey(box)) originalRopeSizes.Add(box, box.size);
                 var size = box.size;
-                size.x = RopeWalkWidth / scale;
+                size.x = GameSettings.Tightrope.RopeMovement.MatchVisualSupportWidth
+                    ? VisualRopeWidth(box, originalRopeSizes[box].x) : RopeWalkWidth / scale;
                 if (box.size != size) box.size = size;
             }
+        }
+
+        public float RopeWidthAt(int lane)
+        {
+            if (useSceneGeometry && lane >= 0 && lane < sceneRopes.Length && sceneRopes[lane] is BoxCollider box)
+                return box.size.x * box.transform.TransformVector(Vector3.right).magnitude;
+            return RopeWalkWidth;
+        }
+
+        static float VisualRopeWidth(BoxCollider box, float authoredWidth)
+        {
+            // Only meshes owned by this rope are eligible; neighbouring props/platforms are not rope art.
+            var mesh = box.GetComponent<MeshFilter>();
+            return mesh != null && mesh.sharedMesh != null && mesh.sharedMesh.bounds.size.x > .001f
+                ? mesh.sharedMesh.bounds.size.x : authoredWidth;
         }
 
         /// <summary>

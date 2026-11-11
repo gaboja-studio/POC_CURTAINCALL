@@ -61,7 +61,7 @@ namespace CurtainCall.Tightrope
                         : OutboundOpen ? $"{LaneName(OpenedLane(held))} 연결 중 · 건넌 동료가 반대편 봉을 잡을 때까지 버티세요"
                         : "출발 봉을 함께 잡을 동료를 기다리세요";
                     string time = UnlimitedHold ? "" : $"봉 유지 {HoldRemaining(held):0.0}초 · ";
-                    return $"{task}\n{time}{RelayHolderCount(far)}/{RequiredHolders}명 · Space / F 길게 놓기" + warning;
+                    return $"{task}\n{time}{RelayHolderCount(far)}/{RequiredHolders}명 · Space 도약 · F 길게 아래로 내려오기" + warning;
                 }
                 float distance = course.GetDistance(local.transform.position);
                 if (distance < EntryDistance - 7f || distance > ExitDistance + 7f) return null;
