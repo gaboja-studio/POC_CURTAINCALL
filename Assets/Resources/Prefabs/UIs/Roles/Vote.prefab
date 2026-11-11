@@ -65,7 +65,7 @@ MonoBehaviour:
   minWidth: 75
   maxWidth: 450
   rows: {fileID: 3438723410735823428}
-  stack: 1
+  minHeight: 0
   stackGap: 8
   avoidPreviousLane: 1
 --- !u!114 &8985364443049567474
@@ -1198,7 +1198,27 @@ PrefabInstance:
       value: '{choice}'
       objectReference: {fileID: 0}
     - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_fontSizeMin
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_overflowMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
       propertyPath: m_isOrthographic
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_enableAutoSizing
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
@@ -1363,7 +1383,27 @@ PrefabInstance:
       value: '{choice}'
       objectReference: {fileID: 0}
     - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_fontSizeMin
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_overflowMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
       propertyPath: m_isOrthographic
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}
+      propertyPath: m_enableAutoSizing
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7697224200889470452, guid: 97f677f3f9be2be4f8a2c930f2bdcb15, type: 3}

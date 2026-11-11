@@ -10,6 +10,30 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         [UnityTest]
+        public IEnumerator WaitingRoomDeathShowsOneUpperRightWarning()
+        {
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            yield return new WaitForSecondsRealtime(.5f);
+            var kill = player.GetType().GetMethod("ServerKill");
+            var origin=System.Enum.Parse(kill.GetParameters()[0].ParameterType,"Debug");
+            Assert.IsTrue((bool)kill.Invoke(player,new object[]{origin,null}));
+            yield return null;
+            yield return null;
+            var manager=(Component)Static("CurtainCall.UI.SceneIntegration.HudUIManager","Current");
+            var cards=manager.GetComponentsInChildren(T("CurtainCall.UI.SceneIntegration.HudRoleCard"))
+                .Where(c=>Get(c,"Title").ToString().Contains("사망")).ToArray();
+            Assert.AreEqual(1,cards.Length);
+            Assert.AreEqual(Vector2.one,((RectTransform)cards[0].transform).anchorMin);
+            Assert.AreEqual("Warning",Get(cards[0].GetComponent(T("CurtainCall.UI.SceneIntegration.HudEventAppearance")),"Kind").ToString());
+            Call(cards[0],"Close",true);
+            yield return null;
+            yield return null;
+            Assert.IsFalse(manager.GetComponentsInChildren(T("CurtainCall.UI.SceneIntegration.HudRoleCard"))
+                .Any(c=>Get(c,"Title").ToString().Contains("사망")));
+        }
+
+        [UnityTest]
         public IEnumerator M2_Access_BedHairpinEdgeCollectsThroughF()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");

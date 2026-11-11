@@ -203,10 +203,16 @@ namespace CurtainCall.UI.SceneIntegration
             helper = FormatControlLabels(helper, interactKey, jumpKey,
                 reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
                 reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"));
-            bool presented = HudUIManager.ShowInteraction(focused.Action, prompt, key, availability, focused.Hold, progress, helper);
+            var actionLabel = focused.Action;
+            if (CommonUiSceneLoader.CurrentWaitingRoom)
+            {
+                actionLabel = PerformanceHudProfile.FormatKeys(actionLabel, reader);
+                helper = PerformanceHudProfile.FormatKeys(helper, reader);
+            }
+            bool presented = HudUIManager.ShowInteraction(actionLabel, prompt, key, availability, focused.Hold, progress, helper);
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
-            string deviceText = key + focused.Action + helper;
+            string deviceText = key + actionLabel + helper;
             if (cannonOrPole && deviceText != warmedDeviceText && TryGetComponent(out UiRuntimeFontFallback fonts))
             {
                 fonts.WarmUpLocalText(prompt.transform, deviceText); warmedDeviceText = deviceText;
