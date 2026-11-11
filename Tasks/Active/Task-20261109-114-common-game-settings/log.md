@@ -32,6 +32,8 @@
 - check-work 최종: 안전성·문서/규칙·컴파일·공통 연결 PASS. 사용자 요청으로 자동/플레이 테스트 미실행. 실제 4인 증상 재현/해결 확인으로 보고하지 않음. 기존 실패14개 보류 유지.
 - [오후 전후 표20행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40960011/11+11) 생성 후 재조회: 21행(머리행 포함), 표 안 글머리 기호, 모션/낙하값 저장 확인.
 - 전체 변경을 저장하는 save-work 대신 관련 경로만 stage해 commit/push한다. 기존 Task112·지식 인덱스·탈출로 라벨 캐시·Task083 미리보기는 제외하고 보존한다.
+- 저장: 4a081339, 관련77파일. gh 로그인 RagSpirin 작성자 확인. 기존 미저장 파일을 제외했으므로 new-pr DryRun의 전체 작업트리 청결 안내는 확인한 뒤 동일 dev 방향/본문으로 gh PR 제출.
+- 제출: [PR325](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/325), fix/common-rule-regressions → dev, PM 팀 검토 요청. dev 병합 없음. 사용자 Play/4인 동기화 확인은 미완료로 유지.
 - 오후 최종 check-work 재실행: 안전성·문서/규칙·컴파일·공통 설정 연결/폐기 필드/제작 도구/직렬화 확인 PASS. 앞선 Pipeline 연결 reset은 재실행에서 발생하지 않음. 자동 테스트·플레이 테스트는 모두 생략.
 - 마지막 사용자 낙하 지시로 BaseGameSettings.bodyDamage를 부상5m·사망15m로 저장하고 C# 기본값·Tooltip도 일치시킴. 사지 손실2개·외줄/안전 착지대 보호·트램펄린 재반동 우선은 유지. 변경 뒤 컴파일 오류/경고0. '-15m 이하'의 절대좌표 여부는 질문 중이며 별도 좌표 사망은 미추가.
 - 제출 직전 Unity 비재생·미저장0 확인 후 정상 종료. 14:16 KST origin/dev fetch: fb39d3dd 동일, HEAD에 포함됨. 최신 집중 검사 결과 재사용. 임시 Pipeline 생성 폴더와 preload 설정 복구, 테스트 플레이어 전부 종료.
