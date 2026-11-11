@@ -132,3 +132,4 @@
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출 직전 Unity 프로세스 종료 확인 후 origin/dev 재fetch·merge: ec98657e 최신, 추가 변경 없음. 정상 종료 명령은30초 시간 초과했으나 프로세스가 실제 종료된 뒤에만 동기화.
+- 저장·제출: 구현3265dbba·DEV통합e5ff47c7·배치보정454d6371, [PR332](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/332), base dev·PM 팀 검토 요청. 기존 무관 변경은 제외, dev 병합하지 않음.
