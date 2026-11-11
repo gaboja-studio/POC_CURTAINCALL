@@ -171,7 +171,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             yield return Launch(1, "Performance", 0, "Tightrope", "Tightrope");
             var original = Find("CurtainCall.Tightrope.TightropeTrapeze");
-            Assert.AreEqual(3, Get(original, "PoleCount"), "일반 공연은 원본 세 봉 유지");
+            Assert.AreEqual(2, Get(original, "PoleCount"), "일반 공연은 출발 봉과 낮은 복귀 봉 두 개(2026-11-11 가운데 교대 봉 제거)");
             Assert.IsTrue(((Behaviour)Find("CurtainCall.Tightrope.RopeLaneJumpRules")).isActiveAndEnabled);
             Assert.IsTrue(((Behaviour)Find("CurtainCall.Tightrope.TightropeHandholdRangeView")).isActiveAndEnabled);
             yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");

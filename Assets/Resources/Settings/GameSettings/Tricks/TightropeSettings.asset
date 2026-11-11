@@ -25,10 +25,10 @@ MonoBehaviour:
     relayRequiredHolders: 1
     swingGapLanes: 0200000005000000
     swingGapStart: 40
-    swingGapLength: 8
+    swingGapLength: 10
     trapezeEnabled: 1
     trapezeStart: 100
-    trapezeLength: 12
+    trapezeLength: 16
     trapezeLane: 3
     startPlatformLength: 6
     finishPlatformLength: 6
@@ -136,32 +136,74 @@ MonoBehaviour:
     horizontalSaws:
     - distance: 12
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 21.8
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 31.6
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 43.4
       startSide: 1
-    - distance: 56.3
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
+    - distance: 55.3
       startSide: 0
+      level: 1
+      mirrored: 0
+      extraSpeed: 0
     - distance: 61
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 70.8
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 80.6
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 90.4
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 119.8
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 129.6
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 139.40001
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 149.2
       startSide: 0
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     - distance: 159
       startSide: 1
+      level: 0
+      mirrored: 0
+      extraSpeed: 0
     horizontalFirstSpeed: 11.4
     horizontalLastSpeed: 14.4
     horizontalTravelHalfWidth: 9.5
@@ -256,3 +298,53 @@ MonoBehaviour:
     catchDistance: 1.5
     laneOccupyDistance: 2
     hangDrop: 1.9
+  laterStages:
+  - extraHorizontalSaws:
+    - distance: 21.8
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 43.4
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 57.78
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 1.949
+    - distance: 70.8
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 80.6
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 119.8
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 129.6
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 149.2
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 159
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    fireChaseSpeed: 0.7
+  - extraHorizontalSaws: []
+    fireChaseSpeed: -1
