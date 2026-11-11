@@ -69,6 +69,95 @@ namespace CurtainCall.WaitingRoom.Tests
             Assert.Greater(hit.point.y, bounds.min.y + bounds.size.y * .4f, "A ray from above must hit the closed upper surface, not the bottom inside.");
         }
 
+        [UnityTest, Category("CommonIdleSupportRegression")]
+        public IEnumerator DormFootTrunk_IdleActualMoverSlidesOffUnsupportedCornerAndKeepsRealTopSupport()
+        {
+            var dormitory = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory");
+            Assert.IsNotNull(dormitory, "Use the current playable dormitory rather than the retained greybox.");
+            var trunk = dormitory.GetComponentsInChildren<Collider>().Single(c => c.name == "FootTrunk_2" && !c.isTrigger);
+            actor = new GameObject("DormIdleCorner_ActualMover");
+            var moverType = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.Player.PlayerMover")).First(t => t != null);
+            var mover = (Behaviour)actor.AddComponent(moverType);
+            moverType.GetProperty("FreeMovement").SetValue(mover, true);
+            var controller = actor.GetComponent<CharacterController>();
+            var relocate = moverType.GetMethod("Relocate");
+            Physics.SyncTransforms();
+            var bounds = trunk.bounds;
+
+            // The real top remains standable; only the unsupported side corner should shed the capsule.
+            relocate.Invoke(mover, new object[] { new Vector3(bounds.center.x, bounds.max.y + 1f, bounds.center.z), Quaternion.identity });
+            yield return new WaitForSeconds(1.5f);
+            Assert.That(actor.transform.position.y, Is.InRange(bounds.max.y, bounds.max.y + controller.skinWidth * 2f));
+            Assert.IsTrue(controller.isGrounded);
+
+            // Same live-scene location which stalled at y=.242: x=center-.6, z=center.
+            Vector3 drop = new(bounds.center.x - controller.radius * 2f, bounds.max.y + 1f, bounds.center.z);
+            var floorHit = Physics.RaycastAll(drop, Vector3.down, controller.height * 2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                .Where(h => h.collider != controller && !h.collider.transform.IsChildOf(actor.transform) && h.normal.y >= Mathf.Cos(controller.slopeLimit * Mathf.Deg2Rad))
+                .OrderBy(h => h.distance).First();
+            relocate.Invoke(mover, new object[] { drop, Quaternion.identity });
+            // Do not call Move or Update manually: actual PlayerMover.Update and common gravity must resolve it.
+            yield return new WaitForSeconds(3f);
+            Assert.Less(actor.transform.position.x, drop.x, "The idle capsule must leave the rounded side contact outward.");
+            Assert.That(actor.transform.position.y, Is.InRange(floorHit.point.y, floorHit.point.y + controller.skinWidth * 2f),
+                "The furniture's side must not keep a motionless player suspended above the floor.");
+            Assert.IsTrue(controller.isGrounded);
+            Assert.IsFalse((bool)moverType.GetProperty("IsAirborne").GetValue(mover));
+        }
+
+        [UnityTest, Category("CommonIdleSupportRegression")]
+        public IEnumerator DormFootTrunk_IdleSlideKeepsTheCommonGapToAnotherPlayer()
+        {
+            var dormitory = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory");
+            Assert.IsNotNull(dormitory);
+            var trunk = dormitory.GetComponentsInChildren<Collider>().Single(c => c.name == "FootTrunk_2" && !c.isTrigger);
+            var moverType = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.Player.PlayerMover")).First(t => t != null);
+            actor = new GameObject("DormIdleCorner_PlayerGapMover");
+            var mover = (Behaviour)actor.AddComponent(moverType);
+            moverType.GetProperty("FreeMovement").SetValue(mover, true);
+            var controller = actor.GetComponent<CharacterController>();
+            var relocate = moverType.GetMethod("Relocate");
+            Physics.SyncTransforms();
+            var bounds = trunk.bounds;
+            Vector3 drop = new(bounds.center.x - controller.radius * 2f, bounds.max.y + 1f, bounds.center.z);
+
+            // A positive control proves this live furniture contact actually produces an idle slide.
+            relocate.Invoke(mover, new object[] { drop, Quaternion.identity });
+            yield return new WaitForSeconds(3f);
+            float actualSlide = drop.x - actor.transform.position.x;
+            Assert.Greater(actualSlide, .001f);
+            float floorY = actor.transform.position.y;
+
+            isolated = new GameObject("DormIdleCorner_StationaryOtherPlayer");
+            var other = (Behaviour)isolated.AddComponent(moverType);
+            // Keep the real mover registered for common player blocking, while its position
+            // is held still like an externally driven player. Do not disable the component.
+            moverType.GetProperty("Simulated").SetValue(other, false);
+            var otherController = isolated.GetComponent<CharacterController>();
+            var character = moverType.GetProperty("Character", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetValue(null);
+            float gap = (float)character.GetType().GetProperty("PlayerGap").GetValue(character);
+            float separation = controller.radius + otherController.radius + gap;
+            float clearance = actualSlide * .25f;
+            relocate.Invoke(other, new object[] { new Vector3(drop.x - separation - clearance, floorY, drop.z), Quaternion.identity });
+            relocate.Invoke(mover, new object[] { drop, Quaternion.identity });
+            Physics.SyncTransforms();
+
+            float until = Time.time + 3f;
+            while (Time.time < until)
+            {
+                yield return null; // Real PlayerMover.Update; no manual Move or private method call.
+                Vector3 between = actor.transform.position - isolated.transform.position;
+                between.y = 0f;
+                Assert.GreaterOrEqual(between.magnitude, separation - .0005f,
+                    "The idle corner correction must obey the same player gap as normal walking.");
+            }
+
+            isolated.SetActive(false);
+            yield return new WaitForSeconds(2f);
+            Assert.That(actor.transform.position.y, Is.InRange(floorY - .02f, floorY + controller.skinWidth * 2f),
+                "Removing the adjacent player must allow the unsupported corner to shed the capsule again.");
+        }
+
         [Test]
         public void CorrectedFurniture_HorizontalCollidersFitVisibleLocalBounds()
         {

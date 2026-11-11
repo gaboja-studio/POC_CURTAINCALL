@@ -1,4 +1,5 @@
 using System.Linq;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -150,6 +151,8 @@ namespace CurtainCall.WaitingRoom
             ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
             : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", done), ("total", total));
         UIInputBlocker inputBlocker;
+        NetworkPlayer panelOpenedBy;
+        bool panelOpenedByNetworkPlayer;
         bool panel;
         ExplorationPanel panelView;
         string entered = "";
@@ -172,11 +175,12 @@ namespace CurtainCall.WaitingRoom
             : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
         public void Interact()
         {
-            if (!ConditionsMet || ExplorationState.Instance == null) return;
+            if (!ConditionsMet || ExplorationState.Instance == null || !LocalCanUsePanel) return;
             if (NeedsPassword || kind == ExplorationGateKind.Monitor)
             {
                 if (panel) return;
                 panel = true; entered = ""; openedFrame = Time.frameCount; inputBlocker.SetOpen(true);
+                panelOpenedBy = NetworkPlayer.Local; panelOpenedByNetworkPlayer = panelOpenedBy != null;
                 if (kind == ExplorationGateKind.Monitor && !Opened) ExplorationState.Instance.RequestUse(targetId);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
                 if (monitorCamera != null)
@@ -186,15 +190,24 @@ namespace CurtainCall.WaitingRoom
                 }
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
                 if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
-                panelView.Open(Label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : MonitorText, NeedsPassword, value => ExplorationState.Instance?.RequestCode(targetId, value), ClosePanel, false, monitorFeed);
+                panelView.Open(Label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : MonitorText, NeedsPassword, value => {
+                    if (!PanelOwnerCanUse) { ClosePanel(); return; }
+                    ExplorationState.Instance?.RequestCode(targetId, value);
+                }, ClosePanel, false, monitorFeed);
             }
             else ExplorationState.Instance.RequestUse(targetId);
         }
         void ClosePanel()
         {
             panel = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
+            panelOpenedBy = null; panelOpenedByNetworkPlayer = false;
             if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Answered;
         }
+        static bool LocalCanUsePanel => NetworkPlayer.Local != null
+            ? PlayerInteraction.CanInteract(NetworkPlayer.Local)
+            : NetworkPlayer.All.Count == 0 && PlayerInteraction.CanInteract(FindFirstObjectByType<PlayerInputReader>());
+        bool PanelOwnerCanUse => LocalCanUsePanel
+            && (!panelOpenedByNetworkPlayer || panelOpenedBy != null && panelOpenedBy == NetworkPlayer.Local);
         // 오답: 경고음 + 입력 비움, 다시 입력 가능. 정답: 짧은 확인음 뒤 패널이 닫힌다.
         void Answered(string text)
         {
@@ -233,6 +246,7 @@ namespace CurtainCall.WaitingRoom
             if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !Opened);
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
+            if (!PanelOwnerCanUse) { ClosePanel(); return; }
             if (NeedsPassword && Opened) Play(ref chime, "KeypadRight", .3f, 880f, false);
             if (panelView != null && NeedsPassword && ExplorationState.Instance != null && lastPanelMessage != ExplorationState.Instance.LastMessage)
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }

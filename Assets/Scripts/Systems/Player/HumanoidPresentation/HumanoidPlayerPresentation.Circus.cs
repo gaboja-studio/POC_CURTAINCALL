@@ -30,6 +30,7 @@ namespace CurtainCall.Player
                 if (change.sqrMagnitude < 25f)
                     presentationVelocity = Vector3.Lerp(presentationVelocity, change / Time.deltaTime,
                         1f - Mathf.Exp(-18f * Time.deltaTime));
+                else presentationVelocity = Vector3.zero;
             }
             previousPresentationPosition = p;
             presentationSampleReady = true;
@@ -44,7 +45,7 @@ namespace CurtainCall.Player
             launchBlend = 0; HasCarryContacts = false; carryMotion = null;
         }
 
-        bool PresentCircusMotion()
+        bool PresentCircusMotion(bool inAir, bool moving)
         {
             if (network == null || !network.IsSpawned || network.State != PlayerState.Normal)
             { ResetCircusMotion(); return false; }
@@ -70,6 +71,10 @@ namespace CurtainCall.Player
             // Pole entries keep their existing ascent presentation until their first trampoline bounce.
             if (flying && flight.StationIndex == CannonFlightState.PoleEntrySource && flight.Segment == 0)
             { circusPhase.Reset(); model.Play("Flying"); return true; }
+            // Landing is a presentation blend, not a movement lock. A new jump,
+            // walk or crouch must immediately use its current locomotion pose.
+            if (!flying && (inAir || moving || mover.IsCrouched))
+            { circusPhase.Reset(); return false; }
             string motion = circusPhase.Step(flying, flight.StationIndex, flight.LaunchRevision, flight.Segment,
                 presentationVelocity.y, Time.deltaTime);
             if (motion == null) return false;
@@ -89,7 +94,10 @@ namespace CurtainCall.Player
         {
             if (!carrying) { carryMotion = null; return; }
             string next = CarryingTrampoline(out _) ? CircusVariant("TrampolineCarry") : "Carrying";
-            if (carryMotion == next || !model.Animator.HasState(1, Animator.StringToHash(next))) return;
+            if (!model.Animator.HasState(1, Animator.StringToHash(next))) return;
+            bool playing = model.Animator.GetCurrentAnimatorStateInfo(1).IsName(next)
+                || (model.Animator.IsInTransition(1) && model.Animator.GetNextAnimatorStateInfo(1).IsName(next));
+            if (carryMotion == next && playing) return;
             model.Animator.CrossFadeInFixedTime(next, .16f, 1);
             carryMotion = next;
         }

@@ -90,6 +90,11 @@ MonoBehaviour:
   hudLayout:
     balancePosition: 0
   presentation:
+    walkAnimationSpeed: 3
+    runAnimationSpeed: 6
+    crouchAnimationSpeed: 1.5
+    ropeAnimationSpeed: 0.5
+    crawlAnimationSpeed: 1.5
     strike:
       allowMovement: 0
       allowInterrupt: 1

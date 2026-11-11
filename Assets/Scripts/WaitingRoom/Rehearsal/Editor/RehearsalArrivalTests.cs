@@ -296,13 +296,13 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(cannon, "course", arena);
             var player = Participant(701, false);
             player.transform.position = course.transform.position + Vector3.down * 3f;
-            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>(), false);
+            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>());
             Assert.That(RehearsalCannonCourse.Contains(arena.StartFloor, player.transform.position), Is.True);
             var shared = Get(cannon, "shared");
             ((List<ulong>)shared.GetType().GetField("placed").GetValue(shared)).Add(701);
             var progressing = course.transform.position + Vector3.forward * 10f;
             player.transform.position = progressing;
-            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>(), false);
+            Call(cannon, "PlaceLocalAtCheckpoint", player, player.GetComponent<PlayerMover>());
             Assert.That(player.transform.position, Is.EqualTo(progressing), "배치 승인 뒤 정상 진행자는 끌어오지 않는다.");
             Set(cannon, "course", null);
         }
@@ -477,6 +477,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
         [Test]
         public void TutorialStillBlocksArrivedPlayerUntilPracticeStarts()
         {
+            var instance = typeof(WaitingRoomRehearsal).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = instance.GetValue(null);
+            var previousRun = CampaignRun.Instance;
+            try
+            {
+            var campaign = Make("Initial tutorial run").AddComponent<CampaignRun>();
+            var state = new RunState(); state.StartSession(true); state.EndIntro();
+            Set(campaign, "host", state); Set(campaign, "state", state.Snapshot);
+            typeof(CampaignRun).GetProperty("Instance").SetValue(null, campaign);
+            Set(rehearsal, "run", campaign); instance.SetValue(null, rehearsal);
             var player = Participant(701);
             var mover = player.GetComponent<PlayerMover>();
             Set(rehearsal, "local", player);
@@ -488,6 +498,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(rehearsal, "practice", true);
             Call(rehearsal, "TrackPersonalProgress", mover);
             Assert.That(walls.activeSelf, Is.False, "튜토리얼 벽이 남아 있어도 재연습을 막으면 안 된다.");
+            }
+            finally
+            {
+                instance.SetValue(null, previous);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
+            }
         }
 
         [Test]

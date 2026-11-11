@@ -29,6 +29,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         string previousSawsJson;
         object poleSettings;
         string previousPoleJson;
+        float ResultTransitionTimeout => (float)Get(Static("CurtainCall.Settings.PerformanceEndingSettings", "Current"), "TransitionAt") + 5f;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -514,7 +515,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     Get(session, "MinPlayers"), "실제 캠페인에서는 테스트 씬의 1인 시작 예외를 해제한다.");
                 var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
                 Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-                yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "Adapter 공용 정산");
+                yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", ResultTransitionTimeout, "Adapter 공용 정산");
                 Assert.AreEqual("Succeeded", Get(run, "State").ToString());
                 Assert.AreEqual("Playing", Get(session, "GameState").ToString());
                 Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
@@ -565,7 +566,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", finish.position, finish.rotation, true);
             // 결과 노출과 검은 화면 유지가 실시간으로 약 5.8초 걸린다.
-            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 10, "도착 공용 정산");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", ResultTransitionTimeout, "도착 공용 정산");
             var result = Get(bridge, "Result");
             Assert.IsTrue((bool)Get(result, "Succeeded"));
             Assert.AreEqual("Succeeded", Get(run, "State").ToString());
@@ -664,7 +665,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return BeginPerformance();
             yield return null;
             Assert.IsTrue((bool)Call(player, "ServerKill"));
-            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "전멸 정산과 다음 시간대");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", ResultTransitionTimeout, "전멸 정산과 다음 시간대");
             var result = Get(bridge, "Result");
             Assert.IsFalse((bool)Get(result, "Succeeded"));
             Assert.AreEqual(1, ((ICollection)Get(result, "Deaths")).Count, "부활 전 사망이 정산에 남아야 한다.");
@@ -689,7 +690,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Call(player, "ServerSetOneArm");
             // 메모리의 제한시간만 줄여 실제 Update의 시간 초과 경로를 기다린다. 에셋은 저장하지 않는다.
             Set(runSettings, "timeLimit", 1f);
-            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "제한시간 정산과 공용 단계 전환");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", ResultTransitionTimeout, "제한시간 정산과 공용 단계 전환");
             var result = Get(bridge, "Result");
             Assert.IsFalse((bool)Get(result, "Succeeded"));
             Assert.AreEqual("TimeExpired", Get(result, "EndReason"));
@@ -703,7 +704,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         {
             yield return BeginPerformance();
             Set(runSettings, "timeLimit", 1f);
-            yield return Until(() => Phase == "RestTime", 5, "공연 종료");
+            yield return Until(() => Phase == "RestTime", ResultTransitionTimeout, "공연 종료");
             var result = Get(bridge, "Result");
             Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));
             yield return null;
@@ -932,7 +933,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         {
             yield return BeginPerformance();
             Call(player, "ServerKill");
-            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "전멸 정산");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", ResultTransitionTimeout, "전멸 정산");
             int oldRound = (int)Get(run, "Round");
             var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
             Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
@@ -1322,7 +1323,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         static object Get(object target, string name) => target.GetType().GetProperty(name, Members) is PropertyInfo property
             ? property.GetValue(target) : target.GetType().GetField(name, Members).GetValue(target);
         static void Set(object target, string name, object value) => target.GetType().GetField(name, Members).SetValue(target, value);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods(Members)
-            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
+        static object Call(object target, string name, params object[] args)
+        {
+            var candidates = target.GetType().GetMethods(Members).Where(m => m.Name == name).ToArray();
+            var exact = candidates.Where(m => m.GetParameters().Length == args.Length).ToArray();
+            var method = exact.Length > 0 ? exact.Single() : candidates.Single(m => m.GetParameters().Length > args.Length
+                && m.GetParameters().Skip(args.Length).All(p => p.IsOptional));
+            return method.Invoke(target, args.Concat(Enumerable.Repeat(Type.Missing, method.GetParameters().Length - args.Length)).ToArray());
+        }
     }
 }

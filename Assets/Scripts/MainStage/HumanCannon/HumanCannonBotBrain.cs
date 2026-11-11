@@ -106,9 +106,11 @@ namespace CurtainCall.HumanCannon
                 trampoline.Surface.y, GameSettings.Base.Character.Gravity);
             var poles = HumanCannonPoleSystem.Current;
             int grip = poles != null ? poles.HeldBy(other.OwnerClientId) : -1;
-            if (grip >= 0 && poles.Pole(grip).LinkedGate != null && !poles.Pole(grip).LinkedGate.CarrierPassed)
+            var heldPole = grip >= 0 ? poles.Pole(grip) : null;
+            if (heldPole != null && heldPole.InteractionAvailable
+                && heldPole.LinkedGate != null && !heldPole.LinkedGate.CarrierPassed)
             {
-                var gate = poles.Pole(grip).LinkedGate;
+                var gate = heldPole.LinkedGate;
                 surface = gate.transform.position + Vector3.forward * 6;
                 Status = "봉 관문 통과 중";
             }
@@ -123,7 +125,9 @@ namespace CurtainCall.HumanCannon
             if (poles != null)
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
-                    var gate = poles.Pole(i).LinkedGate;
+                    var pole = poles.Pole(i);
+                    if (pole == null || !pole.InteractionAvailable) continue;
+                    var gate = pole.LinkedGate;
                     if (gate != null && !gate.IsOpen && gate.Side(player.transform.position) < 0
                         && gate.Side(target) > -2f) target.z = Mathf.Min(target.z, gate.transform.position.z - 2f);
                 }
@@ -138,7 +142,8 @@ namespace CurtainCall.HumanCannon
             if (pilot.IsHoldingPole)
             {
                 if (held != pilot.HeldPole) { held = pilot.HeldPole; heldSince = Time.time; }
-                var pole = poles.Pole(held);
+                var pole = poles != null ? poles.Pole(held) : null;
+                if (pole == null || !pole.InteractionAvailable) return default;
                 Status = "봉에서 반동 · 운반자 통과 대기";
                 bool release = pole.LinkedGate == null ? Time.time - heldSince > 2f : pole.LinkedGate.CarrierPassed;
                 return new PlayerInputFrame { Move = release ? 1f : Mathf.Sin((Time.time - heldSince) * 2f), ActionPressed = release };
@@ -159,6 +164,7 @@ namespace CurtainCall.HumanCannon
                     for (int i = 0; i < poles.PoleCount; i++)
                     {
                         var pole = poles.Pole(i);
+                        if (pole == null || !pole.InteractionAvailable) continue;
                         if (pole.LinkedGate == null || pole.LinkedGate.CarrierPassed || pole.Grip.position.z < player.transform.position.z - 2
                             || pole.Grip.position.z - player.transform.position.z > 10) continue;
                         target = pole.HangingPosition(0);
@@ -228,8 +234,9 @@ namespace CurtainCall.HumanCannon
             Vector3 forward = CameraViewDirector.Current != null && CameraViewDirector.Current.UsesMouseLook
                 ? CameraViewDirector.Current.ViewForward : mover.CourseForward;
             forward = Vector3.ProjectOnPlane(forward, Vector3.up).normalized;
-            Vector2 input = Vector2.ClampMagnitude(new Vector2(Vector3.Dot(desired, Vector3.Cross(Vector3.up, forward)),
-                Vector3.Dot(desired, forward)) / 4.5f, 1);
+            float controlSpeed = GameSettings.Base.AirControl.Speed;
+            Vector2 input = controlSpeed > 0f ? Vector2.ClampMagnitude(new Vector2(Vector3.Dot(desired, Vector3.Cross(Vector3.up, forward)),
+                Vector3.Dot(desired, forward)) / controlSpeed, 1) : Vector2.zero;
             return new PlayerInputFrame { Posture = input.x, Move = input.y };
         }
 

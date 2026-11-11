@@ -50,7 +50,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         public bool CanReachLocal(IShopTarget target)
-        { var body = FindBody(channel.LocalClientId); return body != null && CurtainCall.Player.PlayerInteraction.RestrictReach(target.Reach(body.position, body), body) >= 0f; }
+        { var body = FindBody(channel.LocalClientId); return PlayerInteraction.CanInteract(body) && PlayerInteraction.RestrictReach(target.Reach(body.position, body), body) >= 0f; }
         public Vector3? LocalFeet { get { var body = FindBody(channel.LocalClientId); return body != null ? body.position : null; } }
 
         public int Hits(string target) => book.Hits(target);
@@ -187,6 +187,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool ok, string text, string reason) UseCore(ulong player, string targetId, string password, IExplorationTarget target)
         {
+            if (!PlayerInteraction.CanInteract(player))
+                return (false, WaitingRoomText.Get("explore.not-alive", "살아 있는 사람만 상호작용할 수 있습니다."), "NOT_ALIVE");
             // 첫 공연 전에는 클라이언트의 F 입력뿐 아니라 호스트의 탐색 판정도 잠근다.
             if (WaitingRoomRehearsal.IsPreTutorialRestricted)
                 return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."), "PRE_TUTORIAL_LOCK");
@@ -219,6 +221,7 @@ namespace CurtainCall.WaitingRoom
                 int slot = gate.HasKeySlots ? gate.SlotAt(body.position, body) : -1;
                 if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,
                     id => {
+                        if (!PlayerInteraction.CanInteract(id)) return false;
                         var other = FindBody(id);
                         if (other == null || CurtainCall.Player.PlayerInteraction.RestrictReach(gate.Reach(other.position, other), other) < 0f) return false;
                         if (gate.HasKeySlots && id != player && gate.SlotAt(other.position, other) == slot) return false;

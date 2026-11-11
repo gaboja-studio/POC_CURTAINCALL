@@ -19,6 +19,23 @@ namespace CurtainCall.HumanoidPresentationEditor
         public const string ModelPath = Folder + "/Humanoid.prefab";
         public const string PlayerPath = "Assets/Resources/Prefabs/Characters/Players/Player.prefab";
 
+        public static void ConfigureLocomotion(AnimatorController controller)
+        {
+            if (!controller.parameters.Any(p => p.name == HumanoidModel.LocomotionRateParameter))
+                controller.AddParameter(new AnimatorControllerParameter { name = HumanoidModel.LocomotionRateParameter,
+                    type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
+            foreach (var child in controller.layers[0].stateMachine.states)
+            {
+                var state = child.state;
+                if (state.name != "Walk" && state.name != "Run" && state.name != "CrouchWalk"
+                    && state.name != "Tightrope" && state.name != "Crawl" && !state.name.StartsWith("ItemCrawl")) continue;
+                state.speedParameter = HumanoidModel.LocomotionRateParameter;
+                state.speedParameterActive = true;
+                EditorUtility.SetDirty(state);
+            }
+            EditorUtility.SetDirty(controller);
+        }
+
         [MenuItem("CurtainCall/Player/Build Task062 humanoid player")]
         public static void Build()
         {
@@ -63,6 +80,7 @@ namespace CurtainCall.HumanoidPresentationEditor
                 Add(controller, "Tightrope", UserClip("tightrope_walk"), true);
                 Add(controller, "Flying", UserClip("flying"), false);
                 Add(controller, "Fall", UserClip("fall"), true);
+                ConfigureLocomotion(controller);
                 controller.layers[0].stateMachine.defaultState = controller.layers[0].stateMachine.states.Single(s => s.state.name == "Idle").state;
                 var mask = new AvatarMask { name = "운반 상체" };
                 for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++) mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i, false);

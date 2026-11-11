@@ -17,6 +17,38 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Call(course, "Rebuild");
         }
         [UnityTest, Category("TightropeJourneyRegression")]
+        [Category("CommonMotionRegression")]
+        public IEnumerator PiggybackInPlaceHopUsesJumpAndLandingPresentation()
+        {
+            yield return BeginPerformance(); DisableSwingHazards();
+            yield return StandOnRopeForSawTest(1,8f);
+            var partner=CreatePracticeBotTestPartner(1,8.7f);
+            var reader=(Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"));
+            try
+            {
+                reader.enabled=true;
+                yield return Until(()=>!(bool)Static("CurtainCall.Player.InputGate","IsBlocked"),2f,"input release");
+                var stack=Static("CurtainCall.Tightrope.PiggybackSystem","Current");
+                var follow=UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.PiggybackFollow"));
+                Call(stack,"ServerTryLink",(ulong)Get(player,"OwnerClientId"));
+                Assert.AreSame(partner,Call(stack,"GetBelow",player));
+                Call(follow,"LateUpdate");
+                Set(reader,"<Current>k__BackingField",CatchFrame(jump:true));
+                Call(follow,"LateUpdate");reader.enabled=false;
+                Assert.IsTrue((bool)Get(follow,"hopping"));
+                yield return null;yield return null;
+                var view=player.GetComponent(GameType("CurtainCall.Player.HumanoidPlayerPresentation"));
+                Assert.That(new[]{"JumpStart","JumpLoop"},Does.Contain((string)Get(Get(view,"Model"),"Motion")),
+                    "The top rider's hop has its own movement driver, but must still animate as a jump.");
+                yield return Until(()=>!(bool)Get(follow,"hopping"),3f,"hop landing");
+                yield return new WaitForSeconds(.3f);
+                Assert.That((string)Get(Get(view,"Model"),"Motion"),Is.EqualTo("Idle"));
+                Assert.AreSame(partner,Call(stack,"GetBelow",player),"An in-place hop retains the stack.");
+            }
+            finally{reader.enabled=false;DestroyPracticeBotTestPartner(partner);}
+        }
+
+        [UnityTest, Category("TightropeJourneyRegression")]
         public IEnumerator MountAndForwardJumpInSameFrameStartsFromPartnersHead()
         {
             yield return BeginPerformance(); DisableSwingHazards();

@@ -104,6 +104,8 @@ namespace CurtainCall.WaitingRoom
         Transform Body => body != null ? body : transform;
 
         UIInputBlocker blocker;
+        NetworkPlayer openedBy;
+        bool openedByNetworkPlayer;
         Transform view, pivot;
         float distance;
         bool inReach;
@@ -171,10 +173,14 @@ namespace CurtainCall.WaitingRoom
             inReach = ShopReach.Focused == (IShopTarget)this;
             if (!IsOpen) return;
 
+            if (openedByNetworkPlayer && (openedBy == null || openedBy != NetworkPlayer.Local))
+            { SetOpen(false, "OWNER_CHANGED"); return; }
+
             var reader = LocalReader();
             bool pushedAway = reader == null || new Vector2(reader.transform.position.x - Body.position.x, reader.transform.position.z - Body.position.z).magnitude > CommonReach + .6f;
             var keyboard = Keyboard.current; var mouse = Mouse.current;
             string close = !revealed ? "NO_LONGER_REVEALED" : reader == null ? "READER_UNAVAILABLE" :
+                !PlayerInteraction.CanInteract(reader) ? "ACTOR_UNAVAILABLE" :
                 pushedAway ? "OUT_OF_REACH" : keyboard != null && keyboard.escapeKey.wasPressedThisFrame ? "ESCAPE_KEY" :
                 Time.frameCount > openedFrame + 1 && reader != null && reader.WasPressedThisFrame("Interact") ? "INTERACT_KEY" :
                 mouse != null && mouse.rightButton.wasPressedThisFrame ? "RIGHT_CLICK" : null;
@@ -243,9 +249,10 @@ namespace CurtainCall.WaitingRoom
             if (value)
             {
                 var cam = Camera.main;
-                if (cam == null || Current != null || !Revealed) return;
+                if (cam == null || Current != null || !Revealed || !PlayerInteraction.CanInteract(LocalReader())) return;
                 if (!Discovered) ExplorationState.Instance?.RequestUse(targetId);
                 Current = this; openedFrame = Time.frameCount;
+                openedBy = NetworkPlayer.Local; openedByNetworkPlayer = openedBy != null;
                 distance = Mathf.Lerp(viewDistance.x, viewDistance.y, .4f);
                 BuildView(cam.transform);
                 blocker.SetOpen(true);
@@ -258,6 +265,7 @@ namespace CurtainCall.WaitingRoom
             else
             {
                 if (Current == this) Current = null;
+                openedBy = null; openedByNetworkPlayer = false;
                 InspectionObserved?.Invoke(this, "CLOSED", reason, InspectionMs);
                 if (panelView != null) panelView.Hide();
                 if (view != null) Destroy(view.gameObject);
