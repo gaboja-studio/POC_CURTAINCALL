@@ -69,3 +69,4 @@
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 사용자 결정(2026-11-11): 출발대와 지상 사이 9m 틈은 그대로 둔다. 틈으로 떨어지면 −15m 즉사, 건너편 지상 착지만 부상.
+- dev 병합(2026-11-11): dev에 같은 규칙이 먼저 반영돼 있었다(부상 5m·사망 15m, `BodyDamage.WorldDeathY` −15, `NetworkPlayer.CheckWorldDeath`). 충돌 3건은 dev 구현을 채택하고 이 Task의 중복 구현(`FallKillHeight`·`ServerKillBelowFallLimit`)은 제거했다. 출발대 5m·조준·코스 밖 −15는 그대로 유지.

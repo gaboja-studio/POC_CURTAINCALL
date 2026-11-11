@@ -757,7 +757,7 @@ namespace CurtainCall.Player
         /// </summary>
         Vector3 LimitAlongCourse(Vector3 step, Vector3 forward)
         {
-            if (forward == Vector3.zero) return step;
+            if (IgnorePlayerBlocking || forward == Vector3.zero) return step;
             float along = Vector3.Dot(step, forward);
             if (Mathf.Approximately(along, 0f)) return step;
 
@@ -768,7 +768,7 @@ namespace CurtainCall.Player
 
             foreach (var other in active)
             {
-                if (other == this || other.PassThrough) continue;
+                if (!BlocksMovement(other)) continue;
                 Vector3 delta = other.transform.position - origin;
                 if (Mathf.Abs(delta.y) >= Mathf.Max(BodyHeight, other.BodyHeight)) continue;
 
@@ -796,7 +796,7 @@ namespace CurtainCall.Player
             Vector3 position = transform.position;
             foreach (var other in active)
             {
-                if (other == this || other.PassThrough || other.IgnorePlayerBlocking) continue;
+                if (!BlocksMovement(other)) continue;
                 Vector3 toOther = other.transform.position - position;
                 if (Mathf.Abs(toOther.y) >= Mathf.Max(BodyHeight, other.BodyHeight)) continue;
                 toOther.y = 0f;
@@ -809,6 +809,18 @@ namespace CurtainCall.Player
                 step -= normal * Vector3.Dot(step, normal);
             }
             return step;
+        }
+
+        bool BlocksMovement(PlayerMover other)
+        {
+            if (other == this || other.PassThrough || other.IgnorePlayerBlocking) return false;
+            var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            // 균형으로 기울어진 위 사람의 발은 아래 사람 몸 높이보다 낮아질 수 있다.
+            // 같은 목마를 앞/뒤의 별도 장애물로 계산하면 한쪽 이동만 막힌다.
+            if (stack != null && TryGetComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>(out var actor)
+                && other.TryGetComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>(out var partner)
+                && stack.IsInStack(actor) && stack.GetCarrier(actor) == stack.GetCarrier(partner)) return false;
+            return true;
         }
 
         /// <summary>몸통이 부딪힌 물체(래그돌 등 움직이는 Rigidbody)를 미는 방향으로 민다. 위에서 밟은 경우는 밀지 않는다.</summary>

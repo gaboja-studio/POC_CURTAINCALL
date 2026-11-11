@@ -75,6 +75,8 @@ namespace CurtainCall.Network.PlayerSync
             if (Vector3.Angle(uvForward.Value, forward) > 2f) uvForward.Value = forward;
         }
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<float> piggybackHop = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        public float PiggybackHopHeight => float.IsFinite(piggybackHop.Value) ? Mathf.Max(0, piggybackHop.Value) : 0f;
         // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
         readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         // 이동·달리기는 겉모습 표시용이며 판정에는 사용하지 않는다
@@ -512,6 +514,10 @@ namespace CurtainCall.Network.PlayerSync
             }
 
             // 내 캐릭터: 바뀐 값만 보낸다(NetworkVariable은 변할 때만 전송된다)
+            var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            float hop = State == PlayerState.Normal && stack != null && stack.TryGetComponent<CurtainCall.Tightrope.PiggybackFollow>(out var follow)
+                ? follow.LocalHopHeight(this) : 0f;
+            if (hop == 0f && piggybackHop.Value != 0f || Mathf.Abs(piggybackHop.Value - hop) >= .01f) piggybackHop.Value = hop;
             if (jump.Value != mover.CurrentJump)
                 jump.Value = mover.CurrentJump;
             if (crouched.Value != mover.IsCrouched)

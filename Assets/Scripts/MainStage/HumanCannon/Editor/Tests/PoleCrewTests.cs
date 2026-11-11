@@ -258,8 +258,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             receive.Invoke(runtime, new object[] { 10f, 1d, false });
             runtime.GetType().GetField("Speed").SetValue(runtime, 40f);
             float Sample(double now) => (float)display.Invoke(runtime, new object[] { now });
-            Assert.That(Sample(1.075), Is.EqualTo(13f).Within(.001f));
-            Assert.That(Sample(1.5), Is.EqualTo(14f).Within(.001f), "A lost connection must not predict indefinitely.");
+            float multiplier = CurtainCall.Settings.GameSettings.Poles.SwingMotionSpeed;
+            Assert.That(Sample(1.075), Is.EqualTo(10f + 3f * multiplier).Within(.001f));
+            Assert.That(Sample(1.5), Is.EqualTo(10f + 4f * multiplier).Within(.001f), "A lost connection must not predict indefinitely.");
             runtime.GetType().GetField("MaxDisplayAngle").SetValue(runtime, 12f);
             Assert.That(Sample(1.5), Is.EqualTo(12f));
         }
@@ -276,9 +277,36 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Deliver(Two, 8);
             Assert.IsTrue(Due(10.35));
             Assert.IsTrue(Due(10.40));
-            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 9, action: 4, phase: PoleSawPhase.Active);
+            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 9, action: 4, phase: PoleSawPhase.Active, angle: 0, speed: 0);
             Assert.IsFalse(Due(10.45));
             Assert.IsTrue(Due(11.25));
+            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 10, phase: PoleSawPhase.Active, angle: 30, speed: 0);
+            Assert.IsTrue(Due(11.30), "빈 봉의 남은 반동도 원격으로 계속 전달한다.");
+        }
+
+        [Test]
+        public void ReleaseDirectionIsSharedAndMalformedDirectionCannotChangeCrew()
+        {
+            Deliver(Two, 8, releaseDirection: -1f);
+            Assert.That(runtime.GetType().GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
+            Deliver(Two, 9, releaseDirection: float.NaN);
+            Assert.That(receiver.State(0).Revision, Is.EqualTo(8));
+            Assert.That(runtime.GetType().GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
+        }
+
+        [Test]
+        public void ReleaseUsesLatestDriverInputEvenBeforeNextSimulationTick()
+        {
+            Deliver(Two, 8, releaseDirection: 1f);
+            var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
+            var top = riders.GetValue(0);
+            top.GetType().GetField("Input").SetValue(top, -1f);
+            top.GetType().GetField("LastInput").SetValue(top, receiver.Clock);
+            var passenger = riders.GetValue(1);
+            passenger.GetType().GetField("Input").SetValue(passenger, 1f);
+            passenger.GetType().GetField("LastInput").SetValue(passenger, receiver.Clock);
+            typeof(HumanCannonPoleSystem).GetMethod("RefreshReleaseDirection", Instance).Invoke(receiver, new[] { runtime });
+            Assert.That(runtime.GetType().GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
         }
 
         [Test]
@@ -316,12 +344,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
         void Deliver(Row[] rows, uint revision, byte action = 0, ulong actor = Empty, byte seat = 255,
             int station = 0, uint launch = 0, uint segment = 0, ulong sender = NetworkManager.ServerClientId,
-            PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0, float angle = 20f, float speed = 5f)
+            PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0, float angle = 20f, float speed = 5f,
+            float releaseDirection = 0f)
         {
-            using var writer = new FastBufferWriter(action == 2 ? 200 : 160, Allocator.Temp);
+            using var writer = new FastBufferWriter(action == 2 ? 204 : 164, Allocator.Temp);
             writer.WriteValueSafe(action); writer.WriteValueSafe(0); writer.WriteValueSafe(revision);
             writer.WriteValueSafe((byte)phase); writer.WriteValueSafe(0d); writer.WriteValueSafe(angle); writer.WriteValueSafe(speed);
-            writer.WriteValueSafe(actor); writer.WriteValueSafe(seat); writer.WriteValueSafe(station);
+            writer.WriteValueSafe(actor); writer.WriteValueSafe(releaseDirection); writer.WriteValueSafe(seat); writer.WriteValueSafe(station);
             writer.WriteValueSafe(launch); writer.WriteValueSafe(segment); writer.WriteValueSafe((byte)(reversedSeats << 1));
             foreach (Row row in rows)
             {
@@ -332,7 +361,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 writer.WriteValueSafe(Vector3.one); writer.WriteValueSafe(Quaternion.identity); writer.WriteValueSafe(Vector3.up);
             }
-            Assert.That(writer.Length, Is.EqualTo(action == 2 ? 200 : 160));
+            Assert.That(writer.Length, Is.EqualTo(action == 2 ? 204 : 164));
             using var reader = new FastBufferReader(writer, Allocator.Temp);
             typeof(HumanCannonPoleSystem).GetMethod("ReceiveState", Instance).Invoke(receiver, new object[] { sender, reader });
         }

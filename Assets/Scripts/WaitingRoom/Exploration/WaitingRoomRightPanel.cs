@@ -19,6 +19,8 @@ namespace CurtainCall.WaitingRoom
 
         public bool Show(string title,string body)
         {
+            title=WaitingRoomHudProfile.FormatLocalKeys(title);
+            body=WaitingRoomHudProfile.FormatLocalKeys(body);
             if(role!=HudRole.Feedback && title==lastTitle && body==lastBody)return true; // A superseded, unchanged mission must not reclaim the HUD every frame.
             bool newRequest=!Visible || title!=lastTitle;
             lastTitle=title;lastBody=body;

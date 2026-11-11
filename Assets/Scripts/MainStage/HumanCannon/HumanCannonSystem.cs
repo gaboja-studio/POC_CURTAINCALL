@@ -24,7 +24,7 @@ namespace CurtainCall.HumanCannon
 
         [Tooltip("대포 목록. 네 화면에서 같은 씬·같은 순서여야 한다.")]
         [SerializeField] HumanCannonStation[] stations = Array.Empty<HumanCannonStation>();
-        [Tooltip("비행이 코스 밖으로 종료되는 높이. 깊은 시설 씬만 별도로 지정한다.")]
+        [Tooltip("기존 코스 배치 확인용 하단 높이. 플레이어 사망은 BaseGameSettings의 월드 Y 즉사 기준을 사용한다.")]
         [SerializeField] float flightFloorHeight = -10f;
         [SerializeField] Transform flightCoordinateSpace;
         [Tooltip("이 공간의 일반 이동과 비행에 마우스 회전 3인칭을 사용한다.")]
@@ -144,6 +144,7 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.LocalSpawned += Bind;
             NetworkPlayer.LocalDespawned += Unbind;
             NetworkPlayer.Restarted += HandleRestart;
+            NetworkPlayer.Revived += HandleRevivedMotion;
             if (NetworkPlayer.Local != null) Bind(NetworkPlayer.Local);
         }
 
@@ -444,6 +445,14 @@ namespace CurtainCall.HumanCannon
             }
         }
 
+        void HandleRevivedMotion(NetworkPlayer player)
+        {
+            pendingLandingReports.Remove(player.OwnerClientId);
+            if (session != null && session.IsHost) flying.RemoveWhere(id => id == player.OwnerClientId, SendFlightRemoved);
+            else flying.Remove(player.OwnerClientId);
+            if (player == boundPlayer && pilot != null) pilot.ReleaseMovement();
+        }
+
         void HandleConnection(SessionConnectionState state)
         {
             Unregister();
@@ -495,6 +504,7 @@ namespace CurtainCall.HumanCannon
         void OnDisable()
         {
             NetworkPlayer.LocalSpawned -= Bind;
+            NetworkPlayer.Revived -= HandleRevivedMotion;
             NetworkPlayer.LocalDespawned -= Unbind;
             NetworkPlayer.Restarted -= HandleRestart;
             Unbind();

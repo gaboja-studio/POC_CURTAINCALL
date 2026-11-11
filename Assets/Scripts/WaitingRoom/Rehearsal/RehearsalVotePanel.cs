@@ -23,14 +23,25 @@ namespace CurtainCall.WaitingRoom
 
         public void Show(string heading,string text,params HudVoteChoice[] choices)
         {
-            string hint=WaitingRoomText.Get("rehearsal.vote-panel.hint","버튼에 표시된 키로 선택");
+            heading=WaitingRoomHudProfile.FormatLocalKeys(heading);
+            text=WaitingRoomHudProfile.FormatLocalKeys(text);
+            string hint=WaitingRoomHudProfile.FormatLocalKeys(WaitingRoomText.Get("rehearsal.vote-panel.hint","버튼에 표시된 키로 선택"));
+            var shownChoices=choices;
+            for (int i=0;i<choices.Length;i++)
+            {
+                var choice=choices[i];
+                var caption=WaitingRoomHudProfile.FormatLocalKeys(choice.Label);
+                if(caption==choice.Label)continue;
+                if(shownChoices==choices)shownChoices=(HudVoteChoice[])choices.Clone();
+                shownChoices[i]=new HudVoteChoice(caption,choice.Interactable,choice.OnClick);
+            }
             if (!IsVisible)
             {
-                card=HudUIManager.Current.ShowVote(text,transform,heading,hint,choices);
+                card=HudUIManager.Current.ShowVote(text,transform,heading,hint,shownChoices);
                 if(!cursorRegion) cursorRegion=gameObject.AddComponent<CameraCursorExclusion>();
             }
             card.SetText(text,heading,hint);
-            card.SetChoices(choices);
+            card.SetChoices(shownChoices);
             UpdateCursorRegion();
         }
         public void Hide()

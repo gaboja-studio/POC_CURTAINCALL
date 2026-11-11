@@ -58,10 +58,16 @@ namespace CurtainCall.HumanCannon
         }
 
         public Vector3 ReleaseVelocity(float angle, float speed) => ReleaseVelocity(angle, speed, -1);
-        public Vector3 ReleaseVelocity(float angle, float speed, int seat)
+        public Vector3 ReleaseVelocity(float angle, float speed, int seat) => ReleaseVelocity(angle, speed, seat, 0f);
+        public Vector3 ReleaseVelocity(float angle, float speed, int seat, float direction)
         {
-            Vector3 velocity = PoleSwingMotion.Velocity(angle, speed, SwingLength, Forward)
-                + Vector3.up * Rules.ReleaseUpwardSpeed;
+            // The user-approved release assist converts the current pendulum energy to a
+            // forward launch even at a turning point. No separate charge survives damping.
+            if (!float.IsFinite(direction) || Mathf.Abs(direction) < .01f)
+                direction = Mathf.Abs(speed) > .01f ? Mathf.Sign(speed) : Mathf.Sign(angle);
+            float momentum = PoleSwingMotion.StoredSpeed(angle, speed, SwingLength,
+                GameSettings.Base.Character.Gravity, Rules.SwingMotionSpeed, Rules.MaxSwingAngle, Rules.MaxSwingSpeed);
+            Vector3 velocity = Forward * (Mathf.Sign(direction) * momentum) + Vector3.up * Rules.ReleaseUpwardSpeed;
             return CannonAirControl.LimitPoleHorizontalSpeed(velocity, Rules.HorizontalSpeedLimit);
         }
 
@@ -120,8 +126,9 @@ namespace CurtainCall.HumanCannon
             if ((cable.localScale - scale).sqrMagnitude > .0000000001f) cable.localScale = scale;
         }
 
+        // The same swing clock drives presentation and stored release energy.
         public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
-            PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, SwingLength,
+            PoleSwingMotion.Step(ref angle, ref speed, input, dt * Rules.SwingMotionSpeed, gravity, SwingLength,
                 Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping);
 
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)

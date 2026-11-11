@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Cameras.Tests
 {
+    [Category("November11CommonFix")]
     public sealed class WaitingRoomCameraCoverageTests
     {
         const string BaseGuid = "0ce9037bd7c44c8b9d57785c26620388";

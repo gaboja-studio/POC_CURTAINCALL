@@ -16,7 +16,7 @@ namespace CurtainCall.HumanCannon
         const string RequestMessage = "CurtainCall.HumanCannon.Pole.Request";
         const string StateMessage = "CurtainCall.HumanCannon.Pole.State";
         const int RequestSize = 37;
-        const int StateSize = 160; // 48 byte header + four fixed 28 byte rider records.
+        const int StateSize = 164; // 52 byte header + four fixed 28 byte rider records.
         const int ReleaseStateSize = StateSize + 40;
         const byte GateOpenFlag = 1 << (PoleGateState.MaxRiders + 1);
         CustomMessagingManager messaging;
@@ -79,7 +79,8 @@ namespace CurtainCall.HumanCannon
                 // TryRelease has cleared the occupant, but this seat still holds its departure facing.
                 runtime.ReleaseRotation = SeatRotation(index, seat);
                 runtime.ReleaseVelocity = CannonAirControl.LimitPoleHorizontalSpeed(
-                    pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat), pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit));
+                    pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat, runtime.ReleaseDirection),
+                    pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit));
             }
             if (rider != null && (action == PoleEvent.Grabbed || action == PoleEvent.PlatformGrabbed || action == PoleEvent.Released))
                 rider.Segment++;
@@ -98,6 +99,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe((byte)action); writer.WriteValueSafe(WireIndex(index)); writer.WriteValueSafe(runtime.State.Revision);
             writer.WriteValueSafe((byte)runtime.State.Phase); writer.WriteValueSafe(runtime.State.RearmAt);
             writer.WriteValueSafe(runtime.Angle); writer.WriteValueSafe(runtime.Speed); writer.WriteValueSafe(actor);
+            writer.WriteValueSafe(runtime.ReleaseDirection);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
             // 비트 0: 지상 담당 통과, 비트 1~4: 예약(항상 0), 비트 5: 상단 점유로 톱벽이 열려 있음.
@@ -136,13 +138,15 @@ namespace CurtainCall.HumanCannon
             index = LocalIndex(index);
             reader.ReadValueSafe(out byte phase); reader.ReadValueSafe(out double rearmAt);
             reader.ReadValueSafe(out float angle); reader.ReadValueSafe(out float speed); reader.ReadValueSafe(out ulong actor);
+            reader.ReadValueSafe(out float releaseDirection);
             reader.ReadValueSafe(out byte seat); reader.ReadValueSafe(out int station);
             reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment); reader.ReadValueSafe(out byte flags);
             int reversedSeats = (flags >> 1) & ((1 << PoleGateState.MaxRiders) - 1);
             if (index < 0 || index >= states.Length || poles[index] == null
                 || (flags & ~(1 | GateOpenFlag | (((1 << PoleGateState.MaxRiders) - 1) << 1))) != 0
                 || reversedSeats != 0
-                || !float.IsFinite(angle) || !float.IsFinite(speed)) return;
+                || !float.IsFinite(angle) || !float.IsFinite(speed)
+                || !float.IsFinite(releaseDirection) || Mathf.Abs(releaseDirection) > 1f) return;
             var runtime = states[index];
             bool riderEvent = action == (byte)PoleEvent.Grabbed || action == (byte)PoleEvent.PlatformGrabbed
                 || action == (byte)PoleEvent.Released || action == (byte)PoleEvent.Abandoned;
@@ -169,11 +173,11 @@ namespace CurtainCall.HumanCannon
                 if (!FiniteReleaseVector(releasePosition) || !FiniteReleaseVector(releaseVelocity) || !FiniteReleaseRotation(releaseRotation)) return;
             }
             if ((PoleEvent)action != PoleEvent.Sync && revision <= runtime.State.Revision) return;
-            bool continuousSwing = (PoleEvent)action == PoleEvent.Sync && runtime.State.Count > 0
-                && revision == runtime.State.Revision;
+            bool continuousSwing = (PoleEvent)action == PoleEvent.Sync && revision == runtime.State.Revision;
             if (!runtime.State.ReceiveCrew(revision, receivedActors, receivedDeadlines, (PoleSawPhase)phase, rearmAt)) return;
             runtime.ReceiveAngle(angle, Time.unscaledTimeAsDouble, continuousSwing);
             runtime.Speed = speed;
+            runtime.ReleaseDirection = releaseDirection;
             runtime.MaxDisplayAngle = poles[index].MaxSwingAngle;
             for (int slot = 0; slot < receivedFlights.Length; slot++)
             {

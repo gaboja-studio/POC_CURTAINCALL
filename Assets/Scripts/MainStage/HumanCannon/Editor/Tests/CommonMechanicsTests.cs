@@ -8,10 +8,64 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("November11CommonFix")]
     public sealed class CommonMechanicsTests
     {
         static object Call(object target, string name, params object[] args) => target.GetType()
             .GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target,args);
+
+        [Test, Category("CommonRulesRegression")]
+        public void FourPlayersTwoPiggybackPairsCanSelectPoleWhileLongPressStillDismounts()
+        {
+            var roots = new System.Collections.Generic.List<GameObject>();
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var savedPlayers = all.ToArray(); all.Clear();
+            var types = new[] { typeof(HumanCannonSystem), typeof(HumanCannonPoleSystem), typeof(PiggybackSystem) };
+            var current = new object[types.Length];
+            for (int i = 0; i < types.Length; i++) current[i] = types[i].GetProperty("Current").GetValue(null);
+            var spawned = new NetworkPlayer[4];
+            GameObject Root(string name, bool active = false) { var go = new GameObject(name); go.SetActive(active); roots.Add(go); return go; }
+            try {
+                typeof(InputGate).GetMethod("Reset", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                var cannon = Root("Cannon for common poles").AddComponent<HumanCannonSystem>(); Call(cannon, "ResetSeats");
+                var poles = Root("Common pole system").AddComponent<HumanCannonPoleSystem>();
+                var stack = Root("Four player piggyback").AddComponent<PiggybackSystem>();
+                types[0].GetProperty("Current").SetValue(null, cannon); types[1].GetProperty("Current").SetValue(null, poles);
+                types[2].GetProperty("Current").SetValue(null, stack);
+                var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stack);
+                var above = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stack);
+                for (int i = 0; i < 4; i++) {
+                    var go = Root("Actor " + i, true); go.transform.position = new Vector3(15000, 50 + (i % 2) * 1.5f, 15000 + i * .1f);
+                    var player = go.AddComponent<NetworkPlayer>(); spawned[i] = player;
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, (ulong)i);
+                    Call(player.GetComponent<PlayerMover>(), "Awake");
+                    if (!all.Contains(player)) all.Add(player);
+                    if (i % 2 == 1) { below[(ulong)i] = (ulong)(i-1); above[(ulong)(i-1)] = (ulong)i; }
+                }
+                var pole = Root("Tutorial reachable pole", true).AddComponent<HumanCannonPole>();
+                pole.transform.position = new Vector3(15000, 52.5f, 15001);
+                poles.Register(pole); Physics.SyncTransforms();
+                foreach (int i in new[] { 1, 3 }) {
+                    var reader = spawned[i].gameObject.AddComponent<PlayerInputReader>();
+                    typeof(PlayerInputReader).GetProperty("Current").SetValue(reader, new PlayerInputFrame { InteractHeld = true });
+                    Assert.AreSame(pole, CommonInteractionSelection.Selected(reader), "A mounted rider must be able to target the nearby pole.");
+                    typeof(PlayerInputReader).GetProperty("Current").SetValue(reader, new PlayerInputFrame { InteractHeld = true, InteractLongPressed = true });
+                    var gestures = (System.Collections.IDictionary)typeof(CommonInteractionSelection).GetField("gestures", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                    var gesture = gestures[reader.GetInstanceID()]; gesture.GetType().GetField("Frame").SetValue(gesture, -1);
+                    Assert.AreSame(stack, CommonInteractionSelection.Selected(reader), "Holding F still releases the piggyback link.");
+                    Assert.IsTrue(CommonInteractionSelection.Consume(reader, stack));
+                    Assert.IsFalse(CommonInteractionSelection.Consume(reader, pole));
+                    Assert.IsFalse(CommonInteractionSelection.Consume(reader, stack));
+                }
+            } finally {
+                for (int i = 0; i < types.Length; i++) types[i].GetProperty("Current").SetValue(null, current[i]);
+                foreach (var player in spawned) if (player != null) typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                foreach (var go in roots) Object.DestroyImmediate(go);
+                all.Clear(); all.AddRange(savedPlayers);
+                typeof(CommonInteractionSelection).GetMethod("Reset", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            }
+        }
 
         [Test]
         public void RuntimePoleNetworkIdsDoNotDependOnRegistrationOrderOrRebuildHistory()

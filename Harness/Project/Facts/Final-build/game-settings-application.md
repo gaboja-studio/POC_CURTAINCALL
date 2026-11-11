@@ -27,7 +27,7 @@ GameSettings 값을 변경해도 특정 씬에 반영되지 않거나 씬 공통
 - 2026-11-10 봉 통일: GameSettings.Pole 및 HumanCannonPoleSystem으로 운동·점유·비행을 공유한다. 외줄 Trapeze/Swing/Relay는 코스 연결 어댑터다. 공통값을 덮던 옛 씬 필드·제작 도구 참조·저장값은 제거했다. 모든 봉 2인 위아래 연결·상단 입력·30초·80°·180°/초.
 - 트램펄린은 GameSettings.Trampoline의 상승 12m/s·운반 4.5m/s·공중 조절 3m/s를 사용한다. 모든 씬에서 운반자 없이 바닥 반동이 가능하다.
 - 부상 이동은 Base의 1/.8/.5, 팔 손실 접근은 .8이다. 인간대포의 최소 이동 80% 및 별도 상호작용 지연을 제거했다. 일반 근접 거리 2.5m·점프 버퍼 .15초도 Base를 사용한다.
-- 일반 지지면 착지는 WalkableSupport를 사용한다. 2026-11-11 사용자 변경으로 5m 미만 무피해, 5m 이상 15m 미만 2개 절단, 15m 이상 사망이다(BaseGameSettings.BodyDamage). 모든 씬에서 캐릭터가 −15m(BodyDamage 추락 즉사 높이) 이하로 내려가면 즉시 사망한다(NetworkPlayer.ServerKillBelowFallLimit). 실제 사용 가능한 외줄 지지면 착지는 Base.BodyDamage.SafeRopeLanding으로 높이 피해를 면제한다. 외줄을 놓쳐 바닥에 닿으면 실제 낙하 높이를 쓰며 스프링 신발은 피해 착지에서 먼저 반동한다.
+- 일반 지지면 착지는 WalkableSupport를 사용한다. 2026-11-11 사용자 변경으로 5m 미만 무피해, 5m 이상 15m 미만 2개 절단, 15m 이상 사망이다(BaseGameSettings.BodyDamage). 모든 씬에서 캐릭터가 월드 Y −15m(BodyDamage.WorldDeathY) 이하로 내려가면 착지와 관계없이 사망한다(NetworkPlayer.CheckWorldDeath, CommonDamageRules.IsBelowWorldDeathY). 실제 사용 가능한 외줄 지지면 착지는 Base.BodyDamage.SafeRopeLanding으로 높이 피해를 면제한다. 외줄을 놓쳐 바닥에 닿으면 실제 낙하 높이를 쓰며 스프링 신발은 피해 착지에서 먼저 반동한다.
 - 기존 `Decisions/game-settings.md`의 2026-10-30 결정은 기존 공통 조정값의 씬별 우회 배율·중복 설정을 만들지 않도록 명시한다.
 - 추격자의 시야·이동·연출은 WaitingRoomSettings 안에 연결되어 있다. 봉·트램펄린의 새 공통 에셋은 GameSettings가 참조한다.
 - ExplorationSettings는 시험 항목 1개, EscapeRouteSettings는 시험 항목·출구 문 각도·시간만 제공한다. 실제 탐색/탈출 기능의 별도 값은 Task-114의 [전체 목록](../../../../Tasks/Active/Task-20261109-114-common-game-settings/settings-inventory.md)에 정리했다.

@@ -23,6 +23,7 @@ namespace CurtainCall.Network.PlayerSync
         uint ownerPeakSequence;
         float ownerFallPeak;
         float nextLandingReport, nextSupportReport;
+        float nextWorldDeathReport;
         float pendingLandingPeak;
         Vector3 pendingLandingFeet;
         float reportedPeak;
@@ -35,6 +36,7 @@ namespace CurtainCall.Network.PlayerSync
             reportedPeak = fallPeak;
             ownerPeakSequence = 0; ownerFallPeak = fallPeak;
             fallTracking = true; fallAirborne = landingPending = false;
+            nextWorldDeathReport = 0f;
             fallTeleportPending = naturalFallQueued = false;
             fallScene = SceneManager.GetActiveScene().handle;
             fallRestart = restartCount.Value; fallRevive = reviveCount.Value;
@@ -120,24 +122,26 @@ namespace CurtainCall.Network.PlayerSync
         void LateUpdate()
         {
             if (!IsSpawned || (!IsOwner && !IsServer) || mover == null) return;
-            if (IsServer && ServerKillBelowFallLimit()) return;
             if (naturalFallQueued) { naturalFallQueued = false; BeginNaturalFall(); }
             if (!fallTracking || fallScene != SceneManager.GetActiveScene().handle
                 || fallRestart != restartCount.Value || fallRevive != reviveCount.Value
                 || State != PlayerState.Normal)
             { ResetFallTracking(); return; }
-            if (!ResumeAfterFallTeleport()) return;
-            if (HeldAboveGround()
-                || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.HoldingEscapeMovement
+            if (CurtainCall.UI.SceneIntegration.SceneCurtainTransition.HoldingEscapeMovement
                 || EscapeSceneTransfer.HoldingForDeparture || EscapeDevelopmentSession.AwaitingEntrance)
             { ResetFallTracking(); return; }
-
-            if (IsOwner && landingPending && Time.unscaledTime >= nextLandingReport) SendPendingFallLanding();
+            if (CheckWorldDeath()) return;
+            if (HeldAboveGround()) { ResetFallTracking(); return; }
 
             Vector3 feet = transform.position;
             bool flying = HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId);
             bool grounded = !flying && WalkableSupport.Contains(mover, feet)
                 && (!IsOwner || mover.Body != null && mover.Body.enabled && mover.Body.isGrounded);
+            // Placement acknowledgement already excludes pre-respawn poses. Do not
+            // let a pending ordinary fall segment suppress this tutorial recovery.
+            if (grounded && TryTutorialFloorRecovery(feet)) return;
+            if (!ResumeAfterFallTeleport()) return;
+            if (IsOwner && landingPending && Time.unscaledTime >= nextLandingReport) SendPendingFallLanding();
             if (!grounded)
             {
                 fallAirborne = true;
@@ -162,17 +166,34 @@ namespace CurtainCall.Network.PlayerSync
             SendPendingFallLanding();
         }
 
-        /// <summary>
-        /// 호스트: 모든 씬에서 캐릭터 발이 공통 추락 즉사 높이(기본 -15m) 이하로 내려가면
-        /// 착지를 기다리지 않고 즉시 사망시킨다(2026-11-11 사용자 결정, 더 깊은 맵은 지면을 올려 맞춘다).
-        /// Dev "추락 무시"면 적용하지 않는다.
-        /// </summary>
-        bool ServerKillBelowFallLimit()
+        bool CheckWorldDeath()
         {
-            if (State != PlayerState.Normal || !float.IsFinite(transform.position.y)
-                || transform.position.y > GameSettings.Base.BodyDamage.FallKillHeight) return false;
-            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return false;
-            return ServerKill(DeathOrigin.MapExit);
+            // The owner has the current pose. Sampling a remote host pose here could
+            // kill a revived player again while their respawn teleport is in transit.
+            if (!IsOwner || !CommonDamageRules.IsBelowWorldDeathY(transform.position.y)) return false;
+            if (Time.unscaledTime >= nextWorldDeathReport)
+            {
+                nextWorldDeathReport = Time.unscaledTime + .25f;
+                ReportWorldDeathRpc(transform.position, RestartVersion, reviveCount.Value);
+            }
+            return true;
+        }
+
+        [Rpc(SendTo.Server, RequireOwnership = true)]
+        void ReportWorldDeathRpc(Vector3 feet, int restart, int revive)
+        {
+            if (!CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)
+                || !CommonDamageRules.IsBelowWorldDeathY(feet.y)
+                || (feet - transform.position).sqrMagnitude > 25f) return;
+            ServerKill(DeathOrigin.MapExit);
+        }
+
+        bool TryTutorialFloorRecovery(Vector3 feet)
+        {
+            if (!IsServer || !WaitingRoomRehearsal.ShouldRestartAfterFloorLanding(this, feet)
+                || !ServerKill(DeathOrigin.Fall)) return false;
+            ResetFallTracking();
+            return true;
         }
 
         void QueueFallLanding(float peak, Vector3 feet)

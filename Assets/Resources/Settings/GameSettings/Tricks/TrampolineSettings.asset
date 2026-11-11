@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1311d9bb7c9125d4bb22ae101bd0cdb6, type: 3}
   m_Name: TrampolineSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.TrampolineSettings
+  visualPrefab: {fileID: 7531875416953640254, guid: cf8bfaf7508743646baf3b32fa52febb, type: 3}
   upwardSpeed: 12
   carryMoveSpeed: 4.5
+  carryCollisionMesh: {fileID: 4300000, guid: 9c24d543858e53b4a8e0412bbaabb149, type: 2}
+  usePropOutline: 1
+  grabPointHeight: 0.6
   requireCarrierForBounce: 0

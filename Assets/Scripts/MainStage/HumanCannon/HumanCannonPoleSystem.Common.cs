@@ -83,6 +83,9 @@ namespace CurtainCall.HumanCannon
         public int IndexOf(HumanCannonPole pole) => pole == null ? -1 : Array.IndexOf(poles, pole);
         public float AngleAt(int index) => Valid(index) ? states[index].DisplayAngle(Time.unscaledTimeAsDouble) : 0f;
         public float SpeedAt(int index) => Valid(index) ? states[index].Speed : 0f;
+        public Vector3 ReleaseVelocityAt(int index, int seat = -1) => Valid(index)
+            ? poles[index].ReleaseVelocity(states[index].Angle, states[index].Speed, seat, states[index].ReleaseDirection)
+            : Vector3.zero;
         public double HoldUntil(int index) => Valid(index) ? states[index].State.DeadlineAt(0) : 0d;
         public bool IsLower(ulong actor) { int index = HeldBy(actor); return index >= 0 && states[index].State.SeatOf(actor) > 0; }
         public bool IsReleaseBlockedByPassenger(ulong actor)

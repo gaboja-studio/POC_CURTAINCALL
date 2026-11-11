@@ -33,8 +33,9 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         {
             var title=Effective(Read(row,"title"),original?.title??"");
             var body=Effective(Read(row,"body"),original?.body??"");
-            string note=body.Contains("{interact}") || body.Contains("{uv}") ? "예시 키: 상호작용 F · UV 우클릭":"";
-            DrawCard(title,WaitingRoomTutorialBook.Format(body,"F","우클릭"),note);
+            string Format(string text)=>WaitingRoomHudProfile.FormatKeys(WaitingRoomTutorialBook.Format(text,"F","우클릭"));
+            var shownTitle=Format(title); var shownBody=Format(body);
+            DrawCard(shownTitle,shownBody,shownTitle!=title || shownBody!=body ? "키는 예시입니다.":"");
         }
 
         // Only replace values supplied by the actual caller for this field. Unbound tokens stay visible.
@@ -50,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 "prompt.performance-prop-pickup" or "narration.performance-unlocked-title" or "narration.performance-unlocked-body" or "narration.cannon-unlocked-body"=>new (string,object)[]{("trick",id.Contains("cannon")?"인간대포":"외줄타기")},
                 "narration.expert-booked-body"=>new (string,object)[]{("n",1)},_=>null
             };
-            return WaitingRoomText.Fill(template,values);
+            return WaitingRoomHudProfile.FormatKeys(WaitingRoomText.Fill(template,values));
         }
 
         // Return the other half of the same message, even when only one field is being edited.

@@ -107,7 +107,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         int lessonGroup,lessonIndex;
         void DrawRehearsal()
         {
-            Section("리허설 HUD 편집","연습과 안내를 고르면 표시 조건과 역할을 확인할 수 있습니다. 문구를 비우면 원문으로 돌아갑니다. 편집 후 저장하고 Play를 다시 시작하세요.");
+            Section("리허설 HUD 편집","연습과 안내를 고르면 표시 조건과 역할을 확인할 수 있습니다. 제목과 내용에 {forward}, {balance}, {move}, {side}, {interact}, {jump}를 쓸 수 있습니다. 문구를 비우면 원문으로 돌아갑니다. 편집 후 저장하고 Play를 다시 시작하세요.");
             int group=GUILayout.Toolbar(lessonGroup,new[]{"외줄타기","인간대포"});
             if(group!=lessonGroup){lessonGroup=group;lessonIndex=0;}
             var choices=lessons.Where(x=>x.group==(group==0?"외줄타기":"인간대포")).ToArray();
@@ -139,14 +139,18 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             }
             string title=Edit(item.title,"제목"),body=Edit(item.body,"내용");
             string preview=RehearsalSample(item.body,body);
-            if(item.role=="학습 가이드"){preview=RehearsalGuide.Format(preview,"F","Space");title=RehearsalGuide.Format(title,"F","Space");}
-            if(item.role.Contains("+"))
+            if(item.role=="학습 가이드")
+            {
+                if(item.body?.StartsWith("rehearsal.quest.")==true)title=title.Replace("[tutorial] ","");
+                DrawCard(RehearsalGuide.Format(title,"F","Space"),RehearsalGuide.Format(preview,"F","Space"),"왼쪽 학습 가이드 · 예시 키");
+            }
+            else if(item.role.Contains("+"))
             {
                 DrawCard(RehearsalGuide.Format(title.Replace("[tutorial] ",""),"F","Space"),RehearsalGuide.Format(preview,"F","Space"),"왼쪽 학습 가이드 · 예시 키");
-                DrawCard(title,preview,"오른쪽 팀 임무");
+                DrawCard(WaitingRoomHudProfile.FormatKeys(title),WaitingRoomHudProfile.FormatKeys(preview),"오른쪽 팀 임무");
             }
-            else DrawCard(item.role=="학습 가이드" && item.body?.StartsWith("rehearsal.quest.")==true ? title.Replace("[tutorial] ",""):title,
-                preview,"키·인원·줄 번호·장치 상태는 예시입니다.");
+            else DrawCard(WaitingRoomHudProfile.FormatKeys(title),
+                WaitingRoomHudProfile.FormatKeys(preview),"키·인원·줄 번호·장치 상태는 예시입니다.");
         }
         internal static string RehearsalSample(string key,string raw)
         {

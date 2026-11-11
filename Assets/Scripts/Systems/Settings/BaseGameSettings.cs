@@ -32,6 +32,8 @@ namespace CurtainCall.Settings
         [SerializeField] RunSettings run = new();
         [Header("기물 소지")]
         [SerializeField] ItemCarrySettings itemCarry = new();
+        [Header("공통 운반 장치")]
+        [SerializeField] CarryDeviceSettings carryDevices = new();
         [Header("캐릭터")]
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
@@ -59,6 +61,7 @@ namespace CurtainCall.Settings
         public SessionSettings Session => session;
         public RunSettings Run => run;
         public ItemCarrySettings ItemCarry => itemCarry;
+        public CarryDeviceSettings CarryDevices => carryDevices;
         public CharacterSettings Character => character;
         public InputSettings Input => input;
         public InteractionSettings Interaction => interaction;
@@ -72,6 +75,23 @@ namespace CurtainCall.Settings
         public VoiceChatSettings VoiceChat => voiceChat;
 
         void OnValidate() => balance.Validate();
+
+        [Serializable]
+        public sealed class CarryDeviceSettings
+        {
+            [Tooltip("휴대 톱날 발사기 외형과 충돌체의 공통 크기 배율. 기본 0.7(원본의 70%). 손잡이 위치도 함께 줄어듭니다.")]
+            [SerializeField, Range(.3f, 1.5f)] float sawScale = .7f;
+            [Tooltip("휴대 톱날 발사기를 들고 움직이는 기본 속도(m/s). 부상 배율은 별도 적용됩니다.")]
+            [SerializeField, Min(0)] float sawCarrySpeed = 3f;
+            [Tooltip("사용 키를 한 번 누르면 톱날 한 발을 발사합니다. 다음 발사까지 필요한 시간(초). 계속 누르고 있어도 연속 발사하지 않습니다.")]
+            [SerializeField, Min(.1f)] float sawShotInterval = 1.15f;
+            [Tooltip("운반 장치의 충돌 검사에서 접촉 떨림을 줄이는 여유(m). 트램펄린과 톱날 발사기에 공통 적용합니다.")]
+            [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;
+            public float SawScale => Mathf.Clamp(sawScale, .3f, 1.5f);
+            public float SawCarrySpeed => Mathf.Max(0, sawCarrySpeed);
+            public float SawShotInterval => Mathf.Max(.1f, sawShotInterval);
+            public float CollisionSkin => Mathf.Clamp(collisionSkin, .001f, .05f);
+        }
 
         public enum BalanceHudPosition
         {
@@ -510,14 +530,14 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float hazardHitCooldown = 1f;
             [InspectorName("일반 위험물 절단 개수"), Tooltip("톱·일반 화염 등에 한 번 다칠 때 잃는 사지 수(개, 1~4). 정해진 절단 순서대로 적용하며 남은 사지를 모두 잃으면 사망한다. 즉사형 화염은 별도다. 기본 1개.")]
             [SerializeField, Range(1, 4)] int hazardCutCount = 1;
-            [InspectorName("부상 낙하 높이"), Tooltip("낙하 최고점에서 착지한 발 위치까지의 높이 차이가 이 값 이상이면 낙하 부상(m). 일반 바닥·외줄에서 바닥으로 추락·대포 착지에 공통 적용. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 5m(5m 이상 15m 미만 부상).")]
+            [InspectorName("부상 낙하 높이"), Tooltip("낙하 최고점에서 착지한 발 위치까지의 높이 차이가 이 값 이상이면 낙하 부상(m). 일반 바닥·외줄에서 바닥으로 추락·대포 착지에 공통 적용. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 5m. 사망 낙하 높이 미만에서 사지 손실을 적용한다.")]
             [SerializeField, Min(0f)] float fallInjuryHeight = 5f;
             [InspectorName("낙하 부상 절단 개수"), Tooltip("부상 높이 이상·사망 높이 미만으로 착지할 때 잃는 사지 수(개, 1~4). 이미 다친 상태에서는 남은 사지를 모두 잃어 사망할 수 있다. 기본 2개.")]
             [SerializeField, Range(1, 4)] int fallInjuryCutCount = 2;
-            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발이나 트램펄린 반동이 먼저 성공하면 피해를 막는다. 기본 15m.")]
+            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발이나 트램펄린 반동이 먼저 성공하면 피해를 막는다. 기본 15m. 월드 Y 좌표가 아니라 낙하 최고점과 착지점의 높이 차이다.")]
             [SerializeField, Min(0f)] float fallDeathHeight = 15f;
-            [InspectorName("추락 즉사 높이"), Tooltip("모든 씬에서 캐릭터 발 위치(월드 Y)가 이 높이 이하로 내려가면 착지와 관계없이 즉시 사망(m). 지면 대부분이 0m이며, 이보다 깊은 바닥이 있는 맵은 지면을 올려 맞춘다. 기본 -15m.")]
-            [SerializeField] float fallKillHeight = -15f;
+            [InspectorName("월드 Y 즉사 기준"), Tooltip("플레이어 발 위치의 절대 월드 Y 좌표가 이 값 이하이면 착지를 기다리지 않고 사망 판정한다(m). 기본 -15. 낙하거리 기준(부상 5m·사망 15m)과 별개이며, 외줄·안전 착지대·반동 장비의 착지 보호로 막지 않는다. 사망 후 튜토리얼 복귀 등 기존 공통 복구 정책은 유지한다.")]
+            [SerializeField] float worldDeathY = -15f;
             [SerializeField, InspectorName("외줄 착지 낙하 피해 면제")]
             [Tooltip("실제로 외줄 위에 정상 착지하면 높이에 관계없이 낙하 부상·사망 없이 줄을 탄다. 모든 씬 공통. 줄에서 떨어져 아래 바닥에 착지한 경우에는 일반 낙하 높이 기준을 적용한다. 기본 켬.")]
             bool safeRopeLanding = true;
@@ -529,7 +549,7 @@ namespace CurtainCall.Settings
             public int FallInjuryCutCount => Mathf.Clamp(fallInjuryCutCount, 1, 4);
             public float FallInjuryHeight => Mathf.Max(0f, fallInjuryHeight);
             public float FallDeathHeight => Mathf.Max(FallInjuryHeight, fallDeathHeight);
-            public float FallKillHeight => fallKillHeight;
+            public float WorldDeathY => float.IsFinite(worldDeathY) ? worldDeathY : -15f;
             public bool SafeRopeLanding => safeRopeLanding;
             public bool SafeLandingZones => safeLandingZones;
 

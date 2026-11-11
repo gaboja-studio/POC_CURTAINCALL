@@ -48,6 +48,11 @@ MonoBehaviour:
     failedPerformanceHold: 2
   itemCarry:
     baseSlots: 2
+  carryDevices:
+    sawScale: 0.7
+    sawCarrySpeed: 3
+    sawShotInterval: 1.15
+    collisionSkin: 0.02
   character:
     freeMoveSpeed: 3
     courseMoveSpeed: 0.5
@@ -123,7 +128,7 @@ MonoBehaviour:
     fallInjuryHeight: 5
     fallInjuryCutCount: 2
     fallDeathHeight: 15
-    fallKillHeight: -15
+    worldDeathY: -15
     safeRopeLanding: 1
     safeLandingZones: 1
     restartRecovery: 0

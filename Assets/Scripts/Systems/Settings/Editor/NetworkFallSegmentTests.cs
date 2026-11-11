@@ -11,6 +11,7 @@ namespace CurtainCall.Settings.EditorTools
 {
     // Real collider support queries with synthetic RPC/NetworkTransform order, not a live network test.
     [Category("NetworkFallSegments")]
+    [Category("November11CommonFix")]
     public sealed class NetworkFallSegmentTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;

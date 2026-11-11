@@ -46,7 +46,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(model, "Observe", "other", 0, true, true, rules, false);
             Set(reward, "state", Call(model, "Snapshot", -1)); yield return null;
             yield return new WaitForSecondsRealtime(.2f);
-            Assert.AreEqual(true, (bool)(UnityEngine.Object)Get(ending,"TeamWarning"));
+            var warning=(Component)Get(ending,"TeamWarning");
+            Assert.IsTrue(warning);
+            Assert.AreEqual(Vector2.one,((RectTransform)warning.transform).anchorMin);
+            Assert.AreEqual("SystemEvent",Get(warning,"role").ToString());
+            Assert.AreEqual("Warning",Get(warning.GetComponent(T("CurtainCall.UI.SceneIntegration.HudEventAppearance")),"Kind").ToString());
             Assert.AreEqual(false, Get(ending, "DeathVisible"), "동료 사망이 개인 사망 화면을 열면 안 됩니다");
             Call(Get(ending,"TeamWarning"),"Close",true);
             yield return null; yield return null;

@@ -118,9 +118,12 @@ namespace CurtainCall.UI.SceneIntegration
             }
             if (deaths.Count == 0) return;
             string message = string.Join(", ", deaths) + " 사망";
-            // 본인 알림을 동료 알림으로 덮지 않는다.
-            if (DeathVisible) HudUIManager.ShowFeedback(message,notifications.Toast, ToastState.Failure, 2, ToastIcon.Warning);
-            else TeamWarning=HudUIManager.Current.ShowSystemEvent("해당 단원의 호응도가 절반으로 줄어듭니다",transform,message,2,HudEventKind.Warning);
+            if (DeathVisible)
+            {
+                deathNotice.SetText(deathNotice.Content, deathNotice.Title + " · " + message);
+                return;
+            }
+            TeamWarning=HudUIManager.Current.ShowDeathWarning("해당 단원의 호응도가 절반으로 줄어듭니다",transform,message,2);
         }
         public static string ResultTitle(bool succeeded, long amount, int participants, int cap) => !succeeded ? "공연 실패" :
             participants > 0 && cap > 0 && amount >= (double)participants * cap * .8 ? "공연 대성공" : "공연 성공";
@@ -134,7 +137,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!dead || deathIdentity == state.Performance.Id) return;
             deathIdentity = state.Performance.Id;
             float duration = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.deathNoticeSeconds : 2;
-            deathNotice = HudUIManager.Current.ShowOutcome("이 공연의 개인 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration));
+            deathNotice = HudUIManager.Current.ShowDeathWarning("사망한 단원의 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration));
         }
         public void PresentResult(PerformanceResult result)
         {
