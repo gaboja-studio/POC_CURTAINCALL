@@ -81,3 +81,15 @@
 - 2026-11-11 배터리 자리(사용자: 소켓 바로 앞): 설비실 소켓 앞 바닥(26.95,-5,76.7)에 FoundItemSpot(utility-room-battery, uid 51, 세대마다 1개). 배터리 모델 `Resources/ItemArt/Prefabs/power-battery.prefab`(Synty 자동차 배터리 0.55배, 약 27cm). 인벤토리 아이콘은 아직 없음. 씬 저장.
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-11 대기실 공간 프리팹화(사용자 요청)
+- 결정(사용자): 위치 `Assets/Resources/Prefabs/Spaces/WaitingRoom/`(새 분류), 범위는 WaitingRoom.unity만(WaitingRoomPursuit는 그대로).
+- `WaitingRoom_LayoutA` 아래 방 22곳을 같은 이름 프리팹으로 저장하고 씬 오브젝트를 인스턴스로 연결: S01~S12, LG_Lounge, P05_PipeZone, ST_Stairwell, WC_WestCorridor(꺼진 상태 유지), B1_* 6곳. 방이 아닌 묶음(ExplorationTimer·SecurityCctv·NightMaintenance·StructureAExploration·Frame8*·외벽 등)과 레거시 `WaitingRoomGreybox`는 씬에 그대로 둠. 방 안의 기존 중첩 프리팹은 중첩으로 유지.
+- 네트워크 오브젝트는 방 안에 없음. 방 밖에서 방 안을 가리키는 참조(PursuitRoom·NightPower·StructureA 경로 등)와 방 안에서 씬을 가리키는 참조는 그대로 연결(후자는 인스턴스 덮어쓰기, 22개 합계 376개).
+- 검증: 변환 전/후·저장 후 다시 연 씬 모두 컴포넌트 96,376개·씬 참조 5,278개·전체 Transform 위치/회전/크기/활성 상태 차이 0건. 씬 파일 약 74MB → 16MB, 프리팹 22개 합 63MB.
+- 오클루전 컬링: 기존 데이터(`Scenes/Tests/WaitingRoom/Base/WaitingRoomBase/OcclusionCullingData.asset`, WaitingRoomBase와 공유)는 렌더러 ID로 연결돼 프리팹 안 렌더러와 끊김 → WaitingRoom 전용으로 다시 구움(`Scenes/InGame/WaitingRoom/WaitingRoom/OcclusionCullingData.asset`). 공유 원본은 수정 안 함.
+- 주의: 방 구조를 다시 생성·삭제하는 옛 에디터 도구(WaitingRoomLayoutA·StructureA*Fix·WaitingRoomOverlapFix 등)는 프리팹 인스턴스 자식을 지우지 못한다. 다시 쓰려면 프리팹을 열어 실행하거나 도구를 고쳐야 함. 방 수정은 이제 프리팹 모드에서 하고, 씬에서 고친 값은 Apply 여부를 확인할 것.
+- EditMode 테스트(WaitingRoom 필터) 323개 중 318 통과, 5 실패는 모두 변경 전부터 있던 것: 문구 파일 키 2건, 편집 모드 DontDestroyOnLoad 2건, 추격 배치 비교 1건(PursuitSystem/S04_PropRoom/Mannequin_Male_04 Size=Medium, HEAD에도 동일·프리팹 밖). PlayMode·실제 플레이 미실행.
+- 함께 바뀐 파일 아님: Pretendard SDF 폰트 2개·escape-labels.asset·_ThirdParty 셰이더 2개는 에디터 사용 중 생긴 기존 변경으로 손대지 않음.
