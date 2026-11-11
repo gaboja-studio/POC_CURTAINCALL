@@ -127,9 +127,13 @@ namespace CurtainCall.HumanCannon
         }
 
         // The same swing clock drives presentation and stored release energy.
-        public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
+        public void Step(ref float angle, ref float speed, float input, float dt, float gravity, bool braking = false) =>
             PoleSwingMotion.Step(ref angle, ref speed, input, dt * Rules.SwingMotionSpeed, gravity, SwingLength,
-                Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping);
+                Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping, braking);
+
+        internal float AddCatchMomentum(float angle, float speed, float approachSpeed) =>
+            PoleSwingMotion.AddCatchMomentum(angle, speed, approachSpeed, SwingLength, GameSettings.Base.Character.Gravity,
+                Rules.SwingMotionSpeed, Rules.MaxSwingAngle, Rules.MaxSwingSpeed);
 
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)
             => float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0;

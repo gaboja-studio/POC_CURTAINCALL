@@ -29,7 +29,7 @@ namespace CurtainCall.Settings
         [SerializeField, Range(1f, 85f)] float maxSwingAngle = 85f;
         [InspectorName("최대 흔들림 속도"), Tooltip("운동 속도 배율을 적용하기 전 회전 속도 상한(도/초). 기본 180도/초이며 배율 1.7이면 최대 306도/초. 최대 각도에 해당하는 에너지 상한도 함께 적용한다. 너무 낮추면 최대 각도에 도달하지 못한다.")]
         [SerializeField, Min(1f)] float maxSwingSpeed = 180f;
-        [InspectorName("반동 입력 가속도"), Tooltip("입력 방향으로 움직이는 구간에서 보태는 힘(도/초², 운동 속도 배율 적용 전). W/S를 유지해도 매 왕복마다 힘이 쌓이고, 돌아오는 구간은 중력으로 움직인다. 클수록 적은 왕복으로 최대 반동에 도달한다. 기본 100으로 약 2~4회 왕복을 목표로 하며 입력 방식에 따라 달라진다.")]
+        [InspectorName("반동 입력 가속도"), Tooltip("반동을 키우거나 제동하는 힘(도/초², 운동 속도 배율 적용 전). 진행 방향 입력은 매 왕복에 힘을 보탠다. 움직이는 반대쪽 키를 새로 누르면 그 키를 놓을 때까지 제동해 중립으로 돌아온다. 기본 100.")]
         [SerializeField, Min(0f)] float swingAcceleration = 100f;
         [InspectorName("흔들림 감쇠"), Tooltip("마찰에 의해 반동이 줄어드는 정도(1/초, 운동 속도 배율 적용 전). 입력을 멈춰도 바로 정지하지 않고 왕복 폭과 도약 힘이 함께 서서히 줄어든다. 클수록 빨리 멈추며 0이면 감쇠하지 않는다. 기본 0.12.")]
         [SerializeField, Min(0f)] float swingDamping = .12f;
