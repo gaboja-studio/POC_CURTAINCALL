@@ -30,33 +30,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             var ui = scene.GetRootGameObjects().Single(r => r.name == "UI");
             if (ui.GetComponent<HumanCannonUiBinding>() != null) throw new InvalidOperationException("Already installed; edit scene instances instead.");
             var legacy = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonCourseSections>(true)).Single();
-            var values = new SerializedObject(legacy).FindProperty("boundaries");
-            var boundaries = new HumanCannonCourseSections.Boundaries(values.FindPropertyRelative("FirstStartZ").floatValue,
-                values.FindPropertyRelative("ShelterStartZ").floatValue, values.FindPropertyRelative("SecondStartZ").floatValue,
-                values.FindPropertyRelative("FinalStartZ").floatValue, values.FindPropertyRelative("RaisedMinY").floatValue);
-            var canvas = new GameObject("HumanCannonSectionCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
-            canvas.transform.SetParent(ui.transform, false);
-            canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.GetComponent<Canvas>().sortingOrder = 1;
-            var scaler = canvas.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
-            var label = new GameObject("CurrentSection", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-            label.transform.SetParent(canvas.transform, false);
-            label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(.5f, 0);
-            label.rectTransform.pivot = new Vector2(.5f, 0);
-            label.rectTransform.anchoredPosition = new Vector2(0, 48);
-            label.rectTransform.sizeDelta = new Vector2(544, 48);
-            label.font = fallback; label.fontSize = 28; label.alignment = TextAlignmentOptions.Center;
-            label.raycastTarget = false; label.text = string.Empty;
-            // TMP creation can initialize the default font after AddComponent. Persist the explicit reference.
-            var textData = new SerializedObject(label);
-            textData.FindProperty("m_fontAsset").objectReferenceValue = fallback;
-            textData.FindProperty("m_sharedMaterial").objectReferenceValue = fallback.material;
-            textData.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(label);
             var binding = ui.AddComponent<HumanCannonUiBinding>();
-            binding.Configure(legacy, boundaries, label);
+            binding.Configure(legacy);
             EditorUtility.SetDirty(binding);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

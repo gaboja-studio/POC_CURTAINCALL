@@ -90,7 +90,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 {
                     var demo=root.GetComponentInChildren<HudRolePlayground>(true);
                     if(!demo || demo.eventKind)continue;
-                    var row=UnityEngine.Object.Instantiate(demo.statusPosition.transform.parent.gameObject,demo.form.transform,false);
+                    var row=UnityEngine.Object.Instantiate(demo.target.transform.parent.gameObject,demo.form.transform,false);
                     row.name="사건 종류";row.transform.SetSiblingIndex(demo.role.transform.parent.GetSiblingIndex()+1);
                     row.transform.Find("Label").GetComponent<TMP_Text>().text="사건 종류";
                     demo.eventKind=row.GetComponentInChildren<TMP_Dropdown>(true);
@@ -139,7 +139,6 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 demo.heading=Input(form,"제목","");demo.content=Input(form,"본문","");demo.condition=Input(form,"조건 / 힌트","");
                 demo.seconds=Input(form,"노출 시간","","초 · 빈칸: 기본값 / 0: 유지");
                 demo.key=Input(form,"표시 키","F");demo.target=Dropdown(form,"대상","A · 주황 상자","B · 보라 구체");
-                demo.statusPosition=Dropdown(form,"상태 위치","기본 상태","공연 현재 구간");
                 demo.firstChoice=Input(form,"선택지 1","동의");demo.secondChoice=Input(form,"선택지 2","취소");
                 var actions=Line(form);demo.output=Btn(actions,"출력");demo.clear=Btn(actions,"모두 지우기");
                 var sim=Node("World controls",form);Vertical(sim,4);demo.simulation=sim.gameObject;

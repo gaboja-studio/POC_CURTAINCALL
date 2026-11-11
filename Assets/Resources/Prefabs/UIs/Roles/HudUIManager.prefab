@@ -125,7 +125,6 @@ MonoBehaviour:
   - {fileID: 8066482018973257680, guid: ecc8e02e5a18d4e48842d54777a75eb8, type: 3}
   - {fileID: 8365501209234656311, guid: ea1c5f76a51f125468efa99cca9abbde, type: 3}
   - {fileID: 13830512479983143, guid: b0486c157cfbbc84ebacdaf2ba7c2835, type: 3}
-  courseStatus: {fileID: 8565195558079555504, guid: de172a351772c1f47a8117cabf2fe246, type: 3}
   presentation: {fileID: 11400000, guid: 4f229a2fc39f25440b8873fc2b7f28df, type: 2}
 --- !u!114 &8173225500778819080
 MonoBehaviour:

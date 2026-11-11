@@ -22,7 +22,7 @@ namespace CurtainCall.UI.SceneIntegration
         public Transform actor, wall;
         public Transform[] targets;
         public LineRenderer ring;
-        public TMP_Dropdown role, target, statusPosition,eventKind;
+        public TMP_Dropdown role, target, eventKind;
         public TMP_InputField content, heading, condition, seconds, key, firstChoice, secondChoice;
         public Button output, clear, toggle, inside, outside, block, targetLeft, targetRight, interact;
         public TMP_Text diagnostic, message;
@@ -98,7 +98,7 @@ namespace CurtainCall.UI.SceneIntegration
             Row(eventKind,r==HudRole.SystemEvent); Row(heading,r!=HudRole.Interaction && r!=HudRole.ZoneName); Row(condition,r==HudRole.Objective || r==HudRole.Vote);
             Row(seconds,r==HudRole.SystemEvent || r==HudRole.Guide || r==HudRole.Feedback || r==HudRole.Outcome);
             if(r==HudRole.Guide) key.text=""; else if(r==HudRole.Interaction)key.text="F";
-            Row(key,r==HudRole.Interaction || r==HudRole.Guide); Row(target,r==HudRole.Interaction); Row(statusPosition,r==HudRole.Status);
+            Row(key,r==HudRole.Interaction || r==HudRole.Guide); Row(target,r==HudRole.Interaction);
             Row(firstChoice,r==HudRole.Vote); Row(secondChoice,r==HudRole.Vote);
             simulation.SetActive(r==HudRole.Interaction);
             message.text=r==HudRole.Interaction ? "출력을 누르면 접근·이탈에 따라 UI가 켜지고 꺼집니다." : "입력 후 출력을 누르세요. 여러 역할을 함께 띄울 수 있습니다.";
@@ -129,7 +129,7 @@ namespace CurtainCall.UI.SceneIntegration
                     actionKey=Enum.TryParse<Key>(keyText,true,out var parsed) && Enum.IsDefined(typeof(Key),parsed) ? parsed : Key.None;
                     armed=true; RefreshWorld(); break;
                 case HudRole.Feedback: card=hud.ShowFeedback(text,transform,title,duration); break;
-                case HudRole.Status: card=hud.ShowStatus(text,transform,title,statusPosition.value==1); break;
+                case HudRole.Status: card=hud.ShowStatus(text,transform,title); break;
                 case HudRole.Vote:
                     var choices=new List<HudVoteChoice>();
                     foreach(var input in new[]{firstChoice,secondChoice})

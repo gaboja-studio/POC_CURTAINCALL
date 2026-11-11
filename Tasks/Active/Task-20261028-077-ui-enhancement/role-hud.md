@@ -11,7 +11,7 @@
 | 학습 가이드 | ShowGuide(본문, 소유자, 제목, 시간, key: 표시할 키) | 왼쪽. 최신순, 최대 3개, 개별 만료 |
 | 상호작용 | ShowInteraction(행동, 대상, 키, 카메라). 홀드·진행률이 있는 장치는 InteractionPromptView 오버로드 | 대상 옆. 공통 프롬프트가 있으면 보조 안내를 중복 표시하지 않음 |
 | 즉시 피드백 | ShowFeedback(본문, 소유자, 제목, 시간). 탈출 장치 등은 전용 아이콘 토스트 사용 | 일반 피드백은 오른쪽 위, ShowScoreFeedback은 해당 공연 게이지 |
-| 상태·소지품 | ShowStatus(본문, 소유자, 제목), ShowInventory(아이템 이름, 슬롯 뷰, 슬롯 데이터, 이름 라벨) | 기본 상태 카드·소지품은 오른쪽 아래, 인간대포 현재 구간은 하단 중앙. 기존 슬롯의 손·선택 테두리·번호·내구도 유지 |
+| 상태·소지품 | ShowStatus(본문, 소유자, 제목), ShowInventory(아이템 이름, 슬롯 뷰, 슬롯 데이터, 이름 라벨) | 기본 상태 카드·소지품은 오른쪽 아래. 기존 슬롯의 손·선택 테두리·번호·내구도 유지 |
 | 투표 | ShowVote(본문, 소유자, 제목, 조작 힌트, 선택지들). HudVoteChoice = 라벨·활성 여부·클릭 콜백 | 오른쪽 목표들 바로 아래 |
 | 사망·결과 | ShowOutcome(본문, 소유자, 제목, 시간) 또는 정산 스냅샷과 ResultsPanelView. 관전은 ShowSpectator | 개인 사망은 중앙. 정산은 기존 결과 화면 |
 | 구역 이름 | ShowZoneName(구역명, 소유자) | 대기실 상단 중앙. 로컬 플레이어가 구역을 옮기면 새 구역 표지로 교체 |
@@ -27,7 +27,7 @@
 | Guide | Guides의 안내 패널·키캡. key가 없으면 프리팹의 기본 라벨(TIP) |
 | Interaction | Guide와 같은 왼쪽 키캡. 행동명은 오른쪽에, 홀드 진행은 기존 전용 뷰에서 유지 |
 | Feedback | Toast의 아이콘과 토스트 배경 |
-| Status / CourseStatus | InventorySlotTemplate의 슬롯 프레임. 실제 소지품은 원래 슬롯 뷰 사용 |
+| Status | 가이드·구역 이름과 같은 smallplate 9-slice 판. 실제 소지품은 원래 슬롯 뷰 사용 |
 | Vote | BasicPanels의 나가기 확인 대화상자와 선택 버튼 |
 | Outcome | ResultsPanel의 중앙 패널과 제목 리본 |
 | ZoneName | 가이드와 같은 짙은 패널·얇은 프레임과 양끝 황동 핀. 최소 높이 48 |
@@ -53,8 +53,7 @@
 
 [구역 이름과 상호작용의 실제 변경 전후](hud-plate-comparison.png). 구역 표지는 최소 높이 48, 월드 상호작용 카드는 66이고 긴 문구는 더 높아질 수 있다.
 
-**배치 편집:** Prefab Mode에서 루트 RectTransform의 Anchor / Pivot / Pos를 변경한다. 매니저는 이 자리를 기준으로 카드가 겹칠 때만 이동한다. Avoid Previous Lane은 목표가 피드백을, 투표가 목표를 가리지 않도록 하는 옵션이다. Interaction의 Pos는 월드 대상에 대한 화면 오프셋이다. 인간대포의 현재 구간은 Status의 변형인 CourseStatus.prefab에서 독립 조절한다.
-
+**배치 편집:** Prefab Mode에서 루트 RectTransform의 Anchor / Pivot / Pos를 변경한다. 매니저는 이 자리를 기준으로 카드가 겹칠 때만 이동한다. Avoid Previous Lane은 목표가 피드백을, 투표가 목표를 가리지 않도록 하는 옵션이다. Interaction의 Pos는 월드 대상에 대한 화면 오프셋이다.
 **안쪽 정렬과 크기:** Surface의 Vertical Layout Group에서 Padding, Spacing, Child Alignment를 편집한다. 기본은 좌우 16, 상하 12, 행 간격 5다. 행 순서는 Hierarchy 순서다. Fit Width / Fit Height를 각각 끈 축은 루트 크기를 유지한다. 두 축과 자식 배치를 직접 그리려면 Vertical Layout Group을 끄고 각 RectTransform을 움직인다. 추가 TMP를 일반 자식으로 두면 고정 행, Layout Element의 Ignore Layout을 켜면 자유 배치 장식이 된다.
 
 **문구와 스타일:** 루트의 HudRoleCard → ‘문구 템플릿 · TMP 원본 편집’에서 수정하거나 TMP 자식에서 직접 편집한다. 예: 제목에 ‘현재 목표: {title}’, 본문에 ‘{content}’, 조건에 ‘진행: {condition}’. 값이 없는 토큰 행은 숨기고, 토큰이 전혀 없는 텍스트는 새 호출에도 고정한다. 선택지 라벨은 ‘{choice}’를 쓴다. ‘고정 텍스트 행 추가’로 별도 라벨을 넣을 수 있다. 색·폰트·크기·정렬은 해당 TMP에서, 배경은 Surface/Artwork의 Image에서 수정한다. 이 설정은 새로 표시하는 카드에 적용된다. 생성 메뉴를 다시 실행해도 이미 설정된 프리팹은 초기화하지 않는다.

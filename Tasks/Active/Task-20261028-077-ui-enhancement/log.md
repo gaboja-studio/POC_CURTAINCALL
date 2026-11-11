@@ -109,3 +109,5 @@
 - 11/11 HUD 후속: 대기실·리허설 제목과 본문에 로컬 키 치환, Inspector에 기본 키 예시를 연결했다. 기존 `WaitingRoomHud.asset` 문구와 공용 버튼 변경은 보존했다. Unity로 Vote의 두 중첩 버튼에 자동 크기·줄바꿈을 저장했다.
 - 표시 중인 제목·본문·배지가 같으면 기존 가이드를 유지한다. 공연과 대기실 사망을 우측 상단 위험 시스템 알림으로 표시하고, 공연 알림에만 호응도 안내를 넣는다. 대기실 진입 때 이미 사망한 단원은 다시 알리지 않는다.
 - check-work 안전성·문서/규칙·컴파일 PASS. 별도 키 치환 EditMode 5/5, 역할 HUD·공연 종료·실제 대기실 사망 PlayMode 8/8. 초기 doctor의 서브모듈·설치 오류는 샌드박스 밖에서 실제 상태를 확인했고, Task ID 충돌은 기존 상태다.
+- 11/12 리허설 문구: 외줄타기·인간대포 남은 제목·내용을 `WaitingRoomHud.asset` 덮어쓰기로 정리(가이드 `~합니다.`, 팀 임무 단답, 키 `[{key}]`), 구간 표시 번호 1~5 단일화(내부 ID 유지), 직접 작성 문구 오타·말투 정리.
+- 11/12 Status 배경: 정사각형 인벤토리 슬롯(9-slice 없음, Simple)을 늘려 깨지던 문제를 smallplate 9-slice 판으로 교체, 빌더 `SliceStatusPlate` 추가. 인간대포 현재 구간 카드(CourseStatus)는 11-04 씬 정리 뒤 표시 조건(`sectionLabel`)이 비어 나오지 않았고, 핵심 정보가 아니라는 판단으로 사용자 승인 후 프리팹·매니저 연결·구간 표시 코드·플레이그라운드 선택·문서에서 제거. 컴파일·check-work PASS, PlayMode PerformanceSceneBinding 13/13, EditMode Hud 8/9·인간대포 654/658. 실패 5건은 변경과 무관: G01 덮어쓰기 가정 테스트, EscapeSwingDrive 3건, GroundSaw1C 레일 간격. 참고: `HumanCannonCourseSections`가 어느 씬에도 없어 로그 수집 인간대포 구간 값이 0으로 남는다(기존 문제).

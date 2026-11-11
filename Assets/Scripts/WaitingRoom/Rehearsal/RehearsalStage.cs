@@ -54,15 +54,15 @@ namespace CurtainCall.WaitingRoom
         public static readonly RehearsalStage[] All =
         {
             new() { Id = "1", Kind = RehearsalStageKind.LaneChange, Rule = RehearsalClearRule.EveryoneOrMajority,
-                Title = "1단계 · 외줄타기", Intro = "줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다." },
+                Title = "1 · 외줄타기", Intro = "줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다." },
             new() { Id = "2-1", Kind = RehearsalStageKind.SinglePole, Rule = RehearsalClearRule.EveryoneOrMajority,
-                Title = "2-1 · 인간 그네", Intro = "줄 끝에서 F를 이용하면 인간 그네를 잡습니다. W/S로 그네를 조작한 뒤 Space를 누르면 건너편 줄로 점프합니다." },
+                Title = "2 · 인간 그네", Intro = "줄 끝에서 F를 이용하면 인간 그네를 잡습니다. W/S로 그네를 조작한 뒤 Space를 누르면 건너편 줄로 점프합니다." },
             new() { Id = "2-2", Kind = RehearsalStageKind.ConsecutivePoles, Rule = RehearsalClearRule.EveryoneOrMajority,
-                Title = "2-2 · 연속 인간 그네", Intro = "체공 중 F키를 눌러 그네에서 다음 그네로 넘어갈 수 있습니다." },
+                Title = "3 · 연속 인간 그네", Intro = "체공 중 F키를 눌러 그네에서 다음 그네로 넘어갈 수 있습니다." },
             new() { Id = "2-3", Kind = RehearsalStageKind.Relay, Rule = RehearsalClearRule.Anyone,
-                Title = "2-3 · 트리거 그네", Intro = "아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다." },
+                Title = "4 · 트리거 그네", Intro = "아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다." },
             new() { Id = "3", Kind = RehearsalStageKind.Trapeze, Rule = RehearsalClearRule.EveryoneOrMajority,
-                Title = "3단계 · 공중그네 잡기와 도약", Intro = "목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 만들고 Space로 도약해 다음 봉을 F로 잡으면 학습 완료입니다." },
+                Title = "5 · 공중그네 잡기와 도약", Intro = "목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 만들고 Space로 도약해 다음 봉을 F로 잡으면 학습 완료입니다." },
         };
     }
 }
