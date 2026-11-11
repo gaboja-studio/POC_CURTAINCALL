@@ -167,6 +167,41 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ReviveClearsOnlyThePreviousCannonOccupant(bool host)
+        {
+            var root = new GameObject("Cannon seat recovery");
+            root.SetActive(false);
+            try
+            {
+                const ulong actor = 713UL, other = 714UL;
+                var session = root.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                Set(session, "_networkManager", root.GetComponent<Unity.Netcode.NetworkManager>());
+                var connection = host ? CurtainCall.Network.Session.SessionConnectionState.Host
+                    : CurtainCall.Network.Session.SessionConnectionState.Client;
+                session.GetType().GetProperty("ConnectionState").SetValue(session, connection);
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                cannon.ConfigurePractice(new HumanCannonStation[2], -10f);
+                Call(cannon, "ResetSeats");
+                Set(cannon, "session", session);
+                var player = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var seats = (System.Array)typeof(HumanCannonSystem).GetField("seats", fields).GetValue(cannon);
+                var first = (CannonSeatState)seats.GetValue(0).GetType().GetField("State").GetValue(seats.GetValue(0));
+                var second = (CannonSeatState)seats.GetValue(1).GetType().GetField("State").GetValue(seats.GetValue(1));
+                Assert.IsTrue(first.TryApply(CannonAction.Board, actor, first.Revision));
+                Assert.IsTrue(second.TryApply(CannonAction.Board, other, second.Revision));
+
+                Call(cannon, "HandleRevivedMotion", player);
+                Assert.IsFalse(cannon.IsSeated(actor));
+                Assert.IsTrue(cannon.IsSeated(other));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void CheckpointCleanupReleasesTheTrampolineEvenWhenItsCarrierHasFallen()
         {
@@ -200,6 +235,50 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 }
             }
             finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void RevivedPassengerIsNotCarriedByThePreviousTrip(bool host)
+        {
+            var root = new GameObject("Transport recovery");
+            root.SetActive(false);
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var route = root.AddComponent<HumanCannonRouteSystem>();
+            try
+            {
+                current.SetValue(null, null);
+                route.ConfigurePractice(null, -10f);
+                Call(route, "OnEnable");
+                var session = root.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                var connection = host ? CurtainCall.Network.Session.SessionConnectionState.Host
+                    : CurtainCall.Network.Session.SessionConnectionState.Client;
+                session.GetType().GetProperty("ConnectionState").SetValue(session, connection);
+                Set(route, "session", session);
+                var player = root.AddComponent<NetworkPlayer>();
+                const ulong actor = 717UL;
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                var travel = route.TransportState(0);
+                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 10d, 8f));
+                Assert.IsTrue(route.IsRiding(actor));
+
+                Call(route, "ReleaseRevivedPassenger", player);
+                Assert.IsFalse(route.IsRiding(actor));
+                Assert.IsFalse(route.IsRiding(CannonSeatState.Nobody));
+                Assert.AreEqual(0.5f, travel.Progress(14d));
+                Assert.IsTrue(travel.Tick(18d));
+                Assert.IsTrue(travel.TryReturn(20d));
+                Assert.IsTrue(travel.Tick(28d));
+                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 30d, 8f));
+                Assert.IsTrue(route.IsRiding(actor));
+            }
+            finally
+            {
+                Call(route, "OnDisable");
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
         }
 
         [TestCase(false)]

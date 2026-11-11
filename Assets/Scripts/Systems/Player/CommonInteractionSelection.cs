@@ -103,7 +103,7 @@ namespace CurtainCall.Player
                 if (cannon != null && cannon.IsSeated(player.OwnerClientId)) Add(cannon, center, 0, "cannon-seated");
                 var stack = PiggybackSystem.Current;
                 int grabbable = poles != null ? poles.FindGrabbable(player) : -1;
-                if (stack != null && !stack.IsReleasedForFall(player) && stack.GetBelow(player) != null)
+                if (stack != null && stack.GetSupportingPlayer(player) != null)
                 {
                     // Only hand control from the active piggyback to a reachable pole;
                     // nearby shops or loose devices must not steal the same tap.

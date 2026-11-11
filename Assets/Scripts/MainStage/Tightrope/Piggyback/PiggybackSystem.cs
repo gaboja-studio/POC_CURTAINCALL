@@ -285,13 +285,18 @@ namespace CurtainCall.Tightrope
                 if (player == null || !player.TryGetComponent(out PlayerBalance balance)) continue;
                 int size = 1;
                 float sum = 0f;
-                if (player.State == PlayerState.Normal && !balance.HasFallen && !IsReleasedForFall(player))
+                var supporting = GetSupportingPlayer(player);
+                if (CanFollowStack(player) && !balance.HasFallen && (supporting != null || GetBelow(player) == null))
                 {
-                    size = GetStackSize(player);
+                    for (var lower = supporting; lower != null; lower = GetBelow(lower)) size++;
                     for (var upper = GetAbove(player); upper != null; upper = GetAbove(upper))
-                        if (upper.State == PlayerState.Normal && upper.TryGetComponent(out PlayerBalance upperBalance)
-                            && upperBalance.IsActive && !upperBalance.HasFallen && !IsReleasedForFall(upper))
+                    {
+                        if (!CanFollowStack(upper)) break;
+                        size++;
+                        if (upper.TryGetComponent(out PlayerBalance upperBalance)
+                            && upperBalance.IsActive && !upperBalance.HasFallen)
                             sum += upperBalance.Value;
+                    }
                 }
                 if (size > 1 && player.State == PlayerState.Normal && !balance.HasFallen)
                 {
@@ -320,6 +325,20 @@ namespace CurtainCall.Tightrope
         /// <summary>바로 아래 사람. 없으면 null.</summary>
         public NetworkPlayer GetBelow(NetworkPlayer player) =>
             player != null && belowOf.TryGetValue(player.OwnerClientId, out ulong id) ? FindPlayer(id) : null;
+
+        // A replicated link can outlive a fall or a handoff for a frame.
+        internal bool CanFollowStack(NetworkPlayer player) => player != null && player.State == PlayerState.Normal
+            && !IsReleasedForFall(player) && !UsingDevice(player)
+            && !(TightropeHangSystem.Current?.IsHanging(player) ?? false);
+
+        internal NetworkPlayer GetSupportingPlayer(NetworkPlayer rider)
+        {
+            if (!IsGameplayActive || !CanFollowStack(rider)) return null;
+            var below = GetBelow(rider);
+            for (var current = below; current != null; current = GetBelow(current))
+                if (!CanFollowStack(current)) return null;
+            return below;
+        }
 
         /// <summary>바로 위 사람. 없으면 null.</summary>
         public NetworkPlayer GetAbove(NetworkPlayer player) =>
@@ -559,7 +578,7 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
                 || local.State != PlayerState.Normal || UsingDevice(local) || IsReleasedForFall(local)) return false;
-            if (input.InteractLongPressed && GetBelow(local) != null && CommonInteractionSelection.Consume(local, this))
+            if (input.InteractLongPressed && GetSupportingPlayer(local) != null && CommonInteractionSelection.Consume(local, this))
             { RequestLocalRelease(); return true; }
             if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))
             { HandleInteract(); return true; }
@@ -817,7 +836,8 @@ namespace CurtainCall.Tightrope
                 var hangs = TightropeHangSystem.Current;
                 // M2: 줄에 매달린 사람도 목마에서 떨어진 것이다.
                 bool hanging = hangs != null && player != null && player.State == PlayerState.Normal && hangs.IsHanging(player);
-                if (player == null || (player.State != PlayerState.Fallen && !hanging && !player.IsDroppingFromSupport)) continue;
+                if (player == null || (player.State != PlayerState.Fallen && player.State != PlayerState.Retired
+                    && !hanging && !player.IsDroppingFromSupport)) continue;
                 changed = true;
 
                 for (ulong current = id; aboveOf.TryGetValue(current, out ulong up); current = up)
