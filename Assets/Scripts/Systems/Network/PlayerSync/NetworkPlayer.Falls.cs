@@ -120,6 +120,7 @@ namespace CurtainCall.Network.PlayerSync
         void LateUpdate()
         {
             if (!IsSpawned || (!IsOwner && !IsServer) || mover == null) return;
+            if (IsServer && ServerKillBelowFallLimit()) return;
             if (naturalFallQueued) { naturalFallQueued = false; BeginNaturalFall(); }
             if (!fallTracking || fallScene != SceneManager.GetActiveScene().handle
                 || fallRestart != restartCount.Value || fallRevive != reviveCount.Value
@@ -159,6 +160,19 @@ namespace CurtainCall.Network.PlayerSync
             if (flying || !IsOwner) return;
             QueueFallLanding(fallPeak, feet);
             SendPendingFallLanding();
+        }
+
+        /// <summary>
+        /// 호스트: 모든 씬에서 캐릭터 발이 공통 추락 즉사 높이(기본 -15m) 이하로 내려가면
+        /// 착지를 기다리지 않고 즉시 사망시킨다(2026-11-11 사용자 결정, 더 깊은 맵은 지면을 올려 맞춘다).
+        /// Dev "추락 무시"면 적용하지 않는다.
+        /// </summary>
+        bool ServerKillBelowFallLimit()
+        {
+            if (State != PlayerState.Normal || !float.IsFinite(transform.position.y)
+                || transform.position.y > GameSettings.Base.BodyDamage.FallKillHeight) return false;
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return false;
+            return ServerKill(DeathOrigin.MapExit);
         }
 
         void QueueFallLanding(float peak, Vector3 feet)

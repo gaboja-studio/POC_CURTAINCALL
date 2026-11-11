@@ -120,9 +120,10 @@ MonoBehaviour:
   bodyDamage:
     hazardHitCooldown: 1
     hazardCutCount: 1
-    fallInjuryHeight: 4
+    fallInjuryHeight: 5
     fallInjuryCutCount: 2
-    fallDeathHeight: 8
+    fallDeathHeight: 15
+    fallKillHeight: -15
     safeRopeLanding: 1
     safeLandingZones: 1
     restartRecovery: 0

@@ -649,7 +649,7 @@ namespace CurtainCall.SpaceLink.Tests
                     && (bool)Get(camera, "IsFreeThirdPerson");
             }, 10f, "대포 출발 플랫폼의 자유 3인칭(Task-089)");
             Assert.AreEqual("Normal", Get(player, "State").ToString());
-            Assert.That(Vector3.Distance(player.transform.position, new Vector3(-2.25f, 4.05f, 0f)), Is.LessThan(0.3f));
+            Assert.That(Vector3.Distance(player.transform.position, new Vector3(-2.25f, 5.05f, 0f)), Is.LessThan(0.3f));
             Assert.AreEqual(1, Object.FindObjectsByType(PerformanceLinkReflection.GameType("CurtainCall.Cameras.CameraViewDirector"),
                 FindObjectsSortMode.None).Cast<Behaviour>().Count(c => c.isActiveAndEnabled), "카메라 관리자 중복 없음");
             mover = player.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerMover"));

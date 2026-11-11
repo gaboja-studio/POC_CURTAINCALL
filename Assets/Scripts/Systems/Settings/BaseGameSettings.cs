@@ -510,12 +510,14 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float hazardHitCooldown = 1f;
             [InspectorName("일반 위험물 절단 개수"), Tooltip("톱·일반 화염 등에 한 번 다칠 때 잃는 사지 수(개, 1~4). 정해진 절단 순서대로 적용하며 남은 사지를 모두 잃으면 사망한다. 즉사형 화염은 별도다. 기본 1개.")]
             [SerializeField, Range(1, 4)] int hazardCutCount = 1;
-            [InspectorName("부상 낙하 높이"), Tooltip("낙하 최고점에서 착지한 발 위치까지의 높이 차이가 이 값 이상이면 낙하 부상(m). 일반 바닥·외줄에서 바닥으로 추락·대포 착지에 공통 적용. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 4m.")]
-            [SerializeField, Min(0f)] float fallInjuryHeight = 4f;
+            [InspectorName("부상 낙하 높이"), Tooltip("낙하 최고점에서 착지한 발 위치까지의 높이 차이가 이 값 이상이면 낙하 부상(m). 일반 바닥·외줄에서 바닥으로 추락·대포 착지에 공통 적용. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 5m(5m 이상 15m 미만 부상).")]
+            [SerializeField, Min(0f)] float fallInjuryHeight = 5f;
             [InspectorName("낙하 부상 절단 개수"), Tooltip("부상 높이 이상·사망 높이 미만으로 착지할 때 잃는 사지 수(개, 1~4). 이미 다친 상태에서는 남은 사지를 모두 잃어 사망할 수 있다. 기본 2개.")]
             [SerializeField, Range(1, 4)] int fallInjuryCutCount = 2;
-            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발이나 트램펄린 반동이 먼저 성공하면 피해를 막는다. 기본 8m.")]
-            [SerializeField, Min(0f)] float fallDeathHeight = 8f;
+            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발이나 트램펄린 반동이 먼저 성공하면 피해를 막는다. 기본 15m.")]
+            [SerializeField, Min(0f)] float fallDeathHeight = 15f;
+            [InspectorName("추락 즉사 높이"), Tooltip("모든 씬에서 캐릭터 발 위치(월드 Y)가 이 높이 이하로 내려가면 착지와 관계없이 즉시 사망(m). 지면 대부분이 0m이며, 이보다 깊은 바닥이 있는 맵은 지면을 올려 맞춘다. 기본 -15m.")]
+            [SerializeField] float fallKillHeight = -15f;
             [SerializeField, InspectorName("외줄 착지 낙하 피해 면제")]
             [Tooltip("실제로 외줄 위에 정상 착지하면 높이에 관계없이 낙하 부상·사망 없이 줄을 탄다. 모든 씬 공통. 줄에서 떨어져 아래 바닥에 착지한 경우에는 일반 낙하 높이 기준을 적용한다. 기본 켬.")]
             bool safeRopeLanding = true;
@@ -527,6 +529,7 @@ namespace CurtainCall.Settings
             public int FallInjuryCutCount => Mathf.Clamp(fallInjuryCutCount, 1, 4);
             public float FallInjuryHeight => Mathf.Max(0f, fallInjuryHeight);
             public float FallDeathHeight => Mathf.Max(FallInjuryHeight, fallDeathHeight);
+            public float FallKillHeight => fallKillHeight;
             public bool SafeRopeLanding => safeRopeLanding;
             public bool SafeLandingZones => safeLandingZones;
 
