@@ -527,6 +527,12 @@ namespace CurtainCall.Player
             Vector3 feet = transform.position;
             Vector3 bottom = feet + Vector3.up * Mathf.Max(radius, current - radius);
             Vector3 top = feet + Vector3.up * Mathf.Max(radius, target - radius);
+            if (FreeMovement)
+            {
+                var rise = Vector3.up * (target - current);
+                if (CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, rise).y < rise.y - .001f)
+                    return false;
+            }
             int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, headroomHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
@@ -640,7 +646,7 @@ namespace CurtainCall.Player
                 ? LimitAgainstPlayers(horizontalStep)
                 : LimitAlongCourse(horizontalStep, forward);
             if (CurrentJump == JumpKind.Lane) step = LimitToLaneTarget(step);
-            controller.Move(step + Vector3.up * displacement.y);
+            MoveWithPassengers(step + Vector3.up * displacement.y);
             // 땅에서 걷다가 내리막·계단 때문에 발이 뜨면 같은 프레임에 발밑 땅으로 붙인다(전진 후 낙하 반복 방지).
             if (grounded && CurrentJump == JumpKind.None && !controller.isGrounded) SnapToGround(step.magnitude);
             SlideOffUnsupportedEdge(step);
@@ -653,6 +659,26 @@ namespace CurtainCall.Player
             laneJumpRequested = 0;
 
             UpdateAirborne();
+        }
+
+        void MoveWithPassengers(Vector3 displacement)
+        {
+            if (FreeMovement)
+            {
+                if (displacement.y > 0f)
+                {
+                    var allowed = CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, displacement);
+                    if (allowed.y < displacement.y - .001f) verticalSpeed = 0f;
+                    displacement = allowed;
+                }
+                else
+                {
+                    var horizontal = Vector3.ProjectOnPlane(displacement, Vector3.up);
+                    displacement = CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, horizontal)
+                        + Vector3.up * displacement.y;
+                }
+            }
+            controller.Move(displacement);
         }
 
         /// <summary>

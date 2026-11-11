@@ -126,9 +126,8 @@ namespace CurtainCall.WaitingRoom
         bool FindRoom()
         {
             if (room != null) return true;
-            var found = GameObject.Find("S09_PracticeRoom");
-            if (found == null) return false;
-            room = found.transform;
+            room = WaitingRoomScenes.FindPracticeRoom();
+            if (room == null) return false;
             var deck = room.Find("LegacyRing/PracticeRing/DeckCollider")?.GetComponent<Collider>();
             var entry = room.Find("Corridor/FloorCollider")?.GetComponent<Collider>();
             if (deck == null || entry == null) { room = null; return false; }

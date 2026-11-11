@@ -257,13 +257,12 @@ namespace CurtainCall.WaitingRoom
             // 대기실 씬을 다시 불러오면 앞 씬의 연습실은 파괴된다. 그대로 쓰면 소품을 숨기지 못하므로 다시 찾는다(2026-11-04).
             if (ringFound && ringRoom != null) return true;
             ringFound = false;
-            var room = GameObject.Find("S09_PracticeRoom");
-            if (room == null) return false;
-            ringRoom = room.transform;
+            ringRoom = WaitingRoomScenes.FindPracticeRoom();
+            if (ringRoom == null) return false;
             // 이수 뒤 연습실 외줄 상호작용으로 리허설 다시 하기 투표를 연다.
-            var practiceRope = room.transform.Find("LegacyRing/PracticeLanes/Rope");
+            var practiceRope = ringRoom.Find("LegacyRing/PracticeLanes/Rope");
             if (practiceRope != null && practiceRope.GetComponent<RehearsalPracticeStation>() == null) practiceRope.gameObject.AddComponent<RehearsalPracticeStation>();
-            var deck = room.transform.Find(RingDeckPath);
+            var deck = ringRoom.Find(RingDeckPath);
             var collider = deck != null ? deck.GetComponent<Collider>() : null;
             if (collider != null)
             {

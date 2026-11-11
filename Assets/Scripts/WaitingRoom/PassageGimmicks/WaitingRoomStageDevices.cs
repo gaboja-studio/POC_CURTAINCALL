@@ -1,5 +1,6 @@
 using CurtainCall.Campaign;
 using CurtainCall.HumanCannon;
+using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,7 +17,6 @@ namespace CurtainCall.WaitingRoom
     public sealed class WaitingRoomStageDevices : MonoBehaviour
     {
         const string TrampolinePrefab = "Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RoundTrampolinePrepared";
-        const string PracticeRoomName = "S09_PracticeRoom";
         const string PracticeTrampolinePath = "LegacyRing/PracticeLanes/PracticeTrampoline";
 
         static WaitingRoomStageDevices instance;
@@ -45,8 +45,7 @@ namespace CurtainCall.WaitingRoom
             if (room == null && Time.unscaledTime >= nextSearch)
             {
                 nextSearch = Time.unscaledTime + 1f;
-                var found = GameObject.Find(PracticeRoomName);
-                room = found != null && CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(found.scene) ? found.transform : null;
+                room = WaitingRoomScenes.FindPracticeRoom();
                 practiceTrampoline = room != null ? room.Find(PracticeTrampolinePath)?.gameObject : null;
             }
             if (room == null || WaitingRoomCannonRehearsal.IsActive) { Release(); return; }

@@ -213,7 +213,8 @@ namespace CurtainCall.Settings.EditorTools
             Assert.IsFalse((bool)Call(player, "AcceptFallSupport", 1u, 0, 0, feet), "An old grounded segment cannot erase the newer jump.");
         }
 
-        [TestCase(5f, 2, PlayerState.Normal), TestCase(15f, 0, PlayerState.Fallen)]
+        [TestCase(4.99f, 0, PlayerState.Normal), TestCase(5f, 2, PlayerState.Normal)]
+        [TestCase(14.99f, 2, PlayerState.Normal), TestCase(15f, 0, PlayerState.Fallen)]
         public void HostOwnerQueuePreservesMeasuredHighFallForAcceptanceAndDamage(float height, int lostLimbs, PlayerState state)
         {
             typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);

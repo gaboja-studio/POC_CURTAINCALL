@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -76,6 +77,15 @@ namespace CurtainCall.HumanCannon
                 if (Active(device) && device.Carrier == actor) return device;
             return null;
         }
+
+        internal static bool HasOccupiedHands(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned) return false;
+            var hangs = TightropeHangSystem.Current;
+            return Held(player.OwnerClientId) != null || PiggybackSystem.UsingDevice(player)
+                || hangs != null && (hangs.IsHanging(player) || hangs.IsRescuing(player));
+        }
+
         public static IHumanCannonCarry FindGrabbable(NetworkPlayer player)
         {
             if (player == null || Held(player.OwnerClientId) != null) return null;
