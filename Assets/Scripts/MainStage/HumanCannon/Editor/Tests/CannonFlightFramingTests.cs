@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class CannonFlightFramingTests
     {
         const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;

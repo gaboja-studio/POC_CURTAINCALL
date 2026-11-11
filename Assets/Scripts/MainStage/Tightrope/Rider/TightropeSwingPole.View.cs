@@ -33,7 +33,7 @@ namespace CurtainCall.Tightrope
                 if (flightMover != null) return next != null ? "공중 WASD 조절 · 다음 그네 가까이에서 F로 잡기"
                     : "공중 WASD 조절 · 초록색 착지 표시로 이동 · 동료는 F 받기 준비";
                 if (OwnHeld(local)) return OwnCanLetGo ? "지금 Space! · 공중 W로 전진 · A/D 옆 조절 · 동료는 F 받기 준비"
-                    : $"W/S로 반동 키우기 · 초록색에서 Space 놓기 · 남은 잡기 {Mathf.Max(0f, physicalPole.HoldSeconds - (float)(Clock - startedAt)):0.0}초";
+                    : $"W/S로 반동 키우기 · Space로 모은 반동만큼 도약 · 남은 잡기 {Mathf.Max(0f, physicalPole.HoldSeconds - (float)(Clock - startedAt)):0.0}초";
                 float distance = course.GetDistance(local.transform.position);
                 if (distance >= GapFrom - 7f && distance < GapFrom)
                     return "끊어진 줄 · 끝의 청록색 표시에서 F로 회전봉 잡기 · 목마는 먼저 해제";
@@ -108,7 +108,7 @@ namespace CurtainCall.Tightrope
             exit = Box("Catch", new Vector3(laneSide, .09f, LandingDistance), new Vector3(.65f, .035f, 1.6f), green);
             var label = new GameObject("SwingInstructions"); label.transform.SetParent(viewRoot, false);
             label.transform.localPosition = new Vector3(laneSide + 1.1f, 2f, GapFrom - 2f);
-            sign = label.AddComponent<TextMesh>(); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 놓기\n공중 WASD 조절 · 동료 F 받기";
+            sign = label.AddComponent<TextMesh>(); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 도약\n공중 WASD 조절 · 동료 F 받기";
             sign.gameObject.SetActive(!hasSpot);
             sign.fontSize = 64; sign.characterSize = .035f; sign.anchor = TextAnchor.MiddleCenter; sign.color = Color.cyan;
         }

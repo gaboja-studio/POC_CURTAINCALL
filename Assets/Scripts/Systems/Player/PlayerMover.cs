@@ -325,6 +325,9 @@ namespace CurtainCall.Player
         /// <summary>몸통 충돌체.</summary>
         public CharacterController Body => controller;
 
+        /// <summary>지상에서 마지막으로 계산한 월드 이동 속도. 줄 진입 때 모델 회전의 지연 대신 사용한다.</summary>
+        public Vector3 GroundVelocity => groundVelocity;
+
         /// <summary>줄 간격(m). 옆줄 점프 거리와 같다. 처음에는 외줄 세팅의 줄 간격, 코스가 있으면 코스가 자기 줄 간격으로 맞춘다.</summary>
         public float LaneSpacing
         {

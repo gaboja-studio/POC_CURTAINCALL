@@ -40,9 +40,11 @@ namespace CurtainCall.WaitingRoom
                 int lanes = Kind == RehearsalStageKind.Trapeze ? 4 : UsesPoles ? 1 : 2;
                 string ends = Kind == RehearsalStageKind.LaneChange ? "22,38" : Kind == RehearsalStageKind.Relay ? "12,32" : "";
                 string lesson = Kind == RehearsalStageKind.Trapeze ? "" :
-                    $",\"startPlatformLength\":4,\"finishPlatformLength\":3,\"trapezeLane\":1,\"trapezeLength\":{(Kind == RehearsalStageKind.ConsecutivePoles ? 12 : 8)}";
+                    $",\"startPlatformLength\":4,\"trapezeLane\":1,\"trapezeLength\":{(Kind == RehearsalStageKind.ConsecutivePoles ? 12 : 8)}";
                 JsonUtility.FromJsonOverwrite("{" +
-                    $"\"laneCount\":{lanes},\"laneEndDistances\":[{ends}],\"finishDistance\":{finish}," +
+                    // 모든 수업은 같은 소형 도착대를 배치하고, 실제 방 경계 안에서만 확장한다.
+                    // 공연의 코스 길이가 늘어도 공연용 도착대 크기까지 복제하지 않는다.
+                    $"\"laneCount\":{lanes},\"laneEndDistances\":[{ends}],\"finishDistance\":{finish},\"finishPlatformLength\":3," +
                     $"\"swingGapEnabled\":false,\"relayGapEnabled\":false,\"swingGapStart\":{(Kind == RehearsalStageKind.Relay ? 12 : 10)}," +
                     $"\"trapezeEnabled\":{trapeze},\"trapezeStart\":10" + lesson + "}", shape);
                 return shape.ToJson();

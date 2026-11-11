@@ -35,8 +35,11 @@ namespace CurtainCall.Tightrope
         float launchedAt = -1f; // 분리 점프를 시작한 시각. 해제될 때까지 머리 위에 붙이지 않는다
         PlayerMover controlRestore; // 내려놓은 뒤 한 프레임 조작을 껐다가 켤 이동 부품(위에서 누른 SB가 내려놓는 순간 점프로 나가지 않게)
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
+        NetworkPlayer fallingLocal; // Host unlink can arrive after the owner's fall RPC.
 
-        static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player);
+        static bool IsRopeHanging(NetworkPlayer player) => TightropeHangSystem.Current != null
+            && TightropeHangSystem.Current.IsHanging(player);
+        static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player) || IsRopeHanging(player);
         public float LocalHopHeight(NetworkPlayer player) => player != null && player.IsLocal && hopping && launchedAt < 0f
             && system != null && system.GetBelow(player) != null ? Mathf.Max(0f, hopHeight) : 0f;
 
@@ -58,7 +61,8 @@ namespace CurtainCall.Tightrope
             if (IsCrossing(local))
             { carriedBalance = null; return; }
             var below = local != null ? system.GetBelow(local) : null;
-            bool carried = below != null && launchedAt < 0f && local.State == PlayerState.Normal
+            bool carried = below != null && local != fallingLocal && !local.IsDroppingFromSupport
+                           && launchedAt < 0f && local.State == PlayerState.Normal
                            && local.TryGetComponent(out PlayerBalance balance) && !balance.HasFallen;
             if (!carried)
             {
@@ -123,13 +127,14 @@ namespace CurtainCall.Tightrope
             // A mount snapshot and Space can arrive in the same frame. Establish
             // the carried pose before consuming that frame's jump input.
             bool trapeze = IsCrossing(local);
-            var newBelow = local != null && !trapeze ? system.GetBelow(local) : null;
+            bool falling = local != null && (local == fallingLocal || local.IsDroppingFromSupport);
+            var newBelow = local != null && !trapeze && !falling ? system.GetBelow(local) : null;
             if (localMover == null && newBelow != null && launchedAt < 0f)
             {
                 UpdateLocal(local);
                 PlaceOnTop(local, newBelow, 0f);
             }
-            UpdateHop(local);
+            if (!falling) UpdateHop(local);
 
             // 아래층부터 차례로 맞춰야 3층 이상도 이번 프레임 위치를 따른다
             foreach (var player in NetworkPlayer.All)
@@ -139,7 +144,7 @@ namespace CurtainCall.Tightrope
                 {
                     var above = system.GetAbove(below);
                     if (above == null) break;
-                    if (IsCrossing(above))
+                    if (IsCrossing(above) || above == fallingLocal || above.IsDroppingFromSupport)
                     { below = above; continue; }
                     if (above != local) PlaceOnTop(above, below, RemoteHop(above, below));
                     else if (launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
@@ -298,6 +303,15 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터가 위에 있으면 이동 계산을 끄고, 내려오면 켜고 내려놓는다.</summary>
         void UpdateLocal(NetworkPlayer local)
         {
+            // A successful rope catch may arrive before the old stack's unlink.
+            // Hand off without re-enabling the mover owned by the hang system.
+            if (IsRopeHanging(local)) { Release(); return; }
+            if (local != null && (local == fallingLocal || local.IsDroppingFromSupport))
+            {
+                if (localMover != null) ReleaseForFall(local);
+                if (system.GetBelow(local) == null) fallingLocal = null;
+                return;
+            }
             if (IsCrossing(local))
             { ReleaseForDevice(local); return; }
             var below = local != null ? system.GetBelow(local) : null;
@@ -389,6 +403,13 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
+        internal void ReleaseForFall(NetworkPlayer player)
+        {
+            if (player == null || !player.IsLocal) return;
+            Release();
+            fallingLocal = player;
+        }
+
         internal void DismountOnPlatform(NetworkPlayer player, Vector3 position)
         {
             if (player == null || !player.IsLocal || player.State != PlayerState.Normal
@@ -406,6 +427,7 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터의 이동 계산을 되돌린다(내려놓지 않음).</summary>
         void Release()
         {
+            fallingLocal = null;
             EndHop(NetworkPlayer.Local);
             ClearCarriedAirborne();
             if (controlRestore != null)

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public class CannonSeatTests
     {
         [Test]

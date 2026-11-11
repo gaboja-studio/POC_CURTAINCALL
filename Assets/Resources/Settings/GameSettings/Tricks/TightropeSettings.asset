@@ -57,6 +57,7 @@ MonoBehaviour:
     timeLimit: 300
     restartDelay: 3
   ropeMovement:
+    matchVisualSupportWidth: 1
     supportWidth: 0.55
     supportHeightTolerance: 0.3
     fallReleaseDepth: 1

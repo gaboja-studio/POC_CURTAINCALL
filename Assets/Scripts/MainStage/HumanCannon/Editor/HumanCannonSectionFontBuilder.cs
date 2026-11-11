@@ -11,7 +11,7 @@ namespace CurtainCall.HumanCannon.EditorTools
     public static class HumanCannonSectionFontBuilder
     {
         const string Path = "Assets/Scenes/Tests/MainStage/HumanCannon/Labels/section-korean.asset";
-        const string Characters = "현재 구간 · 출발1쉼터동료합류2반동과회피최종도착0123456789Space봉 놓기W/S A/D 앞뒤 이동옆걸음마우스방향전환F길게눌러F로 발사 · F 길게 눌러 내리기";
+        const string Characters = "도약 현재 구간 · 출발1쉼터동료합류2반동과회피최종도착0123456789Space봉 놓기W/S A/D 앞뒤 이동옆걸음마우스방향전환F길게눌러F로 발사 · F 길게 눌러 내리기";
 
         public static TMP_FontAsset LoadFont()
         {

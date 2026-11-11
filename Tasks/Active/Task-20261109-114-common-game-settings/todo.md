@@ -2,19 +2,7 @@
 
 지난 통일화·제출 체크리스트: [원문](History/005-todo-through-common-unification.md).
 
-- [x] 공통 이동·점프·외줄·봉·추락·상호작용 GameSettings 연결 및 Inspector 설명
-- [x] 승인된 튜토리얼 보호·재연습 복귀·4m 부상/8m 사망·안전 착지 적용
-- [x] 이전 제출 PR317/319/322와 DEV 병합 내용 보존
-- [x] 작업 재개 전 Unity 종료·DEV fb39d3dd 통합, 수정 보존
-- [x] 추가 진행 막힘·끼임·작은 점프 오사망의 정적/회귀/실행 파일 조사
-- [x] 숙소 모서리 접지·탐색 자격·화면 소유자·추격 제어·런 자금 수명 수정
-- [x] 이동·목마·부상·부활·봉/외줄/대포 모션의 재현·수정·실제 화면 대조
-- [x] 4캐릭터×생존 부상4단계·구조 손 접점·모션 회귀 확인
-- [x] 최신 빌드 2·3·4인 Relay 동기화 확인: [범위/한계](completion-audit.md)
-- [x] 4인 기물 점유자 사망→해제·복귀·다른 이용자 재사용 확인
-- [x] 최종빌드 폴더에 [변경 전후51행](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40534020/11+10) 게시·폭/글머리 기호/내용 확인
-- [x] 대포 연습 봇 최신 코드·검사 준비 수정 후 집중 검사 마무리
-- [x] 최종 check-work·Unity 종료 후 DEV 확인·관련52파일 commit/push·[dev PR324](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/324), PM팀 검토 요청
+공통 연결·완료 감사·PR324 체크리스트: [007](History/007-todo-through-pr324.md).
 
 ## 미확정·범위 밖
 - [ ] 원래 서로 다른 PC의 밤→아침 연결 종료: 원본 로그 미확보, 이번 Relay에서는 미재현
@@ -63,3 +51,20 @@
 - [x] 대포 발사 뒤 A/D: 발판 복귀 대기 조건에서 보정0m 재현·비행 입력 우선 처리
 - [x] 최종 check-work·Confluence32행 기록·Unity 종료 후 최신 DEV a976362e 확인
 - [x] 관련46파일 저장5af3a8a8·push·[PR330](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/330), PM 팀 검토 요청
+
+## 11/11 녹화 후속
+- [x] Unity 정상 종료 후 DEV92176fcd 반영, 기존 수정 보존
+- [x] 녹화 원본 확보(14:28.8)
+- [x] 영상 전체 구간 검토·증상 시각/원인 분리 기록
+- [x] 봉 긴 F 낙하/Space 도약 분리·공통 수평5m/s
+- [x] 외줄 양 끝 진입·왕복 및 시각/지지 범위 일치
+- [x] 목마 추락 인계·줄 재진입 수정
+- [x] 관련 비플레이 검사·check-work 및 문서/결과 기록
+- [x] 제출 전 DEV ec98657e 통합: 공연 봉 배치 변경 유지, 연습실 도착대 경계 초과 수정
+
+## 진행 차단 재발 방지
+- [x] Unity 종료 후 DEV 최신 확인, 이전 PR과 기존 미저장 변경 보존
+- [x] 착지 확인 뒤 참가자 추락 상태 잔류 재현 및 상태 해제 수정
+- [x] `check-work -CommonRegression`에 이전 진행 차단 관련 EditMode 검사 연결
+- [x] 공통 회귀451/451, 컴파일·공통 설정 연결 통과
+- [ ] 실제 참가자 PC에서 동일 과정 두 번 반복·씬 왕복 확인(사용자 플레이)

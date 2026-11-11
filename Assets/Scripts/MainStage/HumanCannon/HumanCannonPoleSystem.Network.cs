@@ -11,7 +11,7 @@ namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonPoleSystem
     {
-        enum PoleAction : byte { Sync, Grab, Release, Swing, PlatformGrab }
+        enum PoleAction : byte { Sync, Grab, Release, Swing, PlatformGrab, Drop }
         enum PoleEvent : byte { Sync, Grabbed, Released, Abandoned, Reset, PlatformGrabbed }
         const string RequestMessage = "CurtainCall.HumanCannon.Pole.Request";
         const string StateMessage = "CurtainCall.HumanCannon.Pole.State";
@@ -61,11 +61,11 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out byte action); reader.ReadValueSafe(out int index); reader.ReadValueSafe(out uint revision);
             reader.ReadValueSafe(out int station); reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment);
             reader.ReadValueSafe(out float input); reader.ReadValueSafe(out uint sequence); reader.ReadValueSafe(out double observedElapsed);
-            if (action > (byte)PoleAction.PlatformGrab) return;
+            if (action > (byte)PoleAction.Drop) return;
             HandleRequest(sender, (PoleAction)action, LocalIndex(index), revision, station, launch, segment, input, sequence, observedElapsed);
         }
 
-        void Publish(int index, PoleEvent action, ulong actor, int seat = -1)
+        void Publish(int index, PoleEvent action, ulong actor, int seat = -1, bool drop = false)
         {
             var runtime = states[index];
             var rider = seat >= 0 ? runtime.Riders[seat] : null;
@@ -78,7 +78,7 @@ namespace CurtainCall.HumanCannon
                 runtime.ReleasePosition = pole.HangingPosition(runtime.Angle, seat);
                 // TryRelease has cleared the occupant, but this seat still holds its departure facing.
                 runtime.ReleaseRotation = SeatRotation(index, seat);
-                runtime.ReleaseVelocity = CannonAirControl.LimitPoleHorizontalSpeed(
+                runtime.ReleaseVelocity = drop ? Vector3.zero : CannonAirControl.LimitPoleHorizontalSpeed(
                     pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat, runtime.ReleaseDirection),
                     pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit));
             }

@@ -8,7 +8,8 @@ param(
     [switch]$Compile,
     [switch]$RunTests,
     [ValidateSet('EditMode', 'PlayMode')][string]$Mode = 'EditMode',
-    [string]$Filter
+    [string]$Filter,
+    [ValidateSet('testName', 'category')][string]$FilterType = 'testName'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,7 +121,7 @@ if ($RunTests) {
     $statusFile = Join-Path $project 'Temp' 'pipeline_test_status.json'
     Remove-Item -LiteralPath $statusFile -ErrorAction SilentlyContinue
     $testArgs = @('--mode', $Mode, '--async_tests', 'true')
-    if ($Filter) { $testArgs += @('--filter', $Filter) }
+    if ($Filter) { $testArgs += @('--filter', $Filter, '--filter_type', $FilterType) }
     $started = Invoke-EditorCommand $Commands.RunTests -Arguments $testArgs -TimeoutSeconds 60
     if ($started.success -eq $false) { throw "TEST_RUN_FAILED: $($started.error ?? $started.message)" }
     $deadline = [DateTime]::UtcNow.AddSeconds(900)

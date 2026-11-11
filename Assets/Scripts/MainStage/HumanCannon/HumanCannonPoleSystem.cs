@@ -164,6 +164,7 @@ namespace CurtainCall.HumanCannon
             && player.IsSpawned && player.State == PlayerState.Normal;
         internal void RequestPlatformGrab(int index) => SendRequest(PoleAction.PlatformGrab, index, 0, 0, 0, 0, 0);
         internal void RequestRelease(int index) => SendRequest(PoleAction.Release, index, 0, 0, 0, 0f, 0);
+        internal void RequestDrop(int index) => SendRequest(PoleAction.Drop, index, 0, 0, 0, 0f, 0);
         internal void RequestSwing(int index, float input)
         {
             int direction = PoleSwingInput.DirectionOf(input);
@@ -296,14 +297,14 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        void ReleasePassengers(int index, int supportingSeat)
+        void ReleasePassengers(int index, int supportingSeat, bool drop = false)
         {
             var state = states[index].State;
             for (int seat = state.Capacity - 1; seat > supportingSeat; seat--)
             {
                 ulong actor = state.OccupantAt(seat);
                 if (actor != CannonSeatState.Nobody && state.TryRelease(actor, state.Revision, Clock, poles[index].WarningSeconds))
-                    Publish(index, PoleEvent.Released, actor, seat);
+                    Publish(index, PoleEvent.Released, actor, seat, drop);
             }
         }
 
@@ -366,16 +367,17 @@ namespace CurtainCall.HumanCannon
                 if (transferring) stack.TryReleaseForDevice(player, CompleteCatch);
                 else CompleteCatch();
             }
-            else if (action == PoleAction.Release && seat >= 0)
+            else if ((action == PoleAction.Release || action == PoleAction.Drop) && seat >= 0)
             {
                 if (revision < runtime.Riders[seat].JoinedRevision) return;
                 if (IsReleaseBlockedByPassenger(actor)) return;
                 // A final Swing and Release can arrive in the same host frame. Use the
                 // accepted inputs now rather than the direction from the previous Update.
                 RefreshReleaseDirection(runtime);
-                ReleasePassengers(index, seat);
+                bool drop = action == PoleAction.Drop;
+                ReleasePassengers(index, seat, drop);
                 if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, poles[index].WarningSeconds))
-                    Publish(index, PoleEvent.Released, actor, seat);
+                    Publish(index, PoleEvent.Released, actor, seat, drop);
             }
             else if (action == PoleAction.Swing && GameSettings.Poles.CanDrive(seat))
             {

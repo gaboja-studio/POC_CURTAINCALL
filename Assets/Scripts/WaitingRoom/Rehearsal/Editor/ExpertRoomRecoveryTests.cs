@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
 {
     // Synthetic authority/state-order tests; no live clients, transport or PlayMode simulation.
     [Category("MedicalReservationRecovery")]
+    [Category("CommonProgressionRegression")]
     public sealed class ExpertRoomRecoveryTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;

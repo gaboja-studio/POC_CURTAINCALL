@@ -547,8 +547,8 @@ namespace CurtainCall.WaitingRoom
                 if (relay != null && relay.HeldPole(local) >= 0)
                 {
                     if (CurtainCall.HumanCannon.HumanCannonPoleSystem.Current?.IsReleaseBlockedByPassenger(local.OwnerClientId) == true)
-                        return Quest("trigger-wait-passenger", "아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 F 길게 또는 Space로 놓을 수 있습니다.");
-                    return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F 길게 또는 Space로 놓으세요.", 2);
+                        return Quest("trigger-wait-passenger", "아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.");
+                    return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.", 2);
                 }
                 if (myLane == 0 && distance >= 5f)
                     return QuestFormat("trigger-grab", "트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.", 2);

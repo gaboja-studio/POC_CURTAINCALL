@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.WaitingRoom.EditorTools
 {
     [Category("BedRestOwnershipRecovery")]
+    [Category("CommonProgressionRegression")]
     public sealed class BedRestOwnershipRecoveryTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
