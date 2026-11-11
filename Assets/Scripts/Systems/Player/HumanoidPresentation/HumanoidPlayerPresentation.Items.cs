@@ -51,7 +51,8 @@ namespace CurtainCall.Player
         {
             yield return new WaitForSeconds(seconds);
             bool exists = target is not Object obj || obj != null;
-            if (exists && presentation.IsAvailable && !condition.AllLimbsLost && target.Reach(transform.position, this)>=0 && ExplorationTargets.LocalHolds(tool.ToolId))
+            if (exists && presentation.IsAvailable && !condition.AllLimbsLost && target.Reach(transform.position, this)>=0
+                && (ExplorationTargets.LocalHolds(tool.ToolId) || ExplorationTargets.AllowsBareHands(tool)))
                 target.Interact();
             yield return new WaitForSeconds(.5f);
             toolUse = null;

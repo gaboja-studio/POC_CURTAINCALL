@@ -27,8 +27,32 @@ namespace CurtainCall.WaitingRoom
         int RewardUidOffset { get; }
     }
 
+    /// <summary>
+    /// 맨몸으로도 칠 수 있는 대상(통로 기믹 CC-255, 2026-11-10 사용자). 맨몸 <see cref="BareHits"/>대 또는 도구 <see cref="ToolHits"/>대에 열리고,
+    /// 섞어 치면 비율로 합산한다(<see cref="StrikeProgress"/>). 진행 기록 값은 타격 수가 아니라 진행 단위다.
+    /// 도구 사용 횟수는 지금처럼 도구로 친 타격으로 열렸을 때만 1 줄인다.
+    /// </summary>
+    public interface IBareHandTarget : IExplorationTarget
+    {
+        bool AllowsBareHands { get; }
+        int BareHits { get; }
+        int ToolHits { get; }
+        /// <summary>요청자에게 보낼 결과 문구. <paramref name="done"/>/<paramref name="total"/>은 친 방식 기준 타격 수.</summary>
+        string DescribeStrike(bool opened, int done, int total, bool withTool);
+    }
+
     public static class ExplorationTargets
     {
+        /// <summary>맨몸으로 칠 수 있는 대상인가.</summary>
+        public static bool AllowsBareHands(IExplorationTarget t) => t is IBareHandTarget { AllowsBareHands: true };
+
+        /// <summary>지금 방식(맨몸/도구) 기준 친 수와 필요한 수(F 안내용, 모든 화면).</summary>
+        public static (int done, int total) StrikeCount(IBareHandTarget t, bool withTool)
+        {
+            int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(t.TargetId) : 0;
+            return (StrikeProgress.Done(units, t.BareHits, t.ToolHits, withTool), withTool ? t.ToolHits : t.BareHits);
+        }
+
         static readonly List<IExplorationTarget> all = new();
 
         public static IReadOnlyList<IExplorationTarget> All => all;

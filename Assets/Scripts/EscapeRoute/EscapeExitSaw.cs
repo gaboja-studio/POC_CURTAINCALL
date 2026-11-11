@@ -74,6 +74,7 @@ namespace CurtainCall.EscapeRoute
         public bool IsCutting => cutting && !DoorOpen;
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
+            : ProjectileMode && RequiredCableCount == 0 ? $"들고 서 있으면 {shotInterval:0.#}초마다 톱날 발사 · F를 길게 눌러 내려놓기"
             : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하면 {shotInterval:0.#}초마다 톱날 발사"
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
