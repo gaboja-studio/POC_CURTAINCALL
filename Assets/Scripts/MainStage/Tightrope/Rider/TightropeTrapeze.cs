@@ -15,6 +15,7 @@ namespace CurtainCall.Tightrope
         const int MaxPoleTotal = 3;
         int practicePoleCount = MaxPoleTotal;
         bool practiceLowPoles;
+        bool practiceLessonConfigured;
         int PoleTotal => practicePoleCount;
         sealed class PoleState
         {
@@ -46,7 +47,7 @@ namespace CurtainCall.Tightrope
         public void ConfigurePracticeLesson(int count = 2, bool lowPoles = false)
         {
             if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true })
-            { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLowPoles = lowPoles; }
+            { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLowPoles = lowPoles; practiceLessonConfigured = true; }
         }
         void Awake()
         {
@@ -78,6 +79,8 @@ namespace CurtainCall.Tightrope
                 Vector3 feet = practiceLowPoles
                     ? course.GetLanePosition(Lane, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
                     : course.TrapezeRestingFeet(i);
+                if (practiceLessonConfigured && !practiceLowPoles && i == 0)
+                    feet -= Vector3.up * GameSettings.WaitingRoom.Tutorial.FirstTrapezeLowering;
                 poles[i].Physics.transform.SetPositionAndRotation(feet + Vector3.up * GameSettings.Poles.HangLength,
                     Quaternion.LookRotation(course.Forward));
             }

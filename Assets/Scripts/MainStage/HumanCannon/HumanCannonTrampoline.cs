@@ -178,6 +178,9 @@ namespace CurtainCall.HumanCannon
             if (handleRenderers == null)
             {
                 handleRenderers = handle.GetComponentsInChildren<Renderer>(true);
+                // 제작 FBX의 메시 원점과 운반용 손잡이 앵커는 다르다. 별도 앵커여도 보이는 손잡이를 표시한다.
+                if (handleRenderers.Length == 0)
+                    handleRenderers = System.Array.FindAll(GetComponentsInChildren<Renderer>(true), r => r.enabled && r.name == handle.name);
                 idleHandleProperties = new MaterialPropertyBlock[handleRenderers.Length];
                 for (int i = 0; i < handleRenderers.Length; i++)
                 {

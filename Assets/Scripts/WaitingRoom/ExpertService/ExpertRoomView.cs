@@ -174,7 +174,13 @@ namespace CurtainCall.WaitingRoom
                 && sameOwner
                 && (NetworkPlayer.Local != null ? PlayerInteraction.CanInteract(NetworkPlayer.Local) : NetworkPlayer.All.Count == 0);
             if (localInside && !workingHere) MoveLocal(outside, true);
-            else if (!localInside && workingHere) MoveLocal(inside, false);
+            else if (!localInside && workingHere)
+            {
+                // 서비스 상태가 목마 해제 패킷보다 먼저 와도 Follow가 승강기 위치를 덮어쓰지 않는다.
+                var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
+                if (stack != null && stack.IsInStack(NetworkPlayer.Local)) return;
+                MoveLocal(inside, false);
+            }
         }
 
         // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
@@ -243,6 +249,7 @@ namespace CurtainCall.WaitingRoom
             var movingPlayer = mover.GetComponent<NetworkPlayer>();
             bool normal = movingPlayer == null || PlayerInteraction.CanInteract(movingPlayer);
             bool bodyEnabled = mover.Body != null && mover.Body.enabled;
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(movingPlayer);
             mover.SetStartPose(point.position, point.rotation);
             if (!normal)
             {

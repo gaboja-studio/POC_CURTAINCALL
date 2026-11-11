@@ -236,6 +236,7 @@ namespace CurtainCall.WaitingRoom
             var before = book.Phase;
             var refusal = book.Enter(who);
             if (refusal != ExpertRefusal.None) return Reject(who, "MEDICAL_ENTER", refusal);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForRelocation(who);
             Debug.Log($"[Expert] 입장 {WaitingRoomShop.PlayerLabel(who)}");
             Publish(before);
             return (true, "");
