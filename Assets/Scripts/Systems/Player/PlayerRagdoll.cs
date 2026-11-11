@@ -102,7 +102,12 @@ namespace CurtainCall.Player
             // Balance/content cleanup may reset presentation before the confirmed death is revived.
             if (TryGetComponent(out CurtainCall.Network.PlayerSync.NetworkPlayer player)
                 && player.IsSpawned && player.State == CurtainCall.Network.PlayerSync.PlayerState.Fallen) return;
-            if (!IsLimp) return;
+            if (!IsLimp)
+            {
+                // 떼어 낸 몸은 쓰러진 씬에 남아 씬 전환 때 지워진다. 그 뒤 부활하면 빈 자리에 원래 모델을 다시 끼운다.
+                if (limpPrefab != null && modelSlot.CurrentModel == null) modelSlot.SetModel(limpPrefab);
+                return;
+            }
             Destroy(limpModel);
             limpModel = null;
             if (limpPrefab != null) modelSlot.SetModel(limpPrefab);

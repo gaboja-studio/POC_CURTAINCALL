@@ -96,15 +96,17 @@ namespace CurtainCall.Cameras
                 lastDirection = 0;
                 return;
             }
-            if (alive.Count > 0 && director != null) director.ResumeFromDeathView();
-            if (Target == null || !alive.Contains(Target)) SetTarget(alive.Count > 0 ? alive[0] : null);
+            // 보고 있던 사람이 추격자에게 잡히면 팔다리 절단 연출이 끝나 리타이어할 때까지 계속 본다(사용자 2026-11-11).
+            // 새로 고를 때는 잡히지 않은 사람이 먼저다. 남은 사람이 모두 잡히는 중이면 그 연출을 본다.
+            bool watchingCapture = IsWatchingCapture(Target);
+            var next = alive.Count > 0 ? alive[0] : FirstCapturePending(local);
+            if (next != null && director != null) director.ResumeFromDeathView();
+            if (!watchingCapture && (Target == null || !alive.Contains(Target))) SetTarget(next);
 
             int direction = ReadDirection(local);
-            if (direction != 0 && direction != lastDirection && alive.Count > 1)
-            {
-                int index = Mathf.Max(0, alive.IndexOf(Target));
-                SetTarget(alive[(index + direction + alive.Count) % alive.Count]);
-            }
+            int index = alive.IndexOf(Target);
+            if (direction != 0 && direction != lastDirection && alive.Count > (index >= 0 ? 1 : 0))
+                SetTarget(index >= 0 ? alive[(index + direction + alive.Count) % alive.Count] : alive[direction > 0 ? 0 : alive.Count - 1]);
             lastDirection = direction;
         }
 
@@ -116,6 +118,31 @@ namespace CurtainCall.Cameras
                     && player.State == PlayerState.Normal && !PursuitDirector.IsCaptured(player)
                     && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)) alive.Add(player);
             alive.Sort((a, b) => a.Slot.CompareTo(b.Slot)); // 자리 번호 순으로 돈다
+        }
+
+        /// <summary>관전 대상이 추격자에게 잡혀 절단 연출 중인가(아직 리타이어 전).</summary>
+        static bool IsWatchingCapture(NetworkPlayer target) => target != null && target.isActiveAndEnabled
+            && target.State == PlayerState.Normal && PursuitDirector.IsCapturePending(target);
+
+        /// <summary>관전 대상이 잡혀 바닥에 눕혀진 동안 카메라가 볼 몸통 위치. 서 있던 자리 기준으로는 몸이 화면 아래로 빠진다.</summary>
+        internal static bool TryGetCaptureFocus(out Vector3 focus, out Vector3 head)
+        {
+            focus = head = default;
+            if (!IsSpectating || !IsWatchingCapture(Target) || !Target.TryGetComponent(out PursuitVictimPose pose)
+                || !pose.IsReady || pose.Hidden) return false;
+            head = pose.HeadDirection;
+            // 가슴과 골반(마네킹이 붙는 자리) 사이를 본다.
+            Vector3 hip = pose.AttackerPosition + head * .12f + Vector3.up * .15f;
+            focus = Vector3.Lerp(pose.BloodPosition, hip, .5f);
+            return true;
+        }
+
+        static NetworkPlayer FirstCapturePending(NetworkPlayer local)
+        {
+            NetworkPlayer first = null;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player != local && IsWatchingCapture(player) && (first == null || player.Slot < first.Slot)) first = player;
+            return first;
         }
 
         static int ReadDirection(NetworkPlayer local)

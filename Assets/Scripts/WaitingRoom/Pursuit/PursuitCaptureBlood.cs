@@ -32,12 +32,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 spray.transform.SetPositionAndRotation(Pose.BloodPosition, Quaternion.LookRotation(Vector3.up + Pose.HeadDirection * .35f));
                 if (!spray.isPlaying) { var main = spray.main; main.loop = true; spray.Play(); }
             }
-            if (Pose.IsLocalVictim && screen == null && director != null && director.CaptureBloodSprite != null) CreateScreen(director.CaptureBloodSprite);
+            // 화면 피: 잡힌 본인, 또는 이 사람을 관전 중인 화면(다음 대상으로 바꾸면 지운다, 사용자 2026-11-11).
+            bool lens = Pose.IsLocalVictim || IsSpectatedHere;
+            if (lens && screen == null && director != null && director.CaptureBloodSprite != null) CreateScreen(director.CaptureBloodSprite);
+            if (screen != null && screen.activeSelf != lens) { ClearLens(); screen.SetActive(lens); }
             if (Pose.Elapsed >= nextBurst) {
                 nextBurst = Pose.Elapsed + Mathf.Max(.1f, rules.CaptureBloodInterval);
                 float amount = rules.CaptureBloodAmount * GameSettings.Base.BodyDamage.BloodAmount;
                 if (spray != null && amount > 0) { spray.Emit(Mathf.CeilToInt(32 * amount)); EmittedBursts++; }
-                if (screen != null && rules.CaptureScreenBlood > 0) AddDrop();
+                if (screen != null && lens && rules.CaptureScreenBlood > 0) AddDrop();
             }
             for (int i = 0; i < drops.Length; i++) if (drops[i] != null) {
                 life[i] = Mathf.Max(0, life[i] - Time.unscaledDeltaTime);
@@ -67,9 +70,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
             rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f); rect.anchoredPosition = origins[i];
             rect.sizeDelta = Vector2.one * Random.Range(160, 360); rect.localRotation = Quaternion.Euler(0, 0, Random.Range(0, 360));
         }
+        /// <summary>내 화면이 이 사람을 관전 중인가.</summary>
+        bool IsSpectatedHere => CurtainCall.Cameras.CameraSpectator.IsSpectating
+            && CurtainCall.Cameras.CameraSpectator.Target != null && CurtainCall.Cameras.CameraSpectator.Target.gameObject == gameObject;
         void Clear()
         {
             if (spray != null && !spray.isStopped) spray.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ClearLens();
+        }
+        void ClearLens()
+        {
             for (int i = 0; i < drops.Length; i++) { life[i] = 0; if (drops[i] != null) drops[i].color = Color.clear; }
         }
         void OnDisable() { Clear(); }
