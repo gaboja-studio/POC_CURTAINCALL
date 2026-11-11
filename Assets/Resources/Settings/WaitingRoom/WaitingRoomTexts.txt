@@ -524,19 +524,19 @@ first-day.quest.night-wait.body | 모든 공연 대기자가 준비하면 다음
 
 # ── 리허설 단계별 제목·좌측 설명 ── .title은 재연습 버튼 이름, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
 # 제목/설명만 편집합니다. 코스·완료 규칙은 바뀌지 않습니다. 플레이 재시작 시 반영됩니다.
-rehearsal.stage.1.title | 1단계 · 외줄타기
+rehearsal.stage.1.title | 1 · 외줄타기
 rehearsal.stage.1.intro | 줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다.
 rehearsal.stage.1.guide-title | 외줄타기
-rehearsal.stage.2-1.title | 2-1 · 인간 그네
+rehearsal.stage.2-1.title | 2 · 인간 그네
 rehearsal.stage.2-1.intro | 줄 끝에서 F로 인간 그네를 잡습니다. W/S로 반동을 모아 Space로 건너편 줄에 도약하세요.
 rehearsal.stage.2-1.guide-title | 인간 그네
-rehearsal.stage.2-2.title | 2-2 · 연속 인간 그네
+rehearsal.stage.2-2.title | 3 · 연속 인간 그네
 rehearsal.stage.2-2.intro | W/S로 반동을 모아 Space로 도약하세요. 체공 중 다음 그네 가까이에서 F를 눌러 잡습니다.
 rehearsal.stage.2-2.guide-title | 공중에서 다음 그네로 건너가기
-rehearsal.stage.2-3.title | 2-3 · 트리거 그네
+rehearsal.stage.2-3.title | 4 · 트리거 그네
 rehearsal.stage.2-3.intro | 아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다.
 rehearsal.stage.2-3.guide-title | 트리거 그네
-rehearsal.stage.3.title | 3단계 · 목마와 공중그네
+rehearsal.stage.3.title | 5 · 목마와 공중그네
 rehearsal.stage.3.intro | 목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 모아 Space로 도약하고 다음 봉을 F로 잡으면 학습 완료입니다.
 rehearsal.stage.3.guide-title | 목마와 공중 인간 그네
 
