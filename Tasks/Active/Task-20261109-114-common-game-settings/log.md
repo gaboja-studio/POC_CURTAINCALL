@@ -105,3 +105,4 @@
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 최종 check-work: 안전성·문서·컴파일·공통 설정 연결 PASS. 자동 검사는 별도 결과 위 기록을 사용. Confluence40960011 전후32행·검사/보류 구분 갱신 및 재조회 확인(d1:192). 제출 직전 Unity 종료 확인 후 DEV a976362e fetch/반영(변경 없음). 종료 명령 자체는30초 시간 초과했지만 실제 프로세스 종료 확인 후에만 Git 동기화.
+- 저장·제출 완료: 관련46파일 커밋5af3a8a8, [PR330](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/330), base dev, PM 팀 검토 요청. 기존 다른 작업 변경 미포함. dev 병합하지 않음.

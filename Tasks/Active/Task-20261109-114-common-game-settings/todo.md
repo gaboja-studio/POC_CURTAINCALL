@@ -62,4 +62,4 @@
 - [x] 검사에서 발견한 기본 대기실 천장46곳·재연습 원본 복사값 보정
 - [x] 대포 발사 뒤 A/D: 발판 복귀 대기 조건에서 보정0m 재현·비행 입력 우선 처리
 - [x] 최종 check-work·Confluence32행 기록·Unity 종료 후 최신 DEV a976362e 확인
-- [ ] 관련 변경 저장·PR 제출
+- [x] 관련46파일 저장5af3a8a8·push·[PR330](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/330), PM 팀 검토 요청
