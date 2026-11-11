@@ -29,10 +29,22 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("처음 출발하는 쪽. 작동 전에는 이쪽 끝(맵 밖)에서 기다린다. 언제 작동할지는 장애물 순서(steps)가 정한다.")]
         public SawStartSide startSide;
 
+        [Tooltip("켜면 공통 사선 각도 대신 코스를 똑바로 가로지른다. 시작점에서 보아 오른쪽 끝 위치에 맞춰 왼쪽을 올린 수평 레일(2026-11-11 3번 톱날).")]
+        public bool level;
+
+        [Tooltip("켜면 공통 사선과 반대 방향으로 기운다(시작점에서 보아 왼쪽 끝이 먼 쪽). 같은 위치의 일반 톱날과 겹치면 X자가 된다. 수평이면 쓰지 않는다.")]
+        public bool mirrored;
+
+        [Tooltip("거리 비율로 정한 속도에 더하는 값(m/s). 0이면 기본 속도.")]
+        public float extraSpeed;
+
         public HorizontalSawEntry(float distance, SawStartSide startSide)
         {
             this.distance = distance;
             this.startSide = startSide;
+            level = false;
+            mirrored = false;
+            extraSpeed = 0f;
         }
     }
 
@@ -177,8 +189,35 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("톱날 회전 속도(도/초). 겉모습만.")]
         public float spinSpeed = 720f;
 
-        /// <summary>가로 톱날 수.</summary>
+        /// <summary>가로 톱날 수(단계 추가 톱날 포함).</summary>
         public int HorizontalCount => horizontalSaws?.Length ?? 0;
+
+        [NonSerialized] int baseHorizontalCount = -1;
+
+        /// <summary>1단계 목록의 가로 톱날 수. 단계 추가 톱날은 이 뒤 번호에 붙는다.</summary>
+        public int BaseHorizontalCount => baseHorizontalCount >= 0 ? Mathf.Min(baseHorizontalCount, HorizontalCount) : HorizontalCount;
+
+        /// <summary>단계에서 추가한 톱날인지(톱날 밀도와 상관없이 항상 나온다).</summary>
+        public bool IsStageExtra(int index) => index >= BaseHorizontalCount && index < HorizontalCount;
+
+        /// <summary>
+        /// 1단계 값에 단계 추가 톱날을 뒤에 붙인 복사본. 1단계 목록 마지막 톱날까지 작동시키는 장애물 순서는 추가 톱날까지 넓힌다.
+        /// </summary>
+        public SawSettings WithExtraHorizontalSaws(HorizontalSawEntry[] extra)
+        {
+            if (extra == null || extra.Length == 0) return this;
+            var copy = JsonUtility.FromJson<SawSettings>(JsonUtility.ToJson(this));
+            int baseCount = HorizontalCount, total = baseCount + extra.Length;
+            copy.horizontalSaws = new HorizontalSawEntry[total];
+            if (baseCount > 0) Array.Copy(horizontalSaws, copy.horizontalSaws, baseCount);
+            Array.Copy(extra, 0, copy.horizontalSaws, baseCount, extra.Length);
+            copy.baseHorizontalCount = baseCount;
+            if (copy.steps != null)
+                foreach (var step in copy.steps)
+                    if (step != null && step.action is StepAction.StartHorizontal or StepAction.StopHorizontal && step.lastSaw >= baseCount)
+                        step.lastSaw = total;
+            return copy;
+        }
 
         /// <summary>가로 톱날 위치(m).</summary>
         public float GetHorizontalDistance(int index) => horizontalSaws[index].distance;
@@ -186,12 +225,18 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>가로 톱날 속도(m/s). 첫 톱날 거리 → 마지막 톱날 거리 사이를 직선으로 잇는다.</summary>
         public float GetHorizontalSpeed(int index)
         {
-            int count = HorizontalCount;
-            if (count <= 1) return horizontalFirstSpeed;
+            int count = BaseHorizontalCount;
+            if (count <= 1) return Mathf.Max(.01f, horizontalFirstSpeed + horizontalSaws[index].extraSpeed);
             float first = horizontalSaws[0].distance, last = horizontalSaws[count - 1].distance;
             float t = Mathf.Approximately(first, last) ? 0f : Mathf.InverseLerp(first, last, horizontalSaws[index].distance);
-            return Mathf.Lerp(horizontalFirstSpeed, horizontalLastSpeed, t);
+            return Mathf.Max(.01f, Mathf.Lerp(horizontalFirstSpeed, horizontalLastSpeed, t) + horizontalSaws[index].extraSpeed);
         }
+
+        /// <summary>가로 톱날이 사선 대신 수평 레일을 쓰는지.</summary>
+        public bool IsLevel(int index) => horizontalSaws[index].level;
+
+        /// <summary>가로 톱날이 공통 사선과 반대 방향으로 기우는지.</summary>
+        public bool IsMirrored(int index) => horizontalSaws[index].mirrored;
 
         /// <summary>가로 톱날이 왼쪽 끝(좌→우)에서 출발하는지.</summary>
         public bool StartsLeft(int index) => horizontalSaws[index].startSide == SawStartSide.Left;

@@ -242,7 +242,7 @@ namespace CurtainCall.Tightrope
             {
                 float distance = course.GetDistance(local.transform.position);
                 // 마지막 관문에서 조건을 못 맞춘 앞점프는 목마를 유지한다.
-                float blockedLead = Mathf.Min(12f, GameSettings.Tightrope.Saws.cooperativeGateTriggerLead);
+                float blockedLead = Mathf.Min(12f, (Saws.TightropeSaws.Current != null ? Saws.TightropeSaws.Current.Settings : GameSettings.Tightrope.Saws).cooperativeGateTriggerLead);
                 if (distance >= gate.CooperativeGateDistance - blockedLead
                     && distance < gate.CooperativeGateDistance) return;
             }
