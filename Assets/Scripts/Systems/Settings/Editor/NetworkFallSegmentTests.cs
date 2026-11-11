@@ -118,31 +118,32 @@ namespace CurtainCall.Settings.EditorTools
         [TestCase("air"), TestCase("epoch"), TestCase("sequence")]
         public void UnsupportedOrStaleWalkingReportCannotEraseAnActualFall(string invalid)
         {
-            player.BeginFallAt(feet + Vector3.up * 4.5f);
+            player.BeginFallAt(feet + Vector3.up * 5.5f);
             Vector3 point = invalid == "air" ? feet + Vector3.up : feet;
             Assert.IsFalse((bool)Call(player, "AcceptFallSupport", invalid == "sequence" ? 1u : 0u,
                 invalid == "epoch" ? 1 : 0, 0, point));
-            Assert.AreEqual(4.5f, player.FallHeightAt(feet));
+            Assert.AreEqual(5.5f, player.FallHeightAt(feet));
         }
 
         [Test]
         public void FutureJumpPeakCannotDamagePreviousLandingAndSurvivesItsAckRetry()
         {
+            // 서버 자세는 착지 검증 거리(5m) 안, 보고 최고점은 자세+2m 상한 안에 둔다.
             player.transform.position = feet + Vector3.up * 4.5f;
-            Assert.IsTrue((bool)Call(player, "AcceptFallPeak", feet.y + 4.5f, 0, 0, 2u));
+            Assert.IsTrue((bool)Call(player, "AcceptFallPeak", feet.y + 5.5f, 0, 0, 2u));
             Assert.IsTrue((bool)Call(player, "AcceptFallLanding", 1u, 0, 0, feet.y + .8f, feet));
-            Assert.AreEqual(BodyPart.None, player.LostParts, "A later 4.5m peak is not part of this 0.8m landing.");
+            Assert.AreEqual(BodyPart.None, player.LostParts, "A later 5.5m peak is not part of this 0.8m landing.");
             Assert.AreEqual(PlayerState.Normal, player.State);
             Assert.AreEqual(2u, Get(player, "ownerPeakSequence"));
-            Assert.AreEqual(4.5f, player.FallHeightAt(feet), "The next real fall still retains its validated peak.");
+            Assert.AreEqual(5.5f, player.FallHeightAt(feet), "The next real fall still retains its validated peak.");
             Assert.AreEqual(CurtainCall.Damage.FallOutcome.Injured, CurtainCall.Damage.CommonDamageRules.Fall(player.FallHeightAt(feet)));
             Assert.IsTrue((bool)Call(player, "AcceptFallLanding", 1u, 0, 0, feet.y + .8f, feet),
                 "An accepted duplicate asks the RPC wrapper to resend ACK without applying damage or resetting the next fall.");
-            Assert.AreEqual(4.5f, player.FallHeightAt(feet));
+            Assert.AreEqual(5.5f, player.FallHeightAt(feet));
             Assert.IsFalse((bool)Call(player, "AcceptFallSupport", 1u, 0, 0, feet), "An old grounded segment cannot erase the newer jump.");
         }
 
-        [TestCase(4f, 2, PlayerState.Normal), TestCase(8f, 0, PlayerState.Fallen)]
+        [TestCase(5f, 2, PlayerState.Normal), TestCase(15f, 0, PlayerState.Fallen)]
         public void HostOwnerQueuePreservesMeasuredHighFallForAcceptanceAndDamage(float height, int lostLimbs, PlayerState state)
         {
             typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);

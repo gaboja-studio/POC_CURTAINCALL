@@ -271,9 +271,9 @@ namespace CurtainCall.Tightrope.Fire
             var contact = (kind, segment);
             if (fireContacts.TryGetValue(player.OwnerClientId, out var previous) && previous == contact) return;
             fireContacts[player.OwnerClientId] = contact;
-            var damage = kind == FireKind.Chase ? CurtainCall.Damage.HazardDamageKind.FatalFire : CurtainCall.Damage.HazardDamageKind.OrdinaryFire;
-            if (!player.ServerHazardContact(damage, "FIRE_"+kind+"_"+segment, NetworkPlayer.DeathOrigin.FirePillar)) return;
-            if (kind == FireKind.Chase) TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
+            // 접촉 판정은 추격 불벽만 한다. 줄 구간 불은 줄이 끊어져 추락으로 처리된다(Task-115).
+            if (!player.ServerHazardContact(CurtainCall.Damage.HazardDamageKind.FatalFire, "FIRE_"+kind+"_"+segment, NetworkPlayer.DeathOrigin.FirePillar)) return;
+            TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
             Hit?.Invoke(new FireHit(player, kind, segment, round, elapsed, distance));
             Debug.Log($"[Fire] 회차 {round} · 슬롯 {player.Slot} · {kind}({segment}) · {elapsed:0.00}s · {distance:0.00}m", this);
         }
