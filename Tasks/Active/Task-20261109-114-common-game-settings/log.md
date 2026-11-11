@@ -73,3 +73,9 @@
 - Confluence40960011 전후25행, 인스펙터 수치·검사/미실행 갱신 후 읽기 확인 완료.
 - 제출 직전 Unity 주 프로세스 종료 확인(종료 명령은 시간 초과했으나 실제 프로세스 종료 확인), origin/dev 3c8bc09f로 fast-forward. 새 UI 변경27파일을 원본 그대로 반영했고 봉 수정과 충돌 없음.
 - 저장·제출 완료: 코드 커밋0c04bdac, [PR327](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/327), base dev, PM 팀 검토 요청. DEV3c8bc09f 반영 후 재컴파일 up_to_date·오류0 확인. 기존 다른 작업 변경은 미포함. 병합은 하지 않음.
+
+## 11/11 도약 거리 수치 재조정
+- 사용자 보고: 모션·왕복은 만족하나 최대 반동 도약이 과도함. 튜토리얼 다음 그네 정도로 줄이고 수치만 변경해 검사 없이 즉시 제출 요청.
+- Unity 종료 후 origin/dev b7d9af06 반영. PoleSettings.asset horizontalSpeedLimit만10→3.5m/s로 수정. 코드·씬·반동/각도/감쇠/상승속도6m/s 변경 없음. 런타임과 공중 조절은 기존 공통 상한을 사용한다.
+- 검사/컴파일/플레이: SKIPPED(사용자 명시 지시). 다음 그네 도달 감각은 미검증. 이전74개 통과를 이 수치 변경의 검사 결과로 확대하지 않는다.
+- 저장·제출: c8fd9839, [PR329](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/329), dev 대상·PM 팀 검토 요청. 병합하지 않음.

@@ -25,7 +25,7 @@ MonoBehaviour:
   swingAcceleration: 100
   swingDamping: 0.12
   releaseUpwardSpeed: 6
-  horizontalSpeedLimit: 10
+  horizontalSpeedLimit: 3.5
   regularVisual: {fileID: 7892668123284070195, guid: dc92592624059b0479f5c1d1b5883676, type: 3}
   regularBarWidth: 1.8
   switchVisual: {fileID: 5761493341537780504, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
