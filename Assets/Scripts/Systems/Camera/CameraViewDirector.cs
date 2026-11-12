@@ -516,6 +516,9 @@ namespace CurtainCall.Cameras
             if (obstacle == null || obstacle is CharacterController) return false;
             var held = NetworkPlayer.Local != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(NetworkPlayer.Local.OwnerClientId) : null;
             if (held != null && obstacle.transform.IsChildOf(held.CarryRoot)) return false;
+            // These invisible walls prevent boarding a moving lift. They are not visible
+            // geometry and must not squeeze the carry camera into the passenger enclosure.
+            if (CurtainCall.HumanCannon.HumanCannonRouteSystem.Current?.IsBoardingBarrier(obstacle) == true) return false;
             if (CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(obstacle)) return false;
             var ropes = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
             if (ropes != null && ropes.IsTimedSupport(obstacle)) return false;

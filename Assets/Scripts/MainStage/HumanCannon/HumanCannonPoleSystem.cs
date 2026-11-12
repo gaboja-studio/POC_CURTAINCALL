@@ -5,7 +5,6 @@ using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
-using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -17,9 +16,6 @@ namespace CurtainCall.HumanCannon
         public bool IndependentInteraction => true;
         uint platformLaunch;
         const double SnapshotInterval = .05d;
-        readonly RaycastHit[] swingRopeHits = new RaycastHit[32];
-        HudRoleCard holdTimer;
-        int shownHoldSeconds = -1;
         sealed class Rider
         {
             public float Input;
@@ -246,11 +242,8 @@ namespace CurtainCall.HumanCannon
                         }
                     }
                     float sharedDrive = RefreshSwingDrive(runtime);
-                    float previousAngle = runtime.Angle;
                     pole.Step(ref runtime.Angle, ref runtime.Speed, sharedDrive,
                         Time.deltaTime, GameSettings.Base.Character.Gravity);
-                    if (SwingHitsRope(pole, runtime, previousAngle, runtime.Angle))
-                    { runtime.Angle = previousAngle; runtime.Speed = 0f; }
                 }
                 if (pole.LinkedGate != null)
                 {
@@ -270,34 +263,9 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        float DisplaySwingAngle(int index)
-        {
-            var runtime = states[index];
-            float predicted = runtime.DisplayAngle(Time.unscaledTimeAsDouble);
-            return SwingHitsRope(poles[index], runtime, runtime.Angle, predicted) ? runtime.Angle : predicted;
-        }
-
-        bool SwingHitsRope(HumanCannonPole pole, Runtime runtime, float previousAngle, float targetAngle)
-        {
-            if (TightropeCourse.Current == null || Mathf.Approximately(previousAngle, targetAngle)) return false;
-            for (int seat = 0; seat < runtime.State.Capacity; seat++)
-            {
-                var rider = FindPlayer(runtime.State.OccupantAt(seat));
-                if (rider == null || !rider.TryGetComponent(out PlayerMover mover) || mover.Body == null) continue;
-                Vector3 feet = pole.HangingPosition(previousAngle, seat);
-                Vector3 delta = pole.HangingPosition(targetAngle, seat) - feet;
-                float distance = delta.magnitude;
-                if (distance <= .0001f) continue;
-                float radius = Mathf.Max(.01f, Mathf.Min(mover.BodyRadius, mover.BodyHeight * .5f) - mover.Body.skinWidth);
-                Vector3 bottom = feet + Vector3.up * radius;
-                Vector3 top = feet + Vector3.up * (mover.BodyHeight - radius);
-                int count = Physics.CapsuleCastNonAlloc(bottom, top, radius, delta / distance, swingRopeHits,
-                    distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-                for (int hit = 0; hit < count; hit++)
-                    if (TightropeCourse.IsRopeSurface(swingRopeHits[hit].collider)) return true;
-            }
-            return false;
-        }
+        // Held riders travel with the bar through rope support surfaces. After releasing,
+        // the ordinary player and flight collision rules take over again.
+        float DisplaySwingAngle(int index) => states[index].DisplayAngle(Time.unscaledTimeAsDouble);
 
         public static float SharedDrive(float sum, int riders) => riders > 0 && float.IsFinite(sum) ? Mathf.Clamp(sum / riders, -1f, 1f) : 0f;
 
@@ -345,13 +313,13 @@ namespace CurtainCall.HumanCannon
         void LateUpdate()
         {
             if (states == null) return;
-            PresentHoldTimer();
             for (int i = 0; i < poles.Length; i++)
             {
                 if (poles[i] == null) continue;
                 var runtime = states[i];
                 float angle = DisplaySwingAngle(i);
                 poles[i].PresentSwing(angle);
+                poles[i].PresentCountdown(runtime.State.IsOccupied ? (float)(HoldUntil(i) - Clock) : poles[i].HoldSeconds);
                 for (int seat = 0; seat < runtime.State.Capacity; seat++)
                 {
                     var player = FindPlayer(runtime.State.OccupantAt(seat));
@@ -361,27 +329,6 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        void PresentHoldTimer()
-        {
-            var player = NetworkPlayer.Local;
-            int index = player != null && player.State == PlayerState.Normal ? HeldBy(player.OwnerClientId) : -1;
-            if (index < 0)
-            { HideHoldTimer(); return; }
-            int seconds = Mathf.CeilToInt(Mathf.Max(0f, (float)(HoldUntil(index) - Clock)));
-            if (holdTimer != null && !holdTimer.Closing && seconds == shownHoldSeconds) return;
-            shownHoldSeconds = seconds;
-            string text = $"{seconds}초";
-            const string title = "매달리기 남은 시간";
-            if (holdTimer == null || holdTimer.Closing) holdTimer = HudUIManager.Current.ShowStatus(text, transform, title);
-            else holdTimer.SetText(text, title);
-        }
-
-        void HideHoldTimer()
-        {
-            if (holdTimer != null) holdTimer.Close(true);
-            holdTimer = null;
-            shownHoldSeconds = -1;
-        }
 
         void HandleRequest(ulong actor, PoleAction action, int index, uint revision, int station,
             uint launch, uint segment, float input, uint sequence, double observedElapsed)
@@ -544,7 +491,6 @@ namespace CurtainCall.HumanCannon
         }
         void OnDisable()
         {
-            HideHoldTimer();
             if (observedFlightSystem != null) observedFlightSystem.LandingConfirmed -= OnLandingConfirmed;
             observedFlightSystem = null;
             flightOrigins.Clear();

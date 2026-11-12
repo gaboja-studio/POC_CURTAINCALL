@@ -55,7 +55,8 @@ namespace CurtainCall.EscapeRoute.Editor
             disabledObjects.AddRange(previousRoots.SelectMany(r=>r.GetComponentsInChildren<Unity.Cinemachine.CinemachineCamera>(true)).Select(c=>c.gameObject));
             var disabledBehaviours = previousRoots.SelectMany(r=>r.GetComponentsInChildren<MonoBehaviour>(true)).Where(c=>c is PlayerSpawnPoints
                 || c is EscapeDevelopmentSession || c is EscapeInspectionSession || c is EscapeInspectionCamera || c is EscapeCannonReviewHud).Cast<Behaviour>().ToArray();
-            foreach (var fall in previousRoots.SelectMany(r=>r.GetComponentsInChildren<EscapeFallVoid>(true))) Set(fall, "coordinateSpace", frame.transform);
+            foreach (var fall in previousRoots.SelectMany(r => r.GetComponentsInChildren<EscapeFallVoid>(true)))
+                fall.enabled = false;
             foreach (var fire in previousRoots.SelectMany(r=>r.GetComponentsInChildren<EscapePursuitFire>(true))) Set(fire, "coordinateSpace", frame.transform);
             foreach (var cannon in previousRoots.SelectMany(r=>r.GetComponentsInChildren<HumanCannonSystem>(true))) Set(cannon, "flightCoordinateSpace", frame.transform);
             var saw = previousRoots.SelectMany(r=>r.GetComponentsInChildren<EscapeExitSaw>(true)).First();
@@ -69,7 +70,10 @@ namespace CurtainCall.EscapeRoute.Editor
             Set(campaign, "content", body); Set(campaign, "exitSaw", saw); Set(campaign, "arrivalArea", arrival);
             SetArray(campaign, "sceneRoots", previousRoots);
             SetArray(campaign, "activeRoots", previousRoots.Where(r=>r.activeSelf).ToArray());
-            Set(campaign, "campaignPosition", new Vector3(-100, -16, 118.3f)); Set(campaign, "campaignEuler", new Vector3(0, 180, 0));
+            // Align the original facility-local deep boundary (-40 m) with the shared world death plane.
+            float facilityY = CurtainCall.Settings.GameSettings.Base.BodyDamage.WorldDeathY + 40f;
+            Set(campaign, "campaignPosition", new Vector3(-100, facilityY, 118.3f));
+            Set(campaign, "campaignEuler", new Vector3(0, 180, 0));
             SetArray(campaign, "campaignDisabledObjects", disabledObjects.Distinct().ToArray());
             SetArray(campaign, "campaignDisabledBehaviours", disabledBehaviours);
 

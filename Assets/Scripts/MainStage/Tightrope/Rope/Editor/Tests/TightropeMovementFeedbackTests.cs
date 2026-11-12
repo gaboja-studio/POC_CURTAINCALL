@@ -93,6 +93,29 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void DirectionalDismountKeepsItsFirstStepThenUsesNormalAirInput()
+        {
+            var go = new GameObject("Directional dismount") { hideFlags = HideFlags.DontSave };
+            go.transform.position = new Vector3(8000f, 100f, 8000f);
+            try
+            {
+                var mover = go.AddComponent<PlayerMover>();
+                typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
+                mover.FreeMovement = mover.FreeAirControl = true;
+                mover.CourseForwardOverride = Vector3.forward;
+                var launch = Vector3.right * 2f;
+                typeof(PlayerMover).GetMethod("StartDirectionalJump", Members).Invoke(mover, new object[] { launch, true });
+                typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
+                var velocity = typeof(PlayerMover).GetField("airVelocity", Members);
+                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(launch));
+                mover.SetMoveInput(-1f, 0f);
+                typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
+                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(Vector3.left * GameSettings.Base.Character.FreeMoveSpeed));
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [Test]
         public void RopeTuningUsesConfiguredHeightAndDamageThenRestoresOnExit()
         {
             var go = new GameObject("Rope movement test");

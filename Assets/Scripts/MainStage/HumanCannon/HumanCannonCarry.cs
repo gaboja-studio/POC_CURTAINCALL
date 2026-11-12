@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CurtainCall.Cameras;
+using CurtainCall.Damage;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Tightrope;
@@ -34,8 +35,13 @@ namespace CurtainCall.HumanCannon
             => CanMove(root, body, position, rotation, carrier, sweep, 0f, null);
 
         internal static bool CanMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier,
-            bool sweep, float floorClearance, HumanCannonTransport riddenTransport)
+            bool sweep, float floorClearance, HumanCannonTransport riddenTransport, bool allowExistingOverlap = false)
+            => CheckMove(root, body, position, rotation, carrier, sweep, floorClearance, riddenTransport, allowExistingOverlap, out _);
+
+        internal static bool CheckMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier,
+            bool sweep, float floorClearance, HumanCannonTransport riddenTransport, bool allowExistingOverlap, out Vector3 obstruction)
         {
+            obstruction = Vector3.zero;
             if (body == null) return false;
             var bounds = body is BoxCollider box ? new Bounds(box.center, box.size)
                 : body is MeshCollider mesh && mesh.sharedMesh != null ? mesh.sharedMesh.bounds : new Bounds(Vector3.zero, Vector3.one);
@@ -66,10 +72,20 @@ namespace CurtainCall.HumanCannon
                 {
                     var hit = obstacles[i];
                     if (hit == null || hit.transform.IsChildOf(root) || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
+                    if (DismemberedLimb.Contains(hit)) continue;
                     if (riddenTransport != null && riddenTransport.IsBoardingBarrier(hit)) continue;
                     if (Physics.ComputePenetration(body, bodyPosition, pose * relative, hit, hit.transform.position, hit.transform.rotation,
-                        out _, out float depth) && depth > skin
-                        && !AllowsFloorContact(hit, at.y - bodyHalfHeight, carrier, floorClearance, riddenTransport)) return false;
+                        out var separation, out float depth) && depth > skin
+                        && !AllowsFloorContact(hit, at.y - bodyHalfHeight, carrier, floorClearance, riddenTransport))
+                    {
+                        // The load can leave an overlap introduced by a moving platform or obstacle.
+                        // New contacts and deeper penetration are still blocked throughout the sweep.
+                        if (allowExistingOverlap && Physics.ComputePenetration(body, body.transform.position, body.transform.rotation,
+                            hit, hit.transform.position, hit.transform.rotation, out _, out float initialDepth)
+                            && depth <= initialDepth + .001f) continue;
+                        obstruction = separation;
+                        return false;
+                    }
                 }
             }
             return true;

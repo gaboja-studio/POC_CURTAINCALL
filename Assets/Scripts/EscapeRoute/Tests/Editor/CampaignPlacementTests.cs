@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -38,6 +39,33 @@ namespace CurtainCall.EscapeRoute.Tests
             Set(cue, "origin", origin); Set(cue, "destination", destination);
         }
         [TearDown] public void TearDown() => Object.DestroyImmediate(root);
+
+        [Test]
+        public void SavedEscapePlacementUsesTheSamePlayableHeightInDirectAndCampaignEntry()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Levels/escape_route.unity");
+            try
+            {
+                var facility = scene.GetRootGameObjects().Single();
+                var campaign = facility.GetComponent(TypeOf("CurtainCall.EscapeRoute.EscapeCampaignContent"));
+                var baseSettings = TypeOf("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+                var damage = baseSettings.GetType().GetProperty("BodyDamage").GetValue(baseSettings);
+                float deathY = (float)damage.GetType().GetProperty("WorldDeathY").GetValue(damage);
+                var savedPosition = facility.transform.position;
+                campaign.GetType().GetMethod("PlaceCampaign").Invoke(campaign, null);
+                Assert.That(facility.transform.position, Is.EqualTo(savedPosition), "Campaign entry must not undo the saved height.");
+                var stations = facility.GetComponentsInChildren(TypeOf("CurtainCall.HumanCannon.HumanCannonStation"), true);
+                Assert.That(stations.Length, Is.GreaterThan(0));
+                foreach (var station in stations)
+                {
+                    var board = (Transform)station.GetType().GetProperty("BoardingPoint").GetValue(station);
+                    Assert.That(board.position.y, Is.GreaterThan(deathY), station.name);
+                }
+                var legacyVoids = facility.GetComponentsInChildren(TypeOf("CurtainCall.EscapeRoute.EscapeFallVoid"), true);
+                Assert.That(legacyVoids.Cast<Behaviour>().Any(v => v.enabled), Is.False);
+            }
+            finally { EditorSceneManager.ClosePreviewScene(scene); }
+        }
 
         [Test] public void AlreadyPlacedSavedFrameRepairsInactiveLegacyPathsOnlyOnce()
         {

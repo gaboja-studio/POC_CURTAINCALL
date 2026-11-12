@@ -13,7 +13,6 @@ namespace CurtainCall.Tightrope
         {
             public Transform Root, Bar, LeftCable, RightCable, Pad, Link;
             public TextMeshPro Label;
-            public RelayClockView Clock;
         }
 
         sealed class RelayPathView
@@ -23,7 +22,7 @@ namespace CurtainCall.Tightrope
             public Transform Strip;
         }
 
-        [Tooltip("봉 위에 상태 문구(N번 출발·교대 봉 · 유지 시간 · 통로 연결 인원)를 띄운다. 끄면 케이블 꼭대기에 유지 시간 LED 전광판을 상시 띄운다.")]
+        [Tooltip("봉 위에 상태 문구(N번 출발·교대 봉 · 통로 연결 인원)를 추가로 띄운다.")]
         [SerializeField] bool showPoleLabels;
         [Tooltip("봉 케이블 꼭대기에서 연결되는 통로 쪽으로 대각선 연결 케이블을 그린다. 표시 전용이며 판정과 무관하다.")]
         [SerializeField] bool showConnectionCables;
@@ -114,35 +113,21 @@ namespace CurtainCall.Tightrope
                 view.Pad.SetPositionAndRotation(feet + Vector3.up * .055f, facing);
                 view.Pad.localScale = new Vector3(.65f, .025f, .85f);
                 Vector3 span = course.Right * .5f;
-                SetRelayRod(view.LeftCable, grip - span, grip - span + Vector3.up * RelayCableHeight, .045f);
-                SetRelayRod(view.RightCable, grip + span, grip + span + Vector3.up * RelayCableHeight, .045f);
+                SetRelayRod(view.LeftCable, grip - span, grip - span + Vector3.up * PoleCountdownView.CableHeight, .045f);
+                SetRelayRod(view.RightCable, grip + span, grip + span + Vector3.up * PoleCountdownView.CableHeight, .045f);
                 Vector3 endpoint = TryGetSpotGap(i, out int spotLane, out float spotFrom, out _)
                     ? course.GetLanePosition(spotLane, spotFrom)
                     : course.GetLanePosition(OpenedLane(i) >= 0 ? OpenedLane(i) : TransitLane, far ? GapTo : GapFrom);
                 view.Link.gameObject.SetActive(showConnectionCables);
-                SetRelayRod(view.Link, grip + Vector3.up * RelayCableHeight, endpoint + Vector3.up * 2.5f, .025f);
+                SetRelayRod(view.Link, grip + Vector3.up * PoleCountdownView.CableHeight, endpoint + Vector3.up * 2.5f, .025f);
                 TintRelay(view.Bar, poleColor); TintRelay(view.Pad, poleColor);
                 TintRelay(view.LeftCable, poleColor); TintRelay(view.RightCable, poleColor);
                 TintRelay(view.Link, occupied ? color : RelayIdle);
                 bool commonArt = pole.VisualBar != null;
                 view.Bar.gameObject.SetActive(!commonArt); view.LeftCable.gameObject.SetActive(!commonArt); view.RightCable.gameObject.SetActive(!commonArt);
-                if (UnlimitedHold)
-                {
-                    // 지정 자리 봉은 시간 제한이 없어 유지 시간 전광판을 띄우지 않는다.
-                    view.Label.gameObject.SetActive(false); view.Clock.Root.gameObject.SetActive(false);
-                    continue;
-                }
-                if (!showPoleLabels)
-                {
-                    // 상태 문구 대신 케이블 꼭대기에 유지 시간 전광판을 상시 둔다. 잡기 전에는 전체 시간, 잡으면 줄어든다.
-                    view.Label.gameObject.SetActive(false);
-                    float shown = occupied ? HoldRemaining(i) : pole.HoldSeconds;
-                    ShowRelayClock(view.Clock, shown, grip + Vector3.up * (RelayCableHeight - ClockHalfHeight), facing);
-                    continue;
-                }
-                view.Clock.Root.gameObject.SetActive(false);
-                view.Label.gameObject.SetActive(true);
-                string state = occupied ? $"유지 {HoldRemaining(i):0.0}초" : available ? "F 잡기" : "사용 불가";
+                view.Label.gameObject.SetActive(showPoleLabels);
+                if (!showPoleLabels) continue;
+                string state = occupied ? "유지 중" : available ? "F 잡기" : "사용 불가";
                 string phase = far ? $"동료의 길 연결({LaneName(OpenedLane(i))})" : $"{LaneName(OpenedLane(i))} 연결";
                 view.Label.text = $"{PoleLane(i) + 1}번 {(far ? "교대" : "출발")} 봉 · {state}\n{phase} · {RelayHolderCount(far)}/{RequiredHolders}명"
                     + (warning ? $"\n{(far ? ReturnWarningRemaining : OutboundWarningRemaining):0.0}초 뒤 줄 끊김" : "");
@@ -179,11 +164,7 @@ namespace CurtainCall.Tightrope
             // Unity 네이티브 객체는 MonoBehaviour 필드 초기화가 아닌 실행 시점에 만든다.
             relayTint ??= new MaterialPropertyBlock();
             relayViewMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
-            relayBoxMesh = new Mesh { name = "Relay gate display box", hideFlags = HideFlags.HideAndDontSave };
-            relayBoxMesh.vertices = new[] { new Vector3(-.5f,-.5f,-.5f), new Vector3(.5f,-.5f,-.5f), new Vector3(.5f,.5f,-.5f), new Vector3(-.5f,.5f,-.5f),
-                new Vector3(-.5f,-.5f,.5f), new Vector3(.5f,-.5f,.5f), new Vector3(.5f,.5f,.5f), new Vector3(-.5f,.5f,.5f) };
-            relayBoxMesh.triangles = new[] { 0,2,1,0,3,2, 4,5,6,4,6,7, 0,4,7,0,7,3, 1,2,6,1,6,5, 3,7,6,3,6,2, 0,1,5,0,5,4 };
-            relayBoxMesh.RecalculateBounds();
+            relayBoxMesh = PoleCountdownView.CreateBoxMesh();
             relayViewRoot = new GameObject("Relay gate displays (runtime)").transform;
             relayViewRoot.SetParent(transform, false);
             var source = Resources.Load<Font>("Fonts/Pretendard-Medium/Pretendard-Medium 1");
@@ -203,7 +184,6 @@ namespace CurtainCall.Tightrope
                 view.Label = label.GetComponent<TextMeshPro>(); view.Label.font = relayLabelFont;
                 view.Label.fontSize = 2.2f; view.Label.alignment = TextAlignmentOptions.Center;
                 view.Label.textWrappingMode = TextWrappingModes.NoWrap; view.Label.rectTransform.sizeDelta = new Vector2(4f, 1f);
-                view.Clock = BuildRelayClock(root);
                 relayPoleViews.Add(view); lanes.Add(PoleLane(i));
             }
             if (UsesSpots)
