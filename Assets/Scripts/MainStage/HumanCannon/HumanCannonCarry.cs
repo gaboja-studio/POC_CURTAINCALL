@@ -157,7 +157,8 @@ namespace CurtainCall.HumanCannon
         {
             if (player == null || !player.IsSpawned) return false;
             var hangs = TightropeHangSystem.Current;
-            return Held(player.OwnerClientId) != null || PiggybackSystem.UsingDevice(player)
+            return CurtainCall.WaitingRoom.ExpertService.IsTreating(player.OwnerClientId)
+                || Held(player.OwnerClientId) != null || PiggybackSystem.UsingDevice(player)
                 || hangs != null && (hangs.IsHanging(player) || hangs.IsRescuing(player));
         }
 

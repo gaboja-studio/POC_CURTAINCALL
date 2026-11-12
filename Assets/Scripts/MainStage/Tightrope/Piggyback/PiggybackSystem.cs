@@ -98,7 +98,8 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding) return false;
             if (climber == null || target == null || climber == target) return false;
-            if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)) return false;
+            if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)
+                || CurtainCall.WaitingRoom.ExpertService.IsTreating(target.OwnerClientId)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
@@ -543,7 +544,8 @@ namespace CurtainCall.Tightrope
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
-                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
+                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)
+                    || CurtainCall.WaitingRoom.ExpertService.IsTreating(other.OwnerClientId)) continue;
                 if (!CanStand(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;

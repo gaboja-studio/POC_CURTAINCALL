@@ -2,7 +2,7 @@
 summary: 목마 복귀·메뉴 입력·장치 초기화·사지 조각 충돌의 상태 인계 회귀와 방지 규칙.
 status: active
 updated: 2026-11-13
-source: Task-20261109-114, RehearsalLifecycleTests, InputBindingPreferencesTests, TrampolineCarryPoseTests
+source: Task-20261109-114, Inventory/post353-transition-audit.md, RehearsalLifecycleTests, InputBindingPreferencesTests, TrampolineCarryPoseTests
 ---
 
 # 행동 전환과 입력 초기화
@@ -17,3 +17,12 @@ source: Task-20261109-114, RehearsalLifecycleTests, InputBindingPreferencesTests
 - 대포 Space 발사는 공통 Action 입력을 사용한다. ActionHeld까지 중립 확인에 포함해야 탑승 전부터 누른 키가 즉시 발사로 재사용되지 않는다. F 탭 발사·F 홀드 하차를 유지하고 동시 입력에서는 하차를 우선한다.
 
 자동 검사는 임시 객체와 실제 코드 경로를 사용한다. 다른 PC 2·3·4인 플레이 통과를 의미하지 않는다. 검사 결과와 기존 전체 검사 실패는 Task-114의 Inventory/remaining-test-failures.md에 구분해 기록한다.
+
+## 치료와 다른 이동의 동시 인계 — 수정 후 검사 기준
+
+- 2026-11-13 DEV 1764a21c에서 치료 Working 중 대포 연습 시작 조건이 허용됨을 확인했다. 리허설 이동 뒤에도 의료 입력 잠금이 남고, 치료 종료가 위치를 승강기 앞으로 덮는다. placed 목록은 유지되어 연습 시작 위치를 다시 복구하지 않는다. 치료 내부가 리허설 returnPose로 저장되는 점도 확인했다.
+- 의료 입장 요청 시 트램펄린 운반 소유가 있으면 Enter는 수락하며 목마만 해제한다. 운반 추적이 순간이동 경로의 벽을 만나면 이전 안전 위치로 밀어내고 의료 잠금은 유지한다. 공통 실제 Mesh+임시 측벽에서 재현했으며 실제 지연 패킷 타이밍/작성된 씬 전체 재현은 미검증이다.
+- 기능별 치료19개·리허설70개 검사는 통과했다. 새 이동을 추가하거나 입력 잠금을 수정할 때 두 기능이 동시에 점유하는 상태를 검사해야 하며, 단독 검사 통과를 동시 전환 보장으로 해석하지 않는다. 재현 근거는 Task-114의 Inventory/post353-transition-audit.md.
+- 수정 후 치료 Working/Exiting 동안 양쪽 리허설 시작을 막고, 리허설/투표 뒤 늦은 의료 입장도 거부한다. 참가자는 의료 상태가 끝난 뒤 복귀점 저장·배치·종료 이동을 한다. 예약만 해둔 상태는 이동을 막지 않는다.
+- 의료 입장은 호스트의 운반·목마 해제 후 진행하고 참가자는 소유 해제 수신을 기다린다. 신규 운반/목마 요청은 의료 점유를 확인한다. 의료를 PiggybackSystem.UsingDevice에 넣으면 Follow가 원래 이동 소유권을 복원하지 않으므로 새 연결의 자격 판정에만 적용한다.
+- 새17사례 포함 치료36/36·공통618/618 통과. 서로 다른 PC의 실기 결과로 해석하지 않는다.
