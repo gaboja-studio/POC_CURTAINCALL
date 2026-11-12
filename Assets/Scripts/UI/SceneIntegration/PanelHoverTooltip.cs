@@ -71,10 +71,11 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var label=DescriptionField?.GetValue(view) as TMP_Text;
             if(label==null) return;
+            HudText.Configure(label);
             var root=(RectTransform)view.transform;
             label.overflowMode=TextOverflowModes.Overflow;
             float width=root.sizeDelta.x;
-            float needed=Mathf.Ceil((label.GetPreferredValues(label.text,width-48f,float.PositiveInfinity).y+84f)/4f)*4f;
+            float needed=Mathf.Ceil((HudText.Measure(label,width-48f).y+84f)/4f)*4f;
             if(needed<=root.sizeDelta.y) return;
             root.sizeDelta=new Vector2(width,needed);
             var text=label.rectTransform;text.sizeDelta=new Vector2(text.sizeDelta.x,needed-84f);

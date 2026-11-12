@@ -31,7 +31,11 @@ namespace CurtainCall.UI.SceneIntegration
 
         /// <summary>Reuse the original contextual views in an unscored practice course, without changing the waiting-room UI owner.</summary>
         public void ConfigurePractice(GuideView guide, TooltipView tooltip)
-        { practiceGuide = guide; practiceTooltip = tooltip; }
+        {
+            practiceGuide = guide; practiceTooltip = tooltip;
+            HudText.ConfigureView(guide);
+            HudText.ConfigureView(tooltip);
+        }
 
         void OnEnable()
         {

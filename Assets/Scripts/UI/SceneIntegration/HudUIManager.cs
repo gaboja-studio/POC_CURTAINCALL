@@ -108,7 +108,7 @@ namespace CurtainCall.UI.SceneIntegration
         public static bool ShowSpectator(string content,SpectatorView view,SpectatorState state,string title,string prev,string next,bool canSwitch)
             => view.Present(state,title,content,prev,next,canSwitch);
         public static void ShowInventory(string content, InventorySlotsView view, IReadOnlyList<InventorySlotData> slots, TMP_Text name)
-        { view.SetSlots(slots); name.text = content; }
+        { view.SetSlots(slots); HudText.Configure(name); name.text = content; }
 
         public static void DismissOwned(Transform owner,HudRole role)
         {
@@ -217,6 +217,8 @@ namespace CurtainCall.UI.SceneIntegration
                 int lane=c.UpperRightEvent ? UpperRightEventLane : (int)c.role;
                 if(step!=0)offset+=displacement[lane];
                 var placed=c.BasePosition+Vector2.up*offset;
+                if (c.role == HudRole.Status && CommonInventoryUI.Current is CommonInventoryUI inventory)
+                    placed = inventory.PlaceStatusAboveSlots(r, placed, c.stackGap);
                 if(r.anchoredPosition!=placed) r.anchoredPosition=placed;
                 displacement[lane]+=step;
             }

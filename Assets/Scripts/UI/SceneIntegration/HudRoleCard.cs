@@ -85,6 +85,7 @@ namespace CurtainCall.UI.SceneIntegration
                     hasValue |= value.Length!=0;
                     return value;
                 });
+                HudText.Configure(label, statusRow: i == 2);
                 label.text=rendered;
                 label.gameObject.SetActive(enabledRows[i] && rendered.Length!=0 && (hasValue || !tokens.IsMatch(format)));
             }
@@ -124,6 +125,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var option=options[i];
                 button.interactable=option.Interactable;
                 var label=button.GetComponentInChildren<TMP_Text>(true);
+                HudText.Configure(label);
                 var caption=choiceFormats[i].Replace("{choice}",option.Label ?? "");
                 if (i < shortcutLabels.Length) caption = "[" + shortcutLabels[i] + "] " + caption;
                 if(label.text!=caption)
@@ -154,16 +156,18 @@ namespace CurtainCall.UI.SceneIntegration
             var layout=(RectTransform)rows.transform;
             if(fitWidth)
             {
+                float limit = Mathf.Max(minWidth, maxWidth);
+                float available = Mathf.Max(1, limit - rows.padding.horizontal);
                 float widest=0;
                 foreach(RectTransform child in layout)
                 {
                     if(!child.gameObject.activeSelf || child.TryGetComponent<LayoutElement>(out var el) && el.ignoreLayout) continue;
                     if(child.TryGetComponent<HorizontalLayoutGroup>(out var group))group.CalculateLayoutInputHorizontal();
                     float w=child.TryGetComponent<TMP_Text>(out var t) ?
-                        t.GetPreferredValues(t.text,Mathf.Infinity,Mathf.Infinity).x : LayoutUtility.GetPreferredWidth(child);
+                        HudText.Measure(t, available).x : LayoutUtility.GetPreferredWidth(child);
                     widest=Mathf.Max(widest,w);
                 }
-                Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,Mathf.Clamp(Mathf.Ceil(widest)+rows.padding.horizontal,minWidth,Mathf.Max(minWidth,maxWidth)));
+                Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,Mathf.Clamp(Mathf.Ceil(widest)+rows.padding.horizontal,minWidth,limit));
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(layout);
             if(fitHeight) Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,Mathf.Max(minHeight,Mathf.Ceil(LayoutUtility.GetPreferredHeight(layout))));
