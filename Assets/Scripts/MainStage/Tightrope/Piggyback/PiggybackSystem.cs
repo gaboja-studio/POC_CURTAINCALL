@@ -15,8 +15,8 @@ using CurtainCall.HumanCannon;
 namespace CurtainCall.Tightrope
 {
     /// <summary>
-    /// 목마 연결·해제(006 1단계). 내 캐릭터의 F 짧게(<see cref="PlayerInteraction.InteractRequested"/>)·F 길게(<see cref="PlayerInteraction.ReleaseRequested"/>)를
-    /// 호스트에 요청하고, 호스트가 판정해 연결 상태(누가 누구 위에 있는지)를 모든 화면에 보낸다.
+    /// 목마 연결·해제. F는 현재 선택에 따라 타거나 내려오고, 방향 입력과 Space는 분리 점프를 요청한다.
+    /// 호스트가 판정해 연결 상태(누가 누구 위에 있는지)를 모든 화면에 보낸다.
     /// 연결: 올라가는 사람은 단독(위아래 아무도 없음)이고, 가장 가까운 동료(목마면 맨 아래 사람 기준 거리)가 세팅 연결 거리 안이면 그 목마의 맨 위에 올라간다.
     /// 해제: 내 아래에 사람이 있고 내 위에 사람이 없을 때 본인만 내려온다.
     /// 연쇄 추락(Harness/Project/Decisions/tightrope-balance.md 2026-10-04): 목마에 속한 사람이 추락하면 호스트가 그 위 전원을 추락시키고(떨어짐 대상),
@@ -32,7 +32,7 @@ namespace CurtainCall.Tightrope
         const string ResultMessage = "CurtainCall.Tightrope.PiggybackResult";
         const int SceneHeaderBytes = 132;
 
-        enum Request : byte { Interact, Release, Sync, LaneLanding }
+        enum Request : byte { Interact, Release, Sync, LaneLanding, JumpRelease }
 
         const string LaneLinkedResult = "옆줄 착지: 목마 탑승";
 
@@ -432,10 +432,16 @@ namespace CurtainCall.Tightrope
             interaction = null;
         }
 
-        /// <summary>내 캐릭터의 목마 해제를 호스트에 요청한다(F 길게와 같은 판정). 예: 맨 위 앞·뒤 분리 점프.</summary>
+        /// <summary>내 캐릭터를 목마에서 가까운 자리로 내려 달라고 요청한다.</summary>
         public void RequestLocalRelease() => SendRequest(Request.Release);
+        internal void RequestLocalJumpRelease() => SendRequest(Request.JumpRelease);
 
-        void HandleInteract() { if (CommonInteractionSelection.Consume(NetworkPlayer.Local, this)) SendRequest(Request.Interact); }
+        void HandleInteract()
+        {
+            var local = NetworkPlayer.Local;
+            if (GetSupportingPlayer(local) != null) { HandleRelease(); return; }
+            if (CommonInteractionSelection.Consume(local, this)) SendRequest(Request.Interact);
+        }
 
         void HandleRelease()
         {
@@ -448,7 +454,7 @@ namespace CurtainCall.Tightrope
             if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
             if (request == Request.Interact && NetworkPlayer.Local != null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"PIGGYBACK","ATTEMPT",NetworkPlayer.Local.transform.position);
-            if (request == Request.Release) RememberTrapezeEntry(NetworkPlayer.Local);
+            if (request is Request.Release or Request.JumpRelease) RememberTrapezeEntry(NetworkPlayer.Local);
             if (session.IsHost)
             {
                 ServerHandle(LocalClientId, request);
@@ -493,6 +499,10 @@ namespace CurtainCall.Tightrope
                     break;
                 case Request.Release:
                     Reply(senderId, ServerTryUnlink(senderId));
+                    break;
+                case Request.JumpRelease:
+                    if (FindPlayer(senderId) is { State: PlayerState.Normal } rider && !UsingDevice(rider))
+                        Reply(senderId, UnlinkTop(senderId, null, jumping: true));
                     break;
                 case Request.Sync:
                     SendLinks(senderId);
@@ -579,7 +589,8 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
                 || local.State != PlayerState.Normal || UsingDevice(local) || IsReleasedForFall(local)) return false;
-            if (input.InteractLongPressed && GetSupportingPlayer(local) != null && CommonInteractionSelection.Consume(local, this))
+            if ((input.InteractTapped || input.InteractLongPressed) && GetSupportingPlayer(local) != null
+                && CommonInteractionSelection.Consume(local, this))
             { RequestLocalRelease(); return true; }
             if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))
             { HandleInteract(); return true; }
@@ -680,11 +691,11 @@ namespace CurtainCall.Tightrope
             return placements;
         }
 
-        string UnlinkTop(ulong riderId, Action transferred)
+        string UnlinkTop(ulong riderId, Action transferred, bool jumping = false)
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";
             if (aboveOf.ContainsKey(riderId)) return "거부: 내 위에 사람이 있어 내려올 수 없음";
-            if (transferred == null)
+            if (transferred == null && !jumping)
             {
                 var carrier = FindPlayer(BottomOf(riderId));
                 var course = TightropeCourse.Current;
@@ -755,33 +766,47 @@ namespace CurtainCall.Tightrope
         {
             feet = default;
             var bounds = platform.bounds;
-            var preferred = Vector3.Lerp(carrierFeet, bounds.center, .3f);
             float edgeMargin = radius + .22f;
             float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
             float separationSquared = separation * separation;
             float nearest = float.PositiveInfinity;
             const float maxSearchDistance = 5f;
+            // Sample immediately around the carrier before searching farther across the platform.
+            for (int i = 0; i < 8; i++)
+            {
+                var offset = Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward * (separation + .01f);
+                if (TryCandidate(carrierFeet + offset, out feet)) return true;
+            }
             for (float x = Mathf.Max(bounds.min.x + edgeMargin, carrierFeet.x - maxSearchDistance); x <= Mathf.Min(bounds.max.x - edgeMargin, carrierFeet.x + maxSearchDistance); x += separation)
             for (float z = Mathf.Max(bounds.min.z + edgeMargin, carrierFeet.z - maxSearchDistance); z <= Mathf.Min(bounds.max.z - edgeMargin, carrierFeet.z + maxSearchDistance); z += separation)
             {
                 var candidate = new Vector3(x, carrierFeet.y, z);
-                float distance = HorizontalDistanceSquared(candidate, preferred);
-                if (distance >= nearest || HorizontalDistanceSquared(candidate, carrierFeet) < separationSquared
-                    || HorizontalDistanceSquared(candidate, carrierFeet) > maxSearchDistance * maxSearchDistance
-                    || IsSeatReserved(candidate, separationSquared, placements)) continue;
-                // 실제 발판 위인지 확인하고 몸 전체가 벽·기둥·다른 플레이어와 겹치지 않는 자리를 쓴다.
-                if (!TrySeatFloor(platform, candidate, out var hit)
-                    || (platform is not BoxCollider && !HasSeatEdgeClearance(platform, candidate, edgeMargin))) continue;
+                float distance = HorizontalDistanceSquared(candidate, carrierFeet);
+                if (distance >= nearest || distance > maxSearchDistance * maxSearchDistance
+                    || !TryCandidate(candidate, out var position)) continue;
+                nearest = distance;
+                feet = position;
+            }
+            return float.IsFinite(nearest);
+
+            bool TryCandidate(Vector3 candidate, out Vector3 position)
+            {
+                position = default;
+                if (candidate.x < bounds.min.x + edgeMargin || candidate.x > bounds.max.x - edgeMargin
+                    || candidate.z < bounds.min.z + edgeMargin || candidate.z > bounds.max.z - edgeMargin
+                    || HorizontalDistanceSquared(candidate, carrierFeet) < separationSquared
+                    || IsSeatReserved(candidate, separationSquared, placements)
+                    || !TrySeatFloor(platform, candidate, out var hit)
+                    || (platform is not BoxCollider && !HasSeatEdgeClearance(platform, candidate, edgeMargin))) return false;
                 candidate = hit.point + Vector3.up * .035f;
                 if (Physics.CheckCapsule(candidate + Vector3.up * radius,
                     candidate + Vector3.up * Mathf.Max(radius, height - radius), radius,
-                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
-                if (Physics.Linecast(carrierFeet + Vector3.up * .6f, candidate + Vector3.up * .6f,
-                        Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
-                nearest = distance;
-                feet = candidate;
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                    || Physics.Linecast(carrierFeet + Vector3.up * .6f, candidate + Vector3.up * .6f,
+                        Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) return false;
+                position = candidate;
+                return true;
             }
-            return float.IsFinite(nearest);
         }
 
         static bool TrySeatFloor(Collider platform, Vector3 point, out RaycastHit hit)

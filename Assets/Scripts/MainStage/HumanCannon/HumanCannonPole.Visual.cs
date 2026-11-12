@@ -1,3 +1,4 @@
+using CurtainCall.Tightrope;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,6 +12,7 @@ namespace CurtainCall.HumanCannon
         Quaternion authoredVisualRotation, authoredBarRotation;
         float authoredBarWidth;
         CableVisual commonLeftCable, commonRightCable;
+        PoleCountdownView countdown;
         public Transform CommonVisual => commonVisual;
         public bool PresentationVisible { get; set; } = true;
 
@@ -144,7 +146,23 @@ namespace CurtainCall.HumanCannon
         }
 
         // 종료 경로에서는 외형을 만들지 않는다. 씬 unload 때 표시 루트가 먼저 사라질 수 있다.
-        internal void HidePresentation() { if (commonVisual != null) commonVisual.gameObject.SetActive(false); }
+        internal void HidePresentation()
+        {
+            if (commonVisual != null) commonVisual.gameObject.SetActive(false);
+            countdown?.Hide();
+        }
+
+        internal void PresentCountdown(float seconds)
+        {
+            if (!Application.isPlaying || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return;
+            if (!PresentationVisible || !isActiveAndEnabled) { countdown?.Hide(); return; }
+            countdown ??= PoleCountdownView.Create(transform);
+            var top = leftAnchor != null && rightAnchor != null ? (leftAnchor.position + rightAnchor.position) * .5f
+                : Grip.position + Vector3.up * PoleCountdownView.CableHeight;
+            var forward = Forward;
+            countdown?.Show(seconds, top - Vector3.up * PoleCountdownView.HalfHeight,
+                forward == Vector3.zero ? Quaternion.identity : Quaternion.LookRotation(forward));
+        }
         void OnDisable() => HidePresentation();
         void OnDestroy() => DestroyCommonVisual();
 
