@@ -76,7 +76,8 @@ namespace CurtainCall.Tightrope
 
         internal bool PiggybackUsesRopeBalance(NetworkPlayer carrier, bool wasOnRope)
         {
-            if (carrier == null || carrier.State != PlayerState.Normal || !carrier.TryGetComponent(out PlayerMover mover)) return false;
+            if (carrier == null || carrier.State != PlayerState.Normal || HumanCannon.HumanCannonTrampoline.IsCarriedBy(carrier)
+                || !carrier.TryGetComponent(out PlayerMover mover)) return false;
             if (!carrier.IsAirborne) return TryGetSupportingRope(mover, out _);
             // 의도한 외줄 점프는 유지하고, 지지가 끊긴 낙하나 줄 끝 이탈은 착지 전에 끈다.
             return wasOnRope && carrier.CurrentJump != JumpKind.Fall
@@ -296,6 +297,10 @@ namespace CurtainCall.Tightrope
             lane = NoLane;
             if (mover == null || mover.Body == null || !mover.Body.enabled || ropeSurfaces.Count == 0) return false;
             if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) return false;
+            var trampoline = HumanCannon.HumanCannonTrampoline.Current;
+            Transform heldTrampoline = trampoline != null && trampoline.Carrier != HumanCannon.CannonSeatState.Nobody
+                && mover.TryGetComponent(out NetworkPlayer actor) && actor.OwnerClientId == trampoline.Carrier
+                ? trampoline.transform : null;
             // 줄 모서리 착지는 실제 캡슐 반지름 전체가 닿는다. 축소한 탐색구나
             // 최근접 중심선의 높이로 먼저 거르면 다른 높이의 인접 줄에서 오판한다.
             float radius = Mathf.Max(0.01f, mover.BodyRadius);
@@ -314,6 +319,7 @@ namespace CurtainCall.Tightrope
             {
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
+                    || heldTrampoline != null && hit.collider.transform.IsChildOf(heldTrampoline)
                     || hit.distance <= .0001f) continue;
                 // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
                 // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).

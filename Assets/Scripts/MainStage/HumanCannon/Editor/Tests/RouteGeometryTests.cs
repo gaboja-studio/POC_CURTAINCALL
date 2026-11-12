@@ -1,4 +1,8 @@
 using System.Reflection;
+using System.Collections.Generic;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -74,6 +78,64 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(root);
+
+        [TestCase(2, 0)]
+        [TestCase(2, 3)]
+        [TestCase(4, 2)]
+        [Category("CommonProgressionRegression")]
+        public void WaitingLiftCountsEveryLinkedRiderAboveTheBoardingVolume(int crew, int lostParts)
+        {
+            var all = (List<NetworkPlayer>)NetworkPlayer.All;
+            var previous = all.ToArray();
+            var stackRoot = new GameObject("Lift passenger links");
+            var stack = stackRoot.AddComponent<PiggybackSystem>();
+            var stackCurrent = typeof(PiggybackSystem).GetProperty("Current");
+            var routeCurrent = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previousStack = stackCurrent.GetValue(null);
+            var previousRoute = routeCurrent.GetValue(null);
+            bool previousSuppressed = PiggybackSystem.Suppressed;
+            var route = Child("Route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            try
+            {
+                all.Clear();
+                stackCurrent.SetValue(null, stack);
+                routeCurrent.SetValue(null, null);
+                PiggybackSystem.Suppressed = false;
+                route.ConfigurePractice(transport, -10);
+                typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
+                var below = (Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", PrivateInstance).GetValue(stack);
+                for (int i = 0; i < crew; i++)
+                {
+                    var actor = Child("Actor").gameObject.AddComponent<NetworkPlayer>();
+                    spawned.SetValue(actor, true);
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(actor, (ulong)i);
+                    actor.transform.position = platform.position + Vector3.up * (i == 0 ? 0f : 1.5f * i + .6f);
+                    actor.gameObject.AddComponent<PlayerCondition>().SetLostParts(PlayerCondition.PartsForLostCount(lostParts));
+                    all.Add(actor);
+                    if (i > 0) below[(ulong)i] = (ulong)(i - 1);
+                }
+                var count = typeof(HumanCannonRouteSystem).GetMethod("CountPassengers", PrivateInstance);
+                int Occupants() => (int)count.Invoke(route, new object[] { 0, null });
+                Assert.IsFalse(transport.ContainsPassenger(all[1].transform.position));
+                Assert.AreEqual(crew, Occupants());
+                all[1].transform.position = platform.position + Vector3.up * 1.5f;
+                Assert.AreEqual(crew, Occupants(), "A rider in the volume is counted only once.");
+                all[1].transform.position = platform.position + Vector3.up * 2.1f;
+                below.Clear();
+                Assert.AreEqual(1, Occupants(), "Unlinked players above the volume do not board.");
+            }
+            finally
+            {
+                typeof(HumanCannonRouteSystem).GetMethod("OnDisable", PrivateInstance).Invoke(route, null);
+                routeCurrent.SetValue(null, previousRoute);
+                stackCurrent.SetValue(null, previousStack);
+                PiggybackSystem.Suppressed = previousSuppressed;
+                foreach (var actor in all) spawned.SetValue(actor, false);
+                all.Clear(); all.AddRange(previous);
+                Object.DestroyImmediate(stackRoot);
+            }
+        }
 
         [Test]
         public void Fire_UnavailableCannotArmDamageOrShowEvenWithReceivedState_AndCanBeRestored()

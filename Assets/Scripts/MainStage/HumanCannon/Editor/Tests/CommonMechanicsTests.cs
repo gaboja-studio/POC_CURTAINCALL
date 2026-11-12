@@ -95,6 +95,92 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         static void Set(object target, string name, object value) => target.GetType()
             .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
 
+        [TestCase(0)] [TestCase(2)] [TestCase(3)]
+        public void MountedRiderCanSelectAndBoardACannonWithoutCarryingTheStack(int lostParts)
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Mounted cannon boarding test");
+            root.transform.position = new Vector3(16000, 50, 16000);
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var previous = all.ToArray();
+            var cannonCurrent = typeof(HumanCannonSystem).GetProperty("Current");
+            var stackCurrent = typeof(PiggybackSystem).GetProperty("Current");
+            var previousCannon = cannonCurrent.GetValue(null);
+            var previousStack = stackCurrent.GetValue(null);
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var previousLocal = local.GetValue(null);
+            bool previousSuppressed = PiggybackSystem.Suppressed;
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            GameObject Child(string name, bool active = true)
+            {
+                var child = new GameObject(name); child.SetActive(active);
+                child.transform.SetParent(root.transform, false);
+                return child;
+            }
+            NetworkPlayer Actor(ulong id, float height)
+            {
+                var actor = Child("Rider").AddComponent<NetworkPlayer>();
+                actor.transform.localPosition = Vector3.up * height;
+                Call(actor.GetComponent<PlayerMover>(), "Awake");
+                spawned.SetValue(actor, true);
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(actor, id);
+                all.Add(actor);
+                return actor;
+            }
+            try
+            {
+                all.Clear();
+                typeof(InputGate).GetMethod("Reset", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                var lower = Actor(1810, 0f);
+                var rider = Actor(1811, 1.5f);
+                var upper = Actor(1812, 3f);
+                local.SetValue(null, rider);
+                var condition = rider.gameObject.AddComponent<PlayerCondition>();
+                condition.SetLostParts(PlayerCondition.PartsForLostCount(lostParts));
+                rider.gameObject.AddComponent<PlayerInteraction>();
+                var damage = rider.gameObject.AddComponent<CurtainCall.Damage.BodyDamageEffects>();
+                Call(damage, "Awake"); Call(damage, "Update");
+                var sessionRoot = Child("Session", false);
+                var session = sessionRoot.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+                Set(session, "_networkManager", sessionRoot.GetComponent<Unity.Netcode.NetworkManager>());
+                session.GetType().GetProperty("ConnectionState").SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
+                var stack = Child("Stack").AddComponent<PiggybackSystem>();
+                Set(stack, "session", session);
+                stackCurrent.SetValue(null, stack);
+                PiggybackSystem.Suppressed = false;
+                var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", fields).GetValue(stack);
+                var above = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", fields).GetValue(stack);
+                below[rider.OwnerClientId] = lower.OwnerClientId; below[upper.OwnerClientId] = rider.OwnerClientId;
+                above[lower.OwnerClientId] = rider.OwnerClientId; above[rider.OwnerClientId] = upper.OwnerClientId;
+                var station = Child("Cannon station").AddComponent<HumanCannonStation>();
+                station.transform.position = PlayerInteraction.Center(rider) + Vector3.forward * .5f;
+                var cannon = Child("Cannon", false).AddComponent<HumanCannonSystem>();
+                cannon.ConfigurePractice(new[] { station }, -10f);
+                Call(cannon, "ResetSeats");
+                Set(cannon, "session", session); Set(cannon, "boundPlayer", rider);
+                cannonCurrent.SetValue(null, cannon);
+                var pilot = rider.gameObject.AddComponent<HumanCannonPilot>();
+                Set(pilot, "system", cannon); Set(pilot, "player", rider);
+                Physics.SyncTransforms();
+
+                Assert.AreSame(station, CommonInteractionSelection.Selected(rider));
+                Assert.IsTrue((bool)Call(pilot, "TryRequestNearbyCannon"));
+                Assert.IsTrue(cannon.IsSeated(rider.OwnerClientId));
+                Assert.IsFalse(cannon.IsSeated(upper.OwnerClientId));
+                Assert.IsFalse(stack.IsInStack(lower));
+                Assert.IsFalse(stack.IsInStack(rider));
+                Assert.IsFalse(stack.IsInStack(upper));
+            }
+            finally
+            {
+                cannonCurrent.SetValue(null, previousCannon); stackCurrent.SetValue(null, previousStack);
+                local.SetValue(null, previousLocal); PiggybackSystem.Suppressed = previousSuppressed;
+                foreach (var actor in all) spawned.SetValue(actor, false);
+                all.Clear(); all.AddRange(previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase(false, 0f)]
         [TestCase(false, 4f)]
         [TestCase(true, -4f)]

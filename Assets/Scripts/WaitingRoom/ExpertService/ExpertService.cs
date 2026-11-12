@@ -231,7 +231,7 @@ namespace CurtainCall.WaitingRoom
                 return Reject(who, "MEDICAL_ENTER", ExpertRefusal.NotAlive);
             }
             var entrance = FindFirstObjectByType<ExpertRoomView>();
-            if (player == null || entrance == null || CurtainCall.Player.PlayerInteraction.RestrictReach(entrance.Reach(player.transform.position, player), player) < 0f)
+            if (entrance == null || entrance.EntryDistance(player) < 0f)
                 return (false, WaitingRoomText.Get("expert.go-to-lift", "신체 복구 승강기 앞에서 이용하세요."));
             var before = book.Phase;
             var refusal = book.Enter(who);

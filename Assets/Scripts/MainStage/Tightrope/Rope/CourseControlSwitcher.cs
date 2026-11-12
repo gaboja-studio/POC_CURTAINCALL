@@ -217,6 +217,11 @@ namespace CurtainCall.Tightrope
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
             var stack = PiggybackSystem.Current;
+            if (HumanCannonTrampoline.IsCarriedBy(player))
+            {
+                ApplyPlatformMode();
+                return;
+            }
             bool interruptedStack = stack != null && stack.CanFollowStack(player) && stack.GetBelow(player) != null
                 && stack.GetSupportingPlayer(player) == null;
             bool releasedForFall = player.IsDroppingFromSupport || interruptedStack || stack != null && stack.IsReleasedForFall(player);

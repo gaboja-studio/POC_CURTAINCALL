@@ -279,12 +279,15 @@ namespace CurtainCall.Tightrope
             }
 
             if (TightropeInputGate.IsBlocked || local == null || localMover == null || launchedAt >= 0f) return;
-            if (IsCrossing(local)) return;
-            if (system.GetBelow(local) == null || system.GetAbove(local) != null) return; // 맨 위만(중간층은 점프 불가)
+            if (IsCrossing(local) || CurtainCall.HumanCannon.HumanCannonTrampoline.WaitingForRopeDrop(localMover)) return;
+            if (system.GetBelow(local) == null) return;
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
             var input = reader.Current;
-            if (!input.ActionPressed || local.TryGetComponent(out HumanoidPlayerPresentation presentation)
+            // While carried, PlayerMover does not run its normal posture update.
+            if (localMover.IsCrouched && !input.CrouchHeld) localMover.TryStand();
+            if (system.GetAbove(local) != null || localMover.IsCrouched || !input.ActionPressed
+                || local.TryGetComponent(out HumanoidPlayerPresentation presentation)
                 && presentation.InteractionMovementLocked) return;
             int viewSign = TightropeControlScheme.LocalViewSign(localMover);
             if (input.AuxDirection != 0)

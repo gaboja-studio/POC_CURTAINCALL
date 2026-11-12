@@ -77,11 +77,16 @@ namespace CurtainCall.HumanCannon
                     ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) : CannonAction.Sync;
                 if (action != CannonAction.Sync) system.Request(stationIndex, action);
             }
-            else if (!IsFlying && input.InteractTapped)
-            {
-                int nearest = system.FindBoardableStation(player);
-                if (nearest >= 0 && CommonInteractionSelection.Consume(player, system.Station(nearest))) system.Request(nearest, CannonAction.Board);
-            }
+            else if (input.InteractTapped) TryRequestNearbyCannon();
+        }
+
+        internal bool TryRequestNearbyCannon()
+        {
+            if (system == null || player == null || IsDriving || InputGate.IsBlocked) return false;
+            int nearest = system.FindBoardableStation(player);
+            if (nearest < 0 || !CommonInteractionSelection.Consume(player, system.Station(nearest))) return false;
+            system.Request(nearest, CannonAction.Board);
+            return true;
         }
 
         // The active control scheme can change from platform to rope without changing ownership of the device.
