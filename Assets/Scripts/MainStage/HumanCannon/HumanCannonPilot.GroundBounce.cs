@@ -40,6 +40,7 @@ namespace CurtainCall.HumanCannon
             Launch(-1, sequence, contact + Vector3.up * 0.05f, transform.rotation, Vector3.up * speed);
             groundRequest.Cancel();
             airControlSpeed = controlSpeed;
+            trampolineFlight = true;
             return true;
         }
 

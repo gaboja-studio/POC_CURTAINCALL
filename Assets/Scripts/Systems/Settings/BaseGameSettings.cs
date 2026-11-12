@@ -556,23 +556,16 @@ namespace CurtainCall.Settings
             [Tooltip("[폐기 예정] 외줄 묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 기획상 재시작이 없어 외줄 재시작이 사라지면 지운다. 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구, 모두 복구 = 전원 온전한 몸.")]
             [SerializeField] BodyRestartRecovery restartRecovery = BodyRestartRecovery.KeepSurvivors;
 
-            [Header("다리를 잃었을 때 점프 높이 (탐색·공연 공통)")]
-            [Tooltip("다리 1개를 잃었을 때 점프 높이 배율(×). 캐릭터 점프 높이에 곱한다. 부상 기획 5-4(6), 수치 미정 — 임시값 0.75.")]
-            [SerializeField, Range(0f, 1f)] float oneLegJumpHeight = 0.75f;
+            [Header("모든 씬 공통 부상 이동·매달리기")]
+            [Tooltip("다리 하나를 잃었을 때 이동 속도 배율. 기본 0.9.")]
+            [SerializeField, Range(0f, 1f)] float exploreOneLegMoveSpeed = .9f;
 
-            [Tooltip("두 다리를 잃었을 때(기어가기) 점프 높이 배율(×). 기어갈 때 점프 허용은 아래 '기어갈 때 제자리 점프'. 임시값 0.5.")]
-            [SerializeField, Range(0f, 1f)] float twoLegJumpHeight = 0.5f;
-
-            [Header("모든 씬 공통 부상 이동·상호작용")]
-            [Tooltip("다리 1개를 잃었을 때 이동 속도 배율(×). 두 다리는 기어가기 배율을 쓴다. 수치는 대기실 담당 미정 — 임시값 0.8.")]
-            [SerializeField, Range(0f, 1f)] float exploreOneLegMoveSpeed = 0.8f;
-
-            [Tooltip("팔 1개를 잃었을 때 손 닿는 거리 배율(×). 수치는 대기실 담당 미정 — 임시값 0.8.")]
-            [SerializeField, Range(0f, 1f)] float exploreOneArmReach = 0.8f;
+            [Tooltip("팔을 잃은 플레이어의 매달림 시간 배율. 기본 0.5 (봉 30초 → 15초).")]
+            [SerializeField, Range(.1f, 1f)] float injuredHangTimeMultiplier = .5f;
 
             [Header("두 다리를 잃었을 때 (기어가기)")]
-            [Tooltip("기어갈 때 이동 속도 배율(×). 걷기 속도에 곱한다. 임시값 0.5(줄 위 0.5m/s → 0.25m/s).")]
-            [SerializeField, Range(0f, 1f)] float crawlSpeedMultiplier = 0.5f;
+            [Tooltip("기어갈 때 이동 속도 배율. 기본 0.65.")]
+            [SerializeField, Range(0f, 1f)] float crawlSpeedMultiplier = .65f;
 
             [Tooltip("기어갈 때 제자리 점프를 할 수 있는지. 기획상 금지 규칙 없음 — 기본 가능(2026-10-04 PM).")]
             [SerializeField] bool crawlCanJump = true;
@@ -610,16 +603,12 @@ namespace CurtainCall.Settings
             [SerializeField, Range(0.1f, 3f)] float bloodSpurtDuration = 0.8f;
 
             public BodyRestartRecovery RestartRecovery => restartRecovery;
-            public float OneLegJumpHeight => oneLegJumpHeight;
-            public float TwoLegJumpHeight => twoLegJumpHeight;
             public float ExploreOneLegMoveSpeed => exploreOneLegMoveSpeed;
-            public float ExploreOneArmReach => exploreOneArmReach;
             public float MoveMultiplier(int lostLegs) => lostLegs <= 0 ? 1f : lostLegs == 1 ? exploreOneLegMoveSpeed : crawlSpeedMultiplier;
-            public float ReachMultiplier(int lostArms) => lostArms <= 0 ? 1f : exploreOneArmReach;
-
-            /// <summary>잃은 다리 개수(0~2)에 맞는 점프 높이 배율.</summary>
-            public float JumpHeightForLostLegs(int lostLegs) =>
-                lostLegs <= 0 ? 1f : lostLegs == 1 ? oneLegJumpHeight : twoLegJumpHeight;
+            public float ReachMultiplier(int lostArms) => 1f;
+            public float JumpHeightForLostLegs(int lostLegs) => 1f;
+            public float HangSeconds(float baseSeconds, int lostArms) =>
+                lostArms <= 0 ? baseSeconds : baseSeconds * Mathf.Clamp(injuredHangTimeMultiplier, .1f, 1f);
             public float CrawlSpeedMultiplier => crawlSpeedMultiplier;
             public bool CrawlCanJump => crawlCanJump;
             public bool CrawlCanLaneJump => crawlCanLaneJump;

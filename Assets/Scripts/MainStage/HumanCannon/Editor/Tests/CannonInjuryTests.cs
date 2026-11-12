@@ -6,13 +6,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     public sealed class CannonInjuryTests
     {
         [TestCase(0, 1f)]
-        [TestCase(1, .8f)]
-        [TestCase(2, .5f)]
+        [TestCase(1, .9f)]
+        [TestCase(2, .65f)]
         public void CannonUsesCommonMovementAndAirPenaltiesWithoutInteractionDelay(int legs, float expected)
         {
             var settings = new HumanCannonInjurySettings();
-            float crawl = legs >= 2 ? .5f : 1f;
-            Assert.That(settings.MovePolicyMultiplier(legs, .5f) * crawl, Is.EqualTo(expected).Within(.001f));
+            float crawl = legs >= 2 ? CurtainCall.Settings.GameSettings.Base.BodyDamage.CrawlSpeedMultiplier : 1f;
+            Assert.That(settings.MovePolicyMultiplier(legs, crawl) * crawl, Is.EqualTo(expected).Within(.001f));
             Assert.That(settings.AirMultiplier(legs), Is.EqualTo(expected).Within(.001f));
             Assert.That(settings.InteractionSeconds(false), Is.Zero);
             Assert.That(settings.InteractionSeconds(true), Is.Zero);

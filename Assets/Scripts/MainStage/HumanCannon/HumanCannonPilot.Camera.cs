@@ -15,6 +15,8 @@ namespace CurtainCall.HumanCannon
         bool requestedCannonView;
         bool hadCarryFraming;
         int carryFrame = -1;
+        Camera practiceFlightCamera;
+        bool previousOcclusionCulling;
 
         void UpdateCannonView()
         {
@@ -62,6 +64,8 @@ namespace CurtainCall.HumanCannon
             // 원본/연습 모두 확정된 손잡이 소유권으로 전환한다. 운반 중 수평 시선은 몸/장치 방향에도 적용한다.
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
             bool carrying = carried != null;
+            // Rehearsal hides authored occluders and flies beyond the room's baked camera cells.
+            SetPracticeFlightCamera(system.PracticeMode && IsFlying ? Camera.main : null);
             bool carryCamera = stationIndex < 0 && !IsFlying && carrying;
             if (carryCamera) UpdateCarryFraming(carried);
             else hadCarryFraming = false;
@@ -112,11 +116,22 @@ namespace CurtainCall.HumanCannon
 
         void ClearCannonViewRequest()
         {
+            SetPracticeFlightCamera(null);
             if (cannonView == null || !requestedCannonView) return;
             cannonView.ReleaseView(this);
             HumanCannonViewInput.SetRequested(cannonView, this, false);
             requestedCannonView = false;
             hadCarryFraming = false;
+        }
+
+        void SetPracticeFlightCamera(Camera camera)
+        {
+            if (practiceFlightCamera == camera) return;
+            if (practiceFlightCamera != null) practiceFlightCamera.useOcclusionCulling = previousOcclusionCulling;
+            practiceFlightCamera = camera;
+            if (camera == null) return;
+            previousOcclusionCulling = camera.useOcclusionCulling;
+            camera.useOcclusionCulling = false;
         }
 
         void ReleaseCannonView()

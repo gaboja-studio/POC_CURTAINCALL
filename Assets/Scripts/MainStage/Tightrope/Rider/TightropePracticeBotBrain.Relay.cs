@@ -40,7 +40,7 @@ namespace CurtainCall.Tightrope
                 bool canRelease = stack.GetBelow(player) != null && stack.GetAbove(player) == null;
                 if (canRelease && Time.time >= nextInteractAt)
                 { input.InteractLongPressed = true; nextInteractAt = Time.time + .8f; }
-                Status = canRelease ? "교대 봉을 잡기 위해 목마에서 내려옵니다" : "교대 관문 · 위에 탄 동료가 F로 내려와 주세요";
+                Status = canRelease ? "교대 봉을 잡기 위해 목마에서 내려옵니다" : "교대 관문 · 위에 탄 동료가 F를 길게 눌러 내려와 주세요";
                 return true;
             }
 

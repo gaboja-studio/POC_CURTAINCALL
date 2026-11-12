@@ -705,7 +705,7 @@ namespace CurtainCall.Cameras
             return direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.zero;
         }
 
-        static bool PointerBlocked(Vector2 position) =>
+        internal static bool PointerBlocked(Vector2 position) =>
             (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) || CameraCursorExclusion.Contains(position);
 
         void AcquireCursor()

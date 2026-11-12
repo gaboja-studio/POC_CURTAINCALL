@@ -99,7 +99,7 @@ namespace CurtainCall.WaitingRoom
 
         bool UpdateTutorialBarrier()
         {
-            bool protect = IsLocked && (WaitingRoomRehearsal.IsPreTutorialRestricted || CannonPracticeSeal);
+            bool protect = IsLocked && name != RehearsalPassageName && WaitingRoomRehearsal.IsPreTutorialRestricted;
             if (protect == tutorialProtected) return false;
             tutorialProtected = protect;
             if (protect && tutorialBarrier == null && shutter != null && shutter.GetComponentInChildren<BoxCollider>(true) is BoxCollider panel)

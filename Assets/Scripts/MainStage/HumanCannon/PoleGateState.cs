@@ -24,6 +24,26 @@ namespace CurtainCall.HumanCannon
         public PoleGateState(int capacity) => Capacity = System.Math.Clamp(capacity, 1, MaxRiders);
         public ulong OccupantAt(int seat) => seat >= 0 && seat < Capacity ? occupants[seat] : Nobody;
         public double DeadlineAt(int seat) => seat >= 0 && seat < Capacity ? deadlines[seat] : 0;
+        public double NextDeadline
+        {
+            get
+            {
+                double next = double.PositiveInfinity;
+                for (int seat = 0; seat < Capacity; seat++)
+                    if (occupants[seat] != Nobody && deadlines[seat] > 0d) next = System.Math.Min(next, deadlines[seat]);
+                return double.IsFinite(next) ? next : 0d;
+            }
+        }
+
+        // Common swings can shorten one rider's hold without changing the fixed hazard window.
+        public bool ShortenHold(int seat, double deadline)
+        {
+            if (OccupantAt(seat) == Nobody || RearmAt > 0d || !ValidTime(deadline)
+                || deadline <= 0d || deadlines[seat] <= deadline) return false;
+            deadlines[seat] = deadline;
+            Revision++;
+            return true;
+        }
         public int SeatOf(ulong actor)
         {
             if (actor != Nobody) for (int i = 0; i < Capacity; i++) if (occupants[i] == actor) return i;

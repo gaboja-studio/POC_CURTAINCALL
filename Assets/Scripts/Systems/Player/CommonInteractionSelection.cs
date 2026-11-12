@@ -52,12 +52,9 @@ namespace CurtainCall.Player
                 if (!gesture.Held)
                 {
                     gesture.Choice = Choose(actor); gesture.Consumed = false; gesture.LongRelease = null;
-                    // A tap boards the selected device. Holding the same key still dismounts.
-                    var selected = gesture.Choice.Target;
-                    if (selected is HumanCannonPole or HumanCannonStation or ExpertRoomView
-                        && actor.TryGetComponent(out NetworkPlayer rider) && PiggybackSystem.Current is { } stack
-                        && stack.GetBelow(rider) != null
-                        && (selected is not HumanCannonPole || HumanCannonPoleSystem.Current?.HeldBy(rider.OwnerClientId) < 0))
+                    // The tap can operate the selected device; a hold is a separate dismount gesture.
+                    if (actor.TryGetComponent(out NetworkPlayer rider) && PiggybackSystem.Current is { } stack
+                        && stack.GetSupportingPlayer(rider) != null && stack.GetAbove(rider) == null)
                         gesture.LongRelease = stack;
                 }
                 if (!gesture.Consumed && input.InteractLongPressed && gesture.LongRelease != null
@@ -117,7 +114,7 @@ namespace CurtainCall.Player
                             foreach (var target in ShopReach.Targets)
                                 if (target is ExpertRoomView room && room.CanBoard(player))
                                     Add(room, room.PresentationPoint, 0, "piggyback-to-medical");
-                        if (best.Target == null) Add(stack, center, 0, "piggyback-held");
+                        if (stack.GetAbove(player) == null) Add(stack, center, 3, "piggyback-held");
                     }
                 }
                 var hang = TightropeHangSystem.Current;
@@ -140,9 +137,9 @@ namespace CurtainCall.Player
                     Add(stack, PlayerInteraction.Center(partner), 2, "piggyback:" + partner.OwnerClientId);
                 var locks = EscapeCooperativeLocks.Current;
                 if (locks != null) for (int i = 0; i < locks.Count; i++)
-                    if (locks.CanUseControl(player, i)) Add(locks.Control(i), locks.ControlPoint(i), 2, "lock:" + i);
+                    if (locks.CanUseControl(player, i)) Add(locks.Control(i), locks.ControlPoint(i), mounted ? -1 : 2, "lock:" + i);
                 var ropes = EscapeCooperativeRopes.Current;
-                if (ropes != null && ropes.CanUseButton(player)) Add(ropes, ropes.ButtonPoint, 2, "rope-button");
+                if (ropes != null && ropes.CanUseButton(player)) Add(ropes, ropes.ButtonPoint, mounted ? -1 : 2, "rope-button");
             }
             if (!ShopReach.Locked && !WaitingRoomRehearsal.IsPreTutorialRestricted)
                 foreach (var target in ShopReach.Targets)

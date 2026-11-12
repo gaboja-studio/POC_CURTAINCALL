@@ -15,7 +15,7 @@ using CurtainCall.HumanCannon;
 namespace CurtainCall.Tightrope
 {
     /// <summary>
-    /// 목마 연결·해제. F는 현재 선택에 따라 타거나 내려오고, 방향 입력과 Space는 분리 점프를 요청한다.
+    /// 목마 연결·해제. F 탭으로 타고 F 홀드로 내려오며, 방향 입력과 Space는 분리 점프를 요청한다.
     /// 호스트가 판정해 연결 상태(누가 누구 위에 있는지)를 모든 화면에 보낸다.
     /// 연결: 올라가는 사람은 단독(위아래 아무도 없음)이고, 가장 가까운 동료(목마면 맨 아래 사람 기준 거리)가 세팅 연결 거리 안이면 그 목마의 맨 위에 올라간다.
     /// 해제: 내 아래에 사람이 있고 내 위에 사람이 없을 때 본인만 내려온다.
@@ -439,7 +439,7 @@ namespace CurtainCall.Tightrope
         void HandleInteract()
         {
             var local = NetworkPlayer.Local;
-            if (GetSupportingPlayer(local) != null) { HandleRelease(); return; }
+            if (GetSupportingPlayer(local) != null) return;
             if (CommonInteractionSelection.Consume(local, this)) SendRequest(Request.Interact);
         }
 
@@ -589,7 +589,7 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
                 || local.State != PlayerState.Normal || UsingDevice(local) || IsReleasedForFall(local)) return false;
-            if ((input.InteractTapped || input.InteractLongPressed) && GetSupportingPlayer(local) != null
+            if (input.InteractLongPressed && GetSupportingPlayer(local) != null
                 && CommonInteractionSelection.Consume(local, this))
             { RequestLocalRelease(); return true; }
             if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))

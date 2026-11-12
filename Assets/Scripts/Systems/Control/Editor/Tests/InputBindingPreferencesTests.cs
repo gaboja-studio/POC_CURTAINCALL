@@ -17,7 +17,9 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.That(InputBindingPreferences.KeyLabel("<Keyboard>/t"), Is.EqualTo("T"));
             var draft = InputBindingPreferences.CreateDraft(); owned.Add(draft);
             var use = draft.FindAction("Common/UseDevice", true);
-            Assert.That(use.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/v"));
+            Assert.That(use.bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
+            Assert.That(InputBindingPreferences.KeyLabel(use.bindings[0].effectivePath), Is.EqualTo("좌클릭"));
+            Assert.That(CreateReader().BindingLabel("UseDevice", "fallback"), Is.EqualTo("좌클릭"));
             use.ApplyBindingOverride(0, "<Keyboard>/y");
             Assert.IsTrue(InputBindingPreferences.TryValidateDraft(draft, out var error), error);
             Assert.That(InputBindingPreferences.KeyLabel(use.bindings[0].effectivePath), Is.EqualTo("Y"));
@@ -67,7 +69,7 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
             Assert.AreEqual(15, entries.Count); // 방향 전환·투표 선택 2개·장치 사용 키 포함
-            Assert.AreEqual("<Keyboard>/v", draft.FindAction("Common/UseDevice").bindings[0].effectivePath);
+            Assert.AreEqual("<Mouse>/leftButton", draft.FindAction("Common/UseDevice").bindings[0].effectivePath);
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -91,6 +93,23 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.AreEqual("<Keyboard>/x",migrated.FindAction("Common/VoteSecondary").bindings[0].effectivePath);
             Assert.IsTrue(InputBindingPreferences.TryValidateDraft(migrated,out var error),error);
             Assert.AreEqual(json,PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey),"미리보기는 저장값을 덮지 않는다");
+        }
+
+        [Test]
+        public void OldSavedLauncherBindingDoesNotHideNewDefaultOrResetOtherControls()
+        {
+            var draft = Draft();
+            var launcher = draft.FindAction("Common/UseDevice");
+            var interact = draft.FindAction("Common/Interact");
+            string json = "{\"version\":1,\"bindings\":[{\"actionId\":\"" + launcher.id
+                + "\",\"bindingId\":\"ac49fa5e-d924-4533-9140-d11ce9db069d\",\"path\":\"<Keyboard>/v\"},{\"actionId\":\""
+                + interact.id + "\",\"bindingId\":\"" + interact.bindings[0].id + "\",\"path\":\"<Keyboard>/g\"}]}";
+            PlayerPrefs.SetString(InputBindingPreferences.PlayerPrefsKey, json);
+            var migrated = Draft();
+            Assert.That(migrated.FindAction("Common/UseDevice").bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
+            Assert.That(migrated.FindAction("Common/Interact").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/g"));
+            Assert.That(InputBindingPreferences.TryApply(migrated, out var error), Is.True, error);
+            Assert.That(Draft().FindAction("Common/UseDevice").bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
         }
 
         [TestCase("<Keyboard>/escape")]

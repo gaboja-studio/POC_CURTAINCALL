@@ -6,6 +6,17 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     [Category("CommonProgressionRegression")]
     public sealed class TightropeHangBookTests
     {
+        [Test, Category("CommonProgressionRegression")]
+        public void InjuredRopeHangKeepsElapsedTimeAndTheGloveBonus()
+        {
+            var book = new TightropeHangBook();
+            var hang = book.Begin(1, 0, 2, 7d, 3.5d);
+            book.Tick(2d);
+            Assert.IsTrue(hang.ShortenBaseTime(3.5d));
+            Assert.That(hang.Total, Is.EqualTo(7d));
+            Assert.That(hang.Remaining, Is.EqualTo(5d));
+            Assert.IsFalse(hang.ShortenBaseTime(7d));
+        }
         static bool AllLanes(int lane, float distance) => true;
 
         [Test]

@@ -15,6 +15,9 @@ namespace CurtainCall.Player
         public const string PlayerPrefsKey = "CurtainCall.Input.CommonBindings.v1";
         public const string ResourcePath = "Input/PlayerControls";
         public const string MapName = "Common";
+        public const string DeviceUseAction = "UseDevice";
+        public const string LeftClickPath = "<Mouse>/leftButton";
+        public const string LeftClickLabel = "좌클릭";
         public static event Action Changed;
 
         public readonly struct BindingEntry
@@ -46,6 +49,7 @@ namespace CurtainCall.Player
         public static string KeyLabel(string path, string fallback = "")
         {
             if (string.IsNullOrEmpty(path)) return fallback;
+            if (string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase)) return LeftClickLabel;
             string label = InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice);
             return string.IsNullOrWhiteSpace(label) ? fallback : label;
         }
@@ -83,7 +87,7 @@ namespace CurtainCall.Player
                         if (action == null) continue; // 에셋 개정으로 사라진 GUID는 무시한다.
                         int index = FindBinding(action, entry.bindingId);
                         if (index < 0 || action.bindings[index].isComposite) continue;
-                        if (!TryValidateKeyPath(entry.path, out var path, out _))
+                        if (!TryValidateKeyPath(entry.path, out var path, out _, action.name))
                             throw new ArgumentException("Invalid saved key");
                         action.ApplyBindingOverride(index, path);
                     }
@@ -104,7 +108,7 @@ namespace CurtainCall.Player
                                 break;
                             }
                     bool IsNewAction(BindingEntry b) =>
-                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary" || b.ActionName == "UseDevice") &&
+                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary") &&
                         !saved.bindings.Exists(s => s.bindingId == b.BindingId.ToString());
                     if (!TryValidateDraft(draft, out _)) draft.RemoveAllBindingOverrides();
                 }
@@ -137,26 +141,28 @@ namespace CurtainCall.Player
             foreach (var action in map.actions)
                 for (int i = 0; i < action.bindings.Count; i++)
                     if (!action.bindings[i].isComposite &&
-                        TryValidateKeyPath(action.bindings[i].path, out _, out _))
+                        TryValidateKeyPath(action.bindings[i].path, out _, out _, action.name))
                         entries.Add(new BindingEntry(action, i));
             return entries;
         }
 
-        /// <summary>왼쪽을 뺀 마우스 버튼(UV 등 조작용, 2026-10-30). 왼쪽 버튼은 UI 클릭용이라 재지정하지 않는다.</summary>
+        /// <summary>좌클릭은 UI와 운반 장치 발사에서만 사용한다.</summary>
         static readonly string[] MouseButtons = { "rightButton", "middleButton", "forwardButton", "backButton" };
 
-        /// <summary>실제 Keyboard Key 이름 또는 마우스 버튼(왼쪽 제외)만 허용. wildcard/usage/chord/장치별 경로/ESC는 거절한다. 장치 연결 불필요.</summary>
-        public static bool TryValidateKeyPath(string path, out string normalizedPath, out string error)
+        /// <summary>실제 Keyboard Key 이름 또는 허용된 마우스 버튼만 받는다. 장치 연결은 필요 없다.</summary>
+        public static bool TryValidateKeyPath(string path, out string normalizedPath, out string error, string actionName = null)
         {
             normalizedPath = null;
-            error = "키보드의 단일 키나 마우스 버튼(왼쪽 제외)을 선택해 주세요.";
+            error = "키보드의 단일 키나 마우스 버튼을 선택해 주세요.";
+            if (actionName == DeviceUseAction && string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase))
+            { normalizedPath = LeftClickPath; error = null; return true; }
             const string mousePrefix = "<Mouse>/";
             if (!string.IsNullOrEmpty(path) && path.StartsWith(mousePrefix, StringComparison.OrdinalIgnoreCase))
             {
                 var button = path.Substring(mousePrefix.Length);
                 foreach (var allowed in MouseButtons)
                     if (string.Equals(allowed, button, StringComparison.OrdinalIgnoreCase)) { normalizedPath = mousePrefix + allowed; error = null; return true; }
-                error = "마우스 왼쪽 버튼은 UI 클릭용으로 예약되어 있습니다.";
+                error = "좌클릭은 UI와 운반 장치 발사에서 사용합니다.";
                 return false;
             }
             const string prefix = "<Keyboard>/";
@@ -188,23 +194,23 @@ namespace CurtainCall.Player
         /// <summary>즉시 중복 검사 후 draft만 변경한다. 직접 ApplyBindingOverride해도 TryApply가 같은 검사를 수행한다.</summary>
         public static bool TryRebind(InputActionAsset draft, Guid bindingId, string path, out string error)
         {
-            if (!TryValidateKeyPath(path, out var normalized, out error)) return false;
+            var entries = GetBindings(draft);
             BindingEntry? selected = null;
-            foreach (var entry in GetBindings(draft))
-            {
-                if (entry.BindingId == bindingId) selected = entry;
-                else if (string.Equals(entry.Path, normalized, StringComparison.OrdinalIgnoreCase))
-                {
-                    error = $"이미 {entry.ActionName} {entry.PartName}에 배정된 키입니다. 다른 키를 선택해 주세요.";
-                    return false;
-                }
-            }
+            foreach (var entry in entries)
+                if (entry.BindingId == bindingId) { selected = entry; break; }
             if (!selected.HasValue)
             {
                 error = "변경할 키 바인딩을 찾을 수 없습니다.";
                 return false;
             }
             var binding = selected.Value;
+            if (!TryValidateKeyPath(path, out var normalized, out error, binding.ActionName)) return false;
+            foreach (var entry in entries)
+            {
+                if (entry.BindingId == bindingId || !string.Equals(entry.Path, normalized, StringComparison.OrdinalIgnoreCase)) continue;
+                error = $"이미 {entry.ActionName} {entry.PartName}에 배정된 키입니다. 다른 키를 선택해 주세요.";
+                return false;
+            }
             draft.FindActionMap(MapName).FindAction(binding.ActionId.ToString(), true)
                 .ApplyBindingOverride(binding.BindingIndex, normalized);
             error = null;
@@ -239,7 +245,7 @@ namespace CurtainCall.Player
                     }
                     if (string.IsNullOrWhiteSpace(binding.effectivePath))
                     { error = "할당되지 않은 조작의 키를 모두 설정해 주세요."; return false; }
-                    if (!TryValidateKeyPath(binding.effectivePath, out var normalized, out error)) return false;
+                    if (!TryValidateKeyPath(binding.effectivePath, out var normalized, out error, action.name)) return false;
                     if (!used.Add(normalized))
                     {
                         error = $"{normalized} 키가 중복 배정되어 있습니다. 다른 키를 선택해 주세요.";
@@ -258,7 +264,7 @@ namespace CurtainCall.Player
             var saved = new SavedBindings();
             foreach (var entry in GetBindings(draft))
             {
-                TryValidateKeyPath(entry.Path, out var path, out _);
+                TryValidateKeyPath(entry.Path, out var path, out _, entry.ActionName);
                 saved.bindings.Add(new SavedBinding
                 {
                     actionId = entry.ActionId.ToString(), bindingId = entry.BindingId.ToString(), path = path

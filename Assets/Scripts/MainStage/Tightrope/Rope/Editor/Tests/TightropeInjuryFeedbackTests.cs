@@ -11,8 +11,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     public sealed class TightropeInjuryFeedbackTests
     {
         [TestCase(BodyPart.None, 1f)]
-        [TestCase(BodyPart.LeftLeg, 0.8f)]
-        [TestCase(BodyPart.LeftLeg | BodyPart.RightLeg, 0.5f)]
+        [TestCase(BodyPart.LeftArm, 1f)]
+        [TestCase(BodyPart.LeftLeg, 0.9f)]
+        [TestCase(BodyPart.LeftLeg | BodyPart.RightLeg, 0.65f)]
         public void InjuredSpeedIsCommonBeforeAndAfterLeavingRope(BodyPart lost, float expected)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -29,11 +30,10 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 effects.SetPolicy(policy);
                 typeof(BodyDamageEffects).GetMethod("Update", flags).Invoke(effects, null);
                 Assert.That(mover.SpeedMultiplier, Is.EqualTo(expected).Within(0.0001f));
-                Assert.That(mover.JumpHeightMultiplier,
-                    Is.EqualTo(GameSettings.Base.BodyDamage.JumpHeightForLostLegs(condition.LostLegCount)));
-                Assert.That(balance.SwayMultiplier, Is.EqualTo(GameSettings.Tightrope.RopeMovement.NaturalSwayMultiplier
-                    * (1f + GameSettings.Tightrope.BodyPenalty.SwayPerLostLeg * condition.LostLegCount)).Within(.0001f),
-                    "건강할 때의 외줄 흔들림과 부상 증가분을 함께 적용한다.");
+                Assert.That(mover.JumpHeightMultiplier, Is.EqualTo(1f));
+                Assert.That(go.GetComponent<PlayerInteraction>().ReachMultiplier, Is.EqualTo(1f));
+                Assert.That(balance.SwayMultiplier, Is.EqualTo(GameSettings.Tightrope.RopeMovement.NaturalSwayMultiplier).Within(.0001f),
+                    "부상과 관계없이 같은 외줄 기본 흔들림을 쓴다.");
                 effects.SetPolicy(null);
                 typeof(BodyDamageEffects).GetMethod("Update", flags).Invoke(effects, null);
                 Assert.That(mover.SpeedMultiplier, Is.EqualTo(GameSettings.Base.BodyDamage.MoveMultiplier(condition.LostLegCount)));

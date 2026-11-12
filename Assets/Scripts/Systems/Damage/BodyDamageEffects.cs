@@ -7,7 +7,7 @@ namespace CurtainCall.Damage
 {
     /// <summary>
     /// 잃은 부위가 이 플레이어 몸에 주는 효과를 매 프레임 적용한다. 다른 플레이어에게는 영향이 없다(값은 이 플레이어 부품에만 넣는다).
-    /// 1) 게임 공통: 다리를 잃은 만큼 점프가 낮아지고, 두 다리를 잃으면 기어간다(점프 높이·속도 배율·캡슐 높이·점프 허용, 게임 기본 세팅 · 신체 손상).
+    /// 1) 게임 공통: 다리를 잃으면 느려지고, 두 다리를 잃으면 기어간다. 점프 높이는 부상과 관계없이 같다.
     /// 2) 콘텐츠 불이익: 묘기가 <see cref="SetPolicy"/>로 끼운 정책(<see cref="BodyPenaltyPolicy"/>)의 배율. 바꾸거나 빼면(null) 다음 프레임에 이전 효과가 사라진다.
     /// 시작 정책을 비우면 콘텐츠가 등록한 기본 정책(<see cref="DefaultPolicyFactory"/>)을 쓴다. 공통 코드는 특정 묘기 정책을 모른다.
     /// 캡슐 높이는 모든 화면에서 같게 바꾸고, 속도·균형·거리는 조작하는 화면에서만 실제로 쓰인다.
@@ -59,11 +59,11 @@ namespace CurtainCall.Damage
             bool crawling = IsCrawling;
             var penalty = Policy != null ? Policy.Evaluate(condition) : BodyPenalty.None;
             // 콘텐츠 정책은 균형만 추가한다. 이동·점프·손 닿는 거리는 씬과 무관하게 공통 설정을 사용한다.
-            penalty.MoveSpeed = condition.LostLegCount == 1 ? common.ExploreOneLegMoveSpeed : 1f;
+            penalty.MoveSpeed = common.MoveMultiplier(condition.LostLegCount);
             penalty.Reach = common.ReachMultiplier(condition.LostArmCount);
             Current = penalty;
 
-            mover.SpeedMultiplier = (crawling ? common.CrawlSpeedMultiplier : 1f) * penalty.MoveSpeed;
+            mover.SpeedMultiplier = penalty.MoveSpeed;
             if (TryGetComponent(out CurtainCall.Network.PlayerSync.NetworkPlayer player) && player.IsSpawned
                 && CurtainCall.HumanCannon.HumanCannonCarry.Held(player.OwnerClientId) is { } carried
                 && GameSettings.Base.Character.FreeMoveSpeed > 0f)

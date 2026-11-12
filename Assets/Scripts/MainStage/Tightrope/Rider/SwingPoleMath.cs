@@ -72,7 +72,7 @@ namespace CurtainCall.Tightrope
         public static bool InPoleReach(Vector3 position, Vector3 target, float reach)
         {
             Vector3 delta = position - target;
-            float distance = 2.5f * reach;
+            float distance = CurtainCall.Settings.GameSettings.Poles.GrabRadius * reach;
             return float.IsFinite(distance) && distance > 0f && delta.sqrMagnitude <= distance * distance;
         }
 

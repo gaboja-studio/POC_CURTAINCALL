@@ -79,7 +79,7 @@ namespace CurtainCall.HumanCannon.Tests
             Input(held: true, progress: 1);
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == ulong.MaxValue, 2, "긴 F로 내려놓기");
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "내려놓으면 운반 배율 제거");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.65f).Within(.001f), "내려놓으면 운반 배율 제거");
             yield return new WaitForEndOfFrame();
             Vector3 dropPosition = trampoline.transform.position;
             CarryMovementInput(Vector3.back);
@@ -98,16 +98,16 @@ namespace CurtainCall.HumanCannon.Tests
             Call(player, "RequestRestartAll");
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == ulong.MaxValue, 3, "R 운반 점유 초기화");
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "R은 운반 배율만 해제하고 기존 부상은 보존");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.65f).Within(.001f), "R은 운반 배율만 해제하고 기존 부상은 보존");
 
             Call(mover, "SetStartPose", handle.position, Quaternion.identity, true);
             Input(tapped: true);
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor, 2, "종료 전 운반");
             yield return null; yield return null;
-            Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(carrySpeed * .5f).Within(.001f));
+            Assert.That(walkSpeed * (float)Get(mover, "SpeedMultiplier"), Is.EqualTo(carrySpeed * .65f).Within(.001f));
             ((Behaviour)trampoline).enabled = false;
             yield return null; yield return null;
-            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.5f).Within(.001f), "장치 비활성화 후 운반 속도 해제");
+            Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(.65f).Within(.001f), "장치 비활성화 후 운반 속도 해제");
         }
 
         void CarryMovementInput(Vector3 worldDirection)

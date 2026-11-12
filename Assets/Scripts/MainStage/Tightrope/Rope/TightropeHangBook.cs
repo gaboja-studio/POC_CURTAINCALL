@@ -31,6 +31,15 @@ namespace CurtainCall.Tightrope
             /// <summary>끌어올리기 시작 때 도와주는 동료의 잃은 부위. 바뀌면(다침) 끊긴다.</summary>
             public int RescuerParts;
             public bool IsPulling => Rescuer != NoRescuer;
+
+            public bool ShortenBaseTime(double seconds)
+            {
+                double nextTotal = seconds + Extra;
+                if (nextTotal >= Total) return false;
+                Remaining = Math.Max(0d, Remaining - (Total - nextTotal));
+                Total = nextTotal;
+                return true;
+            }
         }
 
         public enum Outcome { None, Rescued, Dropped }
