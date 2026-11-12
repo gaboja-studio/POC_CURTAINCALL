@@ -25,7 +25,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Material green = Mat("LA_AbandonedInstitutionGreen"), beige = Mat("LA_OldPlasticBeige"), glass = Mat("LA_DeadScreenGlass"),
                 tube = Mat("LA_WhiteWorkBulb"), paper = Mat("LA_Paper");
             float x0 = CorX0, x1 = CorX1;
-            Deco(cor, "DropCeiling", beige, new(x0, 3.02f, CorZ0), new(x1, 3.06f, CorZ1));
+            // 낮은 천장 판(3m)은 두지 않는다: 위의 진짜 천장(5.2m)과 두 겹으로 보이고, 배관 연결 통로 쪽에서 중간을 막는 판처럼 보였다(2026-11-13 사용자).
+            const float top = CorH;
             // 벽 칠: 실제 문(생활 장소 문 x -3~-1)은 비운다.
             foreach (var (z, inward, gaps) in new[] { (CorZ1, -1f, new (float, float)[0]), (CorZ0, 1f, new[] { (-3.1f, -.9f) }) })
             {
@@ -36,7 +37,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                     {
                         float a = Mathf.Min(z, z + inward * .03f), b = Mathf.Max(z, z + inward * .03f);
                         Deco(cor, "WallPaintLow", green, new(cursor, 0, a), new(g0, 1.05f, b));
-                        Deco(cor, "WallPaintHigh", beige, new(cursor, 1.05f, a), new(g0, 3.02f, b));
+                        Deco(cor, "WallPaintHigh", beige, new(cursor, 1.05f, a), new(g0, top, b));
                         Deco(cor, "ChairRail", mSteel, new(cursor, 1.02f, Mathf.Min(z, z + inward * .05f)), new(g0, 1.08f, Mathf.Max(z, z + inward * .05f)));
                     }
                     cursor = g1;
@@ -53,10 +54,10 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             // 형광등: 하나는 꺼져 있다.
             foreach (var (x, lit) in new[] { (-10f, true), (-3.5f, false), (3f, true), (9.5f, true) })
             {
-                Deco(cor, "TubeHousing", mSteel, new(x - .7f, 2.94f, 48.2f), new(x + .7f, 3.02f, 48.5f));
-                Deco(cor, "Tube", lit ? tube : beige, new(x - .62f, 2.9f, 48.3f), new(x + .62f, 2.94f, 48.4f));
+                Deco(cor, "TubeHousing", mSteel, new(x - .7f, top - .08f, 48.2f), new(x + .7f, top, 48.5f));
+                Deco(cor, "Tube", lit ? tube : beige, new(x - .62f, top - .12f, 48.3f), new(x + .62f, top - .08f, 48.4f));
                 if (!lit) continue;
-                var l = new GameObject("TubeLight").AddComponent<Light>(); l.transform.SetParent(cor, false); l.transform.position = new Vector3(x, 2.6f, 48.35f);
+                var l = new GameObject("TubeLight").AddComponent<Light>(); l.transform.SetParent(cor, false); l.transform.position = new Vector3(x, top - .5f, 48.35f);
                 l.type = LightType.Point; l.color = new Color(.86f, .93f, 1f); l.intensity = 6f; l.range = 9f; l.shadows = LightShadows.None;
             }
         }
@@ -134,10 +135,10 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 Part(g, "Valve", knob, new(-.06f, 1.08f, .1f), new(.06f, 1.2f, .16f));
                 Part(g, "SoapShelf", mSteel, new(.25f, 1.1f, .03f), new(.55f, 1.13f, .16f));
                 Part(g, "Partition", tile, new(-1.34f, 0, 0), new(-1.26f, 1.9f, 1.25f));
-                if (drain != null) { Put(drain, live, new Vector2(x, south + .75f), 0f); count++; }
+                if (drain != null) { var placed = Put(drain, live, new Vector2(x, south + .75f), 0f); if (placed != null) placed.transform.position += Vector3.up * .012f; count++; } // 타일(1.2cm)·고인 물 위로 올린다(윗면이 겹쳐 깜빡였음)
             }
             Deco(live, "ShowerEndPartition", tile, new(-9.94f, 0, south), new(-9.86f, 1.9f, south + 1.25f));
-            if (puddle != null) Deco(live, "WetFloor", puddle, new(-15.6f, .013f, south + .3f), new(-12.2f, .016f, south + 2.2f));
+            if (puddle != null) Deco(live, "WetFloor", puddle, new(-15.6f, .016f, south + .3f), new(-12.2f, .02f, south + 2.2f));
             return count;
         }
 
@@ -203,10 +204,11 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             if (wall == null) return $"창고 가구 {props}개 / 보관실 동벽을 찾지 못해 창문을 내지 못했습니다";
             DormVentBuilder.Split(wall, null, wall.GetComponent<Renderer>().bounds, hole);
             var frame = Child(yard, "WindowFrame");
-            Deco(frame, "Sill", mSteel, new(-27.02f, WinY0 - .05f, WinZ0 - .05f), new(BoxX0 + .08f, WinY0, WinZ1 + .05f));
-            Deco(frame, "Head", mSteel, new(-27.02f, WinY1, WinZ0 - .05f), new(BoxX0 + .08f, WinY1 + .05f, WinZ1 + .05f));
-            Deco(frame, "Jamb", mSteel, new(-27.02f, WinY0, WinZ0 - .05f), new(BoxX0 + .08f, WinY1, WinZ0));
-            Deco(frame, "Jamb", mSteel, new(-27.02f, WinY0, WinZ1), new(BoxX0 + .08f, WinY1, WinZ1 + .05f));
+            // 창틀은 뚫린 면보다 1cm 안쪽으로 나오게(면이 같으면 깜빡인다).
+            Deco(frame, "Sill", mSteel, new(-27.02f, WinY0 - .05f, WinZ0 - .05f), new(BoxX0 + .09f, WinY0 + .01f, WinZ1 + .05f));
+            Deco(frame, "Head", mSteel, new(-27.02f, WinY1 - .01f, WinZ0 - .05f), new(BoxX0 + .09f, WinY1 + .05f, WinZ1 + .05f));
+            Deco(frame, "Jamb", mSteel, new(-27.02f, WinY0 + .01f, WinZ0 - .05f), new(BoxX0 + .09f, WinY1 - .01f, WinZ0 + .01f));
+            Deco(frame, "Jamb", mSteel, new(-27.02f, WinY0 + .01f, WinZ1 - .01f), new(BoxX0 + .09f, WinY1 - .01f, WinZ1 + .05f));
             return $"창고 가구 {props}개 / 보관실 동벽 창문(z {WinZ0}~{WinZ1}, y {WinY0}~{WinY1})";
         }
 
@@ -231,15 +233,16 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             {
                 Slab(g, "Floor", paint, new(BoxX0, y0, BoxZ0), new(BoxX1, y0 + t, BoxZ1));
                 Slab(g, "Roof", paint, new(BoxX0, y1 - t, BoxZ0), new(BoxX1, y1, BoxZ1));
-                Slab(g, "NorthEnd", paint, new(BoxX0, y0 + t, BoxZ1 - t), new(BoxX1, y1 - t, BoxZ1));
-                Slab(g, "SouthEnd", paint, new(BoxX0, y0 + t, BoxZ0), new(BoxX1, y1 - t, BoxZ0 + t));
+                // 끝판은 옆판 사이에 끼운다(모서리에서 바깥 면이 겹치면 깜빡인다).
+                Slab(g, "NorthEnd", paint, new(BoxX0 + t, y0 + t, BoxZ1 - t), new(BoxX1 - t, y1 - t, BoxZ1 - .005f));
+                Slab(g, "SouthEnd", paint, new(BoxX0 + t, y0 + t, BoxZ0 + .005f), new(BoxX1 - t, y1 - t, BoxZ0 + t));
                 // 동쪽 면: 발판 옆 문 둘레.
                 Slab(g, "EastSide", paint, new(BoxX1 - t, y0 + t, BoxZ0), new(BoxX1, y1 - t, DoorZ0));
                 Slab(g, "EastSide", paint, new(BoxX1 - t, y0 + t, DoorZ1), new(BoxX1, y1 - t, BoxZ1));
                 Slab(g, "EastSide", paint, new(BoxX1 - t, DoorTop, DoorZ0), new(BoxX1, y1 - t, DoorZ1));
-                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, y0 + t, DoorZ0 - .05f), new(BoxX1 + .02f, DoorTop + .05f, DoorZ0));
-                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, y0 + t, DoorZ1), new(BoxX1 + .02f, DoorTop + .05f, DoorZ1 + .05f));
-                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, DoorTop, DoorZ0), new(BoxX1 + .02f, DoorTop + .05f, DoorZ1));
+                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, y0 + t, DoorZ0 - .05f), new(BoxX1 + .02f, DoorTop - .01f, DoorZ0 + .01f));
+                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, y0 + t, DoorZ1 - .01f), new(BoxX1 + .02f, DoorTop - .01f, DoorZ1 + .05f));
+                Deco(g, "DoorFrame", mSteel, new(BoxX1 - t - .01f, DoorTop - .01f, DoorZ0 - .05f), new(BoxX1 + .02f, DoorTop + .05f, DoorZ1 + .05f));
                 // 안으로 열어 둔 문짝.
                 Deco(g, "DoorLeaf", mSteel, new(BoxX1 - t - .95f, y0 + t, DoorZ1 - .05f), new(BoxX1 - t, DoorTop, DoorZ1));
                 // 서쪽 면: 창문 둘레 네 조각.

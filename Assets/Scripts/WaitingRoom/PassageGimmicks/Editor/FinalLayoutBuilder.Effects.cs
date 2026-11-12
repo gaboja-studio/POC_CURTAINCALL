@@ -11,7 +11,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     // 최적화: 한 곳당 입자 수를 작게 잡고(먼지 24개, 녹 20개), 그림자·충돌 없이, 카메라가 가까울 때만 방출한다(ProximityParticles).
     public static partial class FinalLayoutBuilder
     {
-        const string DustMaterial = "Assets/Scenes/Levels/EscapeFacilityMotion/pendant-dust.mat";
+        // 처음 쓴 pendant-dust는 빛줄기용 셰이더라 입자가 보이지 않았다(2026-11-13 플레이에서 확인) → URP 기본 입자 재질.
+        const string DustMaterial = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ParticlesUnlit.mat";
         // 천장 먼지를 둘 곳(바닥 위 한 점). 천장 높이는 위로 쏴서 찾는다.
         static readonly (string name, float x, float y, float z)[] DustSpots =
         {
@@ -38,18 +39,22 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Physics.SyncTransforms();
 
             int dust = 0, skipped = 0;
-            var dustRoot = Child(root, "CeilingDust");
+            // 2026-11-13 사용자: 렉이 심해 천장 흙먼지는 뺀다(녹 가루만 남김). 다시 넣을 때만 true로.
+            const bool ceilingDust = false;
+            var dustRoot = ceilingDust ? Child(root, "CeilingDust") : null;
             foreach (var (name, x, y, z) in DustSpots)
             {
+                if (!ceilingDust) break;
                 // 천장: 사람 머리 높이에서 위로 쏴서 처음 닿는 면. 너무 높으면(12m 초과) 먼지가 보이지 않으니 12m로 자른다.
                 var from = new Vector3(x, y + 1.6f, z);
                 if (!Physics.Raycast(from, Vector3.up, out var hit, 30f, ~0, QueryTriggerInteraction.Ignore)) { skipped++; continue; }
-                float ceiling = Mathf.Min(hit.point.y, y + 12f);
+                // 천장이 높은 방은 천장에서 떨어뜨리면 눈높이까지 오지 않아 보이지 않는다 → 눈높이 위 4m 안쪽에서 내려오게 한다.
+                float ceiling = Mathf.Min(hit.point.y, y + 4.2f);
                 var ps = Particles(dustRoot, "Dust_" + name, new Vector3(x, ceiling - .12f, z), material, 14f);
-                var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(5f, 8f); main.startSpeed = new ParticleSystem.MinMaxCurve(.05f, .2f);
-                main.startSize = new ParticleSystem.MinMaxCurve(.015f, .05f); main.startColor = new Color(.78f, .7f, .58f, .55f); main.gravityModifier = .012f; main.maxParticles = 24;
-                var emission = ps.emission; emission.rateOverTime = 3f;
-                var shape = ps.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(4.5f, .05f, 4.5f); shape.rotation = new Vector3(90f, 0, 0);
+                var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(6f, 9f); main.startSpeed = new ParticleSystem.MinMaxCurve(.15f, .4f);
+                main.startSize = new ParticleSystem.MinMaxCurve(.05f, .12f); main.startColor = new Color(.86f, .78f, .64f, .78f); main.gravityModifier = .02f; main.maxParticles = 48; // 2026-11-13: 플레이에서 안 보여 키움
+                var emission = ps.emission; emission.rateOverTime = 6f;
+                var shape = ps.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(5f, 5f, .05f); shape.rotation = new Vector3(90f, 0, 0);
                 Drift(ps, .06f); dust++;
             }
 
@@ -60,13 +65,13 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 var b = Bounds(wall.transform); if (b.size == Vector3.zero) continue;
                 var ps = Particles(rustRoot, "Rust_" + wall.name, new Vector3(b.center.x, b.max.y - .1f, b.center.z), material, 4.5f);
                 var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(1.8f, 3f); main.startSpeed = new ParticleSystem.MinMaxCurve(.02f, .12f);
-                main.startSize = new ParticleSystem.MinMaxCurve(.012f, .035f); main.startColor = new Color(.5f, .22f, .1f, .8f); main.gravityModifier = .12f; main.maxParticles = 20;
-                var emission = ps.emission; emission.rateOverTime = 7f;
-                var shape = ps.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(Mathf.Max(b.size.x, .3f) + .3f, .1f, Mathf.Max(b.size.z, .3f) + .3f); shape.rotation = new Vector3(90f, 0, 0);
+                main.startSize = new ParticleSystem.MinMaxCurve(.04f, .09f); main.startColor = new Color(.7f, .3f, .1f, .95f); main.gravityModifier = .12f; main.maxParticles = 40;
+                var emission = ps.emission; emission.rateOverTime = 14f;
+                var shape = ps.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(Mathf.Max(b.size.x, .3f) + .5f, Mathf.Max(b.size.z, .3f) + .5f, .1f); shape.rotation = new Vector3(90f, 0, 0);
                 Drift(ps, .1f); rustCount++;
             }
             Undo.CollapseUndoOperations(undo); EditorSceneManager.MarkSceneDirty(layout.gameObject.scene);
-            return $"천장 먼지 {dust}곳(천장을 못 찾아 건너뜀 {skipped}) / 녹 가루 {rustCount}곳. 한 곳당 최대 입자 24·20개, 가까울 때만 방출";
+            return $"천장 먼지 {dust}곳(천장을 못 찾아 건너뜀 {skipped}) / 녹 가루 {rustCount}곳. 한 곳당 최대 입자 48·40개, 가까울 때만 방출";
         }
 
         static ParticleSystem Particles(Transform parent, string name, Vector3 position, Material material, float radius)

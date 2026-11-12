@@ -707,4 +707,3 @@ target.final:hidden-graffiti-4.desc | 두 개의 암호를 만들었어. 뭘 해
 target.final:uv-5.name | 숨겨진 낙서 — UV
 target.final:hidden-graffiti-5.name | 숨겨진 낙서 5
 target.final:hidden-graffiti-5.desc | 기계실 깊은 곳으로 와. 거기서 기다리고 있을게.
-target.structure-a:newspaper.page.1 | [공식 입장 발표] 도망치십시오. 지하로 가십시오…\n인류 종말 시작? 인류는 이제 어디로 가야 하는가?\n2024년 09월 12일

@@ -13,6 +13,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     public static partial class FinalLayoutBuilder
     {
         const string Prop = Apocalypse + "SM_Prop_";
+        const float CorridorCeiling = 5.2f;
         static readonly Color WarmBulb = new(1f, .74f, .46f);
         // 생활 장소 홀 안쪽 면(FinalLayoutBuilder.Rooms와 같은 값).
         const float HallX0 = -20f, HallX1 = 2f, HallZ0 = 37f, HallZ1 = 45.35f, HallH = 7.5f;
@@ -143,8 +144,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             const float N = 50.8f, S = 45.9f;
             // 공장 배관 한 줄이 낮은 천장 바로 아래 북벽을 따라 지나간다(문·창 위).
             // 동쪽 끝은 배관 연결 통로로 트여 있어 끝이 허공에 뜬다 → 동쪽 끝 구석에서 바닥으로 내려가는 수직 배관에 잇는다.
-            Run(cor, new Vector3(12.9f, 2.74f, N - .26f), Vector3.left, 25.9f);
-            Run(cor, new Vector3(12.9f, 0f, N - .26f), Vector3.up, 2.98f);
+            // 낮은 천장(3m)을 없애 천장이 5.2m 하나가 됐으므로(2026-11-13 사용자: 천장이 두 겹) 배관도 그 바로 아래로 올린다.
+            Run(cor, new Vector3(12.9f, CorridorCeiling - .26f, N - .26f), Vector3.left, 25.9f);
+            Run(cor, new Vector3(12.9f, 0f, N - .26f), Vector3.up, CorridorCeiling - .02f);
             // 북벽: 버려 둔 책상과 의자, 서랍장, 대기 의자, 막아 둔 문.
             Put(cor, "Table_02", new Vector3(-7.6f, 0, N - .5f), 0);
             Put(cor, "Papers_02", new Vector3(-7.9f, .715f, N - .45f), 25f);
@@ -171,9 +173,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 ("Papers_03", 4.8f, 49.5f, 10f), ("Papers_02", 6.1f, 46.9f, 95f), ("Papers_03", 9.7f, 48.2f, -65f), ("Papers_02", -11.1f, 47.0f, 5f) };
             foreach (var (prop, x, z, yaw) in sheets) Put(cor, prop, new Vector3(x, .005f, z), yaw);
             // 천장에서 늘어진 전선(꺼진 등 옆과 동쪽).
-            foreach (var p in new[] { new Vector3(-4.2f, 3f, 48.95f), new Vector3(-3.85f, 3f, 49.05f), new Vector3(6.5f, 3f, 47.2f) }) Wire(cor, p, Vector3.down, p.x > 0 ? .8f : 1.15f);
+            foreach (var p in new[] { new Vector3(-4.2f, CorridorCeiling, 48.95f), new Vector3(-3.85f, CorridorCeiling, 49.05f), new Vector3(6.5f, CorridorCeiling, 47.2f) }) Wire(cor, p, Vector3.down, p.x > 0 ? 1.6f : 2.4f);
             // 배관 아래 녹 자국과 걸레받이 얼룩.
-            foreach (var (x, w, h) in new[] { (-12.3f, .8f, 1.5f), (-2.9f, .7f, 1.3f), (7.5f, .9f, 1.6f), (11.7f, .7f, 1.2f) }) Stain(cor, streak, new Vector3(x, 2.5f - h * .5f, N - .012f), 0f, w, h);
+            foreach (var (x, w, h) in new[] { (-12.3f, .8f, 1.5f), (-2.9f, .7f, 1.3f), (7.5f, .9f, 1.6f), (11.7f, .7f, 1.2f) }) Stain(cor, streak, new Vector3(x, CorridorCeiling - .5f - h * .5f, N - .012f), 0f, w, h);
             foreach (var (x, w, h) in new[] { (-12.1f, 1.6f, 1.4f), (.4f, 1.3f, 1.2f), (11.2f, 1.8f, 1.5f) }) Stain(cor, bloom, new Vector3(x, h * .5f + .05f, S + .012f), 180f, w, h);
             // 형광등: 색을 조금 누렇게, 밝기를 낮춘다(한 개는 원래 꺼져 있다).
             int tuned = 0;

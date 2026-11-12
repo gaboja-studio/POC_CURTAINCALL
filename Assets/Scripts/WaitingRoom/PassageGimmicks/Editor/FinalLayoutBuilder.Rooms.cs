@@ -62,7 +62,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Slab(live, "Floor", mFloor, new(LiveX0, -.2f, SubZ0), new(LiveX1, 0, LiveZ1));
             // 홀(침상 구역)은 창고 컨테이너가 서는 높은 공간, 남쪽 두 방은 낮은 천장.
             Slab(live, "Ceiling", mCeil, new(LiveX0 - T, YardH, LiveZ0), new(LiveX1 + T, YardH + .2f, LiveZ1 + T));
-            Slab(live, "SubCeiling", mCeil, new(LiveX0 - T, RoomH, SubZ0 - T), new(LiveX1 + T, RoomH + .2f, LiveZ0));
+            // 북쪽 끝을 칸막이 벽 면(LiveZ0)과 같게 두면 두 면이 겹쳐 검은 줄이 깜빡인다 → 벽 속에서 끝낸다.
+            // 동·서·남쪽 끝도 벽 바깥 면과 같으면 옆 공간(창고)에서 가장자리가 깜빡인다 → 4cm씩 벽 속으로 들인다.
+            Slab(live, "SubCeiling", mCeil, new(LiveX0 - T + .04f, RoomH, SubZ0 - T + .04f), new(LiveX1 + T - .04f, RoomH + .2f, LiveZ0 - .05f));
             Wall(live, "NorthWall", mRust, new(LiveX0 - T, 0, LiveZ1), new(CorX0 - T, YardH, LiveZ1 + T));
             Wall(live, "NorthWallUpper", mRust, new(CorX0 - T, CorH, LiveZ1), new(LiveX1 + T, YardH, LiveZ1 + T));
             Wall(live, "EastWall", mRust, new(LiveX1, 0, SubZ0 - T), new(LiveX1 + T, YardH, LiveZ1));
@@ -107,11 +109,13 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Area(layout, "Area_N1_BackCorridor", new Vector3((CorX0 + CorX1) * .5f, 2.5f, (CorZ0 + CorZ1) * .5f), new Vector3(CorX1 - CorX0 + 1f, 7f, CorZ1 - CorZ0 + .8f));
             Area(layout, "Area_N2_OldQuarters", new Vector3((LiveX0 + LiveX1) * .5f, 2.5f, (SubZ0 + LiveZ1) * .5f), new Vector3(LiveX1 - LiveX0 + .8f, 7f, LiveZ1 - SubZ0 + .8f));
             Area(layout, "Area_N3_Storage", new Vector3((StoreX0 + StoreX1) * .5f, 4.6f, (StoreZ0 + StoreZ1) * .5f), new Vector3(StoreX1 - StoreX0 + .6f, 10.4f, StoreZ1 - StoreZ0 + .8f));
+            // 기계실 입구(숙소 환풍구 아래 비계 계단 통로): 구역이 없어 타이머가 멈췄다(2026-11-13 사용자).
+            Area(layout, "Area_N4_MachineEntry", new Vector3(25.85f, -.25f, 75.1f), new Vector3(4.6f, 10.2f, 7.4f));
             var zones = layout.Find("ExplorationTimer").GetComponentInChildren<ExplorationTimerZones>(true);
             if (zones != null)
             {
                 var so = new SerializedObject(zones); var list = so.FindProperty("runningZones");
-                foreach (var name in new[] { "Area_N1_BackCorridor", "Area_N2_OldQuarters", "Area_N3_Storage" })
+                foreach (var name in new[] { "Area_N1_BackCorridor", "Area_N2_OldQuarters", "Area_N3_Storage", "Area_N4_MachineEntry" })
                 {
                     bool has = false; for (int i = 0; i < list.arraySize; i++) has |= list.GetArrayElementAtIndex(i).stringValue == name;
                     if (!has) { list.InsertArrayElementAtIndex(list.arraySize); list.GetArrayElementAtIndex(list.arraySize - 1).stringValue = name; }

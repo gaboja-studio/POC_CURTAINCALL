@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom
             {"Area_DomePassage_Logistics11","무대 장치 보관실 연결 통로"},{"Area_DomePassage_Logistics12","화물 적재 구역 연결 통로"},
             {"Area_DomePassage_PropRoom","소품실 연결 통로"},{"Area_DomePassage_Stairs","계단 연결 통로"},
             {"Area_DomePassage_Workshop","작업실 연결 통로"},{"Area_DomePassage_HiddenPipeCrawl","배관 통로"},
-            {"Area_N1_BackCorridor","뒤쪽 복도"},{"Area_N2_OldQuarters","이전 세대 생활 장소"},{"Area_N3_Storage","창고"}
+            {"Area_N1_BackCorridor","뒤쪽 복도"},{"Area_N2_OldQuarters","이전 세대 생활 장소"},{"Area_N3_Storage","창고"},{"Area_N4_MachineEntry","기계실 입구"}
         };
         readonly List<BoxCollider> hudZones=new();
         float nextZoneCheck;

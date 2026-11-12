@@ -78,7 +78,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             ArcSlab(north, "Soffit", wallMat, StageX0 - WallT * .5f, StageX1, StageMouthZ + .05f, true, StageOpenH, false);
             Box(north, "ReturnWall", wallMat, new(StageX0 - WallT * .5f, 0, ArcZ(StageX0, true) - .3f), new(StageX0, DrumH, StageMouthZ + .25f), true);
             Box(north, "ReturnWall", wallMat, new(StageX1, 0, ArcZ(StageX1, true) - .15f), new(StageX1 + WallT * .5f, DrumH, StageMouthZ + .25f), true);
-            Box(north, "RoofCap", wallMat, new(StageX0 - WallT * .5f, StageOpenH, ArcZ(StageX0, true) - .3f), new(StageX1 + WallT * .5f, StageOpenH + .3f, StageMouthZ + .25f), false);
+            Box(north, "RoofCap", wallMat, new(StageX0 - WallT * .5f, StageOpenH, ArcZ(StageX0, true) - .3f), new(StageX1 + WallT * .5f, StageOpenH + .3f, StageMouthZ), false); // 통로 지붕(같은 높이)과 겹치면 천장이 깜빡인다 → 맞대기만 한다
 
             // 남쪽: 옛 무대 입구는 전실 폭만 남기고 벽으로 막는다. 전실 위는 문 높이까지만 연다.
             var seal = Child(root, "SouthSeal");
@@ -97,7 +97,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Box(hall, "SideWall", wallMat, new(VestibuleX0 - .3f, 0, WorkshopTo.yMax - .05f), new(VestibuleX0, DoorH + .4f, arc0 + .3f), true);
             Box(hall, "SideWall", wallMat, new(VestibuleX1, 0, PropTo.yMax - .05f), new(VestibuleX1 + .3f, DoorH + .4f, arc1 + .3f), true);
             // 전실 남쪽 끝은 사무실 복도 북벽이 막는다. 같은 자리에 벽을 하나 더 세우면 두 벽이 겹쳐 깜빡이므로 세우지 않는다.
-            Box(hall, "Roof", wallMat, new(VestibuleX0 - .3f, DoorH + .1f, CraftSouthZ - .5f), new(VestibuleX1 + .3f, DoorH + .4f, Mathf.Max(arc0, arc1) + .3f), true);
+            // 남쪽 끝이 복도 북벽 안쪽 면(z 50.85)과 같으면 복도에서 깜빡인다 → 벽 두께 안에서 끝낸다. 옆면도 옆벽 바깥 면보다 2cm 안쪽.
+            Box(hall, "Roof", wallMat, new(VestibuleX0 - .28f, DoorH + .1f, CraftSouthZ - .45f), new(VestibuleX1 + .28f, DoorH + .4f, Mathf.Max(arc0, arc1) + .28f), true);
             SaveLobbyMeshes();
 
             // 추격·탐색 영역과 밤 철창을 전실로 옮긴다.

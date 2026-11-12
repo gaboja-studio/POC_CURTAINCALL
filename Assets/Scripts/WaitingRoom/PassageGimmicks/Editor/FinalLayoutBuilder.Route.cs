@@ -20,7 +20,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
         const float MachineWestX = -3.8f, MachineSouthZ = 64.05f;
         // 세계 종말 날짜(2026-11-12 사용자: 낡은 신문의 날짜).
         internal const string ComputerDate = "20240912";
-        static readonly Vector3 SawSpot = new(-20f, 0f, 53.2f);
+        // 톱날 발사기는 무대 장치 보관실(원래 자리)에 둔다(2026-11-13 사용자).
+        static readonly Vector3 SawSpot = new(-54f, 0f, 42f);
 
         static readonly string[] RemovedObjects =
         {
@@ -122,11 +123,12 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var escapeCables = new EscapeCuttableCable[colors.Length]; var cableIds = new string[colors.Length];
             for (int n = 0; n < colors.Length; n++)
             {
-                float cableZ = doorEdgeZ + .4f + n * .42f, turn = 3.5f + n * .12f, reach = doorEdgeZ - cableZ;
+                // 위치는 구조도(관리실 배선과 같은 기계실 남서 모서리): 녹슨 벽 옆 서벽을 타고 올라가 벽 위로 넘어간다(2026-11-13 사용자).
+                float cableZ = MachineSouthZ + .8f + n * .42f;
                 var cableGo = new GameObject("EscapeCable_" + (n + 1), typeof(MeshFilter), typeof(MeshRenderer)); cableGo.transform.SetParent(root, false);
                 cableGo.transform.position = new Vector3(wallX + .05f, floorY, cableZ);
                 var cable = cableGo.AddComponent<EscapeCuttableCable>(); var cso = new SerializedObject(cable);
-                var path = new[] { new Vector3(0, 0, 0), new Vector3(0, 1.2f, .03f), new Vector3(0, 2.6f, -.03f), new Vector3(0, turn - .2f, 0), new Vector3(0, turn, reach * .5f), new Vector3(0, turn, reach) };
+                var path = new[] { new Vector3(0, 0, 0), new Vector3(0, 1.2f, .03f), new Vector3(0, 2.6f, -.03f), new Vector3(0, 4.7f, 0), new Vector3(-.14f, 4.96f, 0), new Vector3(-.36f, 4.99f, 0) };
                 var points = cso.FindProperty("localPoints"); points.arraySize = path.Length;
                 for (int i = 0; i < path.Length; i++) points.GetArrayElementAtIndex(i).vector3Value = path[i];
                 cableIds[n] = EscapeCableId + "-" + (n + 1);
@@ -141,6 +143,18 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Refs(sso.FindProperty("cables"), new Object[] { hidden }.Concat(escapeCables).ToArray()); sso.FindProperty("openTarget").stringValue = "";
             sso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(saw);
             Undo.RecordObject(saw.transform, "Move saw"); saw.transform.position = SawSpot;
+            // 충돌 범위: 몸통 상자가 1.15 x 1.5 x 1.05m라 좁은 곳을 들고 지나갈 수 없고 사람 길도 막았다 → 0.6 x 1.2 x 0.6m로 줄이고 손잡이 충돌체는 끈다.
+            foreach (var box in saw.GetComponentsInChildren<BoxCollider>(true))
+            {
+                var world = box.bounds.size; if (world.x < .7f && world.z < .7f) continue;
+                Undo.RecordObject(box, "Shrink saw collider");
+                var size = box.size; var k = new Vector3(.6f / Mathf.Max(world.x, .01f), 1.2f / Mathf.Max(world.y, .01f), .6f / Mathf.Max(world.z, .01f));
+                // 로컬 축과 월드 축이 다를 수 있어, 로컬 축마다 가장 가까운 월드 축의 비율을 쓴다. 바닥 높이는 유지한다.
+                var t = box.transform; var scaled = size;
+                for (int axis = 0; axis < 3; axis++) { var dir = Vector3.zero; dir[axis] = 1; var w = t.TransformDirection(dir); int wa = Mathf.Abs(w.x) >= Mathf.Abs(w.y) && Mathf.Abs(w.x) >= Mathf.Abs(w.z) ? 0 : Mathf.Abs(w.y) >= Mathf.Abs(w.z) ? 1 : 2; scaled[axis] = size[axis] * Mathf.Min(1f, k[wa]); if (wa == 1) { var c = box.center; c[axis] -= (size[axis] - scaled[axis]) * .5f * Mathf.Sign(w.y); box.center = c; } }
+                box.size = scaled; PrefabUtility.RecordPrefabInstancePropertyModifications(box);
+            }
+            foreach (var mesh in saw.GetComponentsInChildren<MeshCollider>(true)) { if (!mesh.enabled) continue; Undo.RecordObject(mesh, "Disable handle collider"); mesh.enabled = false; PrefabUtility.RecordPrefabInstancePropertyModifications(mesh); }
             PrefabUtility.RecordPrefabInstancePropertyModifications(saw.transform);
 
             // 관리실 컴퓨터: 감시 콘솔 자판에 단말기 화면을 붙인다. 위 칸 종말 날짜(낡은 신문의 날짜 2024년 09월 12일), 아래 칸 RUN.
@@ -169,7 +183,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             if (panel != null) { Set(panel, "openedBy", EscapeRouteId); PrefabUtility.RecordPrefabInstancePropertyModifications(panel); }
 
             Physics.SyncTransforms();
-            notes.Add($"탈출로 배선 4가닥 z {doorEdgeZ + .4f:F2}~{doorEdgeZ + .4f + 3 * .42f:F2} / 톱날 발사기 {SawSpot}");
+            notes.Add($"탈출로 배선 4가닥 z {MachineSouthZ + .8f:F2}~{MachineSouthZ + .8f + 3 * .42f:F2} / 톱날 발사기 {SawSpot}");
             Undo.CollapseUndoOperations(undo); EditorSceneManager.MarkSceneDirty(layout.gameObject.scene);
             return string.Join(" / ", notes);
         }
