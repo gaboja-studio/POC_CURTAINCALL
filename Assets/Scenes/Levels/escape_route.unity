@@ -37228,7 +37228,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0.8333333
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -206428,7 +206428,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0.33333334
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -240218,7 +240218,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 586440194}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: -12.999996, y: 0, z: 7.855442}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -327097,7 +327097,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0.6666667
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -333863,7 +333863,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 821710317}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: -12.999996, y: 0, z: -19.57228}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -394078,7 +394078,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0.5
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -673752,7 +673752,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684433099}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: 91, y: 0, z: 16.999996}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -696937,7 +696937,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0.16666667
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -733497,7 +733497,7 @@ MonoBehaviour:
   radius: 8
   metersPerSecond: 5
   phase01: 0
-  yawOffsetDegrees: 0
+  yawOffsetDegrees: 180
   reverseDirection: 0
   wallFed: 1
   exitStraightLength: 56
@@ -770709,7 +770709,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1943802651}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: 8.716797, y: 0, z: 16.999989}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -785422,7 +785422,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1988186868}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: 36.14454, y: 0, z: 16.999992}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -788795,7 +788795,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2002662558}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
   m_LocalPosition: {x: 63.572266, y: 0, z: 16.999996}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
