@@ -83,7 +83,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         }
         static bool IsDistant(PursuitPlacement item, Vector3 position)
         {
-            var route = item.Route(item.GetComponentInParent<PursuitRoom>());
+            var route = item.Route(item.OwnerRoom());
             if (item.RouteDetachDistance <= 0 || route == null || !route.Any(p => p != null)) return false;
             var closest = PursuitActor.ClosestPatrolPosition(position, route, position);
             return Vector3.Distance(position, closest) > item.RouteDetachDistance;

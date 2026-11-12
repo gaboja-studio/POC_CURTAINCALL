@@ -122,3 +122,13 @@
 - 해결: 씬은 우리 쪽 유지. 트램펄린 교체는 S05·S09·S11 공간 프리팹에 반영(기본 위치·회전·크기, 형제 순서 6 동일). Base의 충돌체 '제거' 오버라이드 46개를 되돌려 프리팹 충돌체 사용.
 - 검증: dev 씬 대비 이름·위치·컴포넌트·참조 비교 차이 0(두 씬 모두, BasementRooms 분할만 다름). dev가 Base에 넣은 BoxCollider 38개 크기·중심 값이 모두 일치(MeshCollider 값은 비교 안 함). 두 씬 오클루전 다시 구움.
 - 테스트: EditMode(WaitingRoom) 338 중 335 통과, 실패 3은 기존(문구 2·추격 배치 1). 카메라 커버리지 Base·W6는 dev 반영으로 통과. PlayMode `WaitingRooms_Architecture` 3개 통과.
+- 2026-11-11 작업노트 업로드: Confluence 「M2 작업 - 서민규」 아래 [M2] 대기실 공간 프리팹화·dev 병합 작업 기록 (11/11) (페이지 40566795, https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/40566795).
+
+## 2026-11-12 추격자 배치를 방 공간 프리팹에 포함(사용자 요청)
+- 문제: 마네킹 배치 26개(PursuitPlacement + WatchPoint)가 씬 `PursuitSystem/<방>` 아래에 있어 공간 프리팹에 없었음. 에디터의 WaitingRoom 미저장 변경은 사용자 지시로 버리고 진행.
+- 이동: 각 방 프리팹 루트 아래 `PursuitPlacements`로 복제(월드 위치·회전·감시 지점 유지). 방 프리팹이 없는 영역은 Lobby→S01_Lobby, F8_Cargo·ServiceGallery→FacilityConnections. 프리팹 14개 변경. `PursuitRoom.Placements`를 프리팹 안 배치로 다시 연결하고 씬 쪽 옛 배치 삭제.
+- WaitingRoomBase: 같은 프리팹 배치로 다시 연결. 25개는 값 동일, 폐기물 보관소 Mannequin_Male_03만 Base 값(위치·회전·외형)이 달라 인스턴스 오버라이드로 유지. WaitingRoomPursuit는 공간 프리팹을 쓰지 않아 그대로.
+- 배치 창: `PursuitAuthoring` 추가·이동·삭제·감시 지점 편집이 공간 프리팹 인스턴스면 0.4초 뒤(드래그 종료 후) 해당 배치만 프리팹에 적용. 새 배치는 방 프리팹의 `PursuitPlacements`에 생성. 부모가 방이 아니어도 소속 방을 찾도록 `PursuitPlacement.OwnerRoom()` 추가(기즈모·먼 경로 판정).
+- 검증: 추가·삭제를 실제로 실행해 프리팹 자식 수 반영·되돌린 뒤 프리팹 파일 해시 동일 확인. 추격 씬과 통합 씬 배치 비교에서 24개 동일, 차이 2개는 기존 차이(소품실 Male_04 Size=Medium, 폐기물 Male_03 위치).
+- 테스트: EditMode Pursuit 141 중 140 통과. 실패 1 `UnifiedWaitingRoom_PreservesPursuitAuthoringAndSceneReferences`는 위 기존 차이 2개 때문(순서 비교는 AreEquivalent로 변경). WaitingRoom 전체 409 중 406 통과, 나머지 2는 기존 문구 파일 실패.
+- 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(check-work 자동 테스트 미선택, 위 EditMode 별도 실행)
