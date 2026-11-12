@@ -35,3 +35,5 @@
 - 이전 실행은 `-batchmode -nographics`였다. 로그에서 `C16 Close rejected`가 먼저 찍혔다. 커튼이 닫힌 렌더 프레임을 확인할 수 없는 모드라 닫기 요청이 거부되고 씬 전환이 취소됐다.
 - `origin/dev` `1764a21c`를 기존 수정과 함께 반영했다. 일반 Unity 에디터(Direct3D 11)에서 커튼 전환을 통과했고 첫날 ‘대기실’과 ‘1일차 · 두 번째 공연 준비’ 카드가 표시됐다. 집중 Play Mode 검사 1/1 통과: 실제 카드 제목과 본문에 접두사가 없었으며 Game View 캡처 `08-verified-first-day-gather.png`도 확인했다.
 - 전체 첫날 흐름 테스트는 커튼 이후 ‘둘째 공연 확정 전 집결 차단’ 검사에서 실패했다. 현재 `RunState.NotifyAllAtStageEntrance()`는 안내가 끝나면 일정 확정을 집결 조건으로 요구하지 않아 기존 테스트의 기대와 다르다. 게임 규칙은 변경하지 않았다.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/354 (fix/ui/message → dev)
