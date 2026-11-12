@@ -27,6 +27,7 @@ namespace CurtainCall.WaitingRoom
             // The next room starts at round 1 again. Old local acknowledgements must not skip its return.
             endingRound = returnedRound = notifiedRound = -1;
             returnPoseRound = -1;
+            returnPoseOwner = null;
             guideRound = -1;
             actionGuides.Clear(); pendingGuides.Clear();
             returnAt = 0d;
@@ -36,10 +37,13 @@ namespace CurtainCall.WaitingRoom
             fader?.Cancel();
             fallen.Clear();
             fallenAt.Clear();
+            priorConditions.Clear(); recoveringPlacement.Clear();
             lastCarrier = CurtainCall.HumanCannon.CannonSeatState.Nobody;
             local = null; previousState = default;
-            localRecoveryPending = false;
+            localRecoveryPending = placingAfterRecovery = false;
+            lastSafePose = null;
             room = null;
+            roomFloor = null;
             nextPlacement = nextPublish = 0f;
         }
 
@@ -158,9 +162,17 @@ namespace CurtainCall.WaitingRoom
             if (!Host || !shared.active || shared.ending || course == null || round != shared.round || shared.placed.Contains(actor)) return;
             var player = NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == actor && p.State == PlayerState.Normal);
             var floor = Checkpoint(actor) > 0 ? course.MiddleFloor : course.StartFloor;
-            if (player == null || !RehearsalCannonCourse.Contains(floor, position)
-                || !RehearsalCannonCourse.Contains(floor, player.transform.position) || Vector3.Distance(position, player.transform.position) > .75f) return;
-            shared.placed.Add(actor); RecordAction("PLACED", actor, Checkpoint(actor) > 0 ? "MIDDLE_PLATFORM" : "START_PLATFORM"); Publish();
+            if (player == null || Vector3.Distance(position, player.transform.position) > .75f) return;
+            bool recovery = recoveringPlacement.Contains(actor);
+            bool OnExpectedDeck(Vector3 feet) => recovery ? course.IsRecoveryDeck(feet) : RehearsalCannonCourse.Contains(floor, feet);
+            if (!OnExpectedDeck(position) || !OnExpectedDeck(player.transform.position)) return;
+            recoveringPlacement.Remove(actor);
+            if (recovery && shared.restoringCarrier && shared.previousCarrier == actor)
+            {
+                course.Trampoline?.ServerRestoreRehearsalCarrier(player);
+                shared.restoringCarrier = false;
+            }
+            shared.placed.Add(actor); RecordAction("PLACED", actor, recovery ? "LAST_SAFE_POSITION" : Checkpoint(actor) > 0 ? "MIDDLE_PLATFORM" : "START_PLATFORM"); Publish();
         }
     }
 }

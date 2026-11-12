@@ -100,6 +100,7 @@ namespace CurtainCall.WaitingRoom
             var placed = new List<Vector3>();
             foreach (var prop in carry.Floor)
             {
+                if (!ExplorationKeys.ItemEnabled(prop.Item.ItemId)) continue;
                 stale.Remove(prop.Item.Uid);
                 if (!shown.TryGetValue(prop.Item.Uid, out var item))
                 {

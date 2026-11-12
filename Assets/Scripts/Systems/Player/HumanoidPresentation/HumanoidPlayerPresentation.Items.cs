@@ -69,6 +69,7 @@ namespace CurtainCall.Player
         /// <summary>kind는 재생할 동작, policyKind는 이동·스킵 허용을 읽을 설정 항목(예: 열쇠 줍기 = 줍기 동작 + 열쇠 설정).</summary>
         public void RequestItemMotion(int kind, Vector3 point, int policyKind)
         {
+            if (!ExplorationKeys.Enabled && (kind == 3 || policyKind == 3)) return;
             if (kind < 0 || kind > 4 || policyKind < 0 || policyKind > 4 || model == null || condition.AllLimbsLost
                 || !CanUseItemHands || InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
@@ -81,6 +82,7 @@ namespace CurtainCall.Player
         }
         public void ReceiveItemMotion(int kind, Vector3 point, bool allowMovement)
         {
+            if (!ExplorationKeys.Enabled && kind == 3) return;
             if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost || !CanUseItemHands) return;
             activeInteractionKind = kind;
             activeInteractionAllowsMovement = allowMovement;
@@ -195,7 +197,7 @@ namespace CurtainCall.Player
             if (spine != null && facing.sqrMagnitude > .01f && direction.sqrMagnitude > .01f)
                 spine.rotation = Quaternion.FromToRotation(facing.normalized, direction.normalized) * spine.rotation;
         }
-        void CancelItemAction()
+        internal void CancelItemAction()
         {
             if (toolUse != null) StopCoroutine(toolUse); toolUse = null;
             itemActionRevision++;

@@ -600,7 +600,7 @@ rehearsal.quest.lane-learned | 옆줄 착지 성공! 짧은 도착대까지 이�
 # 인간대포·트램펄린 리허설 (Confluence 3.5, Start 연결 공연 원본 기물)
 cannon-rehearsal.title | 인간대포/트램펄린
 cannon-rehearsal.quest-title | [tutorial] 인간대포와 트램펄린
-cannon-rehearsal.intro | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막 체크포인트에서 다시 시작합니다.
+cannon-rehearsal.intro | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.
 cannon-rehearsal.intro-no-recovery | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다.
 cannon-rehearsal.first | F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요.
 cannon-rehearsal.second | 인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다.
@@ -611,7 +611,7 @@ cannon-rehearsal.air | WASD로 동료의 트램펄린 위에 내려오세요. �
 cannon-rehearsal.bounce | 트램펄린의 반동을 받아 WASD로 최종 도착대에 착지하세요. 놓인 트램펄린에는 천 위로 점프해 스스로 반동을 받을 수 있습니다.
 cannon-rehearsal.self | 동료가 모두 도착했습니다. 머리 위가 빈 곳에서 F를 길게 눌러 트램펄린을 놓고, 천 위로 점프해 반동을 받으세요. WASD로 최종 도착대에 착지하세요.
 cannon-rehearsal.fall-title | 사망
-cannon-rehearsal.fall-recover | 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
+cannon-rehearsal.fall-recover | 잠시 뒤 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.
 cannon-rehearsal.fall | 사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다.
 cannon-rehearsal.required-title | 인간대포 리허설
 cannon-rehearsal.unlocked-title | 새 공연 해금 · 인간대포 리허설

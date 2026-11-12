@@ -69,6 +69,7 @@ namespace CurtainCall.HumanCannon
                 airControl.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
                 return;
             }
+            if (input.UseDevicePressed && TryHandleCarryInput(input)) return;
             if (HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.ReadInput(player, input)) return;
             if (TryHandleCarryInput(input)) return;
             if (stationIndex >= 0)

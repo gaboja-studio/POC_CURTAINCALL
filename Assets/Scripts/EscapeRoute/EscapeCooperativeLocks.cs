@@ -81,9 +81,12 @@ namespace CurtainCall.EscapeRoute
         internal static bool OpenAt(uint complete, uint supported, int index) => index >= 0 && index < 32
             && ((complete | supported) & (1u << index)) != 0;
         bool UsesPole(int index) => Valid(index) && (checkpoints[index].helperPole != null || checkpoints[index].returnHelperPole != null);
-        public bool IsLatched(int index) => Valid(index) && !UsesPole(index) && (latched & (1u << index)) != 0;
+        bool LatchesBridgeOnGrab(int index) => checkpoints[index].span != null && checkpoints[index].latchWhenCrewReady;
+        bool AllowsLatch(int index) => !UsesPole(index) || LatchesBridgeOnGrab(index)
+            || (checkpoints[index].lockedStation != null && checkpoints[index].shoulderControl != null);
+        public bool IsLatched(int index) => Valid(index) && AllowsLatch(index) && (latched & (1u << index)) != 0;
         public bool IsArmed(int index) => Valid(index) && (armed & (1u << index)) != 0;
-        public bool IsOpen(int index) => Ready && Valid(index) && OpenAt(UsesPole(index) ? 0u : latched, held, index);
+        public bool IsOpen(int index) => Ready && Valid(index) && OpenAt(AllowsLatch(index) ? latched : 0u, held, index);
 
         void OnEnable()
         {
@@ -188,10 +191,11 @@ namespace CurtainCall.EscapeRoute
                 int returning = HelperIndex(i, true);
                 if (UsesPole(i))
                 {
-                    // 스위치 봉은 직접 잡은 상단 사람 한 명으로 작동한다. 도착·버튼·아래 사람으로 고정하지 않는다.
+                    // 직접 잡은 상단 사람이 스위치 봉을 작동시킨다. 지정된 대포 버튼과 권상교만 가동을 고정한다.
                     bool active = UpperHolderAlive(poleIndex) || UpperHolderAlive(returning);
                     if (active) held |= bit;
-                    latched &= ~bit;
+                    if (active && LatchesBridgeOnGrab(i)) latched |= bit;
+                    if (!AllowsLatch(i)) latched &= ~bit;
                     continue;
                 }
                 int helpers = HelperCount(poleIndex) + (returning != poleIndex ? HelperCount(returning) : 0);

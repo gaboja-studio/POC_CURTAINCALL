@@ -1,3 +1,5 @@
+using System.Reflection;
+using CurtainCall.Damage;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -21,6 +23,32 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.forward * 4, Quaternion.identity, null));
                 Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.forward * 4, Quaternion.identity, null, false));
             } finally { Object.DestroyImmediate(root); Object.DestroyImmediate(wall); }
+        }
+
+        [Test]
+        [Category("CommonProgressionRegression")]
+        public void CarryIgnoresDetachedLimbsAndCanLeaveAnExistingContact()
+        {
+            var root = new GameObject("Carry overlap probe");
+            var obstacle = new GameObject("Carry obstruction");
+            try
+            {
+                root.transform.position = new Vector3(12000f, 100f, 12000f);
+                var body = root.AddComponent<BoxCollider>();
+                var shape = obstacle.AddComponent<BoxCollider>();
+                shape.size = new Vector3(.6f, 2f, 3f);
+                obstacle.transform.position = root.transform.position + Vector3.right * .55f;
+                Physics.SyncTransforms();
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.left, Quaternion.identity, null));
+                var check = typeof(HumanCannonCarry).GetMethod("CheckMove", BindingFlags.NonPublic | BindingFlags.Static);
+                bool Try(Vector3 travel) => (bool)check.Invoke(null, new object[] { root.transform, body,
+                    root.transform.position + travel, Quaternion.identity, null, true, 0f, null, true, Vector3.zero });
+                Assert.IsTrue(Try(Vector3.left));
+                Assert.IsFalse(Try(Vector3.right));
+                obstacle.AddComponent<DismemberedLimb>();
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, root.transform.position + Vector3.right, Quaternion.identity, null));
+            }
+            finally { Object.DestroyImmediate(root); Object.DestroyImmediate(obstacle); }
         }
 
         [Test]

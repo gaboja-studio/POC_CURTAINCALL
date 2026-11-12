@@ -268,11 +268,16 @@ namespace CurtainCall.Player
         /// 땅에 없어도 지금 자리에서 제자리 점프를 바로 시작한다(예: 목마 맨 위 앞·뒤 분리 점프). 이동을 계산 중(<see cref="Simulated"/>)이어야 한다.
         /// <paramref name="alongSpeed"/>: 코스 앞(+)·뒤(−) 수평 속도(m/s), 착지까지 고정. 높이·공중·착지 처리는 보통 점프와 같다.
         /// </summary>
-        public void LaunchJump(float alongSpeed)
+        bool directionalLaunchPending;
+
+        public void LaunchJump(float alongSpeed) => StartDirectionalJump(CourseForward * alongSpeed, false);
+
+        internal void StartDirectionalJump(Vector3 horizontalVelocity, bool preserveFirstStep = true)
         {
-            groundVelocity = CourseForward * alongSpeed;
+            groundVelocity = Vector3.ProjectOnPlane(horizontalVelocity, Vector3.up);
             IsMoving = false;
             StartJump(JumpKind.InPlace, 0);
+            directionalLaunchPending = preserveFirstStep;
         }
 
         /// <summary>봉 등 외부 이동과 인계할 때 이전 점프·옆줄 목표를 비운다. 위치·조작 규칙은 바꾸지 않는다.</summary>
@@ -479,6 +484,14 @@ namespace CurtainCall.Player
         {
             foreach (var other in active)
                 if (other != this) Physics.IgnoreCollision(controller, other.controller, true);
+            CurtainCall.Damage.DismemberedLimb.IgnoreFor(controller);
+        }
+
+        internal static void IgnoreLimbForPlayers(Collider limb)
+        {
+            foreach (var mover in active)
+                if (mover.controller != null && mover.controller.enabled && mover.gameObject.activeInHierarchy)
+                    Physics.IgnoreCollision(mover.controller, limb);
         }
 
         void OnDisable() => active.Remove(this);
@@ -587,12 +600,7 @@ namespace CurtainCall.Player
                 if (FreeMovement)
                 {
                     float side = ControlEnabled ? sideInput : 0f;
-                    Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
-                    IsMoving = input.sqrMagnitude > 0.0001f;
-                    if (IsMoving)
-                        transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
+                    groundVelocity = ReadFreeMovement(forward, move, side);
                 }
                 else
                 {
@@ -614,28 +622,16 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
-                if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane)
+                if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane && !directionalLaunchPending)
                 {
-                    Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * sideInput, 1f);
-                    if (CurrentJump == JumpKind.None) airVelocity = groundVelocity;
-                    if (input.sqrMagnitude > .0001f)
-                    {
-                        // Keep takeoff speed while steering; releasing movement stops horizontal travel.
-                        // A stationary jump can still begin moving using the existing common settings.
-                        float speed = airVelocity.magnitude;
-                        airVelocity = speed > .0001f ? input.normalized * speed
-                            : input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
-                    }
-                    else airVelocity = Vector3.zero;
+                    airVelocity = ReadFreeMovement(forward, move, sideInput);
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
                     if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
-                    if (input.sqrMagnitude > .0001f)
-                        transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
                 }
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;
+            directionalLaunchPending = false;
             bool ballistic = CurrentJump != JumpKind.None || !grounded;
             var velocity = new Vector3(horizontal.x, verticalSpeed, horizontal.z);
             Vector3 displacement = ballistic ? BallisticMotion.Step(ref velocity, Vector3.zero, EffectiveGravity, Time.deltaTime)
@@ -659,6 +655,16 @@ namespace CurtainCall.Player
             laneJumpRequested = 0;
 
             UpdateAirborne();
+        }
+
+        Vector3 ReadFreeMovement(Vector3 forward, float move, float side)
+        {
+            Vector3 direction = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
+            IsMoving = direction.sqrMagnitude > .0001f;
+            if (IsMoving)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                    Quaternion.LookRotation(direction, Vector3.up), Character.TurnSpeed * Time.deltaTime);
+            return direction * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
         }
 
         void MoveWithPassengers(Vector3 displacement)
@@ -963,6 +969,7 @@ namespace CurtainCall.Player
             jumpHeight = 0f;
             LaneJumpDirection = 0;
             airVelocity = Vector3.zero;
+            directionalLaunchPending = false;
             laneAlongLimited = false;
             laneFlightUntil = 0;
         }

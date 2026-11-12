@@ -41,18 +41,18 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Transform rewardPoint;
 
         public string TargetId => targetId;
-        public string ToolId => toolId;
+        public string ToolId => ExplorationKeys.ItemEnabled(toolId) ? toolId : "";
         public string ToolName => ItemCatalog.Get(toolId)?.displayName ?? toolId;
         public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
         string MonitorText => WaitingRoomText.Get("target." + targetId + ".text", monitorText);
-        public string RewardItemId => rewardItemId;
+        public string RewardItemId => ExplorationKeys.ItemEnabled(rewardItemId) ? rewardItemId : "";
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
         public int RewardUidOffset => rewardUidOffset;
         public bool IsOpenGate => kind == ExplorationGateKind.Open;
         public static bool IsKeyTarget(string id) => System.Array.IndexOf(ExplorationKeys.Targets, id) >= 0;
         public bool IsKeyPickup => IsKeyTarget(targetId);
-        public bool UsesKey => HasKeySlots || (requiredTargets!=null && requiredTargets.Any(IsKeyTarget));
-        public bool AcceptsKey(PropItem item) => item.Uid != 0 && item.Uses != 0 && requiredTargets != null
+        public bool UsesKey => ExplorationKeys.Enabled && (HasKeySlots || (requiredTargets!=null && requiredTargets.Any(IsKeyTarget)));
+        public bool AcceptsKey(PropItem item) => ExplorationKeys.Enabled && item.Uid != 0 && item.Uses != 0 && requiredTargets != null
             && requiredTargets.Any(id => IsKeyTarget(id) && id == ExplorationKeys.TargetId(item.ItemId));
         public bool LocalHasKey => PropCarry.Instance != null && AcceptsKey(PropCarry.Instance.InHand(PropCarry.Instance.LocalClientId));
         public string RevealTarget => revealTarget;
@@ -80,7 +80,9 @@ namespace CurtainCall.WaitingRoom
         public void ConfigureOpenedBy(string id) => openedBy = id ?? "";
         public bool Opened => ExplorationState.Instance != null && (ExplorationState.Instance.IsOpen(targetId)
             || (!string.IsNullOrEmpty(openedBy) && ExplorationState.Instance.IsOpen(openedBy)));
-        public bool Visible => !revealPending && (string.IsNullOrEmpty(revealTarget) || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(revealTarget)));
+        public bool Visible => (ExplorationKeys.Enabled || !IsKeyPickup) && !revealPending
+            && (string.IsNullOrEmpty(revealTarget) || !ExplorationKeys.Enabled && IsKeyTarget(revealTarget)
+                || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(revealTarget)));
         public bool ConditionsMet
         {
             get
@@ -111,7 +113,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Transform interactionPoint;
         [Tooltip("협력 문의 열쇠 구멍. 두 사람이 서로 다른 구멍에서 동시에 F.")]
         [SerializeField] Transform[] keySlots;
-        public bool HasKeySlots => keySlots != null && keySlots.Length > 1;
+        public bool HasKeySlots => ExplorationKeys.Enabled && keySlots != null && keySlots.Length > 1;
         public Vector3 PresentationPoint
         {
             get

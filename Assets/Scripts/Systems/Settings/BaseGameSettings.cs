@@ -653,6 +653,9 @@ namespace CurtainCall.Settings
             [Tooltip("인간 대포 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
             [SerializeField] string humanCannonScene = "HumanCannon";
 
+            [Tooltip("공연 출발점 배치 확인이 늦어질 때 추락 사망을 보류할 최대 시간(초). 배치가 확인되면 즉시 보호가 해제된다.")]
+            [SerializeField, Min(0f)] float performancePlacementGraceSeconds = 8f;
+
 
             [Tooltip("실제 플레이·Dev 시작·탐색 대기실. 변경 후 런을 다시 시작하세요.")]
             [SerializeField] WaitingRoomSceneVariant waitingRoomVariant = WaitingRoomSceneVariant.Integrated;
@@ -672,6 +675,7 @@ namespace CurtainCall.Settings
             public string PerformanceScene => performanceScene;
             public string TightropeScene => tightropeScene;
             public string HumanCannonScene => humanCannonScene;
+            public float PerformancePlacementGraceSeconds => Mathf.Max(0f, performancePlacementGraceSeconds);
             public WaitingRoomSceneVariant WaitingRoomVariant => waitingRoomVariant;
             public string WaitingRoomScene => WaitingRoomScenes.Resolve(waitingRoomScene, waitingRoomVariant);
             public bool KeepWaitingRoomOnExit => keepWaitingRoomOnExit;

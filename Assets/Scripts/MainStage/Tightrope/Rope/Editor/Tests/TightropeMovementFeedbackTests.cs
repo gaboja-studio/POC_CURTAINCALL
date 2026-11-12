@@ -13,7 +13,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
 
         [TestCase(false)] [TestCase(true)]
-        public void FreeJumpKeepsRunningSpeedOnlyWhileMovementIsHeld(bool releaseMovement)
+        public void FreeJumpFollowsCurrentMovementAndSprintInputs(bool releaseMovement)
         {
             var go = new GameObject("Running jump momentum") { hideFlags = HideFlags.DontSave };
             go.transform.position = new Vector3(8000, 100, 8000);
@@ -23,8 +23,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
                 mover.FreeMovement = mover.FreeAirControl = true;
                 mover.CourseForwardOverride = Vector3.forward;
-                float speed = GameSettings.Base.Character.FreeMoveSpeed * GameSettings.Base.Character.SprintSpeedMultiplier;
-                typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, Vector3.forward * speed);
+                float speed = GameSettings.Base.Character.FreeMoveSpeed;
+                float takeoffSpeed = speed * GameSettings.Base.Character.SprintSpeedMultiplier;
+                typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, Vector3.forward * takeoffSpeed);
                 typeof(PlayerMover).GetMethod("StartJump", Members).Invoke(mover, new object[] { JumpKind.InPlace, 0 });
                 for (int frame = 0; frame < 3; frame++)
                 {
@@ -37,8 +38,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 mover.SetMoveInput(1, 0);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
                 var turned = (Vector3)typeof(PlayerMover).GetField("airVelocity", Members).GetValue(mover);
-                float resumedSpeed = releaseMovement ? GameSettings.Base.Character.FreeMoveSpeed : speed;
-                Assert.That(Vector3.Distance(turned, Vector3.right * resumedSpeed), Is.LessThan(.0001f));
+                Assert.That(Vector3.Distance(turned, Vector3.right * speed), Is.LessThan(.0001f));
             }
             finally { Object.DestroyImmediate(go); }
         }
@@ -54,8 +54,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
                 mover.FreeMovement = mover.FreeAirControl = true;
                 mover.CourseForwardOverride = Vector3.forward;
-                var velocity = Vector3.forward * (GameSettings.Base.Character.FreeMoveSpeed * GameSettings.Base.Character.SprintSpeedMultiplier);
-                typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, velocity);
+                var velocity = Vector3.forward * GameSettings.Base.Character.FreeMoveSpeed;
+                typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, velocity * GameSettings.Base.Character.SprintSpeedMultiplier);
                 mover.SetMoveInput(0, held ? 1 : 0);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
                 Assert.That(mover.CurrentJump, Is.EqualTo(JumpKind.Fall));
@@ -67,7 +67,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
-        public void StationaryJumpCanStartMovingButAirSprintDoesNotAccelerateExistingMomentum()
+        public void AirSprintUsesGroundSprintSpeedWithInjuryAndDiagonalLimit()
         {
             var go = new GameObject("Stationary jump steering") { hideFlags = HideFlags.DontSave };
             go.transform.position = new Vector3(8000, 100, 8000);
@@ -86,8 +86,31 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 mover.SetMoveInput(1, 1); mover.SetLocomotionInput(true, false);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
                 var velocity = (Vector3)typeof(PlayerMover).GetField("airVelocity", Members).GetValue(mover);
-                Assert.That(velocity.magnitude, Is.EqualTo(speed).Within(.0001f));
+                Assert.That(velocity.magnitude, Is.EqualTo(speed * GameSettings.Base.Character.SprintSpeedMultiplier).Within(.0001f));
                 Assert.That(velocity.y, Is.Zero);
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [Test]
+        public void DirectionalDismountKeepsItsFirstStepThenUsesNormalAirInput()
+        {
+            var go = new GameObject("Directional dismount") { hideFlags = HideFlags.DontSave };
+            go.transform.position = new Vector3(8000f, 100f, 8000f);
+            try
+            {
+                var mover = go.AddComponent<PlayerMover>();
+                typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
+                mover.FreeMovement = mover.FreeAirControl = true;
+                mover.CourseForwardOverride = Vector3.forward;
+                var launch = Vector3.right * 2f;
+                typeof(PlayerMover).GetMethod("StartDirectionalJump", Members).Invoke(mover, new object[] { launch, true });
+                typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
+                var velocity = typeof(PlayerMover).GetField("airVelocity", Members);
+                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(launch));
+                mover.SetMoveInput(-1f, 0f);
+                typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
+                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(Vector3.left * GameSettings.Base.Character.FreeMoveSpeed));
             }
             finally { Object.DestroyImmediate(go); }
         }
