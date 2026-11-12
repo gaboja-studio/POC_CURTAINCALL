@@ -18,3 +18,7 @@ source: Task-20261112-118, Task-20261109-114
 리프트의 투명 `BoardingBarrier`는 탑승 제한용이다. 카메라가 이를 일반 벽으로 검사하면 실제 벽까지 5.6m인 구도가 1.7m로 압축된다. 공통 카메라에서 해당 차단벽만 제외하고 실제 벽·천장과 플레이어의 탑승 차단은 유지한다.
 
 프로젝트의 `Physics.autoSyncTransforms`는 꺼져 있다. `HumanCannonRouteSystem.LateUpdate`에서 발판을 옮긴 뒤 물리 좌표를 동기화하지 않으면 카메라·운반 검사가 이전 physics tick의 위치를 읽는다. 실제 발판 이동이 있는 프레임에 한 번 동기화한다. 두 경로는 `RouteGeometryTests.MovingLift*` EditMode 검사로 확인하며, 실제 운반 중 화면 체감은 별도로 플레이 확인한다.
+
+## 대기실 연습실 반출
+
+통로 중앙만 검사하면 링 출입구의 병목을 놓친다. 4.95m 원형 트램펄린이 입구 난간의 약 4.1m 틈과 0.6m 링 단차에 걸렸다. 두 플레이 씬과 대기실 원본 씬의 입구 계단을 6m로 넓혔다. 공통 `TrampolineSettings`의 단차 들기 상한으로 위쪽·가로 이동 경로를 검사하고, 평지에 도달하면 평소 높이로 돌아온다. 실측은 PreviewScene이 아닌 일반 추가 씬에서 `Physics.SyncTransforms` 뒤 실행한다.

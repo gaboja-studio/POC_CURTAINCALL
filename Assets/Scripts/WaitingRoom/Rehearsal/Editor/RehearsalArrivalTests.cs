@@ -396,6 +396,31 @@ namespace CurtainCall.WaitingRoom.EditorTools
             StringAssert.Contains("이동하며 Space", guide);
         }
 
+        [Test]
+        public void CannonPracticeClearsCanopyAndRigUntilTheCourseIsClosed()
+        {
+            var cannon = Make("Cannon rehearsal fixture").AddComponent<WaitingRoomCannonRehearsal>();
+            var room = Make("Fixture practice room");
+            var ring = Make("LegacyRing"); ring.transform.SetParent(room.transform);
+            var canopyRig = Make("CanopyAndRig"); canopyRig.transform.SetParent(ring.transform);
+            var canopy = Make("TornCanopy"); canopy.transform.SetParent(canopyRig.transform);
+            var light = Make("RingSpot_Launch").AddComponent<Light>(); light.transform.SetParent(canopyRig.transform);
+            var decorations = Make("DomeSuspension"); decorations.transform.SetParent(ring.transform);
+            var floor = Make("PracticeRing"); floor.transform.SetParent(ring.transform);
+            var floorCollider = floor.AddComponent<BoxCollider>();
+            Set(cannon, "room", room.transform);
+
+            Call(cannon, "HidePracticeProps");
+            Assert.IsFalse(canopy.activeSelf);
+            Assert.IsFalse(decorations.activeSelf);
+            Assert.IsTrue(light.gameObject.activeInHierarchy);
+            Assert.IsTrue(floorCollider.gameObject.activeInHierarchy);
+
+            Call(cannon, "Cleanup");
+            Assert.IsTrue(canopy.activeSelf);
+            Assert.IsTrue(decorations.activeSelf);
+        }
+
         [TestCase(true)] [TestCase(false), Category("WaitingRoomCommonRecovery")]
         public void RingBoundaryRemainsDuringCourseAndGathering(bool originallyActive)
         {
