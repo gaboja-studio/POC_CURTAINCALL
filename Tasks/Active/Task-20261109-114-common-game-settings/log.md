@@ -95,3 +95,4 @@
 - Unity 정상 종료 후 DEV 7caab967 최신 확인, 기존 변경 보존. 사용자는 출발 대기 때가 아닌 리프트 이동 중부터 발생한다고 확인했다.
 - 자동 검사에서 투명 탑승 차단벽이 카메라 거리5.6m를1.7m로 압축함을 재현(.harness/local/lift-camera-before.json). 탑승 차단벽만 카메라 충돌에서 제외하고, LateUpdate로 이동한 발판의 물리 좌표를 같은 프레임에 동기화했다. 실제 사용자 화면의 진동 해소는 플레이 미확인.
 - 최종 check-work: 안전성·문서/규칙·컴파일·공통 설정 PASS, EditMode580/580. 이동 발판 검사 초회 실패는 EditMode 시각0에서 음수 출발 시각을 준 테스트 준비 문제여서 수신 도착 상태로 변경했다. 실제 플레이는 미실행. 제출 직전 Unity 종료 후 DEV7caab967 재확인.
+- 수정33파일을33f4ebe5로 저장·push하고 [PR #343](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/343)을 생성했다. PM 팀 검토 요청, dev 병합 미실행. 기존 Start 씬·탈출로·다른 Task 변경 제외. 검사에서 물리 설정 setter가 Unity6 형식 재저장을 유발하여 해당 setter를 읽기 검사로 바꾸고 부수 설정 저장을 복원했다. 후속 컴파일·공통 설정·리프트 EditMode2/2 통과.

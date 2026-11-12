@@ -133,10 +133,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var route = Child("Moving route").gameObject.AddComponent<HumanCannonRouteSystem>();
             var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
             var previous = current.GetValue(null);
-            bool autoSync = Physics.autoSyncTransforms;
             try
             {
-                Physics.autoSyncTransforms = false;
+                Assert.IsFalse(Physics.autoSyncTransforms, "This regression covers the project's manual transform synchronization.");
                 current.SetValue(null, null);
                 route.ConfigurePractice(transport, -10f);
                 typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
@@ -161,7 +160,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 typeof(HumanCannonRouteSystem).GetMethod("OnDisable", PrivateInstance).Invoke(route, null);
                 current.SetValue(null, previous);
-                Physics.autoSyncTransforms = autoSync;
                 Object.DestroyImmediate(platform.gameObject);
             }
         }
