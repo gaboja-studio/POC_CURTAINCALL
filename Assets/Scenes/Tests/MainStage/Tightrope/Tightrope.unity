@@ -16610,10 +16610,6 @@ PrefabInstance:
       propertyPath: artProfile
       value: 
       objectReference: {fileID: 11400000, guid: 5551faede8b0ca940a4ee093290a99d4, type: 2}
-    - target: {fileID: 531039770891401842, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
-      propertyPath: startStage
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 2331872781909530610, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5

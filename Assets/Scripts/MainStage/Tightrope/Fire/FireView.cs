@@ -29,6 +29,9 @@ namespace CurtainCall.Tightrope.Fire
         bool ownsParticleMaterial;
         FireSettings shown;
         int shownRound = -1;
+        ParticleSystem[] chaseParticles = System.Array.Empty<ParticleSystem>();
+        float[] chaseBaseSize = System.Array.Empty<float>(), chaseBaseRate = System.Array.Empty<float>();
+        bool chaseShown;
 
         /// <summary>구간 불꽃 세기(0~1). 예고 중 0→1로 커진다. 발화(줄 끊김) 후와 표시하지 않을 때는 -1.</summary>
         public float SegmentIntensity(int index)
@@ -49,6 +52,17 @@ namespace CurtainCall.Tightrope.Fire
             var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             flame = new Material(shader) { color = new Color(1f, 0.15f, 0.03f) };
             chase = chaseEffect != null ? chaseEffect : Box("ChaseFire");
+            // 추격 불이 툭 나타나지 않도록 미리 채워 두기(prewarm)를 끄고, 원래 크기·양을 기억해 나타날 때 작게 시작해 키운다.
+            chaseParticles = chase.GetComponentsInChildren<ParticleSystem>(true);
+            chaseBaseSize = new float[chaseParticles.Length];
+            chaseBaseRate = new float[chaseParticles.Length];
+            for (int i = 0; i < chaseParticles.Length; i++)
+            {
+                var main = chaseParticles[i].main;
+                main.prewarm = false;
+                chaseBaseSize[i] = main.startSizeMultiplier;
+                chaseBaseRate[i] = chaseParticles[i].emission.rateOverTimeMultiplier;
+            }
             particleMaterial = segmentFlameMaterial;
             if (particleMaterial == null && chaseEffect != null)
             {
@@ -71,8 +85,20 @@ namespace CurtainCall.Tightrope.Fire
             if (!available) { Hide(); return; }
             if (shown != settings || shownRound != fire.Round) Rebuild(settings);
             chase.gameObject.SetActive(fire.IsChasing);
+            if (fire.IsChasing && !chaseShown)
+                foreach (var particles in chaseParticles) { particles.Clear(true); particles.Play(true); }
+            chaseShown = fire.IsChasing;
             if (fire.IsChasing)
             {
+                // 나타난 뒤 제자리에서 불꽃 크기·양이 작게 시작해 최대까지 커지고, 최대가 되면 쫓아온다(거리는 FireMath가 같은 시간만큼 멈춰 둔다).
+                float ramp = fire.ChaseRamp;
+                for (int i = 0; i < chaseParticles.Length; i++)
+                {
+                    var main = chaseParticles[i].main;
+                    main.startSizeMultiplier = chaseBaseSize[i] * Mathf.Lerp(.1f, 1f, ramp);
+                    var emission = chaseParticles[i].emission;
+                    emission.rateOverTimeMultiplier = chaseBaseRate[i] * Mathf.Lerp(.15f, 1f, ramp);
+                }
                 float width = (course.LaneCount - 1) * course.LaneSpacing + course.Shape.SideMargin * 2f;
                 bool effect = chaseEffect != null;
                 chase.position = course.transform.position + course.Forward * fire.ChaseDistance + Vector3.up * (effect ? 0f : 0.8f);
@@ -211,6 +237,7 @@ namespace CurtainCall.Tightrope.Fire
         void Hide()
         {
             if (chase != null) chase.gameObject.SetActive(false);
+            chaseShown = false;
             foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);
         }
 

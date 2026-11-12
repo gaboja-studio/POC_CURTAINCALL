@@ -63,8 +63,10 @@ namespace CurtainCall.Tightrope.Fire
         public int PendingSegment => pendingSegment;
         public float PendingIgniteAt => pendingIgniteAt;
         public float FurthestDistance => furthestDistance;
-        public bool IsChasing => IsPerformanceActive && snapshot.chaseEnabled && Elapsed >= snapshot.chaseDelay;
+        public bool IsChasing => IsPerformanceActive && snapshot.chaseEnabled && Elapsed >= FireMath.ChaseAppearAt(snapshot);
         public float ChaseDistance => snapshot == null ? float.NaN : FireMath.ChaseDistance(snapshot, Elapsed);
+        /// <summary>추격 불 세기(0~1). 나타난 뒤 제자리에서 커지는 동안 0→1, 다 커지면 쫓아오기 시작한다.</summary>
+        public float ChaseRamp => snapshot == null ? 1f : FireMath.ChaseRamp(snapshot, Elapsed);
         public string ExportSettings() => snapshot?.ToJson() ?? "";
 
         /// <summary>이 거리에서 소각 뒤 정확히 하나만 남도록 예정된 줄(0-based). 아직 타기 전에도 같은 줄을 반환한다.</summary>

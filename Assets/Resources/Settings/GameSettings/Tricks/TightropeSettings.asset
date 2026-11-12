@@ -214,10 +214,24 @@ MonoBehaviour:
     verticalSpawnDistance: 37.5
     verticalEndDistance: 3.75
     verticalSpeed: 3
+    verticalIdleTime: 0
+    verticalSpinUpTime: 0
+    verticalStopsAtTrapeze: 0
+    verticalFallGravity: 9.81
+    verticalFallRemoveDepth: 15
     verticalColliderDiameter: 1
     verticalVisualDiameter: 1.2
     verticalCenterHeight: 0.6
-    verticalThickness: 0.1
+    verticalThickness: 0.01
+    verticalStraight: 0
+    verticalNoPlate: 0
+    verticalAnyLane: 0
+    verticalLookScale: 1
+    verticalSparkSize: 3
+    verticalSparkAmount: 1.5
+    verticalSparkSpeed: 1
+    verticalSparkSpread: 30
+    verticalSparkLift: 0.8
     cooperativeGates: 0
     cooperativeGateDistances:
     - 158
@@ -256,9 +270,11 @@ MonoBehaviour:
     horizontalColor: {r: 0.05, g: 0.8, b: 0.85, a: 1}
     verticalColor: {r: 1, g: 0.38, b: 0.08, a: 1}
     spinSpeed: 720
+    verticalSpinSpeed: 360
   fire:
     chaseEnabled: 1
     chaseDelay: 10
+    chaseRampSeconds: 2
     chaseStart: -6
     chaseSpeed: 0.5
     safeDistance: 165
@@ -346,5 +362,70 @@ MonoBehaviour:
       mirrored: 1
       extraSpeed: 2
     fireChaseSpeed: 0.7
-  - extraHorizontalSaws: []
-    fireChaseSpeed: -1
+    incomingSaw: 0
+    incomingSawFinishOffset: 5
+    incomingSawSpeed: -1
+    incomingSawRepeatDelay: 20
+    incomingSawScale: 1
+    incomingSawThickness: -1
+    incomingSawStartDelay: 0
+    incomingSawIdleTime: 0
+    incomingSawSpinUpTime: 0
+    incomingSawStopsAtTrapeze: 0
+  - extraHorizontalSaws:
+    - distance: 21.8
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 43.4
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 57.78
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 1.949
+    - distance: 70.8
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 80.6
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 119.8
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 129.6
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 149.2
+      startSide: 1
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    - distance: 159
+      startSide: 0
+      level: 0
+      mirrored: 1
+      extraSpeed: 2
+    fireChaseSpeed: 1
+    incomingSaw: 1
+    incomingSawFinishOffset: 5
+    incomingSawSpeed: 8.6
+    incomingSawRepeatDelay: 0
+    incomingSawScale: 2
+    incomingSawThickness: 0.3
+    incomingSawStartDelay: 0
+    incomingSawIdleTime: 0.5
+    incomingSawSpinUpTime: 2
+    incomingSawStopsAtTrapeze: 1

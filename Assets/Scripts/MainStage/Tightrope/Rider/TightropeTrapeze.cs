@@ -129,6 +129,9 @@ namespace CurtainCall.Tightrope
         public float SwingAngle(int index) => DisplayAngle(Mathf.Clamp(index, 0, PoleTotal - 1));
         public float SwingSpeed(int index) => Valid(index) ? common.SpeedAt(poles[index].Index) : 0;
         public bool CanGrabPole(int index, NetworkPlayer player) => CanGrab(player, index);
+
+        /// <summary>누군가 첫 봉(목마로만 닿는 높은 출발 봉)을 잡고 있는지.</summary>
+        public bool IsFirstPoleHeld => Active && PoleTotal > 0 && HolderAt(0) != Nobody;
         public bool CanAttachToPole(int index, NetworkPlayer player) => CanAttach(player, index);
         bool CanGrab(NetworkPlayer player, int index) => Active && Valid(index) && HolderAt(index) == Nobody && common.CanApproachPole(poles[index].Index, player);
         bool CanAttach(NetworkPlayer player, int index) => Active && Valid(index) && HolderAt(index) != Nobody && common.CanApproachPole(poles[index].Index, player);
