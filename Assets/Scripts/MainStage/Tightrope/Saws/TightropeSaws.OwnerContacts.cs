@@ -57,7 +57,7 @@ namespace CurtainCall.Tightrope.Saws
                 if (IsHorizontalEnabled(i) && !IsHorizontalSafeForTeamPassage(i))
                     result.Add(new ContactShape(SawKind.Horizontal, i, new SawDisc(GetHorizontalPosition(i), Vector3.up,
                         settings.horizontalColliderDiameter * .5f, settings.horizontalThickness * .5f)));
-            if (TryGetVerticalPosition(out var vertical))
+            if (!IsVerticalFalling && TryGetVerticalPosition(out var vertical))
                 result.Add(new ContactShape(SawKind.Vertical, verticalSerial, new SawDisc(vertical, course.Right,
                     settings.verticalColliderDiameter * .5f, settings.verticalThickness * .5f)));
             if (IsCooperativeGateActive && !IsCooperativeGatePassable) AddGate(cooperativeGateIndex, CooperativeGateBase, result);

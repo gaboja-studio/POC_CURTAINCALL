@@ -93,6 +93,11 @@ namespace CurtainCall.Tightrope.Saws
 
         Transform[] horizontalViews = Array.Empty<Transform>();
         TightropeOutline[] horizontalOutlines = Array.Empty<TightropeOutline>();
+        TightropeOutline verticalOutline;
+        ParticleSystem verticalSparks;
+        float verticalLookRadius;
+        float sparkFullSize, sparkFullSpeed, sparkFullRate;
+        bool verticalStoppedByTrapeze; // 호스트: 이 단계 공연에서 누군가 공중그네 첫 봉을 한 번이라도 잡아 수직 톱날 출현을 멈췄는지(판을 다시 해도 유지)
         // 얇은 가로 톱은 멀리서 화면 고정 두께 테두리에 묻히므로 거리에 따라 테두리를 줄여 없앤다.
         const float HorizontalOutlineWidth = 3f, HorizontalOutlineFullDistance = 5f, HorizontalOutlineHiddenDistance = 14f;
         public int ActiveHorizontalCount => TrickSettings.SawCount(settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity)
@@ -172,6 +177,9 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>발판이 눌렸는지(톱날이 내려가는 중).</summary>
         public bool IsPlatePressed => verticalActive && verticalLoweredAt >= 0f;
 
+        /// <summary>발판 없는 정면 톱날이 외줄에서 떨어지는 중인지(판정 없음, 사라질 때까지 떨어지기만 한다).</summary>
+        public bool IsVerticalFalling => IsPlatePressed && settings.verticalNoPlate;
+
         /// <summary>가로 톱날 중심 위치(월드).</summary>
         public Vector3 GetHorizontalPosition(int index)
         {
@@ -211,7 +219,9 @@ namespace CurtainCall.Tightrope.Saws
         {
             float side = course.Layout.GetLaneSide(lane);
             float halfWidth = Mathf.Max(.1f, (course.LaneCount - 1) * course.LaneSpacing * .5f);
-            float shift = (distance - referenceDistance) * TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);
+            // 진입 톱은 수직 톱날뿐이다. 단계 정면 톱날(verticalStraight)은 생성된 줄을 따라 똑바로 온다.
+            float shift = settings.verticalStraight ? 0f
+                : (distance - referenceDistance) * TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);
             side = Mathf.PingPong(side + shift + halfWidth, halfWidth * 2f) - halfWidth;
             return course.transform.position + course.Forward * distance + course.Right * side + Vector3.up * height;
         }
@@ -239,11 +249,11 @@ namespace CurtainCall.Tightrope.Saws
             return true;
         }
 
-        /// <summary>발판 중심 위치(월드, 외줄 윗면 높이). 수직 톱날이 없으면 false.</summary>
+        /// <summary>발판 중심 위치(월드, 외줄 윗면 높이). 수직 톱날이 없거나 발판 없는 정면 톱날이면 false.</summary>
         public bool TryGetPlatePosition(out Vector3 position)
         {
             position = default;
-            if (!verticalActive || course == null) return false;
+            if (!verticalActive || course == null || settings.verticalNoPlate) return false;
             position = course.GetLanePosition(verticalLane, VerticalDistance + settings.plateOffset);
             return true;
         }
@@ -255,6 +265,20 @@ namespace CurtainCall.Tightrope.Saws
             current = this;
             if (run != null) run.RunRestarted += HandleRunRestarted;
             if (course != null) course.StageChanged += HandleStageChanged;
+            GameSettings.Tightrope.Changed += HandleSettingsChanged;
+        }
+
+        /// <summary>
+        /// 외줄 세팅 에셋을 인스펙터에서 고쳤을 때(에디터): 단계 톱날 값을 다시 읽고 겉모습을 새로 만들어 플레이 중에도 바로 보이게 한다.
+        /// 톱날 수가 바뀌면 작동 기록도 처음부터. 장애물 순서(출현 대기·반복)는 다음 판부터 적용된다.
+        /// </summary>
+        void HandleSettingsChanged()
+        {
+            if (course == null || !Application.isPlaying) return;
+            int oldCount = tracks?.Length ?? -1;
+            builtSettings = ResolveStageSettings();
+            BuildViews();
+            if (builtSettings.HorizontalCount != oldCount) ResetObstacles();
         }
 
         void Start()
@@ -280,6 +304,7 @@ namespace CurtainCall.Tightrope.Saws
             var next = ResolveStageSettings();
             if (builtSettings == next) return;
             builtSettings = next;
+            verticalStoppedByTrapeze = false; // 다른 단계 공연이면 다시 나온다
             BuildViews();
             ResetObstacles();
         }
@@ -290,6 +315,7 @@ namespace CurtainCall.Tightrope.Saws
             if (current == this) current = null;
             if (run != null) run.RunRestarted -= HandleRunRestarted;
             if (course != null) course.StageChanged -= HandleStageChanged;
+            GameSettings.Tightrope.Changed -= HandleSettingsChanged;
             Unregister();
             ClearTeamPassages();
             ResetCooperativeGates();
@@ -311,6 +337,7 @@ namespace CurtainCall.Tightrope.Saws
 
             if (session != null && session.IsHost && run.State == TightropeRunState.Running)
             {
+                ServerWatchTrapezeStop();
                 ServerTickSequence();
                 ServerUpdateVertical();
                 ServerUpdateCooperativeGate();
@@ -444,7 +471,9 @@ namespace CurtainCall.Tightrope.Saws
         {
             if (!verticalActive) return;
             // 인원수와 무관하게 마지막 줄과 화재 경고 중 반드시 건너야 하는 길을 남긴다.
-            if (WouldBlockRequiredRoute(verticalLane, VerticalDistance))
+            // 3단계 정면 톱날은 줄이 없는 빈칸(해제봉·공중그네)·불탄 구간을 공중으로 지나 출발점까지 간다. 그 구간에서는 막을 길이 없으므로 제거하지 않는다.
+            bool overGap = settings.verticalStraight && !course.IsLaneUsable(verticalLane, VerticalDistance);
+            if (verticalLoweredAt < 0f && !overGap && WouldBlockRequiredRoute(verticalLane, VerticalDistance))
             {
                 ServerRemoveVertical();
                 return;
@@ -481,6 +510,11 @@ namespace CurtainCall.Tightrope.Saws
         bool ServerSpawnVertical(ObstacleStep step, out string reason)
         {
             reason = null;
+            if (verticalStoppedByTrapeze)
+            {
+                reason = "공중그네 첫 봉을 잡아 이 단계에서는 수직 톱날 출현 멈춤";
+                return false;
+            }
             if (verticalActive)
             {
                 reason = $"수직 톱날 #{verticalSerial}이 아직 나와 있음(최대 1개)";
@@ -503,6 +537,23 @@ namespace CurtainCall.Tightrope.Saws
             }
 
             var lanes = new List<int>();
+            if (settings.verticalAnyLane)
+            {
+                // 3단계 정면 톱날: 진행자 위치와 상관없이 생성 지점에 놓인 줄 중 랜덤. 마지막 구간처럼 불에 타 사라질 줄은 빼고,
+                // 끝까지 남는 줄에만 놓는다(2026-11-12).
+                var fire = TightropeFire.Current != null && TightropeFire.Current.Settings != null ? TightropeFire.Current.Settings : GameSettings.Tightrope.Fire;
+                for (int lane = 0; lane < course.LaneCount; lane++)
+                    if (course.IsLaneUsable(lane, settings.verticalSpawnDistance) && !WillBurn(fire, lane, settings.verticalSpawnDistance)
+                        && !WouldBlockRequiredRoute(lane, settings.verticalSpawnDistance))
+                        lanes.Add(lane);
+                if (lanes.Count == 0)
+                {
+                    reason = $"고를 줄 없음(생성 지점 {settings.verticalSpawnDistance:0.#}m에 타지 않고 남는 줄이 없거나 회피 경로 보호 중)";
+                    return false;
+                }
+                SpawnVerticalOn(lanes[UnityEngine.Random.Range(0, lanes.Count)]);
+                return true;
+            }
             foreach (var player in NetworkPlayer.All)
             {
                 if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
@@ -518,6 +569,31 @@ namespace CurtainCall.Tightrope.Saws
             }
             SpawnVerticalOn(lanes[UnityEngine.Random.Range(0, lanes.Count)]);
             return true;
+        }
+
+        /// <summary>3단계: 누군가 공중그네 첫 봉(목마로만 닿는 높은 봉)을 한 번이라도 잡으면 이 단계 공연 동안 수직 톱날 출현을 멈춘다(판을 다시 해도 유지, 이미 나온 톱날은 그대로).</summary>
+        void ServerWatchTrapezeStop()
+        {
+            if (verticalStoppedByTrapeze || !settings.verticalStopsAtTrapeze) return;
+            var trapeze = TightropeTrapeze.Current;
+            if (trapeze == null || !trapeze.IsFirstPoleHeld) return;
+            verticalStoppedByTrapeze = true;
+            Debug.Log($"[Saws] 공중그네 첫 봉을 잡아 이 단계에서는 수직 톱날 출현을 멈춥니다 (게임 {GameElapsed:0.0}초)");
+            // 이미 나와 있는 정면 톱날은 그 자리에서 진행 속도를 유지한 채 포물선으로 외줄에서 떨어진다.
+            if (verticalActive && verticalLoweredAt < 0f && settings.verticalNoPlate)
+            {
+                SetVertical(true, verticalLane, verticalSerial, (float)(SawClock - verticalSpawnedAt), 0f);
+                Broadcast();
+            }
+        }
+
+        /// <summary>불 구간 설정상 그 줄(0부터)의 그 거리가 언젠가 타서 사라지는지.</summary>
+        static bool WillBurn(FireSettings fire, int lane, float distance)
+        {
+            if (fire?.segments == null) return false;
+            foreach (var segment in fire.segments)
+                if (segment.lane - 1 == lane && distance >= segment.from && distance < segment.to) return true;
+            return false;
         }
 
         bool WouldBlockRequiredRoute(int sawLane, float sawDistance)
@@ -599,7 +675,7 @@ namespace CurtainCall.Tightrope.Saws
             touchingNow.Clear();
             var horizontalRadius = settings.horizontalColliderDiameter * 0.5f;
             var verticalRadius = settings.verticalColliderDiameter * 0.5f;
-            bool hasVertical = TryGetVerticalPosition(out Vector3 verticalCenter);
+            bool hasVertical = TryGetVerticalPosition(out Vector3 verticalCenter) && !IsVerticalFalling; // 떨어지는 톱날은 판정 없음
 
             foreach (var player in NetworkPlayer.All)
             {
@@ -662,7 +738,9 @@ namespace CurtainCall.Tightrope.Saws
             else if (!active && wasActive)
                 Debug.Log($"[Saws] 수직 톱날 #{serial} 제거");
             if (active && !wasLowering && verticalLoweredAt >= 0f)
-                Debug.Log($"[Saws] 수직 톱날 #{serial} 발판 눌림 → {settings.verticalLowerDuration:0.00}초 동안 내려감 ({VerticalDistance:0.0}m)");
+                Debug.Log(settings.verticalNoPlate
+                    ? $"[Saws] 수직 톱날 #{serial} 외줄에서 떨어짐 ({VerticalDistance:0.0}m)"
+                    : $"[Saws] 수직 톱날 #{serial} 발판 눌림 → {settings.verticalLowerDuration:0.00}초 동안 내려감 ({VerticalDistance:0.0}m)");
             VerticalChanged?.Invoke();
         }
 
@@ -703,7 +781,24 @@ namespace CurtainCall.Tightrope.Saws
                 horizontalOutlines[i] = horizontalViews[i].GetComponent<TightropeOutline>();
             }
 
-            verticalView = CreateSaw(root, "VerticalSaw", verticalPrefab, settings.verticalVisualDiameter, settings.verticalThickness, SawKind.Vertical);
+            // 수직 톱날도 가로 톱날과 같은 외형을 쓴다(2026-11-12). 크기는 기존 수직 톱날 외형 지름 그대로 맞춘다.
+            var verticalLook = horizontalPrefab != null ? horizontalPrefab : verticalPrefab;
+            verticalView = CreateSaw(root, "VerticalSaw", verticalLook, settings.verticalVisualDiameter, settings.verticalThickness, SawKind.Horizontal);
+            if (verticalLook != null)
+            {
+                float from = VisualDiameter(verticalLook), to = verticalPrefab != null ? VisualDiameter(verticalPrefab) : from;
+                float fit = from > 0f && to > 0f ? to / from : 1f, look = settings.verticalLookScale;
+                // 두께(로컬 Y)는 판정 두께와 같게 맞춘다(3단계 0.5m, 2026-11-12).
+                float modelThickness = VisualThickness(verticalLook);
+                float thick = modelThickness > 0f ? settings.verticalThickness / modelThickness : look;
+                var scale = verticalView.localScale;
+                verticalView.localScale = new Vector3(scale.x * fit * look, scale.y * thick, scale.z * fit * look);
+                verticalLookRadius = from * fit * look * .5f;
+            }
+            else verticalLookRadius = settings.verticalVisualDiameter * .5f;
+            float sawRatio = verticalLook != null && VisualDiameter(verticalLook) > 0f ? verticalLookRadius * 2f / VisualDiameter(verticalLook) : 1f;
+            verticalSparks = PrepareVerticalSparks(verticalView, root, sawRatio);
+            verticalOutline = verticalView.GetComponent<TightropeOutline>();
             verticalView.gameObject.SetActive(false);
 
             plateView = platePrefab != null
@@ -760,6 +855,120 @@ namespace CurtainCall.Tightrope.Saws
             return saw;
         }
 
+        /// <summary>톱날 프리팹의 원판 지름(m, 루트 기준 가로·앞 방향 메시 범위). 외곽선·파티클은 뺀다. 메시가 없으면 0.</summary>
+        static float VisualDiameter(GameObject prefab)
+        {
+            float radius = 0f;
+            var root = prefab.transform.worldToLocalMatrix;
+            foreach (var filter in prefab.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var renderer = filter.GetComponent<Renderer>();
+                if (filter.sharedMesh == null || renderer == null || TightropeOutline.IsOutlineRenderer(renderer)) continue;
+                var toRoot = root * filter.transform.localToWorldMatrix;
+                var bounds = filter.sharedMesh.bounds;
+                for (int corner = 0; corner < 8; corner++)
+                {
+                    var point = toRoot.MultiplyPoint3x4(bounds.center + Vector3.Scale(bounds.extents,
+                        new Vector3((corner & 1) == 0 ? -1f : 1f, (corner & 2) == 0 ? -1f : 1f, (corner & 4) == 0 ? -1f : 1f)));
+                    radius = Mathf.Max(radius, Mathf.Abs(point.x), Mathf.Abs(point.z));
+                }
+            }
+            return radius * 2f;
+        }
+
+        /// <summary>
+        /// 수직 톱날 불꽃(2026-11-12): 가로 톱날 외형의 불꽃을 톱날에서 떼어 회전하지 않게 두고, 외줄에 닿는 하단에서
+        /// 톱날 뒤쪽(도착 쪽)·위로 튀게 한다. 크기·양·속도·각도는 톱날 칸의 "수직 톱날 불꽃" 값.
+        /// </summary>
+        ParticleSystem PrepareVerticalSparks(Transform saw, Transform root, float sawRatio)
+        {
+            var sparks = saw.GetComponentInChildren<ParticleSystem>(true);
+            if (sparks == null) return null;
+            sparks.transform.SetParent(root, false);
+            sparks.name = "VerticalSawSparks";
+            sparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            // 톱날이 커진 만큼 불꽃 크기·튀는 속도·나오는 폭·양을 함께 키운다.
+            sawRatio = Mathf.Max(1f, sawRatio);
+            var main = sparks.main;
+            main.startSizeMultiplier *= settings.verticalSparkSize * sawRatio;
+            main.startSpeedMultiplier *= settings.verticalSparkSpeed * sawRatio;
+            main.maxParticles = Mathf.Max(main.maxParticles, 400);
+            // 제자리 회전 중에도 뿜도록 이동 거리 대신 시간으로 뿜는다. 최대 양 = 거리당 양 × 이동 속도(달릴 때와 같은 양).
+            var emission = sparks.emission;
+            sparkFullRate = emission.rateOverDistanceMultiplier * settings.verticalSparkAmount * settings.verticalSpeed;
+            emission.rateOverDistanceMultiplier = 0f;
+            emission.rateOverTime = 0f;
+            sparkFullSize = main.startSizeMultiplier;
+            sparkFullSpeed = main.startSpeedMultiplier;
+            var shape = sparks.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = settings.verticalSparkSpread;
+            shape.radius = .08f * sawRatio;
+            if (sparks.TryGetComponent(out ParticleSystemRenderer renderer)) renderer.maxParticleSize = Mathf.Max(renderer.maxParticleSize, 1f);
+            shape.position = Vector3.zero;
+            shape.rotation = Vector3.zero;
+            sparks.gameObject.SetActive(false);
+            return sparks;
+        }
+
+        void UpdateVerticalSparks(bool visible, Vector3 center, float progress)
+        {
+            if (verticalSparks == null) return;
+            var sparksObject = verticalSparks.gameObject;
+            if (!visible)
+            {
+                if (sparksObject.activeSelf) sparksObject.SetActive(false);
+                return;
+            }
+            // 원뿔(+Z)을 톱날 뒤쪽·위로 향하게 하고 외줄에 닿는 하단에 둔다.
+            var direction = (course.Forward + Vector3.up * settings.verticalSparkLift).normalized;
+            verticalSparks.transform.SetPositionAndRotation(center - Vector3.up * verticalLookRadius, Quaternion.LookRotation(direction, Vector3.up));
+            if (!sparksObject.activeSelf)
+            {
+                sparksObject.SetActive(true);
+                verticalSparks.Clear(true);
+                verticalSparks.Play(true);
+            }
+            // 회전이 빨라질수록 불꽃의 양·크기·튀는 속도가 함께 커져, 출발할 때 최대가 된다.
+            float p = Mathf.Clamp01(progress);
+            var emission = verticalSparks.emission;
+            emission.rateOverTime = sparkFullRate * p;
+            var main = verticalSparks.main;
+            main.startSizeMultiplier = sparkFullSize * Mathf.Lerp(.15f, 1f, p);
+            main.startSpeedMultiplier = sparkFullSpeed * Mathf.Lerp(.3f, 1f, p);
+        }
+
+        /// <summary>톱날 외곽선: 가까우면 3px, 5m부터 줄어 14m 밖에서는 보이지 않는다.</summary>
+        static void FadeOutline(TightropeOutline outline, Transform view, Camera viewer)
+        {
+            if (outline == null || view == null || viewer == null) return;
+            float distance = Vector3.Distance(viewer.transform.position, view.position);
+            outline.SetWidth(HorizontalOutlineWidth
+                * (1f - Mathf.InverseLerp(HorizontalOutlineFullDistance, HorizontalOutlineHiddenDistance, distance)));
+        }
+
+        /// <summary>톱날 프리팹의 원판 두께(m, 루트 기준 위 방향 메시 범위). 외곽선·파티클은 뺀다. 메시가 없으면 0.</summary>
+        static float VisualThickness(GameObject prefab)
+        {
+            float low = float.PositiveInfinity, high = float.NegativeInfinity;
+            var root = prefab.transform.worldToLocalMatrix;
+            foreach (var filter in prefab.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var renderer = filter.GetComponent<Renderer>();
+                if (filter.sharedMesh == null || renderer == null || TightropeOutline.IsOutlineRenderer(renderer)) continue;
+                var toRoot = root * filter.transform.localToWorldMatrix;
+                var bounds = filter.sharedMesh.bounds;
+                for (int corner = 0; corner < 8; corner++)
+                {
+                    float y = toRoot.MultiplyPoint3x4(bounds.center + Vector3.Scale(bounds.extents,
+                        new Vector3((corner & 1) == 0 ? -1f : 1f, (corner & 2) == 0 ? -1f : 1f, (corner & 4) == 0 ? -1f : 1f))).y;
+                    low = Mathf.Min(low, y);
+                    high = Mathf.Max(high, y);
+                }
+            }
+            return high > low ? high - low : 0f;
+        }
+
         /// <summary>보이기만 하는 도형(충돌체 없음 — 판정은 계산으로 한다).</summary>
         static Transform CreatePrimitive(PrimitiveType type, Transform parent, string name, Vector3 scale, Color color, bool luminous = false)
         {
@@ -781,7 +990,9 @@ namespace CurtainCall.Tightrope.Saws
         {
             UpdateCooperativeGateViews();
             UpdatePaths();
-            float spin = Time.time * settings.spinSpeed;
+            // 수직 톱날: 나온 뒤 놓여 있다가 제자리에서 회전이 빨라지고, 최대가 되면 출발한다(모든 화면이 같은 시계로 계산).
+            float verticalSince = verticalActive ? (float)(SawClock - verticalSpawnedAt) : 0f;
+            float spin = settings.GetVerticalSpinAngle(verticalSince, settings.VerticalSpinSpeed);
             Quaternion courseRotation = Quaternion.LookRotation(course.Forward, Vector3.up);
             var viewer = Camera.main;
 
@@ -792,23 +1003,22 @@ namespace CurtainCall.Tightrope.Saws
                 float horizontalSpin = tracks[i].GetElapsed(GameElapsed) * settings.spinSpeed;
                 horizontalViews[i].SetPositionAndRotation(GetHorizontalPosition(i) - Vector3.up * TeamPassageLowerOffset(i),
                     courseRotation * Quaternion.Euler(0f, horizontalSpin, 0f));
-                if (viewer != null && i < horizontalOutlines.Length && horizontalOutlines[i] != null)
-                {
-                    float distance = Vector3.Distance(viewer.transform.position, horizontalViews[i].position);
-                    horizontalOutlines[i].SetWidth(HorizontalOutlineWidth
-                        * (1f - Mathf.InverseLerp(HorizontalOutlineFullDistance, HorizontalOutlineHiddenDistance, distance)));
-                }
+                if (i < horizontalOutlines.Length) FadeOutline(horizontalOutlines[i], horizontalViews[i], viewer);
             }
 
             bool hasVertical = TryGetVerticalPosition(out Vector3 verticalCenter);
             verticalView.gameObject.SetActive(hasVertical);
-            UpdateTeamPassagePlate(hasVertical, courseRotation);
+            UpdateVerticalSparks(hasVertical, verticalCenter, IsVerticalFalling ? 0f : settings.GetVerticalSpinProgress(verticalSince)); // 떨어지는 동안은 줄에 안 닿아 불꽃 없음
+            bool hasPlate = hasVertical && !settings.verticalNoPlate;
+            UpdateTeamPassagePlate(hasPlate, courseRotation);
             if (!hasVertical) return;
 
             // 회전축(+Y)을 코스 오른쪽으로 눕히고, 시작점 쪽으로 굴러가듯 돌린다
             verticalView.SetPositionAndRotation(verticalCenter,
                 Quaternion.AngleAxis(-spin, course.Right) * courseRotation * Quaternion.Euler(0f, 0f, -90f));
-            TryGetPlatePosition(out Vector3 plate);
+            // 가로 톱날과 같이 멀면 검은 외곽선을 지운다(멀리서 다가올 때 테두리 선이 보이지 않게).
+            FadeOutline(verticalOutline, verticalView, viewer);
+            if (!TryGetPlatePosition(out Vector3 plate)) return;
             plateView.SetPositionAndRotation(plate + Vector3.up * 0.02f, courseRotation);
             Color color = IsPlatePressed ? platePressedColor : plateColor;
             foreach (var material in plateMaterials) if (material != null) material.color = color;
