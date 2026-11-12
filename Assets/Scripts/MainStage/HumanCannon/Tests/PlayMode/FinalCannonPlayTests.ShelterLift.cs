@@ -11,6 +11,39 @@ namespace CurtainCall.HumanCannon.Tests
 {
     public sealed partial class FinalCannonPlayTests
     {
+        [UnityTest]
+        public IEnumerator ShelterLift_CarrierWalksFromLowerAccessAndKeepsLoadThroughAscent()
+        {
+            DisableEnhancementThreats();
+            var lift = Call(route, "Transport", 1);
+            var start = (Vector3)Get(lift, "StartPosition");
+            var approach = GameObject.Find("ShelterLiftAccess").GetComponent<BoxCollider>().bounds;
+            var feet = new Vector3(start.x, approach.max.y + .02f, approach.center.z);
+            var trampoline = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonTrampoline", "Current");
+            var handle = (Transform)Get(trampoline, "Handle");
+            trampoline.transform.rotation = Quaternion.Euler(0, -90, 0); // frame projects forward past the platform edge
+            trampoline.transform.position += feet - handle.position;
+            Call(trampoline, "ResetPreviousPose");
+            Call(mover, "SetStartPose", feet, Quaternion.identity, true);
+            Physics.SyncTransforms();
+            yield return WaitUntil(() => ((CharacterController)Get(mover, "Body")).isGrounded, 3, "하단 진입로 접지");
+            Call(trampoline, "RequestGrab");
+            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor, 3, "하단 진입로에서 트램펄린 운반");
+            Assert.IsFalse((bool)Call(route, "CanStart", player, 1), "운반 중에도 발판 밖에서는 출발하면 안 된다.");
+            yield return WalkCarrierForLift(start);
+
+            var state = Call(route, "TransportState", 1);
+            yield return WaitUntil(() => (bool)Get(lift, "BarrierActive"), 4, "정상 탑승 대기 뒤 리프트 출발");
+            yield return WaitUntil(() =>
+            {
+                Assert.That(Vector3.Distance(handle.position, player.transform.position), Is.LessThan(.15f),
+                    "탑승 차단벽이 운반자의 트램펄린을 발판 아래에 남겨 두면 안 된다.");
+                return Get(state, "Phase").ToString() == "Arrived";
+            }, 8, "트램펄린을 운반한 채 쉼터 도착");
+            Assert.AreEqual(Actor, Get(trampoline, "Carrier"));
+            Assert.That(player.transform.position.y, Is.EqualTo(((Vector3)Call(lift, "Position", 1f)).y).Within(.15f));
+        }
+
         /// <summary>실제 원격 봇을 쉼터 대포에 먼저 앉힌 뒤, 운반자의 승강·도보 연결·2구간 출발을 검사한다.</summary>
         [UnityTest, Category("LocalBotProcess")]
         public IEnumerator ShelterLift_SeatedRemoteFlyerDoesNotBlockCarrier_ThroughSecondDeparture()

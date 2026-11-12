@@ -102,6 +102,8 @@ namespace CurtainCall.HumanCannon
 
         public bool BarrierActive => barrier != null && barrier.activeSelf;
 
+        internal bool IsBoardingBarrier(Collider collider) => barrier != null && collider.transform == barrier.transform;
+
         GameObject BuildBarrier()
         {
             var root = new GameObject("BoardingBarrier") { layer = platform.gameObject.layer };

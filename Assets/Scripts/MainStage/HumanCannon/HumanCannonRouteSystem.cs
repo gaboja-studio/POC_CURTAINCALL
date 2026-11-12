@@ -291,12 +291,21 @@ namespace CurtainCall.HumanCannon
             return IsRiding(player.OwnerClientId);
         }
 
-        public bool IsRiding(ulong actor)
+        public bool IsRiding(ulong actor) => RiddenTransportIndex(actor) >= 0;
+
+        internal HumanCannonTransport RiddenTransport(ulong actor)
         {
-            if (runtime == null || actor == CannonSeatState.Nobody) return false;
-            foreach (var transit in runtime)
-                if (!transit.Trap.IsOpen && transit.State.Phase == DeparturePhase.Moving && transit.ActiveRider == actor) return true;
-            return false;
+            int index = RiddenTransportIndex(actor);
+            return index >= 0 ? transports[index] : null;
+        }
+
+        int RiddenTransportIndex(ulong actor)
+        {
+            if (runtime == null || actor == CannonSeatState.Nobody) return -1;
+            for (int i = 0; i < runtime.Length; i++)
+                if (!runtime[i].Trap.IsOpen && runtime[i].State.Phase == DeparturePhase.Moving && runtime[i].ActiveRider == actor)
+                    return i;
+            return -1;
         }
 
         public bool CanStart(NetworkPlayer player, int index)
