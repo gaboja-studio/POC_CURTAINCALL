@@ -103,3 +103,4 @@
 - check-work 안전성·문서·컴파일·공통 설정 및 EditMode 582/582 통과. 두 씬에서 열린 출구로 밀기·끌기·왕복·좌우 오프셋 총24개 운반 경로 통과(.harness/local/waiting-carry-route-after.json). 실제 플레이는 사용자 확인 예정. 기존 doctor의 다른 Task ID 중복은 이번 작업과 무관하다.
 - 제출 직전 DEV 3af36b10 반영. 추가로 요청했던 탈출로 문 변경은 사용자 취소로 작업하지 않았다.
 - DEV 3af36b10 통합 상태에서도 컴파일·공통 설정·EditMode 582/582 재확인.
+- 수정 17파일을 c1589ff7로 저장하고 [PR #349](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/349)에 제출했다. PM 팀 검토를 요청했다.
