@@ -76,7 +76,8 @@ namespace CurtainCall.HumanCannon
             if (stationIndex >= 0)
             {
                 var action = CommonInteractionSelection.Allows(player, system)
-                    ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) : CannonAction.Sync;
+                    ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress,
+                        input.ActionPressed, input.ActionHeld) : CannonAction.Sync;
                 if (action != CannonAction.Sync) system.Request(stationIndex, action);
             }
             else if (input.InteractTapped) TryRequestNearbyCannon();

@@ -294,6 +294,22 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.AreEqual(CannonAction.Sync, input.Read(true, false, 0));
         }
 
+        [Test, Category("CommonProgressionRegression")]
+        public void SpaceLaunchUsesTheSameSeatLatchAndNeedsNeutralInputAfterBoarding()
+        {
+            var input = new CannonInputLatch();
+            Assert.AreEqual(CannonAction.Sync, input.Read(false, false, 0, true, true));
+            for (int i = 0; i < 4; i++) Assert.AreEqual(CannonAction.Sync, input.Read(false, false, 0, false, true));
+            input.Read(false, false, 0);
+            input.Read(false, false, 0);
+            Assert.AreEqual(CannonAction.Launch, input.Read(false, false, 0, true, true));
+            Assert.AreEqual(CannonAction.Sync, input.Read(false, false, 0, false, true));
+            Assert.AreEqual(CannonAction.Launch, input.Read(true, false, 0, true, true));
+            Assert.AreEqual(CannonAction.Cancel, input.Read(false, true, 1, true, true));
+            input.Reset();
+            Assert.AreEqual(CannonAction.Sync, input.Read(false, false, 0, true, true));
+        }
+
         [Test]
         public void InvalidActorAndSyncRequest_DoNotChangeSeat()
         {

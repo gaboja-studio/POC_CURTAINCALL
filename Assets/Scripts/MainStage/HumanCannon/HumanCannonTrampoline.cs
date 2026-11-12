@@ -43,6 +43,7 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
         Collider carryBody;
+        readonly System.Collections.Generic.List<Collider> limbCollisionBodies = new();
         CharacterController ignoredCarrierBody;
         bool previousCarrierIgnored;
         Vector3 lastSafeCarrierFeet;
@@ -111,6 +112,7 @@ namespace CurtainCall.HumanCannon
         void OnEnable()
         {
             RefreshCarryBody(null);
+            RefreshLimbCollisions();
             if (Current != null && Current != this)
             {
                 Debug.LogError("[HumanCannon] 1단계 테스트에는 트램폴린을 하나만 둡니다.", this);
@@ -125,6 +127,15 @@ namespace CurtainCall.HumanCannon
             ResetPreviousPose();
             PresentHandleOwnership();
             NetworkPlayer.Restarted += HandleRestart;
+        }
+
+        // Run before physics, including while idle/dropping and when new limb pieces appear.
+        void FixedUpdate() => RefreshLimbCollisions();
+
+        void RefreshLimbCollisions()
+        {
+            GetComponentsInChildren(true, limbCollisionBodies);
+            foreach (var body in limbCollisionBodies) CurtainCall.Damage.DismemberedLimb.IgnoreFor(body);
         }
 
         void Update()

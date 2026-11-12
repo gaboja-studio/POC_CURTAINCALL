@@ -11,6 +11,69 @@ namespace CurtainCall.Control.Editor.Tests
     [Category("November11CommonFix")]
     public sealed class InputBindingPreferencesTests
     {
+        [TestCase(false), TestCase(true), Category("CommonProgressionRegression")]
+        public void DeviceResetCancelsTheGestureWithoutProducingTapOrHold(bool hardReset)
+        {
+            var reader = CreateReader();
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var interact = (InputAction)typeof(PlayerInputReader).GetField("interact", members).GetValue(reader);
+            var read = typeof(PlayerInputReader).GetMethod("ReadInteract", members);
+            var manager = typeof(InputSystem).GetField("s_Manager", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var flag = manager.GetType().GetProperty("runPlayerUpdatesInEditMode");
+            var previous = flag.GetValue(manager);
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                flag.SetValue(manager, true);
+                interact.actionMap.devices = new InputDevice[] { keyboard };
+                interact.Enable();
+                double now = Time.realtimeSinceStartupAsDouble;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), now - .1d);
+                InputSystem.Update();
+                InputSystem.ResetDevice(keyboard, hardReset);
+                var result = new object[] { now, false, false, 0f };
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.False, "Reset is not a tap.");
+                Assert.That(result[2], Is.False, "Reset is not a hold.");
+                Assert.That(result[3], Is.EqualTo(0f));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), now);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(), now + .1d);
+                InputSystem.Update();
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.True, "The next real gesture must still work.");
+                Assert.That(result[2], Is.False);
+            }
+            finally
+            {
+                interact.Disable(); InputSystem.RemoveDevice(keyboard); flag.SetValue(manager, previous);
+            }
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void ClearedInteractionRejectsTheOldFrameAndAcceptsTheFirstNewGesture()
+        {
+            using var gate = new CurtainCall.Tightrope.EditorTools.Tests.InputGateTestScope();
+            var reader = CreateReader(); reader.gameObject.SetActive(true);
+            var current = typeof(PlayerInputReader).GetProperty("Current");
+            current.SetValue(reader, new PlayerInputFrame { InteractHeld = true });
+            var selected = CommonInteractionSelection.Selected(reader);
+            Assert.That(selected, Is.Not.Null);
+            var gestures = (System.Collections.IDictionary)typeof(CommonInteractionSelection)
+                .GetField("gestures", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            try
+            {
+                reader.ClearPendingInput();
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.False);
+                var gesture = gestures[reader.GetInstanceID()];
+                gesture.GetType().GetField("Frame").SetValue(gesture, -1); // First frame after the menu's neutral barrier.
+                current.SetValue(reader, new PlayerInputFrame { InteractHeld = true });
+                selected = CommonInteractionSelection.Selected(reader);
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.True);
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.False);
+            }
+            finally { gestures.Remove(reader.GetInstanceID()); reader.gameObject.SetActive(false); }
+        }
+
         [TestCase(.45, false, false)]
         [TestCase(.5, true, false)]
         [TestCase(.6, true, false)]

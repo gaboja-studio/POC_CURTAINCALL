@@ -15,6 +15,9 @@ namespace CurtainCall.Player
         /// <summary>기본 액션(기본 Space)을 이번 프레임에 눌렀는지.</summary>
         public bool ActionPressed;
 
+        /// <summary>기본 액션 키를 누르고 있는지. 탑승 전 입력을 재사용하지 않는 중립 확인용.</summary>
+        public bool ActionHeld;
+
         /// <summary>진행 방향을 반대로 바꾸기(기본 T)를 이번 프레임에 눌렀는지.</summary>
         public bool TurnAroundPressed;
 
