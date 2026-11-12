@@ -5,7 +5,7 @@
 공통 연결·완료 감사·PR324 체크리스트: [007](History/007-todo-through-pr324.md).
 
 ## 최근 수정·남은 범위
-- [x] 11/13 추가 재현 4건: 목마 상태 대포 연습 종료 복귀, 메뉴 뒤 첫 F 누락, 장치 초기화의 F 오발행, 사지 조각의 기립 방해. 수정 및 공통601/601·입력/운반133/133 통과([결과](Inventory/remaining-test-failures.md)); 대포 Space 발사·트램펄린 사지 충돌 제외 포함.
+- [x] PR353 이후 재현2건 수정·검사: 치료/리허설 상호 이동 배제, 운반 해제 뒤 의료 입장, 늦은 잡기 거부. 치료36/36·공통618/618 통과(중복 포함), 제출 준비. [전후·검사](Inventory/post353-transition-audit.md). 직전 PR353 결과는 [별도 기록](Inventory/remaining-test-failures.md).
 - [ ] 원래 서로 다른 PC의 밤→아침 연결 종료: 원본 로그 미확보, 이번 Relay에서는 미재현
 - [ ] 실제 서로 다른 PC/회선·모든 코스·모든 인원/부상 조합 완주 검증
 - [ ] 기존 실패14개 전체 수정: 사용자 보류 유지([상세](Inventory/remaining-test-failures.md))

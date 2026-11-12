@@ -27,3 +27,16 @@
 - 최종 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통601/601, 입력·운반133/133(중복 포함). 새 14사례 모두 통과. `.harness/local/nov13-final-common-results.json`, `nov13-input-carry-results.json`. 실제 PlayMode/다른 PC 2·3·4인 플레이는 사용자 확인.
 - 제출 직전 Unity 정상 종료·Start 씬 dirty 0 확인 후 origin/dev 19bb420f 재확인(변경 없음). 기존 Start/에셋/다른 Task 수정은 보존하고 이번 수정 경로만 커밋한다.
 - 수정 커밋 2d61cbad를 [PR #353](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/353)에 제출하고 PM 팀 검토를 요청했다. new-pr 미리보기 완료; 기존 다른 작업의 미커밋 파일은 보존하기 위해 이번 커밋만 push하고 gh로 등록했다. dev 병합은 하지 않음.
+
+## 11/13 PR353 이후 추가 진행 차단 감사
+- Unity 종료 뒤 origin/dev 1764a21c(PR353 병합)로 fast-forward. 기존 변경은 .harness/local/nov13-next-audit-before에 보존. doctor의 기존 Task ID 중복 실패는 유지, Unity 연결 정상. 게임 코드·세팅 변경 없이 새 전환 조합을 조사한다.
+- 치료 중 대포 연습 시작 시 입력 잠금/치료 종료 뒤 코스 이탈 3회 재현. 치료 입장 때 트램펄린 소유가 겹치면 실제 공통 충돌 Mesh+임시 측벽 두 배치에서 약2.96m 밀림과 잠금 유지 재현. [상세·한계](Inventory/post353-transition-audit.md). 신규2건 미수정.
+- 기존 치료19/19·리허설70/70 통과. 복합 필터 첫 시도는 NO_PROJECT_TESTS, 개별 필터로 유효 결과 확보. 임시 Scene 생성은 EditMode API로 바꿔 재현. 실제 PC 간 플레이는 미실행. 이전601개 결과와 이번89개를 중복 합산하지 않음.
+- check-work 안전성·문서/규칙·컴파일·공통 설정 PASS, 명령 내 테스트 SKIPPED(위89개 별도). Knowledge19폴더 OK, 기존 문서 길이 WARN71/하드0. Start/동적폰트는 작업 전 백업과 해시 동일. 커밋·push·PR 제출 없음.
+
+## 11/13 치료·리허설·운반 인계 수정
+- 사용자 수정·제출 요청 후 Unity 정상 종료, 기존 변경 `.harness/local/nov13-medical-fix-before` 백업, origin/dev 1764a21c 최신 확인. doctor는 기존 Task ID 중복만 실패하여 코드 작업 진행.
+- 치료 Working/Exiting 중 재연습 시작 배제, 반대로 리허설 뒤 늦은 의료 입장 거부. 참가자의 의료 상태가 늦게 끝나도 복귀 좌표 저장/배치/종료 잠금을 기다린다. 의료 입장은 운반 해제와 목마 해제를 먼저 공유하고 참가자도 운반 해제 수신 뒤 이동한다. 뒤늦은 운반·목마 신규 연결을 거부한다. GameSettings 수치·공연 씬 배치 변경 없음.
+- 첫33개 검사에서 새 씬 준비7개 실패와 목마 해제 이동복원5개 회귀 발견. 테스트 러너 소유 씬의 이름만 임시 변경/복원하고, 치료의 신규 잡기 차단을 실제 기물 이동 소유권 판정과 분리해 수정. 재컴파일 전 재실행은 옛33개 결과여서 최신 결과로 집계하지 않음. 최신17개 추가 회귀 검사를 포함해 재검증 중.
+- 최종 치료36/36·공통618/618 통과(36은618에 포함), 신규17사례. 실제 플레이는 사용자 확인. 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통 설정 연결도 PASS. 결과 `.harness/local/nov13-medical-fix-common-results.json`, `nov13-medical-fix-focused-results.json`.
+- 제출 직전 Unity 정상 종료 후 origin/dev 1764a21c 재확인·반영(추가 변경 없음). 기존 Start/폰트/다른 작업 변경은 보존하고 이번 코드·검사·기록 경로만 저장한다.

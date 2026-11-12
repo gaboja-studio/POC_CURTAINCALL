@@ -46,6 +46,7 @@ namespace CurtainCall.WaitingRoom
 
         void CaptureReturnPose(NetworkPlayer player)
         {
+            if (ExpertService.IsTreating(player.OwnerClientId)) return;
             if (returnPoseRound == shared.round && returnPoseOwner == player) return;
             returnPose = new Pose(player.transform.position, player.transform.rotation);
             returnPoseOwner = player;
@@ -94,7 +95,9 @@ namespace CurtainCall.WaitingRoom
             r.prompt = false; r.promptBlock.SetOpen(false); r.votePanel.Hide();
             if (yes)
             {
-                if (!StartPractice()) WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"), T("unavailable", "연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요."), 5f,true);
+                if (!StartPractice()) WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"), ExpertService.IsMovingBuyer
+                    ? "팀원의 신체 복구와 퇴실이 끝난 뒤 다시 시도하세요."
+                    : T("unavailable", "연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요."), 5f,true);
             }
             else if (r.returnToSchedule) FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(true);
         }
@@ -250,6 +253,7 @@ namespace CurtainCall.WaitingRoom
         bool CaptureEndingMover()
         {
             var player = NetworkPlayer.Local;
+            if (ExpertService.IsLocalInTreatment) return false;
             if (endingMover != null) return true;
             if (player == null || !player.TryGetComponent(out PlayerMover mover)) return false;
             var stack = CurtainCall.Tightrope.PiggybackSystem.Current;

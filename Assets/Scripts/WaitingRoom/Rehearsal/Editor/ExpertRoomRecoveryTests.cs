@@ -6,9 +6,12 @@ using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
 using CurtainCall.Network.Session;
+using CurtainCall.HumanCannon;
+using CurtainCall.SpaceLink;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.WaitingRoom.EditorTools
@@ -105,6 +108,209 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(room, "Bind", service);
             Assert.IsTrue((bool)Get(room, "localInside"));
             Assert.IsTrue(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+        }
+
+        void WithRehearsal(System.Action<RehearsalLifecycleTests, object, object> test)
+        {
+            var lifecycle = new RehearsalLifecycleTests(); lifecycle.SetUp();
+            var previousDirector = SpaceLinkDirector.Instance;
+            var previousScene = SceneManager.GetActiveScene();
+            var previousName = previousScene.name;
+            try
+            {
+                previousScene.name = GameSettings.Base.SpaceTransition.WaitingRoomScene;
+                var director = Make("Medical rehearsal director").AddComponent<SpaceLinkDirector>();
+                typeof(SpaceLinkDirector).GetProperty("Instance").SetValue(null, director);
+                var run = (CampaignRun)Get(lifecycle, "run"); var state = run.State; state.CannonUnlocked = true; Set(run, "state", state);
+                test(lifecycle, Get(lifecycle, "cannon"), Get(lifecycle, "rehearsal"));
+            }
+            finally
+            {
+                typeof(SpaceLinkDirector).GetProperty("Instance").SetValue(null, previousDirector);
+                previousScene.name = previousName;
+                lifecycle.TearDown();
+            }
+        }
+
+        [TestCase(2), TestCase(3), TestCase(4)]
+        public void TreatmentAndExitBlockBothRehearsalsButBookingAndFinishedTreatmentDoNot(int participants)
+        {
+            for (int i = 1; i < participants; i++) Player((ulong)i);
+            WithRehearsal((_, _, _) =>
+            {
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
+                Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice);
+                Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                book.Enter(0); Call(room, "Bind", service);
+                Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice);
+                Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
+                Assert.IsFalse(WaitingRoomCannonRehearsal.StartPractice());
+                book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+                Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice, "Exit snapshot must finish before relocation is offered.");
+                Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
+                book.Tick(1000f);
+                Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice);
+                Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                Assert.AreEqual(outside.position, local.transform.position);
+                Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+            });
+        }
+
+        [TestCase("cannon"), TestCase("rope"), TestCase("pending")]
+        public void LateMedicalEntryCannotMoveARehearsalParticipant(string operation)
+        {
+            WithRehearsal((life, cannon, rope) =>
+            {
+                if (operation == "cannon") Call(life, "Shared", "active", true);
+                else Set(rope, operation == "rope" ? "active" : "practiceVote", true);
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
+                Call(room, "Bind", service); Physics.SyncTransforms();
+                var result = ((bool ok, string text))Call(service, "Enter", 0UL);
+                Assert.IsFalse(result.ok);
+                Assert.AreEqual(ExpertRoomPhase.Booked, book.Phase, "Keep the paid reservation for after rehearsal.");
+                Assert.AreEqual(outside.position, local.transform.position);
+                Assert.IsFalse((bool)Get(room, "localInside"));
+                Set(rope, "active", false); Set(rope, "practiceVote", false);
+            });
+        }
+
+        [Test]
+        public void EarlyRehearsalSnapshotWaitsForMedicalExitBeforeCapturingReturnPose()
+        {
+            BeginLocalWork();
+            WithRehearsal((life, cannon, _) =>
+            {
+                var course = Make("Medical delayed rehearsal course").AddComponent<RehearsalCannonCourse>();
+                var floor = Make("Medical delayed rehearsal floor").AddComponent<BoxCollider>();
+                floor.transform.position = new Vector3(9100, 9000, 9000); floor.size = new Vector3(12, 1, 8);
+                course.StartFloor = course.MiddleFloor = floor; Set(cannon, "course", course);
+                Call(life, "Shared", "active", true); Call(life, "Shared", "round", 3); Physics.SyncTransforms();
+                var mover = local.GetComponent<PlayerMover>();
+                Call(cannon, "CaptureReturnPose", local); Call(cannon, "PlaceLocalAtCheckpoint", local, mover);
+                Assert.AreEqual(-1, Get(cannon, "returnPoseRound"));
+                Assert.AreEqual(inside.position, local.transform.position);
+                Assert.IsFalse((bool)Call(cannon, "CaptureEndingMover"), "An early ending packet must wait too.");
+                book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+                Call(cannon, "PlaceLocalAtCheckpoint", local, mover);
+                Assert.AreEqual(outside.position, local.transform.position);
+                book.Tick(1000f);
+                Call(cannon, "PlaceLocalAtCheckpoint", local, mover);
+                Assert.IsTrue(RehearsalCannonCourse.Contains(floor, local.transform.position));
+                Assert.AreEqual(outside.position, ((Pose)Get(cannon, "returnPose")).position);
+                Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+                Call(room, "ReconcileLocalOccupancy");
+                Assert.IsTrue(RehearsalCannonCourse.Contains(floor, local.transform.position));
+            });
+        }
+
+        void WithCarriedTrampoline(System.Action<HumanCannonTrampoline, CannonSeatState> test)
+        {
+            var previous = HumanCannonTrampoline.Current;
+            var host = Make("Medical carry host"); host.SetActive(false);
+            var session = host.AddComponent<NetworkSessionManager>(); Set(session, "_networkManager", host.GetComponent<NetworkManager>());
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            var root = Make("Medical carried trampoline"); root.transform.position = outside.position + Vector3.forward;
+            var handle = Make("Medical carry handle").transform; handle.SetParent(root.transform, false); handle.localPosition = Vector3.back;
+            var trampoline = root.AddComponent<HumanCannonTrampoline>(); Set(trampoline, "handle", handle); Set(trampoline, "session", session);
+            var ownership = (CannonSeatState)Get(trampoline, "ownership"); ownership.TryApply(CannonAction.Board, 0, ownership.Revision);
+            typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, trampoline); HumanCannonCarry.Register(trampoline);
+            try { test(trampoline, ownership); }
+            finally { HumanCannonCarry.Unregister(trampoline); typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, previous); }
+        }
+
+        [TestCase(0), TestCase(1), TestCase(2), TestCase(3)]
+        public void EnterReleasesCarriedTrampolineBeforeMedicalTeleport(int lostParts)
+        {
+            local.gameObject.AddComponent<PlayerCondition>().SetLostParts(PlayerCondition.PartsForLostCount(lostParts));
+            WithCarriedTrampoline((trampoline, _) =>
+            {
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100); Call(room, "Bind", service); Physics.SyncTransforms();
+                var propPosition = trampoline.transform.position;
+                var result = ((bool ok, string text))Call(service, "Enter", 0UL);
+                Assert.IsTrue(result.ok, result.text);
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Assert.AreEqual(propPosition, trampoline.transform.position, "The load stays outside rather than sweeping into the cabin.");
+                Assert.AreEqual(inside.position, local.transform.position);
+                Assert.IsTrue(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+            });
+        }
+
+        [TestCase(true), TestCase(false)]
+        public void MedicalSnapshotWaitsForLoadReleaseInEitherOrder(bool medicalFirst)
+        {
+            WithCarriedTrampoline((trampoline, ownership) =>
+            {
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
+                if (!medicalFirst) ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+                book.Enter(0); Call(room, "Bind", service);
+                if (medicalFirst)
+                {
+                    Assert.AreEqual(outside.position, local.transform.position);
+                    Assert.IsFalse((bool)Get(room, "localInside"));
+                    ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+                    Call(room, "ReconcileLocalOccupancy");
+                }
+                Assert.AreEqual(inside.position, local.transform.position);
+                Assert.IsTrue(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+                book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+                Assert.AreEqual(outside.position, local.transform.position);
+                Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+            });
+        }
+
+        [Test]
+        public void MedicalOccupancyRejectsNewCarryUntilExitAndDoesNotBlockTeammates()
+        {
+            var other = Player(5);
+            var occupied = typeof(HumanCannonCarry).GetMethod("HasOccupiedHands", BindingFlags.Static | BindingFlags.NonPublic);
+            BeginLocalWork();
+            Assert.IsTrue((bool)occupied.Invoke(null, new object[] { local }));
+            Assert.IsFalse((bool)occupied.Invoke(null, new object[] { other }));
+            book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+            Assert.IsTrue((bool)occupied.Invoke(null, new object[] { local }));
+            book.Tick(1000f);
+            Assert.IsFalse((bool)occupied.Invoke(null, new object[] { local }));
+        }
+
+        [Test]
+        public void DelayedGrabRequestCannotReacquireTrampolineAfterTreatmentEntry()
+        {
+            WithCarriedTrampoline((trampoline, ownership) =>
+            {
+                var previous = HumanCannonSystem.Current;
+                var cannon = Make("Medical late grab cannon").AddComponent<HumanCannonSystem>();
+                typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, cannon);
+                try
+                {
+                    ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+                    BeginLocalWork();
+                    Assert.IsFalse(trampoline.CanGrab(local));
+                    var action = System.Enum.Parse(typeof(HumanCannonTrampoline).GetNestedType("TrampolineAction", BindingFlags.NonPublic), "Grab");
+                    Call(trampoline, "HandleRequest", 0UL, action, ownership.Revision, -1, 0U, 0U,
+                        trampoline.transform.position, trampoline.transform.rotation, true);
+                    Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                    Assert.AreEqual(inside.position, local.transform.position);
+                }
+                finally { typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, previous); }
+            });
+        }
+
+        [TestCase(false), TestCase(true)]
+        public void TreatmentEndingBeforeDelayedLoadReleaseDoesNotTeleportOrLockBuyer(bool dies)
+        {
+            WithCarriedTrampoline((_, ownership) =>
+            {
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100); book.Enter(0); Call(room, "Bind", service);
+                Assert.IsFalse((bool)Get(room, "localInside"));
+                if (dies) ((NetworkVariable<PlayerState>)Get(local, "state")).Value = PlayerState.Fallen;
+                else book.Tick(1000f);
+                ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+                Call(room, "ReconcileLocalOccupancy");
+                Assert.AreEqual(outside.position, local.transform.position);
+                Assert.IsFalse((bool)Get(room, "localInside"));
+                var block = (UIInputBlocker)Get(room, "workInput");
+                Assert.IsTrue(block == null || !block.IsBlocking);
+            });
         }
 
         [Test]

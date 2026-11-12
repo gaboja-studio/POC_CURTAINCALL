@@ -66,7 +66,7 @@ namespace CurtainCall.WaitingRoom
         bool Host => CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority;
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
-        bool CanStart => !shared.active && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
+        bool CanStart => !shared.active && !ExpertService.IsMovingBuyer && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
             && CampaignRun.Instance.State.CannonUnlocked && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
@@ -331,6 +331,7 @@ namespace CurtainCall.WaitingRoom
 
         void LocalTick()
         {
+            if (ExpertService.IsLocalInTreatment) return;
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
             if (p.State == PlayerState.Normal && (localRecoveryPending || local == p && previousState == PlayerState.Fallen))
@@ -373,6 +374,7 @@ namespace CurtainCall.WaitingRoom
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover)
         {
+            if (ExpertService.IsTreating(p.OwnerClientId)) return;
             CaptureReturnPose(p);
             var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
             bool validPosition = placingAfterRecovery ? course.IsRecoveryDeck(p.transform.position)

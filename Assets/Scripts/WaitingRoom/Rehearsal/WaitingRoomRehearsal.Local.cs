@@ -257,6 +257,7 @@ namespace CurtainCall.WaitingRoom
 
         void LocalTick()
         {
+            if (ExpertService.IsLocalInTreatment) return;
             bool devClear = CanClearCurrentStage;
             skipCursorRegion.enabled = devClear || CanVote || (practice && HasAuthority);
             // 호스트 버튼 영역: 호스트 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
