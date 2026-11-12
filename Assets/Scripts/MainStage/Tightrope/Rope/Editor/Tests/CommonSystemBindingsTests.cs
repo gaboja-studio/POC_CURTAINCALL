@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
     /// <summary>외줄이 공용 조작·부상 정책을 빌렸다가 안전하게 반환하는 연결 회귀 검사.</summary>
+    [Category("CommonProgressionRegression")]
     public sealed class CommonSystemBindingsTests
     {
         readonly List<Object> objects = new();

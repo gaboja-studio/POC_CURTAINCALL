@@ -34,9 +34,31 @@ namespace CurtainCall.WaitingRoom.Pursuit
             while (contactHistory.Count < actors.Count) contactHistory.Add(new PursuitContactHistory());
             for (int i = 0; i < actors.Count; i++) {
                 var actor = actors[i];
-                contactHistory[i].Record(stamp, actor.transform.position, Id(actor.ChasedPlayer),
-                    actor.IsActivated && actor.ContactTargetVisible && actor.Behaviour == PursuitBehaviour.Chase && actor.State == PursuitMotion.Run && actor.Victim == null);
+                // 추격 행동 중이면 막힌 길 끝에서 노려보며 서 있어도(달리기 아님) 닿은 플레이어를 잡는다.
+                contactHistory[i].Record(stamp, actor.transform.position, ContactEligible(actor));
             }
+        }
+        /// <summary>닿은 플레이어를 잡을 수 있는 추격자 상태. 쫓는 대상이 아니어도 추격 중 닿으면 잡는다(2026-11-12 결정).</summary>
+        static bool ContactEligible(PursuitActor actor)
+            => actor != null && actor.IsActivated && actor.Behaviour == PursuitBehaviour.Chase && actor.Victim == null
+                // 오르내리는 동안은 잡지 않는다(플레이어가 반응할 시간). 복제본도 동작 상태로 같은 판정을 한다.
+                && !PursuitActor.IsTraversalMotion(actor.State);
+        /// <summary>호스트·오프라인 플레이어 포획. 쫓는 대상을 먼저 보고, 포획 범위에 든 다른 플레이어도 잡는다.
+        /// 원격 플레이어는 자기 화면의 접촉 보고로만 잡힌다.</summary>
+        internal void CaptureInReach(PursuitActor actor, GameObject preferred)
+        {
+            if (!ContactEligible(actor)) return;
+            if (TryHostCapture(actor, preferred)) return;
+            foreach (var player in candidates)
+                if (player != preferred && TryHostCapture(actor, player)) return;
+        }
+        bool TryHostCapture(PursuitActor actor, GameObject player)
+        {
+            if (player == null || !IsAvailable(player) || RequiresOwnerContact(player)
+                || !actor.WithinCaptureReach(player.transform.position)
+                || !ClearLine(actor.transform.position + Vector3.up, player.transform.position + Vector3.up, player.transform)) return false;
+            BeginCapture(actor, player);
+            return actor.Victim != null;
         }
         /// <summary>Called after this replica has applied its displayed pose, never from host AI for a remote victim.</summary>
         internal void ReportLocalContact(PursuitActor actor)
@@ -47,10 +69,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!IsPursuitPhase(campaign.Phase) || campaign.Timer != RestTimerState.Pursuit) return;
             var player = NetworkPlayer.Local;
             if (player == null || !player.IsSpawned || !player.IsOwner || !IsAvailable(player.gameObject)
-                || !actor.IsActivated || actor.State != PursuitMotion.Run || actor.Behaviour != PursuitBehaviour.Chase
-                || actor.Victim != null || actor.ChasedPlayer != player.gameObject || !actor.HasFreshContactPose) return;
-            float radius = GameSettings.WaitingRoom.Pursuit.CaptureRadius;
-            if (!PursuitContactRules.Touching(actor.transform.position, player.transform.position, radius)
+                || !ContactEligible(actor) || !actor.HasFreshContactPose) return;
+            if (!PursuitContactRules.Touching(actor.transform.position, player.transform.position, GameSettings.WaitingRoom.Pursuit)
                 || !ClearLine(actor.transform.position + Vector3.up, player.transform.position + Vector3.up, player.transform)) return;
             int index = actors.IndexOf(actor);
             if (index < 0) return;
@@ -96,10 +116,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 return PursuitContactRejection.Sequence;
             if (contact.Actor < 0 || contact.Actor >= actors.Count || contact.Actor >= contactHistory.Count) return PursuitContactRejection.State;
             actor = actors[contact.Actor];
-            if (!actor.IsActivated || actor.Victim != null || actor.ChasedPlayer != player || actor.Behaviour != PursuitBehaviour.Chase
-                || actor.State != PursuitMotion.Run) return PursuitContactRejection.State;
-            var result = PursuitContactRules.Validate(contact, contactHistory[contact.Actor], sender, now,
-                player.transform.position, GameSettings.WaitingRoom.Pursuit.CaptureRadius);
+            if (!ContactEligible(actor)) return PursuitContactRejection.State;
+            var rules = GameSettings.WaitingRoom.Pursuit;
+            var result = PursuitContactRules.Validate(contact, contactHistory[contact.Actor], now,
+                player.transform.position, rules.CaptureRadius, rules.CaptureBelow, rules.CaptureAbove);
             if (result != PursuitContactRejection.None) return result;
             if (!ClearLine(contact.ActorPosition + Vector3.up, contact.PlayerPosition + Vector3.up, player.transform))
                 return PursuitContactRejection.Occluded;

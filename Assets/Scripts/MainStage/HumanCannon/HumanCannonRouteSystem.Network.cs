@@ -113,6 +113,7 @@ namespace CurtainCall.HumanCannon
                 if (trapOpen > 1 || !transit.Trap.Receive(trapOpen == 1, openedAt, frozenProgress)) return;
                 if (occupied > 1 || !transit.Boarding.Receive(boardingRider, boardedAt)) return;
                 if (transit.Boarding.IsCounting && (transit.Trap.IsOpen || transit.State.Phase != DeparturePhase.Waiting || !transit.Occupied)) return;
+                if (runtime[i].RevokedTravel == (rider, startedAt)) transit.RevokedTravel = runtime[i].RevokedTravel;
                 snapshot[i] = transit;
             }
             reader.ReadValueSafe(out int fireCount);

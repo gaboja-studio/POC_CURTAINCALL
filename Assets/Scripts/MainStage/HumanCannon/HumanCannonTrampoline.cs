@@ -2,6 +2,7 @@ using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -95,8 +96,8 @@ namespace CurtainCall.HumanCannon
         public bool CircularSurface => circularSurface;
         public bool UsePropOutline => CurtainCall.Settings.GameSettings.Trampoline.UsePropOutline;
         public bool RequireCarrierForBounce => CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce;
-        bool BounceReady => !CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce || Carrier != CannonSeatState.Nobody
-            && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal;
+        bool BounceReady => !dropping && (!CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce || Carrier != CannonSeatState.Nobody
+            && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal);
         public Vector2 LoadHalfSize => loadHalfSize.x > 0f && loadHalfSize.y > 0f ? loadHalfSize : halfSize;
         public float UpwardSpeed => CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed;
         public float CarryMoveSpeed => CurtainCall.Settings.GameSettings.Trampoline.CarryMoveSpeed;
@@ -138,7 +139,34 @@ namespace CurtainCall.HumanCannon
             if (session == null || !session.IsHost) return;
             if (!ownership.IsOccupied) return;
             var carrier = FindPlayer(Carrier);
-            if (carrier != null && carrier.State == PlayerState.Normal) return;
+            if (carrier == null || carrier.State != PlayerState.Normal)
+                ReleaseCarrierToGround(carrier);
+            else if (HasRopeSupport(carrier))
+                ServerDropForRope(carrier.OwnerClientId);
+        }
+
+        internal static bool IsCarriedBy(NetworkPlayer player) => player != null
+            && HumanCannonCarry.Held(player.OwnerClientId) is HumanCannonTrampoline;
+
+        static bool HasRopeSupport(NetworkPlayer player)
+        {
+            if (!player.TryGetComponent(out PlayerMover mover) || (player.IsLocal
+                ? !mover.Simulated || mover.IsAirborne : player.IsAirborne)) return false;
+            var course = TightropeCourse.Current;
+            return course != null && course.IsTraversalActive && course.TryGetSupportingRope(mover, out _);
+        }
+
+        internal static bool WaitingForRopeDrop(PlayerMover mover)
+        {
+            if (Current == null || !Current.ownership.IsOccupied || mover == null
+                || !mover.TryGetComponent(out NetworkPlayer player) || player.State != PlayerState.Normal) return false;
+            var stack = PiggybackSystem.Current;
+            var carrier = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : player;
+            return carrier != null && Current.Carrier == carrier.OwnerClientId && HasRopeSupport(carrier);
+        }
+
+        void ReleaseCarrierToGround(NetworkPlayer carrier)
+        {
             // 들고 낙사하면 시작 지점에 가장 가까운 생존자 발밑 지면으로 옮긴다(2026-11-05 사용자 요청).
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
@@ -219,6 +247,8 @@ namespace CurtainCall.HumanCannon
 
         void FollowCarrier(NetworkPlayer carrier, bool alignToCarrier = false)
         {
+            // A local rope catch can precede the host's ownership update.
+            if (TightropeHangSystem.Current?.IsHanging(carrier) == true || HasRopeSupport(carrier)) return;
             RefreshCarryBody(carrier);
             if (collisionCarrier != Carrier || alignToCarrier) { collisionCarrier = Carrier; lastSafeCarrierFeet = carrier.transform.position; }
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
@@ -226,9 +256,15 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonCarry.TryFollowPose(carrier, transform, Handle, carryHandleHeight, alignToCarrier,
                 out var position, out var rotation, out var carrierRotation))
             {
-                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier))
+                var route = HumanCannonRouteSystem.Current;
+                carrier.TryGetComponent(out PlayerMover mover);
+                float floorClearance = route != null && !alignToCarrier && mover != null && mover.Body != null
+                    ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
+                // Only an authorized rider's load may cross its own lift's boarding barrier.
+                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
+                    floorClearance, route?.RiddenTransport(Carrier)))
                 {
-                    if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body.enabled)
+                    if (carrier.IsLocal && mover != null && mover.Simulated && mover.Body != null && mover.Body.enabled)
                         mover.Body.Move(lastSafeCarrierFeet - carrier.transform.position);
                     return;
                 }
@@ -246,11 +282,11 @@ namespace CurtainCall.HumanCannon
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
-                || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
-            var cannon = HumanCannonSystem.Current;
-            if (cannon == null || cannon.IsSeated(player.OwnerClientId)) return false;
-            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
+                || HumanCannonSystem.Current == null || HumanCannonCarry.HasOccupiedHands(player)
+                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)) return false;
+            var course = TightropeCourse.Current;
+            if (course != null && course.IsTraversalActive && course.UsesRopeRules(player)) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
             return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
@@ -289,7 +325,17 @@ namespace CurtainCall.HumanCannon
         public void ServerReleaseForInspection(ulong actor)
         {
             if (session == null || !session.IsHost || Carrier != actor) return;
-            HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+            var carrier = FindPlayer(actor);
+            if (carrier == null || carrier.State != PlayerState.Normal) ReleaseCarrierToGround(carrier);
+            else HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+        }
+
+        internal void ServerDropForRope(ulong actor)
+        {
+            if (session == null || !session.IsHost || !ownership.TryApply(CannonAction.Release, actor, ownership.Revision)) return;
+            PlaceAfterRopeDrop(FindPlayer(actor));
+            ResetPreviousPose();
+            PublishOwnership();
         }
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact)
@@ -372,6 +418,11 @@ namespace CurtainCall.HumanCannon
             }
             else if (action == TrampolineAction.Drop)
             {
+                if (Carrier == actor && ownership.Revision == revision && HasRopeSupport(player))
+                {
+                    ServerDropForRope(actor);
+                    return;
+                }
                 if (!Finite(rotation) || !ownership.TryApply(CannonAction.Release, actor, revision)) return;
                 // 로컬 장치 위치를 사용하되 마지막 동기화 위치에서 비정상적으로 먼 요청은 무시한다.
                 float turnSpan = Mathf.Max(4f, 2f * Vector3.Distance(transform.position, Handle.position) + 1f);

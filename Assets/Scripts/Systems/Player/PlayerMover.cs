@@ -325,6 +325,9 @@ namespace CurtainCall.Player
         /// <summary>몸통 충돌체.</summary>
         public CharacterController Body => controller;
 
+        /// <summary>지상에서 마지막으로 계산한 월드 이동 속도. 줄 진입 때 모델 회전의 지연 대신 사용한다.</summary>
+        public Vector3 GroundVelocity => groundVelocity;
+
         /// <summary>줄 간격(m). 옆줄 점프 거리와 같다. 처음에는 외줄 세팅의 줄 간격, 코스가 있으면 코스가 자기 줄 간격으로 맞춘다.</summary>
         public float LaneSpacing
         {
@@ -524,6 +527,12 @@ namespace CurtainCall.Player
             Vector3 feet = transform.position;
             Vector3 bottom = feet + Vector3.up * Mathf.Max(radius, current - radius);
             Vector3 top = feet + Vector3.up * Mathf.Max(radius, target - radius);
+            if (FreeMovement)
+            {
+                var rise = Vector3.up * (target - current);
+                if (CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, rise).y < rise.y - .001f)
+                    return false;
+            }
             int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, headroomHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
@@ -637,7 +646,7 @@ namespace CurtainCall.Player
                 ? LimitAgainstPlayers(horizontalStep)
                 : LimitAlongCourse(horizontalStep, forward);
             if (CurrentJump == JumpKind.Lane) step = LimitToLaneTarget(step);
-            controller.Move(step + Vector3.up * displacement.y);
+            MoveWithPassengers(step + Vector3.up * displacement.y);
             // 땅에서 걷다가 내리막·계단 때문에 발이 뜨면 같은 프레임에 발밑 땅으로 붙인다(전진 후 낙하 반복 방지).
             if (grounded && CurrentJump == JumpKind.None && !controller.isGrounded) SnapToGround(step.magnitude);
             SlideOffUnsupportedEdge(step);
@@ -650,6 +659,26 @@ namespace CurtainCall.Player
             laneJumpRequested = 0;
 
             UpdateAirborne();
+        }
+
+        void MoveWithPassengers(Vector3 displacement)
+        {
+            if (FreeMovement)
+            {
+                if (displacement.y > 0f)
+                {
+                    var allowed = CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, displacement);
+                    if (allowed.y < displacement.y - .001f) verticalSpeed = 0f;
+                    displacement = allowed;
+                }
+                else
+                {
+                    var horizontal = Vector3.ProjectOnPlane(displacement, Vector3.up);
+                    displacement = CurtainCall.Tightrope.PiggybackFollow.LimitCarrierMotion(this, horizontal)
+                        + Vector3.up * displacement.y;
+                }
+            }
+            controller.Move(displacement);
         }
 
         /// <summary>

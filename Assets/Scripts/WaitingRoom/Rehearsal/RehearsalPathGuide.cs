@@ -29,6 +29,8 @@ namespace CurtainCall.WaitingRoom
         Material arrowMaterial;
         NavMeshData navData;
         NavMeshDataInstance navInstance;
+        // 전용 에이전트 종류로 굽고 조회한다. 기본(0번)으로 구우면 대기실 추격자 NavMesh와 겹쳐 추격 경로가 끊긴다(Task-117).
+        NavMeshQueryFilter navFilter;
         bool navReady, navBuilding;
         float nextRefresh;
         NavMeshPath path; // Unity: 필드 초기화에서 만들 수 없다(Awake에서).
@@ -72,9 +74,9 @@ namespace CurtainCall.WaitingRoom
         {
             bool fromOk = false, toOk = false, pathOk = false;
             NavMeshHit origin = default, goal = default;
-            bool found = navReady && (fromOk = NavMesh.SamplePosition(feet, out origin, 2f, NavMesh.AllAreas))
-                && (toOk = NavMesh.SamplePosition(target.Value, out goal, 3f, NavMesh.AllAreas))
-                && (pathOk = NavMesh.CalculatePath(origin.position, goal.position, NavMesh.AllAreas, path))
+            bool found = navReady && (fromOk = NavMesh.SamplePosition(feet, out origin, 2f, navFilter))
+                && (toOk = NavMesh.SamplePosition(target.Value, out goal, 3f, navFilter))
+                && (pathOk = NavMesh.CalculatePath(origin.position, goal.position, navFilter, path))
                 && path.status == NavMeshPathStatus.PathComplete && path.corners.Length > 1;
             if (!found)
             {
@@ -246,7 +248,8 @@ namespace CurtainCall.WaitingRoom
             NavMeshBuilder.CollectSources(bounds, ~0, NavMeshCollectGeometry.PhysicsColliders, 0, new List<NavMeshBuildMarkup>(), sources);
             sources.RemoveAll(s => s.component is Collider c && (c.isTrigger || !c.enabled || !c.gameObject.activeInHierarchy
                 || c.GetComponentInParent<NetworkPlayer>() != null));
-            var settings = NavMesh.GetSettingsByIndex(0);
+            var settings = NavMesh.CreateSettings();
+            navFilter = new NavMeshQueryFilter { agentTypeID = settings.agentTypeID, areaMask = NavMesh.AllAreas };
             settings.agentRadius = .35f; settings.agentHeight = 1.8f; settings.agentClimb = .4f; settings.agentSlope = 45f;
             settings.overrideVoxelSize = true; settings.voxelSize = .15f; settings.overrideTileSize = true; settings.tileSize = 128;
             navData = new NavMeshData(settings.agentTypeID) { hideFlags = HideFlags.HideAndDontSave };
@@ -261,6 +264,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (navInstance.valid) NavMesh.RemoveNavMeshData(navInstance);
             if (navData != null) Destroy(navData);
+            if (navFilter.agentTypeID != 0) NavMesh.RemoveSettings(navFilter.agentTypeID);
             if (arrowMesh != null) Destroy(arrowMesh);
             if (arrowMaterial != null) Destroy(arrowMaterial);
         }

@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.Cameras.Tests
 {
     /// <summary>공용 카메라 프리팹의 실제 편집 모드 pipeline. 게임 코드의 Awake나 캐시는 강제로 초기화하지 않는다.</summary>
+    [Category("CommonProgressionRegression")]
     public sealed class CameraEditorPipelineTests
     {
         const string RigPath = "Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab";
@@ -142,6 +143,39 @@ namespace CurtainCall.Cameras.Tests
                 if (preview.IsValid()) EditorSceneManager.ClosePreviewScene(preview);
                 if (request != null) Object.DestroyImmediate(request);
             }
+        }
+
+        [TestCase(0f)] [TestCase(70f)] [TestCase(180f)]
+        public void OrdinaryFlightCameraClearsAnEmbeddedPivotWithoutMovingThePlayer(float yaw)
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Embedded flight camera test");
+            root.transform.SetPositionAndRotation(new Vector3(12000, 12000, 12000), Quaternion.Euler(0, yaw, 0));
+            try
+            {
+                var actor = new GameObject("Inactive owner"); actor.SetActive(false); actor.transform.SetParent(root.transform, false);
+                var player = actor.AddComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                var rig = new GameObject("Inactive camera"); rig.SetActive(false); rig.transform.SetParent(root.transform, false);
+                var director = rig.AddComponent(GameType("CurtainCall.Cameras.CameraViewDirector"));
+                var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
+                director.GetType().GetField("local", fields).SetValue(director, player);
+                director.GetType().GetField("selected", fields).SetValue(director, preset);
+                float height = (float)preset.GetType().GetField("LookHeight").GetValue(preset);
+                var obstacle = new GameObject("Muzzle or low beam"); obstacle.transform.SetParent(root.transform, false);
+                obstacle.transform.localPosition = Vector3.up * height;
+                var box = obstacle.AddComponent<BoxCollider>(); box.size = new Vector3(.4f, height * 2 + 1f, 4f);
+                Physics.SyncTransforms();
+                var state = CameraState.Default;
+                state.RawPosition = root.transform.TransformPoint(new Vector3(3f, height + 1f, -4f));
+                state.RawOrientation = Quaternion.LookRotation(actor.transform.position + Vector3.up * height - state.RawPosition);
+                var playerPosition = actor.transform.position;
+                object[] args = { state };
+                director.GetType().GetMethod("ApplyWallCollision", fields).Invoke(director, args);
+                var finalPosition = ((CameraState)args[0]).GetFinalPosition();
+                Assert.That(Vector3.Distance(finalPosition, box.ClosestPoint(finalPosition)), Is.GreaterThanOrEqualTo(.249f));
+                Assert.That(actor.transform.position, Is.EqualTo(playerPosition));
+            }
+            finally { Object.DestroyImmediate(root); Physics.SyncTransforms(); }
         }
 
         // Assembly-CSharp는 asmdef에서 직접 참조할 수 없으므로 기존 카메라 PlayMode 테스트와 같은 공개 API 호출 방식을 쓴다.

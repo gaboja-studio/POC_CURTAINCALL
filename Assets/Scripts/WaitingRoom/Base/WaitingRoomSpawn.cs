@@ -1,6 +1,7 @@
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -101,8 +102,20 @@ namespace CurtainCall.WaitingRoom
         void StopWaiting() { if (waitingSlot != null) waitingSlot.SlotChanged -= SlotAssigned; waitingSlot = null; }
         void Placed(NetworkPlayer player)
         {
+            // The rehearsal places the owner after the course and their network slot are ready.
+            if (!InInitialRehearsal()) NotifyPlacement(player);
+        }
+
+        internal static void TutorialPlaced(NetworkPlayer player)
+        {
+            var spawn = FindFirstObjectByType<WaitingRoomSpawn>();
+            if (spawn != null && (LastPlacedPlayer != player || LastPlacedScene != spawn.gameObject.scene.handle))
+                spawn.NotifyPlacement(player);
+        }
+
+        void NotifyPlacement(NetworkPlayer player)
+        {
             LastPlacedScene = gameObject.scene.handle; LastPlacedPlayer = player;
-            if (InInitialRehearsal()) PlaceOnPracticeFloor(player);
             if (PlayerPlaced != null)
                 foreach (System.Action<NetworkPlayer> observer in PlayerPlaced.GetInvocationList())
                     try { observer(player); } catch (System.Exception error) { Debug.LogException(error); }
@@ -110,29 +123,6 @@ namespace CurtainCall.WaitingRoom
 
         static bool InInitialRehearsal() => CampaignRun.Instance != null
             && CampaignRun.Instance.State.Phase == CampaignPhase.Rehearsal;
-
-        static void PlaceOnPracticeFloor(NetworkPlayer player)
-        {
-            if (player == null || !player.TryGetComponent(out PlayerMover mover)) return;
-            var room = GameObject.Find("S09_PracticeRoom");
-            var deck = room != null ? room.transform.Find("LegacyRing/PracticeRing/DeckCollider") : null;
-            var floor = deck != null ? deck.GetComponent<Collider>() : null;
-            if (floor == null)
-            {
-                Debug.LogWarning("[WaitingRoom] 연습실 바닥을 찾지 못해 리허설 배치를 기다립니다.");
-                return;
-            }
-            var bounds = floor.bounds;
-            var x = bounds.center.x + Mathf.Max(0, player.Slot) * .8f;
-            var z = bounds.center.z - Mathf.Min(14f, bounds.extents.z * .5f);
-            if (!floor.Raycast(new Ray(new Vector3(x, bounds.max.y + 3f, z), Vector3.down), out var hit, 6f))
-            {
-                Debug.LogWarning("[WaitingRoom] 연습실 출발 위치 아래에 바닥이 없어 리허설 배치를 기다립니다.");
-                return;
-            }
-            var position = hit.point + Vector3.up * .1f;
-            mover.SetStartPose(position, Quaternion.LookRotation(Vector3.forward), true);
-        }
 
         static void DisableBalance(NetworkPlayer player)
         {

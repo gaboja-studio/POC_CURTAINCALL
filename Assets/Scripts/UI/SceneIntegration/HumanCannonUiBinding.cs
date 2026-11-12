@@ -5,7 +5,6 @@ using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.UI.GuidesV1;
 using CurtainCall.UI.TooltipsV1;
-using TMPro;
 using UnityEngine;
 
 namespace CurtainCall.UI.SceneIntegration
@@ -16,8 +15,6 @@ namespace CurtainCall.UI.SceneIntegration
     public sealed class HumanCannonUiBinding : MonoBehaviour
     {
         [SerializeField] HumanCannonCourseSections legacy;
-        [SerializeField] HumanCannonCourseSections.Boundaries boundaries;
-        [SerializeField] TMP_Text sectionLabel;
         PerformanceSceneBinding space;
         CommonPerformanceUI owned;
         CommonInteractionUI interaction;
@@ -29,10 +26,8 @@ namespace CurtainCall.UI.SceneIntegration
         TooltipView Tooltip => practiceTooltip != null ? practiceTooltip : owned != null ? owned.Tooltip : null;
         bool legacyEnabled;
         string shownGuide, shownTarget;
-        static readonly string[] Sections = { "현재 구간 · 출발", "현재 구간 · 1구간", "현재 구간 · 쉼터", "현재 구간 · 2구간", "현재 구간 · 최종구간" };
 
-        public void Configure(HumanCannonCourseSections previous, HumanCannonCourseSections.Boundaries values, TMP_Text section)
-        { legacy = previous; boundaries = values; sectionLabel = section; }
+        public void Configure(HumanCannonCourseSections previous) => legacy = previous;
 
         /// <summary>Reuse the original contextual views in an unscored practice course, without changing the waiting-room UI owner.</summary>
         public void ConfigurePractice(GuideView guide, TooltipView tooltip)
@@ -57,8 +52,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (practiceGuide != null) practiceGuide.HideImmediate();
             if (practiceTooltip != null) practiceTooltip.HideImmediate();
             owned = null; shownGuide = shownTarget = null;
-            if (sectionLabel != null) sectionLabel.gameObject.SetActive(false);
-            HideSection(); ResetLessons();
+            ResetLessons();
         }
 
         void LateUpdate()
@@ -78,17 +72,6 @@ namespace CurtainCall.UI.SceneIntegration
             var cannon = HumanCannonSystem.Current;
             bool available = player != null && player.IsSpawned && player.State == PlayerState.Normal
                 && cannon != null && !InputGate.IsBlocked;
-            if (sectionLabel && available)
-            {
-                string section=Sections[(int)HumanCannonCourseSections.SectionAt(player.transform.position,boundaries)];
-                sectionLabel.gameObject.SetActive(false);
-                if(section!=lastSection)
-                {
-                    lastSection=section;
-                    HudUIManager.Current.ShowStatus(section,transform,bottomCenter:true);
-                }
-            }
-            else HideSection();
             if (!practice && (player == null || player.State != PlayerState.Normal || HumanCannonDestination.Current?.PerformanceOpen != true)) ResetLessons();
             if (!available)
             {
@@ -221,9 +204,7 @@ namespace CurtainCall.UI.SceneIntegration
             foreach(var card in lessons) if(card && !card.Closing)card.Close(true);
             lessons.Clear(); seenLessons.Clear(); lessonRun=null; lessonPlayer=null;
         }
-        string lastSection;
         HudRoleCard fallbackAction;
-        void HideSection() { if(lastSection!=null)HudUIManager.DismissOwned(transform,HudRole.Status);lastSection=null; }
         void ShowAction(Transform target,string key,string action)
         {
             if (!target || !Camera.main) { HideGuide(); return; }

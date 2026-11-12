@@ -71,5 +71,37 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             }
             finally{PrefabUtility.UnloadPrefabContents(root);}
         }
+
+        // Status resizes to its text. The square inventory-slot art has no
+        // 9-slice border and warped when stretched, so it uses the same sliced small plate as Guide/ZoneName.
+        static void SliceStatusPlate(string path,HudRole role)
+        {
+            if(role!=HudRole.Status)return;
+            var body=AssetDatabase.LoadAssetAtPath<GameObject>(path).transform.Find("Surface/Artwork/10_Body")?.GetComponent<Image>();
+            if(body && body.type==Image.Type.Sliced)return;
+            var root=PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                var art=root.GetComponent<HudRoleCard>().motion.surface.Find("Artwork");
+                var guide=AssetDatabase.LoadAssetAtPath<GameObject>(Root+"Guide.prefab").transform.Find("Surface/Artwork");
+                string[] layers={"00_Shadow","10_Body","20_Frame","30_Corners"};
+                for(int i=0;i<layers.Length;i++)
+                {
+                    var source=guide.Find(layers[i]).GetComponent<Image>();
+                    var target=art.Find(layers[i]);
+                    if(!target)
+                    {
+                        target=Node(layers[i],art).transform;target.SetSiblingIndex(i);
+                        var r=(RectTransform)target;r.anchorMin=Vector2.zero;r.anchorMax=Vector2.one;r.offsetMin=r.offsetMax=Vector2.zero;
+                        target.gameObject.AddComponent<Image>().raycastTarget=false;
+                    }
+                    var im=target.GetComponent<Image>();
+                    im.sprite=source.sprite;im.type=source.type;im.color=source.color;im.pixelsPerUnitMultiplier=source.pixelsPerUnitMultiplier;
+                    im.preserveAspect=false;
+                }
+                PrefabUtility.SaveAsPrefabAsset(root,path,out bool saved);if(!saved)throw new IOException(path);
+            }
+            finally{PrefabUtility.UnloadPrefabContents(root);}
+        }
     }
 }

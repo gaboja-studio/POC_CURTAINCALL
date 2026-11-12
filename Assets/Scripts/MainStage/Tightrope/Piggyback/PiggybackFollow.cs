@@ -22,6 +22,8 @@ namespace CurtainCall.Tightrope
         const float RestartGrace = 1f;     // 재시작 직후 이 시간(초) 안에 풀린 연결은 내려놓지 않는다
         internal const float LaunchTimeout = 1.5f;  // 분리 점프 후 이 시간(초)이 지나도 해제되지 않으면(거부 등) 다시 머리 위로
         const float RemoteHopMin = 0.05f;  // 남의 위 사람: 머리보다 이만큼(m) 이상 높게 받으면 제자리 점프 중으로 보고 그 높이로 보인다
+        static readonly RaycastHit[] passengerHits = new RaycastHit[32];
+        static readonly Collider[] passengerOverlaps = new Collider[32];
 
         PiggybackSystem system;
         PlayerMover localMover;    // 이동 계산을 꺼 둔 내 캐릭터. 위에 있지 않으면 null
@@ -35,17 +37,24 @@ namespace CurtainCall.Tightrope
         float launchedAt = -1f; // 분리 점프를 시작한 시각. 해제될 때까지 머리 위에 붙이지 않는다
         PlayerMover controlRestore; // 내려놓은 뒤 한 프레임 조작을 껐다가 켤 이동 부품(위에서 누른 SB가 내려놓는 순간 점프로 나가지 않게)
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
+        NetworkPlayer fallingLocal; // Host unlink can arrive after the owner's fall RPC.
+        internal bool IsReleasedForFall(NetworkPlayer player) => player != null && player == fallingLocal;
 
-        static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player);
+        static bool IsRopeHanging(NetworkPlayer player) => TightropeHangSystem.Current != null
+            && TightropeHangSystem.Current.IsHanging(player);
+        static bool IsCrossing(NetworkPlayer player) => PiggybackSystem.UsingDevice(player) || IsRopeHanging(player);
         public float LocalHopHeight(NetworkPlayer player) => player != null && player.IsLocal && hopping && launchedAt < 0f
-            && system != null && system.GetBelow(player) != null ? Mathf.Max(0f, hopHeight) : 0f;
+            && system != null && system.GetSupportingPlayer(player) != null ? Mathf.Max(0f, hopHeight) : 0f;
 
         /// <summary>목마가 위치를 맡은 위 사람의 표시용 점프. 이동·높이·균형 판정은 바꾸지 않는다.</summary>
         public JumpKind PresentationJump(NetworkPlayer player)
         {
-            if (system == null || !system.IsGameplayActive || player == null || IsCrossing(player)) return JumpKind.None;
-            var below = system.GetBelow(player);
-            if (below == null) return JumpKind.None;
+            if (player == null) return JumpKind.None;
+            if (system == null || !system.IsGameplayActive || IsCrossing(player)
+                || player.IsDroppingFromSupport || player == fallingLocal || (player.IsLocal && launchedAt >= 0f))
+                return player.CurrentJump;
+            var below = system.GetSupportingPlayer(player);
+            if (below == null) return player.CurrentJump;
             if (player.IsLocal ? hopping : RemoteHop(player, below) > 0f) return JumpKind.InPlace;
             return Bottom(below).CurrentJump;
         }
@@ -57,8 +66,9 @@ namespace CurtainCall.Tightrope
         {
             if (IsCrossing(local))
             { carriedBalance = null; return; }
-            var below = local != null ? system.GetBelow(local) : null;
-            bool carried = below != null && launchedAt < 0f && local.State == PlayerState.Normal
+            var below = system?.GetSupportingPlayer(local);
+            bool carried = below != null && local != fallingLocal && !local.IsDroppingFromSupport
+                           && launchedAt < 0f && local.State == PlayerState.Normal
                            && local.TryGetComponent(out PlayerBalance balance) && !balance.HasFallen;
             if (!carried)
             {
@@ -122,25 +132,22 @@ namespace CurtainCall.Tightrope
             }
             // A mount snapshot and Space can arrive in the same frame. Establish
             // the carried pose before consuming that frame's jump input.
-            bool trapeze = IsCrossing(local);
-            var newBelow = local != null && !trapeze ? system.GetBelow(local) : null;
+            var newBelow = system.GetSupportingPlayer(local);
             if (localMover == null && newBelow != null && launchedAt < 0f)
             {
                 UpdateLocal(local);
                 PlaceOnTop(local, newBelow, 0f);
             }
-            UpdateHop(local);
+            if (newBelow != null) UpdateHop(local);
 
             // 아래층부터 차례로 맞춰야 3층 이상도 이번 프레임 위치를 따른다
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || system.GetBelow(player) != null) continue;
+                if (!system.CanFollowStack(player) || system.GetBelow(player) != null) continue;
                 for (var below = player; below != null;)
                 {
                     var above = system.GetAbove(below);
-                    if (above == null) break;
-                    if (IsCrossing(above))
-                    { below = above; continue; }
+                    if (!system.CanFollowStack(above)) break;
                     if (above != local) PlaceOnTop(above, below, RemoteHop(above, below));
                     else if (launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
                     below = above;
@@ -151,12 +158,88 @@ namespace CurtainCall.Tightrope
             UpdateCarriedAirborne(local);
         }
 
-        static Vector3 HeadOf(NetworkPlayer below)
+        internal static Vector3 HeadOf(NetworkPlayer below)
         {
             float height = below.TryGetComponent(out PlayerMover mover) ? mover.BodyHeight : GameSettings.Base.Character.CapsuleHeight;
             Vector3 up = below.TryGetComponent(out PlayerModelSlot model) && model.Slot != null ? model.Slot.up : Vector3.up;
             return below.transform.position + up * height;
         }
+
+        internal static Vector3 LimitCarrierMotion(PlayerMover mover, Vector3 displacement)
+        {
+            var stack = PiggybackSystem.Current;
+            float distance = displacement.magnitude;
+            if (distance <= .0001f || stack == null || !stack.IsGameplayActive
+                || !mover.TryGetComponent(out NetworkPlayer carrier) || stack.GetBelow(carrier) != null)
+                return displacement;
+
+            Vector3 direction = displacement / distance;
+            Vector3 feet = carrier.transform.position;
+            float allowed = distance;
+            for (var below = carrier; stack.GetAbove(below) is { } above; below = above)
+            {
+                if (!stack.CanFollowStack(above)) break;
+                feet += HeadOf(below) - below.transform.position + Vector3.up * CurrentHop(stack, above);
+                if (above.TryGetComponent(out PlayerMover passenger))
+                    allowed = Mathf.Min(allowed, PassengerTravel(passenger, feet, direction, distance));
+            }
+            return direction * allowed;
+        }
+
+        internal static Vector3 HeadAboveStack(PiggybackSystem stack, NetworkPlayer carrier)
+        {
+            Vector3 head = HeadOf(carrier);
+            for (var above = stack.GetAbove(carrier); above != null; above = stack.GetAbove(above))
+            {
+                if (!stack.CanFollowStack(above)) break;
+                head += HeadOf(above) - above.transform.position + Vector3.up * CurrentHop(stack, above);
+            }
+            return head;
+        }
+
+        static float CurrentHop(PiggybackSystem stack, NetworkPlayer rider) => rider.IsLocal
+            ? stack.GetComponent<PiggybackFollow>()?.LocalHopHeight(rider) ?? 0f
+            : rider.PiggybackHopHeight;
+
+        internal static bool HasRoomForPassenger(PlayerMover passenger, Vector3 feet)
+        {
+            PassengerCapsule(passenger, feet, out var bottom, out var top, out float radius);
+            int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, passengerOverlaps,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (count == passengerOverlaps.Length) return false;
+            for (int i = 0; i < count; i++)
+                if (BlocksPassenger(passenger, passengerOverlaps[i])) return false;
+            return true;
+        }
+
+        static float PassengerTravel(PlayerMover passenger, Vector3 feet, Vector3 direction, float distance)
+        {
+            PassengerCapsule(passenger, feet, out var bottom, out var top, out float radius);
+            int count = Physics.CapsuleCastNonAlloc(bottom, top, radius, direction, passengerHits,
+                distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (count == passengerHits.Length) return 0f;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = passengerHits[i];
+                if (BlocksPassenger(passenger, hit.collider) && Vector3.Dot(direction, hit.normal) < -.001f)
+                    distance = Mathf.Min(distance, Mathf.Max(0f, hit.distance - .001f));
+            }
+            return distance;
+        }
+
+        static void PassengerCapsule(PlayerMover passenger, Vector3 feet, out Vector3 bottom, out Vector3 top, out float radius)
+        {
+            float height = passenger.BodyHeight;
+            float outerRadius = Mathf.Min(passenger.BodyRadius, height * .5f);
+            radius = Mathf.Max(.001f, outerRadius - passenger.Body.skinWidth);
+            bottom = feet + Vector3.up * outerRadius;
+            top = feet + Vector3.up * (height - outerRadius);
+        }
+
+        static bool BlocksPassenger(PlayerMover passenger, Collider obstacle) => obstacle != null
+            && !Physics.GetIgnoreLayerCollision(passenger.gameObject.layer, obstacle.gameObject.layer)
+            && obstacle.GetComponentInParent<PlayerMover>() == null
+            && !CurtainCall.Damage.DismemberedLimb.Contains(obstacle);
 
         /// <summary>
         /// 아래 사람의 머리 위(겉모습이 기울어 있으면 기운 머리 끝)에 발을 둔다(제자리 점프 중이면 그만큼 위). 방향은 아래 사람 몸통 방향과 같고,
@@ -183,25 +266,37 @@ namespace CurtainCall.Tightrope
             if (hopping)
             {
                 hopSpeed -= hopGravity * Time.deltaTime;
-                hopHeight += hopSpeed * Time.deltaTime;
+                float step = hopSpeed * Time.deltaTime;
+                if (step > 0f && localMover != null && localMover.FreeMovement && system.GetBelow(local) is { } carrier)
+                {
+                    float allowed = PassengerTravel(localMover, HeadOf(carrier) + Vector3.up * hopHeight, Vector3.up, step);
+                    if (allowed < step) hopSpeed = 0f;
+                    step = allowed;
+                }
+                hopHeight += step;
                 if (hopHeight <= 0f && hopSpeed < 0f) EndHop(local);
                 return;
             }
 
             if (TightropeInputGate.IsBlocked || local == null || localMover == null || launchedAt >= 0f) return;
-            if (IsCrossing(local)) return;
-            if (system.GetBelow(local) == null || system.GetAbove(local) != null) return; // 맨 위만(중간층은 점프 불가)
+            if (IsCrossing(local) || CurtainCall.HumanCannon.HumanCannonTrampoline.WaitingForRopeDrop(localMover)) return;
+            if (system.GetBelow(local) == null) return;
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
             var input = reader.Current;
+            // While carried, PlayerMover does not run its normal posture update.
+            if (localMover.IsCrouched && !input.CrouchHeld) localMover.TryStand();
+            if (system.GetAbove(local) != null || localMover.IsCrouched || !input.ActionPressed
+                || local.TryGetComponent(out HumanoidPlayerPresentation presentation)
+                && presentation.InteractionMovementLocked) return;
             int viewSign = TightropeControlScheme.LocalViewSign(localMover);
-            if (!input.ActionPressed) return;
             if (input.AuxDirection != 0)
             {
-                LaunchLane(input.AuxDirection * viewSign);
+                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * viewSign);
                 return;
             }
 
+            if (!localMover.JumpAllowed) return;
             var rules = GameSettings.Tightrope.Piggyback;
             if (input.Move * viewSign > 0.5f) Launch(local, rules.ForwardJumpSpeed);
             else if (input.Move * viewSign < -0.5f) Launch(local, -rules.BackwardJumpSpeed);
@@ -242,7 +337,7 @@ namespace CurtainCall.Tightrope
             {
                 float distance = course.GetDistance(local.transform.position);
                 // 마지막 관문에서 조건을 못 맞춘 앞점프는 목마를 유지한다.
-                float blockedLead = Mathf.Min(12f, GameSettings.Tightrope.Saws.cooperativeGateTriggerLead);
+                float blockedLead = Mathf.Min(12f, (Saws.TightropeSaws.Current != null ? Saws.TightropeSaws.Current.Settings : GameSettings.Tightrope.Saws).cooperativeGateTriggerLead);
                 if (distance >= gate.CooperativeGateDistance - blockedLead
                     && distance < gate.CooperativeGateDistance) return;
             }
@@ -298,9 +393,30 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터가 위에 있으면 이동 계산을 끄고, 내려오면 켜고 내려놓는다.</summary>
         void UpdateLocal(NetworkPlayer local)
         {
+            // A successful rope catch may arrive before the old stack's unlink.
+            // Hand off without re-enabling the mover owned by the hang system.
+            if (IsRopeHanging(local))
+            {
+                // A rescue can finish before a delayed unlink. Remember that the rope already took over.
+                if (localMover != null || (local != fallingLocal && system.GetBelow(local) != null)) ReleaseForFall(local);
+                if (system.GetBelow(local) == null) fallingLocal = null;
+                return;
+            }
+            if (local != null && (local == fallingLocal || local.IsDroppingFromSupport))
+            {
+                if (localMover != null) ReleaseForFall(local);
+                if (system.GetBelow(local) == null) fallingLocal = null;
+                return;
+            }
             if (IsCrossing(local))
             { ReleaseForDevice(local); return; }
-            var below = local != null ? system.GetBelow(local) : null;
+            var below = system.GetSupportingPlayer(local);
+            if (below == null && system.GetBelow(local) != null)
+            {
+                // Do not put down a passenger or disable their mover while the host unlinks a fallen stack.
+                Release();
+                return;
+            }
 
             if (launchedAt >= 0f)
             {
@@ -389,6 +505,15 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
+        internal void ReleaseForFall(NetworkPlayer player)
+        {
+            if (player == null || !player.IsLocal) return;
+            Release();
+            fallingLocal = player;
+        }
+
+        internal void ReleaseForSceneChange() => Release();
+
         internal void DismountOnPlatform(NetworkPlayer player, Vector3 position)
         {
             if (player == null || !player.IsLocal || player.State != PlayerState.Normal
@@ -406,6 +531,7 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터의 이동 계산을 되돌린다(내려놓지 않음).</summary>
         void Release()
         {
+            fallingLocal = null;
             EndHop(NetworkPlayer.Local);
             ClearCarriedAirborne();
             if (controlRestore != null)

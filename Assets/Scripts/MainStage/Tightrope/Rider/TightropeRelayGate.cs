@@ -38,7 +38,7 @@ namespace CurtainCall.Tightrope
         public float GapFrom => course.SwingGapFrom;
         public float GapTo => course.SwingGapTo;
         public float EntryDistance => GapFrom - 2.5f;
-        public float ExitDistance => GapTo + 3f;
+        public float ExitDistance => GapTo + TightropeCourse.RelayFarPoleOffset;
         public int PoleLane(int index) => stations[index].Lane;
         public bool IsFarPole(int index) => stations[index].Far;
         public HumanCannonPole PhysicalPole(int index) => stations[index].Pole;

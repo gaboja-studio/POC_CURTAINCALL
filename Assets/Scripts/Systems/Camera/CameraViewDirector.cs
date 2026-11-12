@@ -41,6 +41,10 @@ namespace CurtainCall.Cameras
         bool firstPerson;
         bool freeThirdPerson;
         bool spectatorOrbit;
+        bool watchingCapture;
+        NetworkPlayer framedTarget;
+        Vector3 captureSide;
+        const float CaptureFramingTransition = .35f;
         bool inputBlocked;
         bool preserveCursorInFixedView;
         bool cursorOwned;
@@ -300,8 +304,22 @@ namespace CurtainCall.Cameras
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || selected == null) return;
             if (spectatorOrbit && SpectatorAnchor != null)
             {
+                bool capture = CameraSpectator.TryGetCaptureFocus(out var focus, out var head);
+                bool sameTarget = framedTarget == CameraSpectator.Target;
+                if (capture && (!watchingCapture || !sameTarget))
+                {
+                    // 마네킹은 골반 쪽에서 몸 위로 숙인다. 머리-발 방향의 옆에서 봐야 몸이 가리지 않는다. 지금 카메라에 가까운 쪽을 고른다.
+                    captureSide = Vector3.Cross(Vector3.up, head).normalized;
+                    if (captureSide == Vector3.zero) captureSide = Quaternion.Euler(0f, yaw, 0f) * Vector3.back;
+                    if (hasOutput && Vector3.Dot(lastOutput.GetFinalPosition() - focus, captureSide) < 0f) captureSide = -captureSide;
+                }
+                // 잡힌 대상으로 바뀌는 순간 카메라가 튀지 않게 짧게 잇는다.
+                if (capture != watchingCapture && hasOutput && sameTarget) BeginTransition(CaptureFramingTransition);
+                watchingCapture = capture;
+                framedTarget = CameraSpectator.Target;
                 if (CameraSpectator.Target == null && hasDeathOutput)
                     SetPose(ref state, deathOutput.GetFinalPosition() + Vector3.down * deathDropDistance, Quaternion.Euler(pitch,yaw,0));
+                else if (capture) SetPose(ref state, CaptureWatchPose(selected, focus, captureSide, pitch, out var watch), watch);
                 else SetPose(ref state, FreeThirdPersonPose(selected, SpectatorAnchor.position, yaw, pitch, out var rotation), rotation);
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
@@ -380,7 +398,9 @@ namespace CurtainCall.Cameras
             var subject = anchor.GetComponent<NetworkPlayer>();
             var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
             bool hanging = hangs != null && hangs.IsHanging(subject);
-            if (hanging) pivot = HangingCameraPivot(pivot);
+            // Cannon seats and low beams can also contain the pivot. Clear the query
+            // origin for every third-person view before casting the camera arm.
+            pivot = HangingCameraPivot(pivot);
             Vector3 offset = state.GetFinalPosition() - pivot;
             float desired = offset.magnitude;
             if (desired < .001f) { collisionDistance = -1f; return; }
@@ -422,7 +442,7 @@ namespace CurtainCall.Cameras
 
         Vector3 HangingCameraPivot(Vector3 pivot)
         {
-            // At a rope end the chest anchor can sit inside the landing or within the cast radius
+            // The chest anchor can sit inside a landing/cannon or within the cast radius
             // of a support beam. A cast starting there reports zero in every direction.
             // Move only the camera's query origin out of authored boxes, never the player.
             float radius = CollisionRadius + CollisionPadding;
@@ -632,6 +652,28 @@ namespace CurtainCall.Cameras
             Vector3 look = pivot + Quaternion.Euler(0f, yaw, 0f) * Vector3.forward * preset.LookAhead - position;
             rotation = look.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(look, Vector3.up) : orbit;
             return position;
+        }
+
+        /// <summary>
+        /// 잡혀 바닥에 눕혀진 관전 대상을 옆에서 비스듬히 내려다보는 자리(사용자 2026-11-11).
+        /// 연출이 짧아(약 5초) 좌우는 고정하고, 마우스 상하로 20~70° 사이 높이만 조절한다.
+        /// </summary>
+        public static Vector3 CaptureWatchPose(CameraViewPreset preset, Vector3 focus, Vector3 side, float pitch, out Quaternion rotation)
+        {
+            float elevation = Mathf.Clamp(pitch + 30f, 20f, 70f) * Mathf.Deg2Rad;
+            Vector3 arm = side * Mathf.Cos(elevation) + Vector3.up * Mathf.Sin(elevation);
+            Vector3 position = focus + arm * Mathf.Clamp(preset.Distance, 2.5f, 4f);
+            rotation = Quaternion.LookRotation(focus - position, Vector3.up);
+            return position;
+        }
+
+        void BeginTransition(float duration)
+        {
+            transitionStarted = Time.unscaledTime;
+            transitionDuration = duration;
+            transitionPosition = lastOutput.GetFinalPosition();
+            transitionRotation = lastOutput.GetFinalOrientation();
+            transitionFov = lastOutput.Lens.FieldOfView;
         }
 
         static void SetPose(ref CameraState state, Vector3 position, Quaternion rotation)

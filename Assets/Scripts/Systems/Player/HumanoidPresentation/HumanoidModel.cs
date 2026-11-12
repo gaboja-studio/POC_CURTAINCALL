@@ -49,7 +49,7 @@ namespace CurtainCall.Player
         bool hasLocomotionRate;
 
         /// <summary>발동작만 실제 속도·방향을 따른다. 상체 상호작용/운반 레이어의 시간은 유지한다.</summary>
-        public void PlayLocomotion(string motion, float rate)
+        public void PlayLocomotion(string motion, float rate, bool immediate = false)
         {
             if (Animator == null || !Animator.isActiveAndEnabled) return;
             if (rateController != Animator.runtimeAnimatorController)
@@ -61,7 +61,7 @@ namespace CurtainCall.Player
                     { hasLocomotionRate = true; break; }
             }
             if (hasLocomotionRate) Animator.SetFloat(LocomotionRateParameter, float.IsFinite(rate) ? rate : 0f);
-            Play(motion);
+            PlayState(motion, immediate && !hasLocomotionRate ? .0001f : 1f, immediate);
         }
 
         bool positionCaptured;
@@ -107,7 +107,7 @@ namespace CurtainCall.Player
                 // 분리된 래그돌의 월드 위치는 더 이상 슬롯 기준으로 되돌리지 않는다.
                 if (transform.parent != null) transform.localPosition = basePosition + Vector3.up * (next >= 2 ? CrawlHeightOffset : 0f);
                 // 정지한 기어가기의 속도는 거의 0이므로 전환을 기다리면 서 있는 포즈가 남는다.
-                if (next >= 2 && next < 4) Play("Crawl", .0001f);
+                if (next >= 2 && next < 4) PlayLocomotion("Crawl", 0f, immediate: true);
                 if (Animator != null && !Animator.enabled) StopMotion();
                 foreach (var piece in pending)
                 {
@@ -253,7 +253,9 @@ namespace CurtainCall.Player
             }
         }
 
-        public void Play(string motion, float speed = 1f)
+        public void Play(string motion, float speed = 1f) => PlayState(motion, speed, false);
+
+        void PlayState(string motion, float speed, bool immediate)
         {
             if (Animator == null || !Animator.isActiveAndEnabled) return;
             Animator.applyRootMotion = false;
@@ -264,9 +266,9 @@ namespace CurtainCall.Player
             if (!Animator.HasState(0, hash)) return;
             Motion = motion;
             stateHash = hash;
-            // Animator.speed also scales crossfade progress. A frozen locomotion
-            // pose must be sampled now, otherwise the previous standing pose lingers.
-            if (motion == "Crawl" || speed <= .001f)
+            // Enter a stationary crawl immediately. Its base-layer rate is zero
+            // so the upper-body interaction layers can still advance at full speed.
+            if (immediate || motion == "Crawl" || speed <= .001f)
             {
                 Animator.Play(hash, 0, 0f);
                 Animator.Update(0f);

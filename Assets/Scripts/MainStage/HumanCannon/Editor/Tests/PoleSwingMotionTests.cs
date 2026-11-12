@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public class PoleSwingMotionTests
     {
 
@@ -27,6 +28,53 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Vector3 velocity = PoleSwingMotion.Velocity(35, 60, 3, Vector3.forward);
             Assert.That(Vector3.Dot(offset, velocity), Is.EqualTo(0).Within(0.0001));
             AssertVector(PoleSwingMotion.Velocity(35, -60, 3, Vector3.forward), -velocity);
+        }
+
+        [TestCase(0f)]
+        [TestCase(2f)]
+        [TestCase(-4f)]
+        public void CatchAtRestUsesSignedWorldSpeedWithoutApplyingTheSwingMultiplierTwice(float approach)
+        {
+            const float length = 2f, motionSpeed = 1.7f;
+            float angularSpeed = PoleSwingMotion.AddCatchMomentum(0f, 0f, approach, length, 9.81f, motionSpeed, 85f, 180f);
+            var worldVelocity = PoleSwingMotion.Velocity(0f, angularSpeed, length, Vector3.forward) * motionSpeed;
+            AssertVector(worldVelocity, Vector3.forward * approach);
+        }
+
+        [Test]
+        public void CatchRespectsTheRemainingSwingEnergyAndKeepsAnIdleGrabUnchanged()
+        {
+            const float length = 2f, gravity = 9.81f, motionSpeed = 1.7f, maxAngle = 85f, maxSpeed = 180f;
+            Assert.AreEqual(25f, PoleSwingMotion.AddCatchMomentum(30f, 25f, 0f, length, gravity, motionSpeed, maxAngle, maxSpeed));
+            Assert.AreEqual(25f, PoleSwingMotion.AddCatchMomentum(30f, 25f, float.NaN, length, gravity, motionSpeed, maxAngle, maxSpeed));
+            float middle = PoleSwingMotion.AddCatchMomentum(0f, 0f, 1000f, length, gravity, motionSpeed, maxAngle, maxSpeed);
+            float nearEnd = PoleSwingMotion.AddCatchMomentum(80f, 0f, 1000f, length, gravity, motionSpeed, maxAngle, maxSpeed);
+            Assert.That(nearEnd, Is.InRange(0f, middle));
+            Assert.AreEqual(0f, PoleSwingMotion.AddCatchMomentum(maxAngle, 0f, 1000f, length, gravity, motionSpeed, maxAngle, maxSpeed));
+            Assert.AreEqual(15f, PoleSwingMotion.AddCatchMomentum(0f, 0f, 1000f, length, gravity, motionSpeed, maxAngle, 15f));
+        }
+
+        [TestCase(30, 1f)]
+        [TestCase(60, -1f)]
+        [TestCase(120, 1f)]
+        public void HeldBrakeReducesStoredEnergyAndReturnsToRest(int fps, float direction)
+        {
+            const float gravity = 9.81f, length = 2f, motionSpeed = 1.7f, maxAngle = 85f, maxSpeed = 180f;
+            float angle = direction * maxAngle, speed = 0f;
+            float start = PoleSwingMotion.StoredSpeed(angle, speed, length, gravity, motionSpeed, maxAngle, maxSpeed);
+            for (int i = 0; i < fps * 8; i++)
+            {
+                PoleSwingMotion.Step(ref angle, ref speed, -direction, motionSpeed / fps, gravity, length,
+                    100f, maxAngle, maxSpeed, .12f, braking: true);
+                if (i == fps - 1)
+                    Assert.That(PoleSwingMotion.StoredSpeed(angle, speed, length, gravity, motionSpeed, maxAngle, maxSpeed),
+                        Is.LessThan(start * .65f));
+            }
+            Assert.AreEqual(0f, angle);
+            Assert.AreEqual(0f, speed);
+            PoleSwingMotion.Step(ref angle, ref speed, -direction, motionSpeed / fps, gravity, length,
+                100f, maxAngle, maxSpeed, .12f);
+            Assert.That(speed * direction, Is.LessThan(0f), "A new press can build swing in the other direction.");
         }
 
         [Test]

@@ -15,7 +15,8 @@ namespace CurtainCall.Network.PlayerSync
     public sealed partial class NetworkPlayer
     {
         readonly NetworkVariable<bool> droppingFromSupport = new(false);
-        public bool IsDroppingFromSupport => droppingFromSupport.Value;
+        bool localSupportDrop;
+        public bool IsDroppingFromSupport => droppingFromSupport.Value || IsOwner && localSupportDrop;
         float fallPeak;
         bool fallTracking, fallAirborne, landingPending, naturalFallQueued;
         int fallScene, fallRestart, fallRevive;
@@ -38,6 +39,7 @@ namespace CurtainCall.Network.PlayerSync
             fallTracking = true; fallAirborne = landingPending = false;
             nextWorldDeathReport = 0f;
             fallTeleportPending = naturalFallQueued = false;
+            localSupportDrop = false;
             fallScene = SceneManager.GetActiveScene().handle;
             fallRestart = restartCount.Value; fallRevive = reviveCount.Value;
             if (IsServer) droppingFromSupport.Value = false;
@@ -117,7 +119,7 @@ namespace CurtainCall.Network.PlayerSync
             || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(OwnerClientId) >= 0
             || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsSeated(OwnerClientId)
             || TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(this)
-            || PiggybackSystem.Current != null && PiggybackSystem.Current.GetBelow(this) != null;
+            || PiggybackSystem.Current != null && PiggybackSystem.Current.GetSupportingPlayer(this) != null;
 
         void LateUpdate()
         {
@@ -264,7 +266,11 @@ namespace CurtainCall.Network.PlayerSync
 
         void AcknowledgeFallLanding(uint sequence, int restart, int revive)
         {
-            if (CurrentFallEpoch(restart, revive) && sequence == fallSequence) landingPending = false;
+            if (!landingPending || !CurrentFallEpoch(restart, revive) || sequence != fallSequence) return;
+            landingPending = false;
+            // Host tracking resets on acceptance; a remote owner only receives this ACK.
+            // Finish this contact without clearing the peak of a jump already in progress.
+            localSupportDrop = false;
         }
 
         static bool FiniteFallPoint(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
@@ -350,9 +356,11 @@ namespace CurtainCall.Network.PlayerSync
 
         void BeginNaturalFall()
         {
-            if (!IsOwner || State != PlayerState.Normal) return;
+            if (!IsOwner || State != PlayerState.Normal || localSupportDrop) return;
             TightropeHangSystem.Current?.ReleaseLocalIntoFall(this);
             PrepareNaturalFall();
+            localSupportDrop = true;
+            PiggybackSystem.Current?.GetComponent<PiggybackFollow>()?.ReleaseForFall(this);
             if (balance != null) { balance.ResetBalance(); balance.SetBalanceActive(false); }
             if (ragdoll != null) ragdoll.Restore();
             mover.Simulated = true; mover.SetControlEnabled(true); mover.FreeMovement = true;
@@ -362,7 +370,7 @@ namespace CurtainCall.Network.PlayerSync
                 && Mathf.Abs(transform.position.y - course.GetLanePosition(lane, distance).y) <= course.RopeHeightTolerance)
             {
                 Vector3 side = Vector3.Cross(Vector3.up, course.ForwardAt(transform.position)).normalized;
-                mover.Body.Move(side * (mover.BodyRadius + course.RopeWalkWidth * .5f + .1f));
+                mover.Body.Move(side * (mover.BodyRadius + course.RopeWidthAt(lane) * .5f + .1f));
             }
             mover.ResetExternalMotion(true);
             RequestNaturalFallRpc(RestartVersion, reviveCount.Value);

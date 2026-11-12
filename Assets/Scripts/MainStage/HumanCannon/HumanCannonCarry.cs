@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -30,6 +31,10 @@ namespace CurtainCall.HumanCannon
 
         // Both carried devices use the actual body, including the swept translation and intermediate turns.
         public static bool CanMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier, bool sweep = true)
+            => CanMove(root, body, position, rotation, carrier, sweep, 0f, null);
+
+        internal static bool CanMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier,
+            bool sweep, float floorClearance, HumanCannonTransport riddenTransport)
         {
             if (body == null) return false;
             var bounds = body is BoxCollider box ? new Bounds(box.center, box.size)
@@ -37,6 +42,7 @@ namespace CurtainCall.HumanCannon
             Vector3 localCenter = root.InverseTransformPoint(body.transform.TransformPoint(bounds.center));
             Vector3 localBody = root.InverseTransformPoint(body.transform.position);
             Vector3 half = Vector3.Scale(bounds.extents, body.transform.lossyScale);
+            float bodyHalfHeight = Mathf.Abs(half.y);
             float skin = CurtainCall.Settings.GameSettings.Base.CarryDevices.CollisionSkin;
             half = new Vector3(Mathf.Max(.001f, Mathf.Abs(half.x) - skin), Mathf.Max(.001f, Mathf.Abs(half.y) - skin), Mathf.Max(.001f, Mathf.Abs(half.z) - skin));
             Quaternion relative = Quaternion.Inverse(root.rotation) * body.transform.rotation;
@@ -47,7 +53,9 @@ namespace CurtainCall.HumanCannon
             {
                 float t = step / (float)steps;
                 var pose = sweep ? Quaternion.Slerp(root.rotation, rotation, t) : rotation;
-                var at = (sweep ? Vector3.Lerp(root.position, position, t) : position) + pose * Vector3.Scale(localCenter, root.lossyScale);
+                var origin = sweep ? Vector3.Lerp(root.position, position, t) : position;
+                var at = origin + pose * Vector3.Scale(localCenter, root.lossyScale);
+                var bodyPosition = origin + pose * Vector3.Scale(localBody, root.lossyScale);
                 int count;
                 do {
                     count = Physics.OverlapBoxNonAlloc(at, half, obstacles, pose * relative, ~0, QueryTriggerInteraction.Ignore);
@@ -58,12 +66,28 @@ namespace CurtainCall.HumanCannon
                 {
                     var hit = obstacles[i];
                     if (hit == null || hit.transform.IsChildOf(root) || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
-                    var bodyPosition = (sweep ? Vector3.Lerp(root.position, position, t) : position) + pose * Vector3.Scale(localBody, root.lossyScale);
+                    if (riddenTransport != null && riddenTransport.IsBoardingBarrier(hit)) continue;
                     if (Physics.ComputePenetration(body, bodyPosition, pose * relative, hit, hit.transform.position, hit.transform.rotation,
-                        out _, out float depth) && depth > skin) return false;
+                        out _, out float depth) && depth > skin
+                        && !AllowsFloorContact(hit, at.y - bodyHalfHeight, carrier, floorClearance, riddenTransport)) return false;
                 }
             }
             return true;
+        }
+
+        static bool AllowsFloorContact(Collider hit, float bodyBottom, NetworkPlayer carrier, float clearance,
+            HumanCannonTransport riddenTransport)
+        {
+            if ((clearance <= 0f && riddenTransport == null) || hit is not BoxCollider box
+                || !Mathf.Approximately(Mathf.Abs(Vector3.Dot(box.transform.up, Vector3.up)), 1f)) return false;
+            float top = box.transform.TransformPoint(box.center).y
+                + Mathf.Abs(box.transform.TransformVector(Vector3.up * (box.size.y * .5f)).y);
+            // The deck moves with its rider. The load sweep may still sample poses below its new height.
+            if (riddenTransport != null && box.transform.IsChildOf(riddenTransport.Platform)
+                && Mathf.Approximately(top, riddenTransport.Platform.position.y)) return true;
+            // The controller's skin can put the rider's feet slightly into the floor at a deck seam.
+            // Compare heights because the shallowest exit near an edge can be sideways.
+            return clearance > 0f && carrier != null && top <= Mathf.Min(bodyBottom, carrier.transform.position.y) + clearance;
         }
 
         static readonly List<IHumanCannonCarry> devices = new();
@@ -76,6 +100,15 @@ namespace CurtainCall.HumanCannon
                 if (Active(device) && device.Carrier == actor) return device;
             return null;
         }
+
+        internal static bool HasOccupiedHands(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned) return false;
+            var hangs = TightropeHangSystem.Current;
+            return Held(player.OwnerClientId) != null || PiggybackSystem.UsingDevice(player)
+                || hangs != null && (hangs.IsHanging(player) || hangs.IsRescuing(player));
+        }
+
         public static IHumanCannonCarry FindGrabbable(NetworkPlayer player)
         {
             if (player == null || Held(player.OwnerClientId) != null) return null;
@@ -98,7 +131,10 @@ namespace CurtainCall.HumanCannon
             Vector3 facing = alignToCarrier || !carrier.IsLocal ? carrier.transform.forward
                 : Vector3.ProjectOnPlane(root.position - handle.position, Vector3.up);
             var view = CameraViewDirector.Current;
-            if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
+            // On a rope, T owns the facing direction even when the camera moves.
+            if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && !mover.FreeMovement)
+                facing = mover.CourseForward;
+            else if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
                 && view != null && view.LocalPlayer == carrier && view.IsFreeThirdPerson) facing = view.ViewForward;
             if (!TrampolineCarryPose.TryCalculate(carrier.transform.position + Vector3.up * Mathf.Max(0, handleHeight),
                 facing, offset, out position, out rotation)) return false;

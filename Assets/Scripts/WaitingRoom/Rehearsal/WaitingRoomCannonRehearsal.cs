@@ -126,9 +126,8 @@ namespace CurtainCall.WaitingRoom
         bool FindRoom()
         {
             if (room != null) return true;
-            var found = GameObject.Find("S09_PracticeRoom");
-            if (found == null) return false;
-            room = found.transform;
+            room = WaitingRoomScenes.FindPracticeRoom();
+            if (room == null) return false;
             var deck = room.Find("LegacyRing/PracticeRing/DeckCollider")?.GetComponent<Collider>();
             var entry = room.Find("Corridor/FloorCollider")?.GetComponent<Collider>();
             if (deck == null || entry == null) { room = null; return false; }
@@ -207,10 +206,7 @@ namespace CurtainCall.WaitingRoom
                     if (GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                         && fallenAt.TryGetValue(id, out double at) && Clock - at >= GameSettings.WaitingRoom.Rehearsal.RecoverSeconds)
                     {
-                        HumanCannonSystem.Current?.ServerReleaseForInspection(id);
-                        CurtainCall.Tightrope.TightropeHangSystem.Current?.ServerReleaseForInspection(id);
-                        CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForInspection(id);
-                        p.ServerRestoreAll();
+                        RecoverPlayer(p);
                         fallen.Remove(id); fallenAt.Remove(id);
                         changed = true;
                     }
@@ -232,6 +228,23 @@ namespace CurtainCall.WaitingRoom
             if (ids.Length > 0 && shared.skipVotes.Count > ids.Length / 2) { BeginEnding(true, true); return; }
             if (ids.Length > 0 && shared.votes.Count > ids.Length / 2) { BeginEnding(false); return; }
             if (changed || Time.unscaledTime >= nextPublish) { Publish(); nextPublish = Time.unscaledTime + 1f; }
+        }
+
+        void RecoverEndingPlayers()
+        {
+            if (!Host || !shared.active || !GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath) return;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen
+                    && shared.participants.Contains(player.OwnerClientId)) RecoverPlayer(player);
+        }
+
+        static void RecoverPlayer(NetworkPlayer player)
+        {
+            ulong id = player.OwnerClientId;
+            HumanCannonSystem.Current?.ServerReleaseForInspection(id);
+            CurtainCall.Tightrope.TightropeHangSystem.Current?.ServerReleaseForInspection(id);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForInspection(id);
+            player.ServerRestoreAll();
         }
 
         void Bounced(ulong id)

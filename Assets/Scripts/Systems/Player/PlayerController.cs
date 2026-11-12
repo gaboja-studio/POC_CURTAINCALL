@@ -68,14 +68,17 @@ namespace CurtainCall.Player
         void Update()
         {
             if (assigned == null) SetScheme(null); // 씬 규칙·기본 이동 규칙이 바뀌면 바로 반영
+            // The host releases the prop once it observes this same support surface.
+            bool waitingForRopeDrop = HumanCannon.HumanCannonTrampoline.WaitingForRopeDrop(context.Mover);
+            if (waitingForRopeDrop) context.Mover.ClearPendingInput();
             var frame = input.Current;
-            if (presentation != null && presentation.InteractionMovementLocked)
+            if (waitingForRopeDrop || presentation != null && presentation.InteractionMovementLocked)
             {
                 frame.Move = 0f; frame.Posture = 0f; frame.AuxDirection = 0;
                 frame.ActionPressed = false; frame.SprintHeld = false;
             }
             if (presentation != null && presentation.InteractionActionLocked)
-                frame.ActionPressed = false;
+                frame.InteractTapped = false;
             if (Scheme != null && (InputGate.IsBlocked || InputInterceptor == null || !InputInterceptor(context, frame)))
                 Scheme.Tick(context, frame);
         }

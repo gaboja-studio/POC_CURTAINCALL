@@ -53,6 +53,7 @@ namespace CurtainCall.Player
             network = GetComponent<NetworkPlayer>();
             slot.ModelChanged += BindModel;
             condition.Changed += Changed;
+            mover.Teleported += ResetTravelMotion;
             NetworkPlayer.Restarted += Restarted;
             NetworkPlayer.Revived += Restarted;
             BindModel();
@@ -116,16 +117,23 @@ namespace CurtainCall.Player
         void Restarted(NetworkPlayer player)
         {
             if (player.gameObject != gameObject) return;
-            RestoreHangAlignment();
+            ResetTravelMotion();
             ClearItemVisual();
+            if (model != null) model.ClearPieces();
+            if (detached != null) detached.ClearPieces();
+        }
+
+        void ResetTravelMotion()
+        {
+            RestoreHangAlignment();
+            IsHanging = false;
+            CancelItemAction();
             ResetCircusMotion();
             ResetRescueMotion();
             airborne = false;
             landUntil = 0f;
             presentationSampleReady = false;
             presentationVelocity = Vector3.zero;
-            if (model != null) model.ClearPieces();
-            if (detached != null) detached.ClearPieces();
         }
 
         void Update()
@@ -141,6 +149,12 @@ namespace CurtainCall.Player
             }
             BindModel();
             ApplySurface(model != null ? model : detached);
+            bool canUseItemHands = CanUseItemHands && !condition.AllLimbsLost;
+            if (!canUseItemHands || model == null)
+            {
+                CancelItemAction();
+                shownItem = null;
+            }
             if (model == null) return;
             Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
@@ -175,7 +189,7 @@ namespace CurtainCall.Player
             // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
             model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
             PresentCarryLayer(carrying);
-            if (!carrying && PresentItemMotion(moving, inAir)) return;
+            if (canUseItemHands && PresentItemMotion(moving, inAir)) return;
             if (inAir && !airborne) jumpSince = Time.time;
             if (!inAir && airborne) landUntil = Time.time + .15f;
             airborne = inAir;
@@ -198,7 +212,7 @@ namespace CurtainCall.Player
                 if (Time.time < landUntil) { model.Play(CircusVariant("FlightLand")); return; }
                 string crawl = CurtainCall.ItemArt.ItemVisualAssets.State("ItemCrawl",model.Stage);
                 if (moving && !inAir) PlayLocomotion(crawl);
-                else model.Play(crawl, .0001f);
+                else model.PlayLocomotion(crawl, 0f, immediate: true);
                 return;
             }
             if (inAir)
@@ -359,12 +373,10 @@ namespace CurtainCall.Player
         void OnDisable()
         {
             ClearItemVisual();
-            RestoreHangAlignment();
-            IsHanging = false;
-            ResetCircusMotion();
-            ResetRescueMotion();
+            ResetTravelMotion();
             if (slot != null) slot.ModelChanged -= BindModel;
             if (condition != null) condition.Changed -= Changed;
+            if (mover != null) mover.Teleported -= ResetTravelMotion;
             NetworkPlayer.Restarted -= Restarted;
             NetworkPlayer.Revived -= Restarted;
             if (model != null) model.ClearPieces();

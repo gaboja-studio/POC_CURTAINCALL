@@ -10,11 +10,13 @@ using CurtainCall.Tightrope;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.WaitingRoom.EditorTools
 {
+    [Category("CommonProgressionRegression")]
     public sealed class RehearsalArrivalTests
     {
         const BindingFlags Fields = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -87,6 +89,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var player = go.AddComponent<NetworkPlayer>();
             Set(player, "mover", mover);
             typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(player, id);
+            ((NetworkVariable<int>)Get(player, "slot")).Value = players.Count;
             typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
             players.Add(player); All.Add(player);
             if (placed) ((HashSet<ulong>)Get(rehearsal, "placed")).Add(id);
@@ -243,6 +246,79 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [Test]
+        public void ClientActivationKeepsTheSnapshotReceivedBeforeRoomReadiness()
+        {
+            Set(rehearsal, "active", false);
+            Set(rehearsal, "stage", -1);
+            using var writer = new FastBufferWriter(128, Allocator.Temp);
+            writer.WriteValueSafe(9); writer.WriteValueSafe(0); writer.WriteValueSafe(5);
+            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(-1d);
+            writer.WriteValueSafe(4); writer.WriteValueSafe(1); writer.WriteValueSafe(701UL);
+            for (int i = 0; i < 4; i++) writer.WriteValueSafe(0); // arrived, votes, lessons, voters
+            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(0); writer.WriteValueSafe(0);
+            using var reader = new FastBufferReader(writer, Allocator.Temp);
+            Call(rehearsal, "HandleState", NetworkManager.ServerClientId, reader);
+
+            var panel = typeof(WaitingRoomTutorialPanel).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previousPanel = panel.GetValue(null);
+            bool previousHold = ScheduleScreenHold.IsHeld;
+            try
+            {
+                // Hold the HUD in EditMode while exercising the real activation path.
+                panel.SetValue(null, Make("Tutorial panel fixture").AddComponent<WaitingRoomTutorialPanel>());
+                ScheduleScreenHold.Set(true);
+                Call(rehearsal, "Activate");
+            }
+            finally
+            {
+                ScheduleScreenHold.Set(previousHold);
+                panel.SetValue(null, previousPanel);
+            }
+            Assert.That(Get(rehearsal, "stage"), Is.EqualTo(0));
+            Assert.That(Get(rehearsal, "round"), Is.EqualTo(5));
+            Assert.That(Get(rehearsal, "participantCount"), Is.EqualTo(4));
+            Assert.That((HashSet<ulong>)Get(rehearsal, "placed"), Is.EquivalentTo(new[] { 701UL }));
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)]
+        public void InitialPlacementWaitsForTheNetworkSlotAndUsesTheRaisedStart(int assignedSlot)
+        {
+            var player = Participant(701, false);
+            var slot = (NetworkVariable<int>)Get(player, "slot");
+            slot.Value = NetworkPlayer.NoSlot;
+            var mover = player.GetComponent<PlayerMover>();
+            var before = course.transform.position + Vector3.down * 3f;
+            player.transform.position = before;
+            Call(rehearsal, "Bind", player);
+
+            Call(rehearsal, "PlaceLocal", mover);
+            Assert.That(player.transform.position, Is.EqualTo(before));
+            Assert.That(Get(rehearsal, "placedRound"), Is.EqualTo(-1));
+
+            slot.Value = assignedSlot;
+            Call(rehearsal, "PlaceLocal", mover);
+            Assert.That(player.transform.position, Is.EqualTo(course.GetLanePosition(0, -.6f - assignedSlot * .85f)));
+            Assert.That(Get(rehearsal, "placedRound"), Is.EqualTo(5));
+        }
+
+        [Test]
+        public void ReplacingTheLocalPlayerReleasesTheOldLockAndPlacesTheNewOwnerInTheSameRound()
+        {
+            var first = Participant(701, false);
+            var replacement = Participant(702, false);
+            var firstMover = first.GetComponent<PlayerMover>();
+            Call(rehearsal, "Bind", first);
+            Call(rehearsal, "PlaceLocal", firstMover);
+            Call(rehearsal, "UpdatePlacement", firstMover);
+            Assert.That(firstMover.ControlEnabled, Is.False);
+
+            Call(rehearsal, "Bind", replacement);
+            Assert.That(firstMover.ControlEnabled, Is.True);
+            Call(rehearsal, "PlaceLocal", replacement.GetComponent<PlayerMover>());
+            Assert.That(replacement.transform.position, Is.EqualTo(course.GetLanePosition(0, -1.45f)));
+        }
+
+        [Test]
         public void Cannon_AllFourOnFinishDoNotNeedTransientCheckpointOrBounceHistory()
         {
             var cannon = Make("Cannon rehearsal fixture").AddComponent<WaitingRoomCannonRehearsal>();
@@ -350,6 +426,38 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(rehearsal, "EnsureCourse");
             Assert.That(wall.gameObject.activeInHierarchy, Is.EqualTo(originallyActive));
             Assert.That(practiceLanes.activeSelf, Is.False, "집결 경로에 옛 연습 기물을 되돌리지 않는다.");
+        }
+
+        [TestCase(WaitingRoomSceneVariant.Base)]
+        [TestCase(WaitingRoomSceneVariant.Pursuit)]
+        [TestCase(WaitingRoomSceneVariant.Integrated)]
+        public void ActualPracticeRoomSuppliesTheDeckAndFitsEveryLesson(WaitingRoomSceneVariant variant)
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(WaitingRoomScenes.Path(variant));
+            try
+            {
+                var room = WaitingRoomScenes.FindPracticeRoom(scene);
+                Assert.IsNotNull(room, "Use the physical practice room in the saved scene.");
+                var deck = room.Find("LegacyRing/PracticeRing/DeckCollider")?.GetComponent<Collider>();
+                var boundary = room.Find("RoundArena/Frame8Boundary/WallColliders");
+                Assert.IsNotNull(deck);
+                Assert.IsNotNull(room.Find("Corridor/FloorCollider")?.GetComponent<Collider>());
+                Assert.IsNotNull(boundary);
+                var bounds = deck.bounds;
+                var center = new Vector3(bounds.center.x, bounds.max.y, bounds.center.z);
+                var pose = Make("Saved rehearsal bounds").transform;
+                foreach (var lesson in RehearsalStage.All)
+                {
+                    var shape = TightropeSettings.CourseSettings.FromJson(lesson.CourseJson);
+                    pose.position = center + new Vector3(0f, 2.5f, -(lesson.Finish - 1f) * .5f);
+                    Assert.IsTrue(RehearsalPlatformLayout.TryMeasureInnerRadius(boundary, center, pose.position.y, out float radius));
+                    float scale = RehearsalPlatformLayout.FitFinishScale(shape, pose, center, boundary, 2f);
+                    Assert.IsTrue(RehearsalPlatformLayout.FitsInsideRoom(TightropeCourse.PreviewStartPlatformBounds(shape), pose, center, radius, 0f), lesson.Id);
+                    Assert.IsTrue(TightropeCourse.PreviewFinishPlatformBounds(shape, scale, out var finish), lesson.Id);
+                    Assert.IsTrue(RehearsalPlatformLayout.FitsInsideRoom(finish, pose, center, radius, RehearsalArrivalWalls.Thickness), lesson.Id);
+                }
+            }
+            finally { EditorSceneManager.ClosePreviewScene(scene); }
         }
 
         [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]

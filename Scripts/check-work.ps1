@@ -1,8 +1,12 @@
 # 묶음 완료/사용자 요청 시 필요한 검사만 실행한다. 자동 테스트는 선택한다.
 [CmdletBinding()]
-param([switch]$SkipUnity,[switch]$RunTests,[ValidateSet('EditMode','PlayMode')][string]$Mode='EditMode',[string]$Base,[switch]$NoRecord)
+param([switch]$SkipUnity,[switch]$RunTests,[ValidateSet('EditMode','PlayMode')][string]$Mode='EditMode',[string]$Base,[switch]$NoRecord,[switch]$CommonRegression)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
+if ($CommonRegression) {
+    if ($Mode -ne 'EditMode' -or $SkipUnity) { throw '-CommonRegression requires the Unity EditMode checks.' }
+    $RunTests = $true
+}
 if (-not $Base) { $Base=Get-CheckBase }
 $paths=@(Get-ChangedPaths -Base $Base)
 $needsUnity=@($paths | Where-Object { $_ -match '^(Assets|Packages|ProjectSettings)/' }).Count -gt 0
@@ -35,9 +39,11 @@ $results['테스트']='SKIPPED(자동 테스트 선택 안 함)'
 if ($RunTests) {
     if ($exitCode) { $results['테스트']='SKIPPED(선행 실패·생략)' }
     else {
-        $s=Step 'verify-unity.ps1' @('-ProjectPath',$RepoRoot,'-RunTests','-Mode',$Mode)
+        $testOptions=@('-ProjectPath',$RepoRoot,'-RunTests','-Mode',$Mode)
+        if ($CommonRegression) { $testOptions += @('-Filter','CommonProgressionRegression','-FilterType','category') }
+        $s=Step 'verify-unity.ps1' $testOptions
         $results['테스트']=if ($s.Code -eq 2) { 'ENV_BLOCKED(Unity 환경)' } elseif ($s.Code) { 'FAIL' } elseif ($s.Text -match "Tests\($Mode\): NO_PROJECT_TESTS") { 'NO_PROJECT_TESTS' } elseif ($s.Text -match "Tests\($Mode\): total (\d+), passed (\d+), failed (\d+)" -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2] -and [int]$Matches[3] -eq 0) { 'PASS' } else { 'FAIL(결과 없음)' }
-        if ($results['테스트'] -like 'FAIL*') { $exitCode=1 }
+        if ($results['테스트'] -like 'FAIL*' -or ($CommonRegression -and $results['테스트'] -eq 'NO_PROJECT_TESTS')) { $exitCode=1 }
         elseif ($s.Code -eq 2) { $exitCode=2 }
     }
 }

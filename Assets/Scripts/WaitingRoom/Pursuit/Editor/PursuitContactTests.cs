@@ -8,14 +8,13 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 {
     public sealed class PursuitContactTests
     {
-        const ulong Owner = 42;
         static PursuitContact Sample(double time = 10) => new PursuitContact {
             Generation = 2, Day = 3, Performance = 1, Epoch = 8, Actor = 12, Sequence = 7,
             PoseTime = time, ActorPosition = Vector3.zero, PlayerPosition = Vector3.right * .8f };
         static PursuitContactHistory Trail(double end = 10)
         {
             var h = new PursuitContactHistory();
-            for (int i = 0; i <= 12; i++) h.Record(end - .6 + i * .05, Vector3.left * (.6f - i * .05f) * 6.5f, Owner, true);
+            for (int i = 0; i <= 12; i++) h.Record(end - .6 + i * .05, Vector3.left * (.6f - i * .05f) * 6.5f, true);
             return h;
         }
         static PursuitContact RoundTrip(PursuitContact contact)
@@ -46,7 +45,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var c = Sample();
             // The AI has moved metres by receipt; validation uses the pose actually sent/rendered.
             Assert.AreEqual(PursuitContactRejection.None,
-                PursuitContactRules.Validate(RoundTrip(c), Trail(), Owner, 10 + transit, c.PlayerPosition, 1.15f));
+                PursuitContactRules.Validate(RoundTrip(c), Trail(), 10 + transit, c.PlayerPosition, 1.15f));
         }
         [TestCase(.05)] [TestCase(.15)] [TestCase(.3)] [TestCase(.6)]
         public void AvoidedOnVictimScreenNeverBecomesContactBecauseOfHostOldPlayerPosition(double transit)
@@ -56,7 +55,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Assert.IsTrue(PursuitContactRules.Touching(Vector3.zero, hostOldPlayer, 1.15f), "The old host-only check would catch.");
             Assert.IsFalse(PursuitContactRules.Touching(c.ActorPosition, c.PlayerPosition, 1.15f));
             Assert.AreEqual(PursuitContactRejection.NotTouching,
-                PursuitContactRules.Validate(RoundTrip(c), Trail(), Owner, 10 + transit, hostOldPlayer, 1.15f));
+                PursuitContactRules.Validate(RoundTrip(c), Trail(), 10 + transit, hostOldPlayer, 1.15f));
         }
         [Test] public void DelayJitterTwentyPercentLossAndBurstOutageProduceNoGhostContact()
         {
@@ -83,29 +82,47 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Assert.Greater(samples, 400); Assert.Greater(oldHostHits, 400);
             Assert.AreEqual(0, ownerReports, "No request exists to turn a clean dodge into a host capture.");
         }
-        [Test] public void StaleFutureNonFiniteWrongOwnerAndImpossiblePositionsAreRejected()
+        [Test] public void StaleFutureNonFiniteAndImpossiblePositionsAreRejected()
         {
             var c = Sample(); var h = Trail();
-            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, Owner, 11.26, c.PlayerPosition, 1.15f));
-            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, Owner, 9.8, c.PlayerPosition, 1.15f));
-            Assert.AreEqual(PursuitContactRejection.ActorHistory, PursuitContactRules.Validate(c, h, Owner + 1, 10.2, c.PlayerPosition, 1.15f));
-            var notVisible = new PursuitContactHistory(); notVisible.Record(10, Vector3.zero, Owner, false);
-            Assert.AreEqual(PursuitContactRejection.ActorHistory, PursuitContactRules.Validate(c, notVisible, Owner, 10.2, c.PlayerPosition, 1.15f));
-            Assert.AreEqual(PursuitContactRejection.PlayerPosition, PursuitContactRules.Validate(c, h, Owner, 10.2, Vector3.one * 100, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, 11.26, c.PlayerPosition, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, 9.8, c.PlayerPosition, 1.15f));
+            var notVisible = new PursuitContactHistory(); notVisible.Record(10, Vector3.zero, false);
+            Assert.AreEqual(PursuitContactRejection.ActorHistory, PursuitContactRules.Validate(c, notVisible, 10.2, c.PlayerPosition, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.PlayerPosition, PursuitContactRules.Validate(c, h, 10.2, Vector3.one * 100, 1.15f));
             c.PoseTime = double.NaN;
-            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, Owner, 10.2, Vector3.zero, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.Expired, PursuitContactRules.Validate(c, h, 10.2, Vector3.zero, 1.15f));
             c = Sample(); c.ActorPosition = Vector3.one * float.NaN;
-            Assert.AreEqual(PursuitContactRejection.NotTouching, PursuitContactRules.Validate(c, h, Owner, 10.2, Vector3.zero, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.NotTouching, PursuitContactRules.Validate(c, h, 10.2, Vector3.zero, 1.15f));
             c = Sample(); c.ActorPosition = Vector3.one * 50; c.PlayerPosition = c.ActorPosition;
-            Assert.AreEqual(PursuitContactRejection.ActorHistory, PursuitContactRules.Validate(c, h, Owner, 10.2, c.PlayerPosition, 1.15f));
+            Assert.AreEqual(PursuitContactRejection.ActorHistory, PursuitContactRules.Validate(c, h, 10.2, c.PlayerPosition, 1.15f));
+        }
+        [Test] public void ReachIsHorizontalWithinHeightWindow()
+        {
+            // 트램펄린 표면(0.5m)·낮은 소품 위는 잡는다.
+            Assert.IsTrue(PursuitContactRules.Touching(Vector3.zero, new Vector3(1.1f, .5f, 0), 1.15f, .5f, .75f));
+            Assert.IsTrue(PursuitContactRules.Touching(Vector3.zero, new Vector3(0, .75f, 0), 1.15f, .5f, .75f));
+            // 높이 차가 커도 3D 거리 때문에 놓치던 바로 옆 대상: 수평 1.1m, 높이 0.5m(3D 1.21m).
+            Assert.Greater(new Vector3(1.1f, .5f, 0).magnitude, 1.15f);
+            // 높은 반동·점프 공중과 너무 낮은 곳은 잡지 않는다.
+            Assert.IsFalse(PursuitContactRules.Touching(Vector3.zero, new Vector3(0, 2f, 0), 1.15f, .5f, .75f));
+            Assert.IsFalse(PursuitContactRules.Touching(Vector3.zero, new Vector3(0, -.8f, 0), 1.15f, .5f, .75f));
+            Assert.IsFalse(PursuitContactRules.Touching(Vector3.zero, new Vector3(1.2f, 0, 0), 1.15f, .5f, .75f));
+        }
+        [Test] public void OnTrampolineSurfaceContactIsAcceptedButHighBounceIsNot()
+        {
+            var c = Sample(); c.PlayerPosition = new Vector3(.8f, .5f, 0);
+            Assert.AreEqual(PursuitContactRejection.None, PursuitContactRules.Validate(RoundTrip(c), Trail(), 10.1, c.PlayerPosition, 1.15f, .5f, .75f));
+            c.PlayerPosition = new Vector3(.2f, 3f, 0);
+            Assert.AreEqual(PursuitContactRejection.NotTouching, PursuitContactRules.Validate(RoundTrip(c), Trail(), 10.1, c.PlayerPosition, 1.15f, .5f, .75f));
         }
         [Test] public void HistoryResetOverflowAndSequenceWrapDoNotAcceptReplay()
         {
             var h = Trail(); h.Clear();
-            Assert.IsFalse(h.Matches(10, Vector3.zero, Owner));
-            for (int i = 0; i < 200; i++) h.Record(i * .05, Vector3.right * i, Owner, true);
-            Assert.IsFalse(h.Matches(.1, Vector3.right * 2, Owner));
-            Assert.IsTrue(h.Matches(199 * .05, Vector3.right * 199, Owner));
+            Assert.IsFalse(h.Matches(10, Vector3.zero));
+            for (int i = 0; i < 200; i++) h.Record(i * .05, Vector3.right * i, true);
+            Assert.IsFalse(h.Matches(.1, Vector3.right * 2));
+            Assert.IsTrue(h.Matches(199 * .05, Vector3.right * 199));
             Assert.IsFalse(PursuitContactRules.Newer(5, 5)); Assert.IsFalse(PursuitContactRules.Newer(4, 5));
             Assert.IsTrue(PursuitContactRules.Newer(0, uint.MaxValue));
         }
