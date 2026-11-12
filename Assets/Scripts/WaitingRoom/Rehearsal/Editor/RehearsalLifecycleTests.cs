@@ -302,6 +302,72 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(mover.Simulated && mover.ControlEnabled, Is.True, "탑승/비행 때의 임시 정지가 종료 후 남으면 안 된다.");
         }
 
+        [TestCase(2, false), TestCase(3, false), TestCase(4, false)]
+        [TestCase(2, true), TestCase(3, true), TestCase(4, true)]
+        public void CannonEndingUnlinksLivingStacksBeforeCapturingAndReturning(int count, bool endingArrivesFirst)
+        {
+            var previousStack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            bool previousSuppressed = CurtainCall.Tightrope.PiggybackSystem.Suppressed;
+            var group = Make("Ending stack");
+            var stack = group.AddComponent<CurtainCall.Tightrope.PiggybackSystem>();
+            var follow = group.AddComponent<CurtainCall.Tightrope.PiggybackFollow>();
+            var sessionRoot = Make("Ending host"); sessionRoot.SetActive(false);
+            var session = sessionRoot.AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            Set(stack, "session", session);
+            typeof(CurtainCall.Tightrope.PiggybackSystem).GetProperty("Current").SetValue(null, stack);
+            CurtainCall.Tightrope.PiggybackSystem.Suppressed = false;
+            try
+            {
+                Call(follow, "Awake");
+                var participants = new List<ulong>();
+                NetworkPlayer previous = null, rider = null;
+                for (int i = 0; i < count; i++)
+                {
+                    rider = Player((ulong)(9500 + i)); participants.Add(rider.OwnerClientId);
+                    rider.GetComponent<PlayerMover>().FreeMovement = true;
+                    if (previous != null)
+                    {
+                        ((Dictionary<ulong, ulong>)Get(stack, "belowOf"))[rider.OwnerClientId] = previous.OwnerClientId;
+                        ((Dictionary<ulong, ulong>)Get(stack, "aboveOf"))[previous.OwnerClientId] = rider.OwnerClientId;
+                    }
+                    previous = rider;
+                }
+                typeof(NetworkPlayer).GetProperty("Local").SetValue(null, rider);
+                typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(rider, true);
+                var mover = rider.GetComponent<PlayerMover>(); mover.SetControlEnabled(true); mover.Simulated = true;
+                Shared("participants", participants); Shared("active", true); Shared("round", 3);
+                Call(cannon, "CaptureReturnPose", rider);
+                Call(follow, "UpdateLocal", rider);
+                Assert.That(mover.Simulated, Is.False);
+                if (endingArrivesFirst)
+                {
+                    Assert.That(Call(cannon, "CaptureEndingMover"), Is.False, "Wait for the replicated unlink before storing simulation or teleporting.");
+                    Assert.That(Get(cannon, "endingMover"), Is.Null);
+                }
+                Call(cannon, "BeginEnding", false, false);
+                foreach (var member in players)
+                {
+                    Assert.That(stack.GetBelow(member), Is.Null);
+                    Assert.That(stack.GetAbove(member), Is.Null);
+                }
+                Assert.That(Call(cannon, "CaptureEndingMover"), Is.True);
+                Call(cannon, "Cleanup");
+                Vector3 destination = new Vector3(100, 0, 100);
+                mover.SetStartPose(destination, Quaternion.identity);
+                Call(cannon, "ReleaseEndingLock");
+                Call(follow, "LateUpdate");
+                Assert.That(mover.Simulated && mover.ControlEnabled, Is.True);
+                Assert.That(Vector3.Distance(rider.transform.position, destination), Is.LessThan(.01f));
+            }
+            finally
+            {
+                Call(follow, "ReleaseForSceneChange");
+                typeof(CurtainCall.Tightrope.PiggybackSystem).GetProperty("Current").SetValue(null, previousStack);
+                CurtainCall.Tightrope.PiggybackSystem.Suppressed = previousSuppressed;
+            }
+        }
+
         [TestCase(true)] [TestCase(false)]
         public void CannonEndingUsesTheSharedRecoveryRuleWhenAVoteOverlapsDeath(bool recoveryEnabled)
         {

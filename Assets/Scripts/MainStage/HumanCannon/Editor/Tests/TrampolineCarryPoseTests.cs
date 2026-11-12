@@ -8,6 +8,69 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
+        [TestCase(false), TestCase(true), Category("CommonProgressionRegression")]
+        public void DetachedLimbsPassThroughAllTrampolineShapesAndStillLandOnTheFloor(bool createdAfterTrampoline)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            var physics = scene.GetPhysicsScene();
+            var oldTrampoline = HumanCannonTrampoline.Current;
+            typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, null);
+            GameObject Make(string name)
+            {
+                var go = new GameObject(name);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
+                return go;
+            }
+            try
+            {
+                Assert.That(physics, Is.Not.EqualTo(Physics.defaultPhysicsScene), "Never simulate the user's open scene.");
+                var floor = Make("Solid floor").AddComponent<BoxCollider>();
+                floor.transform.position = Vector3.down * 2; floor.size = new Vector3(10, .5f, 10);
+                var limb = Make("Detached limb");
+                var shape = limb.AddComponent<BoxCollider>(); shape.size = Vector3.one * .2f;
+                var rb = limb.AddComponent<Rigidbody>(); rb.useGravity = true;
+                limb.transform.position = Vector3.up * 3;
+                void RegisterLimb()
+                {
+                    var marker = limb.AddComponent<DismemberedLimb>();
+                    var active = (System.Collections.Generic.List<DismemberedLimb>)typeof(DismemberedLimb)
+                        .GetField("active", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                    if (!active.Contains(marker)) typeof(DismemberedLimb).GetMethod("OnEnable", members).Invoke(marker, null);
+                }
+                if (!createdAfterTrampoline) RegisterLimb();
+                var root = Make("Trampoline"); root.SetActive(false);
+                var main = root.AddComponent<BoxCollider>();
+                var child = Make("Child trampoline frame"); child.transform.SetParent(root.transform);
+                var frame = child.AddComponent<BoxCollider>(); frame.size = new Vector3(4, .1f, 4); frame.center = Vector3.up * .6f;
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                root.SetActive(true);
+                if (HumanCannonTrampoline.Current != trampoline)
+                    typeof(HumanCannonTrampoline).GetMethod("OnEnable", members).Invoke(trampoline, null);
+                if (createdAfterTrampoline) RegisterLimb();
+                var tick = typeof(HumanCannonTrampoline).GetMethod("FixedUpdate", members);
+                var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", members).GetValue(trampoline);
+                // Idle, carried, released and re-enabled shapes use the same physical exclusion.
+                foreach (ulong actor in new[] { CannonSeatState.Nobody, 12UL, CannonSeatState.Nobody })
+                {
+                    ownership.Receive(ownership.Revision + 1, actor);
+                    frame.enabled = false; frame.enabled = true;
+                    Physics.SyncTransforms(); tick.Invoke(trampoline, null);
+                    Assert.IsTrue(Physics.GetIgnoreCollision(main, shape));
+                    Assert.IsTrue(Physics.GetIgnoreCollision(frame, shape));
+                    Assert.IsFalse(Physics.GetIgnoreCollision(floor, shape));
+                }
+                for (int i = 0; i < 100; i++) { tick.Invoke(trampoline, null); physics.Simulate(.02f); }
+                Assert.That(rb.position.y, Is.LessThan(-1f), "The limb must pass through, not land on the trampoline.");
+                Assert.That(rb.position.y, Is.GreaterThan(-1.8f), "Ordinary floor collision must remain enabled.");
+            }
+            finally
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+                typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, oldTrampoline);
+            }
+        }
+
         [Test]
         [Category("CommonProgressionRegression")]
         public void CarriedTrampolineClearsRingHeightButStopsAtWallAndLowCeiling()

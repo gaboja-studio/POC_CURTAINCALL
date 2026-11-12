@@ -183,6 +183,8 @@ namespace CurtainCall.WaitingRoom
         void BeginEnding(bool success, bool skipped = false)
         {
             if (shared.ending) return;
+            // Release every participant, not only players who died before the vote completed.
+            foreach (ulong id in shared.participants) ReleasePlayerDevices(id);
             shared.ending = true; shared.successful = success; shared.skipped = skipped; shared.mastered |= success; shared.endAt = Clock + 3d;
             RecordAction("ENDING", reason: skipped ? "MAJORITY_SKIP" : success ? "ALL_ARRIVED" : "MAJORITY_ABANDON");
             Publish();
@@ -197,7 +199,9 @@ namespace CurtainCall.WaitingRoom
             {
                 // ESC releases the pointer through the common menu. This return keeps the scene, so close it explicitly.
                 CurtainCall.UI.SceneIntegration.CommonMenuUI.Current?.CloseAll();
-                CaptureEndingMover();
+                endingBlock.SetOpen(true);
+                // The ending snapshot and the stack unlink can arrive in either order.
+                if (!CaptureEndingMover()) return;
                 Cleanup(); placementBlock.SetOpen(false); quest.Hide(); votePanel.Hide();
                 endingRound = shared.round; returnAt = Clock + 1d;
                 endingBlock.SetOpen(true);
@@ -243,18 +247,24 @@ namespace CurtainCall.WaitingRoom
             }
         }
 
-        void CaptureEndingMover()
+        bool CaptureEndingMover()
         {
             var player = NetworkPlayer.Local;
-            if (endingMover != null || player == null || !player.TryGetComponent(out PlayerMover mover)) return;
+            if (endingMover != null) return true;
+            if (player == null || !player.TryGetComponent(out PlayerMover mover)) return false;
+            var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            if (stack != null && (stack.GetBelow(player) != null || stack.GetAbove(player) != null)) return false;
             CaptureReturnPose(player);
             // Seating/flight/transport temporarily own Simulated. Return their saved value
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
+            stack?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(player);
+            if (player.TryGetComponent(out HumanoidPlayerPresentation presentation)) presentation.CancelItemAction();
             endingMover = mover;
             restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
             restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
+            return true;
         }
 
         void ReleaseEndingLock()

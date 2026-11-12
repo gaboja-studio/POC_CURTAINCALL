@@ -77,8 +77,16 @@ namespace CurtainCall.Player
             return true;
         }
         public static void Forget(Component actor)
-        { if (actor != null && actor.TryGetComponent<PlayerInputReader>(out var reader)
-            && gestures.TryGetValue(reader.GetInstanceID(), out var gesture)) gesture.Consumed = true; }
+        {
+            if (actor == null || !actor.TryGetComponent<PlayerInputReader>(out var reader)
+                || !gestures.TryGetValue(reader.GetInstanceID(), out var gesture)) return;
+            gesture.Held = false;
+            gesture.Choice = default;
+            gesture.LongRelease = null;
+            gesture.Consumed = true;
+            // Invalidate this frame, but let the first new gesture choose after an input lock ends.
+            gesture.Frame = Time.frameCount;
+        }
 
         static Candidate Choose(Component actor)
         {

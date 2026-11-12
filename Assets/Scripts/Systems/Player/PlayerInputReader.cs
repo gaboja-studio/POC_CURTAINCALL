@@ -34,6 +34,7 @@ namespace CurtainCall.Player
         double interactPressedAt = -1d;
         bool interactLongSent;
         bool interactTapPending, interactLongPending;
+        InputDevice interactDevice;
         // 반대 키 동시 입력은 마지막에 누른 방향. 그 키를 떼면 아직 누르고 있는 이전 키 방향으로 돌아간다.
         readonly OppositeKeyAxis moveKeys = new(), postureKeys = new(), auxKeys = new();
 
@@ -91,6 +92,7 @@ namespace CurtainCall.Player
             interact = commonMap.FindAction("Interact", true);
             interact.performed += OnInteractPressed;
             interact.canceled += OnInteractReleased;
+            InputSystem.onDeviceChange += OnInputDeviceChange;
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
             uvLight = commonMap.FindAction("UvLight", false);
@@ -114,6 +116,7 @@ namespace CurtainCall.Player
             CommonInteractionSelection.Forget(this);
             Current = default;
             interactPressedAt = -1d;
+            interactDevice = null;
             interactLongSent = interactTapPending = interactLongPending = false;
             moveKeys.Reset(); postureKeys.Reset(); auxKeys.Reset();
             if (TryGetComponent(out PlayerMover mover)) mover.ClearPendingInput();
@@ -146,6 +149,7 @@ namespace CurtainCall.Player
         void OnDestroy()
         {
             InputBindingPreferences.Changed -= RefreshBindingPreferences;
+            InputSystem.onDeviceChange -= OnInputDeviceChange;
             if (interact != null)
             {
                 interact.performed -= OnInteractPressed;
@@ -168,6 +172,7 @@ namespace CurtainCall.Player
                 Move = moveKeys.Read(move),
                 Posture = postureKeys.Read(posture),
                 ActionPressed = action.WasPressedThisFrame(),
+                ActionHeld = action.IsPressed(),
                 TurnAroundPressed = turnAround != null && turnAround.WasPressedThisFrame(),
                 AuxDirection = auxKeys.Update(auxLeft.IsPressed(), auxRight.IsPressed()),
                 InteractTapped = tapped,
@@ -196,8 +201,19 @@ namespace CurtainCall.Player
         void OnInteractPressed(InputAction.CallbackContext context)
         {
             if (interactPressedAt >= 0d) return;
+            interactDevice = context.control.device;
             interactPressedAt = context.time;
             interactLongSent = false;
+        }
+
+        void OnInputDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            if (device != interactDevice) return;
+            if (change == InputDeviceChange.SoftReset || change == InputDeviceChange.HardReset
+                || change == InputDeviceChange.Disabled || change == InputDeviceChange.Disconnected
+                || change == InputDeviceChange.Removed)
+                // Device cancellation is not a physical key release. It can have queued a tap/hold already.
+                ClearPendingInput();
         }
 
         void OnInteractReleased(InputAction.CallbackContext context)

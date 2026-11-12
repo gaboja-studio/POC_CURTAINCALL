@@ -96,7 +96,7 @@ namespace CurtainCall.Tightrope
         /// <summary>옆줄 착지의 겹친 동료가 합체 가능한지. 최종 연결은 호스트가 다시 확인한다.</summary>
         public bool CanLaneLink(NetworkPlayer climber, NetworkPlayer target, bool predictTopRelease = false)
         {
-            if (!IsGameplayActive) return false;
+            if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding) return false;
             if (climber == null || target == null || climber == target) return false;
             if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
@@ -534,7 +534,9 @@ namespace CurtainCall.Tightrope
         /// <summary>F 입력·호스트 승인·상호작용 표시가 공유하는 구형 범위의 최근접 목마 대상.</summary>
         public NetworkPlayer FindMountTarget(NetworkPlayer climber)
         {
-            if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
+            // A request sent before the ending lock may arrive after the host unlinked the stack.
+            if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding
+                || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
                 || !CanStand(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;

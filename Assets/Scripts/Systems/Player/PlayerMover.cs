@@ -552,6 +552,7 @@ namespace CurtainCall.Player
                 var hit = headroomHits[i];
                 if (hit == null || hit == controller || hit.transform.IsChildOf(transform)) continue;
                 if (hit is CharacterController && hit.TryGetComponent(out PlayerMover _)) continue;
+                if (CurtainCall.Damage.DismemberedLimb.Contains(hit)) continue;
                 return false;
             }
             return true;

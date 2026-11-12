@@ -882,6 +882,52 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    Assert.AreEqual(JumpKind.InPlace, mover.CurrentJump);
   }
 
+  [Test, Category("CommonProgressionRegression")]
+  public void DetachedLimbCannotPreventStandingAndJumpingButASolidCeilingCan()
+  {
+   AddBox("Floor", new Vector3(0, -.5f, 0), new Vector3(12, 1, 12));
+   MovePlayer(Vector3.zero); mover.FreeMovement = true;
+   mover.SetLocomotionInput(false, true);
+   Invoke(mover, "UpdatePosture"); Invoke(mover, "ApplyBodySize", false);
+   float crouched = mover.BodyHeight;
+   var obstacle = AddBox("Head obstruction", Vector3.up * ((crouched + GameSettings.Base.Character.CapsuleHeight) * .5f), new Vector3(.2f, .1f, .2f));
+   Assert.IsFalse(mover.TryStand(), "A real ceiling must still block standing.");
+   obstacle.gameObject.AddComponent<CurtainCall.Damage.DismemberedLimb>();
+   Assert.IsTrue(mover.TryStand(), "Detached limbs must not pin a crouched player.");
+   mover.SetLocomotionInput(false, false);
+   mover.Body.Move(Vector3.down * .05f);
+   mover.RequestJump(); Invoke(mover, "Update");
+   Assert.AreEqual(JumpKind.InPlace, mover.CurrentJump);
+  }
+
+  [Test, Category("CommonProgressionRegression")]
+  public void DelayedMountRequestCannotRebuildTheStackDuringCannonPracticeReturn()
+  {
+   WithMountedPair((stack, _, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    Assert.AreSame(player, stack.FindMountTarget(rider));
+    var type = typeof(CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal);
+    var singleton = type.GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+    var previous = singleton.GetValue(null);
+    var root = MakeObject("Ending cannon practice"); root.SetActive(false);
+    var rehearsal = root.AddComponent<CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal>();
+    var shared = type.GetField("shared", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(rehearsal);
+    try
+    {
+     singleton.SetValue(null, rehearsal);
+     shared.GetType().GetField("active").SetValue(shared, true);
+     shared.GetType().GetField("ending").SetValue(shared, true);
+     Invoke(stack, "ServerTryLink", rider.OwnerClientId);
+     Assert.IsNull(stack.GetBelow(rider), "A pre-ending request cannot recreate the released link.");
+     shared.GetType().GetField("active").SetValue(shared, false);
+     Invoke(stack, "ServerTryLink", rider.OwnerClientId);
+     Assert.AreSame(player, stack.GetBelow(rider), "A new request after returning must work.");
+    }
+    finally { singleton.SetValue(null, previous); }
+   }, mount: false);
+  }
+
   [Test]
   public void ActiveSceneChangeClearsMountedFollowWithoutRepositioningThePassenger()
   {
