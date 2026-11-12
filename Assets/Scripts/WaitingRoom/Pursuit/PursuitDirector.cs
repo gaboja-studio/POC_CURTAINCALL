@@ -67,7 +67,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         float sendAt;
         internal void ActorStateChanged() => sendAt = 0;
         bool active;
-        [Serializable] public sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour, captures; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; }
+        [Serializable] public sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour, captures; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; public Vector3 climbFrom, climbTo; public float climbProgress, climbDuration; }
         [Serializable] public sealed class VictimState { public ulong id; public float elapsed; public bool retired; public int room; public Vector3 anchor; public Quaternion upright; }
         [Serializable] public sealed class Snapshot { public int generation, day, performance, stage, poseEpoch, lightRoom = -1; public CampaignPhase phase = CampaignPhase.RestTime; public float lightAt = -1; public bool stageForced, debugInvulnerable, debugIgnorePlayers; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
@@ -167,6 +167,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (!CurtainCall.Dev.DevMode.Enabled && (debugInvulnerable || debugIgnorePlayers)) ResetDebugProtection();
             if (s.Generation != generation || s.Day != day || s.PerformanceIndex != performance) ResetStep(s);
+            // 오르기 통로는 길찾기를 하는 호스트에서만, 현재 로드된 NavMesh로 한 번 만든다.
+            if (!PursuitClimbLinks.Built && actors.Count > 0) PursuitClimbLinks.Build(actors[0].AgentTypeID, GameSettings.WaitingRoom.Pursuit);
             CollectCandidates();
             if (!active && s.Timer == RestTimerState.Pursuit) { active = true; Elapsed = 0; }
             if (active) Elapsed += Time.deltaTime;
@@ -273,10 +275,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!PlayerRecognitionEnabled || actor == null || !actor.IsActivated || !IsAvailable(player)
                 || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) return false;
             var delta = player.transform.position - actor.transform.position;
+            // 시야각은 수평으로 잰다. 높이까지 넣으면 바로 머리 위(트램펄린 반동·소품 위)의 플레이어가 시야 밖이 된다.
             if (delta.sqrMagnitude > rule.SightRadius * rule.SightRadius
-                || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f) return false;
-            return rule.SeeThroughWalls || ClearLine(actor.transform.position + Vector3.up * 1.5f,
-                player.transform.position + Vector3.up, player.transform);
+                || Vector3.Angle(Vector3.ProjectOnPlane(actor.transform.forward, Vector3.up), Vector3.ProjectOnPlane(delta, Vector3.up)) > rule.FieldOfView * .5f) return false;
+            if (rule.SeeThroughWalls) return true;
+            var eye = actor.transform.position + Vector3.up * EyeHeight;
+            // 앉은 플레이어는 몸 전체를 나눠 재고, 장애물에 설정 비율 이상 가려지면 보이지 않는다.
+            float hide = GameSettings.WaitingRoom.Pursuit.CrouchHiddenCoverage;
+            if (hide > 0 && player.TryGetComponent(out PlayerMover mover) && mover.IsCrouched)
+                return OccludedFraction(eye, mover) < hide;
+            return ClearLine(eye, player.transform.position + Vector3.up, player.transform);
         }
         readonly List<(float straight, GameObject player)> nearestOrder = new();
         // 최인접 추격은 벽 너머 직선 거리가 아니라 실제로 달려갈 NavMesh 경로 거리로 고른다.
@@ -414,6 +422,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? PursuitTexts.StageAnnouncement(CurrentStageIndex) : "",
             actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
                 motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
+                climbFrom = a.TraversalFrom, climbTo = a.TraversalTo, climbProgress = a.TraversalProgress, climbDuration = a.TraversalDuration,
                 captures = a.GetComponent<PursuitAppearance>() != null ? a.GetComponent<PursuitAppearance>().CaptureCount : 0,
                 hasTarget = a.ChasedPlayer != null, target = a.ChasedPlayer != null ? Id(a.ChasedPlayer) : ulong.MaxValue }).ToArray(),
             victims = victims.Where(v => v.Value.Object != null).Select(v => new VictimState { id = v.Key, elapsed = v.Value.Elapsed,
@@ -462,7 +471,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             generation = s.generation; day = s.day; performance = s.performance;
             for (int i = 0; i < actors.Count; i++) {
                 var a = s.actors[i];
-                actors[i].Receive(a.position, a.rotation, (PursuitMotion)a.motion, a.motion >= (int)PursuitMotion.Grab ? Resolve(a.victim) : null, a.capture, a.look, a.hasLook, a.hasTarget ? Resolve(a.target) : null);
+                actors[i].Receive(a.position, a.rotation, (PursuitMotion)a.motion, a.motion == (int)PursuitMotion.Grab || a.motion == (int)PursuitMotion.Tear ? Resolve(a.victim) : null, a.capture, a.look, a.hasLook, a.hasTarget ? Resolve(a.target) : null);
+                if (PursuitActor.IsTraversalMotion((PursuitMotion)a.motion)) actors[i].ReceiveTraversal(a.climbFrom, a.climbTo, a.climbProgress, a.climbDuration);
                 actors[i].ReceiveBehaviour((PursuitBehaviour)a.behaviour);
                 actors[i].GetComponent<PursuitAppearance>()?.SetCaptureCount(a.captures);
             }
@@ -496,7 +506,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (run != null) run.StepChanged -= StepChanged;
             Unbind();
             foreach (var v in victims.Values) if (v.Pose != null) Destroy(v.Pose);
-            if (Current == this) Current = null;
+            if (Current == this) { Current = null; PursuitClimbLinks.Clear(); }
         }
     }
 }

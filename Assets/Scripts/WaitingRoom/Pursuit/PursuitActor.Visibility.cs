@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             for (int i = 0; i < hiddenRenderers.Length; i++) if (hiddenRenderers[i] != null) hiddenRenderers[i].forceRenderingOff = priorRenderSuppression[i];
             hiddenRenderers = null; priorRenderSuppression = null;
         }
-        void OnDisable() { RestoreRenderers(); brain?.End(); restartBrain = true; }
+        void OnDisable() { climbIk?.Clear(); RestoreRenderers(); brain?.End(); restartBrain = true; }
         public void ReceiveBehaviour(PursuitBehaviour value) => Behaviour = value;
     }
 }
