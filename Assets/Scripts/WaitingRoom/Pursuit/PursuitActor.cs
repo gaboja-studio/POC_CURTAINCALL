@@ -5,7 +5,8 @@ using UnityEngine.AI;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
-    public enum PursuitMotion : byte { Display, Twitch, Awaken, Walk, Run, Grab, Tear }
+    // 새 값은 끝에 붙인다(스냅샷이 숫자로 보내고 Clips 배열이 순서로 대응한다).
+    public enum PursuitMotion : byte { Display, Twitch, Awaken, Walk, Run, Grab, Tear, Climb, Drop }
 
     [DefaultExecutionOrder(1100)]
     public sealed partial class PursuitActor : MonoBehaviour
@@ -60,6 +61,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             agent.stoppingDistance = .25f;
             // 경로는 PursuitActor가 동기 계산으로 직접 갱신한다. 자동 재경로는 비동기 대기열에서 pathPending 정지를 만든다.
             agent.autoRepath = false;
+            // 오르기 통로는 직접 움직인다(PursuitActor.Climb). 낮은 계단 통로도 같은 경로로 걸어서 지난다.
+            agent.autoTraverseOffMeshLink = false;
             agent.enabled = false;
             if (Motion == null) Motion = GetComponentInChildren<Animation>();
             if (Motion != null && Clips != null)
@@ -68,6 +71,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (appearance.AdvancedWalk != null) Motion.AddClip(appearance.AdvancedWalk, "AdvancedWalk");
                 if (appearance.AdvancedRun != null) Motion.AddClip(appearance.AdvancedRun, "AdvancedRun");
             }
+            climbIk = new PursuitClimbIk(transform, GetComponentInChildren<SkinnedMeshRenderer>());
             SetMotion(PursuitMotion.Display, true);
             InitializeBrain();
         }
@@ -81,6 +85,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             appearance?.SetCaptureCount(0);
             Victim = null; target = null; CaptureElapsed = 0; CaptureFinished = false; unseen = 0;
             activatedAt = -1;
+            ResetClimb();
             ResetBrain();
             SetMotion(PursuitMotion.Display, true);
         }
@@ -89,10 +94,25 @@ namespace CurtainCall.WaitingRoom.Pursuit
             bool advanced = IsActivated && director.CurrentStageIndex + 1 >= GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
             if (State == next && !force && advancedMotion == advanced) return;
             advancedMotion = advanced;
+            if (!IsTraversalMotion(next)) { climbIk?.Clear(); remoteTraversal = false; }
             State = next;
             if (!remote) director?.ActorStateChanged();
             string clip = advanced && (next == PursuitMotion.Walk || next == PursuitMotion.Run) ? "Advanced" + next : next.ToString();
-            if (Motion != null) { if (Motion.GetClip(clip) == null) clip = next.ToString(); if (Motion.GetClip(clip) != null) Motion.CrossFade(clip, .12f); }
+            if (Motion != null) {
+                if (Motion.GetClip(clip) == null) clip = next.ToString();
+                if (Motion.GetClip(clip) != null) {
+                    if (IsTraversalMotion(next)) {
+                        var state = Motion[clip];
+                        var rules = GameSettings.WaitingRoom.Pursuit;
+                        // 높은 곳은 오르는 시간이 늘어난다(TraversalSeconds). 통과 중이 아니면 기본 시간.
+                        float duration = climbing ? climbDuration : next == PursuitMotion.Climb ? rules.ClimbSeconds : rules.DropSeconds;
+                        state.wrapMode = WrapMode.ClampForever;
+                        state.speed = state.length / Mathf.Max(.1f, duration);
+                        state.time = 0;
+                    }
+                    Motion.CrossFade(clip, IsTraversalMotion(next) ? .06f : .12f);
+                }
+            }
         }
         public void ServerTick(float elapsed, bool warning)
         {
@@ -115,12 +135,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (activatedAt < 0) activatedAt = Time.time;
             if (IsAwakening) { SetMotion(PursuitMotion.Awaken); return; }
             if (agent == null) return;
+            // NavMesh 밖 소품 위로 직접 오르내리는 중이거나 그 위에 서 있으면 길찾기 대신 직접 처리한다.
+            if (TickDirect()) return;
             if (!EnsureOnNavMesh()) { SetMotion(PursuitMotion.Awaken); return; }
+            ApplyClimbArea();
+            if (TickClimb()) return;
             TickBrain(director.CurrentStageRules);
             TickStuck();
         }
         public void Capture(GameObject victim, float elapsed)
         {
+            if (climbing) FinishClimb();
             Victim = victim; CaptureElapsed = elapsed;
             if (agent != null && agent.enabled && agent.isOnNavMesh) agent.ResetPath();
             if (agent != null) { agent.enabled = false; ClearNavigation(); }
@@ -152,6 +177,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void Update()
         {
+            // 다음 Legacy Animation 평가에 전 프레임 IK가 누적되지 않도록 되돌린다.
+            climbIk?.Restore();
             if (remote) {
                 if (poseBuffer.Sample(Time.unscaledDeltaTime, out var p, out var q)) { remotePosition = p; remoteRotation = q; }
                 // A delayed burst can never trigger the old 3m teleport. ResetActor is the explicit warp path.
@@ -167,6 +194,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (remote && Victim == null) director?.ReportLocalContact(this);
             if (Victim != null) { AlignCapture(); return; }
+            if (IsTraversalMotion(State)) {
+                if (climbing || remoteTraversal) climbIk?.Apply(TraversalProgress, GameSettings.WaitingRoom.Pursuit);
+                return;
+            }
             if (Chest == null || !HasLook) return;
             var p = LookPoint;
             var d = transform.InverseTransformDirection(p - transform.position);

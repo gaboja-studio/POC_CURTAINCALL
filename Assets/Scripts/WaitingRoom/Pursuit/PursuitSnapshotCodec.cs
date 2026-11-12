@@ -10,14 +10,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// </summary>
     public static class PursuitSnapshotCodec
     {
-        public const byte Version = 5;
+        public const byte Version = 6;
         /// <summary>비신뢰성 순서 전송으로 보낼 최대 크기. 한 패킷(MTU)에 들어가도록 여유를 둔다.</summary>
         public const int UnreliableLimit = 1100;
         const float PositionScale = 100f, PositionLimit = 327f;
         [Flags] enum ActorFlags : byte { None = 0, Look = 1, Target = 2, Victim = 4, Wide = 8 }
 
         public static int MaxSize(PursuitDirector.Snapshot s)
-            => 48 + (s.actors?.Length ?? 0) * 64 + (s.victims?.Length ?? 0) * 64;
+            => 48 + (s.actors?.Length ?? 0) * 96 + (s.victims?.Length ?? 0) * 64;
 
         public static void Write(FastBufferWriter w, PursuitDirector.Snapshot s)
         {
@@ -31,7 +31,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var actors = s.actors ?? Array.Empty<PursuitDirector.ActorState>();
             w.WriteValueSafe((ushort)actors.Length);
             foreach (var a in actors) {
-                bool wide = !Fits(a.position) || (a.hasLook && !Fits(a.look));
+                bool traversal = PursuitActor.IsTraversalMotion((PursuitMotion)a.motion);
+                bool wide = !Fits(a.position) || (a.hasLook && !Fits(a.look)) || (traversal && (!Fits(a.climbFrom) || !Fits(a.climbTo)));
                 bool victim = a.victim != ulong.MaxValue;
                 var flags = (a.hasLook ? ActorFlags.Look : 0) | (a.hasTarget ? ActorFlags.Target : 0) | (victim ? ActorFlags.Victim : 0) | (wide ? ActorFlags.Wide : 0);
                 w.WriteValueSafe((byte)flags);
@@ -42,6 +43,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (a.hasLook) WritePosition(w, a.look, wide);
                 if (a.hasTarget) w.WriteValueSafe(a.target);
                 if (victim) { w.WriteValueSafe(a.victim); w.WriteValueSafe(a.capture); }
+                if (traversal) {
+                    WritePosition(w, a.climbFrom, wide); WritePosition(w, a.climbTo, wide);
+                    w.WriteValueSafe(a.climbProgress); w.WriteValueSafe(a.climbDuration);
+                }
             }
             var victims = s.victims ?? Array.Empty<PursuitDirector.VictimState>();
             w.WriteValueSafe((byte)Mathf.Min(victims.Length, 255));
@@ -80,6 +85,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     a.hasTarget = (flags & ActorFlags.Target) != 0;
                     if (a.hasTarget) r.ReadValueSafe(out a.target);
                     if ((flags & ActorFlags.Victim) != 0) { r.ReadValueSafe(out a.victim); r.ReadValueSafe(out a.capture); }
+                    if (PursuitActor.IsTraversalMotion((PursuitMotion)a.motion)) {
+                        a.climbFrom = ReadPosition(r, wide); a.climbTo = ReadPosition(r, wide);
+                        r.ReadValueSafe(out a.climbProgress); r.ReadValueSafe(out a.climbDuration);
+                    }
                 }
                 r.ReadValueSafe(out byte victimCount);
                 s.victims = new PursuitDirector.VictimState[victimCount];

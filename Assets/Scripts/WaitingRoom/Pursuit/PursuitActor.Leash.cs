@@ -13,8 +13,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public bool WithinPatrolLeash(Vector3 position, PursuitStage stage) => stage.PatrolLeashDistance <= 0
             || Vector3.Distance(position, ClosestPatrolPosition(position, PatrolRoute, initialPosition)) <= stage.PatrolLeashDistance;
 
-        public bool WithinCaptureReach(Vector3 position) => Vector3.Distance(transform.position, position)
-            <= GameSettings.WaitingRoom.Pursuit.CaptureRadius;
+        public bool WithinCaptureReach(Vector3 position)
+            => PursuitContactRules.Touching(transform.position, position, GameSettings.WaitingRoom.Pursuit);
 
         // Distance to the closed patrol polyline, including height. Sparse waypoints
         // must not make the middle of an otherwise valid patrol segment out of bounds.

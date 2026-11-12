@@ -87,7 +87,10 @@ MonoBehaviour:
     KnockdownSeconds: 1.2
     CutInterval: 1.3
     CaptureRadius: 1.15
+    CaptureBelow: 0.5
+    CaptureAbove: 0.75
     LoseTargetSeconds: 3
+    CrouchHiddenCoverage: 0.8
     CullDistantRenderers: 1
     EncounterSeconds: 5
     RenderSafetyMargin: 8
@@ -111,6 +114,17 @@ MonoBehaviour:
     EdgeIntensity: 0.2
     EdgeWidth: 0.1
     PulseAmount: 0.15
+    ClimbFromStage: 1
+    ClimbMaxHeight: 2.5
+    ClimbSeconds: 1.1
+    DropSeconds: 0.5
+    ClimbLinkSpacing: 1.5
+    ClimbContactIk: 1
+    ClimbIkSurfaceMask:
+      serializedVersion: 2
+      m_Bits: 4294967291
+    ClimbIkProbeHeight: 0.25
+    ClimbIkSurfaceOffset: 0.01
     Lighting:
       Enabled: 1
       IncludeUnassignedLights: 1

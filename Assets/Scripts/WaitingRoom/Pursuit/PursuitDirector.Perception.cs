@@ -45,6 +45,31 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (radius > 0 && distance <= radius) actor.Hear(position, distance / radius);
             }
         }
+        public const float EyeHeight = 1.5f;
+        const int CoverColumns = 3, CoverRows = 5;
+        /// <summary>
+        /// 추격자 눈에서 본 플레이어 몸통(현재 캡슐: 앉으면 낮아진 높이)의 가려진 비율(0~1).
+        /// 시선에 수직인 면에 몸 폭×높이 격자(3×5) 지점을 두고, 지점마다 눈에서 직선이 막히는지 잰다.
+        /// </summary>
+        public float OccludedFraction(Vector3 eye, PlayerMover mover)
+        {
+            var body = mover.Body;
+            var root = mover.transform;
+            var scale = root.lossyScale;
+            float height = (body != null ? body.height : 1) * Mathf.Abs(scale.y);
+            float radius = (body != null ? body.radius : .3f) * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            var bottom = body != null ? root.TransformPoint(body.center) - Vector3.up * height * .5f : root.position;
+            var flat = Vector3.ProjectOnPlane(bottom - eye, Vector3.up);
+            var side = flat.sqrMagnitude > .0001f ? Vector3.Cross(Vector3.up, flat.normalized) : root.right;
+            int blocked = 0;
+            for (int column = 0; column < CoverColumns; column++)
+            for (int row = 0; row < CoverRows; row++) {
+                float across = Mathf.Lerp(-.7f, .7f, column / (float)(CoverColumns - 1)) * radius;
+                float up = Mathf.Lerp(.1f, .9f, row / (float)(CoverRows - 1)) * height;
+                if (!ClearLine(eye, bottom + side * across + Vector3.up * up, root)) blocked++;
+            }
+            return blocked / (float)(CoverColumns * CoverRows);
+        }
         public static float RenderDistance(PursuitSettings rules)
         {
             float speed = 0;
