@@ -247,6 +247,17 @@ namespace CurtainCall.HumanCannon
 
         void FollowCarrier(NetworkPlayer carrier, bool alignToCarrier = false)
         {
+            bool riding = HumanCannonRouteSystem.Current?.RiddenTransport(carrier.OwnerClientId) != null;
+            UpdateCarryPose(carrier, alignToCarrier || riding, riding);
+        }
+
+        internal void FollowTransportArrival(NetworkPlayer carrier)
+        {
+            if (carrier != null && Carrier == carrier.OwnerClientId) UpdateCarryPose(carrier, true, true);
+        }
+
+        void UpdateCarryPose(NetworkPlayer carrier, bool alignToCarrier, bool riding)
+        {
             // A local rope catch can precede the host's ownership update.
             if (TightropeHangSystem.Current?.IsHanging(carrier) == true || HasRopeSupport(carrier)) return;
             RefreshCarryBody(carrier);
@@ -256,13 +267,13 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonCarry.TryFollowPose(carrier, transform, Handle, carryHandleHeight, alignToCarrier,
                 out var position, out var rotation, out var carrierRotation))
             {
-                var route = HumanCannonRouteSystem.Current;
                 carrier.TryGetComponent(out PlayerMover mover);
-                float floorClearance = route != null && !alignToCarrier && mover != null && mover.Body != null
+                float floorClearance = !alignToCarrier && mover != null && mover.Body != null
                     ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
-                // Only an authorized rider's load may cross its own lift's boarding barrier.
-                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
-                    floorClearance, route?.RiddenTransport(Carrier)))
+                // The authorized lift owns both poses until arrival; walking still uses the swept load collision.
+                if (!riding && !HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
+                    floorClearance, null) && (alignToCarrier || !TryTranslateWithoutTurning(carrier, floorClearance,
+                        out position, out rotation, out carrierRotation)))
                 {
                     if (carrier.IsLocal && mover != null && mover.Simulated && mover.Body != null && mover.Body.enabled)
                         mover.Body.Move(lastSafeCarrierFeet - carrier.transform.position);
@@ -274,17 +285,31 @@ namespace CurtainCall.HumanCannon
             }
         }
 
+        bool TryTranslateWithoutTurning(NetworkPlayer carrier, float floorClearance, out Vector3 position,
+            out Quaternion rotation, out Quaternion carrierRotation)
+        {
+            rotation = transform.rotation;
+            var toCenter = Vector3.ProjectOnPlane(transform.position - Handle.position, Vector3.up);
+            carrierRotation = toCenter.sqrMagnitude > .0001f ? Quaternion.LookRotation(toCenter) : carrier.transform.rotation;
+            var hand = carrier.transform.position + Vector3.up * Mathf.Max(0f, carryHandleHeight);
+            position = transform.position + (hand - Handle.position);
+            return HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null);
+        }
+
         void ResetPreviousPose()
         {
             previousSurface = Surface;
             previousRotation = transform.rotation;
         }
 
+        internal System.Func<bool> PracticeGrabAllowed { get; set; }
+
         public bool CanGrab(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
                 || HumanCannonSystem.Current == null || HumanCannonCarry.HasOccupiedHands(player)
-                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)) return false;
+                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
+                || PracticeGrabAllowed?.Invoke() == false) return false;
             var course = TightropeCourse.Current;
             if (course != null && course.IsTraversalActive && course.UsesRopeRules(player)) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
@@ -328,6 +353,23 @@ namespace CurtainCall.HumanCannon
             var carrier = FindPlayer(actor);
             if (carrier == null || carrier.State != PlayerState.Normal) ReleaseCarrierToGround(carrier);
             else HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+        }
+
+        internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
+        {
+            if (session == null || !session.IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
+                || ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null || HasRopeSupport(player)
+                || HumanCannonSystem.Current == null) return false;
+            RefreshCarryBody(player);
+            if (!HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true,
+                out var position, out var rotation, out _) || !HumanCannonCarry.CanMove(transform, carryBody, position, rotation, player, false)
+                || !ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision)) return false;
+            StopDrop();
+            HumanCannonSystem.Current.StartCarrying(player.OwnerClientId);
+            FollowCarrier(player, true);
+            ResetPreviousPose();
+            PublishOwnership();
+            return true;
         }
 
         internal void ServerDropForRope(ulong actor)

@@ -41,12 +41,14 @@ namespace CurtainCall.WaitingRoom
         PlayerMover endingMover;
         bool restoreControl, restoreSimulation;
         int returnPoseRound = -1;
+        NetworkPlayer returnPoseOwner;
         Pose returnPose;
 
         void CaptureReturnPose(NetworkPlayer player)
         {
-            if (returnPoseRound == shared.round) return;
+            if (returnPoseRound == shared.round && returnPoseOwner == player) return;
             returnPose = new Pose(player.transform.position, player.transform.rotation);
+            returnPoseOwner = player;
             returnPoseRound = shared.round;
         }
 
@@ -218,7 +220,12 @@ namespace CurtainCall.WaitingRoom
                     returnedRound = shared.round;
                 }
             }
-            if (Host && shared.active && Clock >= shared.endAt) { shared.active = false; Publish(); }
+            if (Host && shared.active && Clock >= shared.endAt)
+            {
+                shared.active = false;
+                PropCarry.Instance?.RestoreRehearsalSelection();
+                Publish();
+            }
             if (!shared.active && returnedRound == shared.round)
             {
                 ReleaseEndingLock();

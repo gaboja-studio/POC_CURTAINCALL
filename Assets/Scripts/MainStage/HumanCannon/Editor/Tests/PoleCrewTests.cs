@@ -312,7 +312,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void BrakeStaysActiveThroughDirectionChangesUntilTheDriverLetsGo()
+        public void ReverseDriveStaysActiveAsThePoleChangesDirection()
         {
             Deliver(Two, 8, speed: 30f, releaseDirection: 1f);
             var type = runtime.GetType();
@@ -321,26 +321,19 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var input = top.GetType().GetField("Input");
             top.GetType().GetField("LastInput").SetValue(top, receiver.Clock);
             var refresh = typeof(HumanCannonPoleSystem).GetMethod("RefreshSwingDrive", Instance);
-            var braking = type.GetProperty("Braking");
+            var releaseDirection = type.GetField("ReleaseDirection");
 
             input.SetValue(top, -1f);
-            refresh.Invoke(receiver, new[] { runtime });
-            Assert.IsTrue((bool)braking.GetValue(runtime));
-            Assert.That(type.GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(0f));
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(-1f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
 
             type.GetField("Speed").SetValue(runtime, -20f);
-            refresh.Invoke(receiver, new[] { runtime });
-            Assert.IsTrue((bool)braking.GetValue(runtime), "Holding the brake never turns it into a pump at the turn.");
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(-1f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
 
             input.SetValue(top, 0f);
-            refresh.Invoke(receiver, new[] { runtime });
-            Assert.IsFalse((bool)braking.GetValue(runtime));
-            type.GetField("Speed").SetValue(runtime, 0f);
-            type.GetField("Angle").SetValue(runtime, 0f);
-            input.SetValue(top, -1f);
-            refresh.Invoke(receiver, new[] { runtime });
-            Assert.IsFalse((bool)braking.GetValue(runtime));
-            Assert.That(type.GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(0f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
         }
 
         [Test]

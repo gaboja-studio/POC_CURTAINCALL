@@ -175,6 +175,8 @@ namespace CurtainCall.WaitingRoom
 
     public static class ExplorationKeys
     {
+        public static bool Enabled => CurtainCall.Settings.GameSettings.WaitingRoom.EnableKeyInteractions;
+        public static bool ItemEnabled(string id) => Enabled || !IsKey(id);
         public const string VisualId = "route-key";
         public static readonly string[] Targets = { StructureAKeyRoute.Key1, StructureAExitRoute.Key2,
             StructureAKeyRoute.ManagementKey, StructureAKeyRoute.StairsKey, StructureAKeyRoute.EscapeKey1, StructureAKeyRoute.EscapeKey2 };

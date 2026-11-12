@@ -1,5 +1,6 @@
 using CurtainCall.Campaign;
 using CurtainCall.HumanCannon;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,6 +25,10 @@ namespace CurtainCall.WaitingRoom
         GameObject systemRoot, trampoline, practiceTrampoline;
         bool hidPracticeTrampoline, warned;
         float nextSearch;
+        NetworkPlayer reservedCarrier;
+        Transform reservationRoom;
+        Vector3 reservationFeet;
+        float resumeUntil;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => instance = null;
@@ -39,6 +44,23 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>인간대포 리허설이 자기 코스(대포 시스템·트램펄린)를 만들기 직전에 부른다. 같은 프레임에 비워야 겹치지 않는다.</summary>
         public static void ReleaseForRehearsal() { if (instance != null) instance.Release(); }
+
+        internal static void ReserveCarrierForRehearsal()
+        {
+            var devices = instance;
+            if (devices == null) return;
+            devices.reservedCarrier = null;
+            if (devices.trampoline == null || !devices.trampoline.TryGetComponent(out HumanCannonTrampoline prop)) return;
+            foreach (var player in NetworkPlayer.All)
+            {
+                if (player == null || !player.IsSpawned || player.OwnerClientId != prop.Carrier) continue;
+                devices.reservedCarrier = player;
+                devices.reservationRoom = devices.room;
+                devices.reservationFeet = player.transform.position;
+                devices.resumeUntil = 0f;
+                break;
+            }
+        }
 
         void Update()
         {
@@ -62,12 +84,24 @@ namespace CurtainCall.WaitingRoom
             bool unlocked = CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
             if (unlocked && trampoline == null && HumanCannonTrampoline.Current == null) BuildTrampoline();
             else if (!unlocked && trampoline != null) ReleaseTrampoline();
+            RestoreReservedCarrier();
             // 장식 트램펄린은 해금 연출·리허설 정리가 다시 켤 수 있다. 운반 트램펄린이 있는 동안 숨긴다.
             if (trampoline != null && practiceTrampoline != null && practiceTrampoline.activeSelf)
             {
                 practiceTrampoline.SetActive(false);
                 hidPracticeTrampoline = true;
             }
+        }
+
+        void RestoreReservedCarrier()
+        {
+            if (reservedCarrier == null) return;
+            if (resumeUntil == 0f) resumeUntil = Time.unscaledTime + 6f;
+            if (room != reservationRoom || !reservedCarrier.IsSpawned || Time.unscaledTime > resumeUntil)
+            { reservedCarrier = null; return; }
+            if (trampoline != null && trampoline.TryGetComponent(out HumanCannonTrampoline prop)
+                && (reservedCarrier.transform.position - reservationFeet).sqrMagnitude <= 1f
+                && prop.ServerRestoreRehearsalCarrier(reservedCarrier)) reservedCarrier = null;
         }
 
         void BuildTrampoline()

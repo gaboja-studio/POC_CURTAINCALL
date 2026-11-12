@@ -552,6 +552,7 @@ namespace CurtainCall.Tightrope
         // Do not attach a new link that ServerResolveFalls would immediately detach.
         static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne && !player.IsDroppingFromSupport
             && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)
+            && (!player.TryGetComponent(out PlayerMover posture) || !posture.IsCrouched)
             && (TightropeCourse.Current != null && player.TryGetComponent(out PlayerMover mover)
                 && TightropeCourse.Current.TryGetSupportingRope(mover, out _) || GroundSupport(player) != null);
 

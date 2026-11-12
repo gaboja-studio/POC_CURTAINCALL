@@ -57,24 +57,19 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(30, 1f)]
         [TestCase(60, -1f)]
         [TestCase(120, 1f)]
-        public void HeldBrakeReducesStoredEnergyAndReturnsToRest(int fps, float direction)
+        public void HeldReverseInputSwingsPastCenterAndCanReachTheNewLimit(int fps, float direction)
         {
-            const float gravity = 9.81f, length = 2f, motionSpeed = 1.7f, maxAngle = 85f, maxSpeed = 180f;
-            float angle = direction * maxAngle, speed = 0f;
-            float start = PoleSwingMotion.StoredSpeed(angle, speed, length, gravity, motionSpeed, maxAngle, maxSpeed);
+            const float gravity = 9.81f, length = 2f, motionSpeed = 1.7f, maxAngle = 90f, maxSpeed = 180f;
+            float angle = direction * 60f, speed = direction * 30f;
+            float oppositePeak = 0f;
             for (int i = 0; i < fps * 8; i++)
             {
                 PoleSwingMotion.Step(ref angle, ref speed, -direction, motionSpeed / fps, gravity, length,
-                    100f, maxAngle, maxSpeed, .12f, braking: true);
-                if (i == fps - 1)
-                    Assert.That(PoleSwingMotion.StoredSpeed(angle, speed, length, gravity, motionSpeed, maxAngle, maxSpeed),
-                        Is.LessThan(start * .65f));
+                    100f, maxAngle, maxSpeed, .12f);
+                oppositePeak = Mathf.Max(oppositePeak, -angle * direction);
+                Assert.That(Mathf.Abs(angle), Is.LessThanOrEqualTo(maxAngle));
             }
-            Assert.AreEqual(0f, angle);
-            Assert.AreEqual(0f, speed);
-            PoleSwingMotion.Step(ref angle, ref speed, -direction, motionSpeed / fps, gravity, length,
-                100f, maxAngle, maxSpeed, .12f);
-            Assert.That(speed * direction, Is.LessThan(0f), "A new press can build swing in the other direction.");
+            Assert.That(oppositePeak, Is.GreaterThanOrEqualTo(89f), "Holding the reverse input should carry the swing through center without another press.");
         }
 
         [Test]

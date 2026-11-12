@@ -154,6 +154,7 @@ MonoBehaviour:
     performanceScene: Tightrope
     tightropeScene: Tightrope
     humanCannonScene: HumanCannon
+    performancePlacementGraceSeconds: 8
     waitingRoomVariant: 2
     waitingRoomScene: WaitingRoomPursuit
     keepWaitingRoomOnExit: 1

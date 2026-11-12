@@ -135,8 +135,16 @@ namespace CurtainCall.Tightrope
             var newBelow = system.GetSupportingPlayer(local);
             if (localMover == null && newBelow != null && launchedAt < 0f)
             {
-                UpdateLocal(local);
-                PlaceOnTop(local, newBelow, 0f);
+                if (local.TryGetComponent(out PlayerMover mover) && mover.IsCrouched && !mover.TryStand())
+                {
+                    system.RequestLocalRelease();
+                    newBelow = null;
+                }
+                else
+                {
+                    UpdateLocal(local);
+                    PlaceOnTop(local, newBelow, 0f);
+                }
             }
             if (newBelow != null) UpdateHop(local);
 
@@ -149,12 +157,12 @@ namespace CurtainCall.Tightrope
                     var above = system.GetAbove(below);
                     if (!system.CanFollowStack(above)) break;
                     if (above != local) PlaceOnTop(above, below, RemoteHop(above, below));
-                    else if (launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
+                    else if (newBelow == below && launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
                     below = above;
                 }
             }
 
-            UpdateLocal(local);
+            if (localMover != null || newBelow != null || system.GetBelow(local) == null) UpdateLocal(local);
             UpdateCarriedAirborne(local);
         }
 

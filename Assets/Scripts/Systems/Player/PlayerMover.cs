@@ -587,12 +587,7 @@ namespace CurtainCall.Player
                 if (FreeMovement)
                 {
                     float side = ControlEnabled ? sideInput : 0f;
-                    Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
-                    IsMoving = input.sqrMagnitude > 0.0001f;
-                    if (IsMoving)
-                        transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
+                    groundVelocity = ReadFreeMovement(forward, move, side);
                 }
                 else
                 {
@@ -616,22 +611,9 @@ namespace CurtainCall.Player
                 IsMoving = false;
                 if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane)
                 {
-                    Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * sideInput, 1f);
-                    if (CurrentJump == JumpKind.None) airVelocity = groundVelocity;
-                    if (input.sqrMagnitude > .0001f)
-                    {
-                        // Keep takeoff speed while steering; releasing movement stops horizontal travel.
-                        // A stationary jump can still begin moving using the existing common settings.
-                        float speed = airVelocity.magnitude;
-                        airVelocity = speed > .0001f ? input.normalized * speed
-                            : input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
-                    }
-                    else airVelocity = Vector3.zero;
+                    airVelocity = ReadFreeMovement(forward, move, sideInput);
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
                     if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
-                    if (input.sqrMagnitude > .0001f)
-                        transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
                 }
             }
 
@@ -659,6 +641,16 @@ namespace CurtainCall.Player
             laneJumpRequested = 0;
 
             UpdateAirborne();
+        }
+
+        Vector3 ReadFreeMovement(Vector3 forward, float move, float side)
+        {
+            Vector3 direction = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
+            IsMoving = direction.sqrMagnitude > .0001f;
+            if (IsMoving)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                    Quaternion.LookRotation(direction, Vector3.up), Character.TurnSpeed * Time.deltaTime);
+            return direction * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
         }
 
         void MoveWithPassengers(Vector3 displacement)
