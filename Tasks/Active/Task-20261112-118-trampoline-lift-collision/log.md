@@ -26,3 +26,5 @@
 - 최신 코드의 Unity 컴파일·공용 설정은 통과했고, 종료 직전 Console 오류는 0개였다. `check-work.ps1` 최종 집계는 Unity가 글꼴 에셋을 자동 갱신해 변경 감지에서 중단됐다. 전용 에디터를 정상 종료하고 자동 변경·임시 테스트를 정리한 뒤 `verify-scope.ps1`, `verify-fast.ps1`, `git diff --check`를 통과했다. 공개·비공개 LFS 누락 0개, 비공개 저장소 변경 0개, `HEAD=origin/dev=97c3f19c`. 커밋·푸시 없음.
 
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-12 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/341 (fix/trampoline-lift-collision → dev)
