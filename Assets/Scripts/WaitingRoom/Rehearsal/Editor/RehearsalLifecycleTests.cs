@@ -192,6 +192,61 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(mover.Simulated && mover.ControlEnabled, Is.True, "탑승/비행 때의 임시 정지가 종료 후 남으면 안 된다.");
         }
 
+        [TestCase(true)] [TestCase(false)]
+        public void CannonEndingUsesTheSharedRecoveryRuleWhenAVoteOverlapsDeath(bool recoveryEnabled)
+        {
+            var player = Player(904);
+            var outsidePractice = Player(905);
+            foreach (var fallenPlayer in new[] { player, outsidePractice })
+            {
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(fallenPlayer, true);
+                ((NetworkVariable<PlayerState>)Get(fallenPlayer, "state")).Value = PlayerState.Fallen;
+            }
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            var mover = player.GetComponent<PlayerMover>();
+            mover.SetControlEnabled(false);
+            Shared("participants", new List<ulong> { player.OwnerClientId });
+            Shared("active", true); Shared("ending", true); Shared("round", 3); Shared("endAt", double.PositiveInfinity);
+            Set(cannon, "endingRound", 3); Set(cannon, "returnedRound", 3);
+            Call(cannon, "CaptureEndingMover");
+
+            var settings = GameSettings.WaitingRoom.Rehearsal;
+            bool previous = settings.RecoverAfterDeath;
+            try
+            {
+                Set(settings, "recoverAfterDeath", recoveryEnabled);
+                Call(cannon, "TickEnding");
+                Call(cannon, "ReleaseEndingLock");
+                Assert.That(player.State, Is.EqualTo(recoveryEnabled ? PlayerState.Normal : PlayerState.Fallen));
+                Assert.That(mover.ControlEnabled, Is.EqualTo(recoveryEnabled));
+                Assert.That(mover.Simulated, Is.True);
+                Assert.That(outsidePractice.State, Is.EqualTo(PlayerState.Fallen));
+            }
+            finally { Set(settings, "recoverAfterDeath", previous); }
+        }
+
+        [TestCase(true, true)] [TestCase(false, true)] [TestCase(true, false)]
+        public void TightropePracticeEndingOnlyRecoversFallenPlayersWhilePracticeRulesApply(bool recoveryEnabled, bool practicePhase)
+        {
+            var player = Player(906);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
+            Set(rehearsal, "active", true); Set(rehearsal, "practice", true);
+            var snapshot = run.State;
+            snapshot.Phase = practicePhase ? CampaignPhase.RestTime : CampaignPhase.Performance;
+            Set(run, "state", snapshot);
+
+            var settings = GameSettings.WaitingRoom.Rehearsal;
+            bool previous = settings.RecoverAfterDeath;
+            try
+            {
+                Set(settings, "recoverAfterDeath", recoveryEnabled);
+                Assert.That(WaitingRoomRehearsal.EndPractice(), Is.True);
+                Assert.That(player.State, Is.EqualTo(recoveryEnabled && practicePhase ? PlayerState.Normal : PlayerState.Fallen));
+            }
+            finally { Set(settings, "recoverAfterDeath", previous); }
+        }
+
         [TestCase(false)] [TestCase(true)]
         public void PendingTightropeVoteCannotStartOverCannon(bool ending)
         {

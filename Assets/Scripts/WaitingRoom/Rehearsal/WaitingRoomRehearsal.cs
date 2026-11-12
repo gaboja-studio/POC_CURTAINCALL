@@ -44,6 +44,11 @@ namespace CurtainCall.WaitingRoom
         public static bool IsActive => instance != null && instance.active;
         public static bool UsesInitialTutorialRules => instance != null && instance.active && !instance.practice
             && instance.run != null && instance.run.State.Phase == CampaignPhase.Rehearsal;
+        internal static bool WaitingForInitialPlacement => CampaignRun.Instance != null
+            && CampaignRun.Instance.State.Phase == CampaignPhase.Rehearsal
+            && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
+            && (instance == null || !instance.active || instance.local == null || instance.local != NetworkPlayer.Local
+                || instance.placedRound != instance.round);
         bool RecoversAfterDeath => UsesInitialTutorialRules || practice && GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath;
         /// <summary>지금 소구간(0부터). 진행 전이면 -1.</summary>
         public static int CurrentStage => instance != null && instance.active ? instance.stage : -1;
@@ -70,6 +75,7 @@ namespace CurtainCall.WaitingRoom
             var r = instance;
             if (r == null || !r.practice || !r.HasAuthority) return false;
             r.ReleaseLessonDevices();
+            if (r.active && r.RecoversAfterDeath && PracticePhase(r.run.State.Phase)) RestoreFallenPlayers();
             r.practice = false; r.version++; r.Publish();
             Debug.Log("[Rehearsal] 선택 재연습 종료");
             return true;
@@ -193,7 +199,8 @@ namespace CurtainCall.WaitingRoom
             session = NetworkSessionManager.Instance;
             Connect();
             TickRestriction();
-            bool inWaitingRoom = !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null
+            bool initialTutorial = run != null && run.State.Phase == CampaignPhase.Rehearsal;
+            bool inWaitingRoom = (initialTutorial || !SceneCurtainTransition.IsActive) && SpaceLinkDirector.Instance != null
                 && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
             // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
             if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) EndPractice();
@@ -224,9 +231,10 @@ namespace CurtainCall.WaitingRoom
         {
             active = true;
             foreach (var monitor in monitors) if (monitor != null) monitor.ResetPlayback();
-            fallenAt.Clear(); arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
+            fallenAt.Clear();
             if (HasAuthority)
             {
+                arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
                 // 호스트: 기억해 둔 소구간부터. 완료했으면 바로 집결 안내. 재연습은 고른 소구간부터.
                 stage = practice ? practiceStage : Mathf.Clamp(savedStage, 0, RehearsalStage.All.Length - 1);
                 completed = !practice && savedStage >= RehearsalStage.All.Length;
@@ -234,7 +242,8 @@ namespace CurtainCall.WaitingRoom
                 round++; version++;
                 Publish();
             }
-            else { stage = -1; nextSync = 0d; }
+            // The first host snapshot can arrive while the client is still loading the room.
+            else nextSync = 0d;
             HideRingProps(true);
             ActivateLocal();
         }
@@ -248,6 +257,11 @@ namespace CurtainCall.WaitingRoom
             SetRingBoundaryHidden(false);
             HideRingProps(false);
             DeactivateLocal();
+            if (!HasAuthority)
+            {
+                stage = -1; completed = false; participantCount = 0;
+                arrived.Clear(); votes.Clear(); placed.Clear();
+            }
         }
 
         // ── 연습실 링 찾기 ───────────────────────────────────
@@ -491,6 +505,12 @@ namespace CurtainCall.WaitingRoom
             }
         }
 
+        static void RestoreFallenPlayers()
+        {
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
+        }
+
         void AdvanceStage()
         {
             ReleaseLessonDevices();
@@ -506,9 +526,7 @@ namespace CurtainCall.WaitingRoom
             }
             if (stage >= RehearsalStage.All.Length) { stage = RehearsalStage.All.Length - 1; completed = true; }
             if (!practice) savedStage = completed ? RehearsalStage.All.Length : stage;
-            if (completed)
-                foreach (var player in NetworkPlayer.All)
-                    if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
+            if (completed) RestoreFallenPlayers();
             round++; version++;
             Debug.Log(completed ? "[Rehearsal] 리허설 완료 → 무대 입구 통로 집결" : $"[Rehearsal] 소구간 {RehearsalStage.All[stage].Id} 시작");
             Publish();
@@ -521,8 +539,7 @@ namespace CurtainCall.WaitingRoom
         public bool TryClearCurrentStage()
         {
             if (!CanClearCurrentStage) return false;
-            foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
+            RestoreFallenPlayers();
             RecordAction("STAGE_CLEARED", reason: "DEV_CLEAR");
             AdvanceStage();
             return true;

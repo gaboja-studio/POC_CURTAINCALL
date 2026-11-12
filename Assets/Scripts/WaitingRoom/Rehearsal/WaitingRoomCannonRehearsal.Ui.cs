@@ -189,6 +189,8 @@ namespace CurtainCall.WaitingRoom
         void TickEnding()
         {
             if (!shared.ending) { ReleaseEndingLock(); return; }
+            // A vote can finish before the ordinary checkpoint revival timer expires.
+            RecoverEndingPlayers();
             if (endingRound != shared.round)
             {
                 // ESC releases the pointer through the common menu. This return keeps the scene, so close it explicitly.
@@ -243,7 +245,7 @@ namespace CurtainCall.WaitingRoom
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
-            restoreControl = player.State == PlayerState.Normal && mover.ControlEnabled;
+            restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
             restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
         }
