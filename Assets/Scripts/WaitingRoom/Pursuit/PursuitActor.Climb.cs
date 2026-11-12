@@ -29,9 +29,37 @@ namespace CurtainCall.WaitingRoom.Pursuit
             climbFrom = from; climbTo = to; climbUp = State == PursuitMotion.Climb;
             climbDuration = duration; climbStarted = Time.time - Mathf.Clamp01(progress) * duration;
             remoteTraversal = true;
-            if (changed) climbIk?.Begin(from, to, climbUp, GameSettings.WaitingRoom.Pursuit);
+            if (changed) BeginTraversalIk();
             var state = Motion != null ? Motion[State.ToString()] : null;
-            if (state != null) { state.speed = state.length / duration; state.normalizedTime = Mathf.Clamp01(progress); }
+            if (state != null) { state.speed = state.length / duration; state.normalizedTime = ClipProgress(progress); }
+        }
+
+        // 내려오기에서 가장자리까지 걷는 비율. 호스트는 경로에서, 원격은 같은 충돌체·구간·시간으로 다시 계산한다.
+        float climbWalk;
+
+        void BeginTraversalIk()
+        {
+            var rules = GameSettings.WaitingRoom.Pursuit;
+            if (climbUp) { climbWalk = 0; climbIk?.Begin(climbFrom, climbTo, true, rules); return; }
+            float edge = PursuitDirectClimb.EdgeDistance(climbFrom, climbTo, transform);
+            climbWalk = climbDuration > .1f ? Mathf.Clamp01(edge / PursuitClimbPath.DropWalkSpeed / climbDuration) : 0;
+            var flat = Vector3.ProjectOnPlane(climbTo - climbFrom, Vector3.up).normalized;
+            // 손발 접점은 걸어간 가장자리에서 뛰어내리는 구간 기준.
+            climbIk?.Begin(climbFrom + flat * edge, climbTo, false, rules, climbWalk);
+        }
+
+        /// <summary>통과 진행률 → 클립 정규 시간. 오르기는 벽 타기 구간, 내려오기는 가장자리까지 걷는 구간을 뺀다.</summary>
+        float ClipProgress(float progress) => climbUp ? PursuitClimbPath.ClipTime(progress, climbTo.y - climbFrom.y) : PursuitClimbPath.DropPhase(progress, climbWalk);
+
+        // 벽 타기(2.5m 초과 오르기)·가장자리 걷기(내려오기)가 있으면 클립을 일정 속도로 틀지 않고 진행률에 맞춘 클립 시간으로 직접 둔다(호스트·원격 같음).
+        void SyncClimbClip()
+        {
+            if (!IsTraversalMotion(State) || !(climbing || remoteTraversal) || Motion == null) return;
+            if (climbUp ? PursuitClimbPath.WallFraction(climbTo.y - climbFrom.y) <= 0 : climbWalk <= 0) return;
+            var state = Motion[State.ToString()];
+            if (state == null) return;
+            state.speed = 0;
+            state.normalizedTime = ClipProgress(TraversalProgress);
         }
 
         bool climbing, climbUp;
@@ -49,8 +77,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
         internal int AgentTypeID => agent != null ? agent.agentTypeID : 0;
         /// <summary>Blender 오르기 클립을 맞춘 기준 높이. 더 높은 곳은 같은 속도로 보이게 시간을 늘린다.</summary>
         public const float ClimbReferenceHeight = 1.5f;
+        /// <summary>
+        /// 오르기: 높이에 비례(2.5m 초과분은 같은 속도의 벽 타기, <see cref="PursuitClimbPath.WallFraction"/>).
+        /// 내려오기: 2.5m까지 높이에 비례, 그 위는 낙하처럼 높이의 제곱근에 비례해 높은 곳에서 느리게 떠 보이지 않게 한다.
+        /// </summary>
         public static float TraversalSeconds(PursuitSettings rules, bool up, float height)
-            => Mathf.Max(.1f, up ? rules.ClimbSeconds : rules.DropSeconds) * Mathf.Max(1, Mathf.Abs(height) / ClimbReferenceHeight);
+        {
+            float h = Mathf.Abs(height), scale = Mathf.Max(1, h / ClimbReferenceHeight);
+            if (!up && h > PursuitClimbPath.WallClimbFrom)
+                scale = PursuitClimbPath.WallClimbFrom / ClimbReferenceHeight * Mathf.Sqrt(h / PursuitClimbPath.WallClimbFrom);
+            return Mathf.Max(.1f, up ? rules.ClimbSeconds : rules.DropSeconds) * scale;
+        }
         bool ClimbAllowed {
             get {
                 int from = GameSettings.WaitingRoom.Pursuit.ClimbFromStage;
@@ -81,10 +118,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var rules = GameSettings.WaitingRoom.Pursuit;
                 climbFrom = transform.position; climbTo = link.endPos;
                 climbUp = climbTo.y > climbFrom.y;
-                climbDuration = TraversalSeconds(rules, climbUp, climbTo.y - climbFrom.y);
-                climbStarted = Time.time; climbing = true;
-                climbPath = climbUp ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : null;
-                climbIk?.Begin(climbFrom, climbTo, climbUp, rules);
+                BeginTraversal(rules);
                 SetMotion(climbUp ? PursuitMotion.Climb : PursuitMotion.Drop, true);
             }
             float t = Mathf.Clamp01((Time.time - climbStarted) / climbDuration);
@@ -96,6 +130,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         Vector3 TraversalPose(float t) => climbPath != null ? climbPath.Pose(t) : ClimbPose(climbFrom, climbTo, climbUp, t);
+
+        // climbFrom/To/Up을 정한 뒤 경로·시간·손발 접점을 준비한다. 내려오기는 가장자리까지 걷는 시간이 더해진다.
+        void BeginTraversal(PursuitSettings rules)
+        {
+            float seconds = TraversalSeconds(rules, climbUp, climbTo.y - climbFrom.y);
+            climbPath = climbUp ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : PursuitClimbPath.BuildDrop(climbFrom, climbTo, transform, seconds);
+            climbDuration = climbUp ? seconds : climbPath.Seconds;
+            climbStarted = Time.time; climbing = true;
+            BeginTraversalIk();
+        }
 
         void FinishClimb()
         {
@@ -110,8 +154,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void ResetClimb()
         {
             climbing = false; remoteTraversal = false; climbPath = null;
-            directTraversal = perched = hasDirectApproach = false;
-            perchIdleFor = 0;
+            directTraversal = perched = hasDirectApproach = hasDropLanding = false;
+            perchIdleFor = noDropFor = dropPlanAt = 0; climbWalk = 0;
+            ResetDetour();
             climbIk?.Clear();
             climbMask = NavMesh.AllAreas;
         }
@@ -133,8 +178,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (rise < .45f || pathReaches || WithinCaptureReach(goal)) { hasDirectApproach = false; return false; }
             if (Time.time < directPlanAt) return false;
             directPlanAt = Time.time + .15f;
-            var plan = PursuitDirectClimb.Find(transform.position, goal, transform, GameSettings.WaitingRoom.Pursuit.ClimbMaxHeight, agent.areaMask, out var point);
-            hasDirectApproach = plan == PursuitDirectClimb.Plan.Approach;
+            var plan = PursuitDirectClimb.Find(transform.position, goal, transform, GameSettings.WaitingRoom.Pursuit.ResolvedClimbMaxHeight, agent.areaMask, out var point);
+            // 우회 중이거나 이미 막혔던 가장자리 앞이면 그쪽으로 다시 가지 않는다(바로 오를 수 있으면 오른다).
+            hasDirectApproach = plan == PursuitDirectClimb.Plan.Approach && !hasDetour && !IsBlocked(point);
             if (hasDirectApproach) directApproach = point;
             if (plan != PursuitDirectClimb.Plan.Climb) return false;
             StartDirect(point, true);
@@ -145,10 +191,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (agent.enabled) { if (agent.isOnNavMesh && agent.hasPath) agent.ResetPath(); agent.enabled = false; }
             climbFrom = transform.position; climbTo = to; climbUp = up;
-            climbDuration = TraversalSeconds(GameSettings.WaitingRoom.Pursuit, up, to.y - climbFrom.y);
-            climbStarted = Time.time; climbing = true; directTraversal = true; perched = false; hasDirectApproach = false;
-            climbPath = up ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : null;
-            climbIk?.Begin(climbFrom, climbTo, climbUp, GameSettings.WaitingRoom.Pursuit);
+            directTraversal = true; perched = false; hasDirectApproach = false;
+            BeginTraversal(GameSettings.WaitingRoom.Pursuit);
             SetMotion(up ? PursuitMotion.Climb : PursuitMotion.Drop, true);
         }
 
@@ -205,14 +249,33 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 }
             }
             if (!keep) target = null;
-            if (PursuitDirectClimb.FindDrop(transform.position, keep ? target.position : (Vector3?)null, NavMesh.AllAreas, transform, out var landing)) {
-                // keep이 아니면 target은 이미 비웠다.
-                StartDirect(landing, false);
+            if (Time.time >= dropPlanAt) {
+                dropPlanAt = Time.time + .3f;
+                hasDropLanding = PursuitDirectClimb.FindDrop(transform.position, keep ? target.position : (Vector3?)null, NavMesh.AllAreas, transform, out dropLanding);
+            }
+            if (hasDropLanding) {
+                noDropFor = 0;
+                // 윗면 가장자리까지 먼저 걸어간 뒤 뛰어내린다(가장자리가 멀면 걷기 동작으로).
+                var flat = Vector3.ProjectOnPlane(dropLanding - transform.position, Vector3.up).normalized;
+                float edge = PursuitDirectClimb.EdgeDistance(transform.position, dropLanding, transform);
+                if (edge > .6f && StepOnSurface(transform.position + flat * (edge + .4f), Mathf.Max(1.5f, rule.ResolvedChaseSpeed))) {
+                    SetMotion(PursuitMotion.Run); Face(dropLanding);
+                    return;
+                }
+                hasDropLanding = false;
+                StartDirect(dropLanding, false);
                 return;
             }
-            // 내려갈 곳을 못 찾으면 가까운 NavMesh로 복귀한다(EnsureOnNavMesh).
-            perched = false;
+            // 내려갈 곳이 없으면 바로 가까운 NavMesh로 옮기지 않는다(위층·벽 너머로 순간이동하던 문제). 잠시 기다리며 다시 찾는다.
+            noDropFor += Time.deltaTime;
+            SetMotion(PursuitMotion.Awaken);
+            if (noDropFor >= NoDropGiveUpSeconds) { noDropFor = 0; perched = false; }
         }
+
+        const float NoDropGiveUpSeconds = 4f;
+        float dropPlanAt, noDropFor;
+        bool hasDropLanding;
+        Vector3 dropLanding;
 
         // 윗면을 벗어나거나 벽으로는 걷지 않는다.
         bool StepOnSurface(Vector3 goal, float speed)
