@@ -101,12 +101,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (target == null) return false;
             EnterBehaviour(PursuitBehaviour.Chase); agent.speed = rule.ResolvedChaseSpeed;
-            // NavMesh가 없는 소품 위 대상: 가장자리 앞까지 걸어가(directApproach) 직접 오른다.
-            var goal = hasDirectApproach ? directApproach : lastSeen;
+            // NavMesh가 없는 소품 위 대상: 가장자리 앞까지 걸어가(directApproach) 직접 오른다. 막힌 접근은 다른 지점으로 우회한다.
+            var goal = ChaseGoal(hasDirectApproach ? directApproach : lastSeen);
             bool routed = Navigate(goal, true);
-            if (TryDirectClimb(routed)) return true;
-            // 닿을 경로가 없거나 막힌 경로의 끝에 섰으면 제자리 달리기 대신 대상을 노려보며 대기하고 재계산을 기다린다.
-            if (routed && !AtPartialEnd && !(!visible && Reached(goal))) SetMotion(PursuitMotion.Run);
+            if (TryDirectClimb(routed)) { stallFor = 0; return true; }
+            bool stalled = TickStall();
+            // 실제로 움직이는 중에만 달린다. 닿을 경로가 없거나 막힌 길 끝·벽 앞에 섰으면 제자리 달리기 대신 대상을 노려보며 우회·재계산을 기다린다.
+            bool moving = agent.hasPath && agent.desiredVelocity.sqrMagnitude > .04f;
+            if (routed && moving && !stalled && !AtPartialEnd && !(!visible && Reached(goal))) SetMotion(PursuitMotion.Run);
             else { SetMotion(PursuitMotion.Awaken); Face(lastSeen); }
             // 쫓는 대상을 먼저, 포획 범위(수평 거리·높이 범위)에 든 다른 플레이어도 잡는다. 원격 플레이어는 자기 화면 접촉 보고로만.
             director.CaptureInReach(this, target.gameObject);

@@ -179,6 +179,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             // 다음 Legacy Animation 평가에 전 프레임 IK가 누적되지 않도록 되돌린다.
             climbIk?.Restore();
+            SyncClimbClip();
             if (remote) {
                 if (poseBuffer.Sample(Time.unscaledDeltaTime, out var p, out var q)) { remotePosition = p; remoteRotation = q; }
                 // A delayed burst can never trigger the old 3m teleport. ResetActor is the explicit warp path.

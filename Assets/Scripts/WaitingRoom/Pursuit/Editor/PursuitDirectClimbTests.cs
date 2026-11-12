@@ -101,11 +101,25 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Assert.Less(new Vector2(landing.x - top.x, landing.z - top.z).magnitude, 3.5f);
         }
 
-        [Test] public void DefaultsClimbInEveryStageUpToCommonPropHeights()
+        [Test] public void UnlimitedHeightClimbsTheTallShelfAndSettingCanCapIt()
+        {
+            var feet = Origin + new Vector3(8, 0, -1.1f); var goal = Origin + new Vector3(8, 3.2f, 0);
+            var rules = new PursuitSettings();
+            Assert.AreEqual(PursuitDirectClimb.Plan.Climb, PursuitDirectClimb.Find(feet, goal, null, rules.ResolvedClimbMaxHeight, mask, out var landing), "기본값 0 = 높이 제한 없음");
+            Assert.AreEqual(Origin.y + 3.2f, landing.y, .05f);
+            rules.ClimbMaxHeight = 3;
+            Assert.AreEqual(PursuitDirectClimb.Plan.None, PursuitDirectClimb.Find(feet, goal, null, rules.ResolvedClimbMaxHeight, mask, out _), "설정으로 다시 제한 가능");
+            rules.ClimbMaxHeight = .2f;
+            Assert.AreEqual(.6f, rules.ResolvedClimbMaxHeight, 1e-5f, "최소 오르기 높이보다 낮게는 못 둔다");
+        }
+
+        [Test] public void DefaultsClimbInEveryStageWithoutHeightLimit()
         {
             var rules = new PursuitSettings();
             Assert.AreEqual(1, rules.ClimbFromStage, "1~4단계 모두 오른다");
-            Assert.GreaterOrEqual(rules.ClimbMaxHeight, 1.94f, "실제 대기실 드럼통(1.94m)");
+            Assert.AreEqual(0, rules.ClimbMaxHeight, "0 = 높이 제한 없음");
+            Assert.IsTrue(float.IsPositiveInfinity(rules.ResolvedClimbMaxHeight));
+            Assert.IsTrue(GameSettings.WaitingRoom.Pursuit.ClimbMaxHeight <= 0 || GameSettings.WaitingRoom.Pursuit.ClimbMaxHeight >= 1.94f, "실제 대기실 드럼통(1.94m)");
             Assert.AreEqual(rules.ClimbSeconds, PursuitActor.TraversalSeconds(rules, true, 1.2f), .001f);
             Assert.Greater(PursuitActor.TraversalSeconds(rules, true, 2.4f), rules.ClimbSeconds, "높을수록 오래 오른다");
         }

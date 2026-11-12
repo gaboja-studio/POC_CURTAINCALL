@@ -17,6 +17,10 @@ source: Task-20261112-117, Assets/_ThirdParty/curtaincall/Pursuit/Climbing/Sourc
 - Unity `PursuitClimbAnimationImporter`가 Blender 월드 본 회전 차이를 원래 bind에 변환해 `Climbing/Clips/*.anim` 생성, 기존 프리팹10종의 Clips[7]/[8]에 연결. 원본 모델/메시/재질/기존7클립은 유지. 대기실 씬·배치·NavMesh는 변경하지 않았다.
 - GameSettings ClimbSeconds/DropSeconds에 맞춘 일회 재생. Climb/Drop 동안 포획·Chest 시선 덧회전 금지.
 - 오르기 월드 이동은 `PursuitClimbPath`(호스트)가 담당한다(2026-11-12). 실제 콜라이더 가장자리를 찾아, 클립 키포즈(pose-plan.py CLIMB의 접촉 .12·당기기 .32·무릎 넘기기 .60 손 위치)마다 손이 가장자리에 오는 자리에 루트를 둔다. 둥근 옆면은 몸 캡슐이 겹치지 않는 만큼만 붙는다. 손은 .12~.62 동안 가장자리를 짚는다. 가장자리가 없으면 기존 `ClimbPose`(수직 상승 후 넘기), 내려오기는 `ClimbPose` 포물선. 원격은 루트 스냅샷을 따른다.
+- 2.5m(`WallClimbFrom`) 초과 오르기는 손 뻗기(클립 0~.12) 뒤 벽 타기 구간을 넣는다. 클립은 접촉 .12 ↔ 당기기 .32를 0.6m마다 반복하며 `PursuitClimbPath.ClockAt(진행률, 높이)`로 호스트·원격이 같은 클립 시간을 쓴다(`SyncClimbClip`이 speed 0으로 직접 지정). 손 IK는 매번 앞 벽을 짚고(반복 0~.5) 벽 타기 끝에 가장자리로 넘어간다. 2.5m 이하는 진행률 = 클립 시간 그대로.
+- 내려오기는 `PursuitClimbPath.BuildDrop`: 윗면 가장자리까지 3m/s로 걸은 뒤(`DropWalk` 비율, 그동안 클립·IK 정지) 낙하 구간 45% 안에 착지점 위로 나가며 떨어진다. 예전 직선 경로는 사물함·찬장 몸통을 지났다(2026-11-12 조사 41곳 → 10곳). 위에 난간·턱이 있는 오르기 통로는 오르기 전용(내려갈 때 계단).
+- 직접 오르기 판정(`PursuitDirectClimb`): 서서 뻗는 기둥은 몸 두께(반경 0.2m) 검사, 좁은 윗면(배관·난간)은 대상 자리 착지, 더 다가갈 바닥이 없으면 1.8m(`MaxDirectReach`)까지 그 자리에서 오른다. 내려갈 바닥은 항상 아래, 수평으로 나간 뒤 수직으로 내려갈 공간이 비어야 한다. 추격자는 0.6m 넘게 위나 벽 너머 NavMesh로 옮기지 않는다(`SafeNavMeshPoint`).
+- 추격 우회(`PursuitActor.Detour`): 1.5초 동안 0.5m 미만 이동하고 대상을 못 잡으면 현재 접근 지점을 12초간 막힘으로 기록하고 대상 주변(1.2/2.2/3.4m × 10방향) 중 경로가 끝까지 이어지는 가장 가까운 지점으로 돈다. 실제로 움직일 때만 달리기 동작.
 - `PursuitClimbIk`는 Legacy Animation 뒤 손바닥/발바닥 기준 접점을 실제 콜라이더 표면에 고정하는 시각 전용 2본 IK다. 본 위치·스케일·게임 루트 경로는 바꾸지 않는다. 접점은 콜라이더 로컬 좌표로 보관하며 지형이 사라지거나 도달 거리를 벗어나면 해제한다. 트리거·플레이어·추격자·동적 Rigidbody는 표면에서 제외한다.
 - `GameSettings.WaitingRoom.Pursuit`의 ClimbContactIk, ClimbIkSurfaceMask, ClimbIkProbeHeight, ClimbIkSurfaceOffset으로 조정한다. 모든 높이/너비에서 항상 손발이 닿는다는 뜻은 아니다. 접근·해제·도달 한계 구간은 원본 클립과 섞고, 완전 고정 구간만 접점 오차를 검사한다. 손가락별 IK·전신 균형/충돌 보정은 없다.
 - 호스트 통과의 from/to/progress/duration을 스냅샷 버전6으로 보낸다. 호스트와 원격은 같은 버전이어야 한다. 원격도 로컬 지형에서 접점을 찾으므로 동일 지형이 필요하다. 기존 루트 보간은 유지하며 실제 2클라이언트 지연 체감 검증은 별도다.
