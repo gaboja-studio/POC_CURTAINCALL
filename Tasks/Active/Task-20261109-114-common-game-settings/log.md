@@ -26,3 +26,4 @@
 - 종료 상태 수신보다 늦게 온 목마 연결 요청도 호스트에서 거부하도록 보완하고, 복귀 후 새 요청은 다시 허용하는 회귀 검사 추가. 최종 공통 검사 진행.
 - 최종 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통601/601, 입력·운반133/133(중복 포함). 새 14사례 모두 통과. `.harness/local/nov13-final-common-results.json`, `nov13-input-carry-results.json`. 실제 PlayMode/다른 PC 2·3·4인 플레이는 사용자 확인.
 - 제출 직전 Unity 정상 종료·Start 씬 dirty 0 확인 후 origin/dev 19bb420f 재확인(변경 없음). 기존 Start/에셋/다른 Task 수정은 보존하고 이번 수정 경로만 커밋한다.
+- 수정 커밋 2d61cbad를 [PR #353](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/353)에 제출하고 PM 팀 검토를 요청했다. new-pr 미리보기 완료; 기존 다른 작업의 미커밋 파일은 보존하기 위해 이번 커밋만 push하고 gh로 등록했다. dev 병합은 하지 않음.
