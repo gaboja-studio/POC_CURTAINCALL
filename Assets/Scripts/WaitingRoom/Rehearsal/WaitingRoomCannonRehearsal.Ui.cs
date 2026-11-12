@@ -132,11 +132,11 @@ namespace CurtainCall.WaitingRoom
             if (walls != null) walls.SetActive(arrived);
             if (arrived) { quest.Hide(); return; }
             if (!shared.middle.Contains(id))
-                quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요."));
+                quest.Show(T("first-title", "공연 준비"), T("first", "F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요."));
             else if (ReachedLowerArea())
-                quest.Show(T("safe-title", "[tutorial] 안전 지역으로 이동하기"), T("safe-body", "도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요."));
+                quest.Show(T("safe-title", "안전 지역으로 이동하기"), T("safe-body", "도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요."));
             else
-                quest.Show(T("quest-title", "[tutorial] 인간대포와 트램펄린"),
+                quest.Show(T("quest-title", "인간대포와 트램펄린"),
                     T("second", "인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다."));
         }
 
@@ -243,7 +243,7 @@ namespace CurtainCall.WaitingRoom
                 if(shared.skipped)
                     RehearsalGuide.Show(T("retry-title", "다시 연습하기"), T("retry-body", "연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다."),6,"{interact}");
                 if (shared.successful)
-                    quest.Show(T("completed-title", "[tutorial] 리허설 종료"), T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
+                    quest.Show(T("completed-title", "리허설 종료"), T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
             }
         }
 

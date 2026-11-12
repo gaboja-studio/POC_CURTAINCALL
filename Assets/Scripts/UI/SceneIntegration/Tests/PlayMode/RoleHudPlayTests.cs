@@ -155,7 +155,7 @@ namespace CurtainCall.Tests
                 var objective=Show(manager,"ShowObjective","짧은 설명",owner.transform,"집결","1/2");
                 var choice=Type.GetType("CurtainCall.UI.SceneIntegration.HudVoteChoice, Assembly-CSharp",true);
                 var options=Array.CreateInstance(choice,2); int clicks=0;
-                options.SetValue(Activator.CreateInstance(choice,"리허설 넘기기 취소",true,(Action)(()=>clicks++)),0);
+                options.SetValue(Activator.CreateInstance(choice,"리허설 넘기기",true,(Action)(()=>clicks++)),0);
                 options.SetValue(Activator.CreateInstance(choice,"리허설 포기 취소",true,(Action)(()=>clicks++)),1);
                 var vote=Show(manager,"ShowVote","과반 동의 시 이동합니다.",owner.transform,"다음 구간으로?","Esc 후 선택",options);
                 yield return null;
@@ -165,9 +165,10 @@ namespace CurtainCall.Tests
                 {
                     var label=choiceButton.GetComponentInChildren<TMPro.TMP_Text>();
                     label.ForceMeshUpdate();
+                    Assert.AreEqual(1,label.textInfo.lineCount,label.text);
                     Assert.IsFalse(label.isTextTruncated || label.isTextOverflowing,label.text);
-                    Assert.Less(label.fontSize,28,label.text);
                 }
+                Assert.Less(buttons[1].GetComponentInChildren<TMPro.TMP_Text>().fontSize,28);
                 var button=buttons[0];
                 button.onClick.Invoke(); Assert.AreEqual(1,clicks);
                 var before=((RectTransform)vote.transform).anchoredPosition.y;

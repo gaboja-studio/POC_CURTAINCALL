@@ -125,7 +125,6 @@ namespace CurtainCall.UI.SceneIntegration
                 var option=options[i];
                 button.interactable=option.Interactable;
                 var label=button.GetComponentInChildren<TMP_Text>(true);
-                HudText.Configure(label);
                 var caption=choiceFormats[i].Replace("{choice}",option.Label ?? "");
                 if (i < shortcutLabels.Length) caption = "[" + shortcutLabels[i] + "] " + caption;
                 if(label.text!=caption)
@@ -144,7 +143,10 @@ namespace CurtainCall.UI.SceneIntegration
             callbacks=new Action[choices.Length]; choiceFormats=new string[choices.Length];
             for(int i=0;i<choices.Length;i++)
             {
-                choiceFormats[i]=choices[i].GetComponentInChildren<TMP_Text>(true).text;
+                var label=choices[i].GetComponentInChildren<TMP_Text>(true);
+                choiceFormats[i]=label.text;
+                // Keep the whole shortcut and caption together; the prefab's auto sizing fits the width.
+                label.textWrappingMode=TextWrappingModes.NoWrap;
                 int index=i;
                 choices[i].onClick.AddListener(()=>callbacks[index]?.Invoke());
             }

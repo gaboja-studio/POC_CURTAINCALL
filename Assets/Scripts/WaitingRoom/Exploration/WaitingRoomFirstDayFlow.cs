@@ -108,7 +108,7 @@ namespace CurtainCall.WaitingRoom
             {
                 if (dayTransition == null) dayTransition = FindFirstObjectByType<DemoRunEnding>();
                 if (InputGate.IsBlocked || dayTransition != null && dayTransition.IsDayTitleVisible) { firstDayQuest.Hide(); return; }
-                firstDayQuest.Show(WaitingRoomText.Get("first-day.quest.prepare.title","[tutorial] 다음 공연 준비하기"),
+                firstDayQuest.Show(WaitingRoomText.Get("first-day.quest.prepare.title","다음 공연 준비하기"),
                     WaitingRoomText.Get("first-day.quest.prepare.body","대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요."));
                 return;
             }

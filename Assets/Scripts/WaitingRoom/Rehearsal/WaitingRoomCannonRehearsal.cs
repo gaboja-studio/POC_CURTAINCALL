@@ -217,7 +217,7 @@ namespace CurtainCall.WaitingRoom
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
             lastSafePose = null; placingAfterRecovery = false;
-            quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
+            quest.Show(T("first-title", "공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
             ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"),
                 GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                     ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.")
