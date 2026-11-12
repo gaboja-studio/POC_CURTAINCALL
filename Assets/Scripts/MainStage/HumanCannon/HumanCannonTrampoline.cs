@@ -502,7 +502,7 @@ namespace CurtainCall.HumanCannon
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
             bool nearSurface = NearSurface(player, contact);
             bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
-                && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed);
+                && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, fromTrampoline: true);
             if (accepted)
             {
                 ServerBounced?.Invoke(player.OwnerClientId);

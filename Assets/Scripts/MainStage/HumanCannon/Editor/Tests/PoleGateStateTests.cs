@@ -4,6 +4,20 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class PoleGateStateTests
     {
+        [Test, Category("CommonProgressionRegression")]
+        public void InjuredRiderStartsAtFifteenAndCuttingAnArmShortensAnActiveHold()
+        {
+            var settings = CurtainCall.Settings.GameSettings.Base.BodyDamage;
+            var state = new PoleGateState(2);
+            const double started = 100d;
+            Assert.IsTrue(state.TryGrab(1, 0, started, settings.HangSeconds(30f, 0), seat: 0));
+            Assert.IsTrue(state.TryGrab(2, state.Revision, started + 4, settings.HangSeconds(30f, 1), seat: 1));
+            Assert.That(state.DeadlineAt(0), Is.EqualTo(130d));
+            Assert.That(state.NextDeadline, Is.EqualTo(119d));
+            Assert.IsTrue(state.ShortenHold(0, started + settings.HangSeconds(30f, 1)));
+            Assert.That(state.NextDeadline, Is.EqualTo(115d));
+            Assert.IsFalse(state.ShortenHold(0, 130d), "Recovery does not add time to a running hold.");
+        }
         [Test]
         public void FixedGateWindow_ReleaseKeepsTheOriginalFortySecondDeadline()
         {

@@ -253,7 +253,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             {
                 MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
                 Assert.IsTrue(pole.IsInReach(player), "The rope is between the player's center and the bar.");
-                MovePlayer(new Vector3(0f, -2f - mover.Body.center.y, 4f));
+                MovePlayer(new Vector3(0f, .9f - CurtainCall.Settings.GameSettings.Poles.GrabRadius - mover.Body.center.y, 4f));
                 Assert.IsFalse(pole.IsInReach(player), "Vertical distance also counts toward the radius.");
                 MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
                 AddBox("Solid floor between player and pole", new Vector3(0f, .25f, 4f), new Vector3(2f, .15f, 2f));

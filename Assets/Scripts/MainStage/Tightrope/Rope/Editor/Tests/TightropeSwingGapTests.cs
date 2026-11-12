@@ -116,7 +116,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             float apex = startHeight + velocity.y * velocity.y / (2f * 9.81f);
             Assert.That(apex, Is.LessThanOrEqualTo(Mathf.Max(startHeight, endHeight) + 1.501f));
             Assert.That(velocity.y - 9.81f * time, Is.LessThan(0f));
-            Assert.IsFalse(SwingPoleMath.InPoleReach(target + Vector3.up * 3f, target, 1f));
+            Assert.IsFalse(SwingPoleMath.InPoleReach(target + Vector3.up * 3.1f, target, 1f));
         }
 
         [Test]
@@ -130,8 +130,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 Assert.That(velocity.z, Is.EqualTo(speed));
             }
             Assert.IsTrue(SwingPoleMath.InPoleReach(target + Vector3.up * .3f, target, 1f));
-            Assert.IsFalse(SwingPoleMath.InPoleReach(target + Vector3.forward * 2.6f, target, 1f));
-            Assert.IsFalse(SwingPoleMath.InPoleReach(target + new Vector3(2f, 2f, 0f), target, 1f));
+            Assert.IsTrue(SwingPoleMath.InPoleReach(target + Vector3.forward * 2.6f, target, 1f));
+            Assert.IsFalse(SwingPoleMath.InPoleReach(target + new Vector3(2.2f, 2.2f, 0f), target, 1f));
             Assert.IsTrue(SwingPoleMath.InPoleReach(target + Vector3.up * 2.5f, target, 1f));
         }
 

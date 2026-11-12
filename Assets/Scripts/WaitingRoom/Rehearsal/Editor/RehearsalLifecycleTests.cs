@@ -193,7 +193,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [Test]
-        public void CannonPracticeDoorUsesAFullHeightBarrierOnlyDuringThePracticeLock()
+        public void CannonPracticeDoorUsesVisibleBarsWithoutAnInvisibleBarrier()
         {
             var gate = Make(NightDoorLock.RehearsalPassageName).AddComponent<NightDoorLock>();
             var bars = Make("Practice gate bars").transform;
@@ -210,12 +210,11 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Call(gate, "OnEnable");
                 Assert.That(gate.IsLocked, Is.True);
                 var barrier = (BoxCollider)Get(gate, "tutorialBarrier");
-                Assert.That(barrier.enabled, Is.True);
-                Assert.That(barrier.size.y, Is.GreaterThanOrEqualTo(tutorial.LockdownBarrierHeight));
-                Assert.That(bars.localPosition.y, Is.EqualTo(tutorial.LockdownGateHeight));
+                Assert.That(barrier, Is.Null);
+                Assert.That(bars.localPosition.y, Is.EqualTo(3.4f));
                 Shared("active", false);
                 Call(gate, "Update");
-                Assert.That(barrier.enabled, Is.False);
+                Assert.That(gate.IsLocked, Is.False);
             }
             finally { Set(tutorial, "sealCannonPracticeExit", seal); }
         }
@@ -979,6 +978,34 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.That((int)Get(rehearsal, "version"), Is.GreaterThan(sealedVersion), "다시 열린 문도 새 상태 버전으로 공유한다.");
             }
             finally { JsonUtility.FromJsonOverwrite(saved, rules); }
+        }
+
+        [Test, Category("TutorialCommonRules")]
+        public void TutorialPracticeGateWaitsForThreePlayersToClearTheRealExitPlane()
+        {
+            InitialTutorial(true);
+            Set(rehearsal, "ringCenter", Vector3.forward * 10);
+            Set(rehearsal, "practiceArea", new Bounds(Vector3.forward * 6, new Vector3(10, 10, 8)));
+            var gate = Make("Practice exit plane");
+            Set(rehearsal, "practiceExit", gate.transform);
+            var passage = Make("Practice passage").AddComponent<BoxCollider>();
+            passage.center = Vector3.forward * 2;
+            passage.size = new Vector3(6, .2f, 4);
+            Set(rehearsal, "practicePassage", passage);
+            var first = Player(920);
+            var second = Player(921);
+            var last = Player(922);
+            first.transform.position = Vector3.back * 2;
+            second.transform.position = Vector3.back * 3;
+            last.transform.position = Vector3.forward;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+            last.transform.position = Vector3.back * .1f;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+            last.transform.position = Vector3.back * 2;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
         }
 
         [Test, Category("TutorialCommonRules")]

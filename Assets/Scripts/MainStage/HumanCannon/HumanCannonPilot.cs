@@ -31,6 +31,7 @@ namespace CurtainCall.HumanCannon
         Vector3 velocity;
         Vector3 flightForward;
         float airControlSpeed;
+        bool trampolineFlight;
         bool steerPoleMomentum;
         Vector3 returnPosition;
         Quaternion returnRotation;
@@ -141,6 +142,7 @@ namespace CurtainCall.HumanCannon
             flightStationIndex = index;
             launchRevision = revision;
             flightSegment = 0;
+            trampolineFlight = false;
             awaitingBounce = awaitingLanding = rejectedSurface = false;
             IsFlying = true;
             hasReturnPose = false;
@@ -163,7 +165,7 @@ namespace CurtainCall.HumanCannon
             latch.Reset();
         }
 
-        internal void Rebound(int index, uint revision, uint segment, Vector3 contact, float upwardSpeed)
+        internal void Rebound(int index, uint revision, uint segment, Vector3 contact, float upwardSpeed, bool fromTrampoline = false)
         {
             if (!MatchesFlight(index, revision, segment)) return;
             flightSegment++;
@@ -171,6 +173,8 @@ namespace CurtainCall.HumanCannon
             awaitingBounce = awaitingLanding = rejectedSurface = false;
             // 반동은 자동 전진 관성만 없앤다. WASD 보정은 누르는 동안 계속 적용한다.
             velocity = Vector3.up * upwardSpeed;
+            trampolineFlight = fromTrampoline;
+            if (fromTrampoline) airControlSpeed = GameSettings.Trampoline.AirControlSpeed;
             steerPoleMomentum = false;
             airControl.Clear();
             airControl.BeginPoleFlight(0f);
@@ -235,6 +239,7 @@ namespace CurtainCall.HumanCannon
             velocity = Vector3.zero;
             flightForward = Vector3.zero;
             airControlSpeed = 0f;
+            trampolineFlight = false;
             steerPoleMomentum = false;
             hasReturnPose = false;
         }
@@ -263,7 +268,7 @@ namespace CurtainCall.HumanCannon
             float dt = Time.deltaTime;
             float gravity = GameSettings.Base.Character.Gravity;
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
-            float controlMultiplier = GameSettings.Base.BodyDamage.MoveMultiplier(condition != null ? condition.LostLegCount : 0);
+            float controlMultiplier = trampolineFlight ? 1f : GameSettings.Base.BodyDamage.MoveMultiplier(condition != null ? condition.LostLegCount : 0);
             Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
             float controlLimit = steerPoleMomentum ? poleFlightSpeedLimit
                 : Vector3.ProjectOnPlane(velocity, Vector3.up).magnitude + airControlSpeed * controlMultiplier;

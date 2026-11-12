@@ -1,3 +1,4 @@
+using CurtainCall.Cameras;
 using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -90,7 +91,7 @@ namespace CurtainCall.Player
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
             uvLight = commonMap.FindAction("UvLight", false);
-            useDevice = commonMap.FindAction("UseDevice", false);
+            useDevice = commonMap.FindAction(InputBindingPreferences.DeviceUseAction, false);
         }
 
         public bool ControlsReleased
@@ -168,9 +169,20 @@ namespace CurtainCall.Player
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
                 UvLightHeld = uvLight != null && uvLight.IsPressed(),
-                UseDevicePressed = useDevice != null && useDevice.WasPressedThisFrame(),
+                UseDevicePressed = ReadDeviceUse(),
             };
             CommonInteractionSelection.Selected(this);
+        }
+
+        bool ReadDeviceUse()
+        {
+            if (useDevice == null || !useDevice.WasPressedThisFrame()) return false;
+            var mouse = Mouse.current;
+            if (mouse == null || !mouse.leftButton.wasPressedThisFrame || useDevice.bindings.Count == 0
+                || useDevice.bindings[0].effectivePath != InputBindingPreferences.LeftClickPath) return true;
+            if (Cursor.lockState == CursorLockMode.Locked) return true;
+            return (CameraViewDirector.Current == null || !CameraViewDirector.Current.UsesMouseLook)
+                && !CameraViewDirector.PointerBlocked(mouse.position.ReadValue());
         }
 
         /// <summary>짧게 = 기준 시간 전에 뗌(뗀 프레임), 길게 = 기준 시간에 닿음(그 프레임, 뗄 때는 아무것도 안 나감).</summary>

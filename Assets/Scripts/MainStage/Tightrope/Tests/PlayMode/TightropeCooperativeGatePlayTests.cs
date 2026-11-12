@@ -113,7 +113,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 {
                     Call(helper, "ServerCut", 2);
                     Call(player, "ServerCut", 2);
-                    yield return Until(() => (float)Get(helperMover, "BodyHeight") < 1f && (float)Get(mover, "JumpHeightMultiplier") < 1f,
+                    yield return Until(() => (float)Get(helperMover, "BodyHeight") < 1f && (float)Get(mover, "BodyHeight") < 1f,
                         2f, "두 플레이어의 실제 양다리 부상 적용");
                 }
                 int initialParts = Convert.ToInt32(Get(player, "LostParts"));

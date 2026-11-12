@@ -177,7 +177,7 @@ namespace CurtainCall.UI.SceneIntegration
         static SettingsRow ActionRow(string id, string label, string button) => new() { id = id, label = label, kind = SettingsRowKind.Action, actionId = id, confirmationTitle = button, confirmationBody = label, confirmationButton = button };
         static string ActionLabel(string name, string part)
         {
-            if (name == "UseDevice") return "운반 장치 사용 / 톱날 한 발 발사";
+            if (name == InputBindingPreferences.DeviceUseAction) return "운반 장치 사용 / 톱날 한 발 발사";
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";
             return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", _ => name };
@@ -216,7 +216,7 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var value in values)
             {
                 if (!bindings.TryGetValue(value.rowId, out var binding)) continue;
-                if (!InputBindingPreferences.TryValidateKeyPath(value.bindingId, out string path, out error)) return false;
+                if (!InputBindingPreferences.TryValidateKeyPath(value.bindingId, out string path, out error, binding.ActionName)) return false;
                 var action = inputDraft.FindAction(binding.ActionId);
                 action.ApplyBindingOverride(binding.BindingIndex, path);
             }
@@ -232,18 +232,22 @@ namespace CurtainCall.UI.SceneIntegration
                     if (key.keyCode == Key.Escape) return; // CommonMenuUI가 캡처 취소를 한 번만 전달한다.
                     Capture("<Keyboard>/" + key.name); return;
                 }
-            // 마우스 버튼(왼쪽 제외)도 받는다. UV 등 같은 마우스 조작용.
             var mouse = Mouse.current;
             if (mouse == null) return;
+            if (bindings.TryGetValue(capture.rowId, out var binding) && binding.ActionName == InputBindingPreferences.DeviceUseAction
+                && mouse.leftButton.wasPressedThisFrame)
+            { Capture(InputBindingPreferences.LeftClickPath); return; }
             foreach (var button in new[] { mouse.rightButton, mouse.middleButton, mouse.forwardButton, mouse.backButton })
                 if (button != null && button.wasPressedThisFrame) { Capture("<Mouse>/" + button.name); return; }
         }
         void Capture(string candidate)
         {
             var request = capture; capture = null;
-            if (!InputBindingPreferences.TryValidateKeyPath(candidate, out string path, out string error) || !bindings.ContainsKey(request.rowId))
-            { view.RejectRebind(request.token, string.IsNullOrEmpty(error) ? "키를 변경할 수 없습니다." : error); return; }
-            view.CompleteRebind(request.token, path, InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice), out _);
+            if (!bindings.TryGetValue(request.rowId, out var binding))
+            { view.RejectRebind(request.token, "키를 변경할 수 없습니다."); return; }
+            if (!InputBindingPreferences.TryValidateKeyPath(candidate, out string path, out string error, binding.ActionName))
+            { view.RejectRebind(request.token, error); return; }
+            view.CompleteRebind(request.token, path, InputBindingPreferences.KeyLabel(path), out _);
         }
         async void HandleAction(SettingsActionRequest request)
         {

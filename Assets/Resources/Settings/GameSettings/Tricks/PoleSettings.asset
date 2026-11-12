@@ -16,9 +16,11 @@ MonoBehaviour:
   topRiderOnlySwing: 1
   preventReleaseWithPassengers: 1
   holdSeconds: 30
+  grabRadius: 3
+  countdownHeight: 0.45
   hangLength: 1.5
   passengerSeparation: 1.45
-  passengerGrabRadius: 3
+  passengerGrabRadius: 3.5
   swingMotionSpeed: 1.7
   swingLength: 2
   maxSwingAngle: 90

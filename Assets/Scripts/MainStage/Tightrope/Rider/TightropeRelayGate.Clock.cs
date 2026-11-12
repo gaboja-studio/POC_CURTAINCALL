@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Tightrope
 {
@@ -41,7 +42,8 @@ namespace CurtainCall.Tightrope
         PoleCountdownView(Transform parent)
         {
             root = new GameObject("Hold countdown clock").transform;
-            root.SetParent(parent, false);
+            // Keep the display size independent of the authored pole hierarchy's scale.
+            SceneManager.MoveGameObjectToScene(root.gameObject, parent.gameObject.scene);
             // 카메라를 향하는 면(-Z)이 앞면이다. 테두리 → 패널 → 세그먼트 순으로 앞에 놓는다.
             Panel(root, "Clock frame", new Vector3(1.04f, .44f, .05f), .03f, ClockFrame);
             Panel(root, "Clock panel", new Vector3(.98f, .38f, .05f), 0f, ClockPanel);
@@ -111,7 +113,7 @@ namespace CurtainCall.Tightrope
             seg.localScale = horizontal ? new Vector3(w - gap, t, .01f) : new Vector3(t, h * .5f - gap, .01f);
         }
 
-        /// <summary>앞면(-Z)이 다가오는 플레이어를 보도록 코스 진행 방향으로 고정한다.</summary>
+        /// <summary>봉 위 위치와 로컬 카메라를 향하는 방향을 적용한다.</summary>
         internal void Show(float remaining, Vector3 position, Quaternion facing)
         {
             if (!root.gameObject.activeSelf) root.gameObject.SetActive(true);
@@ -125,6 +127,12 @@ namespace CurtainCall.Tightrope
                 Tint(segments[digit * 7 + s], (SegmentDigits[hundredths / DigitDivisors[digit] % 10] & (1 << s)) != 0 ? ClockLit : ClockUnlit);
         }
 
-        internal void Hide() { if (root.gameObject.activeSelf) root.gameObject.SetActive(false); }
+        internal void Hide() { if (root != null && root.gameObject.activeSelf) root.gameObject.SetActive(false); }
+        internal void Destroy()
+        {
+            if (root == null) return;
+            if (Application.isPlaying) Object.Destroy(root.gameObject);
+            else Object.DestroyImmediate(root.gameObject);
+        }
     }
 }

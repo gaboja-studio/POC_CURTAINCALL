@@ -32,6 +32,7 @@ namespace CurtainCall.WaitingRoom
         readonly Dictionary<ulong, BodyPart> priorConditions = new();
         readonly HashSet<ulong> recoveringPlacement = new();
         readonly List<GameObject> hidden = new();
+        readonly List<WaitingRoomFlickerLight> steadyLights = new();
         RehearsalCannonCourse course;
         Transform room;
         Collider roomFloor;
@@ -173,6 +174,12 @@ namespace CurtainCall.WaitingRoom
 
         void HidePracticeProps()
         {
+            foreach (var light in room.GetComponentsInChildren<WaitingRoomFlickerLight>())
+            {
+                if (!light.isActiveAndEnabled) continue;
+                light.enabled = false;
+                steadyLights.Add(light);
+            }
             foreach (string path in CannonPracticeHiddenPaths)
             {
                 var prop = room.Find(path);
@@ -391,6 +398,8 @@ namespace CurtainCall.WaitingRoom
             if (course != null) { course.gameObject.SetActive(false); Destroy(course.gameObject); }
             course = null; builtRound = placedRound = -1; walls = null;
             foreach (var prop in hidden) if (prop != null) prop.SetActive(true);
+            foreach (var light in steadyLights) if (light != null) light.enabled = true;
+            steadyLights.Clear();
             hidden.Clear(); quest?.Hide();
             if (!shared.ending) ReleaseEndingLock();
         }

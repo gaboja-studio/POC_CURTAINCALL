@@ -14,14 +14,18 @@ namespace CurtainCall.Settings
         [InspectorName("아래 사람이 있으면 놓기 제한"), Tooltip("켜면 자기 아래 사람이 모두 놓아야 도약할 수 있다. 끄면 중간이나 위 사람이 놓을 때 그 아래 사람도 함께 떨어진다. 시간 만료·사망으로 지지자를 잃으면 이 설정과 무관하게 아래 사람도 떨어진다. 기본 켬.")]
         [SerializeField] bool preventReleaseWithPassengers = true;
         [Header("매달리기")]
-        [InspectorName("매달림 제한 시간"), Tooltip("맨 위 사람이 봉을 잡은 순간부터 놓칠 때까지의 시간(초). 아래 사람은 맨 위 사람의 남은 시간을 공유한다. 기본 30초. 이미 잡은 봉은 다음 탑승부터 적용한다.")]
+        [InspectorName("매달림 제한 시간"), Tooltip("팔이 온전한 단원이 봉을 잡는 시간(초). 팔을 잃으면 신체 손상 설정의 배율을 적용한다. 아래 사람은 지지자의 남은 시간도 넘을 수 없다. 기본 30초.")]
         [SerializeField, Min(.1f)] float holdSeconds = 30f;
+        [InspectorName("봉 직접 잡기 반경"), Tooltip("움직이는 봉 중심에서 직접 잡을 수 있는 구체 반경(m). 기본 3m. 실제 벽과 바닥층은 잡기를 막는다.")]
+        [SerializeField, Min(.1f)] float grabRadius = 3f;
+        [InspectorName("타이머 높이"), Tooltip("움직이는 봉 중심에서 타이머 중심까지의 높이(m). 일반 봉과 스위치 봉에 공통으로 적용한다. 기본 0.45m.")]
+        [SerializeField, Min(.25f)] float countdownHeight = .45f;
         [InspectorName("봉과 맨 위 사람 발 사이"), Tooltip("봉에서 맨 위 사람의 발까지 내려오는 거리(m). 커지면 몸이 더 아래에 매달린다. 기본 1.5m.")]
         [SerializeField, Min(.2f)] float hangLength = 1.5f;
         [InspectorName("매달린 사람 사이 간격"), Tooltip("위아래로 매달린 사람들의 발 사이 수직 간격(m). 기본 1.45m. 인원을 늘리면 이 간격만큼 사슬이 길어진다.")]
         [SerializeField, Min(.2f)] float passengerSeparation = 1.45f;
-        [InspectorName("매달린 팀원 잡기 반경"), Tooltip("봉에 매달린 팀원 몸통 중심에서 잡을 수 있는 구체 반경(m). 기본 3m. 벽·층과 팔 부상에 따른 공통 거리 제한은 적용된다.")]
-        [SerializeField, Min(.1f)] float passengerGrabRadius = 3f;
+        [InspectorName("매달린 팀원 잡기 반경"), Tooltip("봉에 매달린 팀원 몸통 중심에서 잡을 수 있는 구체 반경(m). 기본 3.5m. 실제 벽과 바닥층은 잡기를 막는다.")]
+        [SerializeField, Min(.1f)] float passengerGrabRadius = 3.5f;
         [Header("앞뒤 운동 — 외형 케이블 길이와 독립")]
         [InspectorName("앞뒤 운동 속도 배율"), Tooltip("봉과 사람이 왕복하는 전체 물리 시간의 배율. 기본 1.7. 크게 하면 왕복과 반동 축적·감쇠가 함께 빨라지고, 도약에 이어받는 반동 속도도 같은 배율로 커진다. 추가 상승 속도는 그대로이며 수평 속도는 도약 상한을 넘지 않는다. 모든 봉·원격 화면에 공통 적용한다.")]
         [SerializeField, Range(.5f, 2f)] float swingMotionSpeed = 1.7f;
@@ -55,7 +59,8 @@ namespace CurtainCall.Settings
         public bool PreventReleaseWithPassengers => preventReleaseWithPassengers;
         public bool CanDrive(int seat) => seat >= 0 && (!topRiderOnlySwing || seat == 0);
         public float HoldSeconds => Mathf.Max(.1f, holdSeconds);
-        public float GrabRadius => GameSettings.Base.Interaction.Distance;
+        public float GrabRadius => Mathf.Max(.1f, grabRadius);
+        public float CountdownHeight => Mathf.Max(.25f, countdownHeight);
         public float PassengerGrabRadius => Mathf.Max(.1f, passengerGrabRadius);
         public float HangLength => Mathf.Max(.2f, hangLength);
         public float PassengerSeparation => Mathf.Max(.2f, passengerSeparation);

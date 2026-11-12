@@ -34,7 +34,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 {
                     Call(player, "ServerCut", 2);
                     Call(others[0], "ServerCut", 2);
-                    yield return Until(() => (float)Get(mover, "JumpHeightMultiplier") < 1f
+                    yield return Until(() => (float)Get(mover, "BodyHeight") < 1f
                         && (float)Get(others[0].GetComponent(GameType("CurtainCall.Player.PlayerMover")), "BodyHeight") < 1f,
                         2f, "양다리 부상 반영");
                 }

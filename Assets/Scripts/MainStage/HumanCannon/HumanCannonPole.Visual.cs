@@ -152,19 +152,24 @@ namespace CurtainCall.HumanCannon
             countdown?.Hide();
         }
 
-        internal void PresentCountdown(float seconds)
+        internal void PresentCountdown(float seconds, float swingAngle)
         {
             if (!Application.isPlaying || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return;
             if (!PresentationVisible || !isActiveAndEnabled) { countdown?.Hide(); return; }
             countdown ??= PoleCountdownView.Create(transform);
-            var top = leftAnchor != null && rightAnchor != null ? (leftAnchor.position + rightAnchor.position) * .5f
-                : Grip.position + Vector3.up * PoleCountdownView.CableHeight;
-            var forward = Forward;
-            countdown?.Show(seconds, top - Vector3.up * PoleCountdownView.HalfHeight,
+            Vector3 position = BarPosition(swingAngle) + Vector3.up * Rules.CountdownHeight;
+            var camera = Camera.main;
+            // The digits are on the panel's local -Z face.
+            Vector3 forward = camera != null ? Vector3.ProjectOnPlane(position - camera.transform.position, Vector3.up) : Forward;
+            countdown?.Show(seconds, position,
                 forward == Vector3.zero ? Quaternion.identity : Quaternion.LookRotation(forward));
         }
         void OnDisable() => HidePresentation();
-        void OnDestroy() => DestroyCommonVisual();
+        void OnDestroy()
+        {
+            countdown?.Destroy();
+            DestroyCommonVisual();
+        }
 
         void DestroyCommonVisual()
         {
