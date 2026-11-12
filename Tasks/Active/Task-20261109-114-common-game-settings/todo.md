@@ -5,7 +5,7 @@
 공통 연결·완료 감사·PR324 체크리스트: [007](History/007-todo-through-pr324.md).
 
 ## 최근 수정·남은 범위
-- [x] PR353 이후 재현2건 수정·검사: 치료/리허설 상호 이동 배제, 운반 해제 뒤 의료 입장, 늦은 잡기 거부. 치료36/36·공통618/618 통과(중복 포함), 제출 준비. [전후·검사](Inventory/post353-transition-audit.md). 직전 PR353 결과는 [별도 기록](Inventory/remaining-test-failures.md).
+- [x] PR353 이후 재현2건 수정·검사·[PR355 제출](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/355): 치료/리허설 상호 이동 배제, 운반 해제 뒤 의료 입장, 늦은 잡기 거부. 치료36/36·공통618/618 통과(중복 포함). [전후·검사](Inventory/post353-transition-audit.md).
 - [ ] 원래 서로 다른 PC의 밤→아침 연결 종료: 원본 로그 미확보, 이번 Relay에서는 미재현
 - [ ] 실제 서로 다른 PC/회선·모든 코스·모든 인원/부상 조합 완주 검증
 - [ ] 기존 실패14개 전체 수정: 사용자 보류 유지([상세](Inventory/remaining-test-failures.md))
