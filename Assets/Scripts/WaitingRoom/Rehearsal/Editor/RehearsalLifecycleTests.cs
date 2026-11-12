@@ -325,12 +325,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit));
                 Call(flow, "LateUpdate");
                 var blockers = (HashSet<object>)typeof(InputGate).GetField("blockers", Static).GetValue(null);
-                Assert.That(blockers.Contains(Get(flow, "teamLock")), Is.False,
+                Assert.That(blockers.Contains(flow), Is.False,
                     "리허설이 일반 안내를 중단한 동안 안내 전원 완료 잠금이 걸리면 진행할 수 없다.");
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit), "안내 완료나 타이머를 강제로 건너뛰지 않는다.");
                 Shared("active", false); Set(rehearsal, "active", false); Set(rehearsal, "practice", false);
                 Call(flow, "LateUpdate");
-                Assert.That(blockers.Contains(Get(flow, "teamLock")), Is.True, "리허설 뒤에는 기존 전원 안내 대기로 돌아간다.");
+                Assert.That(blockers.Contains(flow), Is.True, "리허설 뒤에는 기존 전원 안내 대기로 돌아간다.");
             }
             finally
             {

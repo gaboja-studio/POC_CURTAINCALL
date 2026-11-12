@@ -144,15 +144,15 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             if (context.Balance != null)
                 context.Balance.SetCorrectionInput(input.Posture * viewSign);
 
-            bool requestedCannonPole = false;
+            bool requestedDevice = false;
             if (context.Mover != null && context.Mover.TryGetComponent(out HumanCannonPilot pilot))
             {
                 if (pilot.TryHandleCarryInput(input)) return;
-                requestedCannonPole = input.InteractTapped && pilot.TryRequestNearbyPole();
+                requestedDevice = input.InteractTapped && (pilot.TryRequestNearbyPole() || pilot.TryRequestNearbyCannon());
             }
             if (context.Interaction != null)
             {
-                if (input.InteractTapped && !requestedCannonPole)
+                if (input.InteractTapped && !requestedDevice)
                     context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }

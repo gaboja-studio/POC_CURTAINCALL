@@ -358,16 +358,26 @@ namespace CurtainCall.HumanCannon
             var transit = runtime[index];
             // 이동·복귀 중에는 탑승할 수 없다. 밀려나기 전 늦은 위치가 과승 함정·복귀 대기를 건드리지 않게 운반자만 센다.
             bool sealedOff = Sealed(transit);
+            var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
                 // 운송 중 소유자 위치 패킷이 한 프레임 늦어도 담당자를 누락하지 않는다.
                 bool carried = !transit.Trap.IsOpen && transit.State.Phase == DeparturePhase.Moving
                     && transit.ActiveRider == player.OwnerClientId;
-                if (carried || !sealedOff && (transports[index].ContainsPassenger(player.transform.position)
-                    || BouncingAbove(player, index))) { count++; soleRider = player; }
+                if (carried || !sealedOff && OccupiesWaitingTransport(player, stack, index))
+                { count++; soleRider = player; }
             }
             return count;
+        }
+
+        bool OccupiesWaitingTransport(NetworkPlayer player, CurtainCall.Tightrope.PiggybackSystem stack, int index)
+        {
+            if (transports[index].ContainsPassenger(player.transform.position) || BouncingAbove(player, index)) return true;
+            // A mounted jump may put the rider above the boarding volume without breaking their link.
+            for (var support = stack?.GetSupportingPlayer(player); support != null; support = stack.GetBelow(support))
+                if (transports[index].ContainsPassenger(support.transform.position) || BouncingAbove(support, index)) return true;
+            return false;
         }
 
         /// <summary>

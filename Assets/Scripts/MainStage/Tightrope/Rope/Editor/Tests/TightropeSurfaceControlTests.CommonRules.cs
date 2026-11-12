@@ -1,5 +1,7 @@
 using System.Reflection;
+using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using NUnit.Framework;
@@ -408,6 +410,332 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    });
   }
 
+  [TestCase(0)]
+  [TestCase(1)]
+  public void MountedCrouchBlocksJumpUntilTheRiderCanStand(int direction)
+  {
+   WithMountedPair((stack, follow, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var reader = rider.GetComponent<PlayerInputReader>() ?? rider.gameObject.AddComponent<PlayerInputReader>();
+    var current = typeof(PlayerInputReader).GetProperty("Current");
+    passenger.FreeMovement = direction == 0;
+    passenger.LaneJumpFilter = _ => true;
+    passenger.SetRemoteCrouched(true);
+    Invoke(passenger, "ApplyBodySize", true);
+    float standing = GameSettings.Base.Character.CapsuleHeight;
+    var ceiling = AddBox("Mounted headroom", rider.transform.position - origin + Vector3.up * standing, new Vector3(1f, .3f, 1f));
+
+    current.SetValue(reader, new PlayerInputFrame { ActionPressed = true, AuxDirection = direction, CrouchHeld = true });
+    Invoke(follow, "UpdateHop", rider);
+    Assert.AreEqual(JumpKind.None, follow.PresentationJump(rider));
+    Assert.IsTrue(passenger.IsCrouched);
+    Assert.AreSame(player, stack.GetBelow(rider));
+
+    current.SetValue(reader, new PlayerInputFrame { ActionPressed = true, AuxDirection = direction });
+    Invoke(follow, "UpdateHop", rider);
+    Assert.AreEqual(JumpKind.None, follow.PresentationJump(rider));
+    Assert.IsTrue(passenger.IsCrouched);
+
+    ceiling.enabled = false;
+    Physics.SyncTransforms();
+    Invoke(follow, "UpdateHop", rider);
+    Assert.IsFalse(passenger.IsCrouched);
+    Assert.AreEqual(direction == 0 ? JumpKind.InPlace : JumpKind.Lane, follow.PresentationJump(rider));
+   });
+  }
+
+  [Test]
+  public void ConfirmedRopeGripDropsTheCarriedTrampolineBeforeTakingMovement()
+  {
+   WithMountedPair((_, _, _) => WithTrampoline((trampoline, ownership) =>
+   {
+    GiveTrampolineHostAuthority(trampoline);
+    trampoline.transform.position = origin + Vector3.up * 3f;
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+
+    var hangs = MakeObject("Rope grip handoff").AddComponent<TightropeHangSystem>();
+    Invoke(hangs, "BeginHang", player.OwnerClientId, 0, 0f);
+
+    Assert.IsNull(HumanCannonCarry.Held(player.OwnerClientId));
+    Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+    Assert.IsTrue(hangs.IsHanging(player));
+    Assert.IsTrue((bool)typeof(HumanCannonTrampoline).GetField("dropping", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(trampoline));
+   }));
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  public void RopeEntryWaitsForHostTrampolineDropForSoloPlayerAndStack(bool mounted)
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, passenger) => WithTrampoline((trampoline, ownership) =>
+   {
+    GiveTrampolineHostAuthority(trampoline);
+    AddBox("Parking floor below the rope", new Vector3(1f, -1.1f, 7f), new Vector3(3f, .2f, 2f));
+    ConfigureSmallTrampoline(trampoline, origin + new Vector3(1f, .5f, 7f));
+    MovePlayer(new Vector3(0f, 0f, 7f));
+    Assert.IsTrue(course.TryGetSupportingRope(mover, out _));
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+    var rider = mounted ? passenger.GetComponent<NetworkPlayer>() : player;
+    if (!rider.TryGetComponent(out PlayerBalance riderBalance))
+    {
+     riderBalance = rider.gameObject.AddComponent<PlayerBalance>();
+     Invoke(riderBalance, "Awake");
+    }
+    Invoke(switcher, "Bind", rider);
+
+    Invoke(switcher, "UpdateSurfaceMode");
+    Assert.IsFalse(switcher.IsLocalOnRope);
+    Assert.IsTrue((bool)typeof(HumanCannonTrampoline).GetMethod("WaitingForRopeDrop", BindingFlags.Static | BindingFlags.NonPublic)
+     .Invoke(null, new object[] { rider.GetComponent<PlayerMover>() }));
+
+    Invoke(trampoline, "Update");
+    Assert.IsNull(HumanCannonCarry.Held(player.OwnerClientId));
+    const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+    var target = (Vector3)typeof(HumanCannonTrampoline).GetField("dropTarget", fields).GetValue(trampoline);
+    Assert.That(target.y, Is.EqualTo(origin.y - 1f).Within(.002f));
+    Assert.That(target.x, Is.EqualTo(origin.x + 1f).Within(.002f));
+    Assert.IsFalse((bool)typeof(HumanCannonTrampoline).GetProperty("BounceReady", fields).GetValue(trampoline));
+
+    Invoke(switcher, "UpdateSurfaceMode");
+    Assert.IsTrue(switcher.IsLocalOnRope);
+    Assert.IsTrue(riderBalance.IsActive);
+   }), mount: mounted);
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  public void CarryingOverARopeKeepsOwnershipUntilItActuallySupportsThePlayer(bool platform)
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, _) => WithTrampoline((trampoline, ownership) =>
+   {
+    GiveTrampolineHostAuthority(trampoline);
+    if (platform)
+    {
+     AddBox("Overlapping platform", new Vector3(0f, .25f, 7f), new Vector3(3f, .2f, 1f));
+     MovePlayer(new Vector3(0f, .35f, 7f));
+     Assert.IsFalse(course.TryGetSupportingRope(mover, out _));
+    }
+    else
+    {
+     MovePlayer(new Vector3(0f, 0f, 7f));
+     typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, true);
+     mover.ResetExternalMotion(true);
+     Assert.IsTrue(mover.IsAirborne);
+    }
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+    Invoke(trampoline, "Update");
+    Assert.AreEqual(player.OwnerClientId, trampoline.Carrier);
+   }), mount: false);
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  public void RopeReleaseParksBesideTheRopeOrUsesTheRecoveryOrigin(bool hasSideFloor)
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, _) => WithTrampoline((trampoline, ownership) =>
+   {
+    GiveTrampolineHostAuthority(trampoline);
+    MovePlayer(new Vector3(0f, 0f, 7f));
+    ConfigureSmallTrampoline(trampoline, origin + new Vector3(0f, .6f, 7f));
+    var recovery = origin + Vector3.back;
+    typeof(HumanCannonTrampoline).GetField("initialPosition", BindingFlags.Instance | BindingFlags.NonPublic)
+     .SetValue(trampoline, recovery);
+    if (hasSideFloor)
+     AddBox("Side parking platform", new Vector3(1.25f, -.1f, 7f), new Vector3(1f, .2f, .85f));
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+
+    Invoke(trampoline, "Update");
+    Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+    if (hasSideFloor)
+    {
+     Assert.That(trampoline.transform.position.x, Is.EqualTo(origin.x + GameSettings.Trampoline.GrabDistance * .5f).Within(.002f));
+     Assert.That(trampoline.transform.position.y, Is.EqualTo(origin.y).Within(.002f));
+    }
+    else Assert.AreEqual(recovery, trampoline.transform.position);
+   }), mount: false, groundDepth: 4f);
+  }
+
+  [Test]
+  public void TrampolineCanBePickedUpBesideTheRopeButNotFromItsSupport()
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, _) => WithTrampoline((trampoline, _) =>
+   {
+    AddBox("Adjacent parking platform", new Vector3(2.5f, -.1f, 7f), new Vector3(3.6f, .2f, 3f));
+    ConfigureSmallTrampoline(trampoline, origin + new Vector3(1.75f, 0f, 7.8f));
+    var cannonRoot = MakeObject("Trampoline input system");
+    cannonRoot.SetActive(false);
+    var cannon = cannonRoot.AddComponent<HumanCannonSystem>();
+    Invoke(cannon, "ResetSeats");
+    var current = typeof(HumanCannonSystem).GetProperty("Current");
+    var previous = current.GetValue(null);
+    try
+    {
+     current.SetValue(null, cannon);
+     balance.SetBalanceActive(false);
+     MovePlayer(new Vector3(1.75f, 0f, 6.9f));
+     Assert.IsTrue(trampoline.CanGrab(player));
+     MovePlayer(new Vector3(0f, 0f, 7f));
+     Assert.IsTrue(course.TryGetSupportingRope(mover, out int lane));
+     Assert.AreEqual(0, lane);
+     Assert.IsFalse(trampoline.CanGrab(player));
+    }
+    finally { current.SetValue(null, previous); }
+   }), mount: false);
+  }
+
+  [Test]
+  public void CarriedTrampolineColliderDoesNotMaskRopeSupport()
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, _) => WithTrampoline((trampoline, ownership) =>
+   {
+    var overlap = AddBox("Held prop overlapping support", new Vector3(0f, -.09f, 7f), new Vector3(1f, .2f, 1f));
+    overlap.transform.SetParent(trampoline.transform, true);
+    MovePlayer(new Vector3(0f, .01f, 7f));
+    Assert.IsFalse(course.TryGetSupportingRope(mover, out _));
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+    Assert.IsTrue(course.TryGetSupportingRope(mover, out _));
+   }), mount: false);
+  }
+
+  void GiveTrampolineHostAuthority(HumanCannonTrampoline trampoline)
+  {
+   var host = MakeObject("Grip authority");
+   host.SetActive(false);
+   var session = host.AddComponent<NetworkSessionManager>();
+   const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+   typeof(NetworkSessionManager).GetField("_networkManager", fields).SetValue(session, host.GetComponent<Unity.Netcode.NetworkManager>());
+   typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+   typeof(HumanCannonTrampoline).GetField("session", fields).SetValue(trampoline, session);
+  }
+
+  static void ConfigureSmallTrampoline(HumanCannonTrampoline trampoline, Vector3 position)
+  {
+   trampoline.transform.position = position;
+   trampoline.gameObject.AddComponent<BoxCollider>();
+   typeof(HumanCannonTrampoline).GetField("halfSize", BindingFlags.Instance | BindingFlags.NonPublic)
+    .SetValue(trampoline, new Vector2(.2f, .2f));
+   Invoke(trampoline, "RefreshCarryBody", new object[] { null });
+   Physics.SyncTransforms();
+  }
+
+  [Test]
+  public void CarriedTrampolineUsesTheReversedRopeHeading()
+  {
+   WithMountedPair((_, _, passenger) => WithTrampoline((trampoline, ownership) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    passenger.FreeMovement = false;
+    passenger.CourseForwardOverride = Vector3.forward;
+    trampoline.transform.position = rider.transform.position + Vector3.forward * 2f;
+    passenger.ReverseCourseDirection();
+
+    Assert.IsTrue(HumanCannonCarry.TryFollowPose(rider, trampoline.transform, trampoline.Handle, 1f, false,
+     out _, out _, out var carrierRotation));
+    Assert.That(Vector3.Dot(carrierRotation * Vector3.forward, passenger.CourseForward), Is.EqualTo(1f).Within(.001f));
+   }));
+  }
+
+  [Test]
+  public void PendingCarryOwnershipInterruptsRescueAndDoesNotResetItsTimer()
+  {
+   AuthoredRopes();
+   WithMountedPair((_, _, passenger) => WithTrampoline((_, ownership) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    MovePlayer(Vector3.forward * 4f);
+    var hangs = MakeObject("Rescue handoff").AddComponent<TightropeHangSystem>();
+    const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+    typeof(TightropeHangSystem).GetField("course", fields).SetValue(hangs, course);
+    var book = (TightropeHangBook)typeof(TightropeHangSystem).GetField("book", fields).GetValue(hangs);
+    var hang = book.Begin(rider.OwnerClientId, 0, 4f, 7d);
+    Invoke(hangs, "ServerRescue", player.OwnerClientId, rider.OwnerClientId);
+    Assert.IsTrue(hang.IsPulling, "Rescue is valid before the delayed device approval.");
+
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision));
+    Invoke(hangs, "ServerTick", .25f);
+    Assert.IsFalse(hang.IsPulling);
+    Assert.That(hang.Remaining, Is.EqualTo(6.75d).Within(.001d));
+    Invoke(hangs, "ServerRescue", player.OwnerClientId, rider.OwnerClientId);
+    Assert.IsFalse(hang.IsPulling);
+   }), mount: false);
+  }
+
+  [Test]
+  public void CannonBoardingRechecksTheActorAfterRescueStarts()
+  {
+   WithMountedPair((_, _, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var station = MakeObject("Cannon beside rope").AddComponent<HumanCannonStation>();
+    station.transform.position = PlayerInteraction.Center(rider) + Vector3.forward * .5f;
+    var cannonRoot = MakeObject("Cannon recheck");
+    cannonRoot.SetActive(false);
+    var cannon = cannonRoot.AddComponent<HumanCannonSystem>();
+    cannon.ConfigurePractice(new[] { station }, -10f);
+    Invoke(cannon, "ResetSeats");
+    Physics.SyncTransforms();
+
+    var hangs = MakeObject("Rescue before cannon approval").AddComponent<TightropeHangSystem>();
+    var current = typeof(TightropeHangSystem).GetProperty("Current");
+    var previous = current.GetValue(null);
+    try
+    {
+     current.SetValue(null, hangs);
+     Assert.AreEqual(0, cannon.FindBoardableStation(rider));
+     var book = (TightropeHangBook)typeof(TightropeHangSystem).GetField("book", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(hangs);
+     book.Begin(player.OwnerClientId, 0, 4f, 7d);
+     Assert.IsTrue(book.StartPull(player.OwnerClientId, rider.OwnerClientId, 0, 2d));
+     Assert.AreEqual(-1, cannon.FindBoardableStation(rider));
+     book.CancelPull(player.OwnerClientId);
+     Assert.AreEqual(0, cannon.FindBoardableStation(rider));
+    }
+    finally { current.SetValue(null, previous); }
+   }, mount: false);
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  public void GroundMountRequestHonorsWhoIsHoldingTheTrampoline(bool riderHoldsIt)
+  {
+   WithMountedPair((stack, _, passenger) => WithTrampoline((_, ownership) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    ulong carrier = riderHoldsIt ? rider.OwnerClientId : player.OwnerClientId;
+    Assert.IsTrue(ownership.TryApply(CannonAction.Board, carrier, ownership.Revision));
+    Assert.AreSame(riderHoldsIt ? null : player, stack.FindMountTarget(rider));
+    Invoke(stack, "ServerTryLink", rider.OwnerClientId);
+    Assert.AreSame(riderHoldsIt ? null : player, stack.GetBelow(rider));
+   }), mount: false);
+  }
+
+  void WithTrampoline(System.Action<HumanCannonTrampoline, CannonSeatState> test)
+  {
+   var root = MakeObject("Carry handoff trampoline");
+   var handle = MakeObject("Carry handoff handle").transform;
+   handle.SetParent(root.transform, false);
+   handle.localPosition = Vector3.back;
+   var trampoline = root.AddComponent<HumanCannonTrampoline>();
+   const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+   typeof(HumanCannonTrampoline).GetField("handle", fields).SetValue(trampoline, handle);
+   var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", fields).GetValue(trampoline);
+   var current = typeof(HumanCannonTrampoline).GetProperty("Current");
+   var previous = current.GetValue(null);
+   current.SetValue(null, trampoline);
+   HumanCannonCarry.Register(trampoline);
+   try { test(trampoline, ownership); }
+   finally
+   {
+    HumanCannonCarry.Unregister(trampoline);
+    current.SetValue(null, previous);
+   }
+  }
+
   [Test]
   public void RelocatingAHangingPlayerClearsTheGripWithoutStartingAnotherFall()
   {
@@ -589,9 +917,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    });
   }
 
-  void WithMountedPair(System.Action<PiggybackSystem, PiggybackFollow, PlayerMover> test)
+  void WithMountedPair(System.Action<PiggybackSystem, PiggybackFollow, PlayerMover> test, bool mount = true, float groundDepth = 12f)
   {
-   AddBox("Common ground", new Vector3(0, -.5f, 0), new Vector3(12, 1, 12));
+   AddBox("Common ground", new Vector3(0, -.5f, 0), new Vector3(12, 1, groundDepth));
    MovePlayer(Vector3.zero);
    mover.FreeMovement = true;
    var riderRoot = MakeObject("Passenger");
@@ -620,10 +948,13 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     current.SetValue(null, stack); local.SetValue(null, rider);
     Invoke(follow, "Awake");
     Physics.SyncTransforms();
-    string response = (string)Invoke(stack, "ServerTryLink", 1UL);
-    Assert.AreSame(player, stack.GetBelow(rider), response);
-    Invoke(follow, "LateUpdate");
-    Assert.IsFalse(passenger.Simulated);
+    if (mount)
+    {
+     string response = (string)Invoke(stack, "ServerTryLink", 1UL);
+     Assert.AreSame(player, stack.GetBelow(rider), response);
+     Invoke(follow, "LateUpdate");
+     Assert.IsFalse(passenger.Simulated);
+    }
     test(stack, follow, passenger);
    }
    finally

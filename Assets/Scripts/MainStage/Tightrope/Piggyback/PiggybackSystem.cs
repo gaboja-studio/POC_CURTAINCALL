@@ -98,7 +98,7 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
-            if (UsingDevice(climber) || UsingDevice(target)) return false;
+            if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
@@ -525,7 +525,7 @@ namespace CurtainCall.Tightrope
         public NetworkPlayer FindMountTarget(NetworkPlayer climber)
         {
             if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
-                || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)
+                || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
                 || !CanStand(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
@@ -640,11 +640,12 @@ namespace CurtainCall.Tightrope
         internal bool TryReleaseForDevice(NetworkPlayer rider, Action transferred)
         {
             if (session == null || !session.IsHost || !CanReleaseForDevice(rider)) return false;
+            var placements = DetachedPositions(GetAbove(rider));
             ulong actor = rider.OwnerClientId;
             if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
             for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
             transferred?.Invoke(); // 기물 점유를 먼저 공유한 뒤 원격 목마 Follow를 해제한다.
-            ServerBroadcast();
+            ServerBroadcast(placements: placements);
             return true;
         }
 
@@ -662,13 +663,20 @@ namespace CurtainCall.Tightrope
             if (session == null || !session.IsHost) return;
             var player = FindPlayer(actor);
             if (player == null || !IsInStack(player)) return;
-            var placements = new Dictionary<ulong, Vector3>();
             // 아래 사람이 먼저 순간이동해도 승객을 이동한 사람 앞으로 내려놓지 않는다.
-            for (var rider = player; rider != null; rider = GetAbove(rider))
-                placements[rider.OwnerClientId] = rider.transform.position;
+            var placements = DetachedPositions(player);
             if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
             for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
             ServerBroadcast(placements: placements);
+        }
+
+        Dictionary<ulong, Vector3> DetachedPositions(NetworkPlayer first)
+        {
+            if (first == null) return null;
+            var placements = new Dictionary<ulong, Vector3>();
+            for (var rider = first; rider != null; rider = GetAbove(rider))
+                placements[rider.OwnerClientId] = rider.transform.position;
+            return placements;
         }
 
         string UnlinkTop(ulong riderId, Action transferred)

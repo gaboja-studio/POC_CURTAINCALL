@@ -108,7 +108,10 @@ namespace CurtainCall.HumanCannon
             Vector3 facing = alignToCarrier || !carrier.IsLocal ? carrier.transform.forward
                 : Vector3.ProjectOnPlane(root.position - handle.position, Vector3.up);
             var view = CameraViewDirector.Current;
-            if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
+            // On a rope, T owns the facing direction even when the camera moves.
+            if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && !mover.FreeMovement)
+                facing = mover.CourseForward;
+            else if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
                 && view != null && view.LocalPlayer == carrier && view.IsFreeThirdPerson) facing = view.ViewForward;
             if (!TrampolineCarryPose.TryCalculate(carrier.transform.position + Vector3.up * Mathf.Max(0, handleHeight),
                 facing, offset, out position, out rotation)) return false;

@@ -31,7 +31,17 @@ namespace CurtainCall.Player
         }
 
         /// <summary>막아 달라고 요청한 쪽이 하나라도 있는지(다시 받기 전 대기는 빼고).</summary>
-        public static bool IsRequested => blockers.Count > 0;
+        public static bool IsRequested
+        {
+            get
+            {
+                if (blockers.Count > 0 && blockers.RemoveWhere(IsDestroyed) > 0 && blockers.Count == 0)
+                    RequireRelease();
+                return blockers.Count > 0;
+            }
+        }
+
+        static bool IsDestroyed(object requester) => requester is UnityEngine.Object owner && owner == null;
 
         /// <summary>지금 게임 입력을 막는지. 요청이 있거나, 풀린 뒤 아직 키를 다 놓지 않았거나, 막힘이 바뀐 그 프레임이면 참.</summary>
         public static bool IsBlocked

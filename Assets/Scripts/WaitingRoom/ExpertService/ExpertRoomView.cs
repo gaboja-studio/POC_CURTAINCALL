@@ -190,6 +190,13 @@ namespace CurtainCall.WaitingRoom
             return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
         }
 
+        internal float EntryDistance(NetworkPlayer player) => player != null
+            ? PlayerInteraction.RestrictReach(Reach(player.transform.position, player), player) : -1f;
+
+        internal bool CanBoard(NetworkPlayer player) => PlayerInteraction.CanInteract(player)
+            && ExpertService.Instance is { Phase: ExpertRoomPhase.Booked } service
+            && service.Buyer == player.OwnerClientId && EntryDistance(player) >= 0f;
+
         public void Interact()
         {
             if (NetworkPlayer.Local != null && !PlayerInteraction.CanInteract(NetworkPlayer.Local)) return;

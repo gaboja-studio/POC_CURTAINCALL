@@ -161,6 +161,36 @@ namespace CurtainCall.Player.EditorTools.Tests
             Assert.IsFalse(InputGate.IsRequested);
         }
 
+        [Test, Category("CommonProgressionRegression")]
+        public void InputGate_DropsDestroyedOwnerAndStillHonorsTheLiveOwner()
+        {
+            Assume.That(InputGate.IsRequested, Is.False);
+            var staleOwner = Make<ControlSettings>();
+            var liveOwner = Make<ControlSettings>();
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
+            var fields = System.Array.ConvertAll(new[] { "rearming", "checkedFrame", "blockedFrame" }, name => typeof(InputGate).GetField(name, flags));
+            var previous = System.Array.ConvertAll(fields, field => field.GetValue(null));
+            try
+            {
+                InputGate.SetBlocking(staleOwner, true);
+                InputGate.SetBlocking(liveOwner, true);
+                Object.DestroyImmediate(staleOwner);
+                Assert.IsTrue(InputGate.IsRequested);
+                Assert.That(InputGate.Describe(), Does.Not.Contain("(파괴됨)"));
+                Object.DestroyImmediate(liveOwner);
+                Assert.IsFalse(InputGate.IsRequested);
+                Assert.IsTrue(InputGate.IsBlocked, "Last owner disappearing also requires key release.");
+            }
+            finally
+            {
+                InputGate.SetBlocking(staleOwner, false);
+                InputGate.SetBlocking(liveOwner, false);
+                if (staleOwner != null) Object.DestroyImmediate(staleOwner);
+                if (liveOwner != null) Object.DestroyImmediate(liveOwner);
+                for (int i = 0; i < fields.Length; i++) fields[i].SetValue(null, previous[i]);
+            }
+        }
+
         // Task-059 달리기·앉기(2026-10-19 PM): 키 역할, 공통 설정 기본값, 플레이어별 누름 판정, 미정 조작 로그.
         [Test]
         public void Locomotion_InputAssetHasSprintAndCrouchHoldKeys()

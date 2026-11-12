@@ -97,12 +97,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(saws, Has.Length.EqualTo(section == 0 ? 6 : 8), "1구간 여섯 개, 2구간은 X자 교차점 톱 2개를 더해 여덟 개");
                 foreach (var saw in saws)
                 {
-                    // 기존 배치: 중심 .3m, 톱 상단 .42m. 현재 공통 바닥 점프로도 부상 상태에서 넘을 수 있는지 검사한다.
-                    Assert.That(saw.transform.position.y, Is.EqualTo(section * 6f + .3f).Within(.001f), saw.name);
-                    float top = saw.transform.position.y - section * 6f + (float)typeof(HumanCannonHazard)
+                    float floor = section * 6f;
+                    Assert.That(saw.transform.position.y, Is.EqualTo(floor + .24f).Within(.001f), saw.name);
+                    float top = saw.transform.position.y - floor + (float)typeof(HumanCannonHazard)
                         .GetField("bladeHalfThickness", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(saw);
-                    Assert.That(top, Is.EqualTo(.42f).Within(.001f), saw.name);
-                    Assert.That(top, Is.LessThan(GameSettings.Base.Character.JumpHeight * GameSettings.Base.BodyDamage.JumpHeightForLostLegs(2)), saw.name);
+                    float injuredJump = GameSettings.Base.Character.JumpHeight * GameSettings.Base.BodyDamage.JumpHeightForLostLegs(2);
+                    Assert.That(top, Is.LessThan(injuredJump), saw.name);
+                    var atApex = saw.Position(0, 1); atApex.y = floor + injuredJump;
+                    Assert.IsFalse(saw.Touches(atApex, GameSettings.Base.BodyDamage.CrawlCapsuleHeight,
+                        GameSettings.Base.Character.CapsuleRadius, 0, 1), saw.name);
                 }
                 // 2026-11-04: 밀도로 꺼져 씬에서도 숨긴 톱은 플레이에 없으므로 간격은 보이는 톱끼리만 본다.
                 // 2026-11-04 사용자 결정: 2구간은 같은 중심의 X자 두 톱 + 교차점을 지나는 수평 톱 하나가 한 묶음이다.

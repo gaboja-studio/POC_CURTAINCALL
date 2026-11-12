@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.EscapeRoute;
+using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
@@ -101,7 +102,8 @@ namespace CurtainCall.Tightrope
         void Update()
         {
             Connect();
-            if (localPullHeld && InputGate.IsBlocked) { Debug.Log("[RescueDiag] local cancel reason=input-blocked"); Send(Request.Cancel); localPullHeld = false; }
+            if (localPullHeld && (InputGate.IsBlocked || RescueDeviceOccupied(NetworkPlayer.Local)))
+            { Debug.Log("[RescueDiag] local cancel reason=input-blocked-or-device"); Send(Request.Cancel); localPullHeld = false; }
             if (!Active || lastRound != Round)
             {
                 pendingHangs.Clear();
@@ -139,6 +141,7 @@ namespace CurtainCall.Tightrope
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
             if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
+            if (PiggybackSystem.UsingDevice(player)) return false;
             if (!Active) { player.ServerReleaseIntoFall(); return false; }
             int lane = -1;
             float best = Rules.CatchDistance * Rules.CatchDistance;
@@ -155,12 +158,20 @@ namespace CurtainCall.Tightrope
             {
                 player.ServerReleaseIntoFall(); Publish(); return false;
             }
-            // 받는 사람이 끊어진 상태(끌어올리는 중)였다면 정리한다.
-            foreach (var other in book.All) if (other.Rescuer == player.OwnerClientId) book.CancelPull(other.Id);
-            book.Begin(player.OwnerClientId, lane, distance, Rules.HoldSeconds, StickyGloves.ExtraSeconds(player.OwnerClientId, Rules.HoldSeconds));
+            BeginHang(player.OwnerClientId, lane, distance);
             NotifyHang(player.OwnerClientId);
             Publish();
             return true;
+        }
+
+        void BeginHang(ulong actor, int lane, float distance)
+        {
+            // Release hand ownership before broadcasting the rope grip.
+            foreach (var other in book.All) if (other.Rescuer == actor) book.CancelPull(other.Id);
+            var carried = HumanCannonCarry.Held(actor);
+            if (carried is HumanCannonTrampoline trampoline) trampoline.ServerDropForRope(actor);
+            else carried?.ServerReleaseForInspection(actor);
+            book.Begin(actor, lane, distance, Rules.HoldSeconds, StickyGloves.ExtraSeconds(actor, Rules.HoldSeconds));
         }
 
         static void NotifyHang(ulong id)
@@ -270,7 +281,8 @@ namespace CurtainCall.Tightrope
         void UpdateRescuerBalance()
         {
             var local = NetworkPlayer.Local;
-            var next = Active && local != null && local.State == PlayerState.Normal && book.IsRescuing(local.OwnerClientId)
+            var next = Active && local != null && local.State == PlayerState.Normal && !RescueDeviceOccupied(local)
+                && book.IsRescuing(local.OwnerClientId)
                 ? local.GetComponent<PlayerBalance>() : null;
             if (rescuerBalance != next) { ReleaseRescuerBalance(); rescuerBalance = next; }
             if (rescuerBalance != null) rescuerBalance.IsRescueSupported = true;
@@ -286,7 +298,8 @@ namespace CurtainCall.Tightrope
         bool CatchLocalGaugeFall(PlayerBalance balance)
         {
             var local = NetworkPlayer.Local;
-            if (!Active || local == null || balance == null || balance.gameObject != local.gameObject || local.State != PlayerState.Normal) return false;
+            if (!Active || local == null || balance == null || balance.gameObject != local.gameObject
+                || local.State != PlayerState.Normal || PiggybackSystem.UsingDevice(local)) return false;
             if (localHang != null) return true;
             if (!local.TryGetComponent(out PlayerMover mover) || mover.Body == null) return false;
             if (!course.TryGetRopePoint(local.transform.position, out int lane, out float distance)) return false;
@@ -415,6 +428,7 @@ namespace CurtainCall.Tightrope
             if (!Active || local == null || context.Mover == null || context.Mover.gameObject != local.gameObject) return false;
             if (diagnosticHeld != input.InteractHeld) { diagnosticHeld = input.InteractHeld; Debug.Log($"[RescueDiag] input id={local.OwnerClientId} held={diagnosticHeld} blocked={InputGate.IsBlocked}"); }
             if (localHang != null || book.IsHanging(local.OwnerClientId)) { context.Mover.ClearPendingInput(); return true; }
+            if (RescueDeviceOccupied(local)) return false;
             if (localPullHeld || book.IsRescuing(local.OwnerClientId))
             {
                 // 시점/포커스 전환 때 입력 시스템이 한두 프레임 키를 놓은 것처럼 보고할 수 있다.
@@ -462,15 +476,16 @@ namespace CurtainCall.Tightrope
             return best;
         }
 
+        internal static bool RescueDeviceOccupied(NetworkPlayer player) => player != null
+            && (PiggybackSystem.UsingDevice(player) || HumanCannonCarry.Held(player.OwnerClientId) != null);
+
         bool WithinRescueReach(NetworkPlayer rescuer, TightropeHangBook.Hang hang, float reach)
         {
             // 그네·리프트 탑승은 외줄 추락 구조와 별개다. 탑승 중에는 구조를 시작하거나 계속할 수 없다.
-            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(rescuer)
-                || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(rescuer)
-                || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(rescuer)) return false;
+            if (RescueDeviceOccupied(rescuer)) return false;
             Vector3 grip = GripPoint(hang);
             // 아래로 떨어지는 사람이나 매달린 높이에서는 동료를 끌어올릴 수 없다.
-            if (rescuer.TryGetComponent(out PlayerMover mover) && mover.IsAirborne) return false;
+            if (RescuerAirborne(rescuer)) return false;
             float multiplier = rescuer.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             return Mathf.Abs(rescuer.transform.position.y - grip.y) <= Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance)
                 && PlayerInteraction.InRange(rescuer, grip + Vector3.up * .05f, Mathf.Min(reach, GameSettings.Base.Interaction.Distance) * multiplier);
@@ -500,13 +515,14 @@ namespace CurtainCall.Tightrope
         }
         string ReachFailure(NetworkPlayer rescuer, TightropeHangBook.Hang hang, float reach)
         {
-            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(rescuer)
-                || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(rescuer)
-                || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(rescuer)) return "device";
-            if (rescuer.TryGetComponent(out PlayerMover mover) && mover.IsAirborne) return $"airborne(localMover={mover.IsAirborne},network={rescuer.IsAirborne})";
+            if (RescueDeviceOccupied(rescuer)) return "device";
+            if (RescuerAirborne(rescuer)) return "airborne";
             Vector3 grip = GripPoint(hang);
             return $"range(horizontal={Horizontal(rescuer.transform.position, grip):F2}/{reach:F2},height={Mathf.Abs(rescuer.transform.position.y - grip.y):F2}/{Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance):F2})";
         }
+
+        static bool RescuerAirborne(NetworkPlayer rescuer) => rescuer.IsLocal
+            && rescuer.TryGetComponent(out PlayerMover mover) ? mover.IsAirborne : rescuer.IsAirborne;
         static float Horizontal(Vector3 a, Vector3 b) => Vector3.ProjectOnPlane(a - b, Vector3.up).magnitude;
 
         static NetworkPlayer Find(ulong id)
