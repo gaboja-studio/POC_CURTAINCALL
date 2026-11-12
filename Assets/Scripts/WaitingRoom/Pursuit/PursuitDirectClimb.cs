@@ -142,7 +142,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return true;
         }
 
-        static bool Ignored(Collider c, Transform self)
+        internal static bool Ignored(Collider c, Transform self)
             => c == null || (self != null && c.transform.IsChildOf(self)) || c.GetComponentInParent<PursuitActor>() != null
                || c.GetComponentInParent<NetworkPlayer>() != null || c.GetComponentInParent<PlayerMover>() != null;
     }

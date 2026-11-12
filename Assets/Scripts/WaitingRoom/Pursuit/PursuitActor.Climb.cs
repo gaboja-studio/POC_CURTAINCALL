@@ -11,6 +11,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
     public sealed partial class PursuitActor
     {
         PursuitClimbIk climbIk;
+        PursuitClimbPath climbPath;
         bool remoteTraversal;
         public Vector3 TraversalFrom => climbFrom;
         public Vector3 TraversalTo => climbTo;
@@ -82,20 +83,23 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 climbUp = climbTo.y > climbFrom.y;
                 climbDuration = TraversalSeconds(rules, climbUp, climbTo.y - climbFrom.y);
                 climbStarted = Time.time; climbing = true;
+                climbPath = climbUp ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : null;
                 climbIk?.Begin(climbFrom, climbTo, climbUp, rules);
                 SetMotion(climbUp ? PursuitMotion.Climb : PursuitMotion.Drop, true);
             }
             float t = Mathf.Clamp01((Time.time - climbStarted) / climbDuration);
-            transform.position = ClimbPose(climbFrom, climbTo, climbUp, t);
+            transform.position = TraversalPose(t);
             Face(climbTo);
             if (t < 1) return true;
             FinishClimb();
             return false;
         }
 
+        Vector3 TraversalPose(float t) => climbPath != null ? climbPath.Pose(t) : ClimbPose(climbFrom, climbTo, climbUp, t);
+
         void FinishClimb()
         {
-            climbing = false;
+            climbing = false; climbPath = null;
             climbIk?.Clear();
             transform.position = climbTo;
             if (directTraversal) { directTraversal = false; Land(); return; }
@@ -105,7 +109,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         void ResetClimb()
         {
-            climbing = false; remoteTraversal = false;
+            climbing = false; remoteTraversal = false; climbPath = null;
             directTraversal = perched = hasDirectApproach = false;
             perchIdleFor = 0;
             climbIk?.Clear();
@@ -143,6 +147,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             climbFrom = transform.position; climbTo = to; climbUp = up;
             climbDuration = TraversalSeconds(GameSettings.WaitingRoom.Pursuit, up, to.y - climbFrom.y);
             climbStarted = Time.time; climbing = true; directTraversal = true; perched = false; hasDirectApproach = false;
+            climbPath = up ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : null;
             climbIk?.Begin(climbFrom, climbTo, climbUp, GameSettings.WaitingRoom.Pursuit);
             SetMotion(up ? PursuitMotion.Climb : PursuitMotion.Drop, true);
         }
@@ -166,7 +171,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (climbing && directTraversal) {
                 float t = Mathf.Clamp01((Time.time - climbStarted) / climbDuration);
-                transform.position = ClimbPose(climbFrom, climbTo, climbUp, t);
+                transform.position = TraversalPose(t);
                 Face(climbTo);
                 if (t >= 1) FinishClimb();
                 return true;

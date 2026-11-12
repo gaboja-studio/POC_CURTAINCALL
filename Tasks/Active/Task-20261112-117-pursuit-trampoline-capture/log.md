@@ -54,3 +54,12 @@
 - 2026-11-12 사용자 요청: 현재까지 저장 후 제출, 이후 오르기 동작 개선 진행. origin/dev 새 커밋 0(병합 불필요).
 - 2026-11-12 비공개 저장: _ThirdParty c46b6dc9(resource/pursuit-climb-animation, 오르기 클립·원화·프리팹 10종) push, PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/19 Update 검사 PASS 후 사용자 승인으로 Merge commit main 반영(gitlink 계보 확인).
 - 2026-11-12 공개 저장: 101fafef push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/337 (dev, Squash). 작업 무관 폰트 SDF 2개·escape-labels.asset(에디터 실행 중 아틀라스 텍스처 변경)는 제외·보존. new-pr.ps1은 이 미저장 변경 때문에 등록을 멈춰, 같은 제목·본문으로 gh pr create 직접 등록.
+- 2026-11-12 오르기 허공 잡기 수정: 클립(pose-plan CLIMB) 손 위치는 루트가 가장자리보다 0.77~1.34m 아래라고 가정하는데, 기존 ClimbPose는 루트를 60%까지 가장자리 높이로 올려 손이 0.6~0.9m 떠 있었다. `PursuitClimbPath`가 콜라이더 가장자리를 찾고 키포즈마다 손이 가장자리에 오도록 루트를 놓는다. 둥근 옆면은 몸 캡슐 CapsuleCast로 겹치지 않을 만큼만 붙는다. 손 고정 구간은 .12~.62(이후 .8까지 해제). 내려오기·가장자리 없음은 기존 경로.
+- 2026-11-12 측정(실제 보일러 + 임시 상자 1.2/2.42m·드럼통 1.94m, M01/M02/F03/F05): .12~.6 손-표면 평균 거리 0.00~0.02m(이전 0.28~0.52m), 몸 관통 0. 정적 렌더 비교로 허공 잡기 해소 확인(scratchpad, 커밋 안 함).
+- 2026-11-12 테스트: 신규 PursuitClimbPathTests 13(10종 상자·눕힌 원기둥 손 거리, 관통, 가장자리 없음 대체) 포함 EditMode PursuitClimb 65/65, Pursuit 전체 161/162(기존 1 실패 동일). PlayMode 오르기 2/2·앉아 숨기 1/1 PASS. 실제 2인 플레이 아님.
+
+- 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-12 사용자 요청: 구조 변경 대응 가이드 작성 → Docs/Guides/waiting-room-climb-hide-guide.md(충돌체 확인·오를 조건·Tools > Curtain Call > Pursuit > 2 Bake navigation 재굽기·플레이 확인·설정 칸). 실제 WaitingRoom NavMeshSurface(PursuitSystem)가 WaitingRoomPursuit.asset을 쓰는 것 확인(씬 저장 없음). verify-knowledge OK.
+- 2026-11-12 실제 플레이 캡처: 임시 PlayMode(실제 WaitingRoom.unity LAN 호스트, 1단계, 포획만 개발 무적으로 막음, 실행 후 테스트 파일 삭제)에서 추격자가 B1 보일러(링크 오르기)와 터널 드럼통 SM_Barrel_1 1.94m(직접 오르기)를 쫓아 올라감. 둘 다 오르기·윗면 도착 성공. 캡처는 scratchpad/play/boiler-side·boiler-angle·barrel-side·barrel-angle.png(커밋 안 함). PR #337은 사용자 확인으로 이미 병합됨, 이번 수정은 미커밋.
+
+- 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
