@@ -53,3 +53,4 @@
 - 신규68/68 통과: 운반45, 수면 이동16, 원격2, 호스트/밤4, 정상Dawn1. 초기 테스트 이름 충돌·DontSave 임시 객체 준비 문제 수정 후 통과. 공통 GameSettings·씬/프리팹·신규 런타임 스크립트 변경 없음. 실제 플레이는 사용자 확인.
 - 제출 전 Unity 정상 종료 후 origin/dev fetch/merge: 4bf66bab 최신, 추가 변경 없음. 사용자 폰트 보존, 테스트로 생성된 CommonButtons 글꼴 캐시만 원래 추적 상태로 복원. 최종 공통 검사 진행.
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통686/686(신규68 포함), 실패/생략0. 공통 설정 연결 PASS. 기존 문서 WARN70/hard0 유지. 실제 플레이 미실행.
+- 저장/제출: 수정4b4ec89a, PR356 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356. GitHub 연결 도구 PR 생성은403 권한 부족으로 로그인된 gh를 사용. PM 팀·MoHoDu 검토 요청. dev 병합/실제 플레이 미실행. 기존 사용자 변경은 제출 제외.

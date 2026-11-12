@@ -77,3 +77,4 @@
    - 첫 준비 오류: 테스트 특성 Range/BodyPart 이름 충돌을 한정명으로 정리. 숨김 임시 객체가 Unity 검색/물리에서 제외되어 발생한53실패를 실제 씬 조건의 임시 객체로 수정한 뒤68/68 통과. 도메인 재로드 중 빈 컴파일 실패 응답은 완료 상태 재확인 후 통과.
    - 실제 플레이·다른 PC 멀티플레이·연출 체감은 사용자 확인. 기존 보류 실패14개는 이번 수정에 포함하지 않음.
 - 최종 check-work -CommonRegression: 안전성·문서/규칙·컴파일·GameSettings 연결·공통686/686 PASS, 실패/생략0. 신규68개는 공통686개에 포함. 결과: `.harness/local/nov13-entry-fix-final-check.log`, `nov13-entry-fix-common-results.json`, `nov13-entry-fix-focused-results.json`.
+- 제출: [PR356](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356), 수정 커밋4b4ec89a. PM 팀·MoHoDu 검토 요청, dev 병합은 수행하지 않음.
