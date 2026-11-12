@@ -147,7 +147,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             entry.FindPropertyRelative("minimumHelpers").intValue = 1;
             entry.FindPropertyRelative("latchWhenCrewReady").boolValue = true;
             entry.FindPropertyRelative("span").objectReferenceValue = WorksBridge(p, "두 사람 하중 권상교", 286, 298, 78, 4.5f);
-            entry.FindPropertyRelative("instruction").stringValue = "F로 그네를 잡으면 권상교가 내려옵니다 · 현재 동료들과 함께 탈 수 있습니다";
+            entry.FindPropertyRelative("instruction").stringValue = "그네를 잡으면 권상교가 펼쳐진 채 유지됩니다 · Space로 다리에 착지하세요";
             entry.FindPropertyRelative("indicator").objectReferenceValue = CoopLamp(p, "공동 탑승 하중 표시등", new Vector3(278, 2.2f, 80.8f));
             WorksMachinery(p, 286, 78, 4.5f);
             BLight(p, new Vector3(281, 7, 82), new Vector3(285, 0, 78), 500, 25);

@@ -1,3 +1,4 @@
+using CurtainCall.HumanCannon;
 using CurtainCall.ItemArt;
 using CurtainCall.WaitingRoom;
 using CurtainCall.Network.PlayerSync;
@@ -14,13 +15,17 @@ namespace CurtainCall.Player
         public const string ItemRightArmLayer = "ItemRightArm";
         string itemAction, itemLayerState, shownItem, visualItem, gestureItem;
         Coroutine toolUse;
+        int itemActionRevision;
         float itemActionUntil, itemActionSince;
         float interactionMoveLockUntil;
         float interactionActionUntil;
         int activeInteractionKind = -1;
         bool activeInteractionAllowsMovement;
-        public bool InteractionActionLocked => isActiveAndEnabled && Time.time < interactionActionUntil && activeInteractionKind >= 0 && !GameSettings.Base.Presentation.InteractionPolicy(activeInteractionKind).AllowInterrupt;
-        public bool InteractionMovementLocked => isActiveAndEnabled && Time.time < interactionMoveLockUntil;
+        public bool InteractionActionLocked => isActiveAndEnabled && Time.time < interactionActionUntil && activeInteractionKind >= 0
+            && !GameSettings.Base.Presentation.InteractionPolicy(activeInteractionKind).AllowInterrupt && CanUseItemHands;
+        public bool InteractionMovementLocked => isActiveAndEnabled && Time.time < interactionMoveLockUntil && CanUseItemHands;
+        bool CanUseItemHands => (balance == null || !balance.HasFallen)
+            && (network == null || !network.IsSpawned || network.State == PlayerState.Normal && !HumanCannonCarry.HasOccupiedHands(network));
         static float InteractionDuration(int kind) => kind == 0 ? 1.2f : kind == 2 ? 1.6f : 1.4f;
         GameObject heldItemVisual;
         public GameObject HeldItemVisual => heldItemVisual;
@@ -30,7 +35,7 @@ namespace CurtainCall.Player
         float lastWallMash = -1f;
         public void UseToolAtContact(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool)
         {
-            if (model == null || condition.AllLimbsLost) return;
+            if (model == null || condition.AllLimbsLost || !CanUseItemHands) return;
             if (target is BreakableWall)
             {
                 // 연타: 앞 동작이 끝나기를 기다리지 않고 동작을 초기화해 다시 내려친다. 앞 타격 판정은 그대로 살린다.
@@ -38,30 +43,35 @@ namespace CurtainCall.Player
                 lastWallMash = Time.time;
                 interactionActionUntil = 0f;
                 RequestItemMotion(0, presentation.PresentationPoint);
-                StartCoroutine(CompleteToolUse(target, presentation, tool, WallMashImpact));
+                StartCoroutine(CompleteToolUse(target, presentation, tool, WallMashImpact, tracked: false));
                 return;
             }
             if (InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
             int kind = tool.ToolId == ItemUses.StakePuller ? 0 : 1;
             RequestItemMotion(kind, presentation.PresentationPoint);
-            toolUse = StartCoroutine(CompleteToolUse(target,presentation,tool,kind==0?.66f:.7f));
+            toolUse = StartCoroutine(CompleteToolUse(target, presentation, tool, kind == 0 ? .66f : .7f, tracked: true));
         }
-        System.Collections.IEnumerator CompleteToolUse(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool, float seconds)
+        System.Collections.IEnumerator CompleteToolUse(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool, float seconds, bool tracked)
         {
+            int revision = itemActionRevision;
             yield return new WaitForSeconds(seconds);
             bool exists = target is not Object obj || obj != null;
-            if (exists && presentation.IsAvailable && !condition.AllLimbsLost && target.Reach(transform.position, this)>=0
+            if (revision == itemActionRevision && CanUseItemHands && exists && presentation.IsAvailable
+                && !condition.AllLimbsLost && target.Reach(transform.position, this) >= 0
                 && (ExplorationTargets.LocalHolds(tool.ToolId) || ExplorationTargets.AllowsBareHands(tool)))
                 target.Interact();
+            if (!tracked) yield break;
             yield return new WaitForSeconds(.5f);
-            toolUse = null;
+            if (revision == itemActionRevision) toolUse = null;
         }
         public void RequestItemMotion(int kind, Vector3 point) => RequestItemMotion(kind, point, kind);
         /// <summary>kind는 재생할 동작, policyKind는 이동·스킵 허용을 읽을 설정 항목(예: 열쇠 줍기 = 줍기 동작 + 열쇠 설정).</summary>
         public void RequestItemMotion(int kind, Vector3 point, int policyKind)
         {
-            if (kind < 0 || kind > 4 || policyKind < 0 || policyKind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
+            if (!ExplorationKeys.Enabled && (kind == 3 || policyKind == 3)) return;
+            if (kind < 0 || kind > 4 || policyKind < 0 || policyKind > 4 || model == null || condition.AllLimbsLost
+                || !CanUseItemHands || InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
             activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(policyKind).AllowMovement;
             interactionMoveLockUntil = activeInteractionAllowsMovement ? 0f : Time.time + InteractionDuration(kind);
@@ -72,7 +82,8 @@ namespace CurtainCall.Player
         }
         public void ReceiveItemMotion(int kind, Vector3 point, bool allowMovement)
         {
-            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost) return;
+            if (!ExplorationKeys.Enabled && kind == 3) return;
+            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost || !CanUseItemHands) return;
             activeInteractionKind = kind;
             activeInteractionAllowsMovement = allowMovement;
             gestureItem=kind==3?"route-key":null;
@@ -164,7 +175,7 @@ namespace CurtainCall.Player
         }
         void ApplyItemAlignment()
         {
-            if (model == null || !model.Animator.isActiveAndEnabled || condition.AllLimbsLost || IsHanging || (network != null && network.IsSpawned && network.State != PlayerState.Normal))
+            if (model == null || !model.Animator.isActiveAndEnabled || condition.AllLimbsLost || IsHanging || !CanUseItemHands)
             { if (heldItemVisual != null) heldItemVisual.SetActive(false); return; }
             if (shownItem == ItemUses.UvLamp && !(itemAction != null && Time.time < itemActionUntil))
             {
@@ -186,11 +197,22 @@ namespace CurtainCall.Player
             if (spine != null && facing.sqrMagnitude > .01f && direction.sqrMagnitude > .01f)
                 spine.rotation = Quaternion.FromToRotation(facing.normalized, direction.normalized) * spine.rotation;
         }
-        void ClearItemVisual()
+        internal void CancelItemAction()
         {
             if (toolUse != null) StopCoroutine(toolUse); toolUse = null;
+            itemActionRevision++;
+            if (gestureItem != null) shownItem = null;
+            itemAction = itemLayerState = gestureItem = null;
+            itemActionUntil = interactionActionUntil = interactionMoveLockUntil = 0f;
+            activeInteractionKind = -1;
+            activeInteractionAllowsMovement = false;
+        }
+
+        void ClearItemVisual()
+        {
             if (heldItemVisual != null) Destroy(heldItemVisual);
-            heldItemVisual = null; shownItem = itemAction = itemLayerState = gestureItem = null; itemActionUntil = 0; interactionActionUntil = 0; interactionMoveLockUntil = 0; activeInteractionKind = -1; activeInteractionAllowsMovement = false;
+            heldItemVisual = null;
+            shownItem = visualItem = null;
         }
     }
 }

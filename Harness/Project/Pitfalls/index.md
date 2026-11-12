@@ -34,6 +34,9 @@
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 - [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
 - [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
+- [runtime-navmesh-shared-agent-type.md](runtime-navmesh-shared-agent-type.md) — 실행 중 NavMesh를 굽는 기능을 만들 때, 리허설 뒤 추격자가 막힌 길 끝에서 멈출 때
+- [pursuit-narrow-top-no-navmesh.md](pursuit-narrow-top-no-navmesh.md) — 추격자가 드럼통·상자·침대 위 플레이어에게 오르지 못할 때
+- [pursuit-playmode-settings-pollution.md](pursuit-playmode-settings-pollution.md) — 추격 PlayMode 실패 뒤 다른 추격 테스트가 느린 추격·이상한 단계값으로 실패할 때(메모리 GameSettings 오염)
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 

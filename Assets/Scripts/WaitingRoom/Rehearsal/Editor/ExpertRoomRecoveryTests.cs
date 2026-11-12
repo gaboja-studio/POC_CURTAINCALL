@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
 {
     // Synthetic authority/state-order tests; no live clients, transport or PlayMode simulation.
     [Category("MedicalReservationRecovery")]
+    [Category("CommonProgressionRegression")]
     public sealed class ExpertRoomRecoveryTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -194,6 +195,39 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(room, "ReconcileLocalOccupancy");
             Assert.IsFalse((bool)Get(room, "localInside"));
             Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+        }
+
+        [TestCase(1)] [TestCase(2)] [TestCase(3)]
+        public void ReservedInjuredRiderCanBoardAndTheHostDetachesTheirLink(int lostParts)
+        {
+            typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(local, true);
+            local.gameObject.AddComponent<PlayerCondition>().SetLostParts(PlayerCondition.PartsForLostCount(lostParts));
+            var support = Player(970);
+            support.transform.position = outside.position - Vector3.up * 1.5f;
+            var previousStack = PiggybackSystem.Current;
+            var stack = Make("Medical entry stack").AddComponent<PiggybackSystem>();
+            var follow = stack.gameObject.AddComponent<PiggybackFollow>(); Set(follow, "system", stack);
+            var session = Make("Medical authority").AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            Set(stack, "session", session);
+            typeof(PiggybackSystem).GetProperty("Current").SetValue(null, stack);
+            try
+            {
+                ((Dictionary<ulong, ulong>)Get(stack, "belowOf"))[0] = support.OwnerClientId;
+                ((Dictionary<ulong, ulong>)Get(stack, "aboveOf"))[support.OwnerClientId] = 0;
+                Call(follow, "UpdateLocal", local);
+                Assert.AreEqual(ExpertRefusal.None, book.BookMedical(0, true, true, lostParts, 1, 3, () => true, 100));
+                Physics.SyncTransforms();
+                Assert.IsTrue((bool)Call(room, "CanBoard", local));
+                Assert.IsFalse((bool)Call(room, "CanBoard", support));
+                var result = ((bool entered, string reason))Call(service, "Enter", 0UL);
+                Assert.IsTrue(result.entered, result.reason);
+                Call(room, "Bind", service);
+                Assert.AreEqual(ExpertRoomPhase.Working, book.Phase);
+                Assert.IsFalse(stack.IsInStack(local));
+                Assert.Less(Vector3.Distance(local.transform.position, inside.position), .001f);
+            }
+            finally { typeof(PiggybackSystem).GetProperty("Current").SetValue(null, previousStack); }
         }
 
         [Test]

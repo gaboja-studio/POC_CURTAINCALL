@@ -75,6 +75,17 @@ namespace CurtainCall.WaitingRoom.EditorTools
         void Step(CampaignPhase phase, int day, int generation = 1) => Set(run, "state", new CampaignSnapshot
         { Phase = phase, Rest = RestKind.Morning, Day = day, Generation = generation });
 
+        [Test, Category("CommonProgressionRegression")]
+        public void TutorialSpawnWaitsForTheCourseInsteadOfPlacingOnTheRoomFloor()
+        {
+            Step(CampaignPhase.Rehearsal, 1);
+            typeof(WaitingRoomSpawn).GetProperty("LastPlacedPlayer").SetValue(null, null);
+            var previousFeet = player.transform.position;
+            Call(spawn, "Start");
+            Assert.That(player.transform.position, Is.EqualTo(previousFeet));
+            Assert.That(WaitingRoomSpawn.LastPlacedPlayer, Is.Null);
+        }
+
         [TestCase(true), TestCase(false)]
         public void MorningRevivalUsesExistingLobbySlotRegardlessOfSnapshotOrder(bool revivalFirst)
         {

@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.WaitingRoom.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class RehearsalCannonSourceTests
     {
         Scene source;

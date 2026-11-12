@@ -23,7 +23,8 @@ namespace CurtainCall.Player
             for (int i = 0; i < count; i++)
             {
                 var hit = hits[i];
-                if (hit.collider == null || hit.normal.y < minNormal || hit.collider.GetComponentInParent<NetworkPlayer>() != null
+                bool rope = hit.collider != null && CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(hit.collider);
+                if (hit.collider == null || hit.distance <= .0001f || hit.normal.y < (rope ? .05f : minNormal) || hit.collider.GetComponentInParent<NetworkPlayer>() != null
                     || mover != null && hit.collider.transform.IsChildOf(mover.transform)) continue;
                 // 구형 캐스트의 모서리/초기 겹침 법선은 면의 실제 경사와 다를 수 있다.
                 if (!hit.collider.Raycast(new Ray(hit.point + Vector3.up * .08f, Vector3.down), out var face, .18f)

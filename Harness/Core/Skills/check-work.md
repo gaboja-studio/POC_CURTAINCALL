@@ -8,5 +8,7 @@ description: 개발·수정 묶음 완료나 요청 시 필요한 검사만 한 
 1. `verification-ladder.md`와 현재 변경을 확인한다.
 2. `pwsh -File Scripts/check-work.ps1 [-Base <기준>]`로 안전성·문서와 필요한 Unity 컴파일을 확인한다.
 3. 재발 위험에 필요한 자동 테스트는 `-RunTests [-Mode EditMode|PlayMode]`를 선택한다.
+   - 공통 이동·낙하·기물·재연습 진행 변경은 `pwsh -File Scripts/check-work.ps1 -CommonRegression`으로 관련 EditMode 회귀를 함께 검사한다. 실제 PlayMode로 진입하는 검사는 이 묶음에 넣지 않는다.
+   - 목마 추락 후 재탑승과 외줄 구간을 집중 확인할 때는 `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -RunTests -Filter PiggybackRopeFlow -FilterType category`를 사용한다.
 4. 문서·도구 작업에는 Unity를 요구하지 않는다. Unity 변경이 있는데 생략했다면 통과로 쓰지 않는다.
 5. 실패·환경 제약·미실행·테스트 없음은 그대로 log에 남긴다. 재미·최종 플레이 경험은 사람이 확인한다.

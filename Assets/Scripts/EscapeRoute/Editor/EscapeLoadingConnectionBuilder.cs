@@ -67,7 +67,8 @@ namespace CurtainCall.EscapeRoute.Editor
             // Matching appearance does not require overlapping world coordinates. The transfer uses
             // assembly-local poses, so move A and its arrival corridor beyond the whole W footprint.
             var campaignData = new SerializedObject(campaign);
-            campaignData.FindProperty("campaignPosition").vector3Value = new Vector3(-200, -16, 118.3f);
+            var position = campaignData.FindProperty("campaignPosition");
+            position.vector3Value = new Vector3(-200, position.vector3Value.y, 118.3f);
             campaignData.ApplyModifiedPropertiesWithoutUndo();
             campaign.PlaceCampaign();
             // Re-serialize the settings asset to remove the obsolete assemblySeconds field.

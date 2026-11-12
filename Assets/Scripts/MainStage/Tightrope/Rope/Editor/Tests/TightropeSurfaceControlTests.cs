@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed partial class TightropeSurfaceControlTests
     {
         readonly List<Object> objects = new();
@@ -238,6 +239,28 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             }
             AddBox("Remaining deck blocked", new Vector3(1.5f, 1f, -3f), new Vector3(3f, 2f, 4f));
             Assert.That(find.Invoke(null, new object[] { platform, carrierFeet, .3f, 1.5f, positions, Vector3.zero }), Is.False);
+        }
+
+        [Test]
+        public void PoleGrabUsesASphereThroughRopeAndStillBlocksSolidFloors()
+        {
+            AddRope(0, 0f);
+            typeof(TightropeCourse).GetField("current", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, course);
+            var pole = MakeObject("Reach probe pole").AddComponent<HumanCannonPole>();
+            pole.transform.position = origin + new Vector3(0f, 1f, 4f);
+            typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
+            try
+            {
+                MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
+                Assert.IsTrue(pole.IsInReach(player), "The rope is between the player's center and the bar.");
+                MovePlayer(new Vector3(0f, -2f - mover.Body.center.y, 4f));
+                Assert.IsFalse(pole.IsInReach(player), "Vertical distance also counts toward the radius.");
+                MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
+                AddBox("Solid floor between player and pole", new Vector3(0f, .25f, 4f), new Vector3(2f, .15f, 2f));
+                Physics.SyncTransforms();
+                Assert.IsFalse(pole.IsInReach(player));
+            }
+            finally { typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, false); }
         }
 
         [Test]

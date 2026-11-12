@@ -24,9 +24,13 @@ namespace CurtainCall.Player
             rescueHang=null;
             var hangs=TightropeHangSystem.Current;
             if(network!=null && network.IsSpawned && network.State==PlayerState.Normal && hangs!=null)
+            {
+                if (hangs.IsRescuing(network) && TightropeHangSystem.RescueDeviceOccupied(network))
+                { ResetRescueMotion(); return false; }
                 foreach(var h in hangs.Hangs)
                     if(h.IsPulling && (h.Id==network.OwnerClientId || h.Rescuer==network.OwnerClientId))
                     { rescueHang=h; rescueReceiver=h.Id==network.OwnerClientId; break; }
+            }
             if(rescueHang==null)
             {
                 if(wasRescuer)rescueExit=.30f;

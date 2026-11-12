@@ -52,9 +52,12 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             var settings=Object.Instantiate(WaitingRoomHudProfile.Current);
             try
             {
+                settings.Cue("G01").title = "";
                 var row=settings.Cue("G04");row.title="조사";row.body="[{interact}] 내려놓기";row.seconds=7;
                 var book=settings.BuildBook("G01 | 기존 | 기존 안내");
                 Assert.AreEqual("기존",book.Get("G01").title);
+                settings.Cue("G01").title = "대기실";
+                Assert.AreEqual("대기실", settings.BuildBook("G01 | 기존 | 기존 안내").Get("G01").title);
                 var item=book.Get("G04");Assert.AreEqual("조사",item.title);Assert.AreEqual(7,item.seconds);Assert.IsTrue(item.whileBlocked);
                 Assert.AreEqual("[E] 내려놓기",WaitingRoomTutorialBook.Format(item.body,"E","우클릭"));
                 Assert.That(WaitingRoomTutorialBook.Defaults.All(x=>settings.Cue(x.id)!=null));

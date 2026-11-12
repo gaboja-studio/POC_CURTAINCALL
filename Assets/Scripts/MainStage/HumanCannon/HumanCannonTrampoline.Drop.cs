@@ -1,5 +1,8 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Damage;
+using CurtainCall.Settings;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -59,7 +62,7 @@ namespace CurtainCall.HumanCannon
         }
 
         /// <summary>주어진 위치 바로 아래 가장 가까운 지면. 플레이어·자기 자신·트리거·벽면은 제외한다.</summary>
-        bool TryFindGround(Vector3 from, out Vector3 ground)
+        bool TryFindGround(Vector3 from, out Vector3 ground, bool avoidRope = false)
         {
             ground = from;
             Vector3 origin = from + Vector3.up * DropMinHeight;
@@ -67,17 +70,63 @@ namespace CurtainCall.HumanCannon
                 ? Mathf.Max(0f, origin.y - HumanCannonRouteSystem.Current.FallHeight) : DropProbeDistance;
             int count = Physics.RaycastNonAlloc(origin, Vector3.down, dropHits, distance,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var hits = avoidRope && count == dropHits.Length
+                ? Physics.RaycastAll(origin, Vector3.down, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) : dropHits;
+            if (hits != dropHits) count = hits.Length;
             float nearest = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
-                var hit = dropHits[i];
+                var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f || hit.transform.IsChildOf(transform)
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
+                if (DismemberedLimb.Contains(hit.collider) || avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
                 nearest = hit.distance;
                 ground = hit.point;
             }
             return !float.IsPositiveInfinity(nearest);
         }
+
+        void PlaceAfterRopeDrop(NetworkPlayer carrier)
+        {
+            RefreshCarryBody(null);
+            Vector3 position = transform.position;
+            float reach = GameSettings.Trampoline.GrabDistance;
+            if (TryParkBelow(position, carrier, reach, out var ground))
+            {
+                StartDrop(ground);
+                return;
+            }
+
+            for (int step = 1; step <= 2; step++)
+            {
+                float offset = reach * step / 2f;
+                Vector3 right = transform.right * offset;
+                Vector3 forward = transform.forward * offset;
+                if (TryParkBelow(position - forward, carrier, reach, out ground)
+                    || TryParkBelow(position + right, carrier, reach, out ground)
+                    || TryParkBelow(position - right, carrier, reach, out ground)
+                    || TryParkBelow(position + forward, carrier, reach, out ground))
+                {
+                    StopDrop();
+                    transform.position = ground;
+                    return;
+                }
+            }
+
+            if (TryParkBelow(position, carrier, DropProbeDistance, out ground))
+            {
+                StartDrop(ground);
+                return;
+            }
+
+            // A rope can span a void. Use the existing recovery origin when no nearby floor can fit the prop.
+            StopDrop();
+            transform.SetPositionAndRotation(initialPosition, initialRotation);
+        }
+
+        bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
+            TryFindGround(from, out ground, avoidRope: true) && from.y - ground.y <= reach
+            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier);
 
         void StartDrop(Vector3 target)
         {

@@ -16,7 +16,6 @@ namespace CurtainCall.UI.SceneIntegration
         const string Path = "Prefabs/UIs/Roles/HudUIManager";
         static HudUIManager instance;
         public HudRoleCard[] prefabs;
-        public HudRoleCard courseStatus;
         public HudPresentationSettings presentation;
         readonly List<HudRoleCard> cards = new();
         public static HudUIManager Current
@@ -90,10 +89,8 @@ namespace CurtainCall.UI.SceneIntegration
             card.SetChoices(choices);
             return card;
         }
-        public HudRoleCard ShowStatus(string content, Transform owner, string title = "",bool bottomCenter=false)
-        {
-            return Add(HudRole.Status,content,owner,title,"",null,bottomCenter ? courseStatus : null);
-        }
+        public HudRoleCard ShowStatus(string content, Transform owner, string title = "") =>
+            Add(HudRole.Status,content,owner,title,"",null);
         public HudRoleCard ShowInteraction(string content, Transform target, string key, Camera camera)
         {
             if (!target || !camera) return null;

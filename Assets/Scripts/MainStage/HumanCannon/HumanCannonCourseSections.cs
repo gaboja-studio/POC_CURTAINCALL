@@ -158,7 +158,7 @@ namespace CurtainCall.HumanCannon
             poleHintLabel.alignment = TextAlignmentOptions.Center;
             poleHintLabel.color = Color.white;
             poleHintLabel.raycastTarget = false;
-            poleHintLabel.text = "<color=#FFE08A><b>Space</b></color>  ·  봉 놓기";
+            poleHintLabel.text = "<color=#FFE08A><b>Space</b></color>  ·  도약";
             poleHint.SetActive(false);
         }
 

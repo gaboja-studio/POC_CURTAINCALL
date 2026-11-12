@@ -41,12 +41,14 @@ namespace CurtainCall.WaitingRoom
         PlayerMover endingMover;
         bool restoreControl, restoreSimulation;
         int returnPoseRound = -1;
+        NetworkPlayer returnPoseOwner;
         Pose returnPose;
 
         void CaptureReturnPose(NetworkPlayer player)
         {
-            if (returnPoseRound == shared.round) return;
+            if (returnPoseRound == shared.round && returnPoseOwner == player) return;
             returnPose = new Pose(player.transform.position, player.transform.rotation);
+            returnPoseOwner = player;
             returnPoseRound = shared.round;
         }
 
@@ -189,6 +191,8 @@ namespace CurtainCall.WaitingRoom
         void TickEnding()
         {
             if (!shared.ending) { ReleaseEndingLock(); return; }
+            // A vote can finish before the ordinary checkpoint revival timer expires.
+            RecoverEndingPlayers();
             if (endingRound != shared.round)
             {
                 // ESC releases the pointer through the common menu. This return keeps the scene, so close it explicitly.
@@ -216,7 +220,12 @@ namespace CurtainCall.WaitingRoom
                     returnedRound = shared.round;
                 }
             }
-            if (Host && shared.active && Clock >= shared.endAt) { shared.active = false; Publish(); }
+            if (Host && shared.active && Clock >= shared.endAt)
+            {
+                shared.active = false;
+                PropCarry.Instance?.RestoreRehearsalSelection();
+                Publish();
+            }
             if (!shared.active && returnedRound == shared.round)
             {
                 ReleaseEndingLock();
@@ -243,7 +252,7 @@ namespace CurtainCall.WaitingRoom
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
-            restoreControl = player.State == PlayerState.Normal && mover.ControlEnabled;
+            restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
             restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
         }

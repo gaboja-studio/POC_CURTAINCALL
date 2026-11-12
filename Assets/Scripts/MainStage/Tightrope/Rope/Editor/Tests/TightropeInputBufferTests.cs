@@ -9,6 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class TightropeInputBufferTests
     {
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;

@@ -69,32 +69,46 @@ namespace CurtainCall.HumanCannon
                 airControl.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
                 return;
             }
+            if (input.UseDevicePressed && TryHandleCarryInput(input)) return;
             if (HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.ReadInput(player, input)) return;
-            var carried = HumanCannonCarry.Held(player.OwnerClientId);
-            if (carried != null)
-            {
-                if (CommonInteractionSelection.Allows(player, carried) && latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
-                    carried.RequestDrop();
-                else if (input.UseDevicePressed) carried.RequestUse();
-                return;
-            }
-            var carryTarget = HumanCannonCarry.FindGrabbable(player);
-            if (input.InteractTapped && carryTarget != null && CommonInteractionSelection.Consume(player, carryTarget))
-            {
-                carryTarget.RequestGrab();
-                return;
-            }
+            if (TryHandleCarryInput(input)) return;
             if (stationIndex >= 0)
             {
                 var action = CommonInteractionSelection.Allows(player, system)
                     ? latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) : CannonAction.Sync;
                 if (action != CannonAction.Sync) system.Request(stationIndex, action);
             }
-            else if (!IsFlying && input.InteractTapped)
+            else if (input.InteractTapped) TryRequestNearbyCannon();
+        }
+
+        internal bool TryRequestNearbyCannon()
+        {
+            if (system == null || player == null || IsDriving || InputGate.IsBlocked) return false;
+            int nearest = system.FindBoardableStation(player);
+            if (nearest < 0 || !CommonInteractionSelection.Consume(player, system.Station(nearest))) return false;
+            system.Request(nearest, CannonAction.Board);
+            return true;
+        }
+
+        // The active control scheme can change from platform to rope without changing ownership of the device.
+        internal bool TryHandleCarryInput(in PlayerInputFrame input)
+        {
+            if (system == null || player == null || player.State != PlayerState.Normal
+                || InputGate.IsBlocked || IsDriving || IsHoldingPole || awaitingLanding) return false;
+            var carried = HumanCannonCarry.Held(player.OwnerClientId);
+            if (carried != null)
             {
-                int nearest = system.FindBoardableStation(player);
-                if (nearest >= 0 && CommonInteractionSelection.Consume(player, system.Station(nearest))) system.Request(nearest, CannonAction.Board);
+                var action = latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress);
+                if (action == CannonAction.Cancel && CommonInteractionSelection.Consume(player, carried))
+                    carried.RequestDrop();
+                else if (input.UseDevicePressed) carried.RequestUse();
+                return true;
             }
+            if (!input.InteractTapped) return false;
+            var target = HumanCannonCarry.FindGrabbable(player);
+            if (target == null || !CommonInteractionSelection.Consume(player, target)) return false;
+            target.RequestGrab();
+            return true;
         }
 
         internal void SeatAt(int index)

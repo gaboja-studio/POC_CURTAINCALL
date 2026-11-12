@@ -24,10 +24,14 @@ namespace CurtainCall.Player
         {
             context.HeldDirection = 0;
             bases.Remove(context);
-            if (context.Mover == null) return;
-            context.Mover.FreeMovement = true;
-            // 모든 플랫폼에서 점프·낙하 중에도 방향을 바꿔 이동한다(탈출로 방식으로 통일, Task-089).
-            context.Mover.FreeAirControl = true;
+            ApplyPlatformMovement(context.Mover);
+        }
+
+        protected static void ApplyPlatformMovement(PlayerMover mover)
+        {
+            if (mover == null) return;
+            mover.FreeMovement = true;
+            mover.FreeAirControl = true;
         }
 
         public override void Exit(PlayerControlContext context)
@@ -108,7 +112,7 @@ namespace CurtainCall.Player
         }
 
         /// <summary>이 플레이어가 공용 카메라의 로컬 플레이어이고 마우스 시선 시점일 때의 수평 시선. 아니면 Vector3.zero.</summary>
-        static Vector3 LocalViewForward(GameObject player)
+        internal static Vector3 LocalViewForward(GameObject player)
         {
             var view = CameraViewDirector.Current;
             if (view == null || !view.UsesMouseLook || view.LocalPlayer == null || view.LocalPlayer.gameObject != player) return Vector3.zero;

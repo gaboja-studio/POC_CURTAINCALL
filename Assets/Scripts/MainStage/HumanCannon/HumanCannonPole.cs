@@ -131,6 +131,10 @@ namespace CurtainCall.HumanCannon
             PoleSwingMotion.Step(ref angle, ref speed, input, dt * Rules.SwingMotionSpeed, gravity, SwingLength,
                 Rules.SwingAcceleration, Rules.MaxSwingAngle, Rules.MaxSwingSpeed, Rules.SwingDamping);
 
+        internal float AddCatchMomentum(float angle, float speed, float approachSpeed) =>
+            PoleSwingMotion.AddCatchMomentum(angle, speed, approachSpeed, SwingLength, GameSettings.Base.Character.Gravity,
+                Rules.SwingMotionSpeed, Rules.MaxSwingAngle, Rules.MaxSwingSpeed);
+
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)
             => float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0;
 
@@ -140,7 +144,7 @@ namespace CurtainCall.HumanCannon
             if (Loop != null && !Loop.IsSynchronized) return false;
             RefreshMovingPose();
             var target = BarPosition(0);
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player), transform, ignoreRope: true);
         }
 
         internal bool IsSeatInReach(NetworkPlayer player, float angle, int seat, double observedElapsed = -1d)
@@ -156,7 +160,7 @@ namespace CurtainCall.HumanCannon
                     || route.Elapsed - observedElapsed > .35d) return false;
                 target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
             }
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, passenger: seat > 0), transform, ignoreRope: true);
         }
 
         /// <summary>빠르게 지나간 순환 봉만 짧은 수신 지연을 허용한다. 거리·부상·점유 검사는 원본을 유지한다.</summary>
@@ -169,13 +173,13 @@ namespace CurtainCall.HumanCannon
             if (observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
             route.RefreshPose();
             Vector3 target = route.PointAt(BarPosition(0), System.Math.Min(observedElapsed, now));
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f), transform);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player), transform, ignoreRope: true);
         }
 
-        public float GrabRadius(NetworkPlayer player, float minimumReach)
+        static float GrabRadius(NetworkPlayer player, bool passenger = false)
         {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return Rules.GrabRadius * Mathf.Clamp01(reach);
+            return (passenger ? Rules.PassengerGrabRadius : Rules.GrabRadius) * Mathf.Clamp01(reach);
         }
     }
 }

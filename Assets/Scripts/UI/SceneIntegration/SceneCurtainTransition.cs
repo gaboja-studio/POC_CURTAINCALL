@@ -22,7 +22,7 @@ namespace CurtainCall.UI.SceneIntegration
         NetworkManager network;
         NetworkSceneManager networkScenes;
         CustomMessagingManager messaging;
-        Coroutine reveal;
+        Coroutine reveal, closing;
         bool requested, locallyCovered;
         bool escapeCover;
         public static bool HoldingEscapeMovement => IsActive && instance.escapeCover;
@@ -69,7 +69,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (owner.network == null || !owner.network.IsListening) break;
                 owner.waiting.RemoveWhere(id => !owner.network.ConnectedClients.ContainsKey(id));
-                if (enteringEscape && Time.unscaledTime >= retry)
+                if (Time.unscaledTime >= retry)
                 {
                     foreach (ulong id in owner.waiting) owner.Send(CoverMessage, id);
                     retry = Time.unscaledTime + 1f;
@@ -83,6 +83,7 @@ namespace CurtainCall.UI.SceneIntegration
         void Begin(uint next)
         {
             if (reveal != null) { StopCoroutine(reveal); reveal = null; }
+            if (closing != null) { StopCoroutine(closing); closing = null; }
             sequence = next;
             requested = true;
             locallyCovered = false;
@@ -147,7 +148,8 @@ namespace CurtainCall.UI.SceneIntegration
                 var background = Object.FindFirstObjectByType<CurtainCall.PerformanceBackground.PerformanceBackgroundLoader>();
                 var pursuit = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current;
                 settled = loadingScenes.Count > 0 || CommonUiSceneLoader.IsLoading
-                    || (Time.realtimeSinceStartup - revealStarted < 8f && ((pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
+                    || (Time.realtimeSinceStartup - revealStarted < 8f && (CurtainCall.WaitingRoom.WaitingRoomRehearsal.WaitingForInitialPlacement
+                    || (pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
                     || (background != null && background.IsTransitioning))) ? 0 : settled + 1;
             }
             if (!requested || sequence != version) yield break;
@@ -231,16 +233,18 @@ namespace CurtainCall.UI.SceneIntegration
             if (version == sequence)
             {
                 if (requested && locallyCovered) Send(CoveredMessage, sender);
+                else if (requested && closing == null) closing = StartCoroutine(CoverAndReply(version));
                 return;
             }
             Begin(version);
             escapeCover = enteringEscape;
-            StartCoroutine(CoverAndReply(version));
+            closing = StartCoroutine(CoverAndReply(version));
         }
 
         IEnumerator CoverAndReply(uint version)
         {
             yield return CloseLocally(version);
+            closing = null;
             if (requested && sequence == version && locallyCovered && network != null && network.IsListening)
                 Send(CoveredMessage, NetworkManager.ServerClientId);
         }
@@ -291,6 +295,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         void Release()
         {
+            if (closing != null) { StopCoroutine(closing); closing = null; }
             requested = locallyCovered = false;
             waiting.Clear();
             if (view != null) view.OpenImmediate();

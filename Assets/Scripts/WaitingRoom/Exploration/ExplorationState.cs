@@ -167,6 +167,7 @@ namespace CurtainCall.WaitingRoom
 
         (bool ok, string text) ReceiveKey(ulong player, string target, out string reason)
         {
+            if (!ExplorationKeys.Enabled) { reason = "KEY_DISABLED"; return (false, "열쇠를 사용할 수 없습니다."); }
             var carry = PropCarry.Instance;
             if (carry == null) { reason = "CARRY_UNAVAILABLE"; return (false, "기물 소지를 준비 중입니다."); }
             var item = ItemCatalog.NewProduct(ExplorationKeys.Uid(target, seenGeneration), ExplorationKeys.ItemId(target), ExplorationKeys.Name(target));
@@ -187,6 +188,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool ok, string text, string reason) UseCore(ulong player, string targetId, string password, IExplorationTarget target)
         {
+            if (!ExplorationKeys.Enabled && ExplorationGate.IsKeyTarget(targetId))
+                return (false, "열쇠를 사용할 수 없습니다.", "KEY_DISABLED");
             if (!PlayerInteraction.CanInteract(player))
                 return (false, WaitingRoomText.Get("explore.not-alive", "살아 있는 사람만 상호작용할 수 있습니다."), "NOT_ALIVE");
             // 첫 공연 전에는 클라이언트의 F 입력뿐 아니라 호스트의 탐색 판정도 잠근다.

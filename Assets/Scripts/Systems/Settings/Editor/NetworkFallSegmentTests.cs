@@ -12,6 +12,7 @@ namespace CurtainCall.Settings.EditorTools
     // Real collider support queries with synthetic RPC/NetworkTransform order, not a live network test.
     [Category("NetworkFallSegments")]
     [Category("November11CommonFix")]
+    [Category("CommonProgressionRegression")]
     public sealed class NetworkFallSegmentTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -157,6 +158,43 @@ namespace CurtainCall.Settings.EditorTools
             Assert.AreEqual(5.5f, player.FallHeightAt(feet));
         }
 
+        [TestCase(false), TestCase(true)]
+        public void RemoteOwnerCanFallAgainAfterLandingWithoutRespawning(bool hostFlagArrivesFirst)
+        {
+            // Only the host resets tracking when it accepts the landing. The owner
+            // receives the replicated drop flag and the landing ACK independently.
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, false);
+            typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);
+            var hostDrop = (NetworkVariable<bool>)Get(player, "droppingFromSupport");
+            Set(player, "localSupportDrop", true);
+            hostDrop.Value = true;
+            Call(player, "QueueFallLanding", feet.y + 1f, feet);
+            uint contact = (uint)Get(player, "fallSequence");
+
+            Call(player, "AcknowledgeFallLanding", contact, 1, 0);
+            Assert.IsTrue((bool)Get(player, "landingPending"), "A previous life cannot acknowledge this landing.");
+            if (hostFlagArrivesFirst)
+            {
+                hostDrop.Value = false;
+                Assert.IsTrue(player.IsDroppingFromSupport, "The owner still awaits its landing ACK.");
+            }
+            Call(player, "AcknowledgeFallLanding", contact, 0, 0);
+            if (!hostFlagArrivesFirst)
+            {
+                Assert.IsTrue(player.IsDroppingFromSupport, "The host flag can still be in flight.");
+                hostDrop.Value = false;
+            }
+            Assert.IsFalse(player.IsDroppingFromSupport, "The completed fall must release the owner's local guard.");
+            player.RequestNaturalFall();
+            Assert.IsTrue((bool)Get(player, "naturalFallQueued"), "A second fall must be accepted without a respawn.");
+
+            // Once a new fall has started, a duplicate ACK of the previous contact must be inert.
+            Call(player, "PrepareNaturalFall");
+            Set(player, "localSupportDrop", true);
+            Call(player, "AcknowledgeFallLanding", contact, 0, 0);
+            Assert.IsTrue(player.IsDroppingFromSupport);
+        }
+
         [Test]
         public void FutureJumpPeakCannotDamagePreviousLandingAndSurvivesItsAckRetry()
         {
@@ -175,7 +213,8 @@ namespace CurtainCall.Settings.EditorTools
             Assert.IsFalse((bool)Call(player, "AcceptFallSupport", 1u, 0, 0, feet), "An old grounded segment cannot erase the newer jump.");
         }
 
-        [TestCase(5f, 2, PlayerState.Normal), TestCase(15f, 0, PlayerState.Fallen)]
+        [TestCase(4.99f, 0, PlayerState.Normal), TestCase(5f, 2, PlayerState.Normal)]
+        [TestCase(14.99f, 2, PlayerState.Normal), TestCase(15f, 0, PlayerState.Fallen)]
         public void HostOwnerQueuePreservesMeasuredHighFallForAcceptanceAndDamage(float height, int lostLimbs, PlayerState state)
         {
             typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);

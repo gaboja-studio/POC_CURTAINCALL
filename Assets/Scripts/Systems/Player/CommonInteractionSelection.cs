@@ -52,11 +52,13 @@ namespace CurtainCall.Player
                 if (!gesture.Held)
                 {
                     gesture.Choice = Choose(actor); gesture.Consumed = false; gesture.LongRelease = null;
-                    // A mounted rider can tap to catch a nearby pole; holding the same key still dismounts.
-                    if (gesture.Choice.Target is HumanCannonPole && actor.TryGetComponent(out NetworkPlayer rider)
-                        && HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(rider.OwnerClientId) < 0
-                        && PiggybackSystem.Current != null && PiggybackSystem.Current.GetBelow(rider) != null)
-                        gesture.LongRelease = PiggybackSystem.Current;
+                    // A tap boards the selected device. Holding the same key still dismounts.
+                    var selected = gesture.Choice.Target;
+                    if (selected is HumanCannonPole or HumanCannonStation or ExpertRoomView
+                        && actor.TryGetComponent(out NetworkPlayer rider) && PiggybackSystem.Current is { } stack
+                        && stack.GetBelow(rider) != null
+                        && (selected is not HumanCannonPole || HumanCannonPoleSystem.Current?.HeldBy(rider.OwnerClientId) < 0))
+                        gesture.LongRelease = stack;
                 }
                 if (!gesture.Consumed && input.InteractLongPressed && gesture.LongRelease != null
                     && actor.TryGetComponent(out NetworkPlayer mounted) && gesture.LongRelease.GetBelow(mounted) != null)
@@ -103,12 +105,20 @@ namespace CurtainCall.Player
                 if (cannon != null && cannon.IsSeated(player.OwnerClientId)) Add(cannon, center, 0, "cannon-seated");
                 var stack = PiggybackSystem.Current;
                 int grabbable = poles != null ? poles.FindGrabbable(player) : -1;
-                if (stack != null && stack.GetBelow(player) != null)
+                int boardable = cannon != null ? cannon.FindBoardableStation(player) : -1;
+                bool mounted = stack != null && stack.GetSupportingPlayer(player) != null;
+                if (mounted)
                 {
-                    // Only hand control from the active piggyback to a reachable pole;
-                    // nearby shops or loose devices must not steal the same tap.
                     if (grabbable >= 0) Add(poles.Pole(grabbable), center, 0, "piggyback-to-pole");
-                    else Add(stack, center, 0, "piggyback-held");
+                    else
+                    {
+                        if (boardable >= 0) Add(cannon.Station(boardable), cannon.Station(boardable).BoardingPoint.position, 0, "piggyback-to-cannon");
+                        if (!ShopReach.Locked && !WaitingRoomRehearsal.IsPreTutorialRestricted)
+                            foreach (var target in ShopReach.Targets)
+                                if (target is ExpertRoomView room && room.CanBoard(player))
+                                    Add(room, room.PresentationPoint, 0, "piggyback-to-medical");
+                        if (best.Target == null) Add(stack, center, 0, "piggyback-held");
+                    }
                 }
                 var hang = TightropeHangSystem.Current;
                 if (hang != null)
@@ -124,11 +134,8 @@ namespace CurtainCall.Player
                 }
                 var carry = HumanCannonCarry.FindGrabbable(player);
                 if (carry != null) Add(carry, carry.GrabPoint, 2, "carry:" + Path(carry.CarryRoot));
-                if (cannon != null)
-                {
-                    int index = cannon.FindBoardableStation(player);
-                    if (index >= 0) Add(cannon.Station(index), cannon.Station(index).BoardingPoint.position, 2, "cannon:" + index);
-                }
+                if (!mounted && boardable >= 0)
+                    Add(cannon.Station(boardable), cannon.Station(boardable).BoardingPoint.position, 2, "cannon:" + boardable);
                 if (stack != null && stack.FindMountTarget(player) is { } partner)
                     Add(stack, PlayerInteraction.Center(partner), 2, "piggyback:" + partner.OwnerClientId);
                 var locks = EscapeCooperativeLocks.Current;

@@ -524,20 +524,20 @@ first-day.quest.night-wait.body | 모든 공연 대기자가 준비하면 다음
 
 # ── 리허설 단계별 제목·좌측 설명 ── .title은 재연습 버튼 이름, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
 # 제목/설명만 편집합니다. 코스·완료 규칙은 바뀌지 않습니다. 플레이 재시작 시 반영됩니다.
-rehearsal.stage.1.title | 1단계 · 외줄타기
+rehearsal.stage.1.title | 1 · 외줄타기
 rehearsal.stage.1.intro | 줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다.
 rehearsal.stage.1.guide-title | 외줄타기
-rehearsal.stage.2-1.title | 2-1 · 인간 그네
-rehearsal.stage.2-1.intro | 줄 끝에서 F로 인간 그네를 잡습니다. W/S로 흔들어 앞쪽 최대 각도의 절반 이상 올라갔을 때 Space를 누르면 건너편 줄로 도약합니다.
+rehearsal.stage.2-1.title | 2 · 인간 그네
+rehearsal.stage.2-1.intro | 줄 끝에서 F로 인간 그네를 잡습니다. W/S로 반동을 모아 Space로 건너편 줄에 도약하세요.
 rehearsal.stage.2-1.guide-title | 인간 그네
-rehearsal.stage.2-2.title | 2-2 · 연속 인간 그네
-rehearsal.stage.2-2.intro | W/S로 그네를 흔들어 앞쪽 최대 각도의 절반 이상에서 Space로 도약하세요. 체공 중 다음 그네 가까이에서 F키를 눌러 잡습니다.
+rehearsal.stage.2-2.title | 3 · 연속 인간 그네
+rehearsal.stage.2-2.intro | W/S로 반동을 모아 Space로 도약하세요. 체공 중 다음 그네 가까이에서 F를 눌러 잡습니다.
 rehearsal.stage.2-2.guide-title | 공중에서 다음 그네로 건너가기
-rehearsal.stage.2-3.title | 2-3 · 트리거 그네
+rehearsal.stage.2-3.title | 4 · 트리거 그네
 rehearsal.stage.2-3.intro | 아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다.
 rehearsal.stage.2-3.guide-title | 트리거 그네
-rehearsal.stage.3.title | 3단계 · 목마와 공중그네
-rehearsal.stage.3.intro | 목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 흔들어 앞쪽 최대 각도의 절반 이상에서 Space로 도약하고 다음 봉을 F로 잡으면 학습 완료입니다.
+rehearsal.stage.3.title | 5 · 목마와 공중그네
+rehearsal.stage.3.intro | 목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 모아 Space로 도약하고 다음 봉을 F로 잡으면 학습 완료입니다.
 rehearsal.stage.3.guide-title | 목마와 공중 인간 그네
 
 rehearsal.clear-button | 현재 구간 즉시 클리어 · 다음
@@ -600,7 +600,7 @@ rehearsal.quest.lane-learned | 옆줄 착지 성공! 짧은 도착대까지 이�
 # 인간대포·트램펄린 리허설 (Confluence 3.5, Start 연결 공연 원본 기물)
 cannon-rehearsal.title | 인간대포/트램펄린
 cannon-rehearsal.quest-title | [tutorial] 인간대포와 트램펄린
-cannon-rehearsal.intro | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막 체크포인트에서 다시 시작합니다.
+cannon-rehearsal.intro | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.
 cannon-rehearsal.intro-no-recovery | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다.
 cannon-rehearsal.first | F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요.
 cannon-rehearsal.second | 인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다.
@@ -611,7 +611,7 @@ cannon-rehearsal.air | WASD로 동료의 트램펄린 위에 내려오세요. �
 cannon-rehearsal.bounce | 트램펄린의 반동을 받아 WASD로 최종 도착대에 착지하세요. 놓인 트램펄린에는 천 위로 점프해 스스로 반동을 받을 수 있습니다.
 cannon-rehearsal.self | 동료가 모두 도착했습니다. 머리 위가 빈 곳에서 F를 길게 눌러 트램펄린을 놓고, 천 위로 점프해 반동을 받으세요. WASD로 최종 도착대에 착지하세요.
 cannon-rehearsal.fall-title | 사망
-cannon-rehearsal.fall-recover | 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
+cannon-rehearsal.fall-recover | 잠시 뒤 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.
 cannon-rehearsal.fall | 사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다.
 cannon-rehearsal.required-title | 인간대포 리허설
 cannon-rehearsal.unlocked-title | 새 공연 해금 · 인간대포 리허설
@@ -633,7 +633,7 @@ rehearsal.quest.pole-single.title | [tutorial] 인간 그네
 rehearsal.quest.pole-next.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-hold.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-wait-passenger.title | [tutorial] 인간 그네
-rehearsal.quest.trigger-wait-passenger | 아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 F 길게 또는 Space로 놓을 수 있습니다.
+rehearsal.quest.trigger-wait-passenger | 아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.
 rehearsal.quest.trigger-grab.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-open.title | [tutorial] 인간 그네
 rehearsal.quest.trigger-closed.title | [tutorial] 인간 그네
@@ -662,11 +662,11 @@ cannon-rehearsal.completed-title | [tutorial] 리허설 종료
 cannon-rehearsal.skipped | 리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 선택할 수 있습니다.
 cannon-rehearsal.retry-title | 다시 연습하기
 cannon-rehearsal.retry-body | 연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다.
-rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
+rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.
 rehearsal.quest.trigger-grab | 트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.
 rehearsal.quest.trigger-open | 연결된 줄을 따라 건너세요.
 rehearsal.quest.trigger-closed | 앞의 줄이 끊겨 있습니다. 건너편 줄의 공연 대기자가 트리거 그네를 잡으면 이어집니다.
-rehearsal.quest.pole-single | Space를 누르면 그네를 놓습니다. W, S로 그네를 조작해 건너편 줄로 도착하세요.
+rehearsal.quest.pole-single | W/S로 반동을 모아 Space로 건너편 줄에 도약하세요. F를 길게 누르면 아래로 내려옵니다.
 rehearsal.quest.pole-next | 그네를 조작해 건너편 그네에 도착하세요. 체공 중 F를 눌러 그네를 잡을 수 있습니다.
 rehearsal.quest.pole-grab | 줄 끝에서 F를 눌러 인간 그네에 탑승하세요.
 cannon-rehearsal.vote-title | 리허설 넘기기 / 포기

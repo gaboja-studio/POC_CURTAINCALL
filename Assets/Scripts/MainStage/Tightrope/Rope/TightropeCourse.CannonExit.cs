@@ -17,7 +17,7 @@ namespace CurtainCall.Tightrope
             if (Mathf.Min(along, length - along) > endDistance) return false;
             var point = GetLanePosition(lane, along);
             float sideDistance = Vector3.ProjectOnPlane(position - point, Vector3.up).magnitude;
-            return sideDistance <= RopeWalkWidth * .5f + Mathf.Max(0f, bodyRadius);
+            return sideDistance <= RopeWidthAt(lane) * .5f + Mathf.Max(0f, bodyRadius);
         }
     }
 }

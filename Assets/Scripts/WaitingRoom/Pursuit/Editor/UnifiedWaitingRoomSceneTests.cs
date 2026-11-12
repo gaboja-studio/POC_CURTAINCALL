@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             name = p.name, position = p.transform.position, rotation = p.transform.rotation,
             prefab = AssetDatabase.GetAssetPath(p.Prefab), size = (int)p.Size, stage = p.ActivationStage,
             roomPatrol = p.UseRoomPatrol, detach = p.RouteDetachDistance,
-            route = p.Route(p.GetComponentInParent<PursuitRoom>()).Select(t => t.position).ToArray()
+            route = p.Route(p.OwnerRoom()).Select(t => t.position).ToArray()
         });
         [System.Serializable] class PlacementSnapshot {
             public string name, prefab; public Vector3 position; public Quaternion rotation;
@@ -38,7 +38,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 Assert.AreEqual(WaitingRoomScenes.IntegratedPath, PursuitAuthoring.ScenePath);
                 var director = All<PursuitDirector>(scene).Single();
                 CollectionAssert.AreEqual(roomNames, director.Rooms.Select(r => r.name));
-                CollectionAssert.AreEqual(placements, All<PursuitPlacement>(scene).Select(Placement));
+                // 통합 대기실은 배치를 방 공간 프리팹에 두므로 하이어라키 순서는 추격 씬과 다르다.
+                CollectionAssert.AreEquivalent(placements, All<PursuitPlacement>(scene).Select(Placement));
                 Assert.AreEqual(graph, director.BehaviourGraph);
                 Assert.AreEqual(blood, director.CaptureBloodPrefab);
                 Assert.AreEqual(22, All<PursuitDoorObstacle>(scene).Length);

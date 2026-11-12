@@ -67,6 +67,9 @@ namespace CurtainCall.WaitingRoom
                 && feet.z >= b.min.z && feet.z <= b.max.z;
         }
 
+        public bool IsRecoveryDeck(Vector3 feet) => Contains(StartFloor, feet) || Contains(MiddleFloor, feet)
+            || Contains(LowerFloor, feet) || Contains(FinishFloor, feet);
+
         public GameObject CreateFinishWalls()
         {
             var b = FinishFloor.bounds;

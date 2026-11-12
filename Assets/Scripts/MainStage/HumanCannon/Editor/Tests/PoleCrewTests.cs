@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public class PoleCrewTests
     {
         const ulong Empty = CannonSeatState.Nobody;
@@ -128,6 +129,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
     }
 
+    [Category("CommonProgressionRegression")]
     public class PoleCrewSnapshotTests
     {
         const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -297,7 +299,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [Test]
         public void ReleaseUsesLatestDriverInputEvenBeforeNextSimulationTick()
         {
-            Deliver(Two, 8, releaseDirection: 1f);
+            Deliver(Two, 8, speed: -5f, releaseDirection: 1f);
             var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
             var top = riders.GetValue(0);
             top.GetType().GetField("Input").SetValue(top, -1f);
@@ -305,8 +307,33 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var passenger = riders.GetValue(1);
             passenger.GetType().GetField("Input").SetValue(passenger, 1f);
             passenger.GetType().GetField("LastInput").SetValue(passenger, receiver.Clock);
-            typeof(HumanCannonPoleSystem).GetMethod("RefreshReleaseDirection", Instance).Invoke(receiver, new[] { runtime });
+            typeof(HumanCannonPoleSystem).GetMethod("RefreshSwingDrive", Instance).Invoke(receiver, new[] { runtime });
             Assert.That(runtime.GetType().GetField("ReleaseDirection").GetValue(runtime), Is.EqualTo(-1f));
+        }
+
+        [Test]
+        public void ReverseDriveStaysActiveAsThePoleChangesDirection()
+        {
+            Deliver(Two, 8, speed: 30f, releaseDirection: 1f);
+            var type = runtime.GetType();
+            var riders = (Array)type.GetField("Riders").GetValue(runtime);
+            var top = riders.GetValue(0);
+            var input = top.GetType().GetField("Input");
+            top.GetType().GetField("LastInput").SetValue(top, receiver.Clock);
+            var refresh = typeof(HumanCannonPoleSystem).GetMethod("RefreshSwingDrive", Instance);
+            var releaseDirection = type.GetField("ReleaseDirection");
+
+            input.SetValue(top, -1f);
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(-1f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
+
+            type.GetField("Speed").SetValue(runtime, -20f);
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(-1f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
+
+            input.SetValue(top, 0f);
+            Assert.That(refresh.Invoke(receiver, new[] { runtime }), Is.EqualTo(0f));
+            Assert.That(releaseDirection.GetValue(runtime), Is.EqualTo(-1f));
         }
 
         [Test]
@@ -336,6 +363,43 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(receiver.State(0).Revision, Is.EqualTo(9));
         }
 
+        [TestCase(false, 0)] [TestCase(true, 0)]
+        [TestCase(false, 1)] [TestCase(true, 1)]
+        public void DropHasNoImpulseButSpaceUsesTheCommonLaunchLimit(bool drop, int seat)
+        {
+            runtime.GetType().GetField("Angle").SetValue(runtime, 80f);
+            runtime.GetType().GetField("Speed").SetValue(runtime, 120f);
+            runtime.GetType().GetField("ReleaseDirection").SetValue(runtime, 1f);
+            var released = Enum.Parse(typeof(HumanCannonPoleSystem).GetNestedType("PoleEvent", BindingFlags.NonPublic), "Released");
+            typeof(HumanCannonPoleSystem).GetMethod("Publish", Instance)
+                .Invoke(receiver, new object[] { 0, released, 7UL, seat, drop });
+            Vector3 velocity = (Vector3)runtime.GetType().GetField("ReleaseVelocity").GetValue(runtime);
+            Vector3 position = (Vector3)runtime.GetType().GetField("ReleasePosition").GetValue(runtime);
+            Assert.That(position, Is.EqualTo(root.GetComponent<HumanCannonPole>().HangingPosition(80f, seat)));
+            if (drop) Assert.That(velocity, Is.EqualTo(Vector3.zero));
+            else
+            {
+                Assert.That(velocity.y, Is.GreaterThan(0f));
+                Assert.That(Vector3.ProjectOnPlane(velocity, Vector3.up).magnitude,
+                    Is.EqualTo(CurtainCall.Settings.GameSettings.Poles.HorizontalSpeedLimit).Within(.001f));
+            }
+        }
+
+        [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        public void ZeroImpulseDropSurvivesTheReleaseSnapshotForEveryRecipient(int recipients)
+        {
+            for (int i = 0; i < recipients; i++)
+            {
+                uint revision = (uint)(10 + i * 2);
+                Deliver(Two, revision);
+                var after = Two; after[0] = Vacant;
+                Deliver(after, revision + 1, action: 2, actor: 7, seat: 0,
+                    station: -1, launch: 12, segment: 1, releaseVelocity: Vector3.zero);
+                Assert.That(receiver.HeldBy(7), Is.EqualTo(-1));
+                Assert.That(runtime.GetType().GetField("ReleaseVelocity").GetValue(runtime), Is.EqualTo(Vector3.zero));
+            }
+        }
+
         T Field<T>(int seat, string name)
         {
             var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
@@ -345,7 +409,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         void Deliver(Row[] rows, uint revision, byte action = 0, ulong actor = Empty, byte seat = 255,
             int station = 0, uint launch = 0, uint segment = 0, ulong sender = NetworkManager.ServerClientId,
             PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0, float angle = 20f, float speed = 5f,
-            float releaseDirection = 0f)
+            float releaseDirection = 0f, Vector3? releaseVelocity = null)
         {
             using var writer = new FastBufferWriter(action == 2 ? 204 : 164, Allocator.Temp);
             writer.WriteValueSafe(action); writer.WriteValueSafe(0); writer.WriteValueSafe(revision);
@@ -359,7 +423,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
             if (action == 2)
             {
-                writer.WriteValueSafe(Vector3.one); writer.WriteValueSafe(Quaternion.identity); writer.WriteValueSafe(Vector3.up);
+                writer.WriteValueSafe(Vector3.one); writer.WriteValueSafe(Quaternion.identity); writer.WriteValueSafe(releaseVelocity ?? Vector3.up);
             }
             Assert.That(writer.Length, Is.EqualTo(action == 2 ? 204 : 164));
             using var reader = new FastBufferReader(writer, Allocator.Temp);

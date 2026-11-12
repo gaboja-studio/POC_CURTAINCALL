@@ -16,9 +16,6 @@ namespace CurtainCall.WaitingRoom
         bool suspendedTutorial;
         string tutorialDoneKey = "";
         CampaignRun tutorialRun;
-        // 진단 로그(InputGate.Describe)에서 이름으로 보이도록 전용 타입을 쓴다.
-        sealed class TeamWaitLock { }
-        readonly TeamWaitLock teamLock = new();
         StageEntranceGather gather;
         ScheduleBoardView board;
         DemoRunEnding dayTransition;
@@ -92,7 +89,7 @@ namespace CurtainCall.WaitingRoom
             // Rehearsal suspends teammates' ordinary guide; waiting for that guide here would deadlock it.
             bool teamLocked = !rehearsing && waiting && ready && player != null && player.State == PlayerState.Normal
                 && !SceneCurtainTransition.IsActive;
-            InputGate.SetBlocking(teamLock, teamLocked);
+            InputGate.SetBlocking(this, teamLocked);
             if (teamLocked)
                 teamWait.Show(WaitingRoomText.Get("tutorial.team-wait-title", "동료 기다리는 중"),
                     WaitingRoomText.Format("tutorial.team-wait", "모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})",
@@ -141,7 +138,7 @@ namespace CurtainCall.WaitingRoom
         }
         void OnDisable()
         {
-            InputGate.SetBlocking(teamLock, false);
+            InputGate.SetBlocking(this, false);
             firstDayQuest?.Hide(); teamWait?.Hide(); RestoreTutorial();
         }
         void OnDestroy() { if (instance == this) instance = null; }

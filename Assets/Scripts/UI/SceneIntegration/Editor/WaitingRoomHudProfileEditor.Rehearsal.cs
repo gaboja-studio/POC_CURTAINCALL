@@ -25,10 +25,11 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             Add(guide,"첫 리허설 시작","첫 공연 전 외줄 리허설에 진입했을 때","intro-title","intro");
             Add(guide,"자유 연습 시작 · 복귀 켬","재연습을 시작하고 사망 후 복귀가 켜져 있을 때","practice-title","practice-intro");
             Add(guide,"자유 연습 시작 · 복귀 끔","재연습을 시작하고 사망 후 복귀가 꺼져 있을 때","practice-title","practice-intro-no-recovery");
-            foreach(var (id,name) in new[]{("1","외줄타기"),("2-1","인간 그네"),("2-2","연속 그네"),("2-3","트리거 그네"),("3","목마와 공중그네")})
+            // 표시 번호는 1~5 단일 번호. 문구 키는 내부 구간 ID(2-1 등)를 그대로 쓴다.
+            foreach(var (id,no,name) in new[]{("1","1","외줄타기"),("2-1","2","인간 그네"),("2-2","3","연속 그네"),("2-3","4","트리거 그네"),("3","5","목마와 공중그네")})
             {
-                Add(guide,id+" "+name+" 소개","이 구간 코스가 준비됐을 때. 첫 구간은 시작 소개가 끝난 뒤 표시합니다.","stage."+id+".guide-title","stage."+id+".intro");
-                Add(objective,id+" "+name+" 목표","구간에서 장치 조작 가이드가 뜨는 동안 오른쪽에 유지됩니다.","stage."+id+".title","stage."+id+".goal");
+                Add(guide,no+" "+name+" 소개","이 구간 코스가 준비됐을 때. 첫 구간은 시작 소개가 끝난 뒤 표시합니다.","stage."+id+".guide-title","stage."+id+".intro");
+                Add(objective,no+" "+name+" 목표","구간에서 장치 조작 가이드가 뜨는 동안 오른쪽에 유지됩니다.","stage."+id+".title","stage."+id+".goal");
             }
             Add(guide,"옆줄 건너기","첫 구간 소개가 끝난 뒤, 또는 끊어진 줄의 체크포인트에 처음 도달했을 때","lane-guide-title","lane-guide");
             Add(guide,"목마 상호작용","올라탈 수 있는 동료를 처음 가까이에서 찾았을 때","mount-title","mount");

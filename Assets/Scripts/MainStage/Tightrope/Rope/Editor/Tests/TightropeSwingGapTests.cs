@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
+    [Category("CommonProgressionRegression")]
     public sealed class TightropeSwingGapTests
     {
         [TestCase(false, false), TestCase(true, false), TestCase(true, true)]
@@ -24,7 +25,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 {
                     Vector3 expected = lesson && lowPoles
                         ? course.GetLanePosition(course.Shape.TrapezeLane - 1, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
-                        : course.TrapezeRestingFeet(i);
+                        : course.TrapezeRestingFeet(lesson ? i : TightropeCourse.TrapezePerformancePoles[i]);
                     if (lesson && !lowPoles && i == 0) expected -= Vector3.up * GameSettings.WaitingRoom.Tutorial.FirstTrapezeLowering;
                     Assert.That(Vector3.Distance(trapeze.PoleFeet(i), expected), Is.LessThan(.001f));
                 }

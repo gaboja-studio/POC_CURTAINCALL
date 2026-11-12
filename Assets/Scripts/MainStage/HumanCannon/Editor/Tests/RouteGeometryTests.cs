@@ -1,4 +1,8 @@
 using System.Reflection;
+using System.Collections.Generic;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -74,6 +78,149 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(root);
+
+        [Test]
+        [Category("CommonProgressionRegression")]
+        public void MovingLiftBarrierDoesNotCompressCameraButStillBlocksBodies()
+        {
+            var route = Child("Camera route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var camera = Child("Camera probe").gameObject.AddComponent<CurtainCall.Cameras.CameraViewDirector>();
+            var wallDistance = camera.GetType().GetMethod("WallDistance", PrivateInstance);
+            var wall = Child("Real wall").gameObject.AddComponent<BoxCollider>();
+            wall.size = new Vector3(.2f, 20f, 20f);
+            try
+            {
+                Set(route, "transports", new[] { transport });
+                current.SetValue(null, route);
+                // Keep scripts inactive; only the authored physical shapes participate.
+                platform.SetParent(null); platform.gameObject.SetActive(true);
+                wall.transform.SetParent(null); wall.gameObject.SetActive(true);
+                origin.position = new Vector3(16000f, 100f, 16000f);
+                destination.position = origin.position + new Vector3(4f, 6f, 10f);
+                transport.PresentBarrier(true);
+                for (int frame = 0; frame <= 30; frame++)
+                {
+                    transport.Present(frame / 30f);
+                    var pivot = platform.position + Vector3.up * 1.5f;
+                    wall.transform.position = pivot + Vector3.right * 6f;
+                    Physics.SyncTransforms();
+                    Assert.IsTrue(Physics.Raycast(pivot, Vector3.right, out var physical, 4f));
+                    Assert.AreEqual("BoardingBarrier", physical.collider.gameObject.name);
+                    float distance = (float)wallDistance.Invoke(camera, new object[] { pivot, Vector3.right, 10f });
+                    Assert.That(distance, Is.EqualTo(5.6f).Within(.015f),
+                        "The camera must see the real wall, not contract into the invisible moving enclosure.");
+                }
+                transport.PresentBarrier(false);
+                Physics.SyncTransforms();
+                var finalPivot = platform.position + Vector3.up * 1.5f;
+                Assert.That((float)wallDistance.Invoke(camera, new object[] { finalPivot, Vector3.right, 10f }),
+                    Is.EqualTo(5.6f).Within(.015f), "Arrival must not suddenly release a compressed camera.");
+            }
+            finally
+            {
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(platform.gameObject);
+                Object.DestroyImmediate(wall.gameObject);
+            }
+        }
+
+        [Test]
+        [Category("CommonProgressionRegression")]
+        public void MovingLiftSynchronizesDeckBeforeCarryAndCameraQueries()
+        {
+            var route = Child("Moving route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            try
+            {
+                Assert.IsFalse(Physics.autoSyncTransforms, "This regression covers the project's manual transform synchronization.");
+                current.SetValue(null, null);
+                route.ConfigurePractice(transport, -10f);
+                typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
+                platform.SetParent(null); platform.gameObject.SetActive(true);
+                var deck = platform.gameObject.AddComponent<BoxCollider>();
+                deck.size = new Vector3(2f, .3f, 2f);
+                origin.position = new Vector3(16000f, 100f, 16000f);
+                destination.position = origin.position + new Vector3(0f, 6f, 10f);
+                transport.Present(0f);
+                Physics.SyncTransforms();
+                var state = route.TransportState(0);
+                // A received arrival advances the platform without relying on EditMode's zero clock.
+                Assert.IsTrue(state.Receive(state.Revision + 1, DeparturePhase.Arrived, 77, 0d, 5f));
+                typeof(HumanCannonRouteSystem).GetMethod("LateUpdate", PrivateInstance).Invoke(route, null);
+                Assert.That(Vector3.Distance(platform.position, origin.position), Is.GreaterThan(4f));
+                Assert.IsTrue(Physics.Raycast(platform.position + Vector3.up * 2f, Vector3.down, out var hit, 3f),
+                    "Physics queries in the same frame must find the translated deck without a physics tick.");
+                Assert.AreSame(deck, hit.collider);
+                Assert.That(hit.point.y, Is.EqualTo(platform.position.y + .15f).Within(.01f));
+            }
+            finally
+            {
+                typeof(HumanCannonRouteSystem).GetMethod("OnDisable", PrivateInstance).Invoke(route, null);
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(platform.gameObject);
+            }
+        }
+
+        [TestCase(2, 0)]
+        [TestCase(2, 3)]
+        [TestCase(4, 2)]
+        [Category("CommonProgressionRegression")]
+        public void WaitingLiftCountsEveryLinkedRiderAboveTheBoardingVolume(int crew, int lostParts)
+        {
+            var all = (List<NetworkPlayer>)NetworkPlayer.All;
+            var previous = all.ToArray();
+            var stackRoot = new GameObject("Lift passenger links");
+            var stack = stackRoot.AddComponent<PiggybackSystem>();
+            var stackCurrent = typeof(PiggybackSystem).GetProperty("Current");
+            var routeCurrent = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previousStack = stackCurrent.GetValue(null);
+            var previousRoute = routeCurrent.GetValue(null);
+            bool previousSuppressed = PiggybackSystem.Suppressed;
+            var route = Child("Route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            try
+            {
+                all.Clear();
+                stackCurrent.SetValue(null, stack);
+                routeCurrent.SetValue(null, null);
+                PiggybackSystem.Suppressed = false;
+                route.ConfigurePractice(transport, -10);
+                typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
+                var below = (Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", PrivateInstance).GetValue(stack);
+                for (int i = 0; i < crew; i++)
+                {
+                    var actor = Child("Actor").gameObject.AddComponent<NetworkPlayer>();
+                    spawned.SetValue(actor, true);
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(actor, (ulong)i);
+                    actor.transform.position = platform.position + Vector3.up * (i == 0 ? 0f : 1.5f * i + .6f);
+                    actor.gameObject.AddComponent<PlayerCondition>().SetLostParts(PlayerCondition.PartsForLostCount(lostParts));
+                    all.Add(actor);
+                    if (i > 0) below[(ulong)i] = (ulong)(i - 1);
+                }
+                var count = typeof(HumanCannonRouteSystem).GetMethod("CountPassengers", PrivateInstance);
+                int Occupants() => (int)count.Invoke(route, new object[] { 0, null });
+                Assert.IsFalse(transport.ContainsPassenger(all[1].transform.position));
+                Assert.AreEqual(crew, Occupants());
+                all[1].transform.position = platform.position + Vector3.up * 1.5f;
+                Assert.AreEqual(crew, Occupants(), "A rider in the volume is counted only once.");
+                all[1].transform.position = platform.position + Vector3.up * 2.1f;
+                below.Clear();
+                Assert.AreEqual(1, Occupants(), "Unlinked players above the volume do not board.");
+            }
+            finally
+            {
+                typeof(HumanCannonRouteSystem).GetMethod("OnDisable", PrivateInstance).Invoke(route, null);
+                routeCurrent.SetValue(null, previousRoute);
+                stackCurrent.SetValue(null, previousStack);
+                PiggybackSystem.Suppressed = previousSuppressed;
+                foreach (var actor in all) spawned.SetValue(actor, false);
+                all.Clear(); all.AddRange(previous);
+                Object.DestroyImmediate(stackRoot);
+            }
+        }
 
         [Test]
         public void Fire_UnavailableCannotArmDamageOrShowEvenWithReceivedState_AndCanBeRestored()

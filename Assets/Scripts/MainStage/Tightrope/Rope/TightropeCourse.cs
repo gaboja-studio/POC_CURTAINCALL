@@ -76,7 +76,8 @@ namespace CurtainCall.Tightrope
 
         internal bool PiggybackUsesRopeBalance(NetworkPlayer carrier, bool wasOnRope)
         {
-            if (carrier == null || carrier.State != PlayerState.Normal || !carrier.TryGetComponent(out PlayerMover mover)) return false;
+            if (carrier == null || carrier.State != PlayerState.Normal || HumanCannon.HumanCannonTrampoline.IsCarriedBy(carrier)
+                || !carrier.TryGetComponent(out PlayerMover mover)) return false;
             if (!carrier.IsAirborne) return TryGetSupportingRope(mover, out _);
             // 의도한 외줄 점프는 유지하고, 지지가 끊긴 낙하나 줄 끝 이탈은 착지 전에 끈다.
             return wasOnRope && carrier.CurrentJump != JumpKind.Fall
@@ -213,7 +214,8 @@ namespace CurtainCall.Tightrope
 
         public int LaneCount => Layout.LaneCount;
         public float LaneSpacing => Layout.LaneSpacing;
-        public float RopeWalkWidth => GameSettings.Tightrope.Course.RopeWalkWidth;
+        public float RopeWalkWidth => !useSceneGeometry && GameSettings.Tightrope.RopeMovement.MatchVisualSupportWidth
+            ? Shape.RopeThickness : GameSettings.Tightrope.Course.RopeWalkWidth;
         public float RopeHeightTolerance => GameSettings.Tightrope.Course.RopeHeightTolerance;
 
         /// <summary>도착 거리(m, 출발선에서).</summary>
@@ -276,7 +278,7 @@ namespace CurtainCall.Tightrope
             lane = NoLane;
             if (Mathf.Abs(position.y - RopeHeightAt(position)) > RopeHeightTolerance) return false;
             if (!TryGetRopePoint(position, out int nearest, out float distance) || !IsLaneUsable(nearest, distance)) return false;
-            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > RopeWalkWidth * 0.5f + radius) return false;
+            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > RopeWidthAt(nearest) * 0.5f + radius) return false;
             lane = nearest;
             return true;
         }
@@ -295,6 +297,10 @@ namespace CurtainCall.Tightrope
             lane = NoLane;
             if (mover == null || mover.Body == null || !mover.Body.enabled || ropeSurfaces.Count == 0) return false;
             if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) return false;
+            var trampoline = HumanCannon.HumanCannonTrampoline.Current;
+            Transform heldTrampoline = trampoline != null && trampoline.Carrier != HumanCannon.CannonSeatState.Nobody
+                && mover.TryGetComponent(out NetworkPlayer actor) && actor.OwnerClientId == trampoline.Carrier
+                ? trampoline.transform : null;
             // 줄 모서리 착지는 실제 캡슐 반지름 전체가 닿는다. 축소한 탐색구나
             // 최근접 중심선의 높이로 먼저 거르면 다른 높이의 인접 줄에서 오판한다.
             float radius = Mathf.Max(0.01f, mover.BodyRadius);
@@ -313,6 +319,7 @@ namespace CurtainCall.Tightrope
             {
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
+                    || heldTrampoline != null && hit.collider.transform.IsChildOf(heldTrampoline)
                     || hit.distance <= .0001f) continue;
                 // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
                 // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).
@@ -649,9 +656,25 @@ namespace CurtainCall.Tightrope
                 if (scale <= .0001f) continue;
                 if (!originalRopeSizes.ContainsKey(box)) originalRopeSizes.Add(box, box.size);
                 var size = box.size;
-                size.x = RopeWalkWidth / scale;
+                size.x = GameSettings.Tightrope.RopeMovement.MatchVisualSupportWidth
+                    ? VisualRopeWidth(box, originalRopeSizes[box].x) : RopeWalkWidth / scale;
                 if (box.size != size) box.size = size;
             }
+        }
+
+        public float RopeWidthAt(int lane)
+        {
+            if (useSceneGeometry && lane >= 0 && lane < sceneRopes.Length && sceneRopes[lane] is BoxCollider box)
+                return box.size.x * box.transform.TransformVector(Vector3.right).magnitude;
+            return RopeWalkWidth;
+        }
+
+        static float VisualRopeWidth(BoxCollider box, float authoredWidth)
+        {
+            // Only meshes owned by this rope are eligible; neighbouring props/platforms are not rope art.
+            var mesh = box.GetComponent<MeshFilter>();
+            return mesh != null && mesh.sharedMesh != null && mesh.sharedMesh.bounds.size.x > .001f
+                ? mesh.sharedMesh.bounds.size.x : authoredWidth;
         }
 
         /// <summary>

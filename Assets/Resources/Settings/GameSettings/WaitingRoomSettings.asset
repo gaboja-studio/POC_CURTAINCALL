@@ -87,7 +87,10 @@ MonoBehaviour:
     KnockdownSeconds: 1.2
     CutInterval: 1.3
     CaptureRadius: 1.15
+    CaptureBelow: 0.5
+    CaptureAbove: 0.75
     LoseTargetSeconds: 3
+    CrouchHiddenCoverage: 0.8
     CullDistantRenderers: 1
     EncounterSeconds: 5
     RenderSafetyMargin: 8
@@ -111,6 +114,17 @@ MonoBehaviour:
     EdgeIntensity: 0.2
     EdgeWidth: 0.1
     PulseAmount: 0.15
+    ClimbFromStage: 1
+    ClimbMaxHeight: 2.5
+    ClimbSeconds: 1.1
+    DropSeconds: 0.5
+    ClimbLinkSpacing: 1.5
+    ClimbContactIk: 1
+    ClimbIkSurfaceMask:
+      serializedVersion: 2
+      m_Bits: 4294967291
+    ClimbIkProbeHeight: 0.25
+    ClimbIkSurfaceOffset: 0.01
     Lighting:
       Enabled: 1
       IncludeUnassignedLights: 1
@@ -285,10 +299,15 @@ MonoBehaviour:
       PatrolLeashDistance: 0
       Announcement: "\uCD94\uACA9\uC790\uAC00 \uBAA8\uB4E0 \uC704\uCE58\uB97C \uC54C\uACE0
         \uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uB2E8\uC6D0\uC744 \uCD94\uACA9\uD569\uB2C8\uB2E4."
+  enableKeyInteractions: 0
   tutorial:
     resetOnFloorFall: 1
     recoverSeconds: 1.5
     openPracticeDoorWhileOccupied: 1
+    lockdownGateHeight: 5.5
+    lockdownBarrierHeight: 12
+    sealCannonPracticeExit: 1
+    cannonPracticeFloorFallIsFatal: 1
     waitForRecoveryBeforePerformance: 1
     keepFinishBarrier: 0
     firstTrapezeLowering: 0.5

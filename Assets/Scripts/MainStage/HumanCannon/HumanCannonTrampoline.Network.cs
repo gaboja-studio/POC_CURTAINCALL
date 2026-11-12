@@ -1,6 +1,7 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -85,9 +86,12 @@ namespace CurtainCall.HumanCannon
             }
             if (carrier != CannonSeatState.Nobody)
             {
-                HumanCannonSystem.Current?.StartCarrying(carrier);
                 var player = FindPlayer(carrier);
-                if (player != null && player.State == PlayerState.Normal) FollowCarrier(player);
+                if (TightropeHangSystem.Current?.IsHanging(player) != true)
+                {
+                    HumanCannonSystem.Current?.StartCarrying(carrier);
+                    if (player != null && player.State == PlayerState.Normal) FollowCarrier(player);
+                }
             }
             ResetPreviousPose();
         }

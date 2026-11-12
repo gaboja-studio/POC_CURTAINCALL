@@ -82,11 +82,11 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             if (snap && !Ground(room, position, out position)) return null;
             var go = new GameObject("Mannequin_" + prefab.name.Replace("Pursuit_", ""));
             Undo.RegisterCreatedObjectUndo(go, "마네킹 배치");
-            go.transform.SetParent(room.transform, false); go.transform.position = position;
+            go.transform.SetParent(PlacementParent(room), false); go.transform.position = position;
             var item = Undo.AddComponent<PursuitPlacement>(go); item.Prefab = prefab;
             Undo.RecordObject(room, "마네킹 배치"); room.UsePlacements = true;
             room.Placements = (room.Placements ?? Array.Empty<PursuitPlacement>()).Where(p => p != null).Append(item).ToArray();
-            Dirty(room); return item;
+            Dirty(room); QueuePrefabApply(go.transform); return item;
         }
         public static Transform AddPoint(PursuitPlacement item, Vector3 position)
         {
@@ -101,7 +101,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         public static void Remove(PursuitRoom room, PursuitPlacement item)
         {
             Undo.RecordObject(room, "마네킹 제거"); room.Placements = room.Placements.Where(p => p != item).ToArray();
-            Undo.DestroyObjectImmediate(item.gameObject); Dirty(room);
+            var parent = item.transform.parent;
+            Undo.DestroyObjectImmediate(item.gameObject); Dirty(room); QueuePrefabApply(parent);
         }
         public static void Reorder(PursuitPlacement item, int from, int to)
         {
@@ -121,6 +122,58 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         {
             EditorUtility.SetDirty(target); PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             EditorSceneManager.MarkSceneDirty(target.gameObject.scene);
+            QueuePrefabApply(target.transform);
+        }
+
+        // 대기실은 마네킹 배치를 방 공간 프리팹 안에 둔다. 방 프리팹이 없는 통로·로비 영역은 공용 연결 프리팹을 쓴다.
+        public const string PlacementGroup = "PursuitPlacements";
+        public static Transform PlacementParent(PursuitRoom room)
+        {
+            var layout = room.gameObject.scene.GetRootGameObjects().FirstOrDefault(g => g.name == "WaitingRoom_LayoutA");
+            if (layout == null) return room.transform;
+            var space = layout.transform.Find(room.name == "Lobby" ? "S01_Lobby" : room.name);
+            if (space == null || !PrefabUtility.IsAnyPrefabInstanceRoot(space.gameObject)) space = layout.transform.Find("FacilityConnections");
+            if (space == null || !PrefabUtility.IsAnyPrefabInstanceRoot(space.gameObject)) return room.transform;
+            var group = space.Find(PlacementGroup);
+            if (group != null) return group;
+            group = new GameObject(PlacementGroup).transform;
+            group.SetParent(space, false);
+            ApplyToPrefab(group);
+            return space.Find(PlacementGroup);
+        }
+
+        // 배치 창은 드래그 중에도 Dirty를 부르므로 프리팹 저장은 편집이 멈춘 뒤 한 번에 한다.
+        static readonly System.Collections.Generic.HashSet<Transform> pendingApply = new();
+        static double applyDue;
+        static void QueuePrefabApply(Transform scope)
+        {
+            if (scope == null || EditorApplication.isPlayingOrWillChangePlaymode || PrefabInstanceRoot(scope) == null) return;
+            if (pendingApply.Count == 0) EditorApplication.update += FlushPrefabApply;
+            pendingApply.Add(scope); applyDue = EditorApplication.timeSinceStartup + .4;
+        }
+        static void FlushPrefabApply()
+        {
+            if (EditorApplication.timeSinceStartup < applyDue || GUIUtility.hotControl != 0) return;
+            EditorApplication.update -= FlushPrefabApply;
+            var scopes = pendingApply.Where(s => s != null).ToArray(); pendingApply.Clear();
+            foreach (var scope in scopes) ApplyToPrefab(scope);
+        }
+        static GameObject PrefabInstanceRoot(Transform scope)
+        {
+            for (var t = scope; t != null; t = t.parent)
+                if (PrefabUtility.IsPartOfPrefabInstance(t.gameObject)) return PrefabUtility.GetOutermostPrefabInstanceRoot(t.gameObject);
+            return null;
+        }
+        public static void ApplyToPrefab(Transform scope)
+        {
+            var root = PrefabInstanceRoot(scope);
+            if (root == null) return;
+            var path = AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root));
+            bool Inside(UnityEngine.Object o) => o is Component c ? c != null && c.transform.IsChildOf(scope) : o is GameObject g && g != null && g.transform.IsChildOf(scope);
+            foreach (var added in PrefabUtility.GetAddedGameObjects(root).Where(a => Inside(a.instanceGameObject))) added.Apply(path, InteractionMode.AutomatedAction);
+            foreach (var removed in PrefabUtility.GetRemovedGameObjects(root).Where(r => Inside(r.parentOfRemovedGameObjectInInstance))) removed.Apply(path, InteractionMode.AutomatedAction);
+            foreach (var added in PrefabUtility.GetAddedComponents(root).Where(a => Inside(a.instanceComponent))) added.Apply(path, InteractionMode.AutomatedAction);
+            foreach (var change in PrefabUtility.GetObjectOverrides(root).Where(o => Inside(o.instanceObject))) change.Apply(path, InteractionMode.AutomatedAction);
         }
     }
 }

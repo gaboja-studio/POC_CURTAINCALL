@@ -18,6 +18,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.WaitingRoom.EditorTools
 {
+    [Category("CommonProgressionRegression")]
     public sealed class RehearsalLifecycleTests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -131,6 +132,94 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(cannon, "course", null); // EditMode fixture owns immediate destruction.
         }
 
+        [Test]
+        public void CannonRecoveryUsesLastSafeDeckPoseAndTreatsThePracticeRoomFloorAsFatal()
+        {
+            var player = Player(947);
+            var mover = player.GetComponent<PlayerMover>();
+            Shared("active", true); Shared("round", 4);
+            Shared("placed", new List<ulong> { player.OwnerClientId });
+            var course = Make("Cannon safe pose fixture").AddComponent<RehearsalCannonCourse>();
+            var deck = Make("Lower deck").AddComponent<BoxCollider>();
+            deck.transform.position = new Vector3(9300, 9004, 9000);
+            deck.size = new Vector3(10, .4f, 8);
+            var floor = Make("Practice ring floor").AddComponent<BoxCollider>();
+            floor.transform.position = deck.transform.position + Vector3.down * 4f;
+            floor.size = new Vector3(20, .4f, 18);
+            course.LowerFloor = deck;
+            Set(cannon, "course", course); Set(cannon, "roomFloor", floor);
+            Physics.SyncTransforms();
+            var lastSafe = new Pose(deck.bounds.center + Vector3.up * deck.bounds.extents.y + Vector3.right, Quaternion.Euler(0, 35f, 0));
+            var roomFeet = floor.bounds.center + Vector3.up * floor.bounds.extents.y;
+            var tutorial = GameSettings.WaitingRoom.Tutorial;
+            var floorRule = Get(tutorial, "cannonPracticeFloorFallIsFatal");
+            try
+            {
+                Set(tutorial, "cannonPracticeFloorFallIsFatal", true);
+                var floorFall = typeof(WaitingRoomCannonRehearsal).GetMethod("ShouldRestartAfterFloorLanding", Static);
+                Assert.That(floorFall.Invoke(null, new object[] { player, roomFeet }), Is.True);
+                Assert.That(floorFall.Invoke(null, new object[] { player, lastSafe.position }), Is.False);
+                Set(cannon, "lastSafePose", (Pose?)lastSafe);
+                Call(cannon, "ResetLocalRecovery", player);
+                Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
+                Assert.That(player.transform.position, Is.EqualTo(lastSafe.position));
+                Assert.That(Quaternion.Angle(player.transform.rotation, lastSafe.rotation), Is.LessThan(.01f));
+            }
+            finally { Set(tutorial, "cannonPracticeFloorFallIsFatal", floorRule); Set(cannon, "course", null); }
+        }
+
+        [Test]
+        public void PolePassengerReachUsesTheSwingingTeamMateAndStillRejectsWalls()
+        {
+            var player = Player(948);
+            var pole = Make("Passenger reach pole").AddComponent<HumanCannonPole>();
+            pole.transform.position = new Vector3(9400, 9000, 9000);
+            const float angle = 65f;
+            var center = pole.GrabPoint(angle, 1);
+            float radius = GameSettings.Poles.PassengerGrabRadius;
+            Vector3 bodyOffset = PlayerInteraction.Center(player) - player.transform.position;
+            player.transform.position = center - bodyOffset + Vector3.right * (radius - .1f);
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsSeatInReach", player, angle, 1, -1d), Is.True);
+            player.transform.position += Vector3.right * .2f;
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsSeatInReach", player, angle, 1, -1d), Is.False);
+            player.transform.position -= Vector3.right * .2f;
+            var wall = Make("Reach wall").AddComponent<BoxCollider>();
+            wall.transform.position = center + Vector3.right * radius * .5f;
+            wall.size = new Vector3(.2f, 2f, 2f);
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsSeatInReach", player, angle, 1, -1d), Is.False);
+        }
+
+        [Test]
+        public void CannonPracticeDoorUsesAFullHeightBarrierOnlyDuringThePracticeLock()
+        {
+            var gate = Make(NightDoorLock.RehearsalPassageName).AddComponent<NightDoorLock>();
+            var bars = Make("Practice gate bars").transform;
+            bars.SetParent(gate.transform, false); bars.localPosition = Vector3.up * 3.4f;
+            var collider = bars.gameObject.AddComponent<BoxCollider>();
+            collider.center = Vector3.down * 1.7f; collider.size = new Vector3(4f, 3.4f, .2f);
+            Set(gate, "shutter", bars);
+            Shared("active", true);
+            var tutorial = GameSettings.WaitingRoom.Tutorial;
+            var seal = Get(tutorial, "sealCannonPracticeExit");
+            try
+            {
+                Set(tutorial, "sealCannonPracticeExit", true);
+                Call(gate, "OnEnable");
+                Assert.That(gate.IsLocked, Is.True);
+                var barrier = (BoxCollider)Get(gate, "tutorialBarrier");
+                Assert.That(barrier.enabled, Is.True);
+                Assert.That(barrier.size.y, Is.GreaterThanOrEqualTo(tutorial.LockdownBarrierHeight));
+                Assert.That(bars.localPosition.y, Is.EqualTo(tutorial.LockdownGateHeight));
+                Shared("active", false);
+                Call(gate, "Update");
+                Assert.That(barrier.enabled, Is.False);
+            }
+            finally { Set(tutorial, "sealCannonPracticeExit", seal); }
+        }
+
         [Test, Category("WaitingRoomCommonRecovery")]
         public void TutorialCompletionRevivalWaitsForNormalThenReleasesFinishState()
         {
@@ -153,6 +242,29 @@ namespace CurtainCall.WaitingRoom.EditorTools
             foreach (string name in new[] { "arrived", "votes", "placed" }) Assert.IsEmpty((HashSet<ulong>)Get(rehearsal, name), name);
             Assert.AreEqual(-1, Get(rehearsal, "placedRound"), "Completed education must still return to the practice-room deck before the first performance.");
             Assert.IsTrue(WaitingRoomRehearsal.UsesInitialTutorialRules);
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void TrapezeRecoveryIgnoresDelayedArrivalWhileBackAtStart()
+        {
+            InitialTutorial(false);
+            var player = Player(948);
+            var mover = player.GetComponent<PlayerMover>();
+            var course = Make("Trapeze recovery course").AddComponent<CurtainCall.Tightrope.TightropeCourse>();
+            course.transform.position = new Vector3(9400f, 9000f, 9000f);
+            var start = course.transform.position - course.Forward;
+            player.transform.position = start;
+            Set(rehearsal, "local", player); Set(rehearsal, "course", course);
+            Set(rehearsal, "stage", RehearsalStage.All.Length - 1); Set(rehearsal, "round", 5);
+            foreach (string name in new[] { "arrived", "placed" }) ((HashSet<ulong>)Get(rehearsal, name)).Add(player.OwnerClientId);
+            var walls = Make("Old trapeze finish walls"); Set(rehearsal, "finishWalls", walls);
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Assert.That(player.transform.position, Is.EqualTo(start));
+            Assert.IsFalse(walls.activeSelf);
+            Set(rehearsal, "localRecoveryPending", true);
+            Call(rehearsal, "TrackPersonalProgress", mover);
+            Assert.IsFalse(walls.activeSelf);
+            Set(rehearsal, "course", null);
         }
 
         [Test, Category("WaitingRoomCommonRecovery")]
@@ -189,6 +301,61 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(mover.Simulated, Is.False, "기물 정리 후에도 종료 복귀 전 물리가 잠겨 있어야 한다.");
             Call(cannon, "ReleaseEndingLock");
             Assert.That(mover.Simulated && mover.ControlEnabled, Is.True, "탑승/비행 때의 임시 정지가 종료 후 남으면 안 된다.");
+        }
+
+        [TestCase(true)] [TestCase(false)]
+        public void CannonEndingUsesTheSharedRecoveryRuleWhenAVoteOverlapsDeath(bool recoveryEnabled)
+        {
+            var player = Player(904);
+            var outsidePractice = Player(905);
+            foreach (var fallenPlayer in new[] { player, outsidePractice })
+            {
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(fallenPlayer, true);
+                ((NetworkVariable<PlayerState>)Get(fallenPlayer, "state")).Value = PlayerState.Fallen;
+            }
+            typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+            var mover = player.GetComponent<PlayerMover>();
+            mover.SetControlEnabled(false);
+            Shared("participants", new List<ulong> { player.OwnerClientId });
+            Shared("active", true); Shared("ending", true); Shared("round", 3); Shared("endAt", double.PositiveInfinity);
+            Set(cannon, "endingRound", 3); Set(cannon, "returnedRound", 3);
+            Call(cannon, "CaptureEndingMover");
+
+            var settings = GameSettings.WaitingRoom.Rehearsal;
+            bool previous = settings.RecoverAfterDeath;
+            try
+            {
+                Set(settings, "recoverAfterDeath", recoveryEnabled);
+                Call(cannon, "TickEnding");
+                Call(cannon, "ReleaseEndingLock");
+                Assert.That(player.State, Is.EqualTo(recoveryEnabled ? PlayerState.Normal : PlayerState.Fallen));
+                Assert.That(mover.ControlEnabled, Is.EqualTo(recoveryEnabled));
+                Assert.That(mover.Simulated, Is.True);
+                Assert.That(outsidePractice.State, Is.EqualTo(PlayerState.Fallen));
+            }
+            finally { Set(settings, "recoverAfterDeath", previous); }
+        }
+
+        [TestCase(true, true)] [TestCase(false, true)] [TestCase(true, false)]
+        public void TightropePracticeEndingOnlyRecoversFallenPlayersWhilePracticeRulesApply(bool recoveryEnabled, bool practicePhase)
+        {
+            var player = Player(906);
+            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
+            Set(rehearsal, "active", true); Set(rehearsal, "practice", true);
+            var snapshot = run.State;
+            snapshot.Phase = practicePhase ? CampaignPhase.RestTime : CampaignPhase.Performance;
+            Set(run, "state", snapshot);
+
+            var settings = GameSettings.WaitingRoom.Rehearsal;
+            bool previous = settings.RecoverAfterDeath;
+            try
+            {
+                Set(settings, "recoverAfterDeath", recoveryEnabled);
+                Assert.That(WaitingRoomRehearsal.EndPractice(), Is.True);
+                Assert.That(player.State, Is.EqualTo(recoveryEnabled && practicePhase ? PlayerState.Normal : PlayerState.Fallen));
+            }
+            finally { Set(settings, "recoverAfterDeath", previous); }
         }
 
         [TestCase(false)] [TestCase(true)]
@@ -324,12 +491,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit));
                 Call(flow, "LateUpdate");
                 var blockers = (HashSet<object>)typeof(InputGate).GetField("blockers", Static).GetValue(null);
-                Assert.That(blockers.Contains(Get(flow, "teamLock")), Is.False,
+                Assert.That(blockers.Contains(flow), Is.False,
                     "리허설이 일반 안내를 중단한 동안 안내 전원 완료 잠금이 걸리면 진행할 수 없다.");
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit), "안내 완료나 타이머를 강제로 건너뛰지 않는다.");
                 Shared("active", false); Set(rehearsal, "active", false); Set(rehearsal, "practice", false);
                 Call(flow, "LateUpdate");
-                Assert.That(blockers.Contains(Get(flow, "teamLock")), Is.True, "리허설 뒤에는 기존 전원 안내 대기로 돌아간다.");
+                Assert.That(blockers.Contains(flow), Is.True, "리허설 뒤에는 기존 전원 안내 대기로 돌아간다.");
             }
             finally
             {

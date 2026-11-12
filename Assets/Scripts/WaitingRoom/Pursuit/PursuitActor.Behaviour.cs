@@ -13,7 +13,6 @@ namespace CurtainCall.WaitingRoom.Pursuit
         BehaviorGraphAgent brain;
         PursuitStage rule;
         bool visible, sensingLook, investigating, searching, restartBrain;
-        internal bool ContactTargetVisible => visible;
         Vector3 sensingPoint, scanLook;
         float prepareUntil, noiseUntil, searchUntil, nextNoiseAt, scanStarted;
         Vector3 captureStart;
@@ -84,6 +83,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             // Existing captures continue. Keep the actor's position and patrol waypoint.
             if (Victim != null) return;
+            if (climbing) FinishClimb();
             target = null;
             visible = sensingLook = investigating = searching = false;
             unseen = noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
@@ -101,12 +101,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (target == null) return false;
             EnterBehaviour(PursuitBehaviour.Chase); agent.speed = rule.ResolvedChaseSpeed;
+            // NavMesh가 없는 소품 위 대상: 가장자리 앞까지 걸어가(directApproach) 직접 오른다.
+            var goal = hasDirectApproach ? directApproach : lastSeen;
+            bool routed = Navigate(goal, true);
+            if (TryDirectClimb(routed)) return true;
             // 닿을 경로가 없거나 막힌 경로의 끝에 섰으면 제자리 달리기 대신 대상을 노려보며 대기하고 재계산을 기다린다.
-            if (Navigate(lastSeen, true) && !AtPartialEnd && !(!visible && Reached(lastSeen))) SetMotion(PursuitMotion.Run);
+            if (routed && !AtPartialEnd && !(!visible && Reached(goal))) SetMotion(PursuitMotion.Run);
             else { SetMotion(PursuitMotion.Awaken); Face(lastSeen); }
-            if (director.RequiresOwnerContact(target.gameObject)) return true;
-            if (visible && WithinCaptureReach(target.position)
-                && director.ClearLine(transform.position + Vector3.up, target.position + Vector3.up, target)) director.BeginCapture(this, target.gameObject);
+            // 쫓는 대상을 먼저, 포획 범위(수평 거리·높이 범위)에 든 다른 플레이어도 잡는다. 원격 플레이어는 자기 화면 접촉 보고로만.
+            director.CaptureInReach(this, target.gameObject);
             return true;
         }
         public bool ActInvestigate()

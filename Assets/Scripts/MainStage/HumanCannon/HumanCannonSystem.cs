@@ -3,6 +3,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -205,6 +206,7 @@ namespace CurtainCall.HumanCannon
         {
             if (player == null || player.State != PlayerState.Normal || player.IsAirborne || IsFlying(player.OwnerClientId)) return -1;
             if (HumanCannonCarry.Held(player.OwnerClientId) != null) return -1;
+            if (TightropeHangSystem.Current is { } hangs && (hangs.IsHanging(player) || hangs.IsRescuing(player))) return -1;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return -1;
             for (int i = 0; i < seats.Length; i++)
                 if (seats[i].State.Occupant == player.OwnerClientId) return -1;
@@ -448,8 +450,15 @@ namespace CurtainCall.HumanCannon
         void HandleRevivedMotion(NetworkPlayer player)
         {
             pendingLandingReports.Remove(player.OwnerClientId);
-            if (session != null && session.IsHost) flying.RemoveWhere(id => id == player.OwnerClientId, SendFlightRemoved);
-            else flying.Remove(player.OwnerClientId);
+            if (session != null && session.IsHost)
+            {
+                ServerReleaseForInspection(player.OwnerClientId);
+                return;
+            }
+            flying.Remove(player.OwnerClientId);
+            foreach (var seat in seats)
+                if (seat.State.Occupant == player.OwnerClientId)
+                    seat.State.Receive(seat.State.Revision, CannonSeatState.Nobody);
             if (player == boundPlayer && pilot != null) pilot.ReleaseMovement();
         }
 

@@ -66,11 +66,33 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.IsTrue(travel.Receive(3, DeparturePhase.Returning, 7, 16, 4));
             Assert.IsTrue(travel.Delivered);
             Assert.That(travel.Progress(18), Is.EqualTo(0.5f));
-            Assert.IsFalse(travel.Receive(4, DeparturePhase.Returning, CannonSeatState.Nobody, 16, 4));
+            Assert.IsFalse(travel.Receive(4, DeparturePhase.Returning, CannonSeatState.Nobody, 16, 0));
             Assert.IsTrue(travel.Receive(4, DeparturePhase.Waiting, CannonSeatState.Nobody, 0, 0, true));
             Assert.IsTrue(travel.Delivered);
             Assert.IsTrue(travel.Receive(5, DeparturePhase.Waiting, CannonSeatState.Nobody, 0, 0));
             Assert.IsFalse(travel.Delivered);
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void ReleasedRiderLeavesThePlatformOnItsOriginalSchedule()
+        {
+            var host = new DepartureTravelState();
+            var observer = new DepartureTravelState();
+            Assert.IsTrue(host.TryStart(7, 0, 10, 8));
+            Assert.IsFalse(host.TryReleaseRider(8));
+            Assert.IsTrue(host.TryReleaseRider(7));
+            Assert.IsTrue(observer.Receive(host.Revision, host.Phase, host.Rider, host.StartedAt, host.Duration));
+            Assert.AreEqual(CannonSeatState.Nobody, observer.Rider);
+            Assert.AreEqual(0.5f, observer.Progress(14));
+            Assert.IsTrue(host.Tick(18));
+            Assert.IsTrue(observer.Receive(host.Revision, host.Phase, host.Rider, host.StartedAt, host.Duration));
+            Assert.AreEqual(CannonSeatState.Nobody, observer.Rider);
+            Assert.AreEqual(1f, observer.Progress(18));
+            Assert.IsTrue(host.TryReturn(20));
+            Assert.IsTrue(observer.Receive(host.Revision, host.Phase, host.Rider, host.StartedAt, host.Duration));
+            Assert.AreEqual(0.5f, observer.Progress(24));
+            Assert.IsTrue(host.Tick(28));
+            Assert.IsTrue(host.TryStart(7, host.Revision, 30, 8));
         }
 
         [Test]
@@ -173,8 +195,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(DeparturePhase.Waiting, ulong.MaxValue, 0d, 8f)]
         [TestCase(DeparturePhase.Waiting, ulong.MaxValue, double.NaN, 0f)]
         [TestCase(DeparturePhase.Waiting, ulong.MaxValue, 0d, float.NaN)]
-        [TestCase(DeparturePhase.Moving, ulong.MaxValue, 10d, 8f)]
-        [TestCase(DeparturePhase.Arrived, ulong.MaxValue, 10d, 8f)]
+        [TestCase(DeparturePhase.Moving, ulong.MaxValue, 10d, 0f)]
+        [TestCase(DeparturePhase.Arrived, ulong.MaxValue, -1d, 8f)]
         [TestCase((DeparturePhase)99, ulong.MaxValue, 0d, 0f)]
         public void Receive_InvalidCombinationPreservesCurrentTravel(DeparturePhase phase, ulong rider,
             double startedAt, float duration)
