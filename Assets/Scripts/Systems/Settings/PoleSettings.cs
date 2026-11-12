@@ -20,16 +20,18 @@ namespace CurtainCall.Settings
         [SerializeField, Min(.2f)] float hangLength = 1.5f;
         [InspectorName("매달린 사람 사이 간격"), Tooltip("위아래로 매달린 사람들의 발 사이 수직 간격(m). 기본 1.45m. 인원을 늘리면 이 간격만큼 사슬이 길어진다.")]
         [SerializeField, Min(.2f)] float passengerSeparation = 1.45f;
+        [InspectorName("매달린 팀원 잡기 반경"), Tooltip("봉에 매달린 팀원 몸통 중심에서 잡을 수 있는 구체 반경(m). 기본 3m. 벽·층과 팔 부상에 따른 공통 거리 제한은 적용된다.")]
+        [SerializeField, Min(.1f)] float passengerGrabRadius = 3f;
         [Header("앞뒤 운동 — 외형 케이블 길이와 독립")]
         [InspectorName("앞뒤 운동 속도 배율"), Tooltip("봉과 사람이 왕복하는 전체 물리 시간의 배율. 기본 1.7. 크게 하면 왕복과 반동 축적·감쇠가 함께 빨라지고, 도약에 이어받는 반동 속도도 같은 배율로 커진다. 추가 상승 속도는 그대로이며 수평 속도는 도약 상한을 넘지 않는다. 모든 봉·원격 화면에 공통 적용한다.")]
         [SerializeField, Range(.5f, 2f)] float swingMotionSpeed = 1.7f;
-        [InspectorName("반동 계산용 진자 길이"), Tooltip("봉의 흔들림 이동 범위와 관성을 계산하는 길이(m). 천장 앵커·중립 위치는 바꾸지 않는다. 길어지면 같은 각도에서 이동 폭과 도약 관성이 커진다. 기본 2m, 최대 각도 85도에서 앞뒤 이동 폭 약 4m.")]
+        [InspectorName("반동 계산용 진자 길이"), Tooltip("봉의 흔들림 이동 범위와 관성을 계산하는 길이(m). 천장 앵커·중립 위치는 바꾸지 않는다. 길어지면 같은 각도에서 이동 폭과 도약 관성이 커진다. 기본 2m, 최대 각도 90도에서 앞뒤 이동 폭 4m.")]
         [SerializeField, Min(.1f)] float swingLength = 2f;
-        [InspectorName("최대 흔들림 각도"), Tooltip("중립 위치에서 앞뒤로 기울 수 있는 최대 각도(도). 기본 앞뒤 각각 85도. 1~85도 범위. 이 각도에 해당하는 총 반동 에너지도 제한하므로 계속 입력해도 숨은 반동이 무한히 쌓이지 않는다.")]
-        [SerializeField, Range(1f, 85f)] float maxSwingAngle = 85f;
+        [InspectorName("최대 흔들림 각도"), Tooltip("중립 위치에서 앞뒤로 기울 수 있는 최대 각도(도). 기본 앞뒤 각각 90도. 1~90도 범위. 이 각도에 해당하는 총 반동 에너지도 제한하므로 계속 입력해도 숨은 반동이 무한히 쌓이지 않는다.")]
+        [SerializeField, Range(1f, 90f)] float maxSwingAngle = 90f;
         [InspectorName("최대 흔들림 속도"), Tooltip("운동 속도 배율을 적용하기 전 회전 속도 상한(도/초). 기본 180도/초이며 배율 1.7이면 최대 306도/초. 최대 각도에 해당하는 에너지 상한도 함께 적용한다. 너무 낮추면 최대 각도에 도달하지 못한다.")]
         [SerializeField, Min(1f)] float maxSwingSpeed = 180f;
-        [InspectorName("반동 입력 가속도"), Tooltip("반동을 키우거나 제동하는 힘(도/초², 운동 속도 배율 적용 전). 진행 방향 입력은 매 왕복에 힘을 보탠다. 움직이는 반대쪽 키를 새로 누르면 그 키를 놓을 때까지 제동해 중립으로 돌아온다. 기본 100.")]
+        [InspectorName("반동 입력 가속도"), Tooltip("반동을 키우는 힘(도/초², 운동 속도 배율 적용 전). 진행 방향 입력은 매 왕복에 힘을 보탠다. 반대쪽 키를 유지하면 봉이 해당 방향으로 움직일 때 힘을 보탠다. 기본 100.")]
         [SerializeField, Min(0f)] float swingAcceleration = 100f;
         [InspectorName("흔들림 감쇠"), Tooltip("마찰에 의해 반동이 줄어드는 정도(1/초, 운동 속도 배율 적용 전). 입력을 멈춰도 바로 정지하지 않고 왕복 폭과 도약 힘이 함께 서서히 줄어든다. 클수록 빨리 멈추며 0이면 감쇠하지 않는다. 기본 0.12.")]
         [SerializeField, Min(0f)] float swingDamping = .12f;
@@ -54,11 +56,12 @@ namespace CurtainCall.Settings
         public bool CanDrive(int seat) => seat >= 0 && (!topRiderOnlySwing || seat == 0);
         public float HoldSeconds => Mathf.Max(.1f, holdSeconds);
         public float GrabRadius => GameSettings.Base.Interaction.Distance;
+        public float PassengerGrabRadius => Mathf.Max(.1f, passengerGrabRadius);
         public float HangLength => Mathf.Max(.2f, hangLength);
         public float PassengerSeparation => Mathf.Max(.2f, passengerSeparation);
         public float SwingMotionSpeed => float.IsFinite(swingMotionSpeed) ? Mathf.Clamp(swingMotionSpeed, .5f, 2f) : 1.7f;
         public float SwingLength => Mathf.Max(.1f, swingLength);
-        public float MaxSwingAngle => Mathf.Clamp(maxSwingAngle, 1f, 85f);
+        public float MaxSwingAngle => Mathf.Clamp(maxSwingAngle, 1f, 90f);
         public float MaxSwingSpeed => Mathf.Max(1f, maxSwingSpeed);
         public float SwingAcceleration => Mathf.Max(0f, swingAcceleration);
         public float SwingDamping => Mathf.Max(0f, swingDamping);

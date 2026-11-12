@@ -353,7 +353,9 @@ namespace CurtainCall.WaitingRoom
         void TrackPersonalProgress(PlayerMover mover)
         {
             bool completed = UsesInitialTutorialRules && course != null && Stage != null
-                && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
+                && !localRecoveryPending && placed.Contains(local.OwnerClientId)
+                && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId)
+                && (Stage.Kind != RehearsalStageKind.Trapeze || !IsStartPosition(local.transform.position));
             if (completed && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
             {
                 // 한 번의 도약/다음 봉 잡기가 끝나면 연습을 마친다. 공연의 연속 봉 코스를 재현하지 않는다.
@@ -397,7 +399,8 @@ namespace CurtainCall.WaitingRoom
         void PlaceLocal(PlayerMover mover)
         {
             if (placedRound == round) return;
-            if (local.State != PlayerState.Normal || local.Slot == NetworkPlayer.NoSlot) return;
+            if (local.State != PlayerState.Normal || local.Slot == NetworkPlayer.NoSlot
+                || CurtainCall.HumanCannon.HumanCannonCarry.Held(local.OwnerClientId) != null) return;
             if (course != null)
             {
                 if (!PlaceLocalAtStart()) return;
@@ -503,6 +506,8 @@ namespace CurtainCall.WaitingRoom
         {
             bool normal = local.State == PlayerState.Normal;
             bool bodyEnabled = mover.Body != null && mover.Body.enabled;
+            if (local.TryGetComponent(out HumanoidPlayerPresentation presentation)) presentation.CancelItemAction();
+            PiggybackSystem.Current?.GetComponent<PiggybackFollow>()?.ReleaseForDevice(local);
             if (normal && local.TryGetComponent(out CurtainCall.HumanCannon.HumanCannonPilot pilot)) pilot.ClearMotionForInspection();
             if (normal && local.TryGetComponent(out PlayerBalance balance)) { balance.ResetBalance(); balance.SetBalanceActive(false); }
             mover.SetStartPose(position, rotation, true);

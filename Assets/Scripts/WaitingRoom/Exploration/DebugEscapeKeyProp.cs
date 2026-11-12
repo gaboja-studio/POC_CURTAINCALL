@@ -21,17 +21,17 @@ namespace CurtainCall.WaitingRoom
         public Transform VisualRoot => transform;
         public Vector3 PresentationPoint => transform.position;
         public string ActionLabel => Opened ? $"은색 열쇠 {keyNumber} 얻음 (디버그)" : $"은색 열쇠 {keyNumber} 얻기 (디버그)";
-        public bool IsAvailable => ExplorationState.Instance != null && !Opened;
+        public bool IsAvailable => ExplorationKeys.Enabled && ExplorationState.Instance != null && !Opened;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        void Awake() { if (!CurtainCall.Dev.DevMode.Enabled) gameObject.SetActive(false); }
+        void Awake() { if (!ExplorationKeys.Enabled || !CurtainCall.Dev.DevMode.Enabled) gameObject.SetActive(false); }
         void OnEnable() => ShopReach.Add(this);
         void OnDisable() => ShopReach.Remove(this);
         void Update() => ShopReach.Pump();
 
         public float Reach(Vector3 feet, Component actor = null)
         {
-            return ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor);
+            return IsAvailable ? ExplorationReach.From(VisualRoot, PresentationPoint, feet, CommonReach, actor: actor) : -1f;
         }
 
         public void Interact()

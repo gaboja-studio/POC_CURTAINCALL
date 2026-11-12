@@ -24,6 +24,7 @@ namespace CurtainCall.SpaceLink
         bool controlHeld;
         readonly System.Collections.Generic.HashSet<NetworkPlayer> prepared = new();
         readonly System.Collections.Generic.HashSet<NetworkPlayer> seenAtStart = new();
+        readonly System.Collections.Generic.Dictionary<NetworkPlayer, double> entryGraceEnds = new();
         System.Func<NetworkPlayer, PlayerState, bool> guard, previousGuard;
 
         public bool LocalPlaced => placed != null;
@@ -84,7 +85,10 @@ namespace CurtainCall.SpaceLink
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (prepared.Add(player) && player.State == PlayerState.Arrived) player.ServerSetState(PlayerState.Normal);
-                    if (guard != null && IsAtStart(player)) seenAtStart.Add(player);
+                    if (guard == null || seenAtStart.Contains(player)) continue;
+                    if (IsAtStart(player, player.transform.position)) seenAtStart.Add(player);
+                    else if (player.IsSpawned && player.Slot != NetworkPlayer.NoSlot)
+                        entryGraceEnds.TryAdd(player, Time.unscaledTimeAsDouble + GameSettings.Base.SpaceTransition.PerformancePlacementGraceSeconds);
                 }
             var local = NetworkPlayer.Local;
             if (local == null || !local.IsSpawned || local.Slot == NetworkPlayer.NoSlot || local.State == PlayerState.Arrived) return;
@@ -94,22 +98,30 @@ namespace CurtainCall.SpaceLink
 
         /// <summary>
         /// 호스트: 원격 소유자의 출발점 순간이동은 씬 로드보다 늦게 온다. 그 전의 이전 공간 위치로 사망 판정하지 않도록
-        /// 해당 공연 중 출발점에서 한 번 확인된 플레이어만 사망을 받는다. 종료 후 부활자가 옛 씬에서 다시 죽는 것도 막는다.
+        /// 출발점 도착을 확인하거나 최대 대기 시간이 지나면 사망 판정을 재개한다. 종료 후 옛 씬의 사망은 계속 막는다.
         /// </summary>
         void HoldDeathsUntilPlaced()
         {
             previousGuard = NetworkPlayer.ServerCanChangeState;
-            guard = (player, next) => (next != PlayerState.Fallen || (IsCurrentPerformance && seenAtStart.Contains(player)))
+            guard = (player, next) => (next != PlayerState.Fallen || IsCurrentPerformance && (seenAtStart.Contains(player)
+                    || entryGraceEnds.TryGetValue(player, out double until) && Time.unscaledTimeAsDouble >= until))
                 && (previousGuard == null || previousGuard(player, next));
             NetworkPlayer.ServerCanChangeState = guard;
         }
 
-        static bool IsAtStart(NetworkPlayer player)
+        internal static void ConfirmPlayerPlacement(NetworkPlayer player, Vector3 feet)
+        {
+            var entry = FindFirstObjectByType<CampaignPerformanceEntry>();
+            if (entry != null && entry.guard != null && entry.IsCurrentPerformance && IsAtStart(player, feet))
+                entry.seenAtStart.Add(player);
+        }
+
+        static bool IsAtStart(NetworkPlayer player, Vector3 feet)
         {
             if (player.Slot == NetworkPlayer.NoSlot || player.State != PlayerState.Normal
                 || !player.TryGetComponent(out PlayerMover playerMover)) return false;
             PlayerSpawnPoints.GetPose(player.Slot, playerMover.LaneSpacing, out var position, out _);
-            return Vector3.Distance(player.transform.position, position) <= 1.5f;
+            return Vector3.Distance(feet, position) <= 1.5f;
         }
 
         void Place(NetworkPlayer player)

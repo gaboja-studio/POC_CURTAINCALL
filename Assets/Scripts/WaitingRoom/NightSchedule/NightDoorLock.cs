@@ -1,5 +1,6 @@
 using System;
 using CurtainCall.Campaign;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -36,6 +37,9 @@ namespace CurtainCall.WaitingRoom
 
         GUIStyle style;
         float closed; // 0 = 다 열림, 1 = 다 닫힘
+        BoxCollider tutorialBarrier;
+        Vector3 originalShutterPosition;
+        bool shutterPositionSaved, tutorialProtected;
 
         /// <summary>지금 문이 잠겨 있는가(셔터가 내려오는 중 포함).</summary>
         public bool IsLocked { get; private set; }
@@ -48,9 +52,12 @@ namespace CurtainCall.WaitingRoom
 
         void OnEnable()
         {
+            if (!shutterPositionSaved && shutter != null)
+            { originalShutterPosition = shutter.localPosition; shutterPositionSaved = true; }
             // 씬이 열릴 때는 움직이지 않고 지금 상태로 바로 둔다(밤에 대기실로 돌아오면 이미 닫혀 있다).
             Apply(ShouldLock(), true);
             closed = IsLocked ? 1f : 0f;
+            UpdateTutorialBarrier();
             Pose();
         }
 
@@ -58,6 +65,7 @@ namespace CurtainCall.WaitingRoom
         {
             bool locked = ShouldLock();
             if (locked != IsLocked) Apply(locked, false);
+            if (UpdateTutorialBarrier()) Pose();
 
             float target = IsLocked ? 1f : 0f;
             if (!Mathf.Approximately(closed, target))
@@ -75,14 +83,33 @@ namespace CurtainCall.WaitingRoom
         /// <summary>연습실 통로 철창 이름. 최초 리허설 동안 이 철창만 열어 둔다(Task-097, 기획서 2장: 리허설·공연 입구 이동에 필요한 공간 외에는 철창).</summary>
         public const string RehearsalPassageName = "PracticeGate";
 
+        bool CannonPracticeSeal => name == RehearsalPassageName && WaitingRoomCannonRehearsal.IsActive
+            && GameSettings.WaitingRoom.Tutorial.SealCannonPracticeExit;
+
         bool ShouldLock()
         {
             var run = CampaignRun.Instance;
             if (run == null) return false;
             var phase = run.State.Phase;
+            if (CannonPracticeSeal) return true;
             if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
-            return CurtainCall.Settings.GameSettings.Base.Run.IsExplorationLocked(run.State)
+            return GameSettings.Base.Run.IsExplorationLocked(run.State)
                 || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
+        }
+
+        bool UpdateTutorialBarrier()
+        {
+            bool protect = IsLocked && (WaitingRoomRehearsal.IsPreTutorialRestricted || CannonPracticeSeal);
+            if (protect == tutorialProtected) return false;
+            tutorialProtected = protect;
+            if (protect && tutorialBarrier == null && shutter != null && shutter.GetComponentInChildren<BoxCollider>(true) is BoxCollider panel)
+            {
+                Vector3 center = transform.InverseTransformPoint(panel.transform.TransformPoint(panel.center));
+                float width = Mathf.Abs(transform.InverseTransformVector(panel.transform.TransformVector(Vector3.right * panel.size.x)).x);
+                if (width > .01f) tutorialBarrier = RehearsalLockdownGate.CreateBarrier(transform, center.x, center.z, width);
+            }
+            if (tutorialBarrier != null) tutorialBarrier.enabled = protect;
+            return true;
         }
 
         void Apply(bool locked, bool initial)
@@ -99,8 +126,12 @@ namespace CurtainCall.WaitingRoom
             if (shutter == null) return;
             // 끝으로 갈수록 천천히 닿게 한다.
             float eased = Mathf.SmoothStep(0f, 1f, closed);
+            float authoredHeight = originalShutterPosition.y;
+            float raised = tutorialProtected && authoredHeight > .01f
+                ? Mathf.Max(0f, GameSettings.WaitingRoom.Tutorial.LockdownGateHeight - authoredHeight) : 0f;
+            shutter.localPosition = originalShutterPosition + Vector3.up * raised;
             var scale = shutter.localScale;
-            scale.y = Mathf.Lerp(openScale, 1f, eased);
+            scale.y = Mathf.Lerp(openScale, 1f, eased) * (raised > 0f ? 1f + raised / authoredHeight : 1f);
             shutter.localScale = scale;
         }
 

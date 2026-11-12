@@ -10,7 +10,7 @@ namespace CurtainCall.HumanCannon
         const double RadiansToDegrees = 180.0 / Math.PI;
 
         public static void Step(ref float angleDegrees, ref float angularSpeedDegrees, float input, float dt,
-            float gravity, float length, float acceleration, float maxAngle, float maxSpeed, float damping, bool braking = false)
+            float gravity, float length, float acceleration, float maxAngle, float maxSpeed, float damping)
         {
             if (!Finite(angleDegrees)) angleDegrees = 0;
             if (!Finite(angularSpeedDegrees)) angularSpeedDegrees = 0;
@@ -18,7 +18,7 @@ namespace CurtainCall.HumanCannon
                 || !Finite(length) || length <= 0 || !Finite(acceleration) || acceleration < 0
                 || !Finite(maxAngle) || maxAngle < 0 || !Finite(maxSpeed) || maxSpeed < 0
                 || !Finite(damping) || damping < 0) return;
-            if ((braking || Math.Abs(input) < .01f) && Math.Abs(angleDegrees) < .01f && Math.Abs(angularSpeedDegrees) < .01f)
+            if (Math.Abs(input) < .01f && Math.Abs(angleDegrees) < .01f && Math.Abs(angularSpeedDegrees) < .01f)
             {
                 angleDegrees = angularSpeedDegrees = 0;
                 return;
@@ -34,21 +34,15 @@ namespace CurtainCall.HumanCannon
             double decay = Math.Exp(-damping * step);
             double gravityOverLength = (double)gravity / length;
             double maximumEnergy = gravityOverLength * (1 - Math.Cos(maxAngle * DegreesToRadians));
-            double brakeStep = Math.Abs(requestedDrive) * step;
-            // Cap brake torque near rest to the pendulum's critical damping, so it
-            // can return to center under gravity instead of locking at an angle.
-            double brakeFraction = braking && gravity > 0 ? 1 - Math.Exp(-2 * Math.Sqrt(gravityOverLength) * step) : 1;
             for (int i = 0; i < count; i++)
             {
                 // Push during the matching half of the swing, then let gravity bring it back.
                 // Holding a direction builds energy over successive passes instead of pinning
                 // the bar at a tilted equilibrium. Alternating W/S can pump both halves.
-                double drive = !braking && requestedDrive * speed >= 0
+                double drive = requestedDrive * speed >= 0
                     ? requestedDrive * Math.Max(0, Math.Cos(angle * DegreesToRadians)) : 0;
                 double restoring = -gravityOverLength * Math.Sin(angle * DegreesToRadians) * RadiansToDegrees;
                 speed += (restoring + drive) * step;
-                if (braking)
-                    speed -= Math.Sign(speed) * Math.Min(brakeStep, Math.Abs(speed) * brakeFraction);
                 speed = Clamp(speed * decay, maxSpeed);
                 angle += speed * step;
                 if (angle >= maxAngle)

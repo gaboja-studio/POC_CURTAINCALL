@@ -36,6 +36,7 @@ namespace CurtainCall.WaitingRoom
         public static PropCarry Instance { get; private set; }
 
         readonly Dictionary<ulong, int> selected = new();
+        readonly Dictionary<ulong, int> rehearsalSelection = new();
         readonly Dictionary<ulong, List<PropItem>> receivedHeld = new();
         readonly List<FloorProp> receivedFloor = new();
         readonly PropItem[] receivedShelf = new PropItem[ItemCarryBook.ShelfSlots];
@@ -133,7 +134,7 @@ namespace CurtainCall.WaitingRoom
             if (!selected.TryGetValue(player, out int uid) || uid <= 0) return default;
             var items = Held(player);
             int limit = Mathf.Min(items.Count, Slots(player));
-            for (int i = 0; i < limit; i++) if (items[i].Uid == uid) return items[i];
+            for (int i = 0; i < limit; i++) if (items[i].Uid == uid && ExplorationKeys.ItemEnabled(items[i].ItemId)) return items[i];
             return default;
         }
 
@@ -145,6 +146,29 @@ namespace CurtainCall.WaitingRoom
         {
             var item = Selected(player);
             return item.Uid != 0 && IsHoldable(item.ItemId) ? item : default;
+        }
+
+        internal void SaveRehearsalSelection()
+        {
+            rehearsalSelection.Clear();
+            if (!HasAuthority) return;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned) rehearsalSelection[player.OwnerClientId] = Selected(player.OwnerClientId).Uid;
+        }
+
+        internal void RestoreRehearsalSelection()
+        {
+            if (!HasAuthority || rehearsalSelection.Count == 0) return;
+            foreach (var (actor, uid) in rehearsalSelection)
+            {
+                var held = book.Held(actor);
+                int limit = Mathf.Min(held.Count, Slots(actor));
+                selected[actor] = -1;
+                for (int i = 0; i < limit; i++)
+                    if (held[i].Uid == uid) { selected[actor] = uid; break; }
+            }
+            rehearsalSelection.Clear();
+            Publish();
         }
 
         /// <summary>손에 들 수 있는 기물(도구)인가. 장비·오브제는 손에 들지 않는다.</summary>
@@ -186,7 +210,7 @@ namespace CurtainCall.WaitingRoom
             if (uid == 0) { selected[player] = -1; Publish(); return; }
             var items = book.Held(player);
             for (int i = 0; i < Mathf.Min(5, Mathf.Min(items.Count, Slots(player))); i++)
-                if (items[i].Uid == uid) { selected[player] = Selected(player).Uid == uid ? -1 : uid; Publish(); return; }
+                if (items[i].Uid == uid && ExplorationKeys.ItemEnabled(items[i].ItemId)) { selected[player] = Selected(player).Uid == uid ? -1 : uid; Publish(); return; }
         }
 
         void Awake()
@@ -238,6 +262,7 @@ namespace CurtainCall.WaitingRoom
             {
                 book.ResetGeneration();
                 selected.Clear();
+                rehearsalSelection.Clear();
                 Debug.Log($"[Carry] 세대 교체 {seenGeneration} → {generation}: 물려줄 선반만 남기고 기물을 비웠습니다.");
                 Publish();
             }
@@ -297,6 +322,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>판정 화면: 상점 배송구에서 받은 기물을 들린다.</summary>
         public CarryRefusal Receive(ulong player, PropItem item)
         {
+            if (!ExplorationKeys.ItemEnabled(item.ItemId)) return CarryRefusal.NotFound;
             var refusal = book.Take(player, Slots(player), item);
             if (refusal == CarryRefusal.None) { AutoHold(player, item); Publish(); }
             return refusal;
@@ -310,6 +336,13 @@ namespace CurtainCall.WaitingRoom
         /// </summary>
         public CarryRefusal UseItem(ulong player, int uid, out PropItem after, out bool destroyed)
         {
+            foreach (var item in book.Held(player))
+            {
+                if (item.Uid != uid || ExplorationKeys.ItemEnabled(item.ItemId)) continue;
+                after = default;
+                destroyed = false;
+                return CarryRefusal.NotFound;
+            }
             var refusal = book.Use(player, uid, out after, out destroyed);
             if (refusal != CarryRefusal.None) return refusal;
             if (after.Uses != ItemUses.Unlimited) MarkUsed(player, uid, destroyed);
@@ -321,6 +354,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>판정 화면: 탐색 발견품을 바닥에 놓는다. 이미 어딘가에 있으면 무시한다.</summary>
         public CarryRefusal PlaceFound(PropItem item, Vector3 at)
         {
+            if (!ExplorationKeys.ItemEnabled(item.ItemId)) return CarryRefusal.NotFound;
             var refusal = book.Place(item, at.x, at.y, at.z);
             if (refusal == CarryRefusal.None) { Debug.Log($"[Carry] 발견품 배치 #{item.Uid} {item.Name}"); Publish(); }
             return refusal;
@@ -350,6 +384,8 @@ namespace CurtainCall.WaitingRoom
             foreach (var floor in book.Floor)
                 if (floor.Item.Uid == uid)
                 {
+                    if (!ExplorationKeys.ItemEnabled(floor.Item.ItemId))
+                        return Reject(player, "PICK_UP", uid, "CARRY_NotFound", Explain(CarryRefusal.NotFound));
                     var body = FindBody(player);
                     if (body == null || !FloorPropsView.CanPickUp(uid, body.position, body))
                         return Reject(player, "PICK_UP", uid, "TOO_FAR", WaitingRoomText.Get("carry.too-far", "기물에 가까이 다가가세요."));
@@ -521,6 +557,7 @@ namespace CurtainCall.WaitingRoom
         {
             book.Clear();
             selected.Clear();
+            rehearsalSelection.Clear();
             cooldownUntil.Clear();
             useMarks.Clear();
             equipmentReports.Clear(); equipmentReceipts.Clear(); equipmentSequence = 0; equipmentRetryAt = 0;

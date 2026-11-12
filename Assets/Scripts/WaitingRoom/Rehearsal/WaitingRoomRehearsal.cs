@@ -234,6 +234,7 @@ namespace CurtainCall.WaitingRoom
             fallenAt.Clear();
             if (HasAuthority)
             {
+                ReleaseLessonDevices();
                 arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
                 // 호스트: 기억해 둔 소구간부터. 완료했으면 바로 집결 안내. 재연습은 고른 소구간부터.
                 stage = practice ? practiceStage : Mathf.Clamp(savedStage, 0, RehearsalStage.All.Length - 1);
@@ -444,6 +445,7 @@ namespace CurtainCall.WaitingRoom
                 changed |= arrived.Remove(id);
                 changed |= votes.Remove(id);
                 changed |= placed.Remove(id);
+                changed |= lessonProgress.Remove(id);
                 lessonSamples.Remove(id);
                 if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; RecordAction("FALLEN", id); continue; }
                 float delay = practice ? GameSettings.WaitingRoom.Rehearsal.RecoverSeconds : GameSettings.WaitingRoom.Tutorial.RecoverSeconds;
