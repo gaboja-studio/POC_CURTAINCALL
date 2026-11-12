@@ -197,6 +197,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
                 if (DoorOpen && !string.IsNullOrEmpty(openTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                if (!string.IsNullOrEmpty(cable.OpenTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cable.OpenTarget);
                 ShareCut(cable, hit);
             }
         }

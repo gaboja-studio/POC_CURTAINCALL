@@ -26,14 +26,15 @@ namespace CurtainCall.WaitingRoom
             exclusiveWeighted = true; pending = false;
             entries = new[] {
                 new Entry { itemId = ItemUses.MagicianHairpin, uidOffset = hairpinOffset, chancePercent = 15 },
-                new Entry { itemId = PerformanceTokenId, uidOffset = tokenOffset, chancePercent = 20 }
+                new Entry { itemId = PerformanceTokenId, uidOffset = tokenOffset, chancePercent = 85 }
             };
         }
         public int Choose(int roll)
         {
             int limit = 0;
             for (int i = 0; i < entries.Length; i++) { limit += entries[i].chancePercent; if (roll < limit) return i; }
-            return -1;
+            // 꽝 없음(2026-11-12 사용자): 확률 합이 100에 못 미치는 나머지는 마지막 보상(공연 토큰)이 받는다. 목록이 비면 보상 없음.
+            return entries.Length - 1;
         }
         public void ConfigureEmpty() { entries = Array.Empty<Entry>(); pending = false; exclusiveWeighted = false; }
         public void ConfigurePending() => pending = true;

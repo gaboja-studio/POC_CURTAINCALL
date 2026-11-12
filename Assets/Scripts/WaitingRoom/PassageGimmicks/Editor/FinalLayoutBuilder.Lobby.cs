@@ -96,7 +96,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             ArcSlab(hall, "FloorArc", floorMat, VestibuleX0, VestibuleX1, Mathf.Min(arc0, arc1), false, 0f, true);
             Box(hall, "SideWall", wallMat, new(VestibuleX0 - .3f, 0, WorkshopTo.yMax - .05f), new(VestibuleX0, DoorH + .4f, arc0 + .3f), true);
             Box(hall, "SideWall", wallMat, new(VestibuleX1, 0, PropTo.yMax - .05f), new(VestibuleX1 + .3f, DoorH + .4f, arc1 + .3f), true);
-            Box(hall, "EndWall", wallMat, new(VestibuleX0, 0, CraftSouthZ - .5f), new(VestibuleX1, DoorH + .4f, CraftSouthZ), true);
+            // 전실 남쪽 끝은 사무실 복도 북벽이 막는다. 같은 자리에 벽을 하나 더 세우면 두 벽이 겹쳐 깜빡이므로 세우지 않는다.
             Box(hall, "Roof", wallMat, new(VestibuleX0 - .3f, DoorH + .1f, CraftSouthZ - .5f), new(VestibuleX1 + .3f, DoorH + .4f, Mathf.Max(arc0, arc1) + .3f), true);
             SaveLobbyMeshes();
 

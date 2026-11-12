@@ -148,7 +148,8 @@ namespace CurtainCall.WaitingRoom
             }
             foreach (var m in marks)
                 if (m != null) foreach (var r in m.GetComponentsInChildren<Renderer>(true))
-                    if (r.GetComponent<TextMesh>() == null) r.sharedMaterial = Glow(r.sharedMaterial);
+                    // 글자로 적은 낙서(TMP)는 글꼴 재질과 글자색을 그대로 쓴다(형광색은 글자색으로 준다).
+                    if (r.GetComponent<TextMesh>() == null && r.GetComponent<TMPro.TMP_Text>() == null) r.sharedMaterial = Glow(r.sharedMaterial);
         }
 
         Material Glow(Material source)

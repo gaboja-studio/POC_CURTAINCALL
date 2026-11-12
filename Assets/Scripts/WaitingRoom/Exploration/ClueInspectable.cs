@@ -47,6 +47,22 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("새김 글자를 찾았을 때 설명에 더할 문구. 문구 파일의 target.<ID>.secret이 우선한다.")]
         [SerializeField, TextArea] string secretText = "";
 
+        [Tooltip("노트처럼 넘겨 읽는 쪽 글귀(2026-11-12 사용자). 문구 파일의 target.<ID>.page.1, .page.2 …가 있으면 그쪽이 우선한다. 비우면 넘기는 화면 없이 기존처럼 보인다.")]
+        [SerializeField, TextArea(3, 12)] string[] pages = Array.Empty<string>();
+        int page;
+        string[] pageCache;
+        /// <summary>넘겨 읽는 쪽 글귀. 문구 파일 → 인스펙터 순서.</summary>
+        public string[] Pages
+        {
+            get
+            {
+                if (pageCache != null) return pageCache;
+                var list = new System.Collections.Generic.List<string>();
+                for (int n = 1; WaitingRoomText.Has("target." + targetId + ".page." + n); n++) list.Add(WaitingRoomText.Get("target." + targetId + ".page." + n, "").Replace("\\n", "\n"));
+                return pageCache = list.Count > 0 ? list.ToArray() : pages ?? Array.Empty<string>();
+            }
+        }
+
         public static event Action<ClueInspectable> Inspected;
 
         internal static event Action<ClueInspectable, string, string, double?> InspectionObserved;
@@ -195,6 +211,12 @@ namespace CurtainCall.WaitingRoom
                     pivot.Rotate(cam.up, -delta.x, Space.World);
                     pivot.Rotate(cam.right, delta.y, Space.World);
                 }
+                // 노트: 좌우 화살표(또는 A·D)로 쪽을 넘긴다.
+                if (keyboard != null && Pages.Length > 1)
+                {
+                    int turn = (keyboard.rightArrowKey.wasPressedThisFrame || keyboard.dKey.wasPressedThisFrame ? 1 : 0) - (keyboard.leftArrowKey.wasPressedThisFrame || keyboard.aKey.wasPressedThisFrame ? 1 : 0);
+                    if (turn != 0) { page = Mathf.Clamp(page + turn, 0, Pages.Length - 1); if (panelView != null) panelView.SetMessage(Message()); }
+                }
                 float scroll = mouse.scroll.ReadValue().y;
                 if (Mathf.Abs(scroll) > .01f) distance = Mathf.Clamp(distance - Mathf.Sign(scroll) * .06f, viewDistance.x, viewDistance.y);
             }
@@ -236,6 +258,13 @@ namespace CurtainCall.WaitingRoom
         string Message()
         {
             string text = Description;
+            var book = Pages;
+            if (book.Length > 0)
+            {
+                page = Mathf.Clamp(page, 0, book.Length - 1);
+                text = (string.IsNullOrEmpty(text) ? "" : text + "\n") + book[page] + "\n<color=#B8B29C>"
+                    + WaitingRoomText.Format("clue.page-help", "← →: 쪽 넘기기 ({n}/{total})", ("n", page + 1), ("total", book.Length)) + "</color>";
+            }
             if (SecretSeen && !string.IsNullOrEmpty(SecretText)) text = (string.IsNullOrEmpty(text) ? "" : text + "\n") + "<color=#FFD45A>" + SecretText + "</color>";
             return (string.IsNullOrEmpty(text) ? "" : text + "\n") + WaitingRoomText.Get("clue.inspect-help", "왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기");
         }
@@ -258,7 +287,8 @@ namespace CurtainCall.WaitingRoom
                 blocker.SetOpen(true);
                 Inspected?.Invoke(this);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
-                panelView.Open(Title, Message(), false, null, () => SetOpen(false, "PANEL_BUTTON"), true);
+                page = 0; pageCache = null;
+                panelView.Open(Title, Message(), false, null, () => SetOpen(false, "PANEL_BUTTON"), true, null, Pages.Length > 0);
                 openedAt = Time.realtimeSinceStartupAsDouble;
                 InspectionObserved?.Invoke(this, "OPENED", "OVERVIEW", null);
             }

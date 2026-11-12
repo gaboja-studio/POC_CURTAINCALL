@@ -97,6 +97,10 @@ namespace CurtainCall.Settings
         bool enableKeyInteractions;
         public bool EnableKeyInteractions => enableKeyInteractions;
 
+        [SerializeField, InspectorName("탐색 공연 토큰 금액"), Tooltip("상자에서 나온 공연 토큰을 주웠을 때 공동 자금에 더하는 금액(원). 2026-11-12 사용자: 50원."), Min(0)]
+        int explorationTokenFunds = 50;
+        public int ExplorationTokenFunds => explorationTokenFunds;
+
         [Header("재연습 공통 규칙")]
         [SerializeField] RehearsalSettings rehearsal = new();
         public RehearsalSettings Rehearsal => rehearsal ??= new();

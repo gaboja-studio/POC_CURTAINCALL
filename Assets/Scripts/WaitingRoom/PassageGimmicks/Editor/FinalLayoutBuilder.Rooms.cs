@@ -14,6 +14,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     {
         const string RoomsMeshPath = AssetFolder + "LA_FinalRooms.asset";
         const float T = .5f, Tile = 1.25f;
+        const float PipeZoneWestX = 10.3f;
         // 긴 복도: 배관 연결 통로(PipeJunkLink)와 같은 폭·높이로 서쪽으로 잇는다.
         const float CorX0 = -13f, CorX1 = 13.35f, CorZ0 = 45.85f, CorZ1 = 50.85f, CorH = 5.2f;
         // 이전 세대 생활 장소와 그 남쪽 두 방.
@@ -46,10 +47,14 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var cor = Child(root, "BackCorridor");
             Slab(cor, "Floor", mFloor, new(CorX0, -.2f, CorZ0), new(CorX1 + T + .01f, 0, CorZ1));
             Slab(cor, "Ceiling", mCeil, new(CorX0 - T, CorH, CorZ0 - T), new(CorX1, CorH + .2f, CorZ1 + T));
-            Wall(cor, "NorthWall", mWall, new(CorX0 - T, 0, CorZ1), new(CorX1, CorH, CorZ1 + T));
+            // 동쪽 x10.3부터는 배관 구역 남벽이 같은 자리에 있어 겹치면 깜빡인다(2026-11-12 플레이에서 확인) → 거기까지만 세운다.
+            // 남쪽 전실 끝 벽(x-5.2~-2.1)도 이 벽이 대신한다(FinalLayoutBuilder.Lobby에서 따로 세우지 않는다).
+            Wall(cor, "NorthWall", mWall, new(CorX0 - T, 0, CorZ1), new(PipeZoneWestX, CorH, CorZ1 + T));
             Wall(cor, "WestWall", mWall, new(CorX0 - T, 0, CorZ0), new(CorX0, CorH, CorZ1));
             // 남벽은 생활 장소와 함께 쓴다. 생활 장소로 들어가는 문.
             Wall(cor, "SouthWall", mWall, new(CorX0 - T, 0, CorZ0 - T), new(CorX1, CorH, CorZ0), (-3f, -1f, 2.6f));
+            // 문턱 바닥: 복도 바닥과 생활 장소 바닥 사이(벽 두께만큼)가 비지 않게 메운다.
+            Slab(cor, "QuartersDoorSill", mFloor, new(-3f, -.2f, CorZ0 - T), new(-1f, 0, CorZ0));
             BuildOfficeCorridor(cor);
 
             // ---- 이전 세대 공연자 생활 장소 ----

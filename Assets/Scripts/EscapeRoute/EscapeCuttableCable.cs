@@ -14,6 +14,9 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Range(6, 12)] int radialSegments = 8;
         [SerializeField] Material insulationMaterial, copperMaterial;
         [SerializeField] bool requiredForExit = true;
+        [Tooltip("이 배선이 잘리면 탐색 장부에서 열림으로 기록할 대상(대기실 문 등). 비우면 기록하지 않습니다.")]
+        [SerializeField] string openTarget = "";
+        public string OpenTarget => openTarget;
         [SerializeField] ParticleSystem cutSparks;
         [SerializeField] AudioSource cutAudio;
         [SerializeField, Min(.1f)] float snapSeconds = .9f;

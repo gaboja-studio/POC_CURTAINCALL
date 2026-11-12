@@ -58,6 +58,7 @@ narration.performance-unlocked-body | '{trick}' 공연이 해금되었습니다.
 clue.found | {title} 발견
 # 단서를 눈앞에 들고 볼 때 설명 아래 조작 안내
 clue.inspect-help | 마우스 좌클릭: 회전   휠: 확대/축소   ESC·F·마우스 우클릭: 내려놓기
+clue.page-help | ← →: 쪽 넘기기 ({n}/{total})
 
 # ── 문·자물쇠·모니터(탐색 관문) ──
 # [F] 문구 ({label} = 문 이름, 씬에서 정함)
@@ -72,6 +73,13 @@ gate.enter-code | 암호를 입력하세요.
 gate.panel-clear | 지우기
 gate.panel-submit | 확인
 gate.panel-close | 닫기
+gate.terminal-title | door_override.bat
+gate.terminal-code | DATE
+gate.terminal-word | CMD
+gate.terminal-error | Error
+gate.terminal-clear | CLR
+gate.terminal-submit | ENTER
+gate.terminal-close | EXIT
 
 # ── 도구로 여는 상자·자물쇠 ──
 # 기물 목록에 이름이 없을 때 쓰는 도구 이름
@@ -407,6 +415,10 @@ target.structure-a:management-key.name | 관리실 열쇠
 target.structure-a:monitor.name | 기계실 모니터
 target.structure-a:pipe-box-1.name | 낡은 상자
 target.structure-a:stairs-door.name | 자물쇠가 걸린 문
+target.final:stairs-bar.name | 빗장
+target.dorm-vent:power-socket.hint | 전력이 부족합니다. 동력원을 찾아 연결하세요.
+target.final:cargo-door-bar.name | 빗장
+target.final:office-computer.name | 관리실 컴퓨터
 target.structure-a:stairs-key.name | 계단 열쇠
 target.structure-a:steel-box.name | 잠긴 강철 상자
 
@@ -432,15 +444,15 @@ target.structure-a:graffiti-1.name | 벽의 낙서 1
 target.structure-a:graffiti-2.name | 벽의 낙서 2
 target.structure-a:graffiti-3.name | 벽의 낙서 3
 target.structure-a:graffiti-4.name | 벽의 낙서 4
-target.structure-a:hidden-graffiti-3.name | 숨겨진 단서 3
-target.structure-a:hidden-graffiti-3.desc | 무대 장치 보관실의 캐비넷 3
+target.structure-a:hidden-graffiti-3.name | 숨겨진 낙서 2
+target.structure-a:hidden-graffiti-3.desc | RUN
 target.structure-a:map.name | 서커스장 지도
 target.structure-a:newspaper.name | 낡은 신문
 target.structure-a:old-notebook.name | 낡은 노트
-target.structure-a:password-prefix-clue.name | 숨겨진 단서 2
-target.structure-a:password-prefix-clue.desc | 벽에 "12"라는 숫자가 그려져 있다.
+target.structure-a:password-prefix-clue.name | 숨겨진 낙서 3
+target.structure-a:password-prefix-clue.desc | 누군가에게는 새 역사가 시작된 날, 누군가에게는 기일. 그 날을 기억해. 항상.
 target.structure-a:performance-record.name | 공연 기록
-target.structure-a:uv-1-clue.name | 숨겨진 단서 1
+target.structure-a:uv-1-clue.name | 숨겨진 낙서 1
 
 # UV 등으로 비추는 숨겨진 낙서
 target.structure-a:uv-1.name | 숨겨진 단서 1 — UV
@@ -680,3 +692,19 @@ rehearsal.stage.2-2.goal | 연속 그네를 건너 마지막 줄의 도착대까
 rehearsal.stage.2-3.goal | 동료와 트리거 그네를 이용해 끊긴 구간을 건너세요.
 rehearsal.stage.1.goal | 끊긴 줄을 건너 도착대까지 이동하세요. 함께 건너온 동료를 기다리면 다음 구간을 준비할 수 있습니다.
 rehearsal.stage.3.goal | 동료와 첫 봉에 매달린 뒤 다음 봉까지 도약하세요. 다음 봉을 잡으면 이 구간을 이수합니다.
+target.structure-a:graffiti-1.desc | 다음은 누구?
+target.structure-a:graffiti-2.desc | 공연.. 잠자기… 공연.. 잠자기… 공연?
+target.structure-a:graffiti-3.desc | 2일째. 친구가 없어졌어. 다음날 또 한명 없어졌어. 항상 누군가 지켜보고 있는 것 같아. 조심해.
+target.structure-a:graffiti-4.desc | 4일째. 여전히 아무도 오지 않아. 여기서 기다리라며…? 다들 어디로 간 거야?
+target.final:graffiti-5.name | 벽의 낙서 5
+target.final:graffiti-5.desc | 가고 싶지 않아. 가고 싶지 않아. 가고 싶지 않아.
+target.final:graffiti-6.name | 벽의 낙서 6
+target.final:graffiti-6.desc | 전력 공급원을 끊고 더 깊은 곳으로 가면 나갈 수 있을까?
+target.structure-a:uv-1-clue.desc | 관리실 컴퓨터로 가. 필요한 건 다 준비해놨어. 여기서 나갈 방법을 찾아.
+target.final:uv-4.name | 숨겨진 낙서 — UV
+target.final:hidden-graffiti-4.name | 숨겨진 낙서 4
+target.final:hidden-graffiti-4.desc | 두 개의 암호를 만들었어. 뭘 해야 하는지 알지? 도망쳐.
+target.final:uv-5.name | 숨겨진 낙서 — UV
+target.final:hidden-graffiti-5.name | 숨겨진 낙서 5
+target.final:hidden-graffiti-5.desc | 기계실 깊은 곳으로 와. 거기서 기다리고 있을게.
+target.structure-a:newspaper.page.1 | [공식 입장 발표] 도망치십시오. 지하로 가십시오…\n인류 종말 시작? 인류는 이제 어디로 가야 하는가?\n2024년 09월 12일
