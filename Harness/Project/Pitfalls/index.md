@@ -36,6 +36,7 @@
 - [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
 - [runtime-navmesh-shared-agent-type.md](runtime-navmesh-shared-agent-type.md) — 실행 중 NavMesh를 굽는 기능을 만들 때, 리허설 뒤 추격자가 막힌 길 끝에서 멈출 때
 - [pursuit-narrow-top-no-navmesh.md](pursuit-narrow-top-no-navmesh.md) — 추격자가 드럼통·상자·침대 위 플레이어에게 오르지 못할 때
+- [pursuit-stale-navmesh-inside-props.md](pursuit-stale-navmesh-inside-props.md) — 추격자가 콜라이더로 막힌 물체 안으로 들어가거나 물체 속에서 오를 때(배치 변경 뒤 NavMesh 미재굽기)
 - [pursuit-playmode-settings-pollution.md](pursuit-playmode-settings-pollution.md) — 추격 PlayMode 실패 뒤 다른 추격 테스트가 느린 추격·이상한 단계값으로 실패할 때(메모리 GameSettings 오염)
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.

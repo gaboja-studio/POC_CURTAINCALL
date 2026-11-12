@@ -95,9 +95,37 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool EnsureOnNavMesh()
         {
             if (agent.enabled) return agent.isOnNavMesh;
-            if (!PursuitNavigation.TrySample(transform.position, NavMesh.AllAreas, out var point)) return false;
+            if (!SafeNavMeshPoint(transform.position, out var point)) {
+                // 가까이 안전한 NavMesh가 없으면(높은 윗면 위) 내려갈 바닥을 찾아 뛰어내린다.
+                if (Time.time >= dropPlanAt) {
+                    dropPlanAt = Time.time + .5f;
+                    if (PursuitDirectClimb.FindDrop(transform.position, null, NavMesh.AllAreas, transform, out var landing)) StartDirect(landing, false);
+                }
+                return false;
+            }
             transform.position = point; agent.enabled = true;
             return agent.isOnNavMesh;
+        }
+
+        static readonly float[] SafeSampleRadii = { .6f, 2f, 4f };
+
+        /// <summary>
+        /// 몸이 지나갈 수 있는 가까운 NavMesh 지점. 위로 0.6m 넘게 올라가거나(위층·천장 너머) 벽을 사이에 둔 지점으로는 옮기지 않는다.
+        /// 예전에는 8m 안의 아무 NavMesh로 옮겨 탱크 위에서 위층으로, 벽 너머 방으로 순간이동했다.
+        /// </summary>
+        bool SafeNavMeshPoint(Vector3 position, out Vector3 point)
+        {
+            point = position;
+            foreach (float radius in SafeSampleRadii) {
+                if (!NavMesh.SamplePosition(position, out var hit, radius, NavMesh.AllAreas)) continue;
+                var p = hit.position;
+                if (p.y > position.y + .6f) continue;
+                bool level = Mathf.Abs(p.y - position.y) < .6f;
+                if (level ? !PursuitDirectClimb.Open(position + Vector3.up * .8f, p + Vector3.up * .8f, transform) : !PursuitDirectClimb.DropClear(position, p, transform)) continue;
+                point = p;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

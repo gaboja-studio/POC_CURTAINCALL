@@ -50,11 +50,13 @@ namespace CurtainCall.Settings
         [Header("오르기(규칙 기반: 씬·오브젝트 수정 없이 실행 중 NavMesh 가장자리·소품 윗면 충돌체에서 판단)")]
         [Tooltip("이 단계(1부터)부터 추격자가 오르기를 씁니다. 1이면 모든 단계, 0이면 오르지 않습니다.")]
         [Min(0)] public int ClimbFromStage = 1;
-        [Tooltip("오를 수 있는 최대 높이(m). 걸어서 넘는 높이(약 0.55m)보다 높고 이 값 이하인 단차·소품 윗면에 오릅니다.")]
-        [Range(.6f, 3)] public float ClimbMaxHeight = 2.5f;
-        [Tooltip("1.5m까지 오르는 데 걸리는 초. 더 높으면 높이에 비례해 늘어납니다. 오르내리는 동안은 포획하지 않습니다.")]
+        [Tooltip("오를 수 있는 최대 높이(m). 0이면 높이 제한 없이 오릅니다. 걸어서 넘는 높이(약 0.55m)보다 높고 이 값 이하인 단차·소품 윗면에 오릅니다. 2.5m를 넘는 곳은 손을 번갈아 짚으며 벽을 타고 오릅니다.")]
+        [Min(0)] public float ClimbMaxHeight;
+        /// <summary>실제 적용 최대 높이. 0 이하면 제한 없음(무한대), 그 외는 최소 오르기 높이 0.6m 이상.</summary>
+        public float ResolvedClimbMaxHeight => ClimbMaxHeight > 0 ? Mathf.Max(.6f, ClimbMaxHeight) : float.PositiveInfinity;
+        [Tooltip("1.5m까지 오르는 데 걸리는 초. 더 높으면 높이에 비례해 늘어납니다(벽 타기 속도도 같음). 오르내리는 동안은 포획하지 않습니다.")]
         [Min(.1f)] public float ClimbSeconds = 1.1f;
-        [Tooltip("뛰어내리는 데 걸리는 초.")]
+        [Tooltip("1.5m를 뛰어내리는 데 걸리는 초. 2.5m까지는 높이에 비례하고, 그보다 높으면 낙하처럼 높이의 제곱근에 비례해 늘어납니다.")]
         [Min(.1f)] public float DropSeconds = .5f;
         [Tooltip("같은 가장자리에 만드는 오르기 통로의 최소 간격(m).")]
         [Min(.5f)] public float ClimbLinkSpacing = 1.5f;

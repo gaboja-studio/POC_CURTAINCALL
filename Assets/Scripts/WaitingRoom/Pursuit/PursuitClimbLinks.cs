@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
 {
     /// <summary>
     /// 규칙 기반 오르기 통로. 씬·오브젝트·NavMesh 에셋을 수정하지 않고, 실행 중 로드된 NavMesh의 가장자리에서
-    /// 걸어서 넘지 못하는 단차(약 0.55m 초과 ~ <see cref="PursuitSettings.ClimbMaxHeight"/> 이하)를 찾아 메모리 링크만 추가한다.
+    /// 걸어서 넘지 못하는 단차(약 0.55m 초과 ~ <see cref="PursuitSettings.ClimbMaxHeight"/> 이하, 0이면 제한 없음)를 찾아 메모리 링크만 추가한다.
     /// 대기실 배치가 바뀌어도 NavMesh만 다시 구우면 다음 실행에서 자동으로 따라간다.
     /// 링크는 내장 Jump 구역이며, 추격자는 단계가 <see cref="PursuitSettings.ClimbFromStage"/> 이상일 때만 이 구역을 지난다.
     /// </summary>
@@ -46,24 +47,26 @@ namespace CurtainCall.WaitingRoom.Pursuit
             Built = true;
             if (rules == null || rules.ClimbFromStage <= 0) return 0;
             long started = Stopwatch.GetTimestamp();
-            var candidates = Candidates(rules.ClimbMaxHeight, agentTypeID);
+            var candidates = Candidates(rules.ResolvedClimbMaxHeight, agentTypeID);
             var walk = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
             var path = new NavMeshPath();
             var accepted = new List<Vector3>();
             float spacing = Mathf.Max(.5f, rules.ClimbLinkSpacing);
-            float climbCost = Mathf.Max(.1f, rules.ClimbSeconds) * 6f;
-            foreach (var (bottom, top) in candidates) {
+            // 소품 높이(2.5m 이하) 링크가 높은 벽 링크에 밀려 상한(MaxLinks)에서 빠지지 않게 먼저 받는다(각 묶음 안 순서는 유지).
+            foreach (var (bottom, top) in candidates.OrderBy(c => c.top.y - c.bottom.y > PursuitClimbPath.WallClimbFrom ? 1 : 0)) {
                 if (links.Count >= MaxLinks) break;
                 if (Near(accepted, top, spacing)) continue;
                 // 계단·경사로로 가까이 이어진 곳은 오르기가 필요 없다.
                 float straight = Vector3.Distance(bottom, top);
                 if (NavMesh.CalculatePath(bottom, top, walk, path) && path.status == NavMeshPathStatus.PathComplete
                     && PursuitNavigation.Length(path.corners) <= Mathf.Max(straight * 3, straight + 6)) continue;
+                // 위에서 뛰어내릴 쪽에 난간·턱(발 위 0.5m)이 있으면 오르기 전용: 내려갈 때는 계단 등 다른 길로 간다(난간을 뚫고 뛰어내리지 않게).
+                bool drop = PursuitDirectClimb.Open(top + Vector3.up * .5f, new Vector3(bottom.x, top.y + .5f, bottom.z), null);
                 var instance = NavMesh.AddLink(new NavMeshLinkData {
-                    startPosition = bottom, endPosition = top, width = 0, bidirectional = true,
+                    startPosition = bottom, endPosition = top, width = 0, bidirectional = drop,
                     area = Area, agentTypeID = agentTypeID,
-                    // 오르는 시간 동안 달릴 거리만큼 비싸게: 짧은 우회가 있으면 우회한다.
-                    costModifier = climbCost / Mathf.Max(.1f, straight) });
+                    // 오르는 시간(높을수록 김) 동안 달릴 거리만큼 비싸게: 짧은 우회가 있으면 우회한다.
+                    costModifier = PursuitActor.TraversalSeconds(rules, true, top.y - bottom.y) * 6f / Mathf.Max(.1f, straight) });
                 if (!NavMesh.IsLinkValid(instance)) continue;
                 links.Add(instance); accepted.Add(top);
             }
@@ -102,7 +105,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 edges[key] = edges.TryGetValue(key, out var e) ? (e.count + 1, e.a, e.b, e.c) : (1, a, b, c);
             }
             var query = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
-            float maxDrop = Mathf.Max(MinHeight, maxHeight);
+            // 높이 제한 없음(무한대)이어도 NavMesh 전체 높이보다 깊이 찾을 필요는 없다.
+            float lowest = float.PositiveInfinity, highest = float.NegativeInfinity;
+            foreach (var v in vertices) { lowest = Mathf.Min(lowest, v.y); highest = Mathf.Max(highest, v.y); }
+            float maxDrop = Mathf.Max(MinHeight, Mathf.Min(maxHeight, highest - lowest + SampleRadius));
             foreach (var edge in edges.Values) {
                 if (edge.count != 1) continue;
                 Vector3 a = vertices[edge.a], b = vertices[edge.b], inside = vertices[edge.c];
@@ -127,23 +133,38 @@ namespace CurtainCall.WaitingRoom.Pursuit
             foreach (float distance in ProbeOut) {
                 var probe = top + outward * distance;
                 // 위쪽 끝(가장자리 자신)은 반경 밖이 되도록 MinHeight 아래부터 내려가며 찾는다.
-                for (float drop = MinHeight; drop <= maxDrop + .01f; drop += SampleRadius * .8f) {
-                    if (!NavMesh.SamplePosition(probe + Vector3.down * drop, out var hit, SampleRadius, query)) continue;
-                    float height = top.y - hit.position.y;
-                    var flat = hit.position - probe; flat.y = 0;
-                    if (height < MinHeight || height > maxDrop || flat.magnitude > SampleRadius) continue;
-                    bottom = hit.position;
-                    return true;
-                }
+                float near = Mathf.Min(maxDrop, PursuitClimbPath.WallClimbFrom + SampleRadius);
+                for (float drop = MinHeight; drop <= near + .01f; drop += SampleRadius * .8f)
+                    if (Accept(top, probe + Vector3.down * drop, maxDrop, query, out bottom)) return true;
+                // 그보다 깊은 바닥(높이 제한 없음)은 수직 아래 실제 표면에서만 찾는다(빈 공중을 촘촘히 훑지 않음).
+                if (maxDrop <= near) continue;
+                int count = Physics.RaycastNonAlloc(probe + Vector3.down * near, Vector3.down, hits, maxDrop - near + SampleRadius, ~0, QueryTriggerInteraction.Ignore);
+                System.Array.Sort(hits, 0, count, HitDistance);
+                for (int i = 0; i < count; i++) if (Accept(top, hits[i].point, maxDrop, query, out bottom)) return true;
             }
             return false;
         }
+
+        // point(가장자리 바깥 수직선 위) 근처 바닥 NavMesh가 오르기 높이 범위면 아래쪽 끝으로 쓴다.
+        static bool Accept(Vector3 top, Vector3 point, float maxDrop, NavMeshQueryFilter query, out Vector3 bottom)
+        {
+            bottom = default;
+            if (!NavMesh.SamplePosition(point, out var hit, SampleRadius, query)) return false;
+            float height = top.y - hit.position.y;
+            var flat = hit.position - point; flat.y = 0;
+            if (height < MinHeight || height > maxDrop || flat.magnitude > SampleRadius) return false;
+            bottom = hit.position;
+            return true;
+        }
+        static readonly IComparer<RaycastHit> HitDistance = Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
 
         // 바닥에서 위로 서서 손을 뻗을 공간, 그리고 가장자리 위로 몸이 넘어갈 공간이 비어 있는지.
         static bool Clear(Vector3 bottom, Vector3 top, Vector3 outward)
         {
             var column = new Vector3(bottom.x, top.y + LipClearance, bottom.z);
-            return Open(bottom + Vector3.up * .35f, column) && Open(column, top - outward * .3f + Vector3.up * LipClearance);
+            // 서서 뻗는 기둥은 몸 두께로 검사한다(통로 바닥 밑·난간 옆에서 몸이 겹친 채 오르지 않게).
+            return PursuitDirectClimb.BodyOpen(bottom + Vector3.up * PursuitDirectClimb.BodyLift, column, null)
+                && Open(column, top - outward * .3f + Vector3.up * LipClearance);
         }
 
         static bool Open(Vector3 from, Vector3 to)

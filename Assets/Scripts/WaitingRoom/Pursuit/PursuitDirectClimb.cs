@@ -14,9 +14,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public enum Plan { None, Approach, Climb }
         /// <summary>가장자리에서 이 거리 안이면 바로 오른다. 멀면 가장자리 앞까지 걸어간다.</summary>
         public const float EdgeReach = .95f;
+        /// <summary>더 다가갈 바닥이 없을 때 이 자리에서 바로 오를 수 있는 가장자리까지 최대 수평 거리.</summary>
+        public const float MaxDirectReach = 1.8f;
+        static float Flat(Vector3 v) { v.y = 0; return v.magnitude; }
         /// <summary>소품 위 대상을 직접 오를 후보로 보는 최대 수평 거리.</summary>
         public const float SearchDistance = 4f;
         const float StepOut = .45f, LipClearance = 1f, BodyRadius = .25f, BodyHeight = 1.5f, SurfaceTolerance = .3f;
+        /// <summary>몸 두께 검사 반경과 시작 높이(발 위). 가는 선 하나로는 통로 바닥 밑·난간 옆에서 몸이 겹친 채 오른다.</summary>
+        public const float BodyCheckRadius = .2f, BodyLift = .45f;
+        static readonly Vector3[] DropDirections = new Vector3[8];
+        static PursuitDirectClimb() { for (int k = 0; k < 8; k++) DropDirections[k] = Quaternion.Euler(0, k * 45, 0) * Vector3.forward; }
         static readonly RaycastHit[] hits = new RaycastHit[16];
         static readonly Collider[] overlaps = new Collider[16];
 
@@ -67,34 +74,62 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var flat = goal - origin; flat.y = 0;
             float distance = flat.magnitude;
             var direction = distance > .05f ? flat / distance : (self != null ? self.forward : Vector3.forward);
-            // 추격자 쪽에서 대상 쪽으로 훑어 처음 윗면이 나오는 곳이 가장자리다.
+            // 추격자 쪽에서 대상 쪽으로 훑어 처음 윗면이 나오는 곳이 가장자리다. 폭 10cm 미만 윗면(난간·가는 배관)도 놓치지 않게 5cm 간격.
             float edge = -1;
-            for (float d = .05f; d <= distance + .05f; d += .1f)
+            for (float d = .05f; d <= distance + .05f; d += .05f)
                 if (SurfaceAt(origin + direction * d, top, self, out _)) { edge = d; break; }
             if (edge < 0) return Plan.None;
             if (edge > EdgeReach) {
+                // 가장자리 앞 바닥으로 다가간다. 단, 지금보다 0.3m 이상 가까워지는 바닥이 있을 때만(같은 자리로 다가가기를 반복하던 문제).
                 var stand = origin + direction * (edge - StepOut);
-                if (!NavMesh.SamplePosition(stand, out var floor, .6f, areaMask) || Mathf.Abs(floor.position.y - origin.y) > .45f) return Plan.None;
-                point = floor.position;
-                return Plan.Approach;
+                var lip = origin + direction * edge;
+                if (NavMesh.SamplePosition(stand, out var floor, 1.2f, areaMask) && Mathf.Abs(floor.position.y - origin.y) <= .45f
+                    && Flat(floor.position - lip) < edge - .3f) {
+                    point = floor.position;
+                    return Plan.Approach;
+                }
+                // 물체 아래쪽이 넓게 튀어나와 더 다가갈 바닥이 없으면(기계·배관 받침) 이 자리에서 오른다.
+                if (edge > MaxDirectReach) return Plan.None;
             }
             float inward = Mathf.Max(edge + .15f, Mathf.Min(edge + .45f, distance - .35f));
-            if (!SurfaceAt(origin + direction * inward, top, self, out var land)) return Plan.None;
+            // 넓은 윗면은 가장자리 안쪽, 좁은 윗면(배관·난간 위)은 대상이 선 자리나 가장자리 바로 위에 선다.
+            if (!SurfaceAt(origin + direction * inward, top, self, out var land)
+                && !(distance >= edge && SurfaceAt(origin + direction * distance, top, self, out land))
+                && !SurfaceAt(origin + direction * (edge + .05f), top, self, out land)) return Plan.None;
             point = land.point;
-            // 서서 뻗을 기둥, 가장자리를 넘는 공간, 윗면에 설 공간.
+            // 서서 뻗을 기둥(몸 두께), 가장자리를 넘는 공간, 윗면에 설 공간.
             var column = new Vector3(origin.x, top + LipClearance, origin.z);
-            if (!Open(origin + Vector3.up * .35f, column, self) || !Open(column, point + Vector3.up * LipClearance, self)
+            if (!BodyOpen(origin + Vector3.up * BodyLift, column, self) || !Open(column, point + Vector3.up * LipClearance, self)
                 || !StandingRoom(point, self)) return Plan.None;
             return Plan.Climb;
         }
 
-        /// <summary>내려갈 바닥. toward가 있으면 그 근처(대상이 내려간 곳)를 먼저, 없으면 가장 가까운 아래 NavMesh.</summary>
+        /// <summary>
+        /// 내려갈 바닥. toward가 있으면 그 근처(대상이 내려간 곳)를 먼저, 없으면 가장 가까운 아래 NavMesh, 그래도 없으면 8방향 가장자리 밖 바닥.
+        /// 항상 아래쪽이며, 윗면 높이에서 착지점 위까지 수평으로 나간 뒤 수직으로 내려가는 공간이 몸 두께로 비어 있어야 한다.
+        /// </summary>
         public static bool FindDrop(Vector3 from, Vector3? toward, int areaMask, Transform self, out Vector3 landing)
         {
             landing = default;
             if (toward.HasValue && Below(from, toward.Value, areaMask, self, out landing)) return true;
-            return Below(from, from, areaMask, self, out landing);
+            if (Below(from, from, areaMask, self, out landing)) return true;
+            float best = float.PositiveInfinity; bool found = false;
+            foreach (var direction in DropDirections)
+                foreach (float d in DropReach) {
+                    var probe = from + direction * d + Vector3.up * .3f;
+                    int count = Physics.RaycastNonAlloc(probe, Vector3.down, hits, MaxDropProbe, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    float nearest = float.PositiveInfinity; Vector3 floor = default;
+                    for (int i = 0; i < count; i++)
+                        if (!Ignored(hits[i].collider, self) && hits[i].distance < nearest && hits[i].point.y < from.y - .3f) { nearest = hits[i].distance; floor = hits[i].point; }
+                    if (float.IsPositiveInfinity(nearest) || nearest >= best) continue;
+                    if (!NavMesh.SamplePosition(floor, out var hit, .5f, areaMask) || !DropClear(from, hit.position, self)) continue;
+                    best = nearest; landing = hit.position; found = true;
+                    break;
+                }
+            return found;
         }
+        static readonly float[] DropReach = { 1f, 1.6f, 2.4f, 3.2f };
+        const float MaxDropProbe = 30f;
 
         static bool Below(Vector3 from, Vector3 probe, int areaMask, Transform self, out Vector3 landing)
         {
@@ -102,9 +137,42 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!PursuitNavigation.TrySample(probe, areaMask, out var point)) return false;
             var flat = point - from; flat.y = 0;
             if (from.y - point.y < .3f || flat.magnitude > 3.5f) return false;
-            if (!Open(from + Vector3.up * 1.2f, point + Vector3.up * 1.2f, self)) return false;
+            if (!DropClear(from, point, self)) return false;
             landing = point;
             return true;
+        }
+
+        /// <summary>윗면에서 착지점 위까지 수평으로 나가고(머리·몸 높이) 거기서 착지점까지 내려갈 공간.</summary>
+        public static bool DropClear(Vector3 from, Vector3 landing, Transform self)
+        {
+            var over = new Vector3(landing.x, from.y + 1.2f, landing.z);
+            return Open(from + Vector3.up * 1.2f, over, self) && Open(from + Vector3.up * .5f, new Vector3(landing.x, from.y + .5f, landing.z), self)
+                && BodyOpen(over, landing + Vector3.up * BodyLift, self);
+        }
+
+        /// <summary>몸 두께(<see cref="BodyCheckRadius"/>)로 두 점 사이가 비어 있는지. 시작점에서 이미 겹친 지형도 막힘으로 본다.</summary>
+        public static bool BodyOpen(Vector3 from, Vector3 to, Transform self)
+        {
+            int inside = Physics.OverlapSphereNonAlloc(from, BodyCheckRadius, overlaps, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < inside; i++) if (!Ignored(overlaps[i], self)) return false;
+            var direction = to - from;
+            float length = direction.magnitude;
+            if (length < .001f) return true;
+            int count = Physics.SphereCastNonAlloc(from, BodyCheckRadius, direction / length, hits, length, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++) if (!Ignored(hits[i].collider, self)) return false;
+            return true;
+        }
+
+        /// <summary>윗면 위 from에서 to 쪽으로 걸어 윗면이 끝나는 곳까지의 수평 거리(끝이 없으면 수평 거리 전체).</summary>
+        public static float EdgeDistance(Vector3 from, Vector3 to, Transform self)
+        {
+            var flat = to - from; flat.y = 0;
+            float span = flat.magnitude;
+            if (span < .05f) return 0;
+            var direction = flat / span;
+            for (float d = .05f; d <= span; d += .05f)
+                if (!SurfaceAt(from + direction * d, from.y, self, out _)) return d - .05f;
+            return span;
         }
 
         /// <summary>height 근처(±0.3m)의 서 있을 수 있는 정적 윗면.</summary>

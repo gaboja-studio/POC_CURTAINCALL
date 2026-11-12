@@ -167,8 +167,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (!CurtainCall.Dev.DevMode.Enabled && (debugInvulnerable || debugIgnorePlayers)) ResetDebugProtection();
             if (s.Generation != generation || s.Day != day || s.PerformanceIndex != performance) ResetStep(s);
-            // 오르기 통로는 길찾기를 하는 호스트에서만, 현재 로드된 NavMesh로 한 번 만든다.
-            if (!PursuitClimbLinks.Built && actors.Count > 0) PursuitClimbLinks.Build(actors[0].AgentTypeID, GameSettings.WaitingRoom.Pursuit);
+            // 길찾기를 하는 호스트에서만 한 번: 물체 안을 지나는 낡은 길을 먼저 깎고(실행 중만), 깎기가 반영된 다음 프레임에 오르기 통로를 만든다.
+            if (actors.Count > 0 && !PursuitNavMeshRepair.Applied) PursuitNavMeshRepair.Apply();
+            else if (!PursuitClimbLinks.Built && actors.Count > 0 && Time.frameCount > PursuitNavMeshRepair.AppliedFrame + 1)
+                PursuitClimbLinks.Build(actors[0].AgentTypeID, GameSettings.WaitingRoom.Pursuit);
             CollectCandidates();
             if (!active && s.Timer == RestTimerState.Pursuit) { active = true; Elapsed = 0; }
             if (active) Elapsed += Time.deltaTime;
@@ -506,7 +508,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (run != null) run.StepChanged -= StepChanged;
             Unbind();
             foreach (var v in victims.Values) if (v.Pose != null) Destroy(v.Pose);
-            if (Current == this) { Current = null; PursuitClimbLinks.Clear(); }
+            if (Current == this) { Current = null; PursuitClimbLinks.Clear(); PursuitNavMeshRepair.Clear(); }
         }
     }
 }
