@@ -1,0 +1,50 @@
+# 대기실 구조를 바꾼 뒤: 추격자 오르기·앉아 숨기 맞추기
+
+물건을 옮기거나 새로 놓아도 추격자 오르기·앉아 숨기는 **자동으로 따라갑니다**. 물건마다 따로 설정할 것은 없습니다.
+아래 4가지만 하면 됩니다.
+
+## 1. 새 물건에 충돌체가 있는지 보기
+
+1. Hierarchy에서 물건을 **클릭**합니다.
+2. Inspector에 `Box Collider` / `Capsule Collider` / `Mesh Collider` 중 하나가 있는지 봅니다.
+3. 없으면 Inspector 맨 아래 **Add Component** → 모양에 맞게 고릅니다.
+   - 네모난 물건 → `Box Collider`
+   - 둥근 물건(드럼통·눕힌 원기둥) → `Capsule Collider`, 또는 `Mesh Collider` + **Convex 체크**
+4. 충돌체의 **Is Trigger는 체크 해제**합니다.
+
+| 충돌체가… | 결과 |
+|---|---|
+| 없음 | 추격자가 못 오름, 뒤에 앉아도 안 숨겨짐 (예: 지하실 긴 배관 `ManifoldHeader`) |
+| 물건 모양과 다름 | 추격자가 **충돌체 모양**대로 짚음 (둥근 물건에 네모 충돌체 → 허공의 모서리를 짚음) |
+| 안 보이는데 있음(유리 등) | 그 뒤에 앉으면 숨겨짐 |
+
+## 2. 오를 수 있는 물건인지 보기
+
+- 높이 **2.5m 이하** (0.55m 이하 낮은 단은 그냥 걸어서 넘음)
+- 윗면이 거의 평평함 (기울기 약 50° 이하)
+- 윗면 위에 서 있을 공간이 있음 (천장·배관이 바로 위에 있으면 못 오름)
+
+## 3. 길찾기 다시 굽기
+
+1. `WaitingRoom` 씬을 엽니다.
+2. 메뉴 **Tools → Curtain Call → Pursuit → 2 Bake navigation** 을 누릅니다.
+3. 씬은 자동 저장됩니다. 바뀐 길찾기 파일(`_ThirdParty/curtaincall/Pursuit/Navigation/WaitingRoomPursuit.asset`)은 [에셋 도우미](asset-helper.md)에서 **변경 확인하고 공유**로 올립니다.
+
+안 굽으면: 추격자가 **옛 길**로 다녀서 새 물건 앞에서 멈추거나 새 바닥으로 못 갑니다.
+오르기 통로는 따로 만들지 않습니다. 추격이 시작될 때 자동으로 생깁니다.
+
+## 4. 플레이로 확인
+
+- **오르기:** Play → 추격 시작 → 바뀐 물건 위에 올라가 기다림 → 추격자가 올라오면 OK.
+- **숨기:** 물건 뒤에서 **왼쪽 Ctrl**(앉기) → 1·2단계 추격자가 못 보면 OK.
+  - 3·4단계는 원래 "벽 너머 투시" 단계라 보입니다(정상).
+
+## 숫자 바꾸기
+
+Project 창 `Assets/Resources/Settings/GameSettings/` → **WaitingRoomSettings** 클릭 → Inspector의 추격(Pursuit) 묶음.
+
+| 칸 | 뜻 | 지금 값 |
+|---|---|---|
+| Climb From Stage | 몇 단계부터 오르나 (1 = 처음부터, 0 = 안 오름) | 1 |
+| Climb Max Height | 오를 수 있는 최대 높이(m) | 2.5 |
+| Crouch Hidden Coverage | 앉은 몸이 이만큼 가려지면 안 보임 (0.8 = 80%, 0 = 끔) | 0.8 |

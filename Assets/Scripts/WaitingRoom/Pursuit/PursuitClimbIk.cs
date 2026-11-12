@@ -161,7 +161,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (limb.hand)
                 {
                     anchor = limb.finish;
-                    w = up ? Window(t, .02f, .12f, .32f, .52f) : Window(t, 0, .02f, .08f, .22f);
+                    // 오르기: 접촉(0.12)부터 무릎 넘기기(PursuitClimbPath.KneeOver)까지 가장자리를 짚고 넘어가며 놓는다.
+                    w = up ? Window(t, .02f, .12f, PursuitClimbPath.KneeOver + .02f, .8f) : Window(t, 0, .02f, .08f, .22f);
                 }
                 else if (t < .3f)
                 {
