@@ -27,10 +27,12 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         PlayerController controller;
         PlayerControlScheme previousDefault;
         Scene testScene;
+        InputGateTestScope inputGate;
 
         [SetUp]
         public void SetUp()
         {
+            inputGate = new InputGateTestScope();
             // TestRunner의 저장되지 않은 씬을 유지하고 기존 개발 옵션만 잠시 보관한다.
             testScene = SceneManager.GetActiveScene();
             foreach (var session in Object.FindObjectsByType<EscapeDevelopmentSession>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -80,6 +82,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 if (session != null) session.SuppressFallConsequences = true;
             suppressedDevelopmentSessions.Clear();
             Physics.SyncTransforms();
+            inputGate?.Dispose();
         }
 
         [Test]

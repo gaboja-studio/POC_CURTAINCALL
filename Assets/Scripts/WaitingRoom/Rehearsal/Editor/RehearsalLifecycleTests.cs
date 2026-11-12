@@ -992,6 +992,11 @@ namespace CurtainCall.WaitingRoom.EditorTools
             passage.center = Vector3.forward * 2;
             passage.size = new Vector3(6, .2f, 4);
             Set(rehearsal, "practicePassage", passage);
+            var roof = Make("Practice passage roof").AddComponent<BoxCollider>();
+            roof.center = new Vector3(0, 3.15f, 2);
+            roof.size = new Vector3(6, .3f, 4);
+            Set(rehearsal, "practicePassageRoof", roof);
+            Physics.SyncTransforms();
             var first = Player(920);
             var second = Player(921);
             var last = Player(922);
@@ -1006,6 +1011,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
             last.transform.position = Vector3.back * 2;
             Call(rehearsal, "HostTickPracticeSeal");
             Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+
+            last.transform.position = new Vector3(0, 2.5f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "A rider above the floor still occupies the passage.");
+            last.transform.position = new Vector3(0, 3.31f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "The roof remains outside even where the room bounds overlap it.");
+            last.transform.position = new Vector3(0, -1f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "The space below the passage floor is also outside.");
         }
 
         [Test, Category("TutorialCommonRules")]

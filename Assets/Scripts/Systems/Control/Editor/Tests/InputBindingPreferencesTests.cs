@@ -4,12 +4,60 @@ using CurtainCall.Player;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace CurtainCall.Control.Editor.Tests
 {
     [Category("November11CommonFix")]
     public sealed class InputBindingPreferencesTests
     {
+        [TestCase(.45, false, false)]
+        [TestCase(.5, true, false)]
+        [TestCase(.6, true, false)]
+        [TestCase(.6, true, true)]
+        public void InteractUsesEventDurationAndEmitsEachGestureOnce(double duration, bool expectedHold, bool readWhileHeld)
+        {
+            var reader = CreateReader();
+            var interact = (InputAction)typeof(PlayerInputReader).GetField("interact", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(reader);
+            var read = typeof(PlayerInputReader).GetMethod("ReadInteract", BindingFlags.Instance | BindingFlags.NonPublic);
+            // Editor updates populate editor device state without dispatching gameplay actions.
+            var manager = typeof(InputSystem).GetField("s_Manager", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var runPlayerInput = manager.GetType().GetProperty("runPlayerUpdatesInEditMode");
+            var oldRunPlayerInput = runPlayerInput.GetValue(manager);
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                runPlayerInput.SetValue(manager, true);
+                interact.actionMap.devices = new InputDevice[] { keyboard };
+                interact.Enable();
+                double now = Time.realtimeSinceStartupAsDouble;
+                double pressed = now - 1d;
+                var result = new object[] { now, false, false, 0f };
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), pressed);
+                if (readWhileHeld)
+                {
+                    InputSystem.Update();
+                    read.Invoke(reader, result);
+                    Assert.That(result[1], Is.False);
+                    Assert.That(result[2], Is.True);
+                }
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(), pressed + duration);
+                InputSystem.Update();
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.EqualTo(!expectedHold), "Tap");
+                Assert.That(result[2], Is.EqualTo(expectedHold && !readWhileHeld), "Hold");
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.False);
+                Assert.That(result[2], Is.False);
+            }
+            finally
+            {
+                interact.Disable();
+                InputSystem.RemoveDevice(keyboard);
+                runPlayerInput.SetValue(manager, oldRunPlayerInput);
+            }
+        }
+
         [Test]
         public void InstructionKeyLabelsUsePhysicalNamesAndDeviceUseCanBeRebound()
         {

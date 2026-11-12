@@ -44,6 +44,7 @@ namespace CurtainCall.WaitingRoom
         bool practiceAreaFound;
         Transform practiceExit;
         BoxCollider practicePassage;
+        Collider practicePassageRoof;
 
         /// <summary>첫 공연을 마치고 대기실 튜토리얼에 들어가기 전까지 유지하는 출입·기능 제한.</summary>
         public static bool IsPreTutorialRestricted
@@ -113,6 +114,8 @@ namespace CurtainCall.WaitingRoom
             var passage = GameObject.Find("Passage_F8_Practice");
             practicePassage = passage != null && passage.scene == layout.scene
                 ? passage.transform.Find("FloorCollider")?.GetComponent<BoxCollider>() : null;
+            practicePassageRoof = practicePassage != null
+                ? passage.transform.Find("PassageRoof")?.GetComponent<Collider>() : null;
         }
 
         static readonly Vector2 LobbyMonitorSize = new(3.2f, 1.8f), CorridorMonitorSize = new(2.6f, 1.46f);
@@ -162,7 +165,12 @@ namespace CurtainCall.WaitingRoom
                     var half = practicePassage.size * .5f;
                     var scale = practicePassage.transform.lossyScale;
                     if (Mathf.Abs(point.x) <= half.x + clearance / Mathf.Abs(scale.x)
-                        && Mathf.Abs(point.z) <= half.z + clearance / Mathf.Abs(scale.z)) return true;
+                        && Mathf.Abs(point.z) <= half.z + clearance / Mathf.Abs(scale.z))
+                    {
+                        // The room's coarse bounds also overlap the roof. Use the passage's actual vertical space here.
+                        return position.y >= practicePassage.bounds.min.y
+                            && (practicePassageRoof == null || position.y < practicePassageRoof.bounds.min.y);
+                    }
                 }
             }
             return InPracticeRoom(position);
