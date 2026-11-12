@@ -43,7 +43,6 @@ namespace CurtainCall.UI.SceneIntegration
 
         void Start()
         {
-            HudText.ConfigureView(info);
             session=NetworkSessionManager.EnsureExists();
             campaign=CampaignRun.EnsureExists();
             info.CopyRequested+=Copy;
