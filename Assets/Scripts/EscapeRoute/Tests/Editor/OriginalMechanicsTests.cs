@@ -589,7 +589,7 @@ namespace CurtainCall.EscapeRoute.Tests
     public sealed class EscapeCampaignFallPolicyTests
     {
         [NUnit.Framework.Test]
-        public void CampaignEscapeProtectsTransferredPlayerWithoutDevelopmentLauncher()
+        public void CampaignEscapeUsesCommonFallDamageForTransferredPlayer()
         {
             var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
             var assemblies=System.AppDomain.CurrentDomain.GetAssemblies();
@@ -608,9 +608,8 @@ namespace CurtainCall.EscapeRoute.Tests
                 type.GetProperty("Current").SetValue(null,component);
                 type.GetProperty("IsCampaign").SetValue(component,true);
                 UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(actor,preview);
-                var method=policy.GetMethod("FallInjuriesSuppressed");
-                NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.True,"Campaign protection must not depend on a disabled development launcher or the player's original scene.");
-                NUnit.Framework.Assert.That(policy.GetMethod("FallConsequencesSuppressed").Invoke(null,new object[]{actor.transform}),Is.False,"Do not disable campaign balance or authored death zones to fix cannon injuries.");
+                var method=policy.GetMethod("FallConsequencesSuppressed");
+                NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.False,"Entering escape does not exempt the player from common fall damage.");
                 body.SetActive(false);
                 NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.False,"Dormant additive content must not change another performance's fall rules.");
                 body.SetActive(true);

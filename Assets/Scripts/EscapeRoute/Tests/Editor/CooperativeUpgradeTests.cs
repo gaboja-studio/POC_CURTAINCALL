@@ -471,7 +471,7 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void UpperCannonButtonCannotLatchTheSwitchPoleAfterItsHolderLeaves()
+        public void UpperCannonButtonKeepsTheCannonOpenWithoutAPoleHolder()
         {
             var locks = Locks(out var checkpoint, true);
             var player = Player(94);
@@ -484,8 +484,36 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(locks, "Arm", 94UL, 0, 0U, 1U);
             Call(locks, "HostStep"); Call(locks, "Present");
             Assert.That(Get(locks, "held"), Is.EqualTo(0U));
-            Assert.That(Call(locks, "IsLatched", 0), Is.False);
-            Assert.That(Get(station, "InteractionAvailable"), Is.False);
+            Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Assert.That(Get(station, "InteractionAvailable"), Is.True);
+        }
+
+        [Test]
+        public void AuthoredHoistBridgeStaysDeployedAfterTheLastHolderReleases()
+        {
+            var locks = Locks(out var checkpoint, true);
+            var pole = Root("Hoist pole", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+            var bridge = Root("Hoist bridge", true).AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Set(checkpoint, "helperPole", pole);
+            Set(checkpoint, "span", bridge);
+            Set(checkpoint, "latchWhenCrewReady", true);
+            poleSystem = Root("Hoist pole registry").AddComponent(T(PoleType));
+            var poles = Array.CreateInstance(pole.GetType(), 1);
+            poles.SetValue(pole, 0);
+            Set(poleSystem, "poles", poles);
+            Call(poleSystem, "OnEnable");
+            Player(95);
+            var state = Call(poleSystem, "State", 0);
+            Call(locks, "HostStep");
+            Assert.That(Get(bridge, "DeploymentRequested"), Is.False);
+            Assert.That(Call(state, "TryGrab", 95UL, 0U, 0d, 0f, false, 0), Is.True);
+            Call(locks, "HostStep");
+            Assert.That(Get(bridge, "DeploymentRequested"), Is.True);
+            Assert.That(Call(state, "TryRelease", 95UL, 1U, 0d, 2f), Is.True);
+            Call(locks, "HostStep");
+            Assert.That(Get(locks, "held"), Is.EqualTo(0U));
+            Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Assert.That(Get(bridge, "DeploymentRequested"), Is.True);
         }
 
         [Test]

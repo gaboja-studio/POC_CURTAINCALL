@@ -58,11 +58,6 @@ namespace CurtainCall.EscapeRoute
             return false;
         }
 
-        /// <summary>캠페인의 대포 추락 절단만 차단한다. 균형·낙사 구역 규칙은 별개로 유지한다.</summary>
-        public static bool FallInjuriesSuppressed(Component source) => source != null
-            && (FallConsequencesSuppressed(source)
-                || EscapeCampaignContent.IsTraversalActive && EscapeCampaignContent.Current.IsCampaign);
-
         void OnEnable()
         {
             activeSessions.Add(this);
