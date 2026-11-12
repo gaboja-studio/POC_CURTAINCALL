@@ -405,6 +405,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var canopyRig = Make("CanopyAndRig"); canopyRig.transform.SetParent(ring.transform);
             var canopy = Make("TornCanopy"); canopy.transform.SetParent(canopyRig.transform);
             var light = Make("RingSpot_Launch").AddComponent<Light>(); light.transform.SetParent(canopyRig.transform);
+            var flicker = light.gameObject.AddComponent<WaitingRoomFlickerLight>();
             var decorations = Make("DomeSuspension"); decorations.transform.SetParent(ring.transform);
             var floor = Make("PracticeRing"); floor.transform.SetParent(ring.transform);
             var floorCollider = floor.AddComponent<BoxCollider>();
@@ -414,11 +415,26 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.IsFalse(canopy.activeSelf);
             Assert.IsFalse(decorations.activeSelf);
             Assert.IsTrue(light.gameObject.activeInHierarchy);
+            Assert.IsFalse(flicker.enabled);
             Assert.IsTrue(floorCollider.gameObject.activeInHierarchy);
 
             Call(cannon, "Cleanup");
             Assert.IsTrue(canopy.activeSelf);
             Assert.IsTrue(decorations.activeSelf);
+            Assert.IsTrue(flicker.enabled);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void PracticeFlightCameraRestoresItsOriginalOcclusionSetting(bool original)
+        {
+            var pilot = Make("Practice flight camera fixture").AddComponent<HumanCannonPilot>();
+            var camera = Make("Practice flight camera").AddComponent<Camera>();
+            camera.useOcclusionCulling = original;
+            Call(pilot, "SetPracticeFlightCamera", camera);
+            Assert.IsFalse(camera.useOcclusionCulling);
+            Call(pilot, "ClearCannonViewRequest");
+            Assert.That(camera.useOcclusionCulling, Is.EqualTo(original));
         }
 
         [TestCase(true)] [TestCase(false), Category("WaitingRoomCommonRecovery")]

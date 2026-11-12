@@ -32,6 +32,7 @@ namespace CurtainCall.WaitingRoom
         readonly Dictionary<ulong, BodyPart> priorConditions = new();
         readonly HashSet<ulong> recoveringPlacement = new();
         readonly List<GameObject> hidden = new();
+        readonly List<WaitingRoomFlickerLight> steadyLights = new();
         RehearsalCannonCourse course;
         Transform room;
         Collider roomFloor;
@@ -65,7 +66,7 @@ namespace CurtainCall.WaitingRoom
         bool Host => CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority;
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
-        bool CanStart => !shared.active && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
+        bool CanStart => !shared.active && !ExpertService.IsMovingBuyer && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
             && CampaignRun.Instance.State.CannonUnlocked && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
@@ -173,6 +174,12 @@ namespace CurtainCall.WaitingRoom
 
         void HidePracticeProps()
         {
+            foreach (var light in room.GetComponentsInChildren<WaitingRoomFlickerLight>())
+            {
+                if (!light.isActiveAndEnabled) continue;
+                light.enabled = false;
+                steadyLights.Add(light);
+            }
             foreach (string path in CannonPracticeHiddenPaths)
             {
                 var prop = room.Find(path);
@@ -210,7 +217,7 @@ namespace CurtainCall.WaitingRoom
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
             lastSafePose = null; placingAfterRecovery = false;
-            quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
+            quest.Show(T("first-title", "공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
             ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"),
                 GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                     ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.")
@@ -324,6 +331,7 @@ namespace CurtainCall.WaitingRoom
 
         void LocalTick()
         {
+            if (ExpertService.IsLocalInTreatment) return;
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
             if (p.State == PlayerState.Normal && (localRecoveryPending || local == p && previousState == PlayerState.Fallen))
@@ -366,6 +374,7 @@ namespace CurtainCall.WaitingRoom
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover)
         {
+            if (ExpertService.IsTreating(p.OwnerClientId)) return;
             CaptureReturnPose(p);
             var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
             bool validPosition = placingAfterRecovery ? course.IsRecoveryDeck(p.transform.position)
@@ -391,6 +400,8 @@ namespace CurtainCall.WaitingRoom
             if (course != null) { course.gameObject.SetActive(false); Destroy(course.gameObject); }
             course = null; builtRound = placedRound = -1; walls = null;
             foreach (var prop in hidden) if (prop != null) prop.SetActive(true);
+            foreach (var light in steadyLights) if (light != null) light.enabled = true;
+            steadyLights.Clear();
             hidden.Clear(); quest?.Hide();
             if (!shared.ending) ReleaseEndingLock();
         }

@@ -92,13 +92,13 @@ namespace CurtainCall.HumanCannon
             return false;
         }
 
-        internal bool ApplyRebound(ulong actor, int index, uint revision, uint segment, Vector3 position, float upwardSpeed)
+        internal bool ApplyRebound(ulong actor, int index, uint revision, uint segment, Vector3 position, float upwardSpeed, bool fromTrampoline = false)
         {
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
             FindPlayer(actor)?.BeginFallAt(position);
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
-                pilot.Rebound(index, revision, segment, position, upwardSpeed);
+                pilot.Rebound(index, revision, segment, position, upwardSpeed, fromTrampoline);
             return true;
         }
 

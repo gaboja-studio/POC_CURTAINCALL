@@ -25,7 +25,6 @@ namespace CurtainCall.Settings
         [Header("카메라")]
         [SerializeField] CameraSettings camera = new();
         [Header("신체 손상 불이익 (외줄)")]
-        [SerializeField] BodyPenaltySettings bodyPenalty = new();
         [Header("톱날 (장애물 순서·가로·수직·발판·부위 판정)")]
         [SerializeField] Tightrope.Saws.SawSettings saws = new();
         [Header("불 (회차 시작에 적용·플레이 중 변경은 다음 회차)")]
@@ -45,7 +44,6 @@ namespace CurtainCall.Settings
         public HandholdSettings Handhold => handhold;
         public PiggybackSettings Piggyback => piggyback;
         public CameraSettings Camera => camera;
-        public BodyPenaltySettings BodyPenalty => bodyPenalty;
         public Tightrope.Saws.SawSettings Saws => saws;
         public Tightrope.Fire.FireSettings Fire => fire;
         public HangSettings Hang => hang ??= new HangSettings();
@@ -560,32 +558,6 @@ namespace CurtainCall.Settings
             public float FadeSpeed => fadeSpeed;
         }
 
-        /// <summary>
-        /// 팔·다리를 잃었을 때 외줄에서 받는 불이익(다친 본인만). 규칙: Harness/Project/Decisions/body-damage.md
-        /// 두 다리를 잃었을 때의 기어가기(속도·캡슐)는 게임 공통이라 게임 기본 세팅에 있다. 모두 2026-10-04 임시값.
-        /// </summary>
-        [Serializable]
-        public sealed class BodyPenaltySettings
-        {
 
-
-            [Tooltip("잃은 다리 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 다리 수. 임시값 0.25(하나 ×1.25, 둘 ×1.5).")]
-            [SerializeField, Min(0f)] float swayPerLostLeg = 0.25f;
-
-            [Tooltip("잃은 팔 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 팔 수. 다리 쪽 배율과 곱한다. 임시값 0.1.")]
-            [SerializeField, Min(0f)] float swayPerLostArm = 0.1f;
-
-            [Tooltip("두 다리를 잃었을 때 제자리 점프 착지 충격 배율(×). 임시값 1.5(10 → 15).")]
-            [SerializeField, Min(1f)] float leglessLandingShock = 1.5f;
-
-            [Tooltip("두 다리를 잃었을 때 옆줄 이동 착지 충격 배율(×). 임시값 1.5(35 → 52.5).")]
-            [SerializeField, Min(1f)] float leglessLaneLandingShock = 1.5f;
-
-
-            public float SwayPerLostLeg => swayPerLostLeg;
-            public float SwayPerLostArm => swayPerLostArm;
-            public float LeglessLandingShock => leglessLandingShock;
-            public float LeglessLaneLandingShock => leglessLaneLandingShock;
-        }
     }
 }

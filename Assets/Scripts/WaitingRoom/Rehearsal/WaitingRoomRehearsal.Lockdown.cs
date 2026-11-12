@@ -47,6 +47,9 @@ namespace CurtainCall.WaitingRoom
         Transform lockdownRoot;
         Bounds practiceArea;
         bool practiceAreaFound;
+        Transform practiceExit;
+        BoxCollider practicePassage;
+        Collider practicePassageRoof;
 
         /// <summary>첫 공연을 마치고 대기실 튜토리얼에 들어가기 전까지 유지하는 출입·기능 제한.</summary>
         public static bool IsPreTutorialRestricted
@@ -112,6 +115,12 @@ namespace CurtainCall.WaitingRoom
             var collider = area != null ? area.GetComponent<Collider>() : null;
             practiceAreaFound = collider != null;
             if (practiceAreaFound) practiceArea = collider.bounds;
+            practiceExit = layout.transform.Find("NightMaintenance/PracticeGate");
+            var passage = GameObject.Find("Passage_F8_Practice");
+            practicePassage = passage != null && passage.scene == layout.scene
+                ? passage.transform.Find("FloorCollider")?.GetComponent<BoxCollider>() : null;
+            practicePassageRoof = practicePassage != null
+                ? passage.transform.Find("PassageRoof")?.GetComponent<Collider>() : null;
         }
 
         static readonly Vector2 LobbyMonitorSize = new(3.2f, 1.8f), CorridorMonitorSize = new(2.6f, 1.46f);
@@ -145,8 +154,34 @@ namespace CurtainCall.WaitingRoom
                 new Vector3(CorridorHangPoint.x, center, CorridorHangPoint.z), FinalLayout ? Vector3.back : Vector3.forward, CorridorMonitorSize, bezel, hang);
         }
 
-        bool InPracticeRoom(Vector3 position) => practiceAreaFound
-            ? practiceArea.Contains(position)
+        bool StillInsidePracticeExit(NetworkPlayer player)
+        {
+            var position = player.transform.position;
+            float clearance = player.TryGetComponent(out PlayerMover mover) && mover.Body != null ? mover.BodyRadius : .4f;
+            if (practiceExit != null)
+            {
+                var inward = practiceExit.forward;
+                if (Vector3.Dot(ringCenter - practiceExit.position, inward) < 0f) inward = -inward;
+                // Count the full body until it clears the shutter, including the connecting passage.
+                if (Vector3.Dot(position - practiceExit.position, inward) < -clearance) return false;
+                if (practicePassage != null)
+                {
+                    var point = practicePassage.transform.InverseTransformPoint(position) - practicePassage.center;
+                    var half = practicePassage.size * .5f;
+                    var scale = practicePassage.transform.lossyScale;
+                    if (Mathf.Abs(point.x) <= half.x + clearance / Mathf.Abs(scale.x)
+                        && Mathf.Abs(point.z) <= half.z + clearance / Mathf.Abs(scale.z))
+                    {
+                        // The room's coarse bounds also overlap the roof. Use the passage's actual vertical space here.
+                        return position.y >= practicePassage.bounds.min.y
+                            && (practicePassageRoof == null || position.y < practicePassageRoof.bounds.min.y);
+                    }
+                }
+            }
+            return InPracticeRoom(position);
+        }
+
+        bool InPracticeRoom(Vector3 position) => practiceAreaFound ? practiceArea.Contains(position)
             : new Vector2(position.x - ringCenter.x, position.z - ringCenter.z).sqrMagnitude < 30f * 30f;
 
         /// <summary>호스트: 공통 튜토리얼 정책은 실내 점유를 계속 반영한다. 정책이 꺼지면 기존 완료 후 봉쇄를 유지한다.</summary>
@@ -154,12 +189,14 @@ namespace CurtainCall.WaitingRoom
         {
             if (UsesInitialTutorialRules && GameSettings.WaitingRoom.Tutorial.OpenPracticeDoorWhileOccupied)
             {
-                bool occupied = false;
+                bool occupied = false, hasPlayers = false;
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
-                    if (InPracticeRoom(player.transform.position)) { occupied = true; break; }
+                    hasPlayers = true;
+                    if (StillInsidePracticeExit(player)) { occupied = true; break; }
                 }
+                if (!hasPlayers) return;
                 bool shouldSeal = !occupied;
                 if (practiceSealed == shouldSeal) return;
                 practiceSealed = shouldSeal; version++;
@@ -173,7 +210,7 @@ namespace CurtainCall.WaitingRoom
             {
                 if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
                 alive++;
-                if (InPracticeRoom(player.transform.position)) return;
+                if (StillInsidePracticeExit(player)) return;
             }
             if (alive == 0) return;
             practiceSealed = true; version++;

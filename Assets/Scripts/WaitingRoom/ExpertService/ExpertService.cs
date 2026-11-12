@@ -47,6 +47,12 @@ namespace CurtainCall.WaitingRoom
 
         public ExpertRoomPhase Phase => book.Phase;
 
+        // Both operations move players. Finish the cabin exit before capturing a rehearsal return pose.
+        public static bool IsMovingBuyer => Instance != null && Instance.book != null
+            && Instance.Phase is ExpertRoomPhase.Working or ExpertRoomPhase.Exiting;
+        public static bool IsTreating(ulong actor) => IsMovingBuyer && Instance.Buyer == actor;
+        public static bool IsLocalInTreatment => NetworkPlayer.Local != null && IsTreating(NetworkPlayer.Local.OwnerClientId);
+
         /// <summary>예약·이용 중인 사람(접속 번호). <see cref="ExpertRoomPhase.Idle"/>이면 의미 없다.</summary>
         public ulong Buyer => book.Buyer;
 
@@ -225,6 +231,9 @@ namespace CurtainCall.WaitingRoom
         (bool, string) Enter(ulong who)
         {
             RefreshReservation();
+            // A request sent before practice began may arrive after all participants were relocated.
+            if (WaitingRoomRehearsal.IsActive || WaitingRoomRehearsal.IsPracticePending || WaitingRoomCannonRehearsal.IsActive)
+                return (false, "리허설을 마친 뒤 신체 복구 승강기를 이용하세요.");
             var player = Find(who);
             if (player == null || !PlayerInteraction.CanInteract(player))
             {
@@ -236,6 +245,7 @@ namespace CurtainCall.WaitingRoom
             var before = book.Phase;
             var refusal = book.Enter(who);
             if (refusal != ExpertRefusal.None) return Reject(who, "MEDICAL_ENTER", refusal);
+            CurtainCall.HumanCannon.HumanCannonCarry.Held(who)?.ServerReleaseForInspection(who);
             CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForRelocation(who);
             Debug.Log($"[Expert] 입장 {WaitingRoomShop.PlayerLabel(who)}");
             Publish(before);

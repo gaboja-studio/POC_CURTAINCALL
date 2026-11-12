@@ -132,11 +132,9 @@ MonoBehaviour:
     safeRopeLanding: 1
     safeLandingZones: 1
     restartRecovery: 0
-    oneLegJumpHeight: 0.75
-    twoLegJumpHeight: 0.5
-    exploreOneLegMoveSpeed: 0.8
-    exploreOneArmReach: 0.8
-    crawlSpeedMultiplier: 0.5
+    exploreOneLegMoveSpeed: 0.9
+    injuredHangTimeMultiplier: 0.5
+    crawlSpeedMultiplier: 0.65
     crawlCanJump: 1
     crawlCanLaneJump: 1
     crawlCapsuleHeight: 0.9

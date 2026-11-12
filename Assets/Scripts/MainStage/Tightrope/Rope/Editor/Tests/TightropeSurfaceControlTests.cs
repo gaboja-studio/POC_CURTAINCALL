@@ -27,10 +27,12 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         PlayerController controller;
         PlayerControlScheme previousDefault;
         Scene testScene;
+        InputGateTestScope inputGate;
 
         [SetUp]
         public void SetUp()
         {
+            inputGate = new InputGateTestScope();
             // TestRunner의 저장되지 않은 씬을 유지하고 기존 개발 옵션만 잠시 보관한다.
             testScene = SceneManager.GetActiveScene();
             foreach (var session in Object.FindObjectsByType<EscapeDevelopmentSession>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -80,6 +82,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 if (session != null) session.SuppressFallConsequences = true;
             suppressedDevelopmentSessions.Clear();
             Physics.SyncTransforms();
+            inputGate?.Dispose();
         }
 
         [Test]
@@ -253,7 +256,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             {
                 MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
                 Assert.IsTrue(pole.IsInReach(player), "The rope is between the player's center and the bar.");
-                MovePlayer(new Vector3(0f, -2f - mover.Body.center.y, 4f));
+                MovePlayer(new Vector3(0f, .9f - CurtainCall.Settings.GameSettings.Poles.GrabRadius - mover.Body.center.y, 4f));
                 Assert.IsFalse(pole.IsInReach(player), "Vertical distance also counts toward the radius.");
                 MovePlayer(new Vector3(0f, -.5f - mover.Body.center.y, 4f));
                 AddBox("Solid floor between player and pole", new Vector3(0f, .25f, 4f), new Vector3(2f, .15f, 2f));

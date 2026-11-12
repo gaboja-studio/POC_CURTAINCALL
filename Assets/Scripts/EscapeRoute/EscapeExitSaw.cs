@@ -100,7 +100,8 @@ namespace CurtainCall.EscapeRoute
         bool Ready => SessionReady && CarryRoot.gameObject.activeInHierarchy;
         bool ProjectileSessionReady => SessionReady && (CarryRoot.gameObject.activeInHierarchy || scaleWithCrew);
         string UseKey => NetworkPlayer.Local != null && NetworkPlayer.Local.TryGetComponent(out PlayerInputReader input)
-            ? input.BindingLabel("UseDevice", "V") : "V";
+            ? input.BindingLabel(InputBindingPreferences.DeviceUseAction, InputBindingPreferences.LeftClickLabel)
+            : InputBindingPreferences.LeftClickLabel;
 
         void ApplyCommonSize()
         {

@@ -171,8 +171,12 @@ namespace CurtainCall.Tightrope
             var carried = HumanCannonCarry.Held(actor);
             if (carried is HumanCannonTrampoline trampoline) trampoline.ServerDropForRope(actor);
             else carried?.ServerReleaseForInspection(actor);
-            book.Begin(actor, lane, distance, Rules.HoldSeconds, StickyGloves.ExtraSeconds(actor, Rules.HoldSeconds));
+            float duration = HoldSecondsFor(Find(actor));
+            book.Begin(actor, lane, distance, duration, StickyGloves.ExtraSeconds(actor, duration));
         }
+
+        float HoldSecondsFor(NetworkPlayer player) => GameSettings.Base.BodyDamage.HangSeconds(Rules.HoldSeconds,
+            player != null && player.TryGetComponent(out PlayerCondition condition) ? condition.LostArmCount : 0);
 
         static void NotifyHang(ulong id)
         {
@@ -216,6 +220,7 @@ namespace CurtainCall.Tightrope
             {
                 var player = Find(hang.Id);
                 if (player == null || player.State != PlayerState.Normal) { Debug.Log($"[RescueDiag] remove target={hang.Id} reason=missing-or-state"); (gone ??= new List<ulong>()).Add(hang.Id); continue; }
+                changed |= hang.ShortenBaseTime(HoldSecondsFor(player));
                 if (!hang.IsPulling) continue;
                 var rescuer = Find(hang.Rescuer);
                 // 도와주는 동료가 떠나거나, 죽거나, 다치거나, 멀어지거나, 자신도 떨어지면 끊기고 남은 시간이 다시 흐른다.

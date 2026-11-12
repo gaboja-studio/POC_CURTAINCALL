@@ -43,6 +43,7 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
         Collider carryBody;
+        readonly System.Collections.Generic.List<Collider> limbCollisionBodies = new();
         CharacterController ignoredCarrierBody;
         bool previousCarrierIgnored;
         Vector3 lastSafeCarrierFeet;
@@ -111,6 +112,7 @@ namespace CurtainCall.HumanCannon
         void OnEnable()
         {
             RefreshCarryBody(null);
+            RefreshLimbCollisions();
             if (Current != null && Current != this)
             {
                 Debug.LogError("[HumanCannon] 1단계 테스트에는 트램폴린을 하나만 둡니다.", this);
@@ -125,6 +127,15 @@ namespace CurtainCall.HumanCannon
             ResetPreviousPose();
             PresentHandleOwnership();
             NetworkPlayer.Restarted += HandleRestart;
+        }
+
+        // Run before physics, including while idle/dropping and when new limb pieces appear.
+        void FixedUpdate() => RefreshLimbCollisions();
+
+        void RefreshLimbCollisions()
+        {
+            GetComponentsInChildren(true, limbCollisionBodies);
+            foreach (var body in limbCollisionBodies) CurtainCall.Damage.DismemberedLimb.IgnoreFor(body);
         }
 
         void Update()
@@ -502,7 +513,7 @@ namespace CurtainCall.HumanCannon
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
             bool nearSurface = NearSurface(player, contact);
             bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
-                && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed);
+                && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, fromTrampoline: true);
             if (accepted)
             {
                 ServerBounced?.Invoke(player.OwnerClientId);

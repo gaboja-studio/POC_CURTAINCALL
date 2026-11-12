@@ -1,3 +1,4 @@
+using CurtainCall.Cameras;
 using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -30,8 +31,10 @@ namespace CurtainCall.Player
         InputAction crouch;
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
         InputAction useDevice;
-        float interactPressedAt = -1f; // 누르고 있지 않으면 음수
+        double interactPressedAt = -1d;
         bool interactLongSent;
+        bool interactTapPending, interactLongPending;
+        InputDevice interactDevice;
         // 반대 키 동시 입력은 마지막에 누른 방향. 그 키를 떼면 아직 누르고 있는 이전 키 방향으로 돌아간다.
         readonly OppositeKeyAxis moveKeys = new(), postureKeys = new(), auxKeys = new();
 
@@ -87,10 +90,13 @@ namespace CurtainCall.Player
             auxLeft = commonMap.FindAction("DirectionLeft", true);
             auxRight = commonMap.FindAction("DirectionRight", true);
             interact = commonMap.FindAction("Interact", true);
+            interact.performed += OnInteractPressed;
+            interact.canceled += OnInteractReleased;
+            InputSystem.onDeviceChange += OnInputDeviceChange;
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
             uvLight = commonMap.FindAction("UvLight", false);
-            useDevice = commonMap.FindAction("UseDevice", false);
+            useDevice = commonMap.FindAction(InputBindingPreferences.DeviceUseAction, false);
         }
 
         public bool ControlsReleased
@@ -109,8 +115,9 @@ namespace CurtainCall.Player
         {
             CommonInteractionSelection.Forget(this);
             Current = default;
-            interactPressedAt = -1f;
-            interactLongSent = false;
+            interactPressedAt = -1d;
+            interactDevice = null;
+            interactLongSent = interactTapPending = interactLongPending = false;
             moveKeys.Reset(); postureKeys.Reset(); auxKeys.Reset();
             if (TryGetComponent(out PlayerMover mover)) mover.ClearPendingInput();
             if (TryGetComponent(out PlayerBalance balance)) balance.SetCorrectionInput(0f);
@@ -142,6 +149,12 @@ namespace CurtainCall.Player
         void OnDestroy()
         {
             InputBindingPreferences.Changed -= RefreshBindingPreferences;
+            InputSystem.onDeviceChange -= OnInputDeviceChange;
+            if (interact != null)
+            {
+                interact.performed -= OnInteractPressed;
+                interact.canceled -= OnInteractReleased;
+            }
             if (actions != null) Destroy(actions);
         }
 
@@ -152,13 +165,14 @@ namespace CurtainCall.Player
                 ClearPendingInput();
                 return;
             }
-            ReadInteract(out bool tapped, out bool longPressed, out float holdProgress);
+            ReadInteract(Time.realtimeSinceStartupAsDouble, out bool tapped, out bool longPressed, out float holdProgress);
 
             Current = new PlayerInputFrame
             {
                 Move = moveKeys.Read(move),
                 Posture = postureKeys.Read(posture),
                 ActionPressed = action.WasPressedThisFrame(),
+                ActionHeld = action.IsPressed(),
                 TurnAroundPressed = turnAround != null && turnAround.WasPressedThisFrame(),
                 AuxDirection = auxKeys.Update(auxLeft.IsPressed(), auxRight.IsPressed()),
                 InteractTapped = tapped,
@@ -168,41 +182,67 @@ namespace CurtainCall.Player
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
                 UvLightHeld = uvLight != null && uvLight.IsPressed(),
-                UseDevicePressed = useDevice != null && useDevice.WasPressedThisFrame(),
+                UseDevicePressed = ReadDeviceUse(),
             };
             CommonInteractionSelection.Selected(this);
         }
 
-        /// <summary>짧게 = 기준 시간 전에 뗌(뗀 프레임), 길게 = 기준 시간에 닿음(그 프레임, 뗄 때는 아무것도 안 나감).</summary>
-        void ReadInteract(out bool tapped, out bool longPressed, out float holdProgress)
+        bool ReadDeviceUse()
         {
-            tapped = longPressed = false;
+            if (useDevice == null || !useDevice.WasPressedThisFrame()) return false;
+            var mouse = Mouse.current;
+            if (mouse == null || !mouse.leftButton.wasPressedThisFrame || useDevice.bindings.Count == 0
+                || useDevice.bindings[0].effectivePath != InputBindingPreferences.LeftClickPath) return true;
+            if (Cursor.lockState == CursorLockMode.Locked) return true;
+            return (CameraViewDirector.Current == null || !CameraViewDirector.Current.UsesMouseLook)
+                && !CameraViewDirector.PointerBlocked(mouse.position.ReadValue());
+        }
+
+        void OnInteractPressed(InputAction.CallbackContext context)
+        {
+            if (interactPressedAt >= 0d) return;
+            interactDevice = context.control.device;
+            interactPressedAt = context.time;
+            interactLongSent = false;
+        }
+
+        void OnInputDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            if (device != interactDevice) return;
+            if (change == InputDeviceChange.SoftReset || change == InputDeviceChange.HardReset
+                || change == InputDeviceChange.Disabled || change == InputDeviceChange.Disconnected
+                || change == InputDeviceChange.Removed)
+                // Device cancellation is not a physical key release. It can have queued a tap/hold already.
+                ClearPendingInput();
+        }
+
+        void OnInteractReleased(InputAction.CallbackContext context)
+        {
+            if (interactPressedAt >= 0d && !interactLongSent)
+            {
+                // A slow frame can receive the press and release together. Use the event timestamps.
+                if (context.time - interactPressedAt >= GameSettings.Base.Input.LongPressTime) interactLongPending = true;
+                else interactTapPending = true;
+            }
+            interactPressedAt = -1d;
+            interactLongSent = false;
+        }
+
+        /// <summary>기준에 도달하거나 늦게 뗀 프레임에 홀드를 한 번 보낸다. 기준 전에 떼면 탭이다.</summary>
+        void ReadInteract(double now, out bool tapped, out bool longPressed, out float holdProgress)
+        {
+            longPressed = interactLongPending;
+            tapped = interactTapPending && !longPressed;
+            interactTapPending = interactLongPending = false;
             holdProgress = 0f;
+            if (interactPressedAt < 0d || !interact.IsPressed()) return;
 
-            if (interact.WasPressedThisFrame())
-            {
-                interactPressedAt = Time.time;
-                interactLongSent = false;
-            }
-
-            if (interactPressedAt < 0f) return;
-
-            float held = Time.time - interactPressedAt;
-            if (interact.IsPressed())
-            {
-                float longPressTime = GameSettings.Base.Input.LongPressTime; // 길게 누르기 기준은 세팅(입력)
-                holdProgress = interactLongSent ? 1f : Mathf.Clamp01(held / longPressTime);
-                if (!interactLongSent && held >= longPressTime)
-                {
-                    longPressed = true;
-                    interactLongSent = true;
-                }
-                return;
-            }
-
-            // 뗐다
-            if (!interactLongSent) tapped = true;
-            interactPressedAt = -1f;
+            double held = now - interactPressedAt;
+            float threshold = GameSettings.Base.Input.LongPressTime;
+            holdProgress = interactLongSent ? 1f : Mathf.Clamp01((float)(held / threshold));
+            if (interactLongSent || held < threshold) return;
+            tapped = false;
+            longPressed = interactLongSent = true;
         }
     }
 }

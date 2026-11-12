@@ -20,6 +20,7 @@ namespace CurtainCall.HumanCannon
         {
             public float Input;
             public double LastInput;
+            public double GrabbedAt;
             public uint InputSequence;
             public uint JoinedRevision;
             public int Station;
@@ -276,6 +277,13 @@ namespace CurtainCall.HumanCannon
             {
                 ulong supportingActor = runtime.State.OccupantAt(supportingSeat);
                 if (supportingActor == CannonSeatState.Nobody) continue;
+                var rider = runtime.Riders[supportingSeat];
+                if (rider != null && FindPlayer(supportingActor) is { } player)
+                {
+                    float duration = HoldDuration(poles[index], player);
+                    if (runtime.State.ShortenHold(supportingSeat, rider.GrabbedAt + duration))
+                        Publish(index, PoleEvent.Sync, CannonSeatState.Nobody);
+                }
                 bool unsupported = supportingSeat > 0 && runtime.State.OccupantAt(supportingSeat - 1) == CannonSeatState.Nobody;
                 double deadline = runtime.State.DeadlineAt(supportingSeat);
                 if (!unsupported && (deadline <= 0 || Clock < deadline)) continue;
@@ -319,7 +327,8 @@ namespace CurtainCall.HumanCannon
                 var runtime = states[i];
                 float angle = DisplaySwingAngle(i);
                 poles[i].PresentSwing(angle);
-                poles[i].PresentCountdown(runtime.State.IsOccupied ? (float)(HoldUntil(i) - Clock) : poles[i].HoldSeconds);
+                double deadline = runtime.State.NextDeadline;
+                poles[i].PresentCountdown(deadline > 0d ? (float)(deadline - Clock) : poles[i].HoldSeconds, angle);
                 for (int seat = 0; seat < runtime.State.Capacity; seat++)
                 {
                     var player = FindPlayer(runtime.State.OccupantAt(seat));
@@ -357,15 +366,17 @@ namespace CurtainCall.HumanCannon
                 var stack = PiggybackSystem.Current;
                 bool transferring = stack != null && stack.IsInStack(player);
                 if (transferring && !stack.CanReleaseForDevice(player)) return;
-                float hold = seat == 0 ? poles[index].HoldSeconds : Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(0) - Clock));
-                if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, false, seat)) return;
+                double grabbedAt = Clock;
+                float hold = HoldDuration(poles[index], player);
+                if (seat > 0) hold = Mathf.Min(hold, Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(seat - 1) - grabbedAt)));
+                if (!runtime.State.TryGrab(actor, runtime.State.Revision, grabbedAt, hold, false, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 if (runtime.State.Count == 1)
                 {
                     runtime.ResetDrive();
                     runtime.Speed = poles[index].AddCatchMomentum(runtime.Angle, runtime.Speed, input);
                 }
-                runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment,
+                runtime.Riders[seat] = new Rider { LastInput = grabbedAt, GrabbedAt = grabbedAt, Station = station, Launch = launch, Segment = segment,
                     JoinedRevision = runtime.State.Revision };
                 void CompleteCatch()
                 {
@@ -396,6 +407,9 @@ namespace CurtainCall.HumanCannon
                 RefreshSwingDrive(runtime);
             }
         }
+
+        static float HoldDuration(HumanCannonPole pole, NetworkPlayer player) => GameSettings.Base.BodyDamage.HangSeconds(
+            pole.HoldSeconds, player.TryGetComponent(out PlayerCondition condition) ? condition.LostArmCount : 0);
 
         float RefreshSwingDrive(Runtime runtime)
         {

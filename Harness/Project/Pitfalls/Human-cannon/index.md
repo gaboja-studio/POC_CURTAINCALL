@@ -6,3 +6,4 @@
 - [lift-carry-contact.md](lift-carry-contact.md) — 트램펄린이 연습실 링 입구나 리프트에 걸리거나 카메라가 떨릴 때
 - [barrel-motion-clock.md](barrel-motion-clock.md) — 대포 회복 중 탑승·늦은 접속의 발사 재생·협동 잠금 덮어쓰기를 확인할 때
 - [injured-motion-support.md](injured-motion-support.md) — 손끝은 바닥에 닿는데 절단된 몸통이 떠 보이거나 지면 동작 전환을 검사할 때
+- [rehearsal-flight-visibility.md](rehearsal-flight-visibility.md) — 인간대포 연습의 비행 화면 누락과 조명 깜빡임을 확인할 때

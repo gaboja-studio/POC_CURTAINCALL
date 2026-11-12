@@ -115,11 +115,6 @@ MonoBehaviour:
     occluderAlpha: 0.35
     occluderRadius: 0.4
     fadeSpeed: 6
-  bodyPenalty:
-    swayPerLostLeg: 0.25
-    swayPerLostArm: 0.1
-    leglessLandingShock: 1.5
-    leglessLaneLandingShock: 1.5
   saws:
     steps:
     - name: "\uAC00\uB85C \uC804\uCCB4"

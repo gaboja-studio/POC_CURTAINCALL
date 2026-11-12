@@ -176,9 +176,10 @@ namespace CurtainCall.WaitingRoom
             if (localInside && !workingHere) MoveLocal(outside, true);
             else if (!localInside && workingHere)
             {
-                // 서비스 상태가 목마 해제 패킷보다 먼저 와도 Follow가 승강기 위치를 덮어쓰지 않는다.
+                // Service and device snapshots can arrive in either order. Do not teleport a load's carrier.
                 var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
                 if (stack != null && stack.IsInStack(NetworkPlayer.Local)) return;
+                if (NetworkPlayer.Local != null && CurtainCall.HumanCannon.HumanCannonCarry.Held(NetworkPlayer.Local.OwnerClientId) != null) return;
                 MoveLocal(inside, false);
             }
         }

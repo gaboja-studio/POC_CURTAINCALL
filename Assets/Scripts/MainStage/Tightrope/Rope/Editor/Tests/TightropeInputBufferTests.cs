@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using CurtainCall.Player;
@@ -9,45 +10,31 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
-    [Category("CommonProgressionRegression")]
-    public sealed class TightropeInputBufferTests
+    internal sealed class InputGateTestScope : IDisposable
     {
-        const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
         const BindingFlags StaticMembers = BindingFlags.Static | BindingFlags.NonPublic;
-        HashSet<PlayerInputReader> previousReaders;
-        HashSet<object> previousBlockers;
-        HashSet<Key> previousReleaseKeys;
-        bool previousRearming;
-        int previousCheckedFrame, previousBlockedFrame;
+        readonly HashSet<PlayerInputReader> previousReaders = new(GateSet<PlayerInputReader>("readers"));
+        readonly HashSet<object> previousBlockers = new(GateSet<object>("blockers"));
+        readonly HashSet<Key> previousReleaseKeys = new(GateSet<Key>("releaseKeys"));
+        readonly bool previousRearming = (bool)GateField("rearming").GetValue(null);
+        readonly int previousCheckedFrame = (int)GateField("checkedFrame").GetValue(null);
+        readonly int previousBlockedFrame = (int)GateField("blockedFrame").GetValue(null);
 
-        [SetUp]
-        public void IsolateInputGate()
+        public InputGateTestScope()
         {
             // EditMode [Test] 사이에는 프레임이 진행되지 않을 수 있다. 다른 검사의
             // "닫힌 프레임 입력 차단"을 물려받으면 Tick이 실행되지 않고 조기 종료된다.
-            previousReaders = new HashSet<PlayerInputReader>(GateSet<PlayerInputReader>("readers"));
-            previousBlockers = new HashSet<object>(GateSet<object>("blockers"));
-            previousReleaseKeys = new HashSet<Key>(GateSet<Key>("releaseKeys"));
-            previousRearming = (bool)GateField("rearming").GetValue(null);
-            previousCheckedFrame = (int)GateField("checkedFrame").GetValue(null);
-            previousBlockedFrame = (int)GateField("blockedFrame").GetValue(null);
             typeof(InputGate).GetMethod("Reset", StaticMembers).Invoke(null, null);
-            Assert.IsFalse(InputGate.IsBlocked, "버퍼 검사는 입력을 실제로 해석하는 상태에서 시작해야 한다.");
         }
 
-        [TearDown]
-        public void RestoreInputGate()
+        public void Dispose()
         {
-            if (previousReaders == null) return;
             RestoreGateSet("readers", previousReaders);
             RestoreGateSet("blockers", previousBlockers);
             RestoreGateSet("releaseKeys", previousReleaseKeys);
             GateField("rearming").SetValue(null, previousRearming);
             GateField("checkedFrame").SetValue(null, previousCheckedFrame);
             GateField("blockedFrame").SetValue(null, previousBlockedFrame);
-            previousReaders = null;
-            previousBlockers = null;
-            previousReleaseKeys = null;
         }
 
         static FieldInfo GateField(string name) => typeof(InputGate).GetField(name, StaticMembers);
@@ -58,6 +45,19 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             values.Clear();
             values.UnionWith(snapshot);
         }
+    }
+
+    [Category("CommonProgressionRegression")]
+    public sealed class TightropeInputBufferTests
+    {
+        const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
+        InputGateTestScope inputGate;
+
+        [SetUp]
+        public void IsolateInputGate() => inputGate = new InputGateTestScope();
+
+        [TearDown]
+        public void RestoreInputGate() => inputGate?.Dispose();
 
         [Test]
         public void EarlyPressKeepsDirectionAndFiresOnlyOnceAfterLanding()

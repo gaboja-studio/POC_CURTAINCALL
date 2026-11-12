@@ -124,7 +124,7 @@ namespace CurtainCall.HumanCannon
             bool local = NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == actor;
             if (accepted == 1)
             {
-                if (cannon.ApplyRebound(actor, station, launch, segment, contact, speed) && local) LocalBounceCount++;
+                if (cannon.ApplyRebound(actor, station, launch, segment, contact, speed, fromTrampoline: true) && local) LocalBounceCount++;
             }
             else if (local) cannon.RejectRebound(station, launch, segment);
         }

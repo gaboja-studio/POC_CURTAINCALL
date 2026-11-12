@@ -475,7 +475,7 @@ rehearsal.practice-intro-no-recovery | 고른 소구간부터 다시 연습합�
 rehearsal.practice-button | {stage} 재연습
 rehearsal.practice-hint | 호스트 전용 · 연습실에서 소구간을 골라 다시 연습
 rehearsal.practice-end | 연습 종료
-# 우측 퀘스트 패널 (기획서 4.4, 2026-11-04). 각 안내의 제목은 .title 키. 제목 줄이 없으면 "[tutorial]"만 표시
+# 우측 퀘스트 패널 (기획서 4.4, 2026-11-04). 각 안내의 제목은 .title 키. 제목 줄이 없으면 본문만 표시
 rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
 rehearsal.quest.practice-fallen | 사망했습니다. 호스트가 연습을 종료할 수 있습니다.
 rehearsal.quest.practice-fallen.title | 연습 중 사망
@@ -488,21 +488,21 @@ rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
 rehearsal.quest.gather | 바닥에 표시되는 길안내 선을 따라 무대 입구 통로로 이동하세요. 전원이 모이면 공연이 시작됩니다.[{inside}/{alive}]
 rehearsal.quest.gathered | 다른 공연 준비자를 기다리세요.[{inside}/{alive}]
 rehearsal.quest.fallen.title | 체크포인트로 복귀하기
-rehearsal.quest.hang-help.title | [tutorial] 동료에게 도움 요청하기
+rehearsal.quest.hang-help.title | 동료에게 도움 요청하기
 rehearsal.quest.hang-help | 줄에 매달려 버티는 동안 동료에게 도움을 요청하세요. 가까운 동료가 F를 길게 눌러 끌어올릴 수 있습니다. 혼자 올라올 수는 없습니다.
-rehearsal.quest.rescue-team.title | [tutorial] 추락한 동료 구출하기
+rehearsal.quest.rescue-team.title | 추락한 동료 구출하기
 rehearsal.quest.rescue-team | 줄에 매달린 동료 가까이로 이동해 F를 길게 눌러 끌어올리세요. 버티는 시간이 끝나기 전에 구조해야 합니다.
-rehearsal.quest.rescue-pull.title | [tutorial] 동료 끌어올리기
+rehearsal.quest.rescue-pull.title | 동료 끌어올리기
 rehearsal.quest.rescue-pull | 동료를 끌어올리는 중입니다. 구조가 끝날 때까지 가까이에서 F를 계속 누르세요.
 rehearsal.quest.wait-team.title | 동료 도착 기다리기
 rehearsal.quest.arrived.title | 다음 구간 준비하기
-rehearsal.quest.balance.title | [tutorial] 균형잡기
-rehearsal.quest.lane-jump.title | [tutorial] 줄 건너기
-rehearsal.quest.lane-platform.title | [tutorial] 중간 발판에서 건너기
+rehearsal.quest.balance.title | 균형잡기
+rehearsal.quest.lane-jump.title | 줄 건너기
+rehearsal.quest.lane-platform.title | 중간 발판에서 건너기
 rehearsal.quest.gather.title | 무대 입구로 집결하기
 rehearsal.quest.gathered.title | 집결 인원 기다리기
 # ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──
-tutorial.team-wait-title | [tutorial]
+tutorial.team-wait-title | 동료 기다리는 중
 tutorial.team-wait | 모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다.[{ready}/{total}]
 
 
@@ -517,21 +517,21 @@ first-day.panel.right | 36
 first-day.panel.width | 400
 first-day.panel.title-size | 28
 first-day.panel.body-size | 24
-first-day.quest.tutorial.title | [tutorial] 대기실
+first-day.quest.tutorial.title | 대기실
 first-day.quest.tutorial.body | 대기실 안내를 확인하세요.\n전원이 안내를 마치면 탐색 시간이 시작됩니다.[{ready}/{total}]
-first-day.quest.gather.title | [tutorial] 1일차 · 두 번째 공연 준비
+first-day.quest.gather.title | 1일차 · 두 번째 공연 준비
 first-day.quest.gather.body | 다음 공연을 준비하세요.\n무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다.[{inside}/{alive}]
-first-day.quest.second-pick.title | [tutorial] 1일차 · 두 번째 공연 선택
+first-day.quest.second-pick.title | 1일차 · 두 번째 공연 선택
 first-day.quest.second-pick.body | 다음 공연이 기본 편성되어 있습니다. 스케줄표에서 변경할 수 있고, 전원이 무대 입구에 모이면 바로 시작합니다.
-first-day.quest.second-pick-wait.title | [tutorial] 1일차 · 두 번째 공연 선택 대기
+first-day.quest.second-pick-wait.title | 1일차 · 두 번째 공연 선택 대기
 first-day.quest.second-pick-wait.body | 호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.\n확정되면 무대 입구 통로로 모이세요.
-first-day.quest.night-schedule.title | [tutorial] 1일차 밤 · 다음 날 일정 정하기
+first-day.quest.night-schedule.title | 1일차 밤 · 다음 날 일정 정하기
 first-day.quest.night-schedule.body | 스케줄표에서 다음 공연을 변경할 수 있습니다. 선택 즉시 적용됩니다.
-first-day.quest.night-schedule-wait.title | [tutorial] 1일차 밤 · 일정 확정
+first-day.quest.night-schedule-wait.title | 1일차 밤 · 일정 확정
 first-day.quest.night-schedule-wait.body | 호스트가 다음 날 일정을 확정해야 합니다.
-first-day.quest.night-bed.title | [tutorial] 1일차 밤 · 취침 준비
+first-day.quest.night-bed.title | 1일차 밤 · 취침 준비
 first-day.quest.night-bed.body | 다음 날 일정이 확정됐습니다. 정비를 마치고 침대에 누우면 하루 일정을 마무리합니다.[{ready}/{total}]
-first-day.quest.night-wait.title | [tutorial] 1일차 밤 · 일정 마무리하기
+first-day.quest.night-wait.title | 1일차 밤 · 일정 마무리하기
 first-day.quest.night-wait.body | 모든 공연 대기자가 준비하면 다음 날로 넘어갑니다.[{ready}/{total}]
 
 # ── 리허설 단계별 제목·좌측 설명 ── .title은 재연습 버튼 이름, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
@@ -562,11 +562,11 @@ rehearsal.lane-guide-title | 끊어진 줄
 rehearsal.lane-guide | 줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다.
 rehearsal.mount-title | 목마 상호작용
 rehearsal.mount | 동료 가까이에서 F키를 눌러 목마에 올라탈 수 있습니다.
-rehearsal.quest.trapeze-mount.title | [tutorial] 목마 연결하기
+rehearsal.quest.trapeze-mount.title | 목마 연결하기
 rehearsal.quest.trapeze-mount | 동료 가까이에서 F로 목마를 연결하세요. 첫 공중그네는 목마로 진입합니다.
-rehearsal.quest.trapeze-grab.title | [tutorial] 공중 인간 그네
+rehearsal.quest.trapeze-grab.title | 공중 인간 그네
 rehearsal.quest.trapeze-grab | 목마 위쪽 사람이 F로 첫 봉을 잡으세요. 목마가 풀리면 아래 동료도 F로 매달리세요.
-rehearsal.quest.trapeze-attach.title | [tutorial] 동료에게 매달리기
+rehearsal.quest.trapeze-attach.title | 동료에게 매달리기
 rehearsal.quest.trapeze-attach | 봉을 잡은 동료 가까이에서 F로 매달리세요. 반동에 맞춰 Space로 다음 봉을 향해 날아갑니다.
 
 # 우측 하단 투표 패널 (2026-11-04). {votes} 동의 수, {required} 필요 수(전체 인원 과반), {total} 전체 인원
@@ -590,28 +590,28 @@ guide.title-color | #FFD5A0
 # 공연 확정 전 무대 입구 안내
 schedule.entry-blocked.title | 공연 일정 미확정
 schedule.entry-blocked.body | 스케줄표에서 공연을 먼저 확정해야 무대에 입장할 수 있습니다. 호스트가 로비 스케줄표에서 공연을 선택하고 확정하세요.
-rehearsal.quest.handhold.title | [tutorial] 손잡기 착지
+rehearsal.quest.handhold.title | 손잡기 착지
 rehearsal.quest.handhold | 동료가 서 있는 줄의 손잡기 범위에 착지해 보세요. 충격과 흔들림이 줄어듭니다.
-rehearsal.quest.relay.title | [tutorial] 해제봉 교대
-rehearsal.quest.trapeze.title | [tutorial] 공중그네
-rehearsal.quest.trapeze-lane.title | [tutorial] 공중그네 진입
+rehearsal.quest.relay.title | 해제봉 교대
+rehearsal.quest.trapeze.title | 공중그네
+rehearsal.quest.trapeze-lane.title | 공중그네 진입
 rehearsal.quest.trapeze-lane | Q/E + Space로 {lane}번 줄의 공중그네 진입 위치로 이동하세요.
-rehearsal.quest.mount.title | [tutorial] 목마 연결하기
+rehearsal.quest.mount.title | 목마 연결하기
 rehearsal.quest.mount | 동료 가까이에서 F로 목마를 연결하세요. 혼자 걸어가면 완료되지 않습니다.
-rehearsal.quest.mount-move.title | [tutorial] 목마 이동
+rehearsal.quest.mount-move.title | 목마 이동
 rehearsal.quest.mount-move | 위 사람을 태우고 2m 이상 이동하세요. 도착대 가까이에서 위 사람의 도약을 도와주세요.
-rehearsal.quest.mount-balance.title | [tutorial] 목마 균형잡기
+rehearsal.quest.mount-balance.title | 목마 균형잡기
 rehearsal.quest.mount-balance | A/D로 균형을 잡으며 아래 동료와 2m 이동하세요.
-rehearsal.quest.mount-jump.title | [tutorial] 목마에서 도약하기
+rehearsal.quest.mount-jump.title | 목마에서 도약하기
 rehearsal.quest.mount-jump | 도착대 가까이에서 W + Space로 목마에서 앞으로 도약해 착지하세요.
-rehearsal.quest.mount-land.title | [tutorial] 도약 후 착지하기
+rehearsal.quest.mount-land.title | 도약 후 착지하기
 rehearsal.quest.mount-land | 분리 점프했습니다. 도착대에 착지하세요.
-rehearsal.quest.lane-learned.title | [tutorial] 옆줄 착지 성공
+rehearsal.quest.lane-learned.title | 옆줄 착지 성공
 rehearsal.quest.lane-learned | 옆줄 착지 성공! 짧은 도착대까지 이동하세요. 동료 근처에 착지하면 충격이 줄어듭니다.
 
 # 인간대포·트램펄린 리허설 (Confluence 3.5, Start 연결 공연 원본 기물)
 cannon-rehearsal.title | 인간대포/트램펄린
-cannon-rehearsal.quest-title | [tutorial] 인간대포와 트램펄린
+cannon-rehearsal.quest-title | 인간대포와 트램펄린
 cannon-rehearsal.intro | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.
 cannon-rehearsal.intro-no-recovery | 대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다.
 cannon-rehearsal.first | F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요.
@@ -640,15 +640,15 @@ cannon-rehearsal.cancel-vote | 동의 취소
 cannon-rehearsal.end-title | 리허설 종료
 cannon-rehearsal.complete | 인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다.
 cannon-rehearsal.abandoned | 리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다.
-rehearsal.quest.pole-grab.title | [tutorial] 인간 그네
-rehearsal.quest.pole-single.title | [tutorial] 인간 그네
-rehearsal.quest.pole-next.title | [tutorial] 인간 그네
-rehearsal.quest.trigger-hold.title | [tutorial] 인간 그네
-rehearsal.quest.trigger-wait-passenger.title | [tutorial] 인간 그네
+rehearsal.quest.pole-grab.title | 인간 그네
+rehearsal.quest.pole-single.title | 인간 그네
+rehearsal.quest.pole-next.title | 인간 그네
+rehearsal.quest.trigger-hold.title | 인간 그네
+rehearsal.quest.trigger-wait-passenger.title | 인간 그네
 rehearsal.quest.trigger-wait-passenger | 아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.
-rehearsal.quest.trigger-grab.title | [tutorial] 인간 그네
-rehearsal.quest.trigger-open.title | [tutorial] 인간 그네
-rehearsal.quest.trigger-closed.title | [tutorial] 인간 그네
+rehearsal.quest.trigger-grab.title | 인간 그네
+rehearsal.quest.trigger-open.title | 인간 그네
+rehearsal.quest.trigger-closed.title | 인간 그네
 
 pursuit.quest.sleep | - 살아 있는 모든 플레이어가 숙소 침대에서 수면
 night.bed-unavailable | 리허설이나 포획 중에는 잠들 수 없습니다.
@@ -667,10 +667,10 @@ cannon-rehearsal.guide.bounce.title | 안전한 착지
 cannon-rehearsal.guide.bounce.body | 트램펄린을 이용해 안전하게 착지할 수 있습니다. 지면에 착지하지 않게 주의하세요.
 cannon-rehearsal.guide.safe.title | 안전지역
 cannon-rehearsal.guide.safe.body | 모든 공연 준비자가 도착 지점에 도착해야 합니다.
-cannon-rehearsal.first-title | [tutorial] 공연 준비
-cannon-rehearsal.safe-title | [tutorial] 안전 지역으로 이동하기
+cannon-rehearsal.first-title | 공연 준비
+cannon-rehearsal.safe-title | 안전 지역으로 이동하기
 cannon-rehearsal.safe-body | 도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요.
-cannon-rehearsal.completed-title | [tutorial] 리허설 종료
+cannon-rehearsal.completed-title | 리허설 종료
 cannon-rehearsal.skipped | 리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 선택할 수 있습니다.
 cannon-rehearsal.retry-title | 다시 연습하기
 cannon-rehearsal.retry-body | 연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다.

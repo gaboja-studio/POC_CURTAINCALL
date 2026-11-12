@@ -24,10 +24,9 @@ namespace CurtainCall.HumanCannon.Tests
                 if (lost > 0) Call(player, "ServerCut", 1);
                 yield return null;
                 yield return null;
-                float expectedMove = lost == 0 ? 1f : 0.8f;
+                float expectedMove = (float)Call(damage, "MoveMultiplier", Math.Min(2, lost));
                 Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(expectedMove).Within(0.001f));
-                Assert.That((float)Get(mover, "JumpHeightMultiplier"), Is.EqualTo(
-                    (float)Call(damage, "JumpHeightForLostLegs", Math.Min(2, lost))).Within(0.001f));
+                Assert.That((float)Get(mover, "JumpHeightMultiplier"), Is.EqualTo(1f));
                 Assert.AreEqual(1f, Get(player.GetComponent(GameType("CurtainCall.Player.PlayerInteraction")), "ReachMultiplier"));
                 if (lost >= 2) Assert.AreEqual(Get(damage, "CrawlCapsuleHeight"), Get(mover, "BodyHeightOverride"));
 
@@ -43,7 +42,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(mover, "Update");
                 float groundSpeed = (float)Get(Get(settings, "Character"), "FreeMoveSpeed");
                 Assert.That(Vector3.ProjectOnPlane(player.transform.position - groundStart, Vector3.up).magnitude,
-                    Is.EqualTo(groundSpeed * expectedMove * Time.deltaTime).Within(0.002f), "두 다리/외팔도 지상 이동은 최소 80%");
+                    Is.EqualTo(groundSpeed * expectedMove * Time.deltaTime).Within(0.002f), "다리 부상에 공통 속도 배율 적용");
 
                 Call(pilot, "Launch", 6, 1u, new Vector3(-40, 20, 0), Quaternion.identity, Vector3.up * 12);
                 var frame = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerInputFrame"));
@@ -51,13 +50,18 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(pilot, "ReadInput", frame);
                 float x = player.transform.position.x;
                 Call(pilot, "SimulateFlight");
-                float air = lost == 0 ? 1f : 0.8f;
-                Assert.That(player.transform.position.x - x, Is.EqualTo(4.5f * air * Time.deltaTime).Within(0.002f));
+                float flightSpeed = (float)Get(Call(system, "Station", 6), "AirControlSpeed");
+                Assert.That(player.transform.position.x - x, Is.EqualTo(flightSpeed * expectedMove * Time.deltaTime).Within(0.002f));
                 x = player.transform.position.x;
                 Input(); Call(pilot, "SimulateFlight");
                 Assert.That(player.transform.position.x, Is.EqualTo(x).Within(0.001f), "입력 해제 즉시 공중 보정 정지");
-                Call(pilot, "Rebound", 6, 1u, 0u, new Vector3(-40, 20, 0), 12f);
-                Assert.AreEqual(Vector3.up * 12, Get(pilot, "velocity"), "외팔도 반동 즉시·높이 유지");
+                Call(pilot, "Rebound", 6, 1u, 0u, new Vector3(-40, 20, 0), 12f, true);
+                Assert.AreEqual(Vector3.up * 12, Get(pilot, "velocity"));
+                float trampolineSpeed = (float)Get(StaticGet("CurtainCall.Settings.GameSettings", "Trampoline"), "AirControlSpeed");
+                x = player.transform.position.x;
+                Call(pilot, "ReadInput", frame);
+                Call(pilot, "SimulateFlight");
+                Assert.That(player.transform.position.x - x, Is.EqualTo(trampolineSpeed * Time.deltaTime).Within(0.002f), "트램펄린 반동 공중 속도는 부상과 무관");
                 Call(pilot, "ReleaseMovement");
             }
             ((Behaviour)system).enabled = false;

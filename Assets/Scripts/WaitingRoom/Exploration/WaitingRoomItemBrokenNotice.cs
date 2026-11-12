@@ -4,7 +4,7 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 기물 파괴 알림(2026-10-31 사용자: 내구도가 다 닳아 기물이 파괴되면 화면 오른쪽 패널로 알린다).
-    /// 내 탐색 도구 사용 결과(<see cref="ExplorationState.LastUsedUp"/>)를 보고 매번 띄운다. 오른쪽 위에는 첫날 진행 퀘스트([tutorial])가 있을 수 있어 그 아래에 띄운다.
+    /// 내 탐색 도구 사용 결과(<see cref="ExplorationState.LastUsedUp"/>)를 보고 매번 띄운다. 오른쪽 위에 첫날 진행 퀘스트가 있으면 그 아래에 띄운다.
     /// 문구: 대기실 문구 파일 `notice.item-broken-title`·`notice.item-broken`.
     /// </summary>
     public sealed class WaitingRoomItemBrokenNotice : MonoBehaviour

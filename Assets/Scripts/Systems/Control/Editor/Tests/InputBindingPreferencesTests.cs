@@ -4,12 +4,123 @@ using CurtainCall.Player;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace CurtainCall.Control.Editor.Tests
 {
     [Category("November11CommonFix")]
     public sealed class InputBindingPreferencesTests
     {
+        [TestCase(false), TestCase(true), Category("CommonProgressionRegression")]
+        public void DeviceResetCancelsTheGestureWithoutProducingTapOrHold(bool hardReset)
+        {
+            var reader = CreateReader();
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var interact = (InputAction)typeof(PlayerInputReader).GetField("interact", members).GetValue(reader);
+            var read = typeof(PlayerInputReader).GetMethod("ReadInteract", members);
+            var manager = typeof(InputSystem).GetField("s_Manager", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var flag = manager.GetType().GetProperty("runPlayerUpdatesInEditMode");
+            var previous = flag.GetValue(manager);
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                flag.SetValue(manager, true);
+                interact.actionMap.devices = new InputDevice[] { keyboard };
+                interact.Enable();
+                double now = Time.realtimeSinceStartupAsDouble;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), now - .1d);
+                InputSystem.Update();
+                InputSystem.ResetDevice(keyboard, hardReset);
+                var result = new object[] { now, false, false, 0f };
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.False, "Reset is not a tap.");
+                Assert.That(result[2], Is.False, "Reset is not a hold.");
+                Assert.That(result[3], Is.EqualTo(0f));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), now);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(), now + .1d);
+                InputSystem.Update();
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.True, "The next real gesture must still work.");
+                Assert.That(result[2], Is.False);
+            }
+            finally
+            {
+                interact.Disable(); InputSystem.RemoveDevice(keyboard); flag.SetValue(manager, previous);
+            }
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void ClearedInteractionRejectsTheOldFrameAndAcceptsTheFirstNewGesture()
+        {
+            using var gate = new CurtainCall.Tightrope.EditorTools.Tests.InputGateTestScope();
+            var reader = CreateReader(); reader.gameObject.SetActive(true);
+            var current = typeof(PlayerInputReader).GetProperty("Current");
+            current.SetValue(reader, new PlayerInputFrame { InteractHeld = true });
+            var selected = CommonInteractionSelection.Selected(reader);
+            Assert.That(selected, Is.Not.Null);
+            var gestures = (System.Collections.IDictionary)typeof(CommonInteractionSelection)
+                .GetField("gestures", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            try
+            {
+                reader.ClearPendingInput();
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.False);
+                var gesture = gestures[reader.GetInstanceID()];
+                gesture.GetType().GetField("Frame").SetValue(gesture, -1); // First frame after the menu's neutral barrier.
+                current.SetValue(reader, new PlayerInputFrame { InteractHeld = true });
+                selected = CommonInteractionSelection.Selected(reader);
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.True);
+                Assert.That(CommonInteractionSelection.Consume(reader, selected), Is.False);
+            }
+            finally { gestures.Remove(reader.GetInstanceID()); reader.gameObject.SetActive(false); }
+        }
+
+        [TestCase(.45, false, false)]
+        [TestCase(.5, true, false)]
+        [TestCase(.6, true, false)]
+        [TestCase(.6, true, true)]
+        public void InteractUsesEventDurationAndEmitsEachGestureOnce(double duration, bool expectedHold, bool readWhileHeld)
+        {
+            var reader = CreateReader();
+            var interact = (InputAction)typeof(PlayerInputReader).GetField("interact", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(reader);
+            var read = typeof(PlayerInputReader).GetMethod("ReadInteract", BindingFlags.Instance | BindingFlags.NonPublic);
+            // Editor updates populate editor device state without dispatching gameplay actions.
+            var manager = typeof(InputSystem).GetField("s_Manager", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var runPlayerInput = manager.GetType().GetProperty("runPlayerUpdatesInEditMode");
+            var oldRunPlayerInput = runPlayerInput.GetValue(manager);
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                runPlayerInput.SetValue(manager, true);
+                interact.actionMap.devices = new InputDevice[] { keyboard };
+                interact.Enable();
+                double now = Time.realtimeSinceStartupAsDouble;
+                double pressed = now - 1d;
+                var result = new object[] { now, false, false, 0f };
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F), pressed);
+                if (readWhileHeld)
+                {
+                    InputSystem.Update();
+                    read.Invoke(reader, result);
+                    Assert.That(result[1], Is.False);
+                    Assert.That(result[2], Is.True);
+                }
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(), pressed + duration);
+                InputSystem.Update();
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.EqualTo(!expectedHold), "Tap");
+                Assert.That(result[2], Is.EqualTo(expectedHold && !readWhileHeld), "Hold");
+                read.Invoke(reader, result);
+                Assert.That(result[1], Is.False);
+                Assert.That(result[2], Is.False);
+            }
+            finally
+            {
+                interact.Disable();
+                InputSystem.RemoveDevice(keyboard);
+                runPlayerInput.SetValue(manager, oldRunPlayerInput);
+            }
+        }
+
         [Test]
         public void InstructionKeyLabelsUsePhysicalNamesAndDeviceUseCanBeRebound()
         {
@@ -17,7 +128,9 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.That(InputBindingPreferences.KeyLabel("<Keyboard>/t"), Is.EqualTo("T"));
             var draft = InputBindingPreferences.CreateDraft(); owned.Add(draft);
             var use = draft.FindAction("Common/UseDevice", true);
-            Assert.That(use.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/v"));
+            Assert.That(use.bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
+            Assert.That(InputBindingPreferences.KeyLabel(use.bindings[0].effectivePath), Is.EqualTo("좌클릭"));
+            Assert.That(CreateReader().BindingLabel("UseDevice", "fallback"), Is.EqualTo("좌클릭"));
             use.ApplyBindingOverride(0, "<Keyboard>/y");
             Assert.IsTrue(InputBindingPreferences.TryValidateDraft(draft, out var error), error);
             Assert.That(InputBindingPreferences.KeyLabel(use.bindings[0].effectivePath), Is.EqualTo("Y"));
@@ -67,7 +180,7 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
             Assert.AreEqual(15, entries.Count); // 방향 전환·투표 선택 2개·장치 사용 키 포함
-            Assert.AreEqual("<Keyboard>/v", draft.FindAction("Common/UseDevice").bindings[0].effectivePath);
+            Assert.AreEqual("<Mouse>/leftButton", draft.FindAction("Common/UseDevice").bindings[0].effectivePath);
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -91,6 +204,23 @@ namespace CurtainCall.Control.Editor.Tests
             Assert.AreEqual("<Keyboard>/x",migrated.FindAction("Common/VoteSecondary").bindings[0].effectivePath);
             Assert.IsTrue(InputBindingPreferences.TryValidateDraft(migrated,out var error),error);
             Assert.AreEqual(json,PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey),"미리보기는 저장값을 덮지 않는다");
+        }
+
+        [Test]
+        public void OldSavedLauncherBindingDoesNotHideNewDefaultOrResetOtherControls()
+        {
+            var draft = Draft();
+            var launcher = draft.FindAction("Common/UseDevice");
+            var interact = draft.FindAction("Common/Interact");
+            string json = "{\"version\":1,\"bindings\":[{\"actionId\":\"" + launcher.id
+                + "\",\"bindingId\":\"ac49fa5e-d924-4533-9140-d11ce9db069d\",\"path\":\"<Keyboard>/v\"},{\"actionId\":\""
+                + interact.id + "\",\"bindingId\":\"" + interact.bindings[0].id + "\",\"path\":\"<Keyboard>/g\"}]}";
+            PlayerPrefs.SetString(InputBindingPreferences.PlayerPrefsKey, json);
+            var migrated = Draft();
+            Assert.That(migrated.FindAction("Common/UseDevice").bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
+            Assert.That(migrated.FindAction("Common/Interact").bindings[0].effectivePath, Is.EqualTo("<Keyboard>/g"));
+            Assert.That(InputBindingPreferences.TryApply(migrated, out var error), Is.True, error);
+            Assert.That(Draft().FindAction("Common/UseDevice").bindings[0].effectivePath, Is.EqualTo("<Mouse>/leftButton"));
         }
 
         [TestCase("<Keyboard>/escape")]

@@ -1,5 +1,7 @@
 using System.Reflection;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
@@ -22,16 +24,18 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var roots = new System.Collections.Generic.List<GameObject>();
             var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
             var savedPlayers = all.ToArray(); all.Clear();
-            var types = new[] { typeof(HumanCannonSystem), typeof(HumanCannonPoleSystem), typeof(PiggybackSystem) };
+            var types = new[] { typeof(HumanCannonSystem), typeof(HumanCannonPoleSystem), typeof(PiggybackSystem), typeof(EscapeCooperativeRopes) };
             var current = new object[types.Length];
             for (int i = 0; i < types.Length; i++) current[i] = types[i].GetProperty("Current").GetValue(null);
+            bool oldSuppressed = PiggybackSystem.Suppressed;
             var spawned = new NetworkPlayer[4];
             GameObject Root(string name, bool active = false) { var go = new GameObject(name); go.SetActive(active); roots.Add(go); return go; }
             try {
                 typeof(InputGate).GetMethod("Reset", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
                 var cannon = Root("Cannon for common poles").AddComponent<HumanCannonSystem>(); Call(cannon, "ResetSeats");
                 var poles = Root("Common pole system").AddComponent<HumanCannonPoleSystem>();
-                var stack = Root("Four player piggyback").AddComponent<PiggybackSystem>();
+                var stack = Root("Four player piggyback", true).AddComponent<PiggybackSystem>();
+                PiggybackSystem.Suppressed = false;
                 types[0].GetProperty("Current").SetValue(null, cannon); types[1].GetProperty("Current").SetValue(null, poles);
                 types[2].GetProperty("Current").SetValue(null, stack);
                 var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stack);
@@ -60,8 +64,26 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     Assert.IsFalse(CommonInteractionSelection.Consume(reader, pole));
                     Assert.IsFalse(CommonInteractionSelection.Consume(reader, stack));
                 }
+
+                var ropes = Root("Escape return button controls", true).AddComponent<EscapeCooperativeRopes>();
+                var button = Root("Escape return button", true).transform;
+                button.position = PlayerInteraction.Center(spawned[1]) + Vector3.forward;
+                var session = Root("Playing session").AddComponent<NetworkSessionManager>();
+                typeof(NetworkSessionManager).GetProperty("GameState").SetValue(session, GameSessionState.Playing);
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                typeof(EscapeCooperativeRopes).GetField("session", fields).SetValue(ropes, session);
+                typeof(EscapeCooperativeRopes).GetField("button", fields).SetValue(ropes, button);
+                typeof(EscapeCooperativeRopes).GetField("synchronized", fields).SetValue(ropes, true);
+                typeof(EscapeCooperativeRopes).GetProperty("Current").SetValue(null, ropes);
+                typeof(CommonInteractionSelection).GetMethod("Reset", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                var riderReader = spawned[1].GetComponent<PlayerInputReader>();
+                typeof(PlayerInputReader).GetProperty("Current").SetValue(riderReader, new PlayerInputFrame { InteractTapped = true });
+                Assert.IsTrue(ropes.CanUseButton(spawned[1]));
+                Assert.AreSame(ropes, CommonInteractionSelection.Selected(riderReader), "A mounted F tap can select the button even with a nearby pole.");
+                Assert.IsFalse(CommonInteractionSelection.Consume(riderReader, stack));
             } finally {
                 for (int i = 0; i < types.Length; i++) types[i].GetProperty("Current").SetValue(null, current[i]);
+                PiggybackSystem.Suppressed = oldSuppressed;
                 foreach (var player in spawned) if (player != null) typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
                 foreach (var go in roots) Object.DestroyImmediate(go);
                 all.Clear(); all.AddRange(savedPlayers);

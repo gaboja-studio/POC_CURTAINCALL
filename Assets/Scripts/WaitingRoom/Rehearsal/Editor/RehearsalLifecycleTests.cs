@@ -193,7 +193,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [Test]
-        public void CannonPracticeDoorUsesAFullHeightBarrierOnlyDuringThePracticeLock()
+        public void CannonPracticeDoorUsesVisibleBarsWithoutAnInvisibleBarrier()
         {
             var gate = Make(NightDoorLock.RehearsalPassageName).AddComponent<NightDoorLock>();
             var bars = Make("Practice gate bars").transform;
@@ -210,12 +210,11 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Call(gate, "OnEnable");
                 Assert.That(gate.IsLocked, Is.True);
                 var barrier = (BoxCollider)Get(gate, "tutorialBarrier");
-                Assert.That(barrier.enabled, Is.True);
-                Assert.That(barrier.size.y, Is.GreaterThanOrEqualTo(tutorial.LockdownBarrierHeight));
-                Assert.That(bars.localPosition.y, Is.EqualTo(tutorial.LockdownGateHeight));
+                Assert.That(barrier, Is.Null);
+                Assert.That(bars.localPosition.y, Is.EqualTo(3.4f));
                 Shared("active", false);
                 Call(gate, "Update");
-                Assert.That(barrier.enabled, Is.False);
+                Assert.That(gate.IsLocked, Is.False);
             }
             finally { Set(tutorial, "sealCannonPracticeExit", seal); }
         }
@@ -301,6 +300,72 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(mover.Simulated, Is.False, "기물 정리 후에도 종료 복귀 전 물리가 잠겨 있어야 한다.");
             Call(cannon, "ReleaseEndingLock");
             Assert.That(mover.Simulated && mover.ControlEnabled, Is.True, "탑승/비행 때의 임시 정지가 종료 후 남으면 안 된다.");
+        }
+
+        [TestCase(2, false), TestCase(3, false), TestCase(4, false)]
+        [TestCase(2, true), TestCase(3, true), TestCase(4, true)]
+        public void CannonEndingUnlinksLivingStacksBeforeCapturingAndReturning(int count, bool endingArrivesFirst)
+        {
+            var previousStack = CurtainCall.Tightrope.PiggybackSystem.Current;
+            bool previousSuppressed = CurtainCall.Tightrope.PiggybackSystem.Suppressed;
+            var group = Make("Ending stack");
+            var stack = group.AddComponent<CurtainCall.Tightrope.PiggybackSystem>();
+            var follow = group.AddComponent<CurtainCall.Tightrope.PiggybackFollow>();
+            var sessionRoot = Make("Ending host"); sessionRoot.SetActive(false);
+            var session = sessionRoot.AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            Set(stack, "session", session);
+            typeof(CurtainCall.Tightrope.PiggybackSystem).GetProperty("Current").SetValue(null, stack);
+            CurtainCall.Tightrope.PiggybackSystem.Suppressed = false;
+            try
+            {
+                Call(follow, "Awake");
+                var participants = new List<ulong>();
+                NetworkPlayer previous = null, rider = null;
+                for (int i = 0; i < count; i++)
+                {
+                    rider = Player((ulong)(9500 + i)); participants.Add(rider.OwnerClientId);
+                    rider.GetComponent<PlayerMover>().FreeMovement = true;
+                    if (previous != null)
+                    {
+                        ((Dictionary<ulong, ulong>)Get(stack, "belowOf"))[rider.OwnerClientId] = previous.OwnerClientId;
+                        ((Dictionary<ulong, ulong>)Get(stack, "aboveOf"))[previous.OwnerClientId] = rider.OwnerClientId;
+                    }
+                    previous = rider;
+                }
+                typeof(NetworkPlayer).GetProperty("Local").SetValue(null, rider);
+                typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(rider, true);
+                var mover = rider.GetComponent<PlayerMover>(); mover.SetControlEnabled(true); mover.Simulated = true;
+                Shared("participants", participants); Shared("active", true); Shared("round", 3);
+                Call(cannon, "CaptureReturnPose", rider);
+                Call(follow, "UpdateLocal", rider);
+                Assert.That(mover.Simulated, Is.False);
+                if (endingArrivesFirst)
+                {
+                    Assert.That(Call(cannon, "CaptureEndingMover"), Is.False, "Wait for the replicated unlink before storing simulation or teleporting.");
+                    Assert.That(Get(cannon, "endingMover"), Is.Null);
+                }
+                Call(cannon, "BeginEnding", false, false);
+                foreach (var member in players)
+                {
+                    Assert.That(stack.GetBelow(member), Is.Null);
+                    Assert.That(stack.GetAbove(member), Is.Null);
+                }
+                Assert.That(Call(cannon, "CaptureEndingMover"), Is.True);
+                Call(cannon, "Cleanup");
+                Vector3 destination = new Vector3(100, 0, 100);
+                mover.SetStartPose(destination, Quaternion.identity);
+                Call(cannon, "ReleaseEndingLock");
+                Call(follow, "LateUpdate");
+                Assert.That(mover.Simulated && mover.ControlEnabled, Is.True);
+                Assert.That(Vector3.Distance(rider.transform.position, destination), Is.LessThan(.01f));
+            }
+            finally
+            {
+                Call(follow, "ReleaseForSceneChange");
+                typeof(CurtainCall.Tightrope.PiggybackSystem).GetProperty("Current").SetValue(null, previousStack);
+                CurtainCall.Tightrope.PiggybackSystem.Suppressed = previousSuppressed;
+            }
         }
 
         [TestCase(true)] [TestCase(false)]
@@ -979,6 +1044,49 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.That((int)Get(rehearsal, "version"), Is.GreaterThan(sealedVersion), "다시 열린 문도 새 상태 버전으로 공유한다.");
             }
             finally { JsonUtility.FromJsonOverwrite(saved, rules); }
+        }
+
+        [Test, Category("TutorialCommonRules")]
+        public void TutorialPracticeGateWaitsForThreePlayersToClearTheRealExitPlane()
+        {
+            InitialTutorial(true);
+            Set(rehearsal, "ringCenter", Vector3.forward * 10);
+            Set(rehearsal, "practiceArea", new Bounds(Vector3.forward * 6, new Vector3(10, 10, 8)));
+            var gate = Make("Practice exit plane");
+            Set(rehearsal, "practiceExit", gate.transform);
+            var passage = Make("Practice passage").AddComponent<BoxCollider>();
+            passage.center = Vector3.forward * 2;
+            passage.size = new Vector3(6, .2f, 4);
+            Set(rehearsal, "practicePassage", passage);
+            var roof = Make("Practice passage roof").AddComponent<BoxCollider>();
+            roof.center = new Vector3(0, 3.15f, 2);
+            roof.size = new Vector3(6, .3f, 4);
+            Set(rehearsal, "practicePassageRoof", roof);
+            Physics.SyncTransforms();
+            var first = Player(920);
+            var second = Player(921);
+            var last = Player(922);
+            first.transform.position = Vector3.back * 2;
+            second.transform.position = Vector3.back * 3;
+            last.transform.position = Vector3.forward;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+            last.transform.position = Vector3.back * .1f;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+            last.transform.position = Vector3.back * 2;
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName));
+
+            last.transform.position = new Vector3(0, 2.5f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsFalse(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "A rider above the floor still occupies the passage.");
+            last.transform.position = new Vector3(0, 3.31f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "The roof remains outside even where the room bounds overlap it.");
+            last.transform.position = new Vector3(0, -1f, 2f);
+            Call(rehearsal, "HostTickPracticeSeal");
+            Assert.IsTrue(WaitingRoomRehearsal.IsGateLocked(NightDoorLock.RehearsalPassageName), "The space below the passage floor is also outside.");
         }
 
         [Test, Category("TutorialCommonRules")]

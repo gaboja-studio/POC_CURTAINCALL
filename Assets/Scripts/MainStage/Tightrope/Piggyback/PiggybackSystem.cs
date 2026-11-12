@@ -15,7 +15,7 @@ using CurtainCall.HumanCannon;
 namespace CurtainCall.Tightrope
 {
     /// <summary>
-    /// 목마 연결·해제. F는 현재 선택에 따라 타거나 내려오고, 방향 입력과 Space는 분리 점프를 요청한다.
+    /// 목마 연결·해제. F 탭으로 타고 F 홀드로 내려오며, 방향 입력과 Space는 분리 점프를 요청한다.
     /// 호스트가 판정해 연결 상태(누가 누구 위에 있는지)를 모든 화면에 보낸다.
     /// 연결: 올라가는 사람은 단독(위아래 아무도 없음)이고, 가장 가까운 동료(목마면 맨 아래 사람 기준 거리)가 세팅 연결 거리 안이면 그 목마의 맨 위에 올라간다.
     /// 해제: 내 아래에 사람이 있고 내 위에 사람이 없을 때 본인만 내려온다.
@@ -96,9 +96,10 @@ namespace CurtainCall.Tightrope
         /// <summary>옆줄 착지의 겹친 동료가 합체 가능한지. 최종 연결은 호스트가 다시 확인한다.</summary>
         public bool CanLaneLink(NetworkPlayer climber, NetworkPlayer target, bool predictTopRelease = false)
         {
-            if (!IsGameplayActive) return false;
+            if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding) return false;
             if (climber == null || target == null || climber == target) return false;
-            if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)) return false;
+            if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)
+                || CurtainCall.WaitingRoom.ExpertService.IsTreating(target.OwnerClientId)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
@@ -439,7 +440,7 @@ namespace CurtainCall.Tightrope
         void HandleInteract()
         {
             var local = NetworkPlayer.Local;
-            if (GetSupportingPlayer(local) != null) { HandleRelease(); return; }
+            if (GetSupportingPlayer(local) != null) return;
             if (CommonInteractionSelection.Consume(local, this)) SendRequest(Request.Interact);
         }
 
@@ -534,14 +535,17 @@ namespace CurtainCall.Tightrope
         /// <summary>F 입력·호스트 승인·상호작용 표시가 공유하는 구형 범위의 최근접 목마 대상.</summary>
         public NetworkPlayer FindMountTarget(NetworkPlayer climber)
         {
-            if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
+            // A request sent before the ending lock may arrive after the host unlinked the stack.
+            if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding
+                || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
                 || !CanStand(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
-                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
+                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)
+                    || CurtainCall.WaitingRoom.ExpertService.IsTreating(other.OwnerClientId)) continue;
                 if (!CanStand(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
@@ -589,7 +593,7 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (!IsGameplayActive || InputGate.IsBlocked || local == null || context.Player != local.gameObject
                 || local.State != PlayerState.Normal || UsingDevice(local) || IsReleasedForFall(local)) return false;
-            if ((input.InteractTapped || input.InteractLongPressed) && GetSupportingPlayer(local) != null
+            if (input.InteractLongPressed && GetSupportingPlayer(local) != null
                 && CommonInteractionSelection.Consume(local, this))
             { RequestLocalRelease(); return true; }
             if (input.InteractTapped && FindMountTarget(local) != null && CommonInteractionSelection.Allows(local, this))

@@ -145,26 +145,26 @@ namespace CurtainCall.HumanCannon
         }
     }
 
-    /// <summary>탑승 완료 전부터 누르고 있던 F는 발사/취소로 재사용하지 않는다.</summary>
+    /// <summary>탑승 완료 전부터 누르고 있던 상호작용·액션 키는 발사/취소로 재사용하지 않는다.</summary>
     public sealed class CannonInputLatch
     {
         bool ready;
         int releasedFrames;
         public void Reset() { ready = false; releasedFrames = 0; }
 
-        public CannonAction Read(bool tapped, bool held, float progress)
+        public CannonAction Read(bool tapped, bool held, float progress, bool actionPressed = false, bool actionHeld = false)
         {
             if (!ready)
             {
                 // 누르기 시작 프레임도 progress가 0일 수 있다. 두 번 연속 중립이어야
                 // 탑승 응답 전부터 누르던 F가 아니라는 것을 확인할 수 있다.
-                releasedFrames = !tapped && !held && progress == 0f ? releasedFrames + 1 : 0;
+                releasedFrames = !tapped && !held && progress == 0f && !actionPressed && !actionHeld ? releasedFrames + 1 : 0;
                 ready = releasedFrames >= 2;
                 return CannonAction.Sync;
             }
             // 합성 입력에서도 긴 누르기가 발사보다 우선한다.
             if (held) return CannonAction.Cancel;
-            return tapped ? CannonAction.Launch : CannonAction.Sync;
+            return tapped || actionPressed ? CannonAction.Launch : CannonAction.Sync;
         }
     }
 }
