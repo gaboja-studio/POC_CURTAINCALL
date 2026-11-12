@@ -18,3 +18,7 @@
 
 - 사용자 캡처에서 한국어 가이드의 어절 줄바꿈과 가장 긴 줄에 맞춘 카드 너비를 확인했다.
 - 전용 에디터가 Edit Mode이고 미저장 씬이 없는 것을 확인해 정상 종료한 뒤 `origin/dev` `89482b11`로 fast-forward했다. HUD와 무관한 로컬 에셋·설정은 제출에서 제외한다.
+
+- 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(공용 설정 포함, `89482b11`); 테스트=기존 HUD Edit Mode 15개 결과를 재사용(이번 제출에서 재실행하지 않음).
+
+- 2026-11-12 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/346 (`fix/ui/message` → `dev`). 지정 팀원 검토 대기.
