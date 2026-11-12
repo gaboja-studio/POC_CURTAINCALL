@@ -300,7 +300,7 @@ namespace CurtainCall.Network.PlayerSync
             bool safeWaitingRoom = GameSettings.WaitingRoom.SafeFallLandings
                 && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
             var outcome = ropeLanding || safePlatformLanding || safeWaitingRoom ? FallOutcome.Safe : CommonDamageRules.Fall(height);
-            bool protectedFall = EscapeDevelopmentSession.FallInjuriesSuppressed(this);
+            bool protectedFall = EscapeDevelopmentSession.FallConsequencesSuppressed(this);
             if (outcome != FallOutcome.Safe && !protectedFall && rebound != null && rebound())
             { ResetFallTracking(); return true; }
             land?.Invoke();
