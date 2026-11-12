@@ -205,6 +205,7 @@ namespace CurtainCall.WaitingRoom
         void EnsureCourse()
         {
             if (course != null && builtRound == shared.round) return;
+            BedRestView.EndForRehearsal();
             Cleanup();
             HidePracticeProps();
             var prefab = Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance");
@@ -222,7 +223,6 @@ namespace CurtainCall.WaitingRoom
                 GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                     ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.")
                     : T("intro-no-recovery", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다."), 10f);
-            if (CampaignRun.Instance.State.Phase == CampaignPhase.Night) CampaignRun.Instance.SetReady(false);
         }
 
         void RecordAction(string state, ulong? actor = null, string reason = null, bool? vote = null, string guideId = null, bool host = true) =>

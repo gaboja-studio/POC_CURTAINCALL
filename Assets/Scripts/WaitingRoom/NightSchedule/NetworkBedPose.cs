@@ -19,7 +19,8 @@ namespace CurtainCall.WaitingRoom
         void LateUpdate()
         {
             var run = CampaignRun.Instance;
-            bool sleeping = run != null && (run.State.Phase == CampaignPhase.Night || run.State.Phase == CampaignPhase.Dawn);
+            bool sleeping = run != null && (run.State.Phase == CampaignPhase.Night || run.State.Phase == CampaignPhase.Dawn)
+                && !WaitingRoomRehearsal.IsActive && !WaitingRoomCannonRehearsal.IsActive;
             int id = player != null ? player.RestingBed : -1;
             if (!sleeping || id < 0 || player.State != PlayerState.Normal) { Restore(); return; }
             var beds = NightBed.AllBeds();

@@ -294,8 +294,8 @@ namespace CurtainCall.Campaign
         {
             if (state.Phase == CampaignPhase.Night && state.Timer == RestTimerState.WaitingForExit) return false;
             if (state.Phase != CampaignPhase.Night && state.Phase != CampaignPhase.Dawn && state.Phase != CampaignPhase.DemoEnding) return false;
-            if (state.Phase == CampaignPhase.Night && value && Network.PlayerSync.NetworkPlayer.Local is { } local
-                && !CanSleep(local.OwnerClientId)) return false;
+            if (state.Phase == CampaignPhase.Night && value
+                && !CanSleep(Network.PlayerSync.NetworkPlayer.Local?.OwnerClientId ?? NetworkManager.ServerClientId)) return false;
             if (state.Phase != CampaignPhase.Night && !value) return false;
             if (state.Phase == CampaignPhase.Night && value)
             {
@@ -340,9 +340,24 @@ namespace CurtainCall.Campaign
             && (host != null ? host.IsReady(clientId) : session?.NetworkManager != null
                 && session.NetworkManager.LocalClientId == clientId && localReady);
 
-        static bool CanSleep(ulong id) => !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
+        internal static bool RehearsalPendingOrActive => WaitingRoom.WaitingRoomRehearsal.IsActive
+            || WaitingRoom.WaitingRoomRehearsal.IsPracticePending || WaitingRoom.WaitingRoomCannonRehearsal.IsActive;
+
+        // Shared by the bed and the host's late ready-message validation.
+        public static bool CanSleep(ulong id) => !RehearsalPendingOrActive && !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
             && p.OwnerClientId == id && (p.State != Network.PlayerSync.PlayerState.Normal
                 || WaitingRoom.Pursuit.PursuitDirector.IsCaptured(p)));
+
+        internal void WakeForRehearsal()
+        {
+            if (state.Phase != CampaignPhase.Night) return;
+            SetReady(false);
+            if (host == null) return;
+            // Clear every participant before a late client wake message can advance the night.
+            bool changed = false;
+            foreach (var id in Players()) changed |= host.SetReady(id, false);
+            if (changed) Apply(host.Snapshot);
+        }
 
         void Expired(CampaignSnapshot snapshot)
         {
@@ -425,6 +440,7 @@ namespace CurtainCall.Campaign
 
         bool RefreshNight(RunState current)
         {
+            if (current.Snapshot.Phase == CampaignPhase.Night && RehearsalPendingOrActive) return false;
             var connected = Players();
             // Captured players cannot prepare for sleep, but are not finished until the
             // capture sequence retires them. An empty ready roster must not cut it short.
