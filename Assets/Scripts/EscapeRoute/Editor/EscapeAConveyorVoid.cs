@@ -49,20 +49,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     BMass(abyss, "심부 끝벽 차폐", new Vector3(83, -243, z), new Vector3(126, 314, 3), material, false);
             }
 
-            var fall = root.Find("컨베이어 낙사 영역");
-            if (fall == null)
-            {
-                var go = new GameObject("컨베이어 낙사 영역");
-                Undo.RegisterCreatedObjectUndo(go, "Conveyor fall void"); fall = go.transform; fall.SetParent(root, false);
-                Undo.AddComponent<EscapeFallVoid>(go);
-            }
             var locks = UnityEngine.Object.FindFirstObjectByType<EscapeCooperativeLocks>();
             var data = new SerializedObject(locks);
             data.FindProperty("checkpoints").GetArrayElementAtIndex(0).FindPropertyRelative("instruction").stringValue =
                 "노란 하차장 → 전원 버튼에 F → 톱 통과 → 복귀 대포 탑승 · 아래로 떨어지면 낙사";
             data.ApplyModifiedProperties();
             Undo.FlushUndoRecordObjects(); Physics.SyncTransforms(); EditorSceneManager.MarkSceneDirty(scene);
-            return $"Removed {removed} recovery objects; conveyor, intended landing and exit route retained; host fall void at Y -30";
+            return $"Removed {removed} recovery objects; conveyor, intended landing and exit route retained; shared world death plane applies";
         }
     }
 }

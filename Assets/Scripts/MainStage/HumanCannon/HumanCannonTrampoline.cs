@@ -261,6 +261,7 @@ namespace CurtainCall.HumanCannon
             // A local rope catch can precede the host's ownership update.
             if (TightropeHangSystem.Current?.IsHanging(carrier) == true || HasRopeSupport(carrier)) return;
             RefreshCarryBody(carrier);
+            CurtainCall.Damage.DismemberedLimb.IgnoreFor(carryBody);
             if (collisionCarrier != Carrier || alignToCarrier) { collisionCarrier = Carrier; lastSafeCarrierFeet = carrier.transform.position; }
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
             // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
@@ -272,7 +273,7 @@ namespace CurtainCall.HumanCannon
                     ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
                 // The authorized lift owns both poses until arrival; walking still uses the swept load collision.
                 if (!riding && !HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
-                    floorClearance, null) && (alignToCarrier || !TryTranslateWithoutTurning(carrier, floorClearance,
+                    floorClearance, null, allowExistingOverlap: !alignToCarrier) && (alignToCarrier || !TryTranslateWithoutTurning(carrier, mover, floorClearance,
                         out position, out rotation, out carrierRotation)))
                 {
                     if (carrier.IsLocal && mover != null && mover.Simulated && mover.Body != null && mover.Body.enabled)
@@ -285,15 +286,31 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        bool TryTranslateWithoutTurning(NetworkPlayer carrier, float floorClearance, out Vector3 position,
+        bool TryTranslateWithoutTurning(NetworkPlayer carrier, PlayerMover mover, float floorClearance, out Vector3 position,
             out Quaternion rotation, out Quaternion carrierRotation)
         {
             rotation = transform.rotation;
             var toCenter = Vector3.ProjectOnPlane(transform.position - Handle.position, Vector3.up);
             carrierRotation = toCenter.sqrMagnitude > .0001f ? Quaternion.LookRotation(toCenter) : carrier.transform.rotation;
-            var hand = carrier.transform.position + Vector3.up * Mathf.Max(0f, carryHandleHeight);
-            position = transform.position + (hand - Handle.position);
-            return HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null);
+            Vector3 handleOffset = transform.position - Handle.position + Vector3.up * Mathf.Max(0f, carryHandleHeight);
+            position = carrier.transform.position + handleOffset;
+            if (HumanCannonCarry.CheckMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null,
+                allowExistingOverlap: true, out var obstruction)) return true;
+            if (!carrier.IsLocal || mover == null || !mover.Simulated || mover.Body == null || !mover.Body.enabled) return false;
+
+            Vector3 wallNormal = Vector3.ProjectOnPlane(obstruction, Vector3.up).normalized;
+            if (wallNormal == Vector3.zero || Mathf.Abs(obstruction.y) > .5f) return false;
+            Vector3 travel = carrier.transform.position - lastSafeCarrierFeet;
+            Vector3 slide = Vector3.ProjectOnPlane(travel, wallNormal);
+            if (slide.sqrMagnitude < .000001f || Vector3.Dot(travel, wallNormal) >= 0f) return false;
+            Vector3 slideFeet = lastSafeCarrierFeet + slide;
+            if (!HumanCannonCarry.CanMove(transform, carryBody, slideFeet + handleOffset, rotation, carrier, true,
+                floorClearance, null, allowExistingOverlap: true)) return false;
+
+            mover.Body.Move(slideFeet - carrier.transform.position);
+            position = carrier.transform.position + handleOffset;
+            return HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null,
+                allowExistingOverlap: true);
         }
 
         void ResetPreviousPose()

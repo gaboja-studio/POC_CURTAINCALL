@@ -40,9 +40,9 @@ namespace CurtainCall.Player
         }
 
         /// <summary>대상 중심의 구형 상호작용 범위. 입력·호스트·안내에서 함께 사용한다.</summary>
-        public static bool InRange(Component actor, Vector3 target, float radius, Transform targetRoot = null) => actor != null
+        public static bool InRange(Component actor, Vector3 target, float radius, Transform targetRoot = null, bool ignoreRope = false) => actor != null
             && float.IsFinite(radius) && radius > 0f && (Center(actor) - target).sqrMagnitude <= radius * radius
-            && ClearPath(actor, target, targetRoot);
+            && ClearPathFrom(Center(actor), target, targetRoot, actor, ignoreRope);
 
         static readonly RaycastHit[] reachHits = new RaycastHit[64];
         static readonly Collider[] reachOverlaps = new Collider[32];
@@ -51,7 +51,7 @@ namespace CurtainCall.Player
             && ClearPathFrom(Center(actor), target, targetRoot, actor);
 
         /// <summary>몸 중심부터 대상까지 같은 경로를 검사한다. 층·벽은 차단하고 대상 자체와 사람은 제외한다.</summary>
-        public static bool ClearPathFrom(Vector3 origin, Vector3 target, Transform targetRoot, Component actor = null)
+        public static bool ClearPathFrom(Vector3 origin, Vector3 target, Transform targetRoot, Component actor = null, bool ignoreRope = false)
         {
             Vector3 delta = target - origin;
             float distance = delta.magnitude;
@@ -60,19 +60,21 @@ namespace CurtainCall.Player
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             if (overlaps == reachOverlaps.Length) return false;
             for (int i = 0; i < overlaps; i++)
-                if (Blocks(reachOverlaps[i], targetRoot, actor)) return false;
+                if (Blocks(reachOverlaps[i], targetRoot, actor, ignoreRope)) return false;
             if (distance < .01f) return true;
             int count = Physics.RaycastNonAlloc(origin, delta / distance, reachHits, Mathf.Max(0, distance - .01f),
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             if (count == reachHits.Length) return false;
             for (int i = 0; i < count; i++)
-                if (Blocks(reachHits[i].collider, targetRoot, actor)) return false;
+                if (Blocks(reachHits[i].collider, targetRoot, actor, ignoreRope)) return false;
             return true;
         }
 
-        static bool Blocks(Collider hit, Transform targetRoot, Component actor) => hit != null
+        static bool Blocks(Collider hit, Transform targetRoot, Component actor, bool ignoreRope) => hit != null
             && (targetRoot == null || !hit.transform.IsChildOf(targetRoot))
             && (actor == null || !hit.transform.IsChildOf(actor.transform))
+            && (!ignoreRope || !CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(hit))
+            && !CurtainCall.Damage.DismemberedLimb.Contains(hit)
             && hit.GetComponentInParent<PlayerMover>() == null;
 
         /// <summary>상호작용 요청(외줄: 목마 연결 시도, F 짧게).</summary>

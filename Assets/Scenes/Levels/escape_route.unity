@@ -22992,8 +22992,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 988043019}
   visual: {fileID: 1425338525}
-  origin: {x: -321.35, y: -22.8, z: 44.300014}
-  destination: {x: -321.35, y: -22.8, z: 44.300014}
+  origin: {x: -321.35, y: 18.2, z: 44.30001}
+  destination: {x: -321.35, y: 18.2, z: 44.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -26564,8 +26564,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 956728589}
   visual: {fileID: 20199766}
-  origin: {x: -321.35, y: -22.8, z: 48.300014}
-  destination: {x: -321.35, y: -22.8, z: 48.300014}
+  origin: {x: -321.35, y: 18.2, z: 48.30001}
+  destination: {x: -321.35, y: 18.2, z: 48.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -37306,8 +37306,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 200395344}
   visual: {fileID: 1545221156}
-  origin: {x: -462, y: -14.7, z: 44.300026}
-  destination: {x: -462, y: -14.7, z: 44.300026}
+  origin: {x: -462, y: 26.3, z: 44.300022}
+  destination: {x: -462, y: 26.3, z: 44.300022}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -57241,7 +57241,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 170336106}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 545de166c98d6e840b8952a641074470, type: 3}
   m_Name: 
@@ -87327,8 +87327,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 533329909}
   visual: {fileID: 48427574}
-  origin: {x: -416, y: -15.45, z: 46.300022}
-  destination: {x: -419, y: -15.45, z: 35.300022}
+  origin: {x: -416, y: 25.55, z: 46.30002}
+  destination: {x: -419, y: 25.55, z: 35.30002}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -105076,9 +105076,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: A04B_ConveyorCannon
       objectReference: {fileID: 0}
+    - target: {fileID: 95604129752680444, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.050003
+      objectReference: {fileID: 0}
     - target: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 67
+      value: 69.600006
       objectReference: {fileID: 0}
     - target: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -105086,7 +105090,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 13.000001
+      value: 1.9999986
       objectReference: {fileID: 0}
     - target: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -105126,11 +105130,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
-      value: 11.472819
+      value: 10.664728
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
-      value: 12.045454
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: animateBarrel
@@ -177511,8 +177515,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 27311044}
   visual: {fileID: 1133420144}
-  origin: {x: -321.35, y: -22.8, z: 60.300014}
-  destination: {x: -321.35, y: -22.8, z: 60.300014}
+  origin: {x: -321.35, y: 18.2, z: 60.30001}
+  destination: {x: -321.35, y: 18.2, z: 60.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -196202,6 +196206,7 @@ MonoBehaviour:
   showSectionSigns: 0
   independentSceneRopes: 1
   spawnPoints: []
+  startStage: 1
   useSceneGeometry: 1
   sceneShape:
     laneCount: 15
@@ -206016,8 +206021,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 608363575}
   visual: {fileID: 1290256123}
-  origin: {x: -549, y: -8, z: 44.300034}
-  destination: {x: -549, y: -14.5, z: 44.300034}
+  origin: {x: -549, y: 33, z: 44.30003}
+  destination: {x: -549, y: 26.5, z: 44.30003}
   warningSeconds: 0.9
   activeSeconds: 0.85
   restSeconds: 2.8
@@ -210687,8 +210692,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1862272394}
   visual: {fileID: 1185978657}
-  origin: {x: -323.65002, y: -22.8, z: 56.300014}
-  destination: {x: -323.65002, y: -22.8, z: 56.300014}
+  origin: {x: -323.65002, y: 18.2, z: 56.30001}
+  destination: {x: -323.65002, y: 18.2, z: 56.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -211093,8 +211098,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1931908857}
   visual: {fileID: 955322975}
-  origin: {x: -321.35, y: -22.8, z: 32.300014}
-  destination: {x: -321.35, y: -22.8, z: 32.300014}
+  origin: {x: -321.35, y: 18.2, z: 32.30001}
+  destination: {x: -321.35, y: 18.2, z: 32.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -307922,8 +307927,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1177752556}
   visual: {fileID: 1412343265}
-  origin: {x: -323.65002, y: -22.8, z: 36.300014}
-  destination: {x: -323.65002, y: -22.8, z: 36.300014}
+  origin: {x: -323.65002, y: 18.2, z: 36.30001}
+  destination: {x: -323.65002, y: 18.2, z: 36.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -317696,9 +317701,9 @@ MonoBehaviour:
     minimumHelpers: 1
     latchWhenCrewReady: 1
     prompt: "\uAD8C\uC0C1\uAD50 \uADF8\uB124 \uB204\uB974\uAE30"
-    instruction: "\uADF8\uB124\uB97C \uC7A1\uC73C\uBA74 \uAD8C\uC0C1\uAD50 \uB0B4\uB824\uC634
-      \xB7 \uD604\uC7AC \uB3D9\uB8CC\uB4E4\uACFC \uD568\uAED8 \uD0D1\uC2B9 \xB7 \uAC01\uC790
-      Space\uB85C \uB3C4\uC57D"
+    instruction: "\uADF8\uB124\uB97C \uC7A1\uC73C\uBA74 \uAD8C\uC0C1\uAD50\uAC00
+      \uD3BC\uCCD0\uC9C4 \uCC44 \uC720\uC9C0\uB429\uB2C8\uB2E4 \xB7 Space\uB85C \uB2E4\uB9AC\uC5D0
+      \uCC29\uC9C0\uD558\uC138\uC694"
     sourceName: "\uAD8C\uC0C1\uAD50 \uADF8\uB124"
     effectName: "\uAD8C\uC0C1\uAD50"
   - shoulderControl: {fileID: 0}
@@ -371081,8 +371086,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 555622256}
   visual: {fileID: 388991095}
-  origin: {x: -376, y: -15, z: 50.30002}
-  destination: {x: -376, y: -15, z: 30.300016}
+  origin: {x: -376, y: 26, z: 50.300014}
+  destination: {x: -376, y: 26, z: 30.300014}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -371700,8 +371705,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 680937850}
   visual: {fileID: 1555765665}
-  origin: {x: -323.65002, y: -22.8, z: 44.300014}
-  destination: {x: -323.65002, y: -22.8, z: 44.300014}
+  origin: {x: -323.65002, y: 18.2, z: 44.30001}
+  destination: {x: -323.65002, y: 18.2, z: 44.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -404266,8 +404271,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1377230928}
   visual: {fileID: 1258374827}
-  origin: {x: -323.65002, y: -22.8, z: 60.300014}
-  destination: {x: -323.65002, y: -22.8, z: 60.300014}
+  origin: {x: -323.65002, y: 18.2, z: 60.30001}
+  destination: {x: -323.65002, y: 18.2, z: 60.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -431114,8 +431119,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 705163309}
   visual: {fileID: 1724781189}
-  origin: {x: -562, y: -14.5, z: 40.300034}
-  destination: {x: -562, y: -14.5, z: 40.300034}
+  origin: {x: -562, y: 26.5, z: 40.30003}
+  destination: {x: -562, y: 26.5, z: 40.30003}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -439578,8 +439583,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 481017672}
   visual: {fileID: 983145011}
-  origin: {x: -453, y: -8, z: 36.300026}
-  destination: {x: -453, y: -14.5, z: 36.300026}
+  origin: {x: -453, y: 33, z: 36.300022}
+  destination: {x: -453, y: 26.5, z: 36.300022}
   warningSeconds: 0.9
   activeSeconds: 0.85
   restSeconds: 2.8
@@ -515637,8 +515642,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 318925850}
   visual: {fileID: 2136260753}
-  origin: {x: -250, y: -33.4, z: 196.3}
-  destination: {x: -250, y: -33.4, z: 188.3}
+  origin: {x: -250, y: 7.5999985, z: 196.3}
+  destination: {x: -250, y: 7.5999985, z: 188.3}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -518781,8 +518786,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 2011841024}
   visual: {fileID: 1799927897}
-  origin: {x: -555, y: -14.7, z: 36.300034}
-  destination: {x: -555, y: -14.7, z: 36.300034}
+  origin: {x: -555, y: 26.3, z: 36.30003}
+  destination: {x: -555, y: 26.3, z: 36.30003}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -530710,8 +530715,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 427787164}
   visual: {fileID: 945017843}
-  origin: {x: -323.65002, y: -22.8, z: 48.300014}
-  destination: {x: -323.65002, y: -22.8, z: 48.300014}
+  origin: {x: -323.65002, y: 18.2, z: 48.30001}
+  destination: {x: -323.65002, y: 18.2, z: 48.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -535225,6 +535230,10 @@ PrefabInstance:
     - target: {fileID: 1650483801816869962, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
       propertyPath: m_Name
       value: PlayerFollowCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 2439885994022238703, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_StreamingVersion
+      value: 20241001
       objectReference: {fileID: 0}
     - target: {fileID: 8801545623738232437, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
       propertyPath: m_Enabled
@@ -566411,8 +566420,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1154009619}
   visual: {fileID: 1957702264}
-  origin: {x: -323.65002, y: -22.8, z: 32.300014}
-  destination: {x: -323.65002, y: -22.8, z: 32.300014}
+  origin: {x: -323.65002, y: 18.2, z: 32.30001}
+  destination: {x: -323.65002, y: 18.2, z: 32.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -572507,8 +572516,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1554528739}
   visual: {fileID: 605533606}
-  origin: {x: -561, y: -14.8, z: 39.300034}
-  destination: {x: -537, y: -14.8, z: 39.300034}
+  origin: {x: -561, y: 26.2, z: 39.30003}
+  destination: {x: -537, y: 26.2, z: 39.30003}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -620692,8 +620701,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1636324923}
   visual: {fileID: 1485318119}
-  origin: {x: -437, y: -8, z: 44.300022}
-  destination: {x: -437, y: -14.5, z: 44.300022}
+  origin: {x: -437, y: 33, z: 44.30002}
+  destination: {x: -437, y: 26.5, z: 44.30002}
   warningSeconds: 0.9
   activeSeconds: 0.85
   restSeconds: 2.8
@@ -623759,8 +623768,8 @@ Transform:
   m_GameObject: {fileID: 1582856609}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 67, y: -22.4, z: 13.5}
-  m_LocalScale: {x: 8, y: 0.8, z: 9}
+  m_LocalPosition: {x: 67, y: -22.4, z: 9.249998}
+  m_LocalScale: {x: 8, y: 0.8, z: 17.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 552741792}
@@ -718099,8 +718108,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1491822520}
   visual: {fileID: 718559972}
-  origin: {x: -321.35, y: -22.8, z: 56.300014}
-  destination: {x: -321.35, y: -22.8, z: 56.300014}
+  origin: {x: -321.35, y: 18.2, z: 56.30001}
+  destination: {x: -321.35, y: 18.2, z: 56.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -727590,7 +727599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 189db2de469331046afaf51a996a0150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeDevelopmentSession
-  suppressFallConsequences: 1
+  suppressFallConsequences: 0
   allowRopeBalanceFalls: 1
 --- !u!1 &1840549521
 GameObject:
@@ -745054,8 +745063,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1036465133}
   visual: {fileID: 1843467768}
-  origin: {x: -422, y: -14.8, z: 40.300022}
-  destination: {x: -401, y: -14.8, z: 40.300022}
+  origin: {x: -422, y: 26.2, z: 40.30002}
+  destination: {x: -401, y: 26.2, z: 40.30002}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -765571,9 +765580,9 @@ MonoBehaviour:
     \uC5F4\uB9BD\uB2C8\uB2E4."
   arrivalBody: "\uC5F4\uB9B0 \uCD9C\uAD6C\uB97C \uC9C0\uB098 \uAC08\uB300\uBC2D\uC5D0
     \uB3C4\uCC29\uD558\uC138\uC694."
-  campaignPosition: {x: -200, y: -16, z: 118.3}
+  campaignPosition: {x: -200, y: 25, z: 118.3}
   campaignEuler: {x: 0, y: 180, z: 0}
-  hazardPathPosition: {x: -200, y: -16, z: 118.3}
+  hazardPathPosition: {x: -200, y: 25, z: 118.3}
   hazardPathEuler: {x: -0, y: 180, z: 0}
   hazardPathScale: {x: 1, y: 1, z: 1}
 --- !u!4 &1923766777
@@ -765585,7 +765594,7 @@ Transform:
   m_GameObject: {fileID: 1923766775}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: -200, y: 400, z: 118.3}
+  m_LocalPosition: {x: -200, y: 25, z: 118.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -792436,7 +792445,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2014077374}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 545de166c98d6e840b8952a641074470, type: 3}
   m_Name: 
@@ -792858,8 +792867,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 19330111}
   visual: {fileID: 91942822}
-  origin: {x: -396, y: -15, z: 30.300018}
-  destination: {x: -396, y: -15, z: 50.30002}
+  origin: {x: -396, y: 26, z: 30.300016}
+  destination: {x: -396, y: 26, z: 50.300014}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -809866,8 +809875,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 93616360}
   visual: {fileID: 2036816039}
-  origin: {x: -253, y: -33.4, z: 196.3}
-  destination: {x: -253, y: -33.4, z: 188.3}
+  origin: {x: -253, y: 7.5999985, z: 196.3}
+  destination: {x: -253, y: 7.5999985, z: 188.3}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8
@@ -818024,8 +818033,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 1912133865}
   visual: {fileID: 998796649}
-  origin: {x: -321.35, y: -22.8, z: 36.300014}
-  destination: {x: -321.35, y: -22.8, z: 36.300014}
+  origin: {x: -321.35, y: 18.2, z: 36.30001}
+  destination: {x: -321.35, y: 18.2, z: 36.30001}
   warningSeconds: 1.15
   activeSeconds: 1.6
   restSeconds: 2.25
@@ -848534,8 +848543,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazardCue
   warning: {fileID: 2059034010}
   visual: {fileID: 1732254726}
-  origin: {x: -530, y: -15, z: 30.30003}
-  destination: {x: -530, y: -15, z: 50.300034}
+  origin: {x: -530, y: 26, z: 30.300028}
+  destination: {x: -530, y: 26, z: 50.30003}
   warningSeconds: 0.75
   activeSeconds: 1.05
   restSeconds: 1.8

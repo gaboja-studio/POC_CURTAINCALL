@@ -425,6 +425,7 @@ namespace CurtainCall.Damage
             {
                 c.enabled = true;
                 if (body != null) Physics.IgnoreCollision(c, body);
+                PlayerMover.IgnoreLimbForPlayers(c);
             }
 
             var settings = Settings;
