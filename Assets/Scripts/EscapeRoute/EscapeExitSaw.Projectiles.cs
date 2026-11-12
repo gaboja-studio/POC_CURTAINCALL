@@ -11,6 +11,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] EscapeCuttableCable[] cables = Array.Empty<EscapeCuttableCable>();
         [Tooltip("연결된 배선이 없어도 사용 키로 톱날을 발사할 수 있습니다. 배선 대상은 별도로 연결합니다.")]
         [SerializeField] bool fireWithoutCables;
+        [Tooltip("필수 배선을 모두 자르면 탐색 장부에서 열림으로 기록할 대상(대기실 문 등). 비우면 기록하지 않습니다.")]
+        [SerializeField] string openTarget = "";
         [SerializeField] Transform muzzle;
         [SerializeField] GameObject projectileVisual;
         float shotInterval => CurtainCall.Settings.GameSettings.Base.CarryDevices.SawShotInterval;
@@ -194,6 +196,7 @@ namespace CurtainCall.EscapeRoute
                         CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
                 }
                 if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
+                if (DoorOpen && !string.IsNullOrEmpty(openTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
                 ShareCut(cable, hit);
             }
         }

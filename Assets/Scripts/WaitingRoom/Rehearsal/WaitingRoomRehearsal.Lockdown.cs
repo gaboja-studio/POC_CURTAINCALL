@@ -19,16 +19,21 @@ namespace CurtainCall.WaitingRoom
         const string StageShutterName = "NightSchedule";
         const string LayoutRootName = "WaitingRoom_LayoutA";
         const string PracticeAreaName = "Area_S09_PracticeRoom";
-        /// <summary>로비 → 무대 입구 통로 입구. 이 거리(m) 안에 누가 들어오면 모니터가 켜진다.</summary>
-        static readonly Vector3 CorridorMouth = new(-6f, 0f, 63.5f);
         double monitorStarted = -1d;
         BoxCollider corridorApproach, corridorPassage;
 
-        /// <summary>
-        /// 로비에서 철창 없이 열려 있던 입구(구조 A 실측, 2026-11-02): 북쪽 소품실·작업실 갈림길, 북동쪽 상점·승강기·지하 홀, 동쪽 숙소.
-        /// 작업실·물류·지하·연습실 입구와 무대 통로는 기존 <see cref="NightDoorLock"/>이 막는다.
-        /// </summary>
-        static readonly (string name, Vector3 from, Vector3 to)[] LockdownOpenings =
+        /// <summary>최종본 배치(2026-11-12): 무대 입구 통로가 로비 북쪽, 작업실·소품실이 남쪽인 씬. 편집 도구가 남긴 표식으로 구분한다.</summary>
+        static bool FinalLayout { get { var layout = GameObject.Find(LayoutRootName); return layout != null && layout.transform.Find("FinalLayout_Swap") != null; } }
+        static (string name, Vector3 from, Vector3 to)[] LockdownOpenings => FinalLayout ? FinalLockdownOpenings : StructureALockdownOpenings;
+        /// <summary>최종본: 남쪽 작업실·소품실 전실 입구, 북동쪽 홀, 동쪽 숙소.</summary>
+        static readonly (string name, Vector3 from, Vector3 to)[] FinalLockdownOpenings =
+        {
+            ("LockdownGate_PropRoom", new(-5.2f, 0f, 63.3f), new(-2.1f, 0f, 63.3f)),
+            ("LockdownGate_ShopHall", new(-3.8f, 0f, 91.5f), new(6.7f, 0f, 84.1f)),
+            ("LockdownGate_Dormitory", new(8.3f, 0f, 75.2f), new(8.3f, 0f, 70.4f)),
+        };
+        /// <summary>구조 A(2026-11-02 실측): 북쪽 소품실·작업실 갈림길, 북동쪽 상점·승강기·지하 홀, 동쪽 숙소. 나머지 입구는 기존 <see cref="NightDoorLock"/>이 막는다.</summary>
+        static readonly (string name, Vector3 from, Vector3 to)[] StructureALockdownOpenings =
         {
             ("LockdownGate_PropRoom", new(-10.4f, 0f, 91.0f), new(-5.7f, 0f, 91.7f)),
             ("LockdownGate_ShopHall", new(-3.8f, 0f, 91.5f), new(6.7f, 0f, 84.1f)),
@@ -113,7 +118,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>로비 둥근 방 가운데(구조 A 실측)와 동쪽 벽걸이 높이.</summary>
         static readonly Vector3 LobbyCenter = new(-5.6f, 4.2f, 77.3f);
         /// <summary>무대 입구 통로 안, 로비 쪽 입구에서 조금 들어간 자리(구조 A 실측: 통로 입구 약 z 63, 셔터 z 51).</summary>
-        static readonly Vector3 CorridorHangPoint = new(-6f, 1.5f, 59f);
+        static Vector3 CorridorHangPoint => FinalLayout ? new(-9.7f, 1.5f, 95.8f) : new(-6f, 1.5f, 59f);
         /// <summary>매단 모니터 아래로 사람이 지나가도 닿지 않는 높이(m).</summary>
         const float HeadClearance = 2.6f;
 
@@ -137,7 +142,7 @@ namespace CurtainCall.WaitingRoom
             float hang = ceiling.point.y - (center + half);
             if (hang < .05f) { Debug.LogWarning("[Rehearsal] 무대 입구 통로 천장이 낮아 통로 모니터를 달지 않습니다."); return null; }
             return RingmasterMonitor.Create(lockdownRoot, "RingmasterMonitor_StageCorridor",
-                new Vector3(CorridorHangPoint.x, center, CorridorHangPoint.z), Vector3.forward, CorridorMonitorSize, bezel, hang);
+                new Vector3(CorridorHangPoint.x, center, CorridorHangPoint.z), FinalLayout ? Vector3.back : Vector3.forward, CorridorMonitorSize, bezel, hang);
         }
 
         bool InPracticeRoom(Vector3 position) => practiceAreaFound
