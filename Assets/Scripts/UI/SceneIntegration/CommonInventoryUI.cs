@@ -34,8 +34,24 @@ namespace CurtainCall.UI.SceneIntegration
         readonly List<InventorySlotData> data = new(VisibleSlotCount);
         static readonly Key[] Keys = { Key.Digit1, Key.Digit2 };
         string signature;
+        internal static CommonInventoryUI Current { get; private set; }
         // 칸 선택은 모든 공간에서 1·2(2026-11-02 사용자). 탈출로의 검토 비행·시점 전환은 3·4로 옮겼다.
         void Awake() => InputGate.AddReleaseKeys(Keys);
+        void OnEnable() => Current = this;
+
+        internal Vector2 PlaceStatusAboveSlots(RectTransform card, Vector2 position, float gap)
+        {
+            if (!group || group.alpha <= 0 || !slots || !slots.isActiveAndEnabled) return position;
+            for (int i = 0; i < slots.SlotCount; i++)
+            {
+                var slot = slots.GetSlot(i);
+                if (slot && slot.isActiveAndEnabled)
+                    position = HudLayout.PlaceAbove(card, position, (RectTransform)slot.transform, gap);
+            }
+            if (selectedLabel && selectedLabel.isActiveAndEnabled && !string.IsNullOrWhiteSpace(selectedLabel.text))
+                position = HudLayout.PlaceAbove(card, position, selectedLabel.rectTransform, gap);
+            return position;
+        }
         void LateUpdate()
         {
             var scene = CommonMenuUI.CurrentScene;
@@ -169,6 +185,11 @@ namespace CurtainCall.UI.SceneIntegration
         }
         static string Fill(string template, params (string name, object value)[] values) =>
             string.IsNullOrEmpty(template) ? "" : WaitingRoomText.Fill(template, values);
-        void OnDisable() { if (group != null) group.alpha = 0; if (slots != null) slots.SetContext(false); }
+        void OnDisable()
+        {
+            if (Current == this) Current = null;
+            if (group != null) group.alpha = 0;
+            if (slots != null) slots.SetContext(false);
+        }
     }
 }

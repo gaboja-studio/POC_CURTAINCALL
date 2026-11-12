@@ -11,6 +11,8 @@ namespace CurtainCall.Settings
         [SerializeField, Min(.1f)] float upwardSpeed = 12f;
         [InspectorName("운반 이동 속도"), Tooltip("트램펄린을 들고 이동하는 기본 속도(m/s). 부상 배율은 별도로 적용하며 반동 높이에는 영향을 주지 않는다. 기본 4.5m/s.")]
         [SerializeField, Min(0f)] float carryMoveSpeed = 4.5f;
+        [InspectorName("운반 중 단차 들기 높이"), Tooltip("트램펄린이 낮은 단차에 걸릴 때 추가로 들어 올릴 수 있는 최대 높이(m). 이동 경로에 벽이나 천장이 있으면 막힌다. 기본 0.7m.")]
+        [SerializeField, Min(0f)] float maxCarryStepLift = .7f;
         [InspectorName("운반 충돌 모양"), Tooltip("모든 씬에서 트램펄린 몸체가 벽과 장애물에 부딪히는 공통 메시. 원형 외관에 맞는 볼록 메시를 지정한다. 반동 높이·범위에는 영향을 주지 않는다.")]
         [SerializeField] Mesh carryCollisionMesh;
         [InspectorName("외형을 따른 반동·잡기 판정"), Tooltip("모든 트램펄린에 공통 적용. 켜면 인간대포 공연과 같이 원형 몸체·손잡이 모양으로 반동 접촉을 검사하고 손잡이를 잡기 기준으로 사용한다. 끄면 장치 전체 사각 범위와 중앙 윗면을 사용한다. 기본 켬. 씬별로 다르게 지정할 수 없다.")]
@@ -23,6 +25,7 @@ namespace CurtainCall.Settings
         public float UpwardSpeed => Mathf.Max(.1f, upwardSpeed);
         public GameObject VisualPrefab => visualPrefab;
         public float CarryMoveSpeed => Mathf.Max(0, carryMoveSpeed);
+        public float MaxCarryStepLift => Mathf.Max(0, maxCarryStepLift);
         public Mesh CarryCollisionMesh => carryCollisionMesh;
         public bool UsePropOutline => usePropOutline;
         public float GrabPointHeight => Mathf.Max(0f, grabPointHeight);

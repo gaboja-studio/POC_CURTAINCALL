@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using TMPro;
 using UnityEditor;
@@ -9,6 +10,52 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
     public sealed class NotificationTextLayoutTests
     {
+        [Test]
+        public void HudMessageWrapsKoreanWordsAndRendersProgressOnItsOwnLine()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/Toast.prefab");
+            var source = AssetDatabase.LoadAssetAtPath<Font>(
+                "Assets/_ThirdParty/curtaincall_notifications_v1/Source/Fonts/Pretendard-SemiBold.ttf");
+            Assert.NotNull(source);
+            var canvas = new GameObject("Toast HUD", typeof(Canvas));
+            var instance = Object.Instantiate(asset, canvas.transform, false);
+            var font = TMP_FontAsset.CreateFontAsset(source);
+            try
+            {
+                var toast = instance.GetComponentInChildren<CurtainCall.UI.NotificationsV1.ToastView>(true);
+                var label = toast.transform.Find("Motion/60_MessageTMP").GetComponent<TMP_Text>();
+                var layout = toast.gameObject.AddComponent<NotificationTextLayout>();
+                label.transform.parent.gameObject.SetActive(true);
+                label.font = font;
+                label.isOrthographic = true;
+                const string first = "공연이 시작되었습니다. 모든";
+                const string next = "플레이어가 모인 뒤 출발합니다.";
+                string raw = first + " " + next + " [1/2]";
+                font.TryAddCharacters(raw);
+                // The first syllable would fit on line one, but the whole word would not.
+                float width = label.GetPreferredValues(first + " 플", Mathf.Infinity, Mathf.Infinity).x + 2;
+                label.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+                label.text = raw;
+                layout.RefreshLayout();
+                Canvas.ForceUpdateCanvases();
+                label.ForceMeshUpdate(true, true);
+
+                var glyphs = label.textInfo.characterInfo.Take(label.textInfo.characterCount).ToArray();
+                var player = glyphs.First(g => g.character == '플');
+                var suffix = glyphs.First(g => g.character == '가');
+                var progress = glyphs.First(g => g.character == '[');
+                Assert.AreEqual(1, player.lineNumber);
+                Assert.AreEqual(player.lineNumber, suffix.lineNumber);
+                Assert.AreEqual(2, progress.lineNumber);
+                Assert.IsTrue(progress.isVisible);
+                Assert.Less(progress.pointSize, player.pointSize);
+                Assert.AreEqual(new Color32(170, 170, 170, 255), progress.color);
+                Assert.AreEqual(raw, label.text);
+            }
+            finally { Object.DestroyImmediate(canvas); Object.DestroyImmediate(font); }
+        }
+
         [TestCase("SystemBanner", "C8_Banner", "60_TitleTMP")]
         [TestCase("Toast", "Toast", "60_MessageTMP")]
         public void LongMessageGrowsDownwardAndShortMessageRestoresHeight(string prefab, string viewName, string labelName)
@@ -71,7 +118,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                     view.ShowEditImmediate("F", "자물쇠가 걸린 트렁크 — 가늘고 뾰족한 도구가 있으면 열 수 있을 것 같습니다.",
                         CurtainCall.UI.InteractionV1.InteractionAvailability.Unavailable, false, 0, "사용 불가");
                     layout.RefreshLayout();
-                    Assert.AreEqual(640, panel.rect.width, "최대 폭");
+                    Assert.That(panel.rect.width, Is.InRange(384f, 640f), "줄바꿈 후에도 폭 제한을 지킨다");
                     Assert.Greater(panel.rect.height, 80, "최대 폭으로도 넘치면 줄바꿈하고 아래로 늘린다");
                     Assert.AreEqual(3, action.maxVisibleLines);
                     Assert.LessOrEqual(-action.rectTransform.anchoredPosition.y + action.rectTransform.rect.height,

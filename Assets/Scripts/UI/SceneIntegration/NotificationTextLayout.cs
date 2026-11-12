@@ -48,6 +48,13 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var banner in root.GetComponentsInChildren<SystemBannerView>(true)) Attach(banner);
                 foreach (var toast in root.GetComponentsInChildren<ToastView>(true)) Attach(toast);
+                foreach (var guide in root.GetComponentsInChildren<CurtainCall.UI.GuidesV1.GuideView>(true)) HudText.ConfigureView(guide);
+                foreach (var tooltip in root.GetComponentsInChildren<CurtainCall.UI.TooltipsV1.TooltipView>(true)) HudText.ConfigureView(tooltip);
+                foreach (var spectator in root.GetComponentsInChildren<CurtainCall.UI.SpectatorV1.SpectatorView>(true)) HudText.ConfigureView(spectator);
+                foreach (var feedback in root.GetComponentsInChildren<CurtainCall.UI.FeedbackView>(true)) HudText.ConfigureView(feedback);
+                foreach (var hud in root.GetComponentsInChildren<CurtainCall.UI.BackstageHudV1.BackstageHUDView>(true)) HudText.ConfigureView(hud);
+                foreach (var hud in root.GetComponentsInChildren<CurtainCall.UI.PerformanceHudV1.PerformanceHUDView>(true)) HudText.ConfigureView(hud);
+                foreach (var caption in root.GetComponentsInChildren<CurtainCall.UI.CaptionsV1.CaptionView>(true)) HudText.ConfigureView(caption);
             }
         }
 
@@ -84,6 +91,9 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (string path in new[] { "Motion/40_KeyBody", "Motion/41_KeyFrame", "Motion/50_HoldTrack", "Motion/51_HoldFill", "Motion/60_KeyTMP" })
                     if (transform.Find(path) is RectTransform rect) keyWidths[rect] = rect.rect.width;
             }
+            HudText.Configure(title);
+            HudText.Configure(subtitle);
+            HudText.Configure(message);
             baseHeight = panel.rect.height;
             baseWidth = panel.rect.width;
             titleHeight = title != null ? title.rectTransform.rect.height : 0;
@@ -141,7 +151,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (DevicePrompt) fittedDevice = DeviceMetrics();
         }
 
-        /// <summary>안내·보조 줄 중 긴 쪽이 한 줄에 들어가도록 박스를 넓힌다(기본 폭 이상, 최대 폭 이하). 넘치면 줄바꿈한다.</summary>
+        /// <summary>최대 폭에서 줄바꿈한 뒤 가장 긴 줄에 맞춘다. 프리팹의 기본 폭보다 작아지지 않는다.</summary>
         void FitPromptWidth()
         {
             if (key != null)
@@ -152,7 +162,9 @@ namespace CurtainCall.UI.SceneIntegration
                 key.enableAutoSizing = deviceText; key.fontSizeMin = 14; key.fontSizeMax = keyFontSize;
                 key.overflowMode = deviceText ? TextOverflowModes.Truncate : keyOverflow;
             }
-            float needed = Mathf.Max(OneLineWidth(title), subtitle.gameObject.activeSelf ? OneLineWidth(subtitle) : 0);
+            float available = Mathf.Max(1, PromptMaxWidth - TextLeft - PromptTextRight);
+            float needed = Mathf.Max(HudText.Measure(title, available).x,
+                subtitle.gameObject.activeSelf ? HudText.Measure(subtitle, available).x : 0);
             float width = Mathf.Clamp(Mathf.Ceil(needed) + TextLeft + PromptTextRight, baseWidth, PromptMaxWidth);
             panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             float text = width - TextLeft - PromptTextRight;
@@ -161,16 +173,18 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         static float OneLineWidth(TMP_Text label) =>
-            string.IsNullOrEmpty(label.text) ? 0 : label.GetPreferredValues(label.text, Mathf.Infinity, Mathf.Infinity).x;
+            string.IsNullOrEmpty(label.text) ? 0 : HudText.Measure(label).x;
 
         static float Resize(TMP_Text label, float minimum, int maxLines = 2)
         {
+            // A progress row must stay visible even when the prose uses the usual line budget.
+            if (HudText.HasProgress(label.text)) maxLines = 0;
             label.textWrappingMode = TextWrappingModes.Normal;
             label.enableAutoSizing = false;
             label.maxVisibleLines = maxLines > 0 ? maxLines : int.MaxValue;
             label.overflowMode = maxLines > 0 ? TextOverflowModes.Ellipsis : TextOverflowModes.Overflow;
             float width = Mathf.Max(1, label.rectTransform.rect.width);
-            float preferred = label.GetPreferredValues(label.text, width, Mathf.Infinity).y;
+            float preferred = HudText.Measure(label, width).y;
             float most = maxLines == 0 ? preferred : label.GetPreferredValues(maxLines == 2 ? "가\n가" : "가\n가\n가", width, Mathf.Infinity).y;
             float height = Mathf.Clamp(Mathf.Ceil(preferred), minimum, Mathf.Max(minimum, Mathf.Ceil(most)));
             label.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);

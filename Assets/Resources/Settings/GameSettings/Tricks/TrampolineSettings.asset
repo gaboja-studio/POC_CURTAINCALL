@@ -15,6 +15,7 @@ MonoBehaviour:
   visualPrefab: {fileID: 7533943459941905961, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
   upwardSpeed: 12
   carryMoveSpeed: 4.5
+  maxCarryStepLift: 0.7
   carryCollisionMesh: {fileID: 4300000, guid: 9c24d543858e53b4a8e0412bbaabb149, type: 2}
   usePropOutline: 1
   grabPointHeight: 0.6

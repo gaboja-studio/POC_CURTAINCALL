@@ -7,6 +7,18 @@ namespace CurtainCall.UI.SceneIntegration
     /// <summary>1920×1080 기준 실게임 HUD 배치. 정본 프리팹의 내부 그림은 바꾸지 않는다.</summary>
     public static class HudLayout
     {
+        /// <summary>Keep the card's horizontal anchor and clear an overlapping HUD element.</summary>
+        public static Vector2 PlaceAbove(RectTransform card, Vector2 position, RectTransform obstacle, float gap)
+        {
+            if (card.parent == null) return position;
+            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(card.parent, obstacle);
+            var pivot = (Vector2)card.localPosition + position - card.anchoredPosition;
+            if (pivot.x + card.rect.xMin >= bounds.max.x || pivot.x + card.rect.xMax <= bounds.min.x)
+                return position;
+            position.y += Mathf.Max(0, bounds.max.y + gap - (pivot.y + card.rect.yMin));
+            return position;
+        }
+
         public static void FitBalanceKeys(Transform balance)
         {
             foreach (string path in new[] { "72_KeyTexts/LeftTMP", "72_KeyTexts/RightTMP" })

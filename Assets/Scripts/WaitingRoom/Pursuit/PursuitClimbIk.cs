@@ -16,9 +16,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
             public Vector3 contact;
             public Quaternion localFrame;
             public Quaternion upperPose, middlePose, endPose;
-            public Anchor start, finish;
+            public Anchor start, finish, wall;
             public bool hand, left;
-            public float weight;
+            public float weight, lateral;
+            public int wallCycle = -1;
         }
         struct Anchor
         {
@@ -35,6 +36,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         readonly RaycastHit[] hits = new RaycastHit[32];
         PhysicsScene physics;
         Vector3 forward, right;
+        float height, dropWalk;
         bool up, applied;
         public int LimbCount { get; private set; }
         public int ActiveContacts { get; private set; }
@@ -85,21 +87,24 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
         }
 
-        public void Begin(Vector3 from, Vector3 to, bool ascending, PursuitSettings rules)
+        /// <param name="walk">내려오기: 진행률 중 가장자리까지 걷는 비율. 그동안은 접점을 쓰지 않는다(from은 뛰어내리는 가장자리).</param>
+        public void Begin(Vector3 from, Vector3 to, bool ascending, PursuitSettings rules, float walk = 0)
         {
             Restore();
-            up = ascending; physics = root.gameObject.scene.GetPhysicsScene();
+            up = ascending; dropWalk = ascending ? 0 : Mathf.Clamp01(walk); physics = root.gameObject.scene.GetPhysicsScene();
             forward = Vector3.ProjectOnPlane(to - from, Vector3.up).normalized;
             if (forward.sqrMagnitude < .5f) forward = root.forward;
             right = Vector3.Cross(Vector3.up, forward).normalized;
             var high = up ? to : from; var low = up ? from : to;
+            height = high.y - low.y;
             var inward = up ? forward : -forward;
             foreach (var limb in limbs)
             {
                 if (limb == null) continue;
-                limb.start = limb.finish = default;
+                limb.start = limb.finish = limb.wall = default; limb.wallCycle = -1;
                 float lateral = Vector3.Dot(limb.end.position - root.position, root.right);
                 lateral = Mathf.Clamp(Mathf.Abs(lateral), .08f, limb.hand ? .32f : .18f) * (limb.left ? -1 : 1);
+                limb.lateral = lateral;
                 if (limb.hand)
                 {
                     // 아래쪽→위쪽을 훑어 NavMesh 내부 끝점 대신 실제 콜라이더 가장자리를 찾는다.
@@ -131,14 +136,32 @@ namespace CurtainCall.WaitingRoom.Pursuit
             float distance = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
-                var h = hits[i]; var c = h.collider;
-                if (c == null || c.transform.IsChildOf(root) || c.GetComponentInParent<PursuitActor>() != null
-                    || c.GetComponentInParent<NetworkPlayer>() != null || c.GetComponentInParent<PlayerMover>() != null
-                    || (c.attachedRigidbody != null && !c.attachedRigidbody.isKinematic)) continue;
-                if (h.distance >= distance) continue;
+                var h = hits[i];
+                if (Skip(h.collider) || h.distance >= distance) continue;
                 distance = h.distance; nearest = h;
             }
             return nearest.collider != null && nearest.normal.y >= .65f;
+        }
+
+        bool Skip(Collider c) => c == null || c.transform.IsChildOf(root) || c.GetComponentInParent<PursuitActor>() != null
+            || c.GetComponentInParent<NetworkPlayer>() != null || c.GetComponentInParent<PlayerMover>() != null
+            || (c.attachedRigidbody != null && !c.attachedRigidbody.isKinematic);
+
+        // 벽 타기 한 번이 시작될 때 손이 뻗은 높이(클립 접촉 자세)에서 앞쪽 벽면을 찾는다.
+        bool ProbeWall(Limb limb, PursuitSettings rules, out RaycastHit nearest)
+        {
+            nearest = default;
+            var origin = root.position + Vector3.up * PursuitClimbPath.ContactHandHeight + right * limb.lateral - forward * .2f;
+            int count = physics.Raycast(origin, forward, hits, 1.4f, rules.ClimbIkSurfaceMask, QueryTriggerInteraction.Ignore);
+            if (count == hits.Length) return false;
+            float distance = float.PositiveInfinity;
+            for (int i = 0; i < count; i++)
+            {
+                var h = hits[i];
+                if (Skip(h.collider) || h.distance >= distance) continue;
+                distance = h.distance; nearest = h;
+            }
+            return nearest.collider != null && Mathf.Abs(nearest.normal.y) < .7f;
         }
 
         /// <summary>접점 완전 고정 구간은 weight=1. 접근·해제 구간은 원본 포즈와 부드럽게 섞는다.</summary>
@@ -146,7 +169,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             Restore(); ActiveContacts = PlantedHands = PlantedFeet = 0; MaxContactError = 0;
             if (!rules.ClimbContactIk) return;
-            float t = Mathf.Clamp01(progress);
+            // 2.5m 넘는 오르기는 벽 타기 구간이 들어가므로 진행률을 클립 시간으로 바꿔 같은 접촉 구간을 쓴다.
+            // 내려오기 전 가장자리까지 걷는 동안은 클립·접점이 없다.
+            if (!up && progress < dropWalk) return;
+            var clock = up ? PursuitClimbPath.ClockAt(progress, height) : new PursuitClimbPath.Clock { Clip = PursuitClimbPath.DropPhase(progress, dropWalk), Wall = -1 };
+            float t = clock.Clip;
             foreach (var limb in limbs)
             {
                 if (limb == null) continue;
@@ -158,11 +185,28 @@ namespace CurtainCall.WaitingRoom.Pursuit
             {
                 if (limb == null) continue;
                 float w; Anchor anchor;
-                if (limb.hand)
+                if (limb.hand && clock.OnWall)
+                {
+                    // 벽 타기: 한 번마다 앞 벽을 짚고(0~0.5) 당겨 올라간 뒤 놓고 다시 뻗는다(0.5~1, 클립 자세).
+                    if (limb.wallCycle != clock.Cycle)
+                    {
+                        limb.wallCycle = clock.Cycle;
+                        limb.wall = ProbeWall(limb, rules, out var wallHit) ? Anchor.From(wallHit) : default;
+                    }
+                    anchor = limb.wall;
+                    w = Window(clock.Phase, 0, .08f, .38f, .5f);
+                }
+                else if (limb.hand)
                 {
                     anchor = limb.finish;
                     // 오르기: 접촉(0.12)부터 무릎 넘기기(PursuitClimbPath.KneeOver)까지 가장자리를 짚고 넘어가며 놓는다.
                     w = up ? Window(t, .02f, .12f, PursuitClimbPath.KneeOver + .02f, .8f) : Window(t, 0, .02f, .08f, .22f);
+                }
+                else if (clock.OnWall)
+                {
+                    // 벽 타기 시작과 함께 바닥 발을 놓는다(바닥은 곧 닿지 않는 거리).
+                    anchor = limb.start;
+                    w = (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.03f, .18f, t))) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(0, .08f, clock.Wall)));
                 }
                 else if (t < .3f)
                 {
@@ -178,7 +222,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 }
                 if (w <= 0 || !anchor.Valid) continue;
                 Vector3 normal = anchor.Normal;
-                var tangent = Vector3.ProjectOnPlane(forward, normal).normalized;
+                // 윗면은 손가락이 앞, 벽면은 손가락이 위를 향한다.
+                var tangent = Vector3.ProjectOnPlane(forward, normal);
+                if (tangent.sqrMagnitude < .1f) tangent = Vector3.ProjectOnPlane(Vector3.up, normal);
+                tangent = tangent.normalized;
                 if (tangent.sqrMagnitude < .1f) continue;
                 var rotation = Quaternion.LookRotation(tangent, normal) * Quaternion.Inverse(limb.localFrame);
                 var offset = rotation * Quaternion.Inverse(limb.end.rotation) * limb.end.TransformVector(limb.contact);
@@ -211,7 +258,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             applied = false;
         }
-        public void Clear() { Restore(); ActiveContacts = PlantedHands = PlantedFeet = 0; MaxContactError = 0; foreach (var limb in limbs) if (limb != null) limb.start = limb.finish = default; }
+        public void Clear() { Restore(); ActiveContacts = PlantedHands = PlantedFeet = 0; MaxContactError = 0; foreach (var limb in limbs) if (limb != null) { limb.start = limb.finish = limb.wall = default; limb.wallCycle = -1; } }
         static float Window(float t, float begin, float planted, float release, float end)
             => Mathf.SmoothStep(0, 1, Mathf.InverseLerp(begin, planted, t)) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(release, end, t)));
 

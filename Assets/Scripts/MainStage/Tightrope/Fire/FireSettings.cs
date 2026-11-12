@@ -14,6 +14,8 @@ namespace CurtainCall.Tightrope.Fire
         public bool chaseEnabled = true;
         [Tooltip("묘기 시작부터 추격 불 출발까지(초).")]
         [Min(0f)] public float chaseDelay = 10f;
+        [Tooltip("추격 불이 출발하기 전 제자리에서 불꽃이 작게 시작해 최대까지 커지는 시간(초). 출발 시각(chaseDelay)은 그대로이고, 그보다 이만큼 먼저 나타난다. 0이면 출발 순간 바로 최대(2026-11-12).")]
+        [Min(0f)] public float chaseRampSeconds;
         [Tooltip("추격 불 앞면의 출발 거리(m). 출발선 뒤는 음수.")]
         public float chaseStart = -6f;
         [Tooltip("추격 속도(m/s).")]
@@ -63,6 +65,7 @@ namespace CurtainCall.Tightrope.Fire
         {
             var copy = FromJson(ToJson()) ?? new FireSettings();
             copy.chaseDelay = NonNegative(copy.chaseDelay);
+            copy.chaseRampSeconds = NonNegative(copy.chaseRampSeconds);
             copy.chaseSpeed = NonNegative(copy.chaseSpeed);
             copy.safeDistance = Mathf.Clamp(Finite(copy.safeDistance, 95f), 0f, finishDistance);
             copy.chaseStart = Mathf.Min(Finite(copy.chaseStart, -6f), copy.safeDistance);
@@ -203,6 +206,16 @@ namespace CurtainCall.Tightrope.Fire
 
         public static float ChaseDistance(FireSettings settings, float elapsed) =>
             Mathf.Min(settings.safeDistance, settings.chaseStart + settings.chaseSpeed * Mathf.Max(0f, elapsed - settings.chaseDelay));
+
+        /// <summary>추격 불이 나타나는 시각(묘기 시작 후 초) = 출발 시각 − 커지는 시간. 출발 시각은 그대로다.</summary>
+        public static float ChaseAppearAt(FireSettings settings) => Mathf.Max(0f, settings.chaseDelay - settings.chaseRampSeconds);
+
+        /// <summary>추격 불 세기(0~1). 나타난 순간 0에서 커지기 시작해 출발 시각(chaseDelay)에 1이 되고 그때부터 쫓아온다.</summary>
+        public static float ChaseRamp(FireSettings settings, float elapsed)
+        {
+            float appear = ChaseAppearAt(settings), span = settings.chaseDelay - appear;
+            return span <= 0f ? 1f : Mathf.Clamp01((elapsed - appear) / span);
+        }
 
         public static bool SegmentContains(FireSegment segment, float distance, float side, float laneSide, float halfWidth) =>
             distance >= segment.from && distance < segment.to && Mathf.Abs(side - laneSide) <= halfWidth;

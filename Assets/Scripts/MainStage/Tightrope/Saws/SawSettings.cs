@@ -90,6 +90,21 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("시작점 쪽으로 내려오는 속도(m/s). 기획 0.8 고정(#7).")]
         [Min(0.01f)] public float verticalSpeed = 0.8f;
 
+        [Tooltip("나온 뒤 회전 없이 제자리에 놓여 있는 시간(초). 0이면 바로 회전 시작(2026-11-12 3단계 정면 톱날).")]
+        [Min(0f)] public float verticalIdleTime;
+
+        [Tooltip("제자리에서 회전·불꽃이 0에서 최대까지 커지는 시간(초). 끝나면 출발점 쪽으로 움직인다. 0이면 바로 출발.")]
+        [Min(0f)] public float verticalSpinUpTime;
+
+        [Tooltip("켜면 누군가 공중그네 첫 봉(목마로만 닿는 높은 봉)을 잡은 뒤로 그 단계 공연 동안(판을 다시 해도) 수직 톱날이 더 나오지 않는다. 이미 나온 톱날은 끝까지 간다(2026-11-12 3단계).")]
+        public bool verticalStopsAtTrapeze;
+
+        [Tooltip("첫 봉으로 멈출 때 이미 나와 있던 톱날이 외줄에서 떨어지는 중력(m/s²). 진행 속도를 유지한 채 포물선으로 떨어진다(발판 없는 정면 톱날만).")]
+        [Min(0.1f)] public float verticalFallGravity = 9.81f;
+
+        [Tooltip("떨어지는 톱날 중심이 외줄 윗면에서 이만큼(m) 아래로 내려가면 사라진다.")]
+        [Min(0f)] public float verticalFallRemoveDepth = 15f;
+
         [Tooltip("충돌 지름(m). 기획 1.0 — 상단 1.1m라 점프로 못 넘는다.")]
         [Min(0.01f)] public float verticalColliderDiameter = 1f;
 
@@ -101,6 +116,34 @@ namespace CurtainCall.Tightrope.Saws
 
         [Tooltip("두께(m). 임시값.")]
         [Min(0.01f)] public float verticalThickness = 0.1f;
+
+        [Tooltip("켜면 사선으로 옆줄을 오가지 않고 생성된 줄을 따라 똑바로 온다(3단계 정면 톱날, 2026-11-12).")]
+        public bool verticalStraight;
+
+        [Tooltip("켜면 톱날 뒤 발판이 없다. 밟아서 내릴 수 없고 옆줄로만 피한다(3단계 정면 톱날, 2026-11-12).")]
+        public bool verticalNoPlate;
+
+        [Tooltip("켜면 줄을 정하지 않은 출현 단계가 진행자 줄이 아니라 쓸 수 있는 모든 줄 중 하나를 랜덤으로 고른다(3단계 정면 톱날, 2026-11-12).")]
+        public bool verticalAnyLane;
+
+        [Tooltip("수직 톱날 외형(프리팹) 배율. 1이면 기존 수직 톱날 외형 크기. 판정 지름·두께·높이는 위 값을 따른다(3단계 정면 톱날 2배, 2026-11-12).")]
+        [Min(0.01f)] public float verticalLookScale = 1f;
+
+        [Header("수직 톱날 불꽃 (외줄에 닿는 하단에서 뒤쪽·위로)")]
+        [Tooltip("불꽃 크기 배율. 가로 톱날 불꽃 크기 × 톱날 크기 비율(수직 외형 지름 ÷ 가로 톱날 지름) × 이 값.")]
+        [Min(0f)] public float verticalSparkSize = 3f;
+
+        [Tooltip("불꽃 양 배율. 가로 톱날 불꽃(이동 1m당 9개) × 이 값. 0이면 불꽃 없음.")]
+        [Min(0f)] public float verticalSparkAmount = 1.5f;
+
+        [Tooltip("튀는 속도 배율. 가로 톱날 불꽃 속도(3~7m/s) × 톱날 크기 비율 × 이 값.")]
+        [Min(0f)] public float verticalSparkSpeed = 1f;
+
+        [Tooltip("퍼지는 각도(도). 클수록 넓게 흩어진다.")]
+        [Range(0f, 89f)] public float verticalSparkSpread = 30f;
+
+        [Tooltip("위로 튀는 정도. 0이면 톱날 뒤쪽 수평, 클수록 위로 솟는다.")]
+        [Min(0f)] public float verticalSparkLift = .8f;
 
         [Header("목마 협동 톱 관문")]
         [Tooltip("켜면 일반 정면 톱 출현 단계 대신 선두의 줄로 다가오는 큰 원형 톱을 사용한다.")]
@@ -189,6 +232,12 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("톱날 회전 속도(도/초). 겉모습만.")]
         public float spinSpeed = 720f;
 
+        [Tooltip("수직 톱날 회전 속도(도/초). 0 이하면 위 spinSpeed. 겉모습만(2026-11-12 정면 톱날 1초 1바퀴 = 360).")]
+        public float verticalSpinSpeed = -1f;
+
+        /// <summary>수직 톱날 회전 속도(도/초).</summary>
+        public float VerticalSpinSpeed => verticalSpinSpeed > 0f ? verticalSpinSpeed : spinSpeed;
+
         /// <summary>가로 톱날 수(단계 추가 톱날 포함).</summary>
         public int HorizontalCount => horizontalSaws?.Length ?? 0;
 
@@ -206,7 +255,7 @@ namespace CurtainCall.Tightrope.Saws
         public SawSettings WithExtraHorizontalSaws(HorizontalSawEntry[] extra)
         {
             if (extra == null || extra.Length == 0) return this;
-            var copy = JsonUtility.FromJson<SawSettings>(JsonUtility.ToJson(this));
+            var copy = Copy();
             int baseCount = HorizontalCount, total = baseCount + extra.Length;
             copy.horizontalSaws = new HorizontalSawEntry[total];
             if (baseCount > 0) Array.Copy(horizontalSaws, copy.horizontalSaws, baseCount);
@@ -218,6 +267,46 @@ namespace CurtainCall.Tightrope.Saws
                         step.lastSaw = total;
             return copy;
         }
+
+        /// <summary>
+        /// 단계 정면 톱날을 켠 복사본(2026-11-12 3단계). <paramref name="spawnDistance"/>에서 생겨 출발점(0m)까지 진행 중인 플레이어의 줄을 따라
+        /// 똑바로 오고, 발판이 없어 옆줄로만 피한다. 장애물 순서에 수직 톱날 단계가 없으면 누군가 줄에 오르는 즉시 모든 줄 중 랜덤 한 곳에 내고
+        /// 사라지면 <paramref name="repeatDelay"/>초 뒤 반복하는 단계를 더한다. <paramref name="speed"/>가 0보다 크면 그 속도(m/s)로 온다.
+        /// </summary>
+        public SawSettings WithIncomingSaw(float spawnDistance, float speed = -1f, float repeatDelay = 20f, float scale = 1f, float thickness = -1f, float startDelay = 0f,
+            float idleTime = 0f, float spinUpTime = 0f, bool stopsAtTrapeze = false)
+        {
+            var copy = Copy();
+            copy.baseHorizontalCount = baseHorizontalCount; // 직렬화하지 않는 값이라 복사본에 옮긴다
+            copy.verticalSpawnDistance = Mathf.Max(0f, spawnDistance);
+            copy.verticalEndDistance = 0f;
+            copy.verticalStraight = true;
+            copy.verticalNoPlate = true;
+            copy.verticalAnyLane = true;
+            if (speed > 0f) copy.verticalSpeed = speed;
+            if (scale > 0f && !Mathf.Approximately(scale, 1f))
+            {
+                // 크기를 키워도 바닥은 지금처럼 외줄 윗면에 닿도록 중심 높이도 같은 배율로 올린다.
+                copy.verticalColliderDiameter *= scale;
+                copy.verticalVisualDiameter *= scale;
+                copy.verticalThickness *= scale;
+                copy.verticalCenterHeight *= scale;
+                copy.verticalLookScale *= scale;
+            }
+            if (thickness > 0f) copy.verticalThickness = thickness;
+            copy.verticalIdleTime = Mathf.Max(0f, idleTime);
+            copy.verticalSpinUpTime = Mathf.Max(0f, spinUpTime);
+            copy.verticalStopsAtTrapeze = stopsAtTrapeze;
+            var steps = copy.steps ?? Array.Empty<ObstacleStep>();
+            if (Array.Exists(steps, step => step != null && step.action == StepAction.SpawnVertical)) return copy;
+            var vertical = new ObstacleStep("정면 톱날", StepTrigger.PerformanceStart, Mathf.Max(0f, startDelay), StepAction.SpawnVertical) { repeat = -1, repeatDelay = Mathf.Max(0f, repeatDelay) };
+            copy.steps = new ObstacleStep[steps.Length + 1];
+            Array.Copy(steps, copy.steps, steps.Length);
+            copy.steps[^1] = vertical;
+            return copy;
+        }
+
+        SawSettings Copy() => JsonUtility.FromJson<SawSettings>(JsonUtility.ToJson(this));
 
         /// <summary>가로 톱날 위치(m).</summary>
         public float GetHorizontalDistance(int index) => horizontalSaws[index].distance;
@@ -284,16 +373,40 @@ namespace CurtainCall.Tightrope.Saws
         public float HorizontalCenterHeight => horizontalAttackTop - horizontalThickness * 0.5f;
 
         /// <summary>수직 톱날 진행 거리(m). <paramref name="sinceSpawn"/> = 생성 후 지난 시간.</summary>
-        public float GetVerticalDistance(float sinceSpawn) => verticalSpawnDistance - verticalSpeed * Mathf.Max(0f, sinceSpawn);
+        public float GetVerticalDistance(float sinceSpawn) => verticalSpawnDistance - verticalSpeed * Mathf.Max(0f, sinceSpawn - VerticalWindup);
+
+        /// <summary>나온 뒤 출발하기까지(놓임 + 회전 가속) 초.</summary>
+        public float VerticalWindup => Mathf.Max(0f, verticalIdleTime) + Mathf.Max(0f, verticalSpinUpTime);
+
+        /// <summary>회전·불꽃 세기 0~1. 놓여 있는 동안 0, 회전 가속 동안 차오르고, 출발할 때 1.</summary>
+        public float GetVerticalSpinProgress(float sinceSpawn)
+        {
+            float t = sinceSpawn - Mathf.Max(0f, verticalIdleTime);
+            if (t <= 0f) return 0f;
+            return verticalSpinUpTime <= 0f ? 1f : Mathf.Clamp01(t / verticalSpinUpTime);
+        }
+
+        /// <summary>수직 톱날 회전 각도(도). 놓여 있는 동안 0, 가속 동안 일정하게 빨라져 출발 때 <paramref name="degreesPerSecond"/>에 닿는다.</summary>
+        public float GetVerticalSpinAngle(float sinceSpawn, float degreesPerSecond)
+        {
+            float t = sinceSpawn - Mathf.Max(0f, verticalIdleTime), ramp = Mathf.Max(0f, verticalSpinUpTime);
+            if (t <= 0f) return 0f;
+            if (t < ramp) return degreesPerSecond * t * t / (2f * ramp);
+            return degreesPerSecond * (ramp * .5f + t - ramp);
+        }
 
         /// <summary>수직 톱날이 끝 거리에 닿았는지.</summary>
         public bool HasVerticalReachedEnd(float sinceSpawn) => GetVerticalDistance(sinceSpawn) <= verticalEndDistance;
 
         /// <summary>발판을 밟은 뒤 내려간 깊이(m, 0 이상). <paramref name="sinceLower"/>가 음수면 0.</summary>
         public float GetLowerOffset(float sinceLower) =>
-            sinceLower < 0f ? 0f : verticalLowerDepth * Mathf.Clamp01(sinceLower / verticalLowerDuration);
+            sinceLower < 0f ? 0f
+            : verticalNoPlate ? .5f * verticalFallGravity * sinceLower * sinceLower // 발판 없는 정면 톱날: 외줄에서 떨어짐
+            : verticalLowerDepth * Mathf.Clamp01(sinceLower / verticalLowerDuration);
 
         /// <summary>다 내려갔는지.</summary>
-        public bool HasLowered(float sinceLower) => sinceLower >= verticalLowerDuration;
+        public bool HasLowered(float sinceLower) => verticalNoPlate
+            ? verticalCenterHeight - GetLowerOffset(sinceLower) <= -verticalFallRemoveDepth
+            : sinceLower >= verticalLowerDuration;
     }
 }

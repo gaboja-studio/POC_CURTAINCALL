@@ -7,6 +7,35 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
     public sealed class HudLayoutTests
     {
         [Test]
+        public void StatusClearsInventoryInAnotherCanvasAndKeepsItsHorizontalAnchor()
+        {
+            var root = new GameObject("HUD", typeof(RectTransform)).GetComponent<RectTransform>();
+            var inventory = new GameObject("Inventory", typeof(RectTransform)).GetComponent<RectTransform>();
+            var status = new GameObject("Status", typeof(RectTransform)).GetComponent<RectTransform>();
+            var slot = new GameObject("Slot", typeof(RectTransform)).GetComponent<RectTransform>();
+            try
+            {
+                status.SetParent(root, false);
+                status.pivot = new Vector2(1, 0);
+                status.sizeDelta = new Vector2(170, 52);
+                status.anchoredPosition = new Vector2(240, 30);
+                slot.SetParent(inventory, false);
+                inventory.localScale = Vector3.one * 1.25f;
+                slot.sizeDelta = new Vector2(64, 64);
+                slot.anchoredPosition = new Vector2(152, 46);
+                var origin = status.anchoredPosition;
+                status.anchoredPosition = HudLayout.PlaceAbove(status, origin, slot, 8);
+                var slotBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(root, slot);
+                Assert.AreEqual(origin.x, status.anchoredPosition.x);
+                Assert.That(status.localPosition.y + status.rect.yMin, Is.EqualTo(slotBounds.max.y + 8).Within(.01f));
+                Assert.AreEqual(status.anchoredPosition, HudLayout.PlaceAbove(status, origin, slot, 8), "no drift");
+                slot.anchoredPosition = new Vector2(-300, 46);
+                Assert.AreEqual(origin, HudLayout.PlaceAbove(status, origin, slot, 8), "no horizontal overlap");
+            }
+            finally { Object.DestroyImmediate(root.gameObject); Object.DestroyImmediate(inventory.gameObject); }
+        }
+
+        [Test]
         public void BalanceSwitchesBothWaysAndBannerStaysBelowTopGauge()
         {
             var gauge = new GameObject("Balance", typeof(RectTransform));

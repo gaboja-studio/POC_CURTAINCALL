@@ -59,13 +59,43 @@ namespace CurtainCall.Settings
 
         [NonSerialized] Tightrope.Saws.SawSettings[] stageSaws;
 
-        /// <summary>그 단계의 톱날 값 = 1단계 톱날 + 그 단계 추가 톱날. 추가가 없으면 1단계 값 그대로.</summary>
+        /// <summary>그 단계의 톱날 값 = 1단계 톱날 + 그 단계 추가 톱날(+ 정면 톱날). 추가가 없으면 1단계 값 그대로.</summary>
         public Tightrope.Saws.SawSettings SawsFor(int stage)
         {
-            var extra = LaterStage(stage)?.extraHorizontalSaws;
-            if (extra == null || extra.Length == 0) return saws;
+            var later = LaterStage(stage);
+            var extra = later?.extraHorizontalSaws;
+            bool incoming = later != null && later.incomingSaw;
+            if ((extra == null || extra.Length == 0) && !incoming) return saws;
             stageSaws ??= new Tightrope.Saws.SawSettings[StageCount];
-            return stageSaws[ClampStage(stage) - 1] ??= saws.WithExtraHorizontalSaws(extra);
+            ref var cached = ref stageSaws[ClampStage(stage) - 1];
+            if (cached != null) return cached;
+            cached = saws.WithExtraHorizontalSaws(extra);
+            if (incoming) cached = cached.WithIncomingSaw(IncomingSawSpawnDistance(later),
+                later.incomingSawSpeed, Mathf.Max(0f, later.incomingSawRepeatDelay), later.incomingSawScale, later.incomingSawThickness, later.incomingSawStartDelay,
+                later.incomingSawIdleTime, later.incomingSawSpinUpTime, later.incomingSawStopsAtTrapeze);
+            return cached;
+        }
+
+        /// <summary>
+        /// 정면 톱날 생성 거리(m): 도착 끝에서 앞으로 offset만큼. 그 자리가 불에 타 줄이 사라지는 구간(마지막 구간)이면
+        /// 그 구간이 시작되기 전, 줄이 사라지지 않는 곳으로 당긴다(톱날 반지름만큼 더 앞, 2026-11-12).
+        /// </summary>
+        float IncomingSawSpawnDistance(StageSettings later)
+        {
+            float spawn = course.FinishDistance - Mathf.Max(0f, later.incomingSawFinishOffset);
+            float radius = saws.verticalColliderDiameter * Mathf.Max(.1f, later.incomingSawScale) * .5f;
+            var segments = fire?.segments;
+            for (bool moved = true; moved && segments != null;)
+            {
+                moved = false;
+                foreach (var segment in segments)
+                    if (spawn + radius > segment.from && spawn - radius < segment.to)
+                    {
+                        spawn = segment.from - radius;
+                        moved = true;
+                    }
+            }
+            return Mathf.Max(0f, spawn);
         }
 
         /// <summary>그 단계의 추격 불 속도(m/s). 2·3단계 값이 0보다 작으면 1단계(불 칸의 chaseSpeed).</summary>
@@ -96,6 +126,36 @@ namespace CurtainCall.Settings
 
             [Tooltip("이 단계의 추격 불 속도(m/s). 0보다 작으면 1단계(불 칸의 chaseSpeed)와 같다.")]
             public float fireChaseSpeed = -1f;
+
+            [Tooltip("켜면 이 단계에만 정면 톱날이 나온다. 도착 쪽 외줄 끝 앞에서 생겨 진행 중인 플레이어의 줄을 따라 출발점(0m)까지 똑바로 온다. 지름·속도·높이는 톱날 칸의 수직 톱날 값, 발판 없음 — 점프로 못 넘고 옆줄로만 피한다(2026-11-12).")]
+            public bool incomingSaw;
+
+            [Tooltip("정면 톱날 생성 위치: 도착 쪽 외줄 끝에서 시작점 쪽으로 이 거리(m). 그 자리가 불에 타 줄이 사라지는 구간이면 그 구간 앞(줄이 남는 곳)으로 당겨진다.")]
+            [Min(0f)] public float incomingSawFinishOffset = 5f;
+
+            [Tooltip("정면 톱날 속도(m/s). 0 이하면 톱날 칸의 수직 톱날 속도.")]
+            public float incomingSawSpeed = -1f;
+
+            [Tooltip("정면 톱날이 출발점에 닿아 사라진 뒤 다음 톱날이 나오기까지(초).")]
+            [Min(0f)] public float incomingSawRepeatDelay = 20f;
+
+            [Tooltip("정면 톱날 크기 배율(외형·판정 지름·두께). 중심 높이도 같이 올라 바닥은 외줄 위에 그대로 놓인다.")]
+            [Min(0.1f)] public float incomingSawScale = 1f;
+
+            [Tooltip("정면 톱날 두께(m, 외형·판정 함께). 0 이하면 톱날 칸 두께 × 크기 배율.")]
+            public float incomingSawThickness = -1f;
+
+            [Tooltip("누군가 처음 외줄에 오른 뒤 첫 정면 톱날이 나오기까지(초). 0이면 즉시.")]
+            [Min(0f)] public float incomingSawStartDelay = 0f;
+
+            [Tooltip("정면 톱날이 나온 뒤 회전 없이 놓여 있는 시간(초).")]
+            [Min(0f)] public float incomingSawIdleTime = 0f;
+
+            [Tooltip("제자리에서 회전과 불꽃이 0에서 최대까지 커지는 시간(초). 최대가 되면 출발점 쪽으로 온다.")]
+            [Min(0f)] public float incomingSawSpinUpTime = 0f;
+
+            [Tooltip("켜면 누군가 공중그네 첫 봉(목마로만 닿는 높은 봉)을 잡은 뒤로 이 단계 공연 동안(판을 다시 해도) 정면 톱날이 더 나오지 않는다. 이미 나온 톱날은 끝까지 간다.")]
+            public bool incomingSawStopsAtTrapeze;
         }
 
         /// <summary>
