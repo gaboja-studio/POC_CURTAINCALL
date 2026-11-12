@@ -178,7 +178,10 @@ namespace CurtainCall.WaitingRoom
         void Bind(NetworkPlayer player)
         {
             if (local == player) return;
+            ReleasePlacementLock();
             local = player;
+            placedRound = -1;
+            nextPlacementSend = 0f;
             localRecoveryPending = false;
         }
 
@@ -196,6 +199,7 @@ namespace CurtainCall.WaitingRoom
         void RecoverLocal()
         {
             if (!localRecoveryPending || local == null || local.State != PlayerState.Normal || !completed && course == null) return;
+            if (!completed && !PlaceLocalAtStart(recovery: true)) return;
             localRecoveryPending = false;
             arrived.Remove(local.OwnerClientId);
             votes.Remove(local.OwnerClientId);
@@ -203,8 +207,7 @@ namespace CurtainCall.WaitingRoom
             lessonReturnedRound = -1;
             if (finishWalls != null) finishWalls.SetActive(false);
             if (completed) { placedRound = -1; return; }
-            if (course == null) return;
-            PlaceLocalAtStart(recovery: true);
+            placedRound = round;
             laneHintShown = false; mountHints.Clear(); actionGuideAfter = Time.unscaledTime + 4f;
             ShowGuide("FALL_RECOVERY", WaitingRoomText.Get("rehearsal.fall-title", "추락"),
                 WaitingRoomText.Get("rehearsal.fall", "온전한 몸으로 소구간 출발대에서 다시 시작합니다."), 4f);
@@ -394,11 +397,15 @@ namespace CurtainCall.WaitingRoom
         void PlaceLocal(PlayerMover mover)
         {
             if (placedRound == round) return;
-            if (local.State != PlayerState.Normal) return;
-            if (course != null) PlaceLocalAtStart();
+            if (local.State != PlayerState.Normal || local.Slot == NetworkPlayer.NoSlot) return;
+            if (course != null)
+            {
+                if (!PlaceLocalAtStart()) return;
+            }
             else if (!completed) return;
             else if (!RelocateToDeck(mover)) return;
             placedRound = round;
+            if (UsesInitialTutorialRules) WaitingRoomSpawn.TutorialPlaced(local);
         }
 
         /// <summary>연습실 링 바닥 위, 지금 x에 가장 가까운 자리로 내려선다.</summary>
@@ -413,10 +420,11 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
 
-        void PlaceLocalAtStart(bool recovery = false)
+        bool PlaceLocalAtStart(bool recovery = false)
         {
-            if (course == null || local == null || !local.TryGetComponent(out PlayerMover mover)) return;
-            Pose pose = course.GetStartPose(Mathf.Max(0, local.Slot));
+            if (course == null || local == null || local.Slot == NetworkPlayer.NoSlot || Stage == null
+                || !local.TryGetComponent(out PlayerMover mover)) return false;
+            Pose pose = course.GetStartPose(local.Slot);
             if (Stage.Kind is RehearsalStageKind.LaneChange or RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles)
             {
                 int slot = Mathf.Max(0, local.Slot);
@@ -425,6 +433,7 @@ namespace CurtainCall.WaitingRoom
             }
             Relocate(mover, pose.position, pose.rotation);
             if (recovery) RecordLocal("RECOVERED", "START_PLATFORM");
+            return true;
         }
 
         // 출발점 순간이동과 확인 메시지는 별도 경로다. 호스트에도 같은 위치가 도착할 때까지 기다린다.

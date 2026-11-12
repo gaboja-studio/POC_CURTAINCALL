@@ -206,10 +206,7 @@ namespace CurtainCall.WaitingRoom
                     if (GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                         && fallenAt.TryGetValue(id, out double at) && Clock - at >= GameSettings.WaitingRoom.Rehearsal.RecoverSeconds)
                     {
-                        HumanCannonSystem.Current?.ServerReleaseForInspection(id);
-                        CurtainCall.Tightrope.TightropeHangSystem.Current?.ServerReleaseForInspection(id);
-                        CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForInspection(id);
-                        p.ServerRestoreAll();
+                        RecoverPlayer(p);
                         fallen.Remove(id); fallenAt.Remove(id);
                         changed = true;
                     }
@@ -231,6 +228,23 @@ namespace CurtainCall.WaitingRoom
             if (ids.Length > 0 && shared.skipVotes.Count > ids.Length / 2) { BeginEnding(true, true); return; }
             if (ids.Length > 0 && shared.votes.Count > ids.Length / 2) { BeginEnding(false); return; }
             if (changed || Time.unscaledTime >= nextPublish) { Publish(); nextPublish = Time.unscaledTime + 1f; }
+        }
+
+        void RecoverEndingPlayers()
+        {
+            if (!Host || !shared.active || !GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath) return;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen
+                    && shared.participants.Contains(player.OwnerClientId)) RecoverPlayer(player);
+        }
+
+        static void RecoverPlayer(NetworkPlayer player)
+        {
+            ulong id = player.OwnerClientId;
+            HumanCannonSystem.Current?.ServerReleaseForInspection(id);
+            CurtainCall.Tightrope.TightropeHangSystem.Current?.ServerReleaseForInspection(id);
+            CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForInspection(id);
+            player.ServerRestoreAll();
         }
 
         void Bounced(ulong id)

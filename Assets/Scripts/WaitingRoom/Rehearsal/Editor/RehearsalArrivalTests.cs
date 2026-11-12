@@ -89,6 +89,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var player = go.AddComponent<NetworkPlayer>();
             Set(player, "mover", mover);
             typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(player, id);
+            ((NetworkVariable<int>)Get(player, "slot")).Value = players.Count;
             typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
             players.Add(player); All.Add(player);
             if (placed) ((HashSet<ulong>)Get(rehearsal, "placed")).Add(id);
@@ -242,6 +243,79 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(Call(rehearsal, "IsStartPosition", player.transform.position), Is.True,
                 "출발대 밖으로 밀린 배치 대기자는 입력 잠금 상태로 영구 대기하지 않는다.");
             Assert.That(mover.ControlEnabled, Is.False, "위치 복제/배치 승인을 기다리는 동안 조작 잠금 유지");
+        }
+
+        [Test]
+        public void ClientActivationKeepsTheSnapshotReceivedBeforeRoomReadiness()
+        {
+            Set(rehearsal, "active", false);
+            Set(rehearsal, "stage", -1);
+            using var writer = new FastBufferWriter(128, Allocator.Temp);
+            writer.WriteValueSafe(9); writer.WriteValueSafe(0); writer.WriteValueSafe(5);
+            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(-1d);
+            writer.WriteValueSafe(4); writer.WriteValueSafe(1); writer.WriteValueSafe(701UL);
+            for (int i = 0; i < 4; i++) writer.WriteValueSafe(0); // arrived, votes, lessons, voters
+            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(0); writer.WriteValueSafe(0);
+            using var reader = new FastBufferReader(writer, Allocator.Temp);
+            Call(rehearsal, "HandleState", NetworkManager.ServerClientId, reader);
+
+            var panel = typeof(WaitingRoomTutorialPanel).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previousPanel = panel.GetValue(null);
+            bool previousHold = ScheduleScreenHold.IsHeld;
+            try
+            {
+                // Hold the HUD in EditMode while exercising the real activation path.
+                panel.SetValue(null, Make("Tutorial panel fixture").AddComponent<WaitingRoomTutorialPanel>());
+                ScheduleScreenHold.Set(true);
+                Call(rehearsal, "Activate");
+            }
+            finally
+            {
+                ScheduleScreenHold.Set(previousHold);
+                panel.SetValue(null, previousPanel);
+            }
+            Assert.That(Get(rehearsal, "stage"), Is.EqualTo(0));
+            Assert.That(Get(rehearsal, "round"), Is.EqualTo(5));
+            Assert.That(Get(rehearsal, "participantCount"), Is.EqualTo(4));
+            Assert.That((HashSet<ulong>)Get(rehearsal, "placed"), Is.EquivalentTo(new[] { 701UL }));
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)]
+        public void InitialPlacementWaitsForTheNetworkSlotAndUsesTheRaisedStart(int assignedSlot)
+        {
+            var player = Participant(701, false);
+            var slot = (NetworkVariable<int>)Get(player, "slot");
+            slot.Value = NetworkPlayer.NoSlot;
+            var mover = player.GetComponent<PlayerMover>();
+            var before = course.transform.position + Vector3.down * 3f;
+            player.transform.position = before;
+            Call(rehearsal, "Bind", player);
+
+            Call(rehearsal, "PlaceLocal", mover);
+            Assert.That(player.transform.position, Is.EqualTo(before));
+            Assert.That(Get(rehearsal, "placedRound"), Is.EqualTo(-1));
+
+            slot.Value = assignedSlot;
+            Call(rehearsal, "PlaceLocal", mover);
+            Assert.That(player.transform.position, Is.EqualTo(course.GetLanePosition(0, -.6f - assignedSlot * .85f)));
+            Assert.That(Get(rehearsal, "placedRound"), Is.EqualTo(5));
+        }
+
+        [Test]
+        public void ReplacingTheLocalPlayerReleasesTheOldLockAndPlacesTheNewOwnerInTheSameRound()
+        {
+            var first = Participant(701, false);
+            var replacement = Participant(702, false);
+            var firstMover = first.GetComponent<PlayerMover>();
+            Call(rehearsal, "Bind", first);
+            Call(rehearsal, "PlaceLocal", firstMover);
+            Call(rehearsal, "UpdatePlacement", firstMover);
+            Assert.That(firstMover.ControlEnabled, Is.False);
+
+            Call(rehearsal, "Bind", replacement);
+            Assert.That(firstMover.ControlEnabled, Is.True);
+            Call(rehearsal, "PlaceLocal", replacement.GetComponent<PlayerMover>());
+            Assert.That(replacement.transform.position, Is.EqualTo(course.GetLanePosition(0, -1.45f)));
         }
 
         [Test]
