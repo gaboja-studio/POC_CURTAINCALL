@@ -115,17 +115,24 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(saw, "TryFire", player), Is.True);
         }
         [Test]
-        public void ManualFireRejectsNonCarrierAirborneAndBlockedCarrier()
+        public void ManualFireUsesActualRemoteSupportAndKeepsTheLastHeldPose()
         {
             Fixture(true); var player = Player(41); Own(41);
             SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
             var other = Player(42);
             Assert.That(Call(saw, "TryFire", other), Is.False);
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            Set(mover, "IsAirborne", true); Assert.That(Call(saw, "TryFire", player), Is.False);
-            Set(mover, "IsAirborne", false); Set(saw, "carryBlocked", true);
+            Set(mover, "IsAirborne", true);
+            player.transform.position = Origin + Vector3.up;
+            Physics.SyncTransforms();
             Assert.That(Call(saw, "TryFire", player), Is.False);
-            Set(saw, "carryBlocked", false); Assert.That(Call(saw, "TryFire", player), Is.True);
+            Set(saw, "carryBlocked", true);
+            player.transform.position = Origin + Vector3.right;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.False, "A blocked pose outside the carrier's hand cannot fire.");
+            player.transform.position = Origin;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.True, "The host can use the held pose after the owner has touched down.");
         }
         [Test]
         public void ProjectileCutsMultipleStrandsAlongPathButStopsBeforeWall()

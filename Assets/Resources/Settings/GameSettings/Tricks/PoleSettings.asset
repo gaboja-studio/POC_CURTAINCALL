@@ -18,9 +18,10 @@ MonoBehaviour:
   holdSeconds: 30
   hangLength: 1.5
   passengerSeparation: 1.45
+  passengerGrabRadius: 3
   swingMotionSpeed: 1.7
   swingLength: 2
-  maxSwingAngle: 85
+  maxSwingAngle: 90
   maxSwingSpeed: 180
   swingAcceleration: 100
   swingDamping: 0.12

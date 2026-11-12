@@ -93,6 +93,10 @@ namespace CurtainCall.Settings
         [SerializeField] TutorialSettings tutorial = new();
         public TutorialSettings Tutorial => tutorial ??= new();
 
+        [SerializeField, InspectorName("탐색 열쇠 사용"), Tooltip("획득·장착·사용과 열쇠 동작을 켠다. 꺼져 있으면 비밀번호·협동 조건과 머리핀 도구는 계속 적용한다.")]
+        bool enableKeyInteractions;
+        public bool EnableKeyInteractions => enableKeyInteractions;
+
         [Header("재연습 공통 규칙")]
         [SerializeField] RehearsalSettings rehearsal = new();
         public RehearsalSettings Rehearsal => rehearsal ??= new();
@@ -100,8 +104,8 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class RehearsalSettings
         {
-            [SerializeField, InspectorName("재연습 사망 후 체크포인트 복귀")]
-            [Tooltip("외줄·인간대포 재연습 중 사망하면 온전한 몸으로 마지막 체크포인트에 복귀합니다. 외줄은 현재 소구간 출발대, 인간대포는 마지막으로 도착한 중간 도착대입니다. 일반 공연에는 적용하지 않습니다.")]
+            [SerializeField, InspectorName("재연습 사망 후 자동 복귀")]
+            [Tooltip("외줄 재연습은 해당 소구간 출발대로 복귀한다. 인간대포 재연습은 마지막으로 안전하게 서 있던 위치와 당시 신체 상태로 복귀한다. 일반 공연에는 적용하지 않는다.")]
             bool recoverAfterDeath = true;
             [SerializeField, Min(0f), InspectorName("재연습 사망 복귀 대기 시간")]
             [Tooltip("재연습 중 사망 후 체크포인트로 돌아오기까지 기다리는 시간(초). 기본 1.5초.")]
@@ -122,6 +126,18 @@ namespace CurtainCall.Settings
             [SerializeField, InspectorName("연습실에 사람이 있으면 튜토리얼 문 열기")]
             [Tooltip("최초 튜토리얼 진행 중·완료 후 연습실 안에 사람이 있으면 문을 연다. 모두 나가면 닫고 사망 복귀 등으로 다시 들어오면 재개방한다. 첫 공연 이후의 일반 문 규칙에는 영향을 주지 않는다. 기본 켬.")]
             bool openPracticeDoorWhileOccupied = true;
+            [SerializeField, Min(1f), InspectorName("튜토리얼 쇠창살 높이")]
+            [Tooltip("튜토리얼 동선에서 닫힌 쇠창살의 최소 높이(m). 기본 5.5m.")]
+            float lockdownGateHeight = 5.5f;
+            [SerializeField, Min(1f), InspectorName("튜토리얼 쇠창살 투명벽 높이")]
+            [Tooltip("잠긴 튜토리얼 통로를 목마나 점프로 넘지 못하도록 막는 투명 충돌체 높이(m). 기본 12m.")]
+            float lockdownBarrierHeight = 12f;
+            [SerializeField, InspectorName("인간대포 연습 중 출구 잠금")]
+            [Tooltip("인간대포 연습을 시작하면 연습실 출구를 닫고 종료 시 연다. 기본 켬.")]
+            bool sealCannonPracticeExit = true;
+            [SerializeField, InspectorName("인간대포 연습 중 연습실 바닥 추락 시 사망")]
+            [Tooltip("연습 코스의 발판이 아닌 연습실 바닥에 떨어지면 사망한다. 기본 켬.")]
+            bool cannonPracticeFloorFallIsFatal = true;
             [SerializeField, InspectorName("첫 공연 이동 전 사망자 복귀 기다리기")]
             [Tooltip("최초 튜토리얼을 끝낸 뒤 집결할 때 죽은 동료의 복귀를 기다린다. 복귀한 동료도 입구에 모여야 공연으로 이동한다. 기본 켬.")]
             bool waitForRecoveryBeforePerformance = true;
@@ -134,6 +150,10 @@ namespace CurtainCall.Settings
             public bool ResetOnFloorFall => resetOnFloorFall;
             public float RecoverSeconds => Mathf.Max(0f, recoverSeconds);
             public bool OpenPracticeDoorWhileOccupied => openPracticeDoorWhileOccupied;
+            public float LockdownGateHeight => Mathf.Max(1f, lockdownGateHeight);
+            public float LockdownBarrierHeight => Mathf.Max(LockdownGateHeight, lockdownBarrierHeight);
+            public bool SealCannonPracticeExit => sealCannonPracticeExit;
+            public bool CannonPracticeFloorFallIsFatal => cannonPracticeFloorFallIsFatal;
             public bool WaitForRecoveryBeforePerformance => waitForRecoveryBeforePerformance;
             public bool KeepFinishBarrier => keepFinishBarrier;
             public float FirstTrapezeLowering => Mathf.Max(0f, firstTrapezeLowering);

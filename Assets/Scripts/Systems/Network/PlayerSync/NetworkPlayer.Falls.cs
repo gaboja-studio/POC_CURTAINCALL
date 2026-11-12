@@ -91,6 +91,7 @@ namespace CurtainCall.Network.PlayerSync
         void ResetFallTeleportRpc(Vector3 feet, int restart, int revive)
         {
             if (!CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)) return;
+            CurtainCall.SpaceLink.CampaignPerformanceEntry.ConfirmPlayerPlacement(this, feet);
             WaitForFallTeleport(feet);
         }
 
@@ -192,11 +193,14 @@ namespace CurtainCall.Network.PlayerSync
 
         bool TryTutorialFloorRecovery(Vector3 feet)
         {
-            if (!IsServer || !WaitingRoomRehearsal.ShouldRestartAfterFloorLanding(this, feet)
+            if (!IsServer || !IsTutorialFloorFall(feet)
                 || !ServerKill(DeathOrigin.Fall)) return false;
             ResetFallTracking();
             return true;
         }
+
+        bool IsTutorialFloorFall(Vector3 feet) => WaitingRoomRehearsal.ShouldRestartAfterFloorLanding(this, feet)
+            || WaitingRoomCannonRehearsal.ShouldRestartAfterFloorLanding(this, feet);
 
         void QueueFallLanding(float peak, Vector3 feet)
         {
@@ -281,7 +285,7 @@ namespace CurtainCall.Network.PlayerSync
         public bool CompleteFall(float height, Vector3 feet, Func<bool> rebound = null, Action land = null)
         {
             if (!IsServer || !ServerCanTakeDamage() || !float.IsFinite(height)) { land?.Invoke(); ResetFallTracking(); return false; }
-            if (WaitingRoomRehearsal.ShouldRestartAfterFloorLanding(this, feet))
+            if (IsTutorialFloorFall(feet))
             {
                 land?.Invoke();
                 ResetFallTracking();

@@ -182,18 +182,21 @@ namespace CurtainCall.EscapeRoute
             ownership.TryApply(CannonAction.Release, actor, ownership.Revision);
             Recover(); Changed();
         }
-        bool Grounded(NetworkPlayer player)
+        bool Grounded(NetworkPlayer player, bool requireReportedGrounded = true)
         {
-            if (!Alive(player) || player.IsAirborne || inspection != null && inspection.IsInspecting(player.OwnerClientId)
-                || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne || !mover.Body.enabled
+            if (!Alive(player) || inspection != null && inspection.IsInspecting(player.OwnerClientId)
+                || !player.TryGetComponent(out PlayerMover mover) || !mover.Body.enabled
                 || player.IsLocal && !mover.Simulated) return false;
+            bool reportedAirborne = player.IsAirborne || mover.IsAirborne;
+            if (reportedAirborne && (requireReportedGrounded || player.IsLocal)) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
+            float maxFootGap = reportedAirborne ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) : .25f;
             int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .15f, Vector3.down, floorHits, .4f, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
                 var hit = floorHits[i];
-                if (hit.normal.y > .5f && hit.collider != null && !hit.collider.transform.IsChildOf(CarryRoot)
+                if (hit.normal.y > .5f && hit.distance <= .15f + maxFootGap && hit.collider != null && !hit.collider.transform.IsChildOf(CarryRoot)
                     && hit.collider.GetComponentInParent<NetworkPlayer>() == null) return true;
             }
             return false;

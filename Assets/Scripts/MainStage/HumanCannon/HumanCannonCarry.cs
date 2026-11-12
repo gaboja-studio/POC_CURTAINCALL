@@ -78,12 +78,16 @@ namespace CurtainCall.HumanCannon
         static bool AllowsFloorContact(Collider hit, float bodyBottom, NetworkPlayer carrier, float clearance,
             HumanCannonTransport riddenTransport)
         {
-            if ((clearance <= 0f && riddenTransport == null) || hit is not BoxCollider box
-                || !Mathf.Approximately(Mathf.Abs(Vector3.Dot(box.transform.up, Vector3.up)), 1f)) return false;
-            float top = box.transform.TransformPoint(box.center).y
-                + Mathf.Abs(box.transform.TransformVector(Vector3.up * (box.size.y * .5f)).y);
+            if (clearance <= 0f && riddenTransport == null) return false;
+            float top;
+            if (hit is BoxCollider box && Mathf.Approximately(Mathf.Abs(Vector3.Dot(box.transform.up, Vector3.up)), 1f))
+                top = box.transform.TransformPoint(box.center).y
+                    + Mathf.Abs(box.transform.TransformVector(Vector3.up * (box.size.y * .5f)).y);
+            else if (hit is MeshCollider && hit.bounds.size.y <= clearance)
+                top = hit.bounds.max.y;
+            else return false;
             // The deck moves with its rider. The load sweep may still sample poses below its new height.
-            if (riddenTransport != null && box.transform.IsChildOf(riddenTransport.Platform)
+            if (riddenTransport != null && hit.transform.IsChildOf(riddenTransport.Platform)
                 && Mathf.Approximately(top, riddenTransport.Platform.position.y)) return true;
             // The controller's skin can put the rider's feet slightly into the floor at a deck seam.
             // Compare heights because the shallowest exit near an edge can be sideways.

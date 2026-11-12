@@ -49,7 +49,7 @@ namespace CurtainCall.EscapeRoute
             }
             else if (action == 3)
             {
-                if (Carrier != actor || !FollowCarrier(player, false) || !TryFire(player)) return;
+                if (Carrier != actor || !TryFire(player)) return;
             }
             else return;
             Changed();

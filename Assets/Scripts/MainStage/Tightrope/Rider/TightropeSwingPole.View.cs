@@ -33,7 +33,7 @@ namespace CurtainCall.Tightrope
                 if (flightMover != null) return next != null ? "공중 WASD 조절 · 다음 그네 가까이에서 F로 잡기"
                     : "공중 WASD 조절 · 초록색 착지 표시로 이동 · 동료는 F 받기 준비";
                 if (OwnHeld(local)) return OwnCanLetGo ? "지금 Space! · 공중 W로 전진 · A/D 옆 조절 · 동료는 F 받기 준비"
-                    : $"W/S로 반동 키우기 · Space로 모은 반동만큼 도약 · 남은 잡기 {Mathf.Max(0f, physicalPole.HoldSeconds - (float)(Clock - startedAt)):0.0}초";
+                    : "W/S로 반동 키우기 · Space로 모은 반동만큼 도약";
                 float distance = course.GetDistance(local.transform.position);
                 if (distance >= GapFrom - 7f && distance < GapFrom)
                     return "끊어진 줄 · 끝의 청록색 표시에서 F로 회전봉 잡기 · 목마는 먼저 해제";
