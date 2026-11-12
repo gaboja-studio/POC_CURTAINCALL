@@ -256,9 +256,15 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonCarry.TryFollowPose(carrier, transform, Handle, carryHandleHeight, alignToCarrier,
                 out var position, out var rotation, out var carrierRotation))
             {
-                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier))
+                var route = HumanCannonRouteSystem.Current;
+                carrier.TryGetComponent(out PlayerMover mover);
+                float floorClearance = route != null && !alignToCarrier && mover != null && mover.Body != null
+                    ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
+                // Only an authorized rider's load may cross its own lift's boarding barrier.
+                if (!HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
+                    floorClearance, route?.RiddenTransport(Carrier)))
                 {
-                    if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body.enabled)
+                    if (carrier.IsLocal && mover != null && mover.Simulated && mover.Body != null && mover.Body.enabled)
                         mover.Body.Move(lastSafeCarrierFeet - carrier.transform.position);
                     return;
                 }
