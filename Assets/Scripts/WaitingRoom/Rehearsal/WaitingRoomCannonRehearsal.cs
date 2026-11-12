@@ -165,20 +165,41 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
 
+        static readonly string[] CannonPracticeHiddenPaths =
+        {
+            "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs",
+            "LegacyRing/DomeSuspension"
+        };
+
+        void HidePracticeProps()
+        {
+            foreach (string path in CannonPracticeHiddenPaths)
+            {
+                var prop = room.Find(path);
+                if (prop != null) HidePracticeProp(prop.gameObject);
+            }
+            var canopyRig = room.Find("LegacyRing/CanopyAndRig");
+            if (canopyRig != null)
+                foreach (Transform prop in canopyRig)
+                    if (prop.GetComponentInChildren<Light>(true) == null) HidePracticeProp(prop.gameObject);
+            foreach (var discovery in FindObjectsByType<PerformancePropDiscovery>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (discovery.TrickId == CampaignSnapshot.HumanCannonId)
+                    foreach (var prop in discovery.PracticeProps)
+                        HidePracticeProp(prop);
+        }
+
+        void HidePracticeProp(GameObject prop)
+        {
+            if (prop == null || !prop.activeSelf) return;
+            prop.SetActive(false);
+            hidden.Add(prop);
+        }
+
         void EnsureCourse()
         {
             if (course != null && builtRound == shared.round) return;
             Cleanup();
-            foreach (string path in new[] { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs" })
-            {
-                var prop = room.Find(path);
-                if (prop == null || !prop.gameObject.activeSelf) continue;
-                prop.gameObject.SetActive(false); hidden.Add(prop.gameObject);
-            }
-            foreach (var discovery in FindObjectsByType<PerformancePropDiscovery>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (discovery.TrickId == CampaignSnapshot.HumanCannonId)
-                    foreach (var prop in discovery.PracticeProps)
-                        if (prop != null && prop.activeSelf) { prop.SetActive(false); hidden.Add(prop); }
+            HidePracticeProps();
             var prefab = Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance");
             if (prefab == null) { Debug.LogError("[CannonRehearsal] Native source copy is missing."); return; }
             WaitingRoomStageDevices.ReleaseForRehearsal(); // 대기실 상시 대포 시스템·트램펄린을 먼저 비운다(씬당 1개, CC-252)

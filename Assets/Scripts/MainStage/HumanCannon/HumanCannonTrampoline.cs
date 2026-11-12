@@ -296,6 +296,9 @@ namespace CurtainCall.HumanCannon
             position = carrier.transform.position + handleOffset;
             if (HumanCannonCarry.CheckMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null,
                 allowExistingOverlap: true, out var obstruction)) return true;
+            if (HumanCannonCarry.TryCarryOverStep(transform, carryBody, position, carrier, floorClearance,
+                CurtainCall.Settings.GameSettings.Trampoline.MaxCarryStepLift, out var raised))
+            { position = raised; return true; }
             if (!carrier.IsLocal || mover == null || !mover.Simulated || mover.Body == null || !mover.Body.enabled) return false;
 
             Vector3 wallNormal = Vector3.ProjectOnPlane(obstruction, Vector3.up).normalized;

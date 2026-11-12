@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom.Editor
         // three tiers of seating fill the band between the ring and the 26 m hall wall.
         const float Ring40Scale = 2.5f, Ring40R = 20f, OldRingR = 8f;
         const float Ring40TowerR = 23.6f, Ring40EntryAngle = -40f;
+        const float Ring40CargoStairWidth = 6f;
         // 2026-10-30: 통로(홀 입구 -40°) 쪽에도 계단과 난간 틈을 둔다. 씬에는 남쪽 계단을 돌려 복제한 RingAccessStep_Entry로 적용했다
         // (이 생성기는 원래 두 계단만 옮기므로 다시 돌리면 입구 계단은 따로 복제해야 한다).
         static readonly float[] Ring40StairAngles = { -90f, 180f, Ring40EntryAngle };
@@ -73,7 +74,8 @@ namespace CurtainCall.WaitingRoom.Editor
             }
         }
 
-        static bool InStairGap(float deg, float halfWidth) => Ring40StairAngles.Any(a => Mathf.Abs(Mathf.DeltaAngle(deg, a)) < halfWidth);
+        static bool InStairGap(float deg, float halfWidth) => Ring40StairAngles.Any(a =>
+            Mathf.Abs(Mathf.DeltaAngle(deg, a)) < halfWidth + (a == Ring40EntryAngle ? 6f : 0f));
 
         // Perimeter pieces keep their size and spacing; the count grows with the circumference.
         // Each kind is re-laid from one existing template so material, collider and facing carry over.
@@ -118,6 +120,13 @@ namespace CurtainCall.WaitingRoom.Editor
                 var p = t.position; float deg = RingAngle(c, p);
                 var dir = Quaternion.Euler(0, -deg, 0) * Vector3.right;
                 Move(t, p + dir * push);
+                if (t.name == "RingAccessStep_Entry")
+                    t.localScale = new Vector3(Ring40CargoStairWidth, t.localScale.y, t.localScale.z);
+                if (t.name == "RingStairCollision_Entry" && t.TryGetComponent(out BoxCollider ramp))
+                {
+                    Undo.RecordObject(ramp, "Widen practice entry ramp");
+                    ramp.size = new Vector3(Ring40CargoStairWidth, ramp.size.y, ramp.size.z);
+                }
             }
         }
 

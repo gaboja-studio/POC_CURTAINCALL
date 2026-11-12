@@ -9,6 +9,58 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     public class TrampolineCarryPoseTests
     {
         [Test]
+        [Category("CommonProgressionRegression")]
+        public void CarriedTrampolineClearsRingHeightButStopsAtWallAndLowCeiling()
+        {
+            var root = new GameObject("Carry step probe");
+            var terrain = new GameObject("Ring lip");
+            var ceiling = new GameObject("Overhead obstacle");
+            try
+            {
+                root.transform.position = new Vector3(12000f, 100f, 12000f);
+                var body = root.AddComponent<BoxCollider>();
+                body.center = Vector3.up * .25f;
+                body.size = new Vector3(1f, .5f, 1f);
+                var step = terrain.AddComponent<BoxCollider>();
+                terrain.transform.position = root.transform.position + Vector3.forward;
+                step.center = Vector3.up * .3f;
+                step.size = new Vector3(4f, .6f, 1f);
+                var roof = ceiling.AddComponent<BoxCollider>();
+                roof.size = new Vector3(2f, .1f, 2f);
+                ceiling.SetActive(false);
+                var destination = root.transform.position + Vector3.forward * .5f;
+                var method = typeof(HumanCannonCarry).GetMethod("TryCarryOverStep", BindingFlags.Static | BindingFlags.NonPublic);
+                bool Lift(out Vector3 position)
+                {
+                    object[] args = { root.transform, body, destination, null, 0f, .65f, Vector3.zero };
+                    bool moved = (bool)method.Invoke(null, args);
+                    position = (Vector3)args[6];
+                    return moved;
+                }
+                Physics.SyncTransforms();
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, destination, Quaternion.identity, null));
+                Assert.IsTrue(Lift(out var lifted));
+                Assert.That(lifted.y, Is.EqualTo(destination.y + .65f).Within(.001f));
+
+                ceiling.transform.position = root.transform.position + Vector3.up * .8f;
+                ceiling.SetActive(true);
+                Physics.SyncTransforms();
+                Assert.IsFalse(Lift(out _), "The lifting segment must stop at the ceiling.");
+                ceiling.SetActive(false);
+                step.center = Vector3.up;
+                step.size = new Vector3(4f, 2f, 1f);
+                Physics.SyncTransforms();
+                Assert.IsFalse(Lift(out _), "The raised horizontal segment must stop at a full wall.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(terrain);
+                Object.DestroyImmediate(ceiling);
+            }
+        }
+
+        [Test]
         public void CarriedBodyCannotSkipAcrossAThinWallBetweenClearEndpoints()
         {
             var root = new GameObject("Carry sweep probe");

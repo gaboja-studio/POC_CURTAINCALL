@@ -40,6 +40,38 @@ namespace CurtainCall.HumanCannon
 
         internal static bool CheckMove(Transform root, Collider body, Vector3 position, Quaternion rotation, NetworkPlayer carrier,
             bool sweep, float floorClearance, HumanCannonTransport riddenTransport, bool allowExistingOverlap, out Vector3 obstruction)
+            => CheckMoveFrom(root, body, root.position, position, rotation, carrier, sweep, floorClearance, riddenTransport,
+                allowExistingOverlap, out obstruction);
+
+        // Check the up/across/down path separately so a carry pose cannot cut through a step edge or a ceiling.
+        internal static bool TryCarryOverStep(Transform root, Collider body, Vector3 target, NetworkPlayer carrier,
+            float floorClearance, float maxLift, out Vector3 position)
+        {
+            position = target;
+            if (maxLift <= 0f || (target - root.position).sqrMagnitude < .000001f) return false;
+            var rotation = root.rotation;
+            float limit = target.y + maxLift;
+            if (root.position.y > target.y && root.position.y <= limit)
+            {
+                var level = new Vector3(target.x, root.position.y, target.z);
+                if (CanMove(root, body, level, rotation, carrier, true, floorClearance, null, allowExistingOverlap: true))
+                { position = level; return true; }
+            }
+
+            var raisedStart = new Vector3(root.position.x, Mathf.Max(root.position.y, limit), root.position.z);
+            var raisedEnd = new Vector3(target.x, raisedStart.y, target.z);
+            var end = new Vector3(target.x, limit, target.z);
+            if (!CanMove(root, body, end, rotation, carrier, false, floorClearance, null, allowExistingOverlap: true)
+                || !CanMove(root, body, raisedStart, rotation, carrier, true, floorClearance, null, allowExistingOverlap: true)
+                || !CheckMoveFrom(root, body, raisedStart, raisedEnd, rotation, carrier, true, floorClearance, null, true, out _)
+                || !CheckMoveFrom(root, body, raisedEnd, end, rotation, carrier, true, floorClearance, null, true, out _)) return false;
+            position = end;
+            return true;
+        }
+
+        static bool CheckMoveFrom(Transform root, Collider body, Vector3 startPosition, Vector3 position, Quaternion rotation,
+            NetworkPlayer carrier, bool sweep, float floorClearance, HumanCannonTransport riddenTransport,
+            bool allowExistingOverlap, out Vector3 obstruction)
         {
             obstruction = Vector3.zero;
             if (body == null) return false;
@@ -52,14 +84,14 @@ namespace CurtainCall.HumanCannon
             float skin = CurtainCall.Settings.GameSettings.Base.CarryDevices.CollisionSkin;
             half = new Vector3(Mathf.Max(.001f, Mathf.Abs(half.x) - skin), Mathf.Max(.001f, Mathf.Abs(half.y) - skin), Mathf.Max(.001f, Mathf.Abs(half.z) - skin));
             Quaternion relative = Quaternion.Inverse(root.rotation) * body.transform.rotation;
-            int steps = sweep ? Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(root.position, position) / .05f),
+            int steps = sweep ? Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(startPosition, position) / .05f),
                 Mathf.CeilToInt(Quaternion.Angle(root.rotation, rotation) / 3f)) : 1;
             if (steps > 256) return false; // A teleport must be reconciled, not swept through an entire room.
             for (int step = 1; step <= steps; step++)
             {
                 float t = step / (float)steps;
                 var pose = sweep ? Quaternion.Slerp(root.rotation, rotation, t) : rotation;
-                var origin = sweep ? Vector3.Lerp(root.position, position, t) : position;
+                var origin = sweep ? Vector3.Lerp(startPosition, position, t) : position;
                 var at = origin + pose * Vector3.Scale(localCenter, root.lossyScale);
                 var bodyPosition = origin + pose * Vector3.Scale(localBody, root.lossyScale);
                 int count;
@@ -80,7 +112,7 @@ namespace CurtainCall.HumanCannon
                     {
                         // The load can leave an overlap introduced by a moving platform or obstacle.
                         // New contacts and deeper penetration are still blocked throughout the sweep.
-                        if (allowExistingOverlap && Physics.ComputePenetration(body, body.transform.position, body.transform.rotation,
+                        if (allowExistingOverlap && Physics.ComputePenetration(body, startPosition + root.rotation * Vector3.Scale(localBody, root.lossyScale), body.transform.rotation,
                             hit, hit.transform.position, hit.transform.rotation, out _, out float initialDepth)
                             && depth <= initialDepth + .001f) continue;
                         obstruction = separation;
