@@ -9,7 +9,7 @@ namespace CurtainCall.Tightrope
     /// <summary>
     /// 목마 따라 움직이기·맨 위 점프(006). 연결된 위 사람을 바로 아래 사람의 머리 위(발 = 아래 사람 발 + 몸 높이)에 붙이고 같은 방향을 보게 한다.
     /// 모든 화면이 자기 화면의 아래 사람 위치로 맞추므로 위 사람이 늦게 따라오지 않는다(위 사람 소유자가 맞춘 위치는 007 위치 공유로도 나간다).
-    /// 내 캐릭터가 위에 있는 동안은 이동 계산을 끈다(W/S 무시, A/D 균형은 그대로). F 길게로 내려오면 다시 켜고 목마 맨 아래 사람 바로 앞(코스 진행 쪽)에 내려놓는다(2026-10-04 PM).
+    /// 내 캐릭터가 위에 있는 동안은 위치를 추종한다. F는 가까운 자리로 내려오고 방향과 Space는 분리 점프로 이어진다.
     /// 재시작·추락(내 균형 추락, 아래 사람 추락으로 인한 연쇄 추락)으로 풀린 경우는 내려놓지 않는다(재시작 위치·추락 처리를 따른다).
     /// 맨 위 점프(Harness/Project/Decisions/tightrope-rules.md 7, 2026-10-04):
     /// SB = 제자리 점프(목마 유지, 아래 사람 머리 기준으로 뛰었다가 다시 머리 위에 착지). W/S + SB = 앞·뒤 분리 점프(뛰는 순간 해제 요청, 이동 부품이 착지까지 처리).
@@ -306,7 +306,24 @@ namespace CurtainCall.Tightrope
 
             if (!localMover.JumpAllowed) return;
             var rules = GameSettings.Tightrope.Piggyback;
-            if (input.Move * viewSign > 0.5f) Launch(local, rules.ForwardJumpSpeed);
+            if (localMover.FreeMovement && (Mathf.Abs(input.Move) > .5f || Mathf.Abs(input.Posture) > .5f))
+            {
+                Vector2 move = PlatformControlScheme.ToCourseInput(PlatformControlScheme.LocalViewForward(local.gameObject),
+                    localMover.CourseForward, input.Posture, input.Move);
+                Vector3 direction = localMover.CourseForward * move.y + localMover.CourseRight * move.x;
+                float speed = input.Move < -.5f && Mathf.Abs(input.Posture) <= .5f ? rules.BackwardJumpSpeed : rules.ForwardJumpSpeed;
+                LaunchInDirection(direction * speed);
+            }
+            else if (!localMover.FreeMovement && Mathf.Abs(input.Posture) > .5f)
+            {
+                int side = input.Posture * viewSign > 0 ? 1 : -1;
+                if (!localMover.LaneJumpAllowed || !LaunchLane(side))
+                {
+                    Vector3 direction = localMover.CourseForward * (input.Move * viewSign) + localMover.CourseRight * side;
+                    LaunchInDirection(direction.normalized * rules.ForwardJumpSpeed);
+                }
+            }
+            else if (input.Move * viewSign > 0.5f) Launch(local, rules.ForwardJumpSpeed);
             else if (input.Move * viewSign < -0.5f) Launch(local, -rules.BackwardJumpSpeed);
             else StartHop(local);
         }
@@ -377,17 +394,35 @@ namespace CurtainCall.Tightrope
                 mover.JumpHeightMultiplier = previousMultiplier;
             }
             launchedAt = Time.time;
-            system.RequestLocalRelease();
+            system.RequestLocalJumpRelease();
         }
 
-        void LaunchLane(int direction)
+        void LaunchInDirection(Vector3 velocity)
+        {
+            var mover = localMover;
+            var body = mover.Body;
+            body.enabled = false;
+            body.enabled = true;
+            mover.Simulated = true;
+            float previousMultiplier = mover.JumpHeightMultiplier;
+            try
+            {
+                mover.JumpHeightMultiplier *= GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+                mover.StartDirectionalJump(velocity);
+            }
+            finally { mover.JumpHeightMultiplier = previousMultiplier; }
+            launchedAt = Time.time;
+            system.RequestLocalJumpRelease();
+        }
+
+        bool LaunchLane(int direction)
         {
             var mover = localMover;
             float previousMultiplier = mover.JumpHeightMultiplier;
             try
             {
                 mover.JumpHeightMultiplier = previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
-                if (!mover.LaunchLaneJump(direction)) return; // 거부되면 연결·추종 모두 유지한다
+                if (!mover.LaunchLaneJump(direction)) return false;
             }
             finally { mover.JumpHeightMultiplier = previousMultiplier; }
             var body = mover.Body;
@@ -395,7 +430,8 @@ namespace CurtainCall.Tightrope
             body.enabled = true;
             mover.Simulated = true;
             launchedAt = Time.time;
-            system.RequestLocalRelease();
+            system.RequestLocalJumpRelease();
+            return true;
         }
 
         /// <summary>내 캐릭터가 위에 있으면 이동 계산을 끄고, 내려오면 켜고 내려놓는다.</summary>
@@ -465,7 +501,7 @@ namespace CurtainCall.Tightrope
             Release();
             if (putDown && bottom != null)
             {
-                PutDownInFront(released, bottom);
+                PutDownBesideCarrier(released, bottom);
                 released.SetControlEnabled(false);
                 controlRestore = released;
             }
@@ -478,22 +514,21 @@ namespace CurtainCall.Tightrope
             return player;
         }
 
-        /// <summary>
-        /// 목마 맨 아래 사람 바로 앞(코스 진행 쪽, 몸 간격)에 같은 높이로 내려놓는다(2026-10-04 PM).
-        /// 임시 규칙(기획 미정): 그 자리에 다른 사람이 있어도 그대로 놓는다.
-        /// </summary>
-        static void PutDownInFront(PlayerMover mover, NetworkPlayer bottom)
+        static void PutDownBesideCarrier(PlayerMover mover, NetworkPlayer bottom)
         {
             if (!bottom.TryGetComponent(out PlayerMover bottomMover)) return;
             Vector3 forward = bottomMover.CourseForward;
             if (forward == Vector3.zero) forward = bottom.transform.forward;
             float gap = bottomMover.BodyRadius + mover.BodyRadius + GameSettings.Base.Character.PlayerGap;
-            Vector3 position = bottom.transform.position + forward * gap;
-
-            var body = mover.Body;
-            body.enabled = false; // CharacterController는 꺼야 위치를 바로 옮길 수 있다
-            mover.transform.SetPositionAndRotation(position, bottom.transform.rotation);
-            body.enabled = true;
+            Vector3 feet = bottom.transform.position;
+            foreach (var direction in new[] { forward, -forward })
+            {
+                Vector3 position = feet + direction * gap;
+                if (!HasRoomForPassenger(mover, position) || PassengerTravel(mover, feet, direction, gap) < gap - .002f) continue;
+                mover.Relocate(position, bottom.transform.rotation);
+                return;
+            }
+            mover.ResetExternalMotion(true);
         }
 
         void HandleRestarted(NetworkPlayer player)
