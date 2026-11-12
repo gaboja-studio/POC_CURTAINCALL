@@ -126,3 +126,4 @@
 - 톱날 발사 요청은 운반 중 바닥 접촉·소유권·재사용 대기로 판정한다. 앉은 상태에서는 목마를 시작할 수 없고 승인 시점에 공간을 재확인한다. WaitingRoomSettings의 열쇠 상호작용은 꺼져 있으며 마술사의 머리핀은 유지한다.
 - 최초 EditMode 572/575. 실패 3개는 이륙 수평 속도를 유지하던 종전 공중 동작을 기대하여 승인한 지상 조작과 맞지 않았다. 해당 검사 조건을 갱신했다. 실제 PlayMode는 실행하지 않았다.
 - 최종 컴파일·공통 설정 통과. 공통 EditMode 575/575, 톱날·운반 등 후속 EditMode 121/121. 재컴파일 직후 검사 도구 연결 오류는 재시도로 확인했다. 결과 .harness/local/nov12-reported-bugs-common-editmode.json 및 test-results-editmode.json.
+- 11/12 제출 직전 DEV `8d8a714f` 재확인. 수정본 `58ef03e3`과 [플레이 체크리스트](playtest-checklist.md)를 [PR #342](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/342)로 제출하고 PM 팀에 검토를 요청했다. 실제 플레이는 사용자 확인 예정이다.
