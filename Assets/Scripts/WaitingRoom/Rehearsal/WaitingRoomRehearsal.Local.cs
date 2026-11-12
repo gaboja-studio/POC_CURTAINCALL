@@ -214,10 +214,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
-        /// 퀘스트 패널 제목(기획서 4.4, 조건별). [tutorial] 표기는 조건 달성형 퀘스트(오른쪽)에만 쓰고 설명 패널(왼쪽)에는 쓰지 않는다.
-        /// 문구 표의 <c>rehearsal.quest.{key}.title</c>을 읽고, 없으면 "[tutorial]"만 쓴다.
+        /// 문구 표의 퀘스트 제목을 읽고, 없으면 본문만 표시한다.
         /// </summary>
-        static string QuestTitle(string key) => WaitingRoomText.Get("rehearsal.quest." + key + ".title", "[tutorial]");
+        static string QuestTitle(string key) => WaitingRoomText.Get("rehearsal.quest." + key + ".title", "");
         string questKey = "";
         string Quest(string key, string fallback) { questKey = key; return WaitingRoomText.Get("rehearsal.quest." + key, fallback); }
         string QuestFormat(string key, string fallback, int lane) { questKey = key; return WaitingRoomText.Format("rehearsal.quest." + key, fallback, ("lane", lane)); }
@@ -339,16 +338,14 @@ namespace CurtainCall.WaitingRoom
             if (key == rescueGuide) return key.Length > 0;
             if (key.Length == 0)
             {
-                if (WaitingRoomTutorialPanel.CurrentTitle == RescueTitle(rescueGuide)) WaitingRoomTutorialPanel.Hide();
+                if (WaitingRoomTutorialPanel.CurrentTitle == QuestTitle(rescueGuide)) WaitingRoomTutorialPanel.Hide();
                 rescueGuide = "";
                 return false;
             }
             // Native seven-second hangs must not wait behind the ten-second stage introduction.
-            if (RehearsalGuide.Show(RescueTitle(key), RescueText(key), IntroSeconds)) rescueGuide = key;
+            if (RehearsalGuide.Show(QuestTitle(key), RescueText(key), IntroSeconds)) rescueGuide = key;
             return true;
         }
-
-        static string RescueTitle(string key) => QuestTitle(key).Replace("[tutorial] ", "");
 
         void TrackPersonalProgress(PlayerMover mover)
         {
@@ -530,7 +527,7 @@ namespace CurtainCall.WaitingRoom
             if(questKey is "pole-single" or "pole-next" or "pole-grab" or "trigger-open" or "trigger-closed" or "trigger-grab" or "trigger-hold"
                 or "trapeze-attach" or "trapeze-grab" or "trapeze-mount" or "trapeze-lane" or "lane-platform")
             {
-                if(lastDeviceGuide!=questKey && RehearsalGuide.Show(title.Replace("[tutorial] ",""),body,IntroSeconds))
+                if(lastDeviceGuide!=questKey && RehearsalGuide.Show(title,body,IntroSeconds))
                     lastDeviceGuide=questKey;
                 title=s.DisplayTitle;
                 body=WaitingRoomText.Get("rehearsal.stage."+s.Id+".goal","도착대까지 이동하세요.");

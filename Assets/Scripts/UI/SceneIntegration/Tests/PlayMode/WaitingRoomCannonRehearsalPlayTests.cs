@@ -332,7 +332,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Return after completion");
             var quest = Priv(CannonLesson, "quest");
             Assert.IsTrue((bool)Get(quest, "Visible"));
-            Assert.AreEqual("[tutorial] 리허설 종료", Get(quest, "Title"));
+            Assert.AreEqual("리허설 종료", Get(quest, "Title"));
             Assert.IsTrue((bool)Call(Static("CurtainCall.Campaign.CampaignRun", "Instance"), "NotifyAllAtStageEntrance"));
             yield return null; yield return null;
             Assert.IsFalse((bool)Get(quest, "Visible"), "공연으로 전환하면 완료 퀘스트가 남지 않음");

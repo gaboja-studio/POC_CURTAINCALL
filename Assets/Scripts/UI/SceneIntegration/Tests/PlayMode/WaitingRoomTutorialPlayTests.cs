@@ -169,8 +169,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(4f);
                 Assert.AreEqual(true, Static(FirstDayFlowType, "FirstDayQuestVisible"), "임시 퀘스트는 튜토리얼 끄기와 독립적이다");
                 T(TutorialType).GetProperty("Enabled").SetValue(null, true);
-                // 2026-11-04 사용자: N01(오늘 밤 할 일)은 [tutorial] 없는 왼쪽 설명 패널로 밤 연계 첫 안내로 뜬다.
-                // 오른쪽 [tutorial]은 첫날 진행 퀘스트 하나만 남는다.
+                // N01(오늘 밤 할 일)은 왼쪽 설명 패널로 밤 연계 첫 안내로 뜬다.
+                // 오른쪽에는 첫날 진행 퀘스트가 남는다.
                 yield return WaitGuide(TutorialTitle("N01"), 10f);
                 StringAssert.DoesNotContain("[tutorial]", (string)Static(GuideType, "CurrentTitle"), "설명 패널에는 [tutorial]이 없다");
                 yield return new WaitForSecondsRealtime(.6f);

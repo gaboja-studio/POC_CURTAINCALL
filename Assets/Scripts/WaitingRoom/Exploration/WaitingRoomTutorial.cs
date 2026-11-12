@@ -35,8 +35,8 @@ namespace CurtainCall.WaitingRoom
         /// 클로즈업: G11 무대 입구 통로 · N02 상점 수화기·배송구 · N04 물려줄 선반 · N03 스케줄표. 단일 클로즈업: N05 숙소 침대(일정 확정 직후) · G10 신체 복구(상점 수화기).
         /// </summary>
         /// 2026-10-31 사용자: G03 상호작용은 연계에서 빼고 상호작용 가능한 대상을 처음 발견할 때 띄운다.
-        /// 2026-11-04 사용자: N01(오늘 밤 할 일)은 [tutorial] 없이 왼쪽 설명 패널로, 밤 연계의 첫 안내(G01과 같은 텍스트 잠금)로 띄운다.
-        /// 오른쪽 [tutorial] 퀘스트는 첫날 진행 퀘스트(<see cref="WaitingRoomFirstDayFlow"/>) 하나만 쓴다.
+        /// N01(오늘 밤 할 일)은 왼쪽 설명 패널로, 밤 연계의 첫 안내(G01과 같은 텍스트 잠금)로 띄운다.
+        /// 오른쪽에는 첫날 진행 퀘스트(<see cref="WaitingRoomFirstDayFlow"/>)를 띄운다.
         string[] RestChain,NightChain;
         static readonly HashSet<string> CloseUpIds = new() { "G11", "N02", "N04", "N03", "N05", "G10" };
         static readonly HashSet<string> LockedIds = new(CloseUpIds) { "G01", "N01" };

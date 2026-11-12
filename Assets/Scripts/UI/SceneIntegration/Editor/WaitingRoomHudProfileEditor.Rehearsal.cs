@@ -142,12 +142,11 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             string preview=RehearsalSample(item.body,body);
             if(item.role=="학습 가이드")
             {
-                if(item.body?.StartsWith("rehearsal.quest.")==true)title=title.Replace("[tutorial] ","");
                 DrawCard(RehearsalGuide.Format(title,"F","Space"),RehearsalGuide.Format(preview,"F","Space"),"왼쪽 학습 가이드 · 예시 키");
             }
             else if(item.role.Contains("+"))
             {
-                DrawCard(RehearsalGuide.Format(title.Replace("[tutorial] ",""),"F","Space"),RehearsalGuide.Format(preview,"F","Space"),"왼쪽 학습 가이드 · 예시 키");
+                DrawCard(RehearsalGuide.Format(title,"F","Space"),RehearsalGuide.Format(preview,"F","Space"),"왼쪽 학습 가이드 · 예시 키");
                 DrawCard(WaitingRoomHudProfile.FormatKeys(title),WaitingRoomHudProfile.FormatKeys(preview),"오른쪽 팀 임무");
             }
             else DrawCard(WaitingRoomHudProfile.FormatKeys(title),

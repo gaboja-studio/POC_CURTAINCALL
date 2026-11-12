@@ -135,7 +135,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var questPanel = Priv(Rehearsal, "quest");
                 float panelDeadline = Time.realtimeSinceStartup + 3f;
                 while (!(bool)Get(questPanel, "Visible") && Time.realtimeSinceStartup < panelDeadline) yield return null;
-                StringAssert.StartsWith("[tutorial] ", (string)Get(questPanel, "Title"), "조건형 퀘스트에만 tutorial 표기");
+                Assert.IsNotEmpty((string)Get(questPanel, "Title"), "조건형 퀘스트 제목이 출력되어야 한다");
+                StringAssert.DoesNotContain("[tutorial]", (string)Get(questPanel, "Title"));
                 string explanationTitle = (string)Static(GuideType, "CurrentTitle");
                 Assert.IsNotEmpty(explanationTitle, "시간형 설명 패널이 출력되어야 한다");
                 Assert.IsFalse(explanationTitle.StartsWith("[tutorial] "), "시간형 설명에는 tutorial 표기를 붙이지 않는다");
@@ -671,7 +672,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
                 Assert.IsNull(bed.transform.Find("BedRestCamera"));
                 yield return CannonWait(() => (bool)Static(FirstDayFlowType, "FirstDayQuestVisible")
-                    && (string)Static(FirstDayFlowType, "FirstDayQuestTitle") == "[tutorial] 다음 공연 준비하기", 15,
+                    && (string)Static(FirstDayFlowType, "FirstDayQuestTitle") == "다음 공연 준비하기", 15,
                     "날짜 연출 종료/조작 해제 뒤 2일차 아침 퀘스트");
                 yield return QuestFlowCapture("07-next-morning");
                 Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));

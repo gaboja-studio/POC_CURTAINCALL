@@ -11,7 +11,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         static string Effective(string edit,string original)=>string.IsNullOrWhiteSpace(edit)?original:edit;
         static string Read(SerializedProperty row,string name)=>row.FindPropertyRelative(name).stringValue;
         string OriginalCopy(string id)=>phrases.TryGetValue(id,out var text)?text:id switch {
-            "first-day.quest.prepare.title"=>"[tutorial] 다음 공연 준비하기",
+            "first-day.quest.prepare.title"=>"다음 공연 준비하기",
             "first-day.quest.prepare.body"=>"대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요.",
             _=>""
         };

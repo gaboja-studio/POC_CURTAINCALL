@@ -22,3 +22,18 @@
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(공용 설정 포함, `89482b11`); 테스트=기존 HUD Edit Mode 15개 결과를 재사용(이번 제출에서 재실행하지 않음).
 
 - 2026-11-12 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/346 (`fix/ui/message` → `dev`). 지정 팀원 검토 대기.
+
+## 2026-11-13 투표 버튼과 퀘스트 제목
+
+- 투표 버튼에만 자동 글자 크기와 한 줄 표시를 적용했다. 대기실·외줄·인간대포 퀘스트의 문구 표와 기본 제목에서 tutorial 접두사를 제거했다.
+- 검사: 안전성=PASS; 문서/규칙=PASS; Unity 6000.3.25f1 컴파일·공용 설정=PASS; 역할 HUD Play Mode 5개=PASS. 실제 단축키가 붙은 넘기기와 더 긴 취소 선택지의 TMP 한 줄·잘림 없음과 클릭을 확인했다. Unity가 불러온 문구 480개 및 ‘1일차 · 두 번째 공연 준비’도 확인했다.
+- 첫날 전체 흐름 Play Mode 1개는 첫 퀘스트 확인 전 커튼 닫힘 오류로 실패했다. 실제 첫날 씬 흐름은 미검증이다.
+- 시작·마무리 `origin/dev` `19bb420f`와 일치. 초기 doctor는 기존 Task ID 중복 및 샌드박스의 외부 에셋·에디터 탐지 문제를 보고했다. 호스트에서 에디터로 검사를 마치고 정상 종료했다. 커밋·푸시 없음.
+
+## 2026-11-13 커튼 원인 및 첫날 화면 재검증
+
+- 이전 실행은 `-batchmode -nographics`였다. 로그에서 `C16 Close rejected`가 먼저 찍혔다. 커튼이 닫힌 렌더 프레임을 확인할 수 없는 모드라 닫기 요청이 거부되고 씬 전환이 취소됐다.
+- `origin/dev` `1764a21c`를 기존 수정과 함께 반영했다. 일반 Unity 에디터(Direct3D 11)에서 커튼 전환을 통과했고 첫날 ‘대기실’과 ‘1일차 · 두 번째 공연 준비’ 카드가 표시됐다. 집중 Play Mode 검사 1/1 통과: 실제 카드 제목과 본문에 접두사가 없었으며 Game View 캡처 `08-verified-first-day-gather.png`도 확인했다.
+- 전체 첫날 흐름 테스트는 커튼 이후 ‘둘째 공연 확정 전 집결 차단’ 검사에서 실패했다. 현재 `RunState.NotifyAllAtStageEntrance()`는 안내가 끝나면 일정 확정을 집결 조건으로 요구하지 않아 기존 테스트의 기대와 다르다. 게임 규칙은 변경하지 않았다.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/354 (fix/ui/message → dev)
