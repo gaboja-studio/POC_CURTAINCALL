@@ -81,3 +81,6 @@
 - 2026-11-12 테스트: EditMode Pursuit 159/160(기존 실패 1 동일, 신규 PursuitTraversalSafetyTests 5: 내려오기 몸통 비관통, 8cm 난간 윗면 오르기, 몸 두께 기둥, 내려갈 바닥, 다른 루트 우회). PlayMode 오르기 2/2·앉아 숨기 1/1은 기계 도달 거리·난간 링크·5cm 탐색 수정 전 실행, 이후 미재실행(메모리 부족).
 
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-12 제출: d416c4fd 커밋 후 Unity 종료 확인, origin/dev(901ec494, #343·#344) 병합(충돌 없음), Unity 재실행 후 check-work PASS·EditMode Pursuit 159/160(기존 실패 1)·PlayMode 오르기 2/2·앉아 숨기 1/1. push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/345 (dev, Squash). escape-labels.asset(에디터 자동 변경)은 제외·보존, new-pr.ps1은 이 미저장 변경으로 멈추므로 같은 형식으로 gh 직접 등록.
