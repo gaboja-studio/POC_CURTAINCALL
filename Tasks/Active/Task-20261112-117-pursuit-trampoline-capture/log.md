@@ -63,3 +63,4 @@
 - 2026-11-12 실제 플레이 캡처: 임시 PlayMode(실제 WaitingRoom.unity LAN 호스트, 1단계, 포획만 개발 무적으로 막음, 실행 후 테스트 파일 삭제)에서 추격자가 B1 보일러(링크 오르기)와 터널 드럼통 SM_Barrel_1 1.94m(직접 오르기)를 쫓아 올라감. 둘 다 오르기·윗면 도착 성공. 캡처는 scratchpad/play/boiler-side·boiler-angle·barrel-side·barrel-angle.png(커밋 안 함). PR #337은 사용자 확인으로 이미 병합됨, 이번 수정은 미커밋.
 
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-12 제출: origin/dev(PR #337 병합) 앞당기기 후 dfd65b4a push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/339 (dev). 폰트 SDF·escape-labels.asset(에디터 자동 변경)는 제외·보존, new-pr.ps1은 이 미저장 변경으로 멈추므로 같은 형식으로 gh 직접 등록.
