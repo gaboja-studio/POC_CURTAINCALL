@@ -51,3 +51,6 @@
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-12 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-12 사용자 요청: 현재까지 저장 후 제출, 이후 오르기 동작 개선 진행. origin/dev 새 커밋 0(병합 불필요).
+- 2026-11-12 비공개 저장: _ThirdParty c46b6dc9(resource/pursuit-climb-animation, 오르기 클립·원화·프리팹 10종) push, PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/19 Update 검사 PASS 후 사용자 승인으로 Merge commit main 반영(gitlink 계보 확인).
+- 2026-11-12 공개 저장: 101fafef push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/337 (dev, Squash). 작업 무관 폰트 SDF 2개·escape-labels.asset(에디터 실행 중 아틀라스 텍스처 변경)는 제외·보존. new-pr.ps1은 이 미저장 변경 때문에 등록을 멈춰, 같은 제목·본문으로 gh pr create 직접 등록.
