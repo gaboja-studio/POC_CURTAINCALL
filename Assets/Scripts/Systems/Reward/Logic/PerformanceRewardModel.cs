@@ -230,6 +230,18 @@ namespace CurtainCall.Reward
             return changed;
         }
 
+        /// <summary>Developer checkpoint recovery for an open performance; preserves awarded cut bonuses and progress.</summary>
+        public bool RestoreDevCheckpointParticipant(string participantId)
+        {
+            var person = IsOpen ? Find(participantId) : null;
+            if (person == null || !person.Connected || !person.Dead) return false;
+            person.Dead = false;
+            person.Parts = 0;
+            RestartInterest(person);
+            Revision++;
+            return true;
+        }
+
         public bool Confirm(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements,
             int minimumSurvivors, RewardRules currentRules, out PerformanceResult result)
         {

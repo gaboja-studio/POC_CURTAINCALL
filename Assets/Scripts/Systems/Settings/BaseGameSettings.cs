@@ -85,11 +85,14 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0)] float sawCarrySpeed = 3f;
             [Tooltip("사용 키를 한 번 누르면 톱날 한 발을 발사합니다. 다음 발사까지 필요한 시간(초). 계속 누르고 있어도 연속 발사하지 않습니다.")]
             [SerializeField, Min(.1f)] float sawShotInterval = 1.15f;
+            [Tooltip("켜면 톱날 발사대를 들고 있는 팀원 또는 그 팀원이 포함된 목마에 새로 올라탈 수 없습니다. 모든 씬의 목마 대상 선택과 호스트 승인에 공통 적용됩니다.")]
+            [SerializeField] bool blockPiggybackOnSawCarrier = true;
             [Tooltip("운반 장치의 충돌 검사에서 접촉 떨림을 줄이는 여유(m). 트램펄린과 톱날 발사기에 공통 적용합니다.")]
             [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;
             public float SawScale => Mathf.Clamp(sawScale, .3f, 1.5f);
             public float SawCarrySpeed => Mathf.Max(0, sawCarrySpeed);
             public float SawShotInterval => Mathf.Max(.1f, sawShotInterval);
+            public bool BlockPiggybackOnSawCarrier => blockPiggybackOnSawCarrier;
             public float CollisionSkin => Mathf.Clamp(collisionSkin, .001f, .05f);
         }
 
@@ -364,8 +367,8 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class AirControlSettings
         {
-            [SerializeField, Min(0f), Tooltip("봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 발사 속도와 별개다.")]
-            float speed = 3f;
+            [SerializeField, Min(0f), Tooltip("일반 점프·낙하의 수평 이동 속도 및 봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 공중에는 Shift 달리기 배율을 적용하지 않으며, 기물 발사 속도와는 별개다.")]
+            float speed = 4f;
             [Tooltip("봉·대포·트램펄린 비행의 수평 조절이 입력 방향을 따라가는 반응 시간(초). 작을수록 빠르게 방향을 바꾼다. 기본 0.1초.")]
             [SerializeField, Min(.001f)] float responseSeconds = .1f;
             [SerializeField, Min(0f), Tooltip("봉 도약 직후 반동을 주던 W/S가 공중 조절로 겹치지 않는 유예.")]

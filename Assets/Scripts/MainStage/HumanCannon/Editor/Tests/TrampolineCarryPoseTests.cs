@@ -8,8 +8,66 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
-        [TestCase(false), TestCase(true), Category("CommonProgressionRegression")]
-        public void DetachedLimbsPassThroughAllTrampolineShapesAndStillLandOnTheFloor(bool createdAfterTrampoline)
+        [Test, Category("CommonProgressionRegression"), Category("TrampolineLayerRegression")]
+        public void ProjectMatrixIgnoresOnlyTheTwoRequestedLayerPairs()
+        {
+            int trampoline = LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.Trampoline);
+            int limb = LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.DetachedLimb);
+            int hazard = LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.TrickHazard);
+            Assert.GreaterOrEqual(trampoline, 8); Assert.GreaterOrEqual(limb, 8); Assert.GreaterOrEqual(hazard, 8);
+            for (int first = 0; first < 32; first++) for (int second = 0; second < 32; second++)
+            {
+                bool ignore = first == trampoline && (second == limb || second == hazard)
+                    || second == trampoline && (first == limb || first == hazard);
+                Assert.AreEqual(ignore, Physics.GetIgnoreLayerCollision(first, second), $"Layer pair {first}/{second}");
+            }
+        }
+
+        [TestCase("DismemberedLimb"), TestCase("TrickHazard")]
+        [Category("CommonProgressionRegression"), Category("TrampolineLayerRegression")]
+        public void CarryAndDropQueriesFollowTheProjectMatrixAndStillStopAtWalls(string ignoredLayer)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Layered trampoline query"); root.SetActive(false);
+            var obstacle = new GameObject("Ignored query obstacle"); var floor = new GameObject("Preserved query floor");
+            int trampolineLayer = LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.Trampoline);
+            int otherLayer = LayerMask.NameToLayer(ignoredLayer);
+            bool previous = Physics.GetIgnoreLayerCollision(trampolineLayer, otherLayer);
+            try
+            {
+                root.layer = trampolineLayer; obstacle.layer = otherLayer;
+                root.transform.position = new Vector3(12000, 100, 12000);
+                var body = root.AddComponent<BoxCollider>(); body.size = Vector3.one * .5f;
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                trampoline.enabled = false; root.SetActive(true); // Keep real collision shapes active without claiming the gameplay singleton.
+                var wall = obstacle.AddComponent<BoxCollider>(); wall.size = Vector3.one;
+                obstacle.transform.position = root.transform.position + Vector3.forward;
+                var ground = floor.AddComponent<BoxCollider>(); ground.size = new Vector3(5, .2f, 5);
+                floor.transform.position = root.transform.position + Vector3.down * 2;
+                Physics.SyncTransforms();
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, obstacle.transform.position, Quaternion.identity, null));
+                obstacle.layer = 0; Physics.SyncTransforms();
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, obstacle.transform.position, Quaternion.identity, null));
+                obstacle.layer = otherLayer; obstacle.transform.position = root.transform.position; Physics.SyncTransforms();
+                object[] args = { root.transform.position + Vector3.up * 2, Vector3.zero, false };
+                var findGround = typeof(HumanCannonTrampoline).GetMethod("TryFindGround", members);
+                Assert.IsTrue((bool)findGround.Invoke(trampoline, args));
+                Assert.That(((Vector3)args[1]).y, Is.EqualTo(ground.bounds.max.y).Within(.001f));
+                Physics.IgnoreLayerCollision(trampolineLayer, otherLayer, false);
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, body, obstacle.transform.position, Quaternion.identity, null));
+                args[1] = Vector3.zero; Assert.IsTrue((bool)findGround.Invoke(trampoline, args));
+                Assert.That(((Vector3)args[1]).y, Is.EqualTo(wall.bounds.max.y).Within(.001f));
+            }
+            finally
+            {
+                Physics.IgnoreLayerCollision(trampolineLayer, otherLayer, previous);
+                Object.DestroyImmediate(root); Object.DestroyImmediate(obstacle); Object.DestroyImmediate(floor);
+            }
+        }
+
+        [TestCase(false, false), TestCase(true, false), TestCase(false, true), TestCase(true, true)]
+        [Category("CommonProgressionRegression"), Category("TrampolineLayerRegression")]
+        public void IgnoredPropsPassThroughAllTrampolineShapesAndStillLandOnTheFloor(bool createdAfterTrampoline, bool hazard)
         {
             const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
             var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
@@ -33,6 +91,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 limb.transform.position = Vector3.up * 3;
                 void RegisterLimb()
                 {
+                    if (hazard) { CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(limb.transform, CurtainCall.Settings.GamePhysicsLayers.TrickHazard); return; }
                     var marker = limb.AddComponent<DismemberedLimb>();
                     var active = (System.Collections.Generic.List<DismemberedLimb>)typeof(DismemberedLimb)
                         .GetField("active", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
@@ -48,19 +107,19 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 if (HumanCannonTrampoline.Current != trampoline)
                     typeof(HumanCannonTrampoline).GetMethod("OnEnable", members).Invoke(trampoline, null);
                 if (createdAfterTrampoline) RegisterLimb();
-                var tick = typeof(HumanCannonTrampoline).GetMethod("FixedUpdate", members);
                 var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", members).GetValue(trampoline);
                 // Idle, carried, released and re-enabled shapes use the same physical exclusion.
                 foreach (ulong actor in new[] { CannonSeatState.Nobody, 12UL, CannonSeatState.Nobody })
                 {
                     ownership.Receive(ownership.Revision + 1, actor);
                     frame.enabled = false; frame.enabled = true;
-                    Physics.SyncTransforms(); tick.Invoke(trampoline, null);
-                    Assert.IsTrue(Physics.GetIgnoreCollision(main, shape));
-                    Assert.IsTrue(Physics.GetIgnoreCollision(frame, shape));
-                    Assert.IsFalse(Physics.GetIgnoreCollision(floor, shape));
+                    Physics.SyncTransforms();
+                    Assert.IsTrue(Physics.GetIgnoreLayerCollision(main.gameObject.layer, shape.gameObject.layer));
+                    Assert.IsTrue(Physics.GetIgnoreLayerCollision(frame.gameObject.layer, shape.gameObject.layer));
+                    Assert.IsFalse(Physics.GetIgnoreCollision(main, shape), "No per-collider override should hide the project matrix setting.");
+                    Assert.IsFalse(Physics.GetIgnoreLayerCollision(floor.gameObject.layer, shape.gameObject.layer));
                 }
-                for (int i = 0; i < 100; i++) { tick.Invoke(trampoline, null); physics.Simulate(.02f); }
+                for (int i = 0; i < 100; i++) physics.Simulate(.02f);
                 Assert.That(rb.position.y, Is.LessThan(-1f), "The limb must pass through, not land on the trampoline.");
                 Assert.That(rb.position.y, Is.GreaterThan(-1.8f), "Ordinary floor collision must remain enabled.");
             }

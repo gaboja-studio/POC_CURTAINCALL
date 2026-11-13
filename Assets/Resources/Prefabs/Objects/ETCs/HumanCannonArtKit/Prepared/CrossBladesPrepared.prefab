@@ -47,6 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazard
   kind: 1
   visual: {fileID: 4064281500567181736}
+  cue: {fileID: 0}
+  boxSize: {x: 1, y: 1, z: 1}
   horizontalBlade: 1
   travel: {x: 24, y: 0, z: 0}
   periodSeconds: 8
@@ -55,6 +57,8 @@ MonoBehaviour:
   bladeHalfLength: 1.3
   bladeHalfThickness: 0.12
   rotationSpeed: 60
+  authoredPath: 0
+  showRail: 1
 --- !u!1001 &7701530887088184533
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82,6 +86,30 @@ PrefabInstance:
     - target: {fileID: 602663061652101891, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
       propertyPath: m_Name
       value: Visual
+      objectReference: {fileID: 0}
+    - target: {fileID: 602663061652101891, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1790808073624276744, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3126502178183547526, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3399994663110233126, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4132908709122610969, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878369304104779954, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5946563453025551741, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
       propertyPath: m_LocalPosition.x
@@ -122,6 +150,10 @@ PrefabInstance:
     - target: {fileID: 5946563453025551741, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7523194739241317387, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8184557741059489444, guid: fcc057eb87c4d864daed6e5591f8b000, type: 3}
       propertyPath: m_LocalScale.x

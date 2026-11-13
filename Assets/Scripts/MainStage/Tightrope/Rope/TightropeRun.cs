@@ -366,7 +366,7 @@ namespace CurtainCall.Tightrope
                             if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
                             ServerHazardCheck?.Invoke();
                         }
-                        if (InProgressCount == 0 || TimeRemaining <= 0f) ServerFail();
+                        if (TimeRemaining <= 0f || InProgressCount == 0 && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe()) ServerFail();
                     }
                     break;
 

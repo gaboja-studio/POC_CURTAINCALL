@@ -571,6 +571,8 @@ namespace CurtainCall.Network.PlayerSync
 
         void HandleStateChanged(PlayerState previous, PlayerState current)
         {
+            if (IsServer && previous == PlayerState.Normal && current is PlayerState.Fallen or PlayerState.Retired
+                && CurtainCall.Dev.DevMode.Enabled) CurtainCall.Dev.DevCheats.RecordBeforeDeath(this);
             if (IsOwner && previous == PlayerState.EscapeCaptured)
             {
                 mover.Simulated = true;

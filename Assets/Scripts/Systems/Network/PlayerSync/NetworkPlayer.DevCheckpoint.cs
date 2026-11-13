@@ -12,6 +12,21 @@ namespace CurtainCall.Network.PlayerSync
     public sealed partial class NetworkPlayer
     {
         uint checkpointRequest, newestCheckpoint;
+        Vector3? checkpointRecoveryPending;
+        int checkpointRecoveryRestart;
+
+        internal bool TryGetDevCheckpointFeet(out Vector3 feet)
+        {
+            // Use the newest replicated owner position on the host, without interpolating across gaps.
+            feet = IsOwner || networkTransform == null
+                ? transform.position : networkTransform.GetSpaceRelativePosition(true);
+            if (!IsOwner && networkTransform != null && networkTransform.InLocalSpace && transform.parent != null)
+                feet = transform.parent.TransformPoint(feet);
+            if (checkpointRecoveryPending is not { } target) return true;
+            if (checkpointRecoveryRestart == RestartVersion && (feet - target).sqrMagnitude > 1f) return false;
+            checkpointRecoveryPending = null;
+            return true;
+        }
 
         internal void ServerRecoverAtDevCheckpoint(Vector3 feet, Quaternion facing, string scene)
         {
@@ -20,6 +35,8 @@ namespace CurtainCall.Network.PlayerSync
             HumanCannonCarry.Held(OwnerClientId)?.ServerReleaseForInspection(OwnerClientId);
             TightropeHangSystem.Current?.ServerReleaseForInspection(OwnerClientId);
             PiggybackSystem.Current?.ServerReleaseForInspection(OwnerClientId);
+            checkpointRecoveryPending = feet;
+            checkpointRecoveryRestart = RestartVersion;
             ServerRestoreAll();
             RecoverAtDevCheckpointRpc(feet, facing, scene, RestartVersion, reviveCount.Value, ++checkpointRequest);
         }
@@ -38,7 +55,10 @@ namespace CurtainCall.Network.PlayerSync
                 while (IsSpawned && IsOwner && request == newestCheckpoint && Time.unscaledTimeAsDouble < deadline
                     && SceneManager.GetSceneByName(scene).isLoaded && RestartVersion <= restart && reviveCount.Value <= revive)
                 {
-                    if (CurrentFallEpoch(restart, revive) && State == PlayerState.Normal)
+                    // A waiting-room capture pose owns the mover until the pursuit snapshot removes it.
+                    if (CurrentFallEpoch(restart, revive) && State == PlayerState.Normal
+                        && (CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current == null || !CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(gameObject))
+                        && GetComponent<CurtainCall.WaitingRoom.Pursuit.PursuitVictimPose>() == null)
                     {
                         GetComponent<HumanCannonPilot>()?.ClearMotionForInspection();
                         ResetFallTracking();

@@ -17107,6 +17107,28 @@ Transform:
   - {fileID: 518337020}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1276619452 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 531039770891401842, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+  m_PrefabInstance: {fileID: 735797995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41fbb8fb41d394ea084fb33d70a30f0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
+--- !u!114 &1276619453 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5323995462504985704, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+  m_PrefabInstance: {fileID: 735797995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6973c7e6af1984615ac73ef3e2d2e73f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.PlayerSpawnPoints
 --- !u!1001 &1285101900
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33070,36 +33092,78 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Dev.DevCheckpointRoute
   points:
+  - label: "\uC52C \uCD9C\uBC1C\uC810"
+    position: {x: -7.5, y: 0, z: -1}
+    yaw: 0
+    radius: 0.65
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 1276619453}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uC678\uC904 \xB7 \uCD9C\uBC1C"
     position: {x: -7.5, y: 0, z: -1}
     yaw: 0
+    radius: 0.65
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 1
   - label: "\uC678\uC904 \xB7 \uADE0\uD615\uACFC \uC810\uD504 \uC2DC\uC791"
     position: {x: -7.5, y: 0, z: 0.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 2
   - label: "\uC678\uC904 \xB7 \uD574\uC81C\uBD09 \uAD50\uB300 \uC2DC\uC791"
     position: {x: -7.5, y: 0, z: 30.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 2
   - label: "\uC678\uC904 \xB7 \uBAA9\uB9C8\uC640 \uB192\uC740 \uBD09 \uC2DC\uC791"
     position: {x: -7.5, y: 0, z: 75.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 2
+  - label: "\uC678\uC904 \xB7 \uACF5\uC911\uADF8\uB124 \uC2DC\uC791"
+    position: {x: -7.5, y: 0, z: 116}
+    yaw: 0
+    radius: 1
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 2
   - label: "\uC678\uC904 \xB7 \uD55C \uC904 \uCD5C\uC885 \uD611\uB3D9 \uC2DC\uC791"
     position: {x: -7.5, y: 0, z: 130.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 2
   - label: "\uC678\uC904 \xB7 \uB3C4\uCC29"
     position: {x: -7.5, y: 0, z: 167}
     yaw: 0
+    radius: 2
     teleportOnly: 1
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 1276619452}
+    ropePlacement: 3
 --- !u!4 &2121898495
 Transform:
   m_ObjectHideFlags: 0

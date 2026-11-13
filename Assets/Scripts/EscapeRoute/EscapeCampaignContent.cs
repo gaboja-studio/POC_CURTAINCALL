@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using CurtainCall.Campaign;
+using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using CurtainCall.HumanCannon;
@@ -68,12 +69,16 @@ namespace CurtainCall.EscapeRoute
         Coroutine revealing;
         bool activationRequested;
         public bool IsSceneryReady => scenery.Ready;
+        static readonly int ShaftFadeId = Shader.PropertyToID("_ShaftFade");
+        Renderer[] shaftRenderers;
+        MaterialPropertyBlock shaftBlock;
+        Vector4 lastShaftFade;
 
         void Awake()
         {
             Current = this;
             IsCampaign = EscapeSceneTransfer.Current != null && EscapeSceneTransfer.Current.HasDeparture;
-            if (!IsCampaign) return;
+            if (!IsCampaign) { RefreshShaftFade(true); return; }
             SetActive(false);
             PlaceCampaign();
             var waiting = SceneManager.GetSceneByName(GameSettings.Base.SpaceTransition.WaitingRoomScene);
@@ -121,6 +126,31 @@ namespace CurtainCall.EscapeRoute
                 }
             }
             PlaceHazardPaths();
+            RefreshShaftFade(true);
+        }
+
+        /// <summary>심부 어둠의 높이를 공통 설정과 시설 루트에서 계산한다. 공유 재질 자체는 바꾸지 않는다.</summary>
+        public void RefreshShaftFade(bool refreshRenderers = false)
+        {
+            var tuning = GameSettings.EscapeRoute.ShaftFade;
+            float bottom = transform.TransformPoint(Vector3.up * tuning.Bottom).y;
+            float top = transform.TransformPoint(Vector3.up * tuning.Top).y;
+            var fade = new Vector4(bottom, Mathf.Max(bottom + .01f, top), tuning.Strength, 0f);
+            if (!refreshRenderers && shaftRenderers != null && fade == lastShaftFade) return;
+            if (refreshRenderers || shaftRenderers == null) shaftRenderers = GetComponentsInChildren<Renderer>(true);
+            shaftBlock ??= new MaterialPropertyBlock();
+            foreach (var view in shaftRenderers)
+            {
+                if (view == null) continue;
+                bool usesFade = false;
+                foreach (var material in view.sharedMaterials)
+                    if (material != null && material.HasProperty(ShaftFadeId)) { usesFade = true; break; }
+                if (!usesFade) continue;
+                view.GetPropertyBlock(shaftBlock);
+                shaftBlock.SetVector(ShaftFadeId, fade);
+                view.SetPropertyBlock(shaftBlock);
+            }
+            lastShaftFade = fade;
         }
 
         void PlaceHazardPaths()
@@ -202,6 +232,7 @@ namespace CurtainCall.EscapeRoute
 
         void Update()
         {
+            RefreshShaftFade();
             // F8 launches skip the waiting-room transfer, but still have an authoritative escape run.
             // A standalone scene without that run keeps its existing development recovery loop.
             if (!IsCampaign && (CampaignRun.Instance == null || CampaignRun.Instance.State.Phase != CampaignPhase.Escape)) return;
@@ -247,7 +278,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 else pending++;
             }
-            if (pending != 0) return;
+            if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
             if (!IsCampaign && arrived.Count == 0) return; // Preserve the direct-start retry when everyone fails.
             reported = true;
             run.EndEscape(arrived.Count > 0);

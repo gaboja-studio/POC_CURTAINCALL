@@ -1,0 +1,1 @@
+PASS: near-to-far order, fade-to-zero rest, second cycle, path refresh, serialized marker count, sprite/material references, shader compilation, zero LineRenderers. Preview values: repeat 4.2s, travel 2.35s, fade-in .12s, hold .16s, fade-out .48s, arrival .8s.

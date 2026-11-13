@@ -205,7 +205,7 @@ namespace CurtainCall.EscapeRoute
             if (multiplayer || devLaunch) foreach (var participant in NetworkPlayer.All)
                 if (participant != null && participant.IsSpawned &&
                     (participant.State == PlayerState.Normal || participant.State == PlayerState.EscapeCaptured)) failed = false;
-            if (!failed) { recoverAt = -1; return; }
+            if (!failed || DevCheats.ShouldHoldCheckpointWipe()) { recoverAt = -1; return; }
             if (recoverAt < 0) recoverAt = Time.unscaledTimeAsDouble + RecoverySeconds;
             if (Time.unscaledTimeAsDouble >= recoverAt) Restart();
         }
