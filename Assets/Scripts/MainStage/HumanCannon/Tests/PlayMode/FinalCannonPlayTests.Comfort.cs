@@ -25,6 +25,11 @@ namespace CurtainCall.HumanCannon.Tests
             yield return WaitUntil(() => (bool)Get(player, "IsAirborne"), 2, "일반 점프 입력이 실제 이륙을 시작함");
             yield return WaitUntil(() => MarkerVisible(Actor), 2, "일반 지상 점프에도 발밑 원형 표시");
             AssertMarkerUnder(player);
+            Assert.That(MarkerOutlineAlpha(Actor), Is.GreaterThan(0), "내 캐릭터 그림자는 선명 높이 아래에서 외곽선을 그린다");
+            // 바닥에서 막 뛴 낮은 높이는 안전 체크 구간이다. 발밑이 실제 바닥이므로 안전 색.
+            var safeColor = (Color)Get(Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "LandingMarker"), "SafeColor");
+            var rim = MarkerOutlineColor(Actor);
+            Assert.That(Vector3.Distance(new Vector3(rim.r, rim.g, rim.b), new Vector3(safeColor.r, safeColor.g, safeColor.b)), Is.LessThan(0.01f), "안전 체크 높이 안의 안전 착지는 안전 색");
             yield return WaitUntil(() => !(bool)Get(player, "IsAirborne"), 3, "일반 점프 착지");
             yield return null;
             AssertMarkerHidden(Actor);
@@ -120,6 +125,13 @@ namespace CurtainCall.HumanCannon.Tests
             return marker != null && marker.gameObject.activeInHierarchy;
         }
         void AssertMarkerHidden(ulong actor) => Assert.IsFalse(MarkerVisible(actor));
+        float MarkerOutlineAlpha(ulong actor) => MarkerOutlineColor(actor).a;
+        Color MarkerOutlineColor(ulong actor)
+        {
+            var block = new MaterialPropertyBlock();
+            GroundMarker(actor).GetComponent<MeshRenderer>().GetPropertyBlock(block);
+            return block.GetColor("_RimColor");
+        }
         void AssertMarkerUnder(Component target)
         {
             // 테스트 코루틴은 원격 위치 Update와 표시 LateUpdate 사이에서 재개될 수 있다.

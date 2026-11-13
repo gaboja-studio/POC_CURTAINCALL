@@ -196,15 +196,7 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        internal static bool IsSafeLandingSurface(PlayerMover mover, Vector3 feet)
-        {
-            var course = TightropeCourse.Current;
-            // 좁은 줄의 가장자리에 몸통이 지지되어도 발 중심은 박스 밖일 수 있다.
-            // 좌표상 줄 근처라는 이유가 아니라 실제 외줄 조작 전환과 같은 접촉으로 승인한다.
-            if (course != null && course.IsTraversalActive
-                && course.TryGetSupportingRopeAt(mover, feet, out _)) return true;
-            return WalkableSupport.Contains(mover, feet);
-        }
+        internal static bool IsSafeLandingSurface(PlayerMover mover, Vector3 feet) => WalkableSupport.IsSafeLanding(mover, feet);
 
         void HandleLandingMessage(ulong sender, FastBufferReader reader)
         {
