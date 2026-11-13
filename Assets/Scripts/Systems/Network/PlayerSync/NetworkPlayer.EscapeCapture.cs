@@ -14,9 +14,9 @@ namespace CurtainCall.Network.PlayerSync
             return true;
         }
 
-        public void ServerSeverCapturedLimbs()
+        public void ServerSeverCapturedLimbs(int count = 4)
         {
-            if (IsServer && State == PlayerState.EscapeCaptured) lostParts.Value |= PlayerCondition.AllLimbs;
+            if (IsServer && State == PlayerState.EscapeCaptured) lostParts.Value |= PlayerCondition.PartsForLostCount(UnityEngine.Mathf.Clamp(count, 0, 4));
         }
 
         public void ServerFinishEscapeThrow()

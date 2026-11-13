@@ -65,7 +65,7 @@ namespace CurtainCall.EscapeRoute.Tests
             MakeRoute(); Call(route,"TryEnter",Vector3.zero); Set(route,"desired",2f);
             object[] args = {Vector3.zero, 2f, 5f, .1f, 10d, 0f};
             var next = (Vector3)Call(route,"Advance",args);
-            Assert.That(next.x, Is.EqualTo(.2f).Within(.001f));
+            Assert.That(next.x, Is.EqualTo(.5f).Within(.001f));
             Assert.That(next.z, Is.EqualTo(0));
         }
 
@@ -79,6 +79,30 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That((Vector3)jump[1], Is.EqualTo(Vector3.right * 10));
             Call(route,"CompleteJump");
             Assert.That((float)Get(route,"cursor"), Is.EqualTo(1));
+        }
+
+        [Test] public void CloseTargetDoesNotResetRunningSpeed()
+        {
+            MakeRoute();
+            Call(route, "TryEnter", Vector3.zero);
+            Set(route, "cursor", .95f);
+            Set(route, "desired", 1f);
+            object[] args = { Vector3.right * 9.5f, 2f, 5f, .02f, 10d, 0f };
+            var next = (Vector3)Call(route, "Advance", args);
+            Assert.That(next.x, Is.EqualTo(9.6f).Within(.001f));
+            Assert.That((float)args[5], Is.EqualTo(1f));
+        }
+
+        [Test] public void CrossingARevealKeepsRunningAndUsesTheRemainingBudget()
+        {
+            MakeRoute();
+            var points = (Array)Get(route, "points");
+            Set(points.GetValue(1), "reveal", true);
+            Call(route, "TryEnter", Vector3.zero);
+            Set(route, "cursor", .98f);
+            Set(route, "desired", 2f);
+            object[] args = { Vector3.right * 9.8f, 2f, 5f, .1f, 10d, 0f };
+            Assert.That(((Vector3)Call(route, "Advance", args)).x, Is.EqualTo(10.3f).Within(.001f));
         }
 
         [Test] public void RestartClearsTravelAndFinaleDelay()

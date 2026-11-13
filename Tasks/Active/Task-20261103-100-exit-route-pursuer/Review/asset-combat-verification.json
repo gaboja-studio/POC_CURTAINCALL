@@ -1,0 +1,285 @@
+{
+  "date": "2026-11-13",
+  "branch": "feat/exit-route/pursuer",
+  "startingDev": "08600e05",
+  "publication": "Committed and pushed; PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/369 submitted to dev; not merged. Only 2 newly required sound clips and metadata published in private assets.",
+  "appearance": "Greybox and Legacy animations in Escape A/test/prefab. Unused Mascot/stump objects removed; original packages and experiment backups remain local only.",
+  "imports": [
+    {
+      "name": "Brute Warrior Mecanim Animation Pack",
+      "selected": 52,
+      "reused": 0,
+      "omitted": 115
+    },
+    {
+      "name": "Mascot Horror Pack",
+      "selected": 117,
+      "reused": 0,
+      "omitted": 4
+    },
+    {
+      "name": "Human Basic Motions",
+      "selected": 1,
+      "reused": 646,
+      "omitted": 0
+    },
+    {
+      "name": "Unleashed boxer AnimSet",
+      "selected": 287,
+      "reused": 0,
+      "omitted": 1
+    },
+    {
+      "name": "Monster Sounds - Volume II",
+      "selected": 1258,
+      "reused": 0,
+      "omitted": 0
+    }
+  ],
+  "mascotPartitionExperiment": {
+    "partition": true,
+    "sourceTriangles": 13564,
+    "partTriangles": [
+      5528,
+      460,
+      460,
+      1359,
+      1359,
+      939,
+      939,
+      1260,
+      1260
+    ],
+    "parts": [
+      {
+        "part": 0,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 1,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 2,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 3,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 4,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 5,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 6,
+        "cut": true,
+        "visible": false
+      },
+      {
+        "part": 7,
+        "cut": true,
+        "visible": false
+      }
+    ],
+    "debris": [
+      {
+        "name": "Severed Left hand",
+        "size": "(0.61, 0.43, 0.74)"
+      },
+      {
+        "name": "Severed Left leg",
+        "size": "(0.98, 1.65, 1.29)"
+      },
+      {
+        "name": "Severed Right arm",
+        "size": "(1.18, 1.25, 0.80)"
+      },
+      {
+        "name": "Severed Left foot",
+        "size": "(0.72, 0.41, 1.11)"
+      },
+      {
+        "name": "Severed Right foot",
+        "size": "(1.12, 0.44, 0.63)"
+      },
+      {
+        "name": "Severed Right hand",
+        "size": "(0.42, 0.46, 0.79)"
+      },
+      {
+        "name": "Severed Left arm",
+        "size": "(0.98, 1.20, 0.81)"
+      },
+      {
+        "name": "Severed Right leg",
+        "size": "(1.23, 1.73, 1.17)"
+      }
+    ]
+  },
+  "combat": {
+    "disabledColliderHit": true,
+    "disabledColliderDamage": "LeftLeg",
+    "wallStops": true,
+    "behindWallDamage": "None",
+    "poleBefore": 0,
+    "poleCaptured": "EscapeCaptured",
+    "poleAfter": -1,
+    "piggybackCaptured": "EscapeCaptured",
+    "piggybackReleased": true,
+    "torsoPhase": "Throw",
+    "torsoTarget": 777,
+    "torsoStopped": true,
+    "torsoDamage": "LeftLeg",
+    "victimAfterThrow": "Retired",
+    "targetAfterThrow": "Normal",
+    "torsoFinalDamage": "LeftLeg"
+  },
+  "debris": {
+    "started": true,
+    "phases": [
+      "DebrisWarning",
+      "DebrisFlight",
+      "Impact"
+    ],
+    "damage": "LeftLeg"
+  },
+  "cameraAndThrow": {
+    "heldAnchor": true,
+    "bobCameraDisplacement": 0,
+    "cameraDistance": 7.757969,
+    "throwArmExtensionActive": false,
+    "throwArmLengthRange": [
+      1.60428059,
+      1.60540962
+    ],
+    "released": true,
+    "spectatorAfterRelease": 888,
+    "anchorAfterRelease": false,
+    "fallbackWhenTargetDies": 777
+  },
+  "tests": {
+    "escapeEditMode": {
+      "total": 274,
+      "passed": 274,
+      "failed": 0,
+      "skipped": 0,
+      "when": "After minimal assets and final devb96a22fd integration"
+    },
+    "cameraPlayMode": {
+      "passed": 1,
+      "total": 1,
+      "failed": 0,
+      "when": "After minimal assets and final devb96a22fd integration",
+      "skipped": 0
+    }
+  },
+  "limitations": [
+    "Controlled host actors are not an actual multi-PC session.",
+    "Subjective animation, fear, difficulty and full 2-4 player traversal need user play.",
+    "Mascot partition is experimental, retained inactive; clean capped topology and stretched arm still need art polish if re-enabled."
+  ],
+  "finalDev": "cf65ae53",
+  "finalPrivateBase": "8ece127e60b95c2bbef0c773ee4bf62e56b432e2",
+  "integration": "21 dev commits fast-forwarded with Unity closed. One code conflict retained both spectator-held-item collision and escape capture exclusion. Scene/settings auto-merged. Submission: 7 additional dev commits fast-forwarded with Unity closed; kept finished-performance spectator behavior and Korean setting tooltips with pursuer tuning. Final submission base b96a22fd merged with Unity closed; escape ending day/night setting preserved. Private a31de665 includes only 2 new sound clips and required meta on existing main. After PR creation, merged cf65ae53 performance-background update. Resolved gitlink using a31de665, which contains dev asset commit d7464e91; no code/scene conflicts.",
+  "scene": {
+    "scene": "Assets/Scenes/Levels/escape_route.unity",
+    "objects": 6545,
+    "missingScripts": 0,
+    "activeMascots": 0,
+    "hasMascotReference": false,
+    "parts": [
+      {
+        "index": 0,
+        "hitbox": "Saw cut target 0",
+        "enabled": true,
+        "meshes": 1
+      },
+      {
+        "index": 1,
+        "hitbox": "Saw cut target 1",
+        "enabled": true,
+        "meshes": 1
+      },
+      {
+        "index": 2,
+        "hitbox": "Saw cut target 2",
+        "enabled": true,
+        "meshes": 1
+      },
+      {
+        "index": 3,
+        "hitbox": "Saw cut target 3",
+        "enabled": true,
+        "meshes": 1
+      },
+      {
+        "index": 4,
+        "hitbox": "Saw cut target 4",
+        "enabled": true,
+        "meshes": 2
+      },
+      {
+        "index": 5,
+        "hitbox": "Saw cut target 5",
+        "enabled": true,
+        "meshes": 2
+      },
+      {
+        "index": 6,
+        "hitbox": "Saw cut target 6",
+        "enabled": true,
+        "meshes": 2
+      },
+      {
+        "index": 7,
+        "hitbox": "Saw cut target 7",
+        "enabled": true,
+        "meshes": 3
+      }
+    ],
+    "devCheckpoints": 1,
+    "ending": 1
+  },
+  "checkWork": {
+    "componentChecks": {
+      "safety": "PASS",
+      "documents": "PASS",
+      "compile": "PASS",
+      "commonSettings": "PASS"
+    },
+    "tests": "Run separately: 274 EditMode and 1 PlayMode passed",
+    "reason": "Task100 and existing Task114 both name feat/exit-route/pursuer",
+    "status": "BLOCKED"
+  },
+  "finalEditor": {
+    "dirty": false,
+    "consoleErrors": 0,
+    "compilationFailed": false,
+    "scene": "Assets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity",
+    "playMode": "stopped"
+  },
+  "privateCommit": "a31de665dd1cbafbc037abdeb5ca8d709e4bab7c",
+  "privateAddedFiles": 9,
+  "assetSelection": {
+    "newSounds": 2,
+    "unusedPackages": "Local only, excluded from published commit",
+    "excludedUnpublishedCommit": "447a5b13",
+    "removedInactiveObjects": 27,
+    "required": [
+      "Assets/_ThirdParty/MonstersSFX/PackEnemies/Golem_Attack/Golem_Attack_v1_variation_02_wav.wav",
+      "Assets/_ThirdParty/MonstersSFX/PackMonsterLowVoices/Growl_Fast_01/SFX-Growl-Fast-01_wav.wav"
+    ],
+    "bytesWithMeta": 502820
+  }
+}

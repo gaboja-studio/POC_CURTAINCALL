@@ -70,7 +70,10 @@ namespace CurtainCall.EscapeRoute
             foreach (var p in NetworkPlayer.All)
                 if (p && p.IsSpawned && p.State == PlayerState.Normal && InsideArena(p.transform.position))
                 {
-                    float d = (p.transform.position - transform.position).sqrMagnitude;
+                    float d = Vector3.Distance(p.transform.position, transform.position);
+                    foreach (var saw in EscapeExitSaw.Devices)
+                        if (saw && saw.FinaleBoss == this && saw.Carrier == p.OwnerClientId) { d -= 12f; break; }
+                    d += 14f * route.RecentPressure(p.OwnerClientId, EscapeRouteTimer.Current.Clock);
                     if (d < distance) { best = p; distance = d; }
                 }
             return best;
@@ -163,6 +166,7 @@ namespace CurtainCall.EscapeRoute
                             {
                                 Vector3 to = ClampArena(transform.position + toward.normalized * (Tuning.bossMoveSpeed * SpeedScale * Time.deltaTime));
                                 if (ClearMovement(transform.position, to)) transform.position = to;
+                                else SteerAround(toward);
                             }
                         }
                     }
@@ -176,6 +180,20 @@ namespace CurtainCall.EscapeRoute
         {
             direction.y = 0;
             if (direction.sqrMagnitude > .01f) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), 300 * Time.deltaTime);
+        }
+
+        void SteerAround(Vector3 toward)
+        {
+            Vector3 before = transform.position;
+            float step = Tuning.bossMoveSpeed * SpeedScale * Time.deltaTime;
+            for (int angle = 35; angle <= 105; angle += 35)
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    Vector3 direction = Quaternion.AngleAxis(angle * side, Vector3.up) * toward.normalized;
+                    Vector3 candidate = ClampArena(before + direction * step);
+                    if ((candidate - before).sqrMagnitude < step * step * .25f || !ClearMovement(before, candidate)) continue;
+                    transform.position = candidate; Face(direction); return;
+                }
         }
         void ObserveShot(EscapeExitSaw saw, ulong actor, string key, string kind, Vector3 origin, Vector3 direction, string result)
         {
