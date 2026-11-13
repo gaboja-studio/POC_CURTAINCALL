@@ -2,7 +2,7 @@
 summary: 목마 복귀·메뉴 입력·장치 초기화·사지 조각 충돌의 상태 인계 회귀와 방지 규칙.
 status: active
 updated: 2026-11-13
-source: Task-20261109-114, Inventory/post353-transition-audit.md, Inventory/post355-transition-audit.md, RehearsalLifecycleTests
+source: Task-20261109-114, Inventory/post353-transition-audit.md, Inventory/post355-transition-audit.md, Inventory/post356-transition-audit.md, RehearsalLifecycleTests
 ---
 
 # 행동 전환과 입력 초기화
@@ -35,3 +35,10 @@ source: Task-20261109-114, Inventory/post353-transition-audit.md, Inventory/post
 - 외줄/대포 시작은 BedRestView.EndForRehearsal로 준비·시점·입력·침대 선택을 정리한다. NetworkBedPose는 리허설 중 늦은 침대 상태를 적용하지 않는다. 침대와 호스트의 늦은 Ready 요청은 CampaignRun.CanSleep을 공유하고 종료 후 정상 수면을 허용한다.
 - NightBed에서 Ready 승인 뒤 시점을 만들 때 마지막 수면자가 즉시 Dawn으로 넘어가 localReady=false가 되는 경우도 처리해야 한다. 기존 밤→아침 시점을 누락시키지 않는다.
 - 관련 기존237개 통과와 새 결함 재현은 양립한다. 신규68검사는 2/3/4인×생존 사지 마스크15종과 양쪽 리허설/수면/원격 외형/밤 전환을 포함한다. 실제 다른 PC 플레이 보장은 아니다.
+
+## PR356 이후 확인과 수정
+
+- 자동 반환도 사용자 Grab과 같은 점유 자격을 검증해야 한다. DEV 9a5baaa7에서 치료 입장 직후 ServerRestoreRehearsalCarrier가 트램펄린을 다시 붙이면 의료 ReconcileLocalOccupancy가 Held를 기다려 입장이 멈춘다(3/3). 운반 소유 해제 뒤 회복하므로 영구 입력 잠금으로 단정하지 않는다.
+- 대기실 추격 포획은 은퇴 전까지 PlayerState.Normal이다. 기존 리허설 시작/투표 확정/배치는 이를 통과시키고 PursuitVictimPose는 포획 위치와 입력 잠금을 계속 적용한다. 외줄/대포 배치 경로 각3/3 재현. 실제 NavMesh 접촉이나 다른 PC 플레이가 아닌 상태 주입 검사다.
+- 공통686/686 통과와 위 두 미검사 조합의 결함이 동시에 확인됨. 일반 자격 판정뿐 아니라 자동 반환 및 기능 간 이동 소유권 인계도 조사한다. 상세는 Task-114 Inventory/post356-transition-audit.md.
+- 수정: 트램펄린 일반 잡기/자동 반환이 CanAcquire를 공유. 양쪽 리허설은 CampaignRun.RehearsalEntryBlocked로 치료/포획 참가자를 확인하고, 늦은 배치·복귀점 저장도 포획을 검사한다. 외줄은 승인 다음 프레임에 재검사하며 투표 인원이 0이면 취소한다. 기존 예약 시간/거리와 GameSettings 수치는 유지한다.

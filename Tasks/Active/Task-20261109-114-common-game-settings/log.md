@@ -54,3 +54,18 @@
 - 제출 전 Unity 정상 종료 후 origin/dev fetch/merge: 4bf66bab 최신, 추가 변경 없음. 사용자 폰트 보존, 테스트로 생성된 CommonButtons 글꼴 캐시만 원래 추적 상태로 복원. 최종 공통 검사 진행.
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통686/686(신규68 포함), 실패/생략0. 공통 설정 연결 PASS. 기존 문서 WARN70/hard0 유지. 실제 플레이 미실행.
 - 저장/제출: 수정4b4ec89a, PR356 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356. GitHub 연결 도구 PR 생성은403 권한 부족으로 로그인된 gh를 사용. PM 팀·MoHoDu 검토 요청. dev 병합/실제 플레이 미실행. 기존 사용자 변경은 제출 제외.
+
+## 11/13 PR356 이후 추가 검사
+- 원래 feat/exit-route/pursuer 27a7a1f8와 깨끗한 UnderstagePursuerPlaytest 씬을 확인하고 Unity 정상 종료. 사용자 저장 작업을 원래 브랜치에 보존. origin/dev fetch 후9a5baaa7(PR358 포함)에서 fix/common-action-audit 생성. doctor는 기존 Task ID 중복만 실패.
+- 공통/대기실 행동 전환 감사, 탈출로 제외. 실제 플레이·게임 코드 수정·제출 없이 재현 조사와 기록만 수행.
+- 최신 DEV의 공통686/686 통과. 자동 반환이 치료 입장을 우회하는 문제3/3, 포획 중 외줄/대포 재연습 배치 뒤 모션·입력 잔류 각3/3 재현. [상세](Inventory/post356-transition-audit.md). 치료 문제는 운반 소유 해제 후 입장이 회복됨. 목마 자동 반환은 이번 배치에서 거부되어 결함으로 집계하지 않음.
+- check-work: 안전성·지식 검사 통과, 기존 DEV Task115 log154줄이 제한130줄을 초과하여 문서 검사 실패. 해당 검사 단계의 컴파일은 생략, 별도 공통686검사는 완료. Assets/Packages/ProjectSettings 변경 없음, 원래 열린 씬 dirty=false 확인. 검사 기록만 저장하고 제출하지 않음.
+
+## 11/13 PR356 이후 재현2건 수정
+- 사용자 수정·저장·제출 승인. Unity 종료 후 DEV 9a5baaa7 fetch/반영(동일). doctor는 기존 Task ID 중복만 실패, 구현 도구/Unity 연결 정상.
+- 자동 반환은 일반 잡기 자격을 공유하고 치료/퇴실·목마 위·포획 등 점유를 우회하지 않음. 포획 중 재연습 시작 보류와 늦은 배치/복귀점 저장 차단. 외줄 활성화 직전 재검사와 전원 은퇴 뒤 빈 투표 정리 포함. GameSettings 수치·씬·에셋 변경 없음.
+- 신규22/22·컴파일·공통 연결 검사 통과. 기존 Task115 로그 길이 초과는 과거35줄을 History/004에 원문 보존하고 링크하여 정리. 실제 플레이는 사용자 확인.
+- 공통708/708 통과(신규22 포함), 실패·생략0. 결과 `.harness/local/post356-fix-common-results.json`. 실제 다인 플레이 결과와 구분.
+- 제출 전 Unity 정상 종료·DEV fetch/반영: 9a5baaa7 동일. 종료로 생성된 폰트 캐시만 사전 백업으로 복원. 원래 열려 있던 씬은 저장 변경 없이 유지.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

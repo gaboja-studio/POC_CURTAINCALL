@@ -398,7 +398,7 @@ namespace CurtainCall.WaitingRoom
         void PlaceLocal(PlayerMover mover)
         {
             if (placedRound == round) return;
-            if (local.State != PlayerState.Normal || local.Slot == NetworkPlayer.NoSlot
+            if (local.State != PlayerState.Normal || Pursuit.PursuitDirector.IsCaptured(local) || local.Slot == NetworkPlayer.NoSlot
                 || CurtainCall.HumanCannon.HumanCannonCarry.Held(local.OwnerClientId) != null) return;
             if (course != null)
             {
@@ -413,6 +413,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>연습실 링 바닥 위, 지금 x에 가장 가까운 자리로 내려선다.</summary>
         bool RelocateToDeck(PlayerMover mover)
         {
+            if (Pursuit.PursuitDirector.IsCaptured(local)) return false;
             var deck = ringRoom != null ? ringRoom.Find(RingDeckPath)?.GetComponent<Collider>() : null;
             if (deck == null) return false;
             // 링 가운데로 내려선다. 가장자리에 두면 난간에 막혀 연습실을 나가지 못했다(2026-11-03 출구 이동 검사).
@@ -424,7 +425,7 @@ namespace CurtainCall.WaitingRoom
 
         bool PlaceLocalAtStart(bool recovery = false)
         {
-            if (course == null || local == null || local.Slot == NetworkPlayer.NoSlot || Stage == null
+            if (course == null || local == null || Pursuit.PursuitDirector.IsCaptured(local) || local.Slot == NetworkPlayer.NoSlot || Stage == null
                 || !local.TryGetComponent(out PlayerMover mover)) return false;
             Pose pose = course.GetStartPose(local.Slot);
             if (Stage.Kind is RehearsalStageKind.LaneChange or RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles)
@@ -503,6 +504,7 @@ namespace CurtainCall.WaitingRoom
 
         void Relocate(PlayerMover mover, Vector3 position, Quaternion rotation)
         {
+            if (Pursuit.PursuitDirector.IsCaptured(local)) return;
             bool normal = local.State == PlayerState.Normal;
             bool bodyEnabled = mover.Body != null && mover.Body.enabled;
             if (local.TryGetComponent(out HumanoidPlayerPresentation presentation)) presentation.CancelItemAction();

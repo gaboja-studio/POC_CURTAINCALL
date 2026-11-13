@@ -1,6 +1,12 @@
 # Todo
 
 ## 최근 조사·수정
+- [x] 최신 DEV 9a5baaa7에서 PR356 이후 추가 감사: 공통686/686, 새 결함2건 확인. [범위·재현](Inventory/post356-transition-audit.md).
+- [x] 자동 트램펄린 반환도 기존 잡기 자격 공유: 치료 Working/Exiting·목마 위·포획·연습 배치/장치 점유를 확인.
+- [x] 포획 중 양쪽 재연습 시작 보류, 투표 확정~활성화 재검사, 늦은 배치/복귀 좌표 저장 차단. 전원 은퇴 시 빈 투표 정리.
+- [x] 관련 신규22검사 통과: 치료/반환 양쪽 순서, 반환 재개/만료, 목마 하차, 포획 해제/은퇴/연결 해제, 전원 은퇴 후 밤 전환.
+- [x] 제출 전 Unity 종료·DEV 9a5baaa7 재확인/반영, 공통708/708 통과.
+- [ ] 최종 검사·저장·PR 제출.
 - [x] PR353 이후 치료/리허설 상호 이동 배제·운반 해제 뒤 의료 입장·늦은 잡기 거부 수정 및 [PR355 제출](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/355). 치료36/36·공통618/618(중복 포함). [전후](Inventory/post353-transition-audit.md).
 - [x] PR355 이후 목마·운반·절단·리허설 전환 추가 감사: 기존 관련237개 통과, 새 결함2건 재현. [범위·재현](Inventory/post355-transition-audit.md).
 
@@ -8,7 +14,7 @@
 - [x] 대포 리허설 배치 전/종료 중 늦은 트램펄린 잡기 거부, 배치 완료 후 정상 잡기·놓기 유지.
 - [x] 수면 중 외줄/대포 재연습 이동의 침대 준비·시점·입력·외형 정리, 늦은 수면 요청 거부. 신규68검사 통과.
 - [x] 최종 DEV 4bf66bab 확인·공통686/686·컴파일·공통 설정 검사 통과(신규68 포함).
-- [x] 수정 저장·[PR356 제출](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356), dev 검토 대기.
+- [x] 수정 저장·[PR356 제출](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356), dev 병합 완료(5c7754ae).
 - [ ] 원래 서로 다른 PC의 밤→아침 연결 종료: 원본 로그 미확보, 이번 Relay에서는 미재현
 - [ ] 실제 서로 다른 PC/회선·모든 코스·모든 인원/부상 조합 완주 검증
 - [ ] 기존 실패14개 전체 수정: 사용자 보류 유지([상세](Inventory/remaining-test-failures.md))

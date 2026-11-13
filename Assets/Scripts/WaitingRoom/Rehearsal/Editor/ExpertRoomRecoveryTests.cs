@@ -203,6 +203,199 @@ namespace CurtainCall.WaitingRoom.EditorTools
             });
         }
 
+        void WithAutomaticReturn(System.Action<HumanCannonTrampoline, CannonSeatState, WaitingRoomStageDevices> test)
+        {
+            var previousSystem = HumanCannonSystem.Current;
+            var stageField = typeof(WaitingRoomStageDevices).GetField("instance", Static);
+            var previousStage = stageField.GetValue(null);
+            var shift = new Vector3(9000, 9000, 9000);
+            room.transform.position += shift; inside.position += shift; outside.position += shift;
+            local.gameObject.hideFlags = HideFlags.None;
+            local.GetComponent<PlayerMover>().SetStartPose(outside.position, Quaternion.identity);
+            var systemObject = Make("Return authority cannon"); systemObject.SetActive(false);
+            var system = systemObject.AddComponent<HumanCannonSystem>();
+            Set(system, "seats", System.Array.CreateInstance(typeof(HumanCannonSystem).GetField("seats", Private).FieldType.GetElementType(), 0));
+            typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, system);
+            try
+            {
+                WithCarriedTrampoline((trampoline, ownership) =>
+                {
+                    trampoline.gameObject.hideFlags = HideFlags.None;
+                    Call(trampoline, "RefreshCarryBody", local);
+                    var devices = Make("Reserved return devices").AddComponent<WaitingRoomStageDevices>(); stageField.SetValue(null, devices);
+                    Set(devices, "room", Make("Reserved room").transform); Set(devices, "trampoline", trampoline.gameObject);
+                    typeof(WaitingRoomStageDevices).GetMethod("ReserveCarrierForRehearsal", Static).Invoke(null, null);
+                    ownership.TryApply(CannonAction.Release, 0, ownership.Revision);
+                    Physics.SyncTransforms();
+                    test(trampoline, ownership, devices);
+                });
+            }
+            finally { stageField.SetValue(null, previousStage); typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, previousSystem); }
+        }
+
+        [TestCase(2, false), TestCase(2, true), TestCase(3, false), TestCase(3, true), TestCase(4, false), TestCase(4, true)]
+        [Category("RehearsalReturnCaptureRegression")]
+        public void AutomaticReturnAndMedicalEntryAreSafeInEitherOrder(int participants, bool returnFirst)
+        {
+            using var input = new CurtainCall.Tightrope.EditorTools.Tests.InputGateTestScope();
+            for (int i = 1; i < participants; i++) Player((ulong)i);
+            WithAutomaticReturn((trampoline, ownership, devices) =>
+            {
+                if (returnFirst) { Call(devices, "RestoreReservedCarrier"); Assert.AreEqual(0UL, trampoline.Carrier); }
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
+                SetLocal(null); // The host still has the remote player's entrance position.
+                var entered = ((bool ok, string text))Call(service, "Enter", 0UL);
+                Assert.IsTrue(entered.ok, entered.text);
+                for (int i = 0; i < 3; i++) Call(devices, "RestoreReservedCarrier");
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Assert.IsFalse(trampoline.CanGrab(local));
+                SetLocal(local); Call(room, "Bind", service); Call(room, "ReconcileLocalOccupancy");
+                Assert.IsTrue((bool)Get(room, "localInside"));
+                Assert.AreEqual(inside.position, local.transform.position);
+                book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+                Call(devices, "RestoreReservedCarrier");
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier, "Exiting still owns the player.");
+                book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
+                local.GetComponent<PlayerMover>().SetStartPose(outside.position, Quaternion.identity);
+                Call(devices, "RestoreReservedCarrier");
+                Assert.AreEqual(returnFirst ? CannonSeatState.Nobody : 0UL, trampoline.Carrier);
+                Assert.IsNull(Get(devices, "reservedCarrier"));
+                Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
+            });
+        }
+
+        [Test, Category("RehearsalReturnCaptureRegression")]
+        public void BlockedAutomaticReturnExpiresWithoutReattachingAfterTreatment()
+        {
+            WithAutomaticReturn((trampoline, ownership, devices) =>
+            {
+                book.BookMedical(0, true, true, 1, 1, 3, () => true, 100); book.Enter(0);
+                Call(devices, "RestoreReservedCarrier"); Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Set(devices, "resumeUntil", Time.unscaledTime - 1f); Call(devices, "RestoreReservedCarrier");
+                Assert.IsNull(Get(devices, "reservedCarrier"));
+                book.Tick(1000f); book.Tick(1000f); Call(devices, "RestoreReservedCarrier");
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+            });
+        }
+
+        [Test, Category("RehearsalReturnCaptureRegression")]
+        public void AutomaticReturnUsesTheSamePracticePermissionAsManualGrab()
+        {
+            WithAutomaticReturn((trampoline, ownership, devices) =>
+            {
+                var permission = typeof(HumanCannonTrampoline).GetProperty("PracticeGrabAllowed", Private);
+                permission.SetValue(trampoline, (System.Func<bool>)(() => false));
+                Assert.IsFalse(trampoline.CanGrab(local)); Call(devices, "RestoreReservedCarrier");
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                permission.SetValue(trampoline, (System.Func<bool>)(() => true));
+                Call(devices, "RestoreReservedCarrier"); Assert.AreEqual(0UL, trampoline.Carrier);
+            });
+        }
+
+        [Test, Category("RehearsalReturnCaptureRegression")]
+        public void AutomaticReturnWaitsUntilTheRiderDismounts()
+        {
+            var previousStack = PiggybackSystem.Current;
+            try
+            {
+                WithAutomaticReturn((trampoline, ownership, devices) =>
+                {
+                    var carrier = Player(1); carrier.transform.position = outside.position + Vector3.back * 4;
+                    var stack = Make("Return rider stack").AddComponent<PiggybackSystem>();
+                    typeof(PiggybackSystem).GetProperty("Current").SetValue(null, stack);
+                    var below = (Dictionary<ulong, ulong>)Get(stack, "belowOf"); var above = (Dictionary<ulong, ulong>)Get(stack, "aboveOf");
+                    below[0] = 1; above[1] = 0;
+                    Call(devices, "RestoreReservedCarrier"); Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                    below.Clear(); above.Clear(); Call(devices, "RestoreReservedCarrier");
+                    Assert.AreEqual(0UL, trampoline.Carrier);
+                });
+            }
+            finally { typeof(PiggybackSystem).GetProperty("Current").SetValue(null, previousStack); }
+        }
+
+        [TestCase(2, "retired"), TestCase(3, "retired"), TestCase(4, "retired")]
+        [TestCase(2, "disconnected"), TestCase(3, "disconnected"), TestCase(4, "disconnected")]
+        [TestCase(2, "released"), TestCase(3, "released"), TestCase(4, "released")]
+        [Category("RehearsalReturnCaptureRegression")]
+        public void CaptureBlocksBothRehearsalsAndLatePlacementButDoesNotPermanentlyBlockTheTeam(int participants, string recovery)
+        {
+            for (int i = 1; i < participants; i++) Player((ulong)i);
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current"); var previous = current.GetValue(null);
+            try
+            {
+                WithRehearsal((life, cannon, rope) =>
+                {
+                    var run = (CampaignRun)Get(life, "run"); var snapshot = run.State; snapshot.Phase = CampaignPhase.Night; Set(run, "state", snapshot);
+                    Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice); Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                    var go = Make("Rehearsal captured player"); go.SetActive(false);
+                    var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                    var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                    var victim = System.Activator.CreateInstance(victimType, true); victimType.GetField("Object").SetValue(victim, local.gameObject);
+                    var victims = (System.Collections.IDictionary)Get(pursuit, "victims"); victims.Add(0UL, victim);
+                    Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice); Assert.IsFalse(WaitingRoomCannonRehearsal.StartPractice());
+                    Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
+                    Set(rope, "practiceVote", true); var yes = (HashSet<ulong>)Get(rope, "practiceYes");
+                    for (int i = 0; i < participants; i++) yes.Add((ulong)i);
+                    Call(rope, "HostTickVotes"); Assert.IsFalse((bool)Get(rope, "practice"));
+                    Set(rope, "practice", true); // A previously approved start must recheck before activation.
+                    Call(rope, "HostTickVotes"); Assert.IsFalse((bool)Get(rope, "practice"));
+                    var mover = local.GetComponent<PlayerMover>(); mover.SetControlEnabled(false);
+                    var before = local.transform.position; Set(rope, "local", local);
+                    Call(rope, "Relocate", mover, before + Vector3.right * 20, Quaternion.identity);
+                    Assert.AreEqual(before, local.transform.position); Assert.IsFalse(mover.ControlEnabled);
+                    Call(cannon, "CaptureReturnPose", local); Call(cannon, "PlaceLocalAtCheckpoint", local, mover);
+                    Assert.AreEqual(before, local.transform.position); Assert.AreEqual(-1, Get(cannon, "returnPoseRound"));
+                    Assert.AreEqual(-1, Get(cannon, "placedRound"));
+                    if (recovery == "retired") { ((NetworkVariable<PlayerState>)Get(local, "state")).Value = PlayerState.Retired; victimType.GetField("Retired").SetValue(victim, true); }
+                    else if (recovery == "disconnected") typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(local, false);
+                    else victims.Clear();
+                    Set(rope, "practiceVote", false);
+                    Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice); Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                    Set(rope, "practiceVote", true); Call(rope, "HostTickVotes");
+                    Assert.IsTrue((bool)Get(rope, "practice"), "The remaining agreed players can start after capture finishes or the player leaves.");
+                });
+            }
+            finally { current.SetValue(null, previous); }
+        }
+
+        [TestCase(2), TestCase(3), TestCase(4), Category("RehearsalReturnCaptureRegression")]
+        public void EmptyRehearsalVoteDoesNotKeepNightLockedAfterEveryoneRetires(int participants)
+        {
+            for (int i = 1; i < participants; i++) Player((ulong)i);
+            WithRehearsal((life, cannon, rope) =>
+            {
+                var run = (CampaignRun)Get(life, "run"); var night = new RunState(false, true, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Assert.IsTrue(night.DebugBeginPursuit()); Set(run, "host", night); Set(run, "state", night.Snapshot);
+                Set(rope, "practiceVote", true); var yes = (HashSet<ulong>)Get(rope, "practiceYes");
+                foreach (var player in players) { yes.Add(player.OwnerClientId); ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Retired; }
+                Call(rope, "HostTickVotes"); Assert.IsFalse(WaitingRoomRehearsal.IsPracticePending);
+                Assert.IsEmpty(yes); Assert.IsFalse((bool)Get(rope, "practice"));
+                Call(run, "RefreshNight", night); Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
+            });
+        }
+
+        [Test, Category("RehearsalReturnCaptureRegression")]
+        public void AutomaticReturnRejectsCapturedCarrierAndResumesAfterRelease()
+        {
+            var current = typeof(Pursuit.PursuitDirector).GetProperty("Current"); var previous = current.GetValue(null);
+            try
+            {
+                WithAutomaticReturn((trampoline, ownership, devices) =>
+                {
+                    var go = Make("Captured return owner"); go.SetActive(false);
+                    var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
+                    var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
+                    var victim = System.Activator.CreateInstance(victimType, true); victimType.GetField("Object").SetValue(victim, local.gameObject);
+                    var victims = (System.Collections.IDictionary)Get(pursuit, "victims"); victims.Add(0UL, victim);
+                    Assert.IsFalse(trampoline.CanGrab(local)); Call(devices, "RestoreReservedCarrier");
+                    Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                    victims.Clear(); Call(devices, "RestoreReservedCarrier"); Assert.AreEqual(0UL, trampoline.Carrier);
+                });
+            }
+            finally { current.SetValue(null, previous); }
+        }
+
         void WithCarriedTrampoline(System.Action<HumanCannonTrampoline, CannonSeatState> test)
         {
             var previous = HumanCannonTrampoline.Current;

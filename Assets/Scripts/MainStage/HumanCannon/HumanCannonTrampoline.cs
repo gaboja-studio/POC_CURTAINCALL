@@ -360,18 +360,25 @@ namespace CurtainCall.HumanCannon
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
-                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
-                || HumanCannonCarry.HasOccupiedHands(player)
-                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
-                || PracticeGrabAllowed?.Invoke() == false) return false;
-            var course = TightropeCourse.Current;
-            if (course != null && course.IsTraversalActive && course.UsesRopeRules(player)) return false;
+            if (!CanAcquire(player) || dropping) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
             return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
                 && HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
                 && HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false);
+        }
+
+        // Automatic rehearsal returns skip reach, but never skip the carrier's eligibility.
+        bool CanAcquire(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
+                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
+                || HumanCannonCarry.HasOccupiedHands(player)
+                || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)
+                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
+                || PracticeGrabAllowed?.Invoke() == false) return false;
+            var course = TightropeCourse.Current;
+            return course == null || !course.IsTraversalActive || !course.UsesRopeRules(player);
         }
 
         public void RequestUse() { } // 반동은 접촉으로 동작하며 사용 키는 소비하지 않는다.
@@ -412,9 +419,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
         {
-            if (session == null || !session.IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                || ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null || HasRopeSupport(player)
-                || HumanCannonSystem.Current == null) return false;
+            if (session == null || !session.IsHost || !CanAcquire(player)) return false;
             RefreshCarryBody(player);
             if (!HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true,
                 out var position, out var rotation, out _) || !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false)
