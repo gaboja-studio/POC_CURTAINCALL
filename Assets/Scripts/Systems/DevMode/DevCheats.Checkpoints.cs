@@ -3,9 +3,7 @@ using CurtainCall.Campaign;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
-using CurtainCall.Reward;
 using CurtainCall.Settings;
-using CurtainCall.WaitingRoom.Pursuit;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
@@ -29,7 +27,8 @@ namespace CurtainCall.Dev
         static CampaignRun progressCampaign;
         static (int generation, int day, int performance, CampaignPhase phase, string trick, int difficulty) progressStep;
         static NetworkSessionManager progressSession;
-        static bool holdCheckpointWipe = true;
+        // Opt-in only: holding a wipe by default left performances stuck on "no spectate target" (Task-127 hotfix).
+        static bool holdCheckpointWipe;
 
         public static bool HoldCheckpointWipe
         {
@@ -161,6 +160,15 @@ namespace CurtainCall.Dev
             return false;
         }
 
+        /// <summary>호스트 화면: 전원이 사망했는데 F9 부활 대기로 실패 정산을 보류하고 있다(배지로 알린다).</summary>
+        public static bool IsHoldingWipe()
+        {
+            if (!ShouldHoldCheckpointWipe()) return false;
+            foreach (var player in NetworkPlayer.All)
+                if (IsParticipant(player) && !IsDead(player)) return false;
+            return true;
+        }
+
         public static bool TryRecoverTeamAtLastCheckpoint(out string message)
         {
             var route = SyncProgress();
@@ -170,20 +178,17 @@ namespace CurtainCall.Dev
             int skipped = 0;
             foreach (var player in NetworkPlayer.All)
             {
-                if (!IsParticipant(player) || !IsDead(player)) continue;
+                if (!IsParticipant(player) || !IsDead(player) || !IsTarget(player)) continue;
                 if (!TryGetPassage(route, player, out var point, out var pose)) { skipped++; continue; }
 
                 // Restore the roster before the synchronous player-state callback can settle a wipe.
-                if (WaitingRoomScenes.IsWaitingRoom(progressScene))
-                    PursuitDirector.Current?.ReleaseCheckpointVictim(player);
-                else
-                    PerformanceRewards.Instance?.RestoreDevCheckpointParticipant(player);
+                RestoreRoster(player);
                 player.ServerRecoverAtDevCheckpoint(pose.position + Vector3.up * .05f, pose.rotation, progressScene.name);
                 targets.Add((player, point.label));
             }
             if (targets.Count == 0)
             {
-                message = skipped > 0 ? "사망한 플레이어의 통과 기록이 없습니다." : "부활시킬 사망 플레이어가 없습니다.";
+                message = skipped > 0 ? "사망한 대상 플레이어의 통과 기록이 없습니다." : "부활시킬 사망 대상 플레이어가 없습니다.";
                 return false;
             }
             var summary = new List<string>();

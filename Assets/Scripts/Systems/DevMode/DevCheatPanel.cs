@@ -14,6 +14,7 @@ namespace CurtainCall.Dev
 {
     /// <summary>
     /// Dev 모드 테스트 치트 창(F9, Task-089). 공연·탈출로에서 특정 지점으로 바로 이동하고, 추락 무시·되살리기·재시작을 쓴다.
+    /// 이동·균형·신체 복구·체크포인트 부활은 체크한 대상 플레이어에게만 적용한다(Task-127, 다른 플레이어 선택은 호스트만).
     /// 씬 배치 불필요(<see cref="DevModeBadge"/>가 만든다). 창이 열려 있는 동안은 게임 입력을 막고 커서를 푼다.
     /// </summary>
     public sealed partial class DevCheatPanel : MonoBehaviour
@@ -28,6 +29,7 @@ namespace CurtainCall.Dev
         public string Status { get; private set; } = "";
 
         readonly List<DevCheats.TeleportPoint> points = new();
+        readonly List<NetworkPlayer> roster = new();
 
         UIInputBlocker input;
         float nextRefresh;
@@ -124,6 +126,7 @@ namespace CurtainCall.Dev
             else GUILayout.Label($"상태: {local.State} · 자리 {local.Slot + 1} · {(host ? "호스트" : "클라이언트")}", label);
 
             bool checkpointMode = DevCheats.CurrentCheckpointRoute() != null;
+            DrawTargets(local, host);
             DrawCheckpoints(local, host, checkpointMode);
             GUILayout.Space(6);
             GUILayout.Label("공연 난이도 바로가기", heading);
@@ -150,17 +153,16 @@ namespace CurtainCall.Dev
                 Status = suppress ? "추락 무시 켜짐 · 톱·화염 등 직접 피해는 그대로" : "추락 무시 꺼짐";
             }
             if (!host) GUILayout.Label("※ 사망 판정은 호스트가 하므로 호스트 화면에서 켜야 모두에게 적용됩니다.", label);
-            if (GUILayout.Button("균형 중앙으로", button))
+            if (GUILayout.Button("균형 중앙으로 (대상)", button))
             {
-                bool done = local != null && local.TryGetComponent(out PlayerBalance balance) && balance.IsActive && !balance.HasFallen;
-                if (done) local.GetComponent<PlayerBalance>().ResetBalance();
-                Report(done, "균형을 중앙으로 되돌렸습니다.", "줄 위에서 살아 있을 때만 쓸 수 있습니다.");
+                DevCheats.ResetTargetsBalance(out var balanceMessage);
+                Status = balanceMessage;
             }
             GUI.enabled = host;
-            if (!checkpointMode && GUILayout.Button("모두 되살리기 (제자리, 부상 회복)", button))
+            if (GUILayout.Button("제자리에서 신체 복구 (대상 · 사망자는 그 자리에서 부활)", button))
             {
-                NetworkPlayer.ServerRestoreEveryone();
-                Status = "모두 온전한 몸으로 되살렸습니다.";
+                DevCheats.TryRestoreTargetsInPlace(out var restoreMessage);
+                Status = restoreMessage;
             }
             GUI.enabled = true;
             if (GUILayout.Button("모두 재시작 (출발점)", button))
@@ -173,18 +175,17 @@ namespace CurtainCall.Dev
             GUILayout.Space(6);
             GUILayout.Label("위치 이동", heading);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button($"앞으로 {NudgeForward:0}m", button) && local != null)
+            if (GUILayout.Button($"앞으로 {NudgeForward:0}m", button))
             {
                 Vector3 forward = CameraViewDirector.Current != null ? CameraViewDirector.Current.ViewForward : Vector3.zero;
-                if (forward == Vector3.zero) forward = local.transform.forward;
+                if (forward == Vector3.zero && local != null) forward = local.transform.forward;
                 forward.y = 0f;
                 forward = forward.sqrMagnitude > .0001f ? forward.normalized : Vector3.forward;
-                Report(DevCheats.Teleport(local, local.transform.position + forward * NudgeForward, Quaternion.LookRotation(forward), out var why),
-                    $"앞으로 {NudgeForward:0}m 이동", why);
+                var facing = Quaternion.LookRotation(forward);
+                TeleportTargets(player => (true, new Pose(player.transform.position + forward * NudgeForward, facing)), $"앞으로 {NudgeForward:0}m 이동");
             }
-            if (GUILayout.Button($"위로 {NudgeUp:0}m", button) && local != null)
-                Report(DevCheats.Teleport(local, local.transform.position + Vector3.up * NudgeUp, local.transform.rotation, out var why),
-                    $"위로 {NudgeUp:0}m 이동", why);
+            if (GUILayout.Button($"위로 {NudgeUp:0}m", button))
+                TeleportTargets(player => (true, new Pose(player.transform.position + Vector3.up * NudgeUp, player.transform.rotation)), $"위로 {NudgeUp:0}m 이동");
             GUILayout.EndHorizontal();
             if (!checkpointMode) DrawTeleportPoints(local, false);
 
@@ -211,7 +212,7 @@ namespace CurtainCall.Dev
             }
             if (!checkpointMode) { DrawTeleportPoints(local, true); return; }
 
-            GUILayout.Label("부활 · 플레이어별 마지막 통과 지점", label);
+            GUILayout.Label("부활 · 플레이어별 마지막 통과 지점 (체크한 대상만)", label);
             if (host)
             {
                 bool canRevive = false;
@@ -220,12 +221,13 @@ namespace CurtainCall.Dev
                     if (!player.IsSpawned || player.Slot == NetworkPlayer.NoSlot) continue;
                     string passed = DevCheats.LastCheckpointLabel(player);
                     bool dead = player.State is PlayerState.Fallen or PlayerState.Retired;
-                    canRevive |= dead && passed != null;
-                    GUILayout.Label($"단원 {player.Slot + 1}{(dead ? " (사망)" : "")}: {passed ?? "통과 기록 없음"}", label);
+                    bool target = DevCheats.IsTarget(player);
+                    canRevive |= dead && passed != null && target;
+                    GUILayout.Label($"{(target ? "[대상]" : "[제외]")} 단원 {player.Slot + 1}{(dead ? " (사망)" : "")}: {passed ?? "통과 기록 없음"}", label);
                 }
-                DevCheats.HoldCheckpointWipe = GUILayout.Toggle(DevCheats.HoldCheckpointWipe, " 전원 사망 시 F9 부활 대기", toggle);
+                DevCheats.HoldCheckpointWipe = GUILayout.Toggle(DevCheats.HoldCheckpointWipe, " 전원 사망 시 정산 보류 · F9 부활 대기 (끄면 바로 결과로 넘어감)", toggle);
                 GUI.enabled = canRevive;
-                if (GUILayout.Button("사망자를 각자의 마지막 체크포인트에서 부활", button))
+                if (GUILayout.Button("사망한 대상을 각자의 마지막 체크포인트에서 부활", button))
                 {
                     DevCheats.TryRecoverTeamAtLastCheckpoint(out var recoveryMessage);
                     Status = recoveryMessage;
@@ -234,15 +236,13 @@ namespace CurtainCall.Dev
             }
             else GUILayout.Label("체크포인트 부활은 호스트만 실행할 수 있습니다.", label);
 
-            GUILayout.Label("순간이동 · 체크포인트 순서", label);
+            GUILayout.Label("순간이동 · 체크포인트 순서 (살아 있는 대상을 각자 자리에 배치)", label);
             if (points.Count == 0) GUILayout.Label("사용할 수 있는 체크포인트가 없습니다.", label);
-            GUI.enabled = local != null && local.State == PlayerState.Normal;
             foreach (var point in points)
             {
                 if (point.Order < 0 || !GUILayout.Button($"{point.Order + 1:00}. {point.Label}{(point.TeamRecovery ? "" : " (이동 전용)")}", button)) continue;
-                Report(DevCheats.Teleport(local, point.Position, point.Rotation, out var why), $"{point.Label}(으)로 이동", why);
+                TeleportToPoint(point);
             }
-            GUI.enabled = true;
         }
 
         void DrawTeleportPoints(NetworkPlayer local, bool escape)
@@ -252,10 +252,46 @@ namespace CurtainCall.Dev
             {
                 if (EscapeDevTeleports.IsCheckpoint(point) != escape) continue;
                 listed = true;
-                if (!GUILayout.Button(point.Label, button) || local == null) continue;
-                Report(DevCheats.Teleport(local, point.Position, point.Rotation, out var why), $"{point.Label}(으)로 이동", why);
+                if (GUILayout.Button(point.Label, button)) TeleportToPoint(point);
             }
             if (!listed) GUILayout.Label(escape ? "탈출로 체크포인트를 준비 중입니다." : "등록된 일반 이동 지점이 없습니다.", label);
+        }
+
+        void DrawTargets(NetworkPlayer local, bool host)
+        {
+            GUILayout.Space(6);
+            GUILayout.Label("적용 대상", heading);
+            if (!host)
+            {
+                GUILayout.Label("대상: 내 캐릭터만 · 다른 플레이어 선택·신체 복구·부활은 호스트 화면에서 합니다.", label);
+                return;
+            }
+            GUILayout.Label("체크한 플레이어에게 이동·균형·신체 복구·체크포인트 부활을 적용합니다. 새로 들어온 플레이어는 포함됩니다.", label);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("전체 선택", button)) DevCheats.SelectAllTargets();
+            if (GUILayout.Button("나만", button)) DevCheats.SelectOnlyLocalTarget();
+            GUILayout.EndHorizontal();
+            roster.Clear();
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.Slot != NetworkPlayer.NoSlot) roster.Add(player);
+            roster.Sort((a, b) => a.Slot.CompareTo(b.Slot));
+            if (roster.Count == 0) GUILayout.Label("선택할 플레이어가 없습니다.", label);
+            foreach (var player in roster)
+            {
+                bool included = DevCheats.IsTarget(player);
+                string state = player.State == PlayerState.Normal ? "생존" : $"{player.State}";
+                bool next = GUILayout.Toggle(included, $" 단원 {player.Slot + 1}{(player == local ? " (나)" : "")} · {state}", toggle);
+                if (next != included) DevCheats.SetTarget(player, next);
+            }
+        }
+
+        void TeleportToPoint(DevCheats.TeleportPoint point)
+            => TeleportTargets(player => DevCheats.PoseForTarget(point, player), $"{point.Label}(으)로 이동");
+
+        void TeleportTargets(System.Func<NetworkPlayer, (bool ok, Pose pose)> poseFor, string destination)
+        {
+            DevCheats.TeleportTargets(poseFor, destination, out var message);
+            Status = message;
         }
 
         public bool TryOpenEscapeExit()
