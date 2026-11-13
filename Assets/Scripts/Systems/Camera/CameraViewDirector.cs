@@ -36,6 +36,7 @@ namespace CurtainCall.Cameras
         CameraViewKind selectedKind;
         Vector3 selectedForward = Vector3.forward;
         Vector3 followedHeading;
+        float headingTurnStart, headingTurnDelta, headingTurnApplied;
         NetworkPlayer local;
         PlayerMover mover;
         float yaw;
@@ -268,6 +269,7 @@ namespace CurtainCall.Cameras
                 bool enterFirst = (useFirst || useFree || useSpectator) && !MouseLook;
                 winner = source;
                 followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
@@ -298,9 +300,7 @@ namespace CurtainCall.Cameras
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
             Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
-            if (heading != Vector3.zero && Vector3.Dot(heading, followedHeading) < .9999f)
-                yaw = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg;
-            followedHeading = heading;
+            UpdateFollowedHeading(heading);
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
@@ -309,6 +309,28 @@ namespace CurtainCall.Cameras
                 composer.TargetOffset = new Vector3(0f, framing.LookHeight - postureDrop, framing.LookAhead);
             }
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
+        }
+
+        void UpdateFollowedHeading(Vector3 heading)
+        {
+            if (heading == Vector3.zero)
+            {
+                followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
+                return;
+            }
+            if (followedHeading == Vector3.zero || Vector3.Dot(heading, followedHeading) < .9999f)
+            {
+                followedHeading = heading;
+                headingTurnStart = Time.unscaledTime;
+                headingTurnApplied = 0f;
+                headingTurnDelta = Mathf.DeltaAngle(yaw, Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg);
+            }
+            float duration = Mathf.Max(.01f, CurtainCall.Settings.GameSettings.Tightrope.Camera.FramingSmoothTime);
+            float progress = Mathf.Clamp01((Time.unscaledTime - headingTurnStart) / duration);
+            float applied = headingTurnDelta * Mathf.SmoothStep(0f, 1f, progress);
+            yaw = Mathf.Repeat(yaw + applied - headingTurnApplied, 360f);
+            headingTurnApplied = applied;
         }
 
         internal void ApplyPose(ref CameraState state)

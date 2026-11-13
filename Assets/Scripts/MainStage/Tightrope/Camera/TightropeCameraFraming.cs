@@ -153,8 +153,9 @@ namespace CurtainCall.Cameras
             var stack = PiggybackSystem.Current;
             if (travel != null && stack != null && stack.GetSupportingPlayer(subject) != null
                 && stack.GetCarrier(subject) is { } carrier)
-                heading = carrier.transform.forward;
-            director.RequestViewWithHeading(this, usePlatformView ? platformView : preset, 0,
+                heading = ResolveCarrierHeading(carrier, course, heading);
+            // Rope controls own framing over room/route camera zones. Device and rescue requests keep their own view.
+            director.RequestViewWithHeading(this, usePlatformView ? platformView : preset, travel != null ? 150 : 0,
                 heading, followHeading: travel != null);
             director.SetInputBlocked(InputGate.IsBlocked || TightropeCampaignHud.RequiresStartCursor);
             ownsInput = true;
@@ -164,6 +165,15 @@ namespace CurtainCall.Cameras
             occlusion.FadeSpeed = rules.FadeSpeed;
             fade.RequestRules(this, occlusion);
             fade.RegisterExclusion(this, Exclude);
+        }
+
+        Vector3 ResolveCarrierHeading(NetworkPlayer carrier, TightropeCourse course, Vector3 fallback)
+        {
+            if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover carrierMover)) return carrierMover.CourseForward;
+            Vector3 facing = Vector3.ProjectOnPlane(carrier.transform.forward, Vector3.up).normalized;
+            // Remote rotation is interpolated across the jump. Don't restart the camera turn for each intermediate angle.
+            Vector3 axis = course.TraversalForwardAt(carrier.transform.position, fallback);
+            return Vector3.Dot(facing, axis) < 0f ? -axis : axis;
         }
 
         Transform FocusTarget()

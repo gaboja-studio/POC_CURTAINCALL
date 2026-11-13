@@ -98,14 +98,11 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 context.Balance?.SetCorrectionInput(0f);
                 return;
             }
-            if (input.TurnAroundPressed && context.Mover != null
-                && context.Mover.ControlEnabled && context.Mover.Simulated)
-                context.Mover.ReverseCourseDirection();
             const int viewSign = 1;
             context.HeldDirection = input.AuxDirection * viewSign;
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
             ApplyMovementSettings(context);
-            if (input.Move != 0f || input.ActionPressed || input.LaneChangePressed || input.InteractLongPressed) CancelCatch(context);
+            if (input.Move != 0f || input.ActionPressed || input.LaneChangePressed || input.TurnAroundPressed || input.InteractLongPressed) CancelCatch(context);
 
             if (context.Mover != null)
             {
@@ -131,7 +128,12 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                         mover.Teleported += buffer.Clear;
                     }
                     mover.SetMoveInput(input.Move * viewSign);
-                    if (buffer.Resolve(input.ActionPressed || input.LaneChangePressed, context.HeldDirection, !mover.IsAirborne,
+                    if (input.TurnAroundPressed)
+                    {
+                        buffer.Clear();
+                        mover.RequestRopeTurnJump();
+                    }
+                    else if (buffer.Resolve(input.ActionPressed || input.LaneChangePressed, context.HeldDirection, !mover.IsAirborne,
                         Time.timeAsDouble, GameSettings.Tightrope.RopeMovement.JumpInputBuffer, out int direction))
                     {
                         if (direction != 0) mover.RequestLaneJump(direction);

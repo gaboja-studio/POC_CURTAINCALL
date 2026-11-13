@@ -75,7 +75,9 @@ namespace CurtainCall.EscapeRoute
                 var zone = lowerWorkerBounds.bounds;
                 zone.Encapsulate(dropBounds.bounds);
                 zone.Expand(new Vector3(6, 14, 4));
-                if (!zone.Contains(body.transform.position) || camera.LocalPlayer != player) camera = null;
+                if (!zone.Contains(body.transform.position) || camera.LocalPlayer != player
+                    || TightropeCourse.Current?.UsesRopeRules(player) == true
+                    || player.TryGetComponent(out HumanCannonPilot pilot) && pilot.IsHoldingPole) camera = null;
             }
             if (sectionCamera == camera) return;
             if (sectionCamera != null) sectionCamera.ReleaseView(this);
