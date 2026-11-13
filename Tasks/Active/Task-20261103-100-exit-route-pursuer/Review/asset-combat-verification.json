@@ -2,8 +2,8 @@
   "date": "2026-11-13",
   "branch": "feat/exit-route/pursuer",
   "startingDev": "08600e05",
-  "publication": "User reauthorized save and submission; preparing dev PR on existing branch",
-  "appearance": "Greybox restored in Escape A, test scene and prefab. Mascot stored inactive; no active Humanoid appearance.",
+  "publication": "User requested only required assets; full package commit never published to branch. Minimal runtime assets published; preparing public PR.",
+  "appearance": "Greybox and Legacy animations in Escape A/test/prefab. Unused Mascot/stump objects removed; original packages and experiment backups remain local only.",
   "imports": [
     {
       "name": "Brute Warrior Mecanim Animation Pack",
@@ -174,13 +174,13 @@
       "passed": 274,
       "failed": 0,
       "skipped": 0,
-      "when": "After submission dev371c0481 integration"
+      "when": "After minimal assets and final devb96a22fd integration"
     },
     "cameraPlayMode": {
       "passed": 1,
       "total": 1,
       "failed": 0,
-      "when": "After submission dev371c0481 integration",
+      "when": "After minimal assets and final devb96a22fd integration",
       "skipped": 0
     }
   },
@@ -189,12 +189,12 @@
     "Subjective animation, fear, difficulty and full 2-4 player traversal need user play.",
     "Mascot partition is experimental, retained inactive; clean capped topology and stretched arm still need art polish if re-enabled."
   ],
-  "finalDev": "371c0481",
+  "finalDev": "b96a22fd",
   "finalPrivateBase": "8ece127e60b95c2bbef0c773ee4bf62e56b432e2",
-  "integration": "21 dev commits fast-forwarded with Unity closed. One code conflict retained both spectator-held-item collision and escape capture exclusion. Scene/settings auto-merged. Submission: 7 additional dev commits fast-forwarded with Unity closed; kept finished-performance spectator behavior and Korean setting tooltips with pursuer tuning.",
+  "integration": "21 dev commits fast-forwarded with Unity closed. One code conflict retained both spectator-held-item collision and escape capture exclusion. Scene/settings auto-merged. Submission: 7 additional dev commits fast-forwarded with Unity closed; kept finished-performance spectator behavior and Korean setting tooltips with pursuer tuning. Final submission base b96a22fd merged with Unity closed; escape ending day/night setting preserved. Private a31de665 includes only 2 new sound clips and required meta on existing main.",
   "scene": {
     "scene": "Assets/Scenes/Levels/escape_route.unity",
-    "objects": 6706,
+    "objects": 6545,
     "missingScripts": 0,
     "activeMascots": 0,
     "hasMascotReference": false,
@@ -269,6 +269,17 @@
     "scene": "Assets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity",
     "playMode": "stopped"
   },
-  "privateCommit": "447a5b13e33f524ca5e24cfc5c56be8f63f8b2c2",
-  "privateAddedFiles": 3251
+  "privateCommit": "a31de665dd1cbafbc037abdeb5ca8d709e4bab7c",
+  "privateAddedFiles": 9,
+  "assetSelection": {
+    "newSounds": 2,
+    "unusedPackages": "Local only, excluded from published commit",
+    "excludedUnpublishedCommit": "447a5b13",
+    "removedInactiveObjects": 27,
+    "required": [
+      "Assets/_ThirdParty/MonstersSFX/PackEnemies/Golem_Attack/Golem_Attack_v1_variation_02_wav.wav",
+      "Assets/_ThirdParty/MonstersSFX/PackMonsterLowVoices/Growl_Fast_01/SFX-Growl-Fast-01_wav.wav"
+    ],
+    "bytesWithMeta": 502820
+  }
 }
