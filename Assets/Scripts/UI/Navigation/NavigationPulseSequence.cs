@@ -1,16 +1,21 @@
 using System.Collections.Generic;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.UI.Wayfinding
 {
+    /// <summary>
+    /// Repeating waves travel from the player toward the destination. A new wave starts every pulse interval,
+    /// so arrows near the player keep giving direction feedback even on long routes.
+    /// </summary>
     [ExecuteAlways, RequireComponent(typeof(RehearsalNavigationView))]
     public sealed class NavigationPulseSequence : MonoBehaviour
     {
         [SerializeField] RehearsalNavigationView view;
         [SerializeField] NavigationPulseGlyph destination;
         [SerializeField] NavigationPulseGlyph arrivalEcho;
-        [SerializeField, Min(.5f)] float repeatSeconds = 4.2f;
-        [SerializeField, Min(.1f)] float travelSeconds = 2.35f;
+        [Tooltip("파동이 경로를 따라 목적지 쪽으로 진행하는 속도(m/s, 1배속 기준).")]
+        [SerializeField, Min(.5f)] float waveSpeed = 6f;
         [SerializeField, Min(.02f)] float fadeInSeconds = .12f;
         [SerializeField, Min(0)] float holdSeconds = .16f;
         [SerializeField, Min(.02f)] float fadeOutSeconds = .48f;
@@ -22,9 +27,13 @@ namespace CurtainCall.UI.Wayfinding
         readonly List<NavigationPulseGlyph> glyphs = new();
         NavigationPulseGlyph departureEcho;
         bool hideDestinationBeacon;
+        float intervalOverride;
         double epoch;
-        public float RepeatSeconds => Mathf.Max(repeatSeconds, travelSeconds + fadeInSeconds + holdSeconds + fadeOutSeconds + .15f, travelSeconds + arrivalSeconds + .15f);
-        public float TravelSeconds => Mathf.Max(.1f, travelSeconds);
+        /// <summary>Seconds between waves at 1x speed. Defaults to GameSettings > Base > 네비게이션 안내 > 화살표 파동 간격; a per-guide override wins.</summary>
+        public float PulseIntervalSeconds => intervalOverride > 0 ? intervalOverride : GameSettings.Base.Navigation.PulseIntervalSeconds;
+        public float WaveSpeed => Mathf.Max(.5f, waveSpeed);
+        /// <summary>Length of one arrow flash (fade in, hold, fade out).</summary>
+        public float FlashSeconds => Mathf.Max(.02f, fadeInSeconds) + Mathf.Max(0, holdSeconds) + Mathf.Max(.02f, fadeOutSeconds);
         public bool PreviewInEditor => previewInEditor && automaticPlayback && isActiveAndEnabled;
         public bool AutomaticPlayback { get => automaticPlayback; set => automaticPlayback = value; }
         public float LastEvaluatedSeconds { get; private set; }
@@ -39,6 +48,14 @@ namespace CurtainCall.UI.Wayfinding
                 return Time.unscaledTimeAsDouble;
             }
         }
+
+        /// <summary>0 or less returns to the common setting. Values are clamped to 0.2–10 seconds.</summary>
+        public void SetPulseIntervalOverride(float seconds) =>
+            intervalOverride = float.IsFinite(seconds) && seconds > 0 ? Mathf.Clamp(seconds, .2f, 10) : 0;
+
+        /// <summary>Phase (0..interval) at which a wave passes the given distance from the destination.</summary>
+        public float LightTime(float goalDistance) => Mathf.Repeat(-goalDistance / WaveSpeed, PulseIntervalSeconds);
+        public float DepartureLightSeconds => LightTime(view != null ? view.RouteLength : 0);
 
         public void Configure(RehearsalNavigationView pathView, NavigationPulseGlyph goal, NavigationPulseGlyph echo)
         {
@@ -57,16 +74,11 @@ namespace CurtainCall.UI.Wayfinding
 
         void Rebind()
         {
-            bool wasEmpty = glyphs.Count == 0;
             glyphs.Clear();
             if (view == null) return;
-            // The route pool is stored from destination to player. Traverse it in reverse for an outward wave.
-            for (int i = view.VisibleMarkerCount - 1; i >= 0; i--)
-            {
-                var marker = view.MarkerInstances[i];
-                if (marker != null && marker.TryGetComponent<NavigationPulseGlyph>(out var glyph)) glyphs.Add(glyph);
-            }
-            if (wasEmpty && glyphs.Count > 0) epoch = Clock;
+            // Indexed like the view's marker pool: slot i is i spacings away from the destination.
+            foreach (var marker in view.MarkerInstances)
+                glyphs.Add(marker != null && marker.TryGetComponent<NavigationPulseGlyph>(out var glyph) ? glyph : null);
             SetAppearance(signalColor, emphasis);
             if (automaticPlayback) EvaluateAt((float)(Clock - epoch));
         }
@@ -79,19 +91,37 @@ namespace CurtainCall.UI.Wayfinding
         public void EvaluateAt(float elapsedSeconds)
         {
             LastEvaluatedSeconds = elapsedSeconds;
-            float t = Mathf.Repeat(Mathf.Max(0, elapsedSeconds), RepeatSeconds);
+            float t = Mathf.Max(0, elapsedSeconds), interval = PulseIntervalSeconds, speed = WaveSpeed;
             for (int i = 0; i < glyphs.Count; i++)
             {
-                float delay = glyphs.Count <= 1 ? 0 : i / (float)(glyphs.Count - 1) * TravelSeconds;
-                float a = Envelope(t - delay);
-                glyphs[i].Apply(a, Mathf.Lerp(.88f, 1, a));
+                var glyph = glyphs[i];
+                if (glyph == null || !glyph.gameObject.activeSelf) continue;
+                float a = Flash(t + view.GetMarkerGoalDistance(i) / speed, interval);
+                glyph.Apply(a * view.GetMarkerPresence(i), Mathf.Lerp(.88f, 1, a));
             }
-            float arrivalAge = t - TravelSeconds;
-            float burst = arrivalAge >= 0 && arrivalAge <= arrivalSeconds ? 1 - arrivalAge / arrivalSeconds : 0;
-            if (destination != null) destination.Apply(hideDestinationBeacon ? 0 : .62f + .38f * Mathf.Max(burst, .5f + .5f * Mathf.Sin(t * Mathf.PI * 2 / RepeatSeconds)), 1 + .04f * burst);
-            if (arrivalEcho != null) arrivalEcho.Apply(burst * .7f, Mathf.Lerp(1.05f, 1.7f, 1 - burst));
-            float departure = t < arrivalSeconds ? 1-t/arrivalSeconds : 0;
-            if(departureEcho!=null)departureEcho.Apply(departure*.7f,Mathf.Lerp(1.05f,1.7f,1-departure));
+            float burstSeconds = Mathf.Min(arrivalSeconds, interval * .95f);
+            float arrivalAge = Mathf.Repeat(t, interval);
+            float burst = Burst(arrivalAge, burstSeconds);
+            float goal = view != null ? view.DestinationPresence : 1;
+            float breathe = .5f + .5f * Mathf.Cos(arrivalAge * Mathf.PI * 2 / interval);
+            if (destination != null) destination.Apply(hideDestinationBeacon ? 0 : (.62f + .38f * Mathf.Max(burst, breathe)) * goal, 1 + .04f * burst);
+            if (arrivalEcho != null) arrivalEcho.Apply(burst * .7f * goal, Mathf.Lerp(1.05f, 1.7f, 1 - burst));
+            if (departureEcho != null)
+            {
+                float length = view != null ? view.RouteLength : 0;
+                float departure = Burst(Mathf.Repeat(t + length / speed, interval), burstSeconds);
+                departureEcho.Apply(departure * .7f * (view != null ? view.StartPresence : 1), Mathf.Lerp(1.05f, 1.7f, 1 - departure));
+            }
+        }
+
+        static float Burst(float age, float seconds) => age >= 0 && age <= seconds ? 1 - age / seconds : 0;
+
+        /// <summary>Envelope of the waves reaching an arrow; overlapping waves are combined when the interval is shorter than a flash.</summary>
+        float Flash(float time, float interval)
+        {
+            float a = 0, length = FlashSeconds;
+            for (float age = Mathf.Repeat(time, interval); age <= length; age += interval) a = Mathf.Max(a, Envelope(age));
+            return a;
         }
 
         public bool DestinationBeaconHidden => hideDestinationBeacon;
@@ -107,7 +137,7 @@ namespace CurtainCall.UI.Wayfinding
             if(departureEcho!=null)
             {
                 departureEcho.gameObject.SetActive(objectStart);
-                if(view!=null)view.PlaceGroundEffect(departureEcho.transform,start);
+                if(view!=null)view.TrackStartEffect(objectStart?departureEcho.transform:null,start);
                 departureEcho.SetAppearance(signalColor,emphasis);
             }
         }

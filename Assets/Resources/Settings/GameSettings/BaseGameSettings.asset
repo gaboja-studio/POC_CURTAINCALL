@@ -118,6 +118,13 @@ MonoBehaviour:
     fadeOutsideOnWideSurface: 0
     outsideOpacity: 0.25
     outlineAllForTrampolineCarrier: 1
+  navigation:
+    color: {r: 1, g: 1, b: 1, a: 1}
+    brightness: 1
+    followSeconds: 0.12
+    pulseIntervalSeconds: 1.5
+    animationSpeed: 1
+    playerStartGap: 1.5
   presentation:
     walkAnimationSpeed: 3
     runAnimationSpeed: 6

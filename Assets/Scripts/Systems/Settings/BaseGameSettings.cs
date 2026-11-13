@@ -59,6 +59,9 @@ namespace CurtainCall.Settings
         [SerializeField] HudLayoutSettings hudLayout = new();
         [Header("착지 표시")]
         [SerializeField] LandingMarkerSettings landingMarker = new();
+        [Header("네비게이션 안내")]
+        [Tooltip("바닥 화살표 길안내(리허설 완료 집결 안내 포함)의 공통 연출 값. 모든 네비가 기본으로 따르며, 코드에서 값을 지정한 안내만 개별 값을 쓴다. 플레이 중 수정도 바로 반영된다.")]
+        [SerializeField] NavigationGuideSettings navigation = new();
         [Header("연출")]
         [Tooltip("걷기·달리기 애니메이션 재생 기준, 상호작용 동작 허용, 몸 기울기 등 캐릭터 연출.")]
         [SerializeField] PresentationSettings presentation = new();
@@ -87,6 +90,7 @@ namespace CurtainCall.Settings
         public BalanceSettings Balance => balance;
         public HudLayoutSettings HudLayout => hudLayout;
         public LandingMarkerSettings LandingMarker => landingMarker;
+        public NavigationGuideSettings Navigation => navigation ??= new();
         public PresentationSettings Presentation => presentation;
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
@@ -145,6 +149,36 @@ namespace CurtainCall.Settings
 
         /// <summary>착지 그림자 외곽선 구간(<see cref="LandingMarkerSettings.BandAt"/>).</summary>
         public enum LandingOutlineBand { None, Outfit, SafetyCheck }
+
+        /// <summary>모든 바닥 화살표 길안내의 공통 표시 값. 경로 계산·게임 규칙은 바꾸지 않는 표시 전용 값.</summary>
+        [Serializable]
+        public sealed class NavigationGuideSettings
+        {
+            [SerializeField, InspectorName("안내 색상")]
+            [Tooltip("화살표·도착 표식·확산 링·대상 외곽선에 쓰는 색. 알파는 투명도로 곱한다. 기본 청록 (0.12, 1, 0.86).")]
+            Color color = new(.12f, 1f, .86f, 1f);
+            [SerializeField, Range(0f, 1f), InspectorName("밝기")]
+            [Tooltip("안내 전체 불투명도 배율(0~1). 0이면 숨김, 1이 가장 밝다. 기본 1.")]
+            float brightness = 1f;
+            [SerializeField, Range(0f, 2f), InspectorName("경로 보정 시간")]
+            [Tooltip("시작점·목적지가 움직여 경로가 바뀔 때 화살표가 새 위치로 따라가는 시간 상수(초). 작을수록 빠르게 보정하고 0이면 즉시 이동한다. 기본 0.12초.")]
+            float followSeconds = .12f;
+            [SerializeField, Range(.2f, 10f), InspectorName("화살표 파동 간격")]
+            [Tooltip("새 화살표 파동이 출발하는 간격(초, 1배속 기준). 목적지가 멀어도 플레이어 근처 화살표가 이 간격마다 방향을 다시 보여 준다. 기본 1초.")]
+            float pulseIntervalSeconds = 1f;
+            [SerializeField, Range(0f, 10f), InspectorName("애니메이션 배속")]
+            [Tooltip("파동 진행·점멸 전체의 재생 배속. 0이면 정지, 1이 기본. 실제 파동 간격은 간격/배속(초)이다.")]
+            float animationSpeed = 1f;
+            [SerializeField, Range(0f, 5f), InspectorName("플레이어 앞 비움 거리")]
+            [Tooltip("시작점이 플레이어일 때 발밑을 비우고 목적지 방향으로 이 거리(m) 앞부터 화살표를 표시한다. 그 뒤 1m 동안 플레이어와의 거리에 따라 서서히 나타나므로 이동 중에도 발밑 화살표가 깜빡이지 않는다. 기본 1.5m.")]
+            float playerStartGap = 1.5f;
+            public Color Color => color;
+            public float Brightness => Mathf.Clamp01(brightness);
+            public float FollowSeconds => Mathf.Clamp(followSeconds, 0f, 2f);
+            public float PulseIntervalSeconds => Mathf.Clamp(pulseIntervalSeconds, .2f, 10f);
+            public float AnimationSpeed => Mathf.Clamp(animationSpeed, 0f, 10f);
+            public float PlayerStartGap => Mathf.Clamp(playerStartGap, 0f, 5f);
+        }
 
         /// <summary>
         /// 공중 플레이어 발밑의 원형 착지 그림자(Task-20261113-126). 그림자·번짐은 모든 공간에서 모든 플레이어에게 보이고, 높이 차이가 클수록 뿌옇게 번져 사라진다.
