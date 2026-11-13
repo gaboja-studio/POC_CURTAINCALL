@@ -13,3 +13,4 @@
 - 카메라 교정 2e405393을 [PR377](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/377)로 제출. MoHoDu 검토 요청.
 - DEV 7216aca8 반영. 튜토리얼 카메라 구역(우선순위 10/20)이 공통 외줄 요청(0)을 덮던 문제를 수정. 공통 외줄이 구역 카메라보다 우선하며 탈출로의 별도 구역 요청도 외줄·봉에 양보한다. 접지 중 휠은 기존 외줄 점프 높이로 제자리에서 뛰며 회전. 이미 공중이면 기존 궤적 유지. 카메라 회전은 공통 프레이밍 시간에 따라 보간한다.
 - check-work, Unity 컴파일·공통 설정 연결과 TightropeSurfaceControlTests 144/144 통과. 사전 doctor의 기존 Task ID 중복은 남아 있음. 실제 플레이는 미실시.
+- 공통 외줄 점프·카메라 후속 97d404e2를 [PR378](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/378)로 제출.
