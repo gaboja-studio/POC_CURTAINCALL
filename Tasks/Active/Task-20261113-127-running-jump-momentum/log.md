@@ -10,3 +10,4 @@
 - 기존 Task ID 중복과 타 작업 문서 길이 제한은 별도 제약으로 남음. 이전 배경 작업 로그와 Unity 종료 시 생성된 캐시는 로컬에 보존.
 - [PR374](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/374)로 56ecc73b 제출. MoHoDu 검토 요청.
 - 카메라 후속: DEV ef69bbab에서 기존 브랜치를 계속 사용. 외줄 방향과 봉 탑승 자세로 카메라를 맞추고 W/S·봉 휠 입력에 의한 반전을 제거. diff·변경 안전성 검사 통과. 즉시 제출 요청에 따라 이번 수정의 Unity 컴파일과 실제 플레이는 미실시.
+- 카메라 교정 2e405393을 [PR377](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/377)로 제출. MoHoDu 검토 요청.
