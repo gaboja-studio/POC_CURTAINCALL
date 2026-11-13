@@ -95,3 +95,5 @@
 - 병합 후 Unity 컴파일 오류 없음, EditMode 네비7/7, 실게임 네비 PlayMode2/2, 동적 보정/공통 설정 PlayMode1/1 PASS. 캡처3 갱신. 이번 재검증은 무관한 기존 추격 테스트를 제외한 정확한 필터로 실행했다.
 - 최종 에디터 종료 확인 후 dev 재fetch: 추가 변경 없음. 자동 재저장 폰트4개는 navigation-pr-final-font-atlases-20261113 stash 보존.
 - 최종 check-work(-SkipUnity -NoRecord): 안전성 PASS, 문서 FAIL(다른 Task081 log143줄/상한130), 후속 검사 SKIPPED. 실제 병합 후 에디터 컴파일/테스트 통과와 구분한다. 해당 무관 문서는 수정하지 않았다.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/376 (feat/rehearsal-navigation-art → dev)
