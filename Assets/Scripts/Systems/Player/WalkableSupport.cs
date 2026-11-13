@@ -9,6 +9,16 @@ namespace CurtainCall.Player
         static readonly RaycastHit[] hits = new RaycastHit[32];
         public static bool Contains(PlayerMover mover, Vector3 feet) => TryGetSupport(mover, feet, out _);
 
+        /// <summary>안전 착지면인지. 외줄 진행 중이면 실제 외줄 조작 전환과 같은 접촉을, 아니면 일반 지지면을 본다.</summary>
+        public static bool IsSafeLanding(PlayerMover mover, Vector3 feet)
+        {
+            var course = CurtainCall.Tightrope.TightropeCourse.Current;
+            // 좁은 줄의 가장자리에 몸통이 지지되어도 발 중심은 박스 밖일 수 있다.
+            // 좌표상 줄 근처라는 이유가 아니라 실제 외줄 조작 전환과 같은 접촉으로 승인한다.
+            if (course != null && course.IsTraversalActive && course.TryGetSupportingRopeAt(mover, feet, out _)) return true;
+            return Contains(mover, feet);
+        }
+
         public static bool TryGetSupport(PlayerMover mover, Vector3 feet, out RaycastHit support)
         {
             support = default;

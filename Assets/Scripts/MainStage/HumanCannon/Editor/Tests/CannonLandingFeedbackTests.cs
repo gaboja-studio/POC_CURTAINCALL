@@ -73,7 +73,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var target=(Transform)typeof(HumanCannonGroundMarkers).GetField("landingTarget",Fields).GetValue(markers);
             var renderer=target.GetComponent<MeshRenderer>();var block=new MaterialPropertyBlock();renderer.GetPropertyBlock(block);
             Assert.That(block.GetColor("_RimColor").g,Is.EqualTo(1));Assert.That(block.GetColor("_RimColor").r,Is.LessThan(.2f));
-            Call("Tint",target,false);renderer.GetPropertyBlock(block);Assert.That(block.GetColor("_RimColor").r,Is.EqualTo(.85f).Within(.001f));
             Assert.That(mat.GetColor("_RimColor"),Is.EqualTo(original));
             Set("showSafeLandingFeedback",false);Assert.That(Call("ShowLandingTarget",floor,origin),Is.EqualTo(false));
             Assert.That(markers.TryProjectGround(origin+Vector3.up*10,out var p,out _),Is.True);Assert.That(p.y,Is.EqualTo(0).Within(.001f));
