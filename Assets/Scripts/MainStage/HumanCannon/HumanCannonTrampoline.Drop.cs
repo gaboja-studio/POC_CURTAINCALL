@@ -79,7 +79,8 @@ namespace CurtainCall.HumanCannon
                 var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f || hit.transform.IsChildOf(transform)
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
-                if (DismemberedLimb.Contains(hit.collider) || avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
                 nearest = hit.distance;
                 ground = hit.point;
             }

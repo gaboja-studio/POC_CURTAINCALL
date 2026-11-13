@@ -29,7 +29,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         string previousSawsJson;
         object poleSettings;
         string previousPoleJson;
-        float ResultTransitionTimeout => (float)Get(Static("CurtainCall.Settings.PerformanceEndingSettings", "Current"), "TransitionAt") + 5f;
+        // 도착 성공은 공연 종료 여유 시간(2026-11-13)이 지난 뒤 정산하므로 그만큼 더 기다린다.
+        float ResultTransitionTimeout => (float)Get(Static("CurtainCall.Settings.PerformanceEndingSettings", "Current"), "TransitionAt") + 5f
+            + (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FinishGraceSeconds");
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -597,7 +599,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.IsNull(Get(bridge, "Result"));
             var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-            Assert.IsTrue((bool)Call(bridge, "TryFinishAtDestination"));
+            // 첫 생존 도착은 종료 여유 시간을 열지만, 더 기다릴 생존자가 없으면(혼자 출연) 바로 정산한다(2026-11-13).
+            Assert.IsTrue((bool)Call(bridge, "TryFinishAtDestination"), "기다릴 사람이 없으면 여유 시간 없이 바로 정산한다.");
+            Assert.IsFalse((bool)Get(rewards, "FinishGraceActive"));
             Assert.IsTrue((bool)Get(Get(bridge, "Result"), "Succeeded"));
         }
 

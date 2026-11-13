@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/github/POC_CURTAINCALL/.harness/local/escape-ending-concept/Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/ending-feedback-probe.cs",
+      "entry": "EndingFeedbackProbe.InspectResult",
+      "timeout_ms": "24000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 173,
+      "executeMs": 2,
+      "assemblyName": "PipelineRunScript_ending-feedback-probe_4eb1e25a8cbb48e3ad2c2d8e2e9bce05",
+      "success": true,
+      "result": {
+        "actors": [
+          {
+            "Slot": 0,
+            "injury": "None",
+            "state": "Arrived",
+            "AppearanceModel": 0,
+            "position": "(-714.76, 24.98, -460.37)",
+            "viewport": "(0.81, 0.49, 8.16)"
+          },
+          {
+            "Slot": 1,
+            "injury": "LeftLeg",
+            "state": "Arrived",
+            "AppearanceModel": 1,
+            "position": "(-713.41, 24.98, -459.03)",
+            "viewport": "(0.70, 0.49, 9.91)"
+          }
+        ],
+        "generation": 2,
+        "view": [
+          {
+            "player": "단원 1",
+            "outcome": "탈출"
+          },
+          {
+            "player": "단원 2",
+            "outcome": "탈출"
+          }
+        ],
+        "teamBest": "0",
+        "personalBest": "0",
+        "earned": "200",
+        "spent": "0"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

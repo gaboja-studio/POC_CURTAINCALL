@@ -1,0 +1,56 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.02,
+      "summary": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.EndingCameraAndInputAreIdempotentAndRestartClearsTheTitle",
+          "Status": "Passed",
+          "Duration": 0.0056672,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.FadeWaitsThenRisesSmoothlyAndNeverProducesInvalidAlpha",
+          "Status": "Passed",
+          "Duration": 0.004254,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.FirstArrivalShowsTitleWithoutWaitingForPartyOrRevealingThroughLockedDoor",
+          "Status": "Passed",
+          "Duration": 0.0015076,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.OnlySuccessfulEscapeKeepsTheMeadowForTheEnding",
+          "Status": "Passed",
+          "Duration": 0.0021817,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

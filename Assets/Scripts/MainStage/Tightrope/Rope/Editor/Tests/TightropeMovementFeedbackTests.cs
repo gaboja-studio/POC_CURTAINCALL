@@ -23,7 +23,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
                 mover.FreeMovement = mover.FreeAirControl = true;
                 mover.CourseForwardOverride = Vector3.forward;
-                float speed = GameSettings.Base.Character.FreeMoveSpeed;
+                float speed = GameSettings.Base.AirControl.Speed;
                 float takeoffSpeed = speed * GameSettings.Base.Character.SprintSpeedMultiplier;
                 typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, Vector3.forward * takeoffSpeed);
                 typeof(PlayerMover).GetMethod("StartJump", Members).Invoke(mover, new object[] { JumpKind.InPlace, 0 });
@@ -54,7 +54,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
                 mover.FreeMovement = mover.FreeAirControl = true;
                 mover.CourseForwardOverride = Vector3.forward;
-                var velocity = Vector3.forward * GameSettings.Base.Character.FreeMoveSpeed;
+                var velocity = Vector3.forward * GameSettings.Base.AirControl.Speed;
                 typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, velocity * GameSettings.Base.Character.SprintSpeedMultiplier);
                 mover.SetMoveInput(0, held ? 1 : 0);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
@@ -67,7 +67,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
-        public void AirSprintUsesGroundSprintSpeedWithInjuryAndDiagonalLimit()
+        public void AirShiftDoesNotBoostSharedSpeedWithInjuryAndDiagonalLimit()
         {
             var go = new GameObject("Stationary jump steering") { hideFlags = HideFlags.DontSave };
             go.transform.position = new Vector3(8000, 100, 8000);
@@ -81,13 +81,38 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 mover.LaunchJump(0);
                 mover.SetMoveInput(0, 1);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
-                float speed = GameSettings.Base.Character.FreeMoveSpeed * .5f;
+                float speed = GameSettings.Base.AirControl.Speed * .5f;
                 Assert.That(((Vector3)typeof(PlayerMover).GetField("airVelocity", Members).GetValue(mover)).magnitude, Is.EqualTo(speed).Within(.0001f));
                 mover.SetMoveInput(1, 1); mover.SetLocomotionInput(true, false);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
                 var velocity = (Vector3)typeof(PlayerMover).GetField("airVelocity", Members).GetValue(mover);
-                Assert.That(velocity.magnitude, Is.EqualTo(speed * GameSettings.Base.Character.SprintSpeedMultiplier).Within(.0001f));
+                Assert.That(velocity.magnitude, Is.EqualTo(speed).Within(.0001f));
                 Assert.That(velocity.y, Is.Zero);
+                Assert.That(mover.IsSprinting, Is.False);
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [Test]
+        public void GroundSprintStillWorksButOrdinaryJumpStartsAtSharedAirSpeed()
+        {
+            var go = new GameObject("Sprint takeoff speed") { hideFlags = HideFlags.DontSave };
+            go.transform.position = new Vector3(8000, 100, 8000);
+            try
+            {
+                var mover = go.AddComponent<PlayerMover>();
+                typeof(PlayerMover).GetMethod("Awake", Members).Invoke(mover, null);
+                mover.FreeMovement = mover.FreeAirControl = true;
+                mover.CourseForwardOverride = Vector3.forward;
+                mover.SetMoveInput(0, 1); mover.SetLocomotionInput(true, false);
+                typeof(PlayerMover).GetMethod("UpdatePosture", Members).Invoke(mover, null);
+                var ground = (Vector3)typeof(PlayerMover).GetMethod("ReadFreeMovement", Members).Invoke(mover, new object[] { Vector3.forward, 1f, 0f });
+                Assert.That(ground.magnitude, Is.EqualTo(GameSettings.Base.Character.FreeMoveSpeed * GameSettings.Base.Character.SprintSpeedMultiplier).Within(.0001f));
+                typeof(PlayerMover).GetField("groundVelocity", Members).SetValue(mover, ground);
+                typeof(PlayerMover).GetMethod("StartJump", Members).Invoke(mover, new object[] { JumpKind.InPlace, 0 });
+                var air = (Vector3)typeof(PlayerMover).GetField("airVelocity", Members).GetValue(mover);
+                Assert.That(air.magnitude, Is.EqualTo(GameSettings.Base.AirControl.Speed).Within(.0001f));
+                Assert.That(mover.IsSprinting, Is.False);
             }
             finally { Object.DestroyImmediate(go); }
         }
@@ -110,7 +135,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(launch));
                 mover.SetMoveInput(-1f, 0f);
                 typeof(PlayerMover).GetMethod("Update", Members).Invoke(mover, null);
-                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(Vector3.left * GameSettings.Base.Character.FreeMoveSpeed));
+                Assert.That((Vector3)velocity.GetValue(mover), Is.EqualTo(Vector3.left * GameSettings.Base.AirControl.Speed));
             }
             finally { Object.DestroyImmediate(go); }
         }

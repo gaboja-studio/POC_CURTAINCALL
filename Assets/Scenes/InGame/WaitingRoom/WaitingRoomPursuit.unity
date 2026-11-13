@@ -2795342,10 +2795342,254 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6478468315240714707}
   m_CullTransparentMesh: 1
+--- !u!1 &1194036325
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1194036327}
+  - component: {fileID: 1194036326}
+  m_Layer: 0
+  m_Name: Dev Checkpoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1194036326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1194036325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 687521821be17234d9574d15c799cfad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Dev.DevCheckpointRoute
+  points:
+  - label: "\uB85C\uBE44 \uC785\uAD6C"
+    position: {x: 5.6, y: 0, z: 83.80001}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD734\uAC8C\uC2E4 \uC785\uAD6C"
+    position: {x: 2.5, y: 0.2793755, z: 78.05}
+    yaw: 0
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC0C1\uC810 \uC785\uAD6C"
+    position: {x: 9.3, y: 0, z: 91.95}
+    yaw: 90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC219\uC18C \uC785\uAD6C"
+    position: {x: 10.4, y: 0.005985714, z: 72.55}
+    yaw: 90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD654\uC7A5\uC2E4 \uC785\uAD6C"
+    position: {x: 13.749999, y: 0.000000022351742, z: 69.1}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC18C\uD488\uC2E4 \uC785\uAD6C"
+    position: {x: -8.2, y: 0.005985714, z: 94.75}
+    yaw: 0
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uBB34\uB300 \uC785\uAD6C \uD1B5\uB85C"
+    position: {x: -6, y: 0.0059915213, z: 63.1}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uACF5\uC5F0 \uC2A4\uD14C\uC774\uC9C0 \uC785\uAD6C"
+    position: {x: -6, y: 0.07973133, z: -8.15}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC804\uBB38\uAC00 \uB300\uAE30\uC2E4 \uC785\uAD6C"
+    position: {x: 10.3, y: 0, z: 97.4}
+    yaw: 90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC5F0\uC2B5\uC2E4 \uC785\uAD6C"
+    position: {x: -22.6, y: 0.0059890905, z: 90.899994}
+    yaw: -45
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uC791\uC5C5\uC2E4 \uC785\uAD6C"
+    position: {x: -13.380001, y: 0.006, z: 98.950005}
+    yaw: 0
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD654\uBB3C \uC801\uC7AC\uC7A5 \uC785\uAD6C"
+    position: {x: -25.899998, y: 0.005985714, z: 68.649994}
+    yaw: -90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uBB34\uB300 \uC7A5\uCE58 \uBCF4\uAD00\uC2E4 \uC785\uAD6C"
+    position: {x: -29.099997, y: 0.000000022351742, z: 62.15}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uBC30\uAD00 \uAD6C\uC5ED \uC785\uAD6C"
+    position: {x: 16.05, y: 0.010724996, z: 60.7}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD3D0\uAE30\uBB3C \uBCF4\uAD00\uC18C \uC785\uAD6C"
+    position: {x: 23.45, y: 0, z: 46.75}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uACC4\uB2E8 \uC785\uAD6C"
+    position: {x: 5.25, y: 0, z: 100.55}
+    yaw: 0
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uAE30\uACC4\uC2E4 \uC785\uAD6C"
+    position: {x: 2.2999988, y: -5, z: 103}
+    yaw: 180
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uAD00\uB9AC\uC2E4 \uC5F0\uACB0 \uD1B5\uB85C \uC785\uAD6C"
+    position: {x: -3.1500018, y: -5, z: 100.85}
+    yaw: -90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uAD00\uB9AC\uC2E4 \uC785\uAD6C"
+    position: {x: -7.2000003, y: -5, z: 101.1}
+    yaw: 0
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD0C8\uC758\uC2E4 \uC785\uAD6C"
+    position: {x: -10.4, y: -5, z: 105.05}
+    yaw: -90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD0C8\uCD9C\uB85C \uC5F0\uACB0 \uD1B5\uB85C \uC785\uAD6C"
+    position: {x: -3.250002, y: -10, z: 91.15}
+    yaw: -90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+  - label: "\uD0C8\uCD9C\uB85C \uC785\uAD6C"
+    position: {x: -8.250001, y: -10, z: 91.15}
+    yaw: -90
+    radius: 1.25
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
+--- !u!4 &1194036327
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1194036325}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1194036327}
   - {fileID: 180226618}
   - {fileID: 1140180731}
   - {fileID: 529454870}

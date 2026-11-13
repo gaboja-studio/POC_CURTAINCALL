@@ -17,14 +17,25 @@ namespace CurtainCall.WaitingRoom
         GameObject walls;
         bool prompt;
         bool pendingUnlockPrompt, returnToSchedule, discoveryPrompt;
+        // 해금 직후가 아니라 미이수 상태로 맞은 쉬는 시간 시작 안내다(문구만 다르다).
+        bool reminderPrompt;
         int unlockPromptGeneration;
         public static bool IsUnlockPromptVisible => instance != null && instance.prompt && instance.discoveryPrompt;
 
         void OnTrickDiscovered(string trickId, ulong actor)
         {
             if (!Host || trickId != CampaignSnapshot.HumanCannonId || HasMastered) return;
-            pendingUnlockPrompt = true;
+            pendingUnlockPrompt = true; reminderPrompt = false;
             unlockPromptGeneration = CampaignRun.Instance.State.Generation;
+        }
+
+        /// <summary>추격전 중에는 리허설로 이동할 수 없다. 스케줄표에서 인간대포를 고른 경우 이유만 알린다.</summary>
+        static bool RefuseDuringPursuit()
+        {
+            if (!WaitingRoomRehearsal.IsPursuitRunning) return false;
+            WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"),
+                T("pursuit", "추격전 중에는 리허설을 진행할 수 없습니다. 다음 쉬는 시간에 다시 안내합니다."), 5f, true);
+            return true;
         }
 
         void OfferUnlockedRehearsal()
@@ -46,7 +57,7 @@ namespace CurtainCall.WaitingRoom
 
         void CaptureReturnPose(NetworkPlayer player)
         {
-            if (ExpertService.IsTreating(player.OwnerClientId)) return;
+            if (ExpertService.IsTreating(player.OwnerClientId) || Pursuit.PursuitDirector.IsCaptured(player)) return;
             if (returnPoseRound == shared.round && returnPoseOwner == player) return;
             returnPose = new Pose(player.transform.position, player.transform.rotation);
             returnPoseOwner = player;
@@ -72,8 +83,9 @@ namespace CurtainCall.WaitingRoom
             if (book.Night > 0)
                 required |= ScheduleBook.DaysToApply(book.Night).Any(day => book.Setlist(day).Contains(CampaignSnapshot.HumanCannonId));
             if (!required) return false;
+            if (RefuseDuringPursuit()) return true;
             FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
-            r.prompt = true;
+            r.prompt = true; r.reminderPrompt = false;
             return true;
         }
 
@@ -82,6 +94,8 @@ namespace CurtainCall.WaitingRoom
         {
             var r = instance;
             if (trickId != CampaignSnapshot.HumanCannonId || r == null || HasMastered) return false;
+            if (RefuseDuringPursuit()) return true;
+            r.reminderPrompt = false;
             r.returnToSchedule = true; r.discoveryPrompt = false; r.pendingUnlockPrompt = false;
             FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
             r.prompt = true;
@@ -106,11 +120,17 @@ namespace CurtainCall.WaitingRoom
         {
             // Another owner's station request can start practice while the host's prompt is open.
             if (shared.active) prompt = false;
+            // 추격전이 시작되면 리허설 이동 안내를 닫는다. 미이수면 다음 쉬는 시간 시작에 다시 띄운다.
+            if (prompt && WaitingRoomRehearsal.IsPursuitRunning) { prompt = false; votePanel.Hide(); }
             promptBlock.SetOpen(prompt && !shared.active);
             if (prompt && !shared.active)
             {
-                votePanel.Show(discoveryPrompt ? T("unlocked-title", "새 공연 해금 · 인간대포 리허설") : T("required-title", "인간대포 리허설"),
-                    discoveryPrompt ? T("unlocked-body", "인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?") : T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
+                string promptTitle = !discoveryPrompt ? T("required-title", "인간대포 리허설")
+                    : reminderPrompt ? T("reminder-title", "인간대포 리허설 미이수") : T("unlocked-title", "새 공연 해금 · 인간대포 리허설");
+                string promptBody = !discoveryPrompt ? T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?")
+                    : reminderPrompt ? T("reminder-body", "아직 인간대포 리허설을 이수하지 않았습니다. 지금 리허설로 이동할까요?")
+                    : T("unlocked-body", "인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?");
+                votePanel.Show(promptTitle, promptBody,
                     new HudVoteChoice(T("yes", "예"), true, () => AnswerSchedulePrompt(true)),
                     new HudVoteChoice(T("no", "아니오"), true, () => AnswerSchedulePrompt(false)));
                 return;

@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 15.48,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.InteractionPresentationPlayTests.AllNearby_ReevaluateMotionViewOcclusionAndDestruction",
+      "Status": "Passed",
+      "Duration": 15.3369269,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

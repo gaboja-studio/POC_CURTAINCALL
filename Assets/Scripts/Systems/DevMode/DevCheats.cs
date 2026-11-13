@@ -11,15 +11,17 @@ namespace CurtainCall.Dev
     /// 순간이동 지점은 각 콘텐츠가 <see cref="RegisterTeleportSource"/>로 붙인다(공용 코드가 콘텐츠 타입을 알 필요 없음).
     /// 모든 값은 이 화면(이 PC)에만 적용되며, 판정이 호스트에 있는 치트는 호스트 화면에서 켜야 다른 플레이어에게도 적용된다.
     /// </summary>
-    public static class DevCheats
+    public static partial class DevCheats
     {
         public readonly struct TeleportPoint
         {
             public readonly string Label;
             public readonly Vector3 Position;
             public readonly Quaternion Rotation;
-            public TeleportPoint(string label, Vector3 position, Quaternion rotation)
-            { Label = label; Position = position; Rotation = rotation; }
+            public readonly bool TeamRecovery;
+            public readonly int Order;
+            public TeleportPoint(string label, Vector3 position, Quaternion rotation, bool teamRecovery = false, int order = -1)
+            { Label = label; Position = position; Rotation = rotation; TeamRecovery = teamRecovery; Order = order; }
         }
 
         static readonly List<Action<NetworkPlayer, List<TeleportPoint>>> sources = new();
@@ -45,7 +47,14 @@ namespace CurtainCall.Dev
         public static void CollectTeleportPoints(NetworkPlayer local, List<TeleportPoint> results)
         {
             results.Clear();
-            if (local == null) return;
+            if (!DevMode.Enabled || local == null) return;
+            var route = CurrentCheckpointRoute();
+            if (route != null)
+            {
+                route.Collect(Mathf.Max(0, local.Slot), results);
+                return;
+            }
+            // Keep unconfigured test scenes and the waiting room working.
             if (UnityEngine.Object.FindAnyObjectByType<PlayerSpawnPoints>() != null && local.TryGetComponent(out PlayerMover mover))
             {
                 PlayerSpawnPoints.GetPose(Mathf.Max(0, local.Slot), mover.LaneSpacing, out var position, out var rotation);
@@ -56,6 +65,12 @@ namespace CurtainCall.Dev
                 try { source(local, results); }
                 catch (Exception error) { Debug.LogWarning($"[DevCheats] 순간이동 지점 수집 실패: {error.Message}"); }
             }
+        }
+
+        public static void CollectCheckpoints(List<TeleportPoint> results)
+        {
+            results.Clear();
+            CurrentCheckpointRoute()?.Collect(Mathf.Max(0, NetworkPlayer.Local?.Slot ?? 0), results);
         }
 
         /// <summary>내 캐릭터를 옮긴다(재시작 위치는 그대로). 살아 있는 내 캐릭터만. 시선도 지점 방향으로 맞춘다.</summary>
@@ -76,6 +91,6 @@ namespace CurtainCall.Dev
 
         // 도메인 리로드 없이 Play에 들어가도 치트가 꺼진 상태로 시작한다. 공급자는 정적 등록이라 유지한다.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetState() => suppressFalls = false;
+        static void ResetState() { suppressFalls = false; holdCheckpointWipe = true; ResetCheckpointProgress(); }
     }
 }

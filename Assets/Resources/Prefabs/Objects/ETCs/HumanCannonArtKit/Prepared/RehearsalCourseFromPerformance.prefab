@@ -397,7 +397,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7092528678576668219}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HandleLink1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1041,7 +1041,7 @@ GameObject:
   - component: {fileID: 4803857948170862923}
   - component: {fileID: 5963499157706126740}
   - component: {fileID: 5083759723404854795}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CC_GripArt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1131,7 +1131,7 @@ GameObject:
   - component: {fileID: 8343034901727662654}
   - component: {fileID: 6454558217772125001}
   - component: {fileID: 7514927185364182368}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: trampoline_3_001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1607,7 +1607,7 @@ GameObject:
   - component: {fileID: 6746220998040550648}
   - component: {fileID: 6479076438943890926}
   - component: {fileID: 2972865279304470484}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: YellowGrip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1820,7 +1820,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3630043195529042749}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2155,7 +2155,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3949327175007889122}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2866,7 +2866,7 @@ GameObject:
   - component: {fileID: 7143310175369015994}
   - component: {fileID: 7613105153325578371}
   - component: {fileID: 9217927108736193272}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3544,7 +3544,7 @@ GameObject:
   - component: {fileID: 3884642551292727997}
   - component: {fileID: 4852260820832677421}
   - component: {fileID: 7673191041780645649}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: OriginalRoundTrampoline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3709,7 +3709,7 @@ GameObject:
   - component: {fileID: 8346790726345502881}
   - component: {fileID: 3410755462470120430}
   - component: {fileID: 8198440138818277247}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3860,7 +3860,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6071727523846610635}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FrameAndFabric
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3976,7 +3976,7 @@ GameObject:
   - component: {fileID: 1890513306702359151}
   - component: {fileID: 7146409113220841503}
   - component: {fileID: 6701344902261001100}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4381,7 +4381,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7651459729662910126}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AppliedRoundTrampoline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5096,7 +5096,7 @@ GameObject:
   - component: {fileID: 2702311438285973980}
   - component: {fileID: 2918868959648995114}
   - component: {fileID: 4333864225714366620}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SM_Gen_Bld_Pipe_Straight_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5613,7 +5613,7 @@ GameObject:
   - component: {fileID: 1326765372069213072}
   - component: {fileID: 3453754263537113403}
   - component: {fileID: 7915428591083015045}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SM_Gen_Bld_Pipe_Straight_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5701,7 +5701,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9074503662316261608}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HandleLink-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5735,7 +5735,7 @@ GameObject:
   - component: {fileID: 2440357228513572678}
   - component: {fileID: 6402498594390991332}
   - component: {fileID: 8579382632204119855}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: trampoline_3_002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5823,7 +5823,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1368456976868581507}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Grip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5889,7 +5889,7 @@ GameObject:
   - component: {fileID: 8860712475960318133}
   - component: {fileID: 8049240066560498000}
   - component: {fileID: 6451299005050133750}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BounceSurface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7500,7 +7500,7 @@ GameObject:
   - component: {fileID: 711749931763068301}
   - component: {fileID: 6948106801123366793}
   - component: {fileID: 2460426074966522038}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HandleArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7914,7 +7914,7 @@ GameObject:
   - component: {fileID: 1458752108969444145}
   - component: {fileID: 399586719654727799}
   - component: {fileID: 4692705866930447430}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SM_Gen_Bld_Pipe_Straight_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8094,7 +8094,7 @@ GameObject:
   - component: {fileID: 5087675396210431297}
   - component: {fileID: 2027119126181890489}
   - component: {fileID: 8580382871236412284}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8599,7 +8599,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2276404590126381011}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BounceSurface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8877,9 +8877,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6445442726958281600, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6660538132302749246, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 7533943459941905961, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
       propertyPath: m_Name
       value: CC_PropArt
+      objectReference: {fileID: 0}
+    - target: {fileID: 7533943459941905961, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7794976423883222296, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7879603413422120687, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8345229820508164316, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 9037183392452969335, guid: ee00a80a3827c6d46b8a6230c2d8f59b, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

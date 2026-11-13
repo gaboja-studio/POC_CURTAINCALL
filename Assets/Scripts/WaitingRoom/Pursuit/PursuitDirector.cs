@@ -188,7 +188,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 bool pending = victims.Values.Any(v => !v.Retired && v.Object != null);
                 // Final morning fails as soon as everyone is secured. Earlier days wait for the sequence.
                 bool sleeping = candidates.Any(IsSleeping);
-                if (living == 0 && !sleeping && victims.Count > 0 && (s.IsFinalMorning || !pending)) run.NotifyAllPursuitCaught();
+                if (living == 0 && !sleeping && victims.Count > 0 && (s.IsFinalMorning || !pending)
+                    && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe()) run.NotifyAllPursuitCaught();
             }
             TickPoseBroadcast();
             if (Time.unscaledTime >= sendAt) { sendAt = Time.unscaledTime + .25f; Broadcast(); }
@@ -365,6 +366,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
             else condition?.SetLostParts(PlayerCondition.OneArmParts);
             v.Retired = true; Present(v); actor.FinishCapture();
         }
+        internal void ReleaseCheckpointVictim(NetworkPlayer player)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || run == null || !run.HasAuthority || !player.IsServer
+                || !victims.Remove(player.OwnerClientId, out var victim)) return;
+            if (victim.Pose != null) Destroy(victim.Pose);
+            // The reliable snapshot removes the matching capture presentation on the owner too.
+            Broadcast();
+        }
+
         static ulong Id(GameObject player) {
             var p = player != null ? player.GetComponent<NetworkPlayer>() : null;
             return p != null && p.IsSpawned ? p.OwnerClientId : ulong.MaxValue;

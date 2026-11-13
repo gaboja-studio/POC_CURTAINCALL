@@ -65,6 +65,7 @@ namespace CurtainCall.StartLobby
         bool menuOpen;
         bool placePending;
         bool awayInSpace;
+        bool endingBodiesRestored;
         public LobbyInteractable FocusedInteraction { get; private set; }
         public bool ExternalInteractionPresentation { get; set; }
 
@@ -133,6 +134,19 @@ namespace CurtainCall.StartLobby
 
         void LateUpdate()
         {
+            // Ending keeps the session ended until the lever is used. Restore bodies separately:
+            // Arrived/Retired otherwise survive placement and reject both movement and interaction.
+            // Wait for the hub environment to be enabled; never revive actors inside the escape scene.
+            if (shown && !SpaceLinkHub.HasLoadedSpace(gameObject.scene) && campaign != null
+                && (SpaceLinkDirector.Instance == null || !SpaceLinkDirector.Instance.IsTransitioning))
+            {
+                if (campaign.State.Phase != CampaignPhase.Ending) endingBodiesRestored = false;
+                else if (!endingBodiesRestored && session != null && session.IsHost)
+                {
+                    NetworkPlayer.ServerRestoreEveryone();
+                    endingBodiesRestored = true;
+                }
+            }
             if (!placePending) return;
             placePending = false;
             if (NetworkPlayer.Local != null) Place(NetworkPlayer.Local);

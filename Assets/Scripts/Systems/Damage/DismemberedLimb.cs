@@ -14,12 +14,18 @@ namespace CurtainCall.Damage
 
         void OnEnable()
         {
+            Settings.GamePhysicsLayers.AssignHierarchy(transform, Settings.GamePhysicsLayers.DetachedLimb);
             shapes = GetComponentsInChildren<Collider>(true);
             active.Add(this);
         }
-
+        void OnTransformChildrenChanged()
+        {
+            Settings.GamePhysicsLayers.AssignHierarchy(transform, Settings.GamePhysicsLayers.DetachedLimb);
+            shapes = GetComponentsInChildren<Collider>(true);
+        }
         void OnDisable() => active.Remove(this);
 
+        // Players still ignore loose limbs individually; trampolines use the project layer matrix.
         internal static void IgnoreFor(Collider body)
         {
             if (body == null || !body.enabled || !body.gameObject.activeInHierarchy) return;

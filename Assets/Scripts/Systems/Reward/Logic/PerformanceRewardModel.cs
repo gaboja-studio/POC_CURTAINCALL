@@ -54,6 +54,8 @@ namespace CurtainCall.Reward
             }
         }
         public PerformanceIdentity Performance => performance;
+        /// <summary>점수·명부 밖의 공유 표시(공연 종료 여유 시간 등)가 바뀌었을 때 새 스냅샷으로 보내기 위해 revision만 올린다.</summary>
+        public void Touch() => Revision++;
         public PerformanceResult Latest => history.Count == 0 ? null : history[^1];
         public IReadOnlyList<PerformanceResult> History => history.AsReadOnly();
         public IReadOnlyList<FundEntry> Ledger => ledger.AsReadOnly();
@@ -226,6 +228,18 @@ namespace CurtainCall.Reward
             person.Amount = amount;
             if (changed) Revision++;
             return changed;
+        }
+
+        /// <summary>Developer checkpoint recovery for an open performance; preserves awarded cut bonuses and progress.</summary>
+        public bool RestoreDevCheckpointParticipant(string participantId)
+        {
+            var person = IsOpen ? Find(participantId) : null;
+            if (person == null || !person.Connected || !person.Dead) return false;
+            person.Dead = false;
+            person.Parts = 0;
+            RestartInterest(person);
+            Revision++;
+            return true;
         }
 
         public bool Confirm(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements,

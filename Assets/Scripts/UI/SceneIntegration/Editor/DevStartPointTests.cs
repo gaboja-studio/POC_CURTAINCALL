@@ -6,6 +6,34 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
     public sealed class DevStartPointTests
     {
+        [TestCase("Tightrope", 1)]
+        [TestCase("Tightrope", 2)]
+        [TestCase("Tightrope", 3)]
+        [TestCase("HumanCannon", 1)]
+        [TestCase("HumanCannon", 2)]
+        [TestCase("HumanCannon", 3)]
+        public void SelectedDifficultyAppliesWithoutInventingClearHistory(string trick, int difficulty)
+        {
+            var run = new RunState();
+            Assert.IsTrue(run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Performance, 0, trick, difficulty)));
+            Assert.AreEqual(trick, run.Snapshot.TrickId);
+            Assert.AreEqual(difficulty, run.Snapshot.Difficulty);
+            Assert.AreEqual(0, run.ClearedTier(trick));
+            Assert.AreEqual(1, run.MaxSelectableTier(trick));
+            run.StartSession(); run.EndIntro();
+            Assert.AreEqual(1, run.Snapshot.Difficulty, "Ordinary runs must not retain the development difficulty.");
+        }
+
+        [TestCase(0)]
+        [TestCase(4)]
+        public void InvalidDifficultyDoesNotResetTheCurrentRun(int difficulty)
+        {
+            var run = new RunState(); run.StartSession(); run.EndIntro();
+            var before = run.Snapshot;
+            Assert.IsFalse(run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Performance, 0, "Tightrope", difficulty)));
+            Assert.AreEqual(before, run.Snapshot);
+        }
+
         [Test]
         public void SelectedPerformance_ContinuesThroughNormalNightAndMorning()
         {

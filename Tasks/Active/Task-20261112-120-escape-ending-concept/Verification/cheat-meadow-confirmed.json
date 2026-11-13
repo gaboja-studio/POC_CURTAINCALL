@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "eval",
+    "parameters": {
+      "code": "return new {state=CurtainCall.Network.PlayerSync.NetworkPlayer.Local.State.ToString(),phase=CurtainCall.Campaign.CampaignRun.Instance.State.Phase.ToString(),ending=CurtainCall.EscapeRoute.EscapeEndingPresentation.Current.IsPresenting};"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "state": "Arrived",
+        "phase": "Ending",
+        "ending": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/cheat-probe.cs",
+      "entry": "CheatProbe.OpenDoorFixtureAndArrive",
+      "timeout_ms": "25000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 97,
+      "executeMs": 2114,
+      "assemblyName": "PipelineRunScript_cheat-probe_545bc36f0b49479e9ae0613c1817719a",
+      "success": true,
+      "result": {
+        "point": "탈출로 · 갈대밭 · 엔딩 도착",
+        "state": "Arrived",
+        "phase": "Ending"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

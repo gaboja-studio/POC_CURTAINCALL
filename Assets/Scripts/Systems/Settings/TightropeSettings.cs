@@ -13,23 +13,32 @@ namespace CurtainCall.Settings
     public sealed class TightropeSettings : TrickSettings
     {
         [Header("코스 (만들 때 적용)")]
+        [Tooltip("줄 수·길이·플랫폼·구간 나눔·봉 구간 등 외줄 코스 모양. 코스를 새로 만들 때 적용된다.")]
         [SerializeField] CourseSettings course = new();
         [Header("진행")]
+        [Tooltip("제한시간·재시작 대기 등 외줄 진행 판정 값.")]
         [SerializeField] RunSettings run = new();
         [Header("줄 위 동작")]
+        [Tooltip("줄 위 걷기 속도·점프·줄 옮겨 타기 등 줄 위 동작.")]
         [SerializeField] RopeMovementSettings ropeMovement = new();
         [Header("손잡기")]
+        [Tooltip("동료 손잡기 거리·흔들림 완화 등 손잡기 규칙.")]
         [SerializeField] HandholdSettings handhold = new();
         [Header("목마")]
+        [Tooltip("동료를 목마 태우기·내리기·앞으로 던지기 규칙.")]
         [SerializeField] PiggybackSettings piggyback = new();
         [Header("카메라")]
+        [Tooltip("외줄 공연 중 카메라 거리·각도.")]
         [SerializeField] CameraSettings camera = new();
         [Header("신체 손상 불이익 (외줄)")]
         [Header("톱날 (장애물 순서·가로·수직·발판·부위 판정)")]
+        [Tooltip("톱날 장애물의 순서·가로/수직 톱·발판·맞은 부위 판정.")]
         [SerializeField] Tightrope.Saws.SawSettings saws = new();
         [Header("불 (회차 시작에 적용·플레이 중 변경은 다음 회차)")]
+        [Tooltip("줄을 태우는 불 장애물. 회차 시작 때 적용되고, 플레이 중 변경은 다음 회차부터 반영된다.")]
         [SerializeField] Tightrope.Fire.FireSettings fire = new();
         [Header("추락 매달림·동료 끌어올리기 (M2)")]
+        [Tooltip("추락 시 줄에 매달리기와 동료가 끌어올리는 구조 규칙.")]
         [SerializeField] HangSettings hang = new();
         [Header("공연 단계 추가 배치 (2단계부터)")]
         [Tooltip("대기실 스케줄에서 고른 외줄 단계에만 1단계 위에 더 놓는 기물. 첫 칸이 2단계, 둘째 칸이 3단계다. 1단계(위 코스·톱날 칸)를 고치면 모든 단계에 같이 반영된다.")]
@@ -220,8 +229,11 @@ namespace CurtainCall.Settings
             [SerializeField, Range(4f, 12f)] float swingGapLength = 8f;
 
             [Header("공중 2인 봉 교대 구간")]
+            [Tooltip("켜면 코스에 공중 2인 봉 교대 구간을 만든다. 구간의 줄을 모두 끊어 봉을 타고 건너게 한다.")]
             [SerializeField] bool trapezeEnabled = true;
+            [Tooltip("공중 봉 교대 구간이 시작하는 거리(m, 출발점 기준).")]
             [SerializeField, Min(10f)] float trapezeStart = 110f;
+            [Tooltip("공중 봉 교대 구간의 길이(m). 이 길이만큼 줄이 끊긴다.")]
             [SerializeField, Range(8f, 24f)] float trapezeLength = 16f;
             [Tooltip("공중 봉 세 개를 배치할 줄 번호(1부터). 구간의 모든 줄을 끊어 봉으로 건너도록 한다.")]
             [SerializeField, Min(1)] int trapezeLane = 3;
@@ -308,8 +320,11 @@ namespace CurtainCall.Settings
         [Serializable]
         public struct CourseSection
         {
+            [Tooltip("이 구간이 끝나는 위치(코스 전체 길이 대비 0~1).")]
             [Range(0f, 1f)] public float endFraction;
+            [Tooltip("HUD에 'n구간 · 이름'으로 보이는 구간 이름.")]
             public string label;
+            [Tooltip("진행 표시에서 이 구간을 칠하는 색.")]
             public Color color;
             public CourseSection(float endFraction, string label, Color color)
             { this.endFraction = endFraction; this.label = label; this.color = color; }
@@ -437,7 +452,9 @@ namespace CurtainCall.Settings
 
             [Tooltip("F로 동료를 받을 준비를 유지하는 시간(초). 이동·점프하면 해제한다.")]
             [SerializeField, Min(0.1f)] float readySeconds = 3f;
+            [Tooltip("F로 받을 준비를 한 동료 주변에서 착지 충격을 줄여 주는 범위(m, 준비한 사람 기준 반경).")]
             [SerializeField, Min(0f)] float activeDistance = 1.25f;
+            [Tooltip("받을 준비를 한 동료 범위 안에 착지했을 때 착지 충격·흔들림 증가를 줄이는 비율(0~1, 0.9 = 90%).")]
             [SerializeField, Range(0f, 1f)] float activeReduction = 0.9f;
 
             [Header("봉 양쪽 교대 버팀 (고도화 초기값)")]

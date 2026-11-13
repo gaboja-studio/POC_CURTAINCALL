@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/github/POC_CURTAINCALL/.harness/local/escape-ending-concept/Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/ending-feedback-probe.cs",
+      "entry": "EndingFeedbackProbe.VerifyEmptyPortrait",
+      "timeout_ms": "24000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 183,
+      "executeMs": 5,
+      "assemblyName": "PipelineRunScript_ending-feedback-probe_6b0d79fd3f5b4c5d87e9398319c61871",
+      "success": true,
+      "result": {
+        "maskHidden": true,
+        "frameHidden": true,
+        "personalBest": "—",
+        "alignment": "Midline"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

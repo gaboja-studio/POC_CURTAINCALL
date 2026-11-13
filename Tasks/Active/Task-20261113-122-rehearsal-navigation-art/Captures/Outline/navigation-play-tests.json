@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 58.16,
+  "summary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.NavigationAfterRehearsal_UsesPulsePrefabAndHidesAtGather",
+      "Status": "Passed",
+      "Duration": 30.5216799,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.NavigationObjectEndpoints_OutlineRealPhoneAndPlayerKeepWaveAndRestorePositionMarker",
+      "Status": "Passed",
+      "Duration": 12.5781909,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitNavigation_PatrolRestoresPathAfterListeningStop",
+      "Status": "Failed",
+      "Duration": 14.7701082,
+      "Message": "Unhandled log message: '[Error] \"SetPath\" can only be called on an active agent that has been placed on a NavMesh.'. Use UnityEngine.TestTools.LogAssert.Expect",
+      "StackTrace": "UnityEngine.AI.NavMeshAgent:SetPath (UnityEngine.AI.NavMeshPath)\r\nCurtainCall.WaitingRoom.Pursuit.PursuitActor:Navigate (UnityEngine.Vector3,bool) (at Assets/Scripts/WaitingRoom/Pursuit/PursuitActor.Navigation.cs:65)\r\nSystem.Reflection.MethodBase:Invoke (object,object[])\r\nCurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests/<PursuitNavigation_PatrolRestoresPathAfterListeningStop>d__56:MoveNext () (at Assets/Scripts/UI/SceneIntegration/Tests/PlayMode/PursuitBehaviourPlayTests.cs:41)\r\nUnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)\r\n\r\n"
+    },
+    {
+      "FullName": "CurtainCall.SettingsUi.Tests.SettingsUiPlayTests.EmptyPageAndSinglePageNavigationAreValid",
+      "Status": "Passed",
+      "Duration": 0.0966835,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

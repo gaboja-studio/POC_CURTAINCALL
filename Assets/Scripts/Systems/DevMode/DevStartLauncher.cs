@@ -35,15 +35,17 @@ namespace CurtainCall.Dev
         public static string ShortcutLabel => Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer
             ? "Cmd+Shift+U" : "Ctrl+Shift+U";
         UIInputBlocker input;
-        int day = 1, slot, content;
+        int day = 1, slot, content, difficulty = 1;
         public bool PreserveItemsAndCredits { get; set; }
         public bool PreserveInjuries { get; set; }
         public bool PreserveWaitingRoomUnlocks { get; set; }
+        public bool PreservePerformanceClears { get; set; }
         RunStartPhase phase;
         GUIStyle label, button, heading;
         Vector2 scroll;
         static readonly string[] Contents = { "외줄타기", "인간대포" };
         static readonly string[] Tricks = { "Tightrope", "HumanCannon" };
+        static readonly string[] Difficulties = { "1단계", "2단계", "3단계" };
         // RunStartPhase 순서와 같다. 탈출로는 대기실 합류 없이 탈출로 출발점에서 바로 시작한다(Task-089).
         static readonly string[] Phases = { "공연", "아침", "공연 사이", "밤 정비", "탈출로", "리허설" };
 
@@ -97,6 +99,10 @@ namespace CurtainCall.Dev
             var credits = PreserveItemsAndCredits ? PerformanceRewards.Instance?.Balance ?? 0 : 0;
             var exploration = PreserveWaitingRoomUnlocks ? ExplorationState.Instance?.CaptureDevSnapshot() : null;
             bool cannonUnlocked = PreserveWaitingRoomUnlocks && CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
+            var priorCampaign = CampaignRun.Instance;
+            var clearHistory = PreservePerformanceClears && priorCampaign != null
+                ? (priorCampaign.ClearedTier(CampaignSnapshot.TightropeId), priorCampaign.ClearedTier(CampaignSnapshot.HumanCannonId))
+                : default;
             var injuries = new Dictionary<ulong, BodyPart>();
             if (PreserveInjuries)
             {
@@ -145,7 +151,7 @@ namespace CurtainCall.Dev
                         if (player != null && injuries.TryGetValue(player.OwnerClientId, out var parts)) player.ServerRestoreDevInjury(parts);
                 // 같은 프레임에 최종 요청을 넣어 도입/로비를 경유하지 않는다.
                 if (point.Phase == RunStartPhase.Rehearsal) WaitingRoomRehearsal.ResetForDevLaunch();
-                if (!campaign.DebugStartAtPreservingUnlock(point, cannonUnlocked))
+                if (!campaign.DebugStartAtPreservingUnlock(point, cannonUnlocked, clearHistory))
                 { Status = "개발 시작 상태를 적용하지 못했습니다."; yield break; }
                 int generation = campaign.State.Generation;
                 // 캠페인 단계 이벤트의 자동 부활이 부상을 바꾸지 않도록 마지막에 다시 적용한다.
@@ -222,6 +228,7 @@ namespace CurtainCall.Dev
             GUILayout.Space(8);
             PreserveItemsAndCredits = GUILayout.Toggle(PreserveItemsAndCredits, " 현재 기물 및 크레딧 내용 유지");
             PreserveInjuries = GUILayout.Toggle(PreserveInjuries, " 현재 부상 유지");
+            PreservePerformanceClears = GUILayout.Toggle(PreservePerformanceClears, " 공연 클리어 이력 유지");
             GUILayout.Label($"대기실 대상: {GameSettings.Base.SpaceTransition.WaitingRoomScene}", label);
             PreserveWaitingRoomUnlocks = GUILayout.Toggle(PreserveWaitingRoomUnlocks, " 대기실 해금 유지");
             if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
@@ -245,11 +252,16 @@ namespace CurtainCall.Dev
                 GUILayout.EndHorizontal();
                 GUI.enabled = enabled && !IsBusy;
                 content = GUILayout.SelectionGrid(content, Contents, 2, button);
+                if (phase == RunStartPhase.Performance)
+                {
+                    GUILayout.Label("공연 난이도 (이번 테스트 공연에 적용)", label);
+                    difficulty = GUILayout.SelectionGrid(difficulty - 1, Difficulties, 3, button) + 1;
+                }
             }
             GUILayout.Space(12);
             GUILayout.Label(Status, label);
             if (GUILayout.Button(IsBusy ? "준비 중…" : "선택 지점에서 새 테스트 시작", button))
-                TryLaunch(new RunStartPoint(day, phase, slot, Tricks[content]));
+                TryLaunch(new RunStartPoint(day, phase, slot, Tricks[content], phase == RunStartPhase.Performance ? difficulty : 1));
             if (GUILayout.Button($"닫기 [{ShortcutLabel} / F8] · 치트 창 [{DevCheatPanel.ShortcutLabel}]", button)) Toggle();
             GUI.enabled = enabled;
             GUILayout.EndScrollView();

@@ -99,7 +99,7 @@ namespace CurtainCall.Tightrope
             if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding) return false;
             if (climber == null || target == null || climber == target) return false;
             if (HumanCannonCarry.HasOccupiedHands(climber) || UsingDevice(climber) || UsingDevice(target)
-                || CurtainCall.WaitingRoom.ExpertService.IsTreating(target.OwnerClientId)) return false;
+                || CurtainCall.WaitingRoom.ExpertService.IsTreating(target.OwnerClientId) || BlocksNewPassenger(target)) return false;
             if (TightropeCourse.Current == null || !TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
@@ -549,6 +549,7 @@ namespace CurtainCall.Tightrope
                 if (!CanStand(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
+                if (BlocksNewPassenger(other)) continue;
                 if (climber.TryGetComponent(out PlayerMover climberMover) && climberMover.FreeMovement
                     && other.TryGetComponent(out PlayerMover carrierMover) && carrierMover.FreeMovement
                     && !PiggybackFollow.HasRoomForPassenger(climberMover, PiggybackFollow.HeadAboveStack(this, other))) continue;
@@ -564,6 +565,14 @@ namespace CurtainCall.Tightrope
 
         // A grounded owner can still be waiting for the previous fall to finish.
         // Do not attach a new link that ServerResolveFalls would immediately detach.
+        bool BlocksNewPassenger(NetworkPlayer target)
+        {
+            if (target == null || !GameSettings.Base.CarryDevices.BlockPiggybackOnSawCarrier) return false;
+            for (var member = FindPlayer(BottomOf(target.OwnerClientId)); member != null; member = GetAbove(member))
+                if (HumanCannonCarry.Held(member.OwnerClientId) is EscapeExitSaw) return true;
+            return false;
+        }
+
         static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne && !player.IsDroppingFromSupport
             && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)
             && (!player.TryGetComponent(out PlayerMover posture) || !posture.IsCrouched)

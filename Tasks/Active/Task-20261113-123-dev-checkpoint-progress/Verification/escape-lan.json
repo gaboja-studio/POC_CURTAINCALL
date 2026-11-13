@@ -1,0 +1,24 @@
+{
+  "survivorUntouched": true,
+  "wipeWaited": true,
+  "result": "사망자 2명 부활 · 단원 1: 탈출로 · 후반 그네 앞 / 단원 2: 탈출로 · 마지막 문 앞",
+  "players": [
+    {
+      "Slot": 0,
+      "IsLocal": true,
+      "state": "Normal",
+      "injury": "None",
+      "position": "(-474.00, 25.05, 40.30)",
+      "last": "탈출로 · 후반 그네 앞"
+    },
+    {
+      "Slot": 1,
+      "IsLocal": false,
+      "state": "Normal",
+      "injury": "None",
+      "position": "(-597.00, 25.05, 40.30)",
+      "last": "탈출로 · 마지막 문 앞"
+    }
+  ],
+  "exitGuard": true
+}

@@ -74,6 +74,33 @@ namespace CurtainCall.EscapeRoute
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
+        internal bool DevOpenExit()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !SessionReady || !session.IsHost) return false;
+            if (DoorOpen) return true;
+            if (ProjectileMode)
+            {
+                uint required = RequiredMask;
+                if (required == 0) return false;
+                for (int i = 0; i < cables.Length && i < 32; i++)
+                {
+                    uint bit = 1u << i;
+                    if ((required & bit) == 0 || (cutMask & bit) != 0) continue;
+                    cables[i].SetCut(true);
+                    cutMask |= bit;
+                    cutPoints[i] = cables[i].CutPoint;
+                    if (!string.IsNullOrEmpty(cables[i].OpenTarget))
+                        CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cables[i].OpenTarget);
+                    ShareCut(cables[i], cutPoints[i]);
+                }
+            }
+            else cutProgress = cutSeconds;
+            cutting = false;
+            if (DoorOpen && !string.IsNullOrEmpty(openTarget))
+                CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+            Changed(); // Use the normal revision/snapshot path; presentation animates the door.
+            return DoorOpen;
+        }
         [Tooltip("배선 안내 위치 기준 팀 임무 구역. 마지막 통로의 절단기부터 출구까지 포함합니다.")]
         [SerializeField] Bounds objectiveZone = new(new Vector3(-3,2,0), new Vector3(34,10,14));
         public bool TeamReachedExitZone { get; private set; }

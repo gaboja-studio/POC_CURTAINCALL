@@ -152,10 +152,10 @@ namespace CurtainCall.HumanCannon
             countdown?.Hide();
         }
 
-        internal void PresentCountdown(float seconds, float swingAngle)
+        internal void PresentCountdown(float seconds, float swingAngle, bool hasRiders)
         {
+            if (!hasRiders || !PresentationVisible || !isActiveAndEnabled) { countdown?.Hide(); return; }
             if (!Application.isPlaying || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return;
-            if (!PresentationVisible || !isActiveAndEnabled) { countdown?.Hide(); return; }
             countdown ??= PoleCountdownView.Create(transform);
             Vector3 position = BarPosition(swingAngle) + Vector3.up * Rules.CountdownHeight;
             var camera = Camera.main;

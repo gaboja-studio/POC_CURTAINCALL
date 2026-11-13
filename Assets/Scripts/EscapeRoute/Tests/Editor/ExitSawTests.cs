@@ -147,6 +147,36 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Touch(new Vector3(.6f, 0, 0)), Is.False);
             Assert.That(Touch(new Vector3(float.NaN, 0, 0)), Is.False);
         }
+
+        [Test, Category("EscapeSawCameraRegression"), Category("CommonProgressionRegression")]
+        public void SpectatorIgnoresWatchedCarriersSawButStillCollidesWithWallsAndOtherLoads()
+        {
+            Fixture(true); var spectator = Player(41); var carrier = Player(42); Own(42);
+            var load = device.gameObject.AddComponent<BoxCollider>();
+            var wall = Root("Solid wall", true).AddComponent<BoxCollider>();
+            var localProperty = T(PlayerType).GetProperty("Local", Static);
+            var targetProperty = T("CurtainCall.Cameras.CameraSpectator").GetProperty("Target", Static);
+            var spectatingProperty = T("CurtainCall.Cameras.CameraSpectator").GetProperty("IsSpectating", Static);
+            var previousLocal = localProperty.GetValue(null); var previousTarget = targetProperty.GetValue(null);
+            var previousSpectating = spectatingProperty.GetValue(null);
+            var blocks = T("CurtainCall.Cameras.CameraViewDirector").GetMethod("BlocksCamera", Static);
+            bool Blocks(Collider shape) => (bool)blocks.Invoke(null, new object[] { shape });
+            try
+            {
+                localProperty.SetValue(null, spectator); targetProperty.SetValue(null, carrier); spectatingProperty.SetValue(null, true);
+                Assert.That(Blocks(load), Is.False, "관전 대상이 든 톱이 관전 카메라를 압축하면 안 된다.");
+                Assert.That(Blocks(wall), Is.True);
+                targetProperty.SetValue(null, spectator);
+                Assert.That(Blocks(load), Is.True, "다른 사람이 든 기물까지 모두 무시하지 않는다.");
+                spectatingProperty.SetValue(null, false); localProperty.SetValue(null, carrier);
+                Assert.That(Blocks(load), Is.False, "본인 운반 시 기존 제외 유지");
+            }
+            finally
+            {
+                localProperty.SetValue(null, previousLocal); targetProperty.SetValue(null, previousTarget);
+                spectatingProperty.SetValue(null, previousSpectating);
+            }
+        }
         [Test]
         public void RotatedBladeContactFollowsItsWorldAxis()
         {

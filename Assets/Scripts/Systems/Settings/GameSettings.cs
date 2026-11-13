@@ -2,6 +2,27 @@ using UnityEngine;
 
 namespace CurtainCall.Settings
 {
+    /// <summary>Layer names shared by authored assets and runtime generation. Collision policy lives in Project Settings / Physics.</summary>
+    public static class GamePhysicsLayers
+    {
+        public const string Trampoline = "Trampoline";
+        public const string DetachedLimb = "DismemberedLimb";
+        public const string TrickHazard = "TrickHazard";
+
+        public static void AssignHierarchy(Transform root, string name)
+        {
+            int layer = LayerMask.NameToLayer(name);
+            if (root == null || layer < 0) return;
+            Assign(root, layer);
+        }
+
+        static void Assign(Transform root, int layer)
+        {
+            root.gameObject.layer = layer;
+            foreach (Transform child in root) Assign(child, layer);
+        }
+    }
+
     /// <summary>
     /// 기획 조정값의 시작점. 세팅 5묶음(공통 / 각 묘기 / 대기실 / 탐색 / 탈출로)을 연결만 한다.
     /// 에셋: Assets/Resources/Settings/GameSettings/GameSettings.asset. 결정: Harness/Project/Decisions/game-settings.md

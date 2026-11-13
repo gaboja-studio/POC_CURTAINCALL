@@ -56,6 +56,10 @@ namespace CurtainCall.WaitingRoom
         public static bool IsPracticing => instance != null && instance.active && instance.practice;
         /// <summary>재연습 투표 또는 다음 프레임의 코스 생성을 기다리는 시작 요청.</summary>
         public static bool IsPracticePending => instance != null && (instance.practiceVote || instance.practice);
+        /// <summary>재연습 투표가 통과해 끝날 때까지(코스 생성·진행·종료 연출). 쉬는 시간 타이머를 멈추는 기준.</summary>
+        public static bool IsPracticeRunning => instance != null && instance.practice;
+        /// <summary>추격전이 시작돼 대기실 리허설을 열 수 없다(2026-11-13 사용자).</summary>
+        public static bool IsPursuitRunning => CampaignRun.Instance != null && CampaignRun.Instance.State.Timer == RestTimerState.Pursuit;
         /// <summary>최초 리허설을 이수했다(앱을 켜 둔 동안 기억).</summary>
         public static bool HasMastered => savedStage >= RehearsalStage.All.Length;
 
@@ -159,7 +163,7 @@ namespace CurtainCall.WaitingRoom
         bool HasAuthority => run != null && run.HasAuthority;
         static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
-        bool CanOfferPractice => !active && !practice && !practiceVote && !ExpertService.IsMovingBuyer && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+        bool CanOfferPractice => !active && !practice && !practiceVote && !CampaignRun.RehearsalEntryBlocked && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
             && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
             && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
@@ -204,8 +208,8 @@ namespace CurtainCall.WaitingRoom
                 && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
             // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
             if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) EndPractice();
-            bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
             HostTickVotes();
+            bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
             TickVoteUi();
             if (!wanted)
             {

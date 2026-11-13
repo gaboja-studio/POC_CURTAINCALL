@@ -66,15 +66,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator AllNearby_ReevaluateMotionViewOcclusionAndDestruction()
         {
-            var a = Phone("Near", new Vector3(-.5f, 101, 1));
-            var b = Phone("Middle", new Vector3(.5f, 101, 2));
-            var c = Phone("Far", new Vector3(1, 101, 3));
+            // All three must be inside the current 2.5m waiting-room highlight range.
+            var a = Phone("Near", new Vector3(-.8f, 101, 1));
+            var b = Phone("Middle", new Vector3(0, 101, 1.5f));
+            var c = Phone("Far", new Vector3(.9f, 101, 1.8f));
             var originalMaterial = a.GetComponent<Renderer>().sharedMaterial;
             yield return Settle();
             CollectionAssert.AreEquivalent(new[] { a.transform, b.transform, c.transform }, Highlighted);
             Assert.AreEqual(3, Get(ui, "HighlightCount"));
             Assert.AreSame(originalMaterial, a.GetComponent<Renderer>().sharedMaterial);
-            Assert.IsNotNull(a.transform.Find("__InteractionOutline"));
+            Assert.IsNull(a.transform.Find("__InteractionOutline"), "Screen-space outlines must not add shells to the object.");
             a.transform.position += Vector3.right * 20;
             yield return Settle();
             CollectionAssert.AreEquivalent(new[] { b.transform, c.transform }, Highlighted);

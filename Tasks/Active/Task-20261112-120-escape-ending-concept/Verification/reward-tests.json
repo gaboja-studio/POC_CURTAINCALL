@@ -1,0 +1,483 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.1,
+      "summary": {
+        "total": 65,
+        "passed": 61,
+        "failed": 4,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ArrivedAndDeadDoNotDecay",
+          "Status": "Passed",
+          "Duration": 0.0091107,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.CutIsAwardedOnceAndSurvivorDoublesCheer",
+          "Status": "Failed",
+          "Duration": 0.0050966,
+          "Message": "  생존 호응 25 × 2\r\n  Expected: 50\r\n  But was:  150\r\n",
+          "StackTrace": "at CurtainCall.Reward.Tests.AudienceReactionTests.CutIsAwardedOnceAndSurvivorDoublesCheer () [0x00098] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\AudienceReactionTests.cs:39\r\n"
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.CutSuccessRestartsPersonalGrace",
+          "Status": "Passed",
+          "Duration": 0.0002319,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.CutThatKillsStillCountsBeforeFreeze",
+          "Status": "Passed",
+          "Duration": 0.0001856,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.DodgeRequiresApproachAndIsAwardedOnlyOnce",
+          "Status": "Passed",
+          "Duration": 0.0002349,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ExplicitReactionHistoryIgnoresDecayAndZeroBooAndIncludesCapSuccess",
+          "Status": "Passed",
+          "Duration": 0.0003636,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.HorizontalNearMissStillRewardsBeforeForwardPassOnlyOnce",
+          "Status": "Passed",
+          "Duration": 0.0001062,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.InterestDecaysAfterGraceAndCheerRestartsGrace",
+          "Status": "Passed",
+          "Duration": 0.0002035,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.JeerAtZeroAndUnknownOrDisconnectedMemberCannotGain",
+          "Status": "Passed",
+          "Duration": 0.0001652,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.LaneChangeAndStackAreTrackedAcrossCrossing",
+          "Status": "Passed",
+          "Duration": 0.000128,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ProximityDodgeResolvesWhenMovingThreatLeavesWithoutForwardMovement",
+          "Status": "Passed",
+          "Duration": 0.0001577,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ProximityHitOrCutNeverRewards(True,0)",
+          "Status": "Passed",
+          "Duration": 0.0001931,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ProximityHitOrCutNeverRewards(False,1)",
+          "Status": "Passed",
+          "Duration": 0.0000429,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.ReactionsClampAndDeathFreezesCheer",
+          "Status": "Passed",
+          "Duration": 0.0003653,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.RegionAlreadyBehindPlayerNeverRewardsOnReentry",
+          "Status": "Passed",
+          "Duration": 0.0001141,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.StallJeerRestartsGraceAndTeammateCheerDoesNot",
+          "Status": "Passed",
+          "Duration": 0.0002315,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.StallRequiresContinuousNoProgressAndRepeats",
+          "Status": "Passed",
+          "Duration": 0.0002872,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.SuccessResetsFullStallWait",
+          "Status": "Passed",
+          "Duration": 0.000121,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.TouchOrCutDisqualifiesDodge(True,0)",
+          "Status": "Passed",
+          "Duration": 0.0001149,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.TouchOrCutDisqualifiesDodge(False,1)",
+          "Status": "Passed",
+          "Duration": 0.0000413,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.AudienceReactionTests.WideDodgeDoesNotRequireNearMissAndCannotRepeat",
+          "Status": "Passed",
+          "Duration": 0.0000998,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.LedgerTotalsIgnoreGenerationResetAndGenerationAdvanceClearsTheRun",
+          "Status": "Failed",
+          "Duration": 0.0016849,
+          "Message": "System.ArgumentException : 참가자 결과가 올바르지 않습니다.",
+          "StackTrace": "  at CurtainCall.Results.PerformanceParticipantResult..ctor (System.String participantId, System.UInt64 clientId, System.Int32 slot, System.Int32 startingLostCount, System.Int32 endingLostCount, System.Boolean dead, System.Boolean connected, System.String judgement, System.Int64 segment, System.Int64 settlement, System.Nullable`1[T] maximumDistance, System.Int64 completionBonus, System.Nullable`1[T] finalDistance) [0x0008f] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Results\\PerformanceResult.cs:65 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.Result (System.Int32 index, System.Boolean success, System.Int64 score) [0x00000] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:11 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.LedgerTotalsIgnoreGenerationResetAndGenerationAdvanceClearsTheRun () [0x000b5] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:51 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.MoreThanTenResultsRemainInTotalsAndRepeatedPublishDoesNotDoubleCount",
+          "Status": "Failed",
+          "Duration": 0.0003017,
+          "Message": "System.ArgumentException : 참가자 결과가 올바르지 않습니다.",
+          "StackTrace": "  at CurtainCall.Results.PerformanceParticipantResult..ctor (System.String participantId, System.UInt64 clientId, System.Int32 slot, System.Int32 startingLostCount, System.Int32 endingLostCount, System.Boolean dead, System.Boolean connected, System.String judgement, System.Int64 segment, System.Int64 settlement, System.Nullable`1[T] maximumDistance, System.Int64 completionBonus, System.Nullable`1[T] finalDistance) [0x0008f] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Results\\PerformanceResult.cs:65 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.Result (System.Int32 index, System.Boolean success, System.Int64 score) [0x00000] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:11 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.MoreThanTenResultsRemainInTotalsAndRepeatedPublishDoesNotDoubleCount () [0x00015] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:22 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.UnresolvedPortraitDoesNotReplaceHigherPersonalRecord",
+          "Status": "Failed",
+          "Duration": 0.0002298,
+          "Message": "System.ArgumentException : 참가자 결과가 올바르지 않습니다.",
+          "StackTrace": "  at CurtainCall.Results.PerformanceParticipantResult..ctor (System.String participantId, System.UInt64 clientId, System.Int32 slot, System.Int32 startingLostCount, System.Int32 endingLostCount, System.Boolean dead, System.Boolean connected, System.String judgement, System.Int64 segment, System.Int64 settlement, System.Nullable`1[T] maximumDistance, System.Int64 completionBonus, System.Nullable`1[T] finalDistance) [0x0008f] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Results\\PerformanceResult.cs:65 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.Result (System.Int32 index, System.Boolean success, System.Int64 score) [0x00000] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:11 \r\n  at CurtainCall.Reward.Tests.EscapeRunStatisticsTests.UnresolvedPortraitDoesNotReplaceHigherPersonalRecord () [0x00010] in D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept\\Assets\\Scripts\\Systems\\Reward\\Tests\\EditMode\\EscapeRunStatisticsTests.cs:37 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.AdvanceGeneration_ResetsFundsAndOpenRosterExactlyOnce",
+          "Status": "Passed",
+          "Duration": 0.0029254,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.ApplyRules_LowerCap_ClampsEverySegmentImmediately",
+          "Status": "Passed",
+          "Duration": 0.0008106,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Begin_EvictedHistoryId_IsStillRejectedAfterTenResultLimit",
+          "Status": "Passed",
+          "Duration": 0.0006754,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Begin_InvalidRosterOrIdentity_IsRejectedWithoutPartialState",
+          "Status": "Passed",
+          "Duration": 0.0007514,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Begin_NextDay_KeepsFundsAndStartsFreshSegments",
+          "Status": "Passed",
+          "Duration": 0.0003835,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Begin_RosterAndStartingLostCount_StayFixedAcrossSourceChangesAndRetry",
+          "Status": "Passed",
+          "Duration": 0.0009805,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Cheer_ChangedRules_UsesCurrentIncrementAndDecrement",
+          "Status": "Passed",
+          "Duration": 0.0002303,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Cheer_InvalidParticipant_DoesNotApplyRulesOrChangeRevision",
+          "Status": "Passed",
+          "Duration": 0.0003786,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.CheerAndJeer_ClampToCapAndZero_CheerAtCapStillPublishesSuccess",
+          "Status": "Passed",
+          "Duration": 0.000255,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_CheerClampsToCurrentCapAndCompletionIsAddedOutsideCap",
+          "Status": "Passed",
+          "Duration": 0.000289,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_FailedPerformanceDoesNotCompleteRemainingSurvivors(False,1)",
+          "Status": "Passed",
+          "Duration": 0.0002551,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_FailedPerformanceDoesNotCompleteRemainingSurvivors(True,2)",
+          "Status": "Passed",
+          "Duration": 0.000081,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_InvalidInputAndDuplicate_DoNotPayOrMutateState",
+          "Status": "Passed",
+          "Duration": 0.0004113,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_MinimumOne_SingleSurvivorCanSucceed",
+          "Status": "Passed",
+          "Duration": 0.000209,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_MinimumOne_ZeroConnectedSurvivorsStillFails",
+          "Status": "Passed",
+          "Duration": 0.0002302,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_MinimumTwo_SingleSurvivorFailsEvenWhenTrickSucceeded",
+          "Status": "Passed",
+          "Duration": 0.0002085,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_Success_SumsIndividualSettlementsIntoOneLedgerEntry",
+          "Status": "Passed",
+          "Duration": 0.0003532,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_SuccessCompletesAllSurvivorsAndPreservesActualDistances",
+          "Status": "Passed",
+          "Duration": 0.0010038,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Confirm_TrickFailure_StillPaysCheerReward",
+          "Status": "Passed",
+          "Duration": 0.000417,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.DebugGrant_AddsOneLedgerLineThatKeepsSnapshotValid",
+          "Status": "Passed",
+          "Duration": 0.0004375,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_AllFourLostBits_ImplyDeathIncludingStartingRoster",
+          "Status": "Passed",
+          "Duration": 0.0002748,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_CutBonus_AwardsEachNewBitOnlyOnce",
+          "Status": "Passed",
+          "Duration": 0.000244,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_Death_FreezesSegmentAndCannotReviveDuringPerformance",
+          "Status": "Passed",
+          "Duration": 0.0003338,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_Disconnect_ExcludesSurvivalAndSettlementAndCannotReconnect",
+          "Status": "Passed",
+          "Duration": 0.0003806,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_InvalidParticipantOrLostBits_DoesNotApplyRulesOrChangeRevision",
+          "Status": "Passed",
+          "Duration": 0.0003089,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_LargeCutBonus_ClampsWithoutIntegerOverflow",
+          "Status": "Passed",
+          "Duration": 0.0002606,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Observe_RestoreAndRecut_DoesNotAwardPreviouslySeenBits",
+          "Status": "Passed",
+          "Duration": 0.0002387,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.PerformanceRecord_PreservesMaximumAndFreezesAtSettlement",
+          "Status": "Passed",
+          "Duration": 0.0003283,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.PerformanceRecord_PreTimerFailureIsUnknownAndNextPerformanceResets",
+          "Status": "Passed",
+          "Duration": 0.0002264,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.PublicValueObjects_InvalidRulesAndSettlement_AreRejected",
+          "Status": "Passed",
+          "Duration": 0.0021691,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.RewardSnapshot_InvalidIdentityRosterOrLedger_IsRejected",
+          "Status": "Passed",
+          "Duration": 0.0007506,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Settlement_PaysCheerWithoutBaseFundExactlyOnce(1,False)",
+          "Status": "Passed",
+          "Duration": 0.0003632,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Settlement_PaysCheerWithoutBaseFundExactlyOnce(2,False)",
+          "Status": "Passed",
+          "Duration": 0.0000834,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Settlement_PaysCheerWithoutBaseFundExactlyOnce(4,False)",
+          "Status": "Passed",
+          "Duration": 0.0000633,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Settlement_PaysCheerWithoutBaseFundExactlyOnce(1,True)",
+          "Status": "Passed",
+          "Duration": 0.0000535,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Settlement_PaysCheerWithoutBaseFundExactlyOnce(4,True)",
+          "Status": "Passed",
+          "Duration": 0.0000584,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Snapshot_IsNewerThan_RejectsStaleOtherSessionAndOlderGeneration",
+          "Status": "Passed",
+          "Duration": 0.0002995,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Snapshot_ModelChanges_DoNotRewriteEarlierSnapshots",
+          "Status": "Passed",
+          "Duration": 0.0007155,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Snapshots_CopyCallerCollectionsAndExposeReadOnlyLists",
+          "Status": "Passed",
+          "Duration": 0.0006439,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Spend_InsufficientNegativeOrInvalidInput_LeavesEverythingUnchanged",
+          "Status": "Passed",
+          "Duration": 0.0002133,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.PerformanceRewardModelTests.Spend_ValidExpense_UpdatesSharedBalanceAndSignedLedger",
+          "Status": "Passed",
+          "Duration": 0.00022,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

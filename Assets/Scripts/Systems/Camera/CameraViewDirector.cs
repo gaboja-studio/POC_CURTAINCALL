@@ -514,7 +514,8 @@ namespace CurtainCall.Cameras
         static bool BlocksCamera(Collider obstacle)
         {
             if (obstacle == null || obstacle is CharacterController) return false;
-            var held = NetworkPlayer.Local != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(NetworkPlayer.Local.OwnerClientId) : null;
+            var subject = CameraSpectator.IsSpectating ? CameraSpectator.Target : NetworkPlayer.Local;
+            var held = subject != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(subject.OwnerClientId) : null;
             if (held != null && obstacle.transform.IsChildOf(held.CarryRoot)) return false;
             // These invisible walls prevent boarding a moving lift. They are not visible
             // geometry and must not squeeze the carry camera into the passenger enclosure.

@@ -1,0 +1,49 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.03,
+      "summary": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.LedgerTotalsIgnoreGenerationResetAndGenerationAdvanceClearsTheRun",
+          "Status": "Passed",
+          "Duration": 0.0083379,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.MoreThanTenResultsRemainInTotalsAndRepeatedPublishDoesNotDoubleCount",
+          "Status": "Passed",
+          "Duration": 0.0010398,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.Reward.Tests.EscapeRunStatisticsTests.UnresolvedPortraitDoesNotReplaceHigherPersonalRecord",
+          "Status": "Passed",
+          "Duration": 0.000204,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

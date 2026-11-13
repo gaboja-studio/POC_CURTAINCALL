@@ -755,7 +755,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4289519355
   m_fontColor: {r: 0.9843137, g: 0.87058824, b: 0.6745098, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -768,7 +768,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -792,7 +792,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -1052,7 +1052,7 @@ MonoBehaviour:
   opacity: 1
   enterSeconds: 0.18
   exitSeconds: 0.14
-  displaySeconds: 5
+  displaySeconds: 8
   allowDurationOverride: 1
   riseOffset: {x: 0, y: -16}
   slideOffset: {x: -28, y: 0}
