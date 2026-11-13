@@ -10,3 +10,5 @@
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 회귀 검사: 보상 모델 EditMode 41/41, 외줄·대포 순간이동 PlayMode 2/2, 탈출로 전멸 대기 OFF 자동 재시도·순간이동·결과창 1/1. 마지막 검사는 PR #360 이전 Outcome 카드 단언을 현재 결과창 Canvas로 갱신한 뒤 통과했다.
 - 제출 전 최신 dev $baseline 변경은 대기실 리허설 알림·공통 HUD이며 체크포인트 코드/씬과 경로 겹침 없음.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/363 (feat/dev-checkpoint-progress → dev)
