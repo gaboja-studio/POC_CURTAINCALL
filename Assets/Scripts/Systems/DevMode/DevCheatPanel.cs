@@ -5,6 +5,8 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -199,7 +201,8 @@ namespace CurtainCall.Dev
             bool escape = EscapeCampaignContent.IsTraversalActive;
             if (!escape && !checkpointMode) return;
             GUILayout.Space(6);
-            GUILayout.Label(escape ? "탈출로 체크포인트" : "공연 체크포인트", heading);
+            bool waitingRoom = WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
+            GUILayout.Label(escape ? "탈출로 체크포인트" : waitingRoom ? "대기실 체크포인트" : "공연 체크포인트", heading);
             if (escape)
             {
                 GUI.enabled = host && !EscapeCampaignContent.Current.ExitOpen;

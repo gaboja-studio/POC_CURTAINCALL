@@ -4,6 +4,8 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Reward;
+using CurtainCall.Settings;
+using CurtainCall.WaitingRoom.Pursuit;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
@@ -66,7 +68,14 @@ namespace CurtainCall.Dev
         static void RecordPassage(DevCheckpointRoute route, NetworkPlayer player)
         {
             if (!IsParticipant(player) || !player.TryGetDevCheckpointFeet(out var feet)) return;
-            int previous = passages.TryGetValue(player, out var known) && known.Restart == player.RestartVersion ? known.Index : -1;
+            bool waitingRoom = WaitingRoomScenes.IsWaitingRoom(route.gameObject.scene);
+            // Rooms can be visited in any order. Keep the current room while its radius still overlaps another.
+            if (waitingRoom && passages.TryGetValue(player, out var current) && current.Restart == player.RestartVersion && current.Index < route.Points.Count)
+            {
+                var existing = route.Points[current.Index];
+                if (DevCheckpointRoute.Available(existing) && !existing.teleportOnly && route.TryRecognize(existing, feet, player.Slot, out _)) return;
+            }
+            int previous = !waitingRoom && passages.TryGetValue(player, out var known) && known.Restart == player.RestartVersion ? known.Index : -1;
             for (int i = route.Points.Count - 1; i > previous; i--)
             {
                 var point = route.Points[i];
@@ -98,8 +107,11 @@ namespace CurtainCall.Dev
                 progressStep = key;
                 progressSession = session;
             }
+            bool allowedPhase = WaitingRoomScenes.IsWaitingRoom(scene)
+                ? state.Phase is CampaignPhase.RestTime or CampaignPhase.Rehearsal or CampaignPhase.Night
+                : state.Phase is CampaignPhase.Performance or CampaignPhase.Escape;
             if (SpaceLinkDirector.Instance?.IsTransitioning == true || SceneCurtainTransition.IsActive
-                || state.IsRunning && state.Phase is not (CampaignPhase.Performance or CampaignPhase.Escape)) return null;
+                || state.IsRunning && !allowedPhase) return null;
             if (EscapeCampaignContent.IsTraversalActive)
             {
                 if (EscapeDevelopmentSession.AwaitingEntrance) return null;
@@ -152,7 +164,7 @@ namespace CurtainCall.Dev
         public static bool TryRecoverTeamAtLastCheckpoint(out string message)
         {
             var route = SyncProgress();
-            if (route == null) { message = "공연·탈출로를 플레이 중인 호스트만 부활시킬 수 있습니다."; return false; }
+            if (route == null) { message = "체크포인트가 있는 장소를 플레이 중인 호스트만 부활시킬 수 있습니다."; return false; }
 
             var targets = new List<(NetworkPlayer player, string label)>();
             int skipped = 0;
@@ -162,7 +174,10 @@ namespace CurtainCall.Dev
                 if (!TryGetPassage(route, player, out var point, out var pose)) { skipped++; continue; }
 
                 // Restore the roster before the synchronous player-state callback can settle a wipe.
-                PerformanceRewards.Instance?.RestoreDevCheckpointParticipant(player);
+                if (WaitingRoomScenes.IsWaitingRoom(progressScene))
+                    PursuitDirector.Current?.ReleaseCheckpointVictim(player);
+                else
+                    PerformanceRewards.Instance?.RestoreDevCheckpointParticipant(player);
                 player.ServerRecoverAtDevCheckpoint(pose.position + Vector3.up * .05f, pose.rotation, progressScene.name);
                 targets.Add((player, point.label));
             }

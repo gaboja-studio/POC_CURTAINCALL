@@ -3,6 +3,7 @@ using System.Linq;
 using CurtainCall.EscapeRoute;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Settings;
 using CurtainCall.Tightrope;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -12,7 +13,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Dev.EditorTools
 {
-    public sealed class DevCheckpointWindow : EditorWindow
+    public sealed partial class DevCheckpointWindow : EditorWindow
     {
         [MenuItem("Tools/CurtainCall/Dev/체크포인트 편집기")]
         static void Open() => GetWindow<DevCheckpointWindow>("Dev 체크포인트");
@@ -271,6 +272,8 @@ namespace CurtainCall.Dev.EditorTools
         static int PopulateDefaults(Scene scene, bool migrate)
         {
             var route = DevCheckpointRoute.In(scene) ?? CreateRoute(scene);
+            if (WaitingRoomScenes.IsWaitingRoom(scene))
+                return route.Points.Count > 0 ? route.Points.Count : SeedWaitingRoom(scene, route);
             if (route.Points.Count > 0 && !migrate) return route.Points.Count;
             var serialized = new SerializedObject(route);
             var list = serialized.FindProperty("points");

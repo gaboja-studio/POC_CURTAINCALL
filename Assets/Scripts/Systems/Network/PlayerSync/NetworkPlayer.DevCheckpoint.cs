@@ -55,7 +55,10 @@ namespace CurtainCall.Network.PlayerSync
                 while (IsSpawned && IsOwner && request == newestCheckpoint && Time.unscaledTimeAsDouble < deadline
                     && SceneManager.GetSceneByName(scene).isLoaded && RestartVersion <= restart && reviveCount.Value <= revive)
                 {
-                    if (CurrentFallEpoch(restart, revive) && State == PlayerState.Normal)
+                    // A waiting-room capture pose owns the mover until the pursuit snapshot removes it.
+                    if (CurrentFallEpoch(restart, revive) && State == PlayerState.Normal
+                        && (CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current == null || !CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(gameObject))
+                        && GetComponent<CurtainCall.WaitingRoom.Pursuit.PursuitVictimPose>() == null)
                     {
                         GetComponent<HumanCannonPilot>()?.ClearMotionForInspection();
                         ResetFallTracking();
