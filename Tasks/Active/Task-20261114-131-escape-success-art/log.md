@@ -16,3 +16,5 @@
 - 플레이 종료, 임시 MPPM 시나리오 제거·Dev 설정 복구. Assets/Tasks 임시 캡처는 최종 Task/Previews로 복사/해시 일치 확인 후 AssetDatabase로 제거했다. 자동 TMP atlas/Vivox 설정 변경은 제출 범위에서 제외한다. 커밋/push/새 PR은 하지 않았다.
 - 최종 check-work: 안전성/문서·규칙/컴파일/공통 설정 PASS. 선택 자동 테스트는 생략했고 위 개별20개 통과 근거를 별도 저장했다. 첫 검사에서 README 대문자 규칙과 검사 로그 자체 파일 잠금이 발생해 readme.md로 수정하고 출력은 검사 완료 후 저장하는 방식으로 재검사했다. check-work-implementation.txt 참조.
 - 2026-11-14 저장·제출 요청: 작업 전용 에디터/MPPM clone 종료를 확인하고 origin/dev 및 PR #382 head를 fetch했다. dev c0d2cb09는 이미 포함되어 있으며 #382 head는 기준 e5a2a9c5와 동일하다. 기존 PR을 확장하며 다른 worktree와 자동 캐시/private 변경은 보존한다. 구현 이후 코드 수정이 없으므로 컴파일/20개 회귀/실제 1·2인 영상 검증을 재사용하고, 제출 문서·staged diff만 검사한다.
+- 저장·제출 완료: 구현 943b2cb2(MoHoDu) 및 18개 LFS 객체263MB 업로드. 원격 feat/escape-success-art와 feat/failure-ending-a를 fast-forward로 반영했다. PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/382 의 제목/본문/영상 링크를 전체 구현 기준으로 갱신했고 dev 대상 OPEN/MERGEABLE·PM 검토 요청 유지 확인. dev 병합은 하지 않았다. 다른 worktree를 변경하거나 원격을 force하지 않았다.
+- 제출 문서/범위 재검사 PASS. new-pr DryRun은 의도적으로 남긴 캐시/private 미커밋 및 당시 미push 상태만 보고했으며 신규 PR 대신 기존 #382를 갱신했다. 원격 제출 후 로컬 잔여 변경은 자동 폰트 캐시3종·escape-labels·Vivox 설정·private 캐시로, 이번 커밋에서 제외하고 보존했다.
