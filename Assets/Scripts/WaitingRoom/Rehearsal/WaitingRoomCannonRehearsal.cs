@@ -49,7 +49,6 @@ namespace CurtainCall.WaitingRoom
         public static bool IsActive => instance != null && instance.shared.active;
         public static bool HasMastered => instance != null && instance.shared.mastered;
         public static bool IsEnding => instance != null && instance.shared.ending && instance.shared.active;
-        public static bool CanPractice => instance != null && instance.CanStart;
         public static int Checkpoint(ulong actor) => instance != null && instance.shared.middle.Contains(actor) ? 1 : 0;
         public static bool HasArrived(ulong actor) => instance != null && instance.shared.arrived.Contains(actor);
 
@@ -66,7 +65,7 @@ namespace CurtainCall.WaitingRoom
         bool Host => CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority;
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
-        bool CanStart => !shared.active && !CampaignRun.RehearsalEntryBlocked && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
+        bool CanStart => !shared.active && !CampaignRun.RehearsalEntryBlocked && !WaitingRoomRehearsal.IsActive && PracticePhase
             && CampaignRun.Instance.State.CannonUnlocked && !WaitingRoomRehearsal.IsPursuitRunning && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
@@ -108,7 +107,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
-        /// 호스트: 대기실 리허설(인간대포·외줄 재연습) 동안 쉬는 시간 타이머를 멈춘다(2026-11-13 사용자).
+        /// 호스트: 인간대포 리허설 동안 쉬는 시간 타이머를 멈춘다(2026-11-13 사용자).
         /// 인간대포는 종료 연출 뒤 전원이 원위치로 돌아와 진행이 끝날 때 풀리며, 남은 시간이 기준 미만이면 공통 세팅의 추가 시간을 더한다.
         /// </summary>
         void HoldRestTimer()
@@ -116,7 +115,7 @@ namespace CurtainCall.WaitingRoom
             var run = CampaignRun.Instance;
             if (run == null || !run.HasAuthority) return;
             var rules = GameSettings.WaitingRoom.Rehearsal;
-            run.HoldRestTimerForRehearsal(shared.active || WaitingRoomRehearsal.IsPracticeRunning, rules.ReturnMinimumSeconds, rules.ReturnBonusSeconds);
+            run.HoldRestTimerForRehearsal(shared.active, rules.ReturnMinimumSeconds, rules.ReturnBonusSeconds);
         }
 
         /// <summary>

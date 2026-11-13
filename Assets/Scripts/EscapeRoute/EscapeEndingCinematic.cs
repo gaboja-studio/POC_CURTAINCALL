@@ -26,6 +26,9 @@ namespace CurtainCall.EscapeRoute
         float fogDensityBefore;
         FogMode fogModeBefore;
         UnityEngine.Rendering.AmbientMode ambientModeBefore;
+        Light sceneLight;
+        Color sceneLightColorBefore;
+        float sceneLightIntensityBefore;
         Camera renderCamera;
         CameraClearFlags clearBefore;
         EscapeEndingRunner runner;
@@ -44,13 +47,23 @@ namespace CurtainCall.EscapeRoute
             foreach (var root in gameObject.scene.GetRootGameObjects())
                 foreach (var light in root.GetComponentsInChildren<Light>())
                     if (light.type == LightType.Directional && light.enabled) { lights.Add(light); light.enabled = false; }
+            sceneLight = null;
+            foreach (var light in cinematicScenery.GetComponentsInChildren<Light>(true))
+                if (light.type == LightType.Directional) { sceneLight = light; break; }
             fogBefore = RenderSettings.fog; fogColorBefore = RenderSettings.fogColor;
             fogModeBefore = RenderSettings.fogMode; fogDensityBefore = RenderSettings.fogDensity;
             ambientBefore = RenderSettings.ambientLight; ambientModeBefore = RenderSettings.ambientMode;
+            var settings = CurtainCall.Settings.GameSettings.EscapeRoute;
+            var look = settings.EndingLightingFor(settings.EndingTime);
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogDensity = .004f; RenderSettings.fogColor = new Color(.027f,.043f,.075f);
+            RenderSettings.fogDensity = look.fogDensity; RenderSettings.fogColor = look.skyColor;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(.25f,.30f,.43f);
+            RenderSettings.ambientLight = look.ambientColor;
+            if (sceneLight != null)
+            {
+                sceneLightColorBefore = sceneLight.color; sceneLightIntensityBefore = sceneLight.intensity;
+                sceneLight.color = look.lightColor; sceneLight.intensity = look.lightIntensity;
+            }
             renderCamera = Camera.main;
             if (renderCamera != null)
             {
@@ -146,6 +159,8 @@ namespace CurtainCall.EscapeRoute
                 RenderSettings.fogColor = fogColorBefore; RenderSettings.fogDensity = fogDensityBefore;
                 RenderSettings.ambientMode = ambientModeBefore; RenderSettings.ambientLight = ambientBefore;
                 if (renderCamera != null) { renderCamera.clearFlags = clearBefore; renderCamera.backgroundColor = cameraColorBefore; }
+                if (sceneLight != null) { sceneLight.color = sceneLightColorBefore; sceneLight.intensity = sceneLightIntensityBefore; }
+                sceneLight = null;
             }
             foreach (var item in hidden) if (item != null) item.SetActive(true);
             foreach (var light in lights) if (light != null) light.enabled = true;

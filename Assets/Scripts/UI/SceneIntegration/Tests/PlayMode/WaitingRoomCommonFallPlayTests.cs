@@ -9,54 +9,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         [UnityTest, Category("TutorialCommonFalls")]
-        public IEnumerator TutorialCommonFalls_EndingLaterPracticeKeepsDeadPlayerDeadAndControlDisabled()
-        {
-            var saved = T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            object previousMastery = saved.GetValue(null);
-            try
-            {
-                yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
-                saved.SetValue(null, 5);
-                var ring = GameObject.Find("S09_PracticeRoom").transform.Find("LegacyRing/PracticeRing/DeckCollider").GetComponent<Collider>();
-                var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
-                var feet = new Vector3(ring.bounds.center.x, ring.bounds.max.y, ring.bounds.center.z);
-                Call(mover, "Relocate", feet, Quaternion.identity);
-                yield return null; yield return null;
-                Assert.IsTrue((bool)T(RehearsalType).GetMethod("StartPractice").Invoke(null, new object[] { 0 }));
-                yield return WaitStage(0, 10f);
-                yield return new WaitForSecondsRealtime(.5f);
-                Assert.IsTrue((bool)Static(RehearsalType, "IsPracticing"));
-                Assert.IsFalse((bool)Static(RehearsalType, "UsesInitialTutorialRules"));
-                Call(mover, "SetStartPose", feet, Quaternion.identity, true);
-                Physics.SyncTransforms();
-                Call(LocalPlayer, "CompleteFall", 10f, feet, null, null);
-                Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString(), "첫 공연 이후 재연습은 공통 치명 낙하 판정");
-                var parts = Get(LocalPlayer, "LostParts");
-                var ragdoll = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerRagdoll"));
-                var body = (CharacterController)Get(mover, "Body");
-                bool bodyEnabled = body.enabled;
-                Assert.IsTrue((bool)Get(ragdoll, "IsLimp"));
-                Assert.IsFalse((bool)Get(mover, "ControlEnabled"));
-
-                Assert.IsTrue((bool)T(RehearsalType).GetMethod("EndPractice").Invoke(null, null));
-                float until = Time.realtimeSinceStartup + 5f;
-                while ((bool)Static(RehearsalType, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
-                Assert.IsFalse((bool)Static(RehearsalType, "IsActive"));
-                yield return null;
-                Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString());
-                Assert.AreEqual(parts, Get(LocalPlayer, "LostParts"));
-                Assert.IsFalse((bool)Get(mover, "ControlEnabled"), "연습 종료 배치가 사망자의 조작을 다시 켜면 안 된다.");
-                Assert.AreEqual(bodyEnabled, body.enabled, "종료 배치 전 충돌체 활성 상태 유지");
-                Assert.IsTrue((bool)Get(ragdoll, "IsLimp"), "공식 부활 전에는 래그돌 유지");
-            }
-            finally
-            {
-                if ((bool)Static(RehearsalType, "IsPracticing")) T(RehearsalType).GetMethod("EndPractice").Invoke(null, null);
-                saved.SetValue(null, previousMastery);
-            }
-        }
-
-        [UnityTest, Category("TutorialCommonFalls")]
         public IEnumerator TutorialCommonFalls_HighLandingOnActualRopeIsSafe()
         {
             FreshTutorial();

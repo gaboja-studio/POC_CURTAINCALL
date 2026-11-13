@@ -16,6 +16,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] UnderstageCannonBypass bypass;
         [SerializeField] EscapePursuerRoute fullRoute;
         [SerializeField] EscapePursuerBoss boss;
+        [SerializeField] EscapePursuerWalls walls;
         [SerializeField] Animation gait;
         [SerializeField] AnimationClip upright, crouched, runClip;
         [SerializeField] AudioSource footstep;
@@ -31,16 +32,22 @@ namespace CurtainCall.EscapeRoute
         float nextRepath, stride, stepProgress, stepVolume, stepPitch;
         Vector3 previousPosition;
         NetworkPlayer target;
-        float duckWeight, runWeight, runUntil, nextRun;
+        float duckWeight, runWeight;
         uint stepNumber;
         double firstWalkRound = -1;
         float firstWalkMetres;
-        bool firstChargeFinished;
+        bool charging;
         internal bool InShowcase { get; set; }
+        public static EscapeUnderstageChase Current { get; private set; }
+
+        void OnEnable() => Current = this;
 
         void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            agent.autoBraking = false;
+            agent.acceleration = 24f;
+            agent.angularSpeed = 300f;
             routeAreas = agent.areaMask;
             if (cartLink) agent.autoTraverseOffMeshLink = false;
             body = GetComponent<CapsuleCollider>();
@@ -62,6 +69,7 @@ namespace CurtainCall.EscapeRoute
             if (!net || !net.IsListening || !timer || !timer.HasStarted || !EscapeCampaignContent.IsTraversalActive)
             {
                 ClearAttack();
+                ResetThreat();
                 StopChase();
                 return;
             }
@@ -70,23 +78,26 @@ namespace CurtainCall.EscapeRoute
             {
                 PresentRemote(timer);
                 if (hasSnapshot && latest.Round == timer.StartedAt) PresentAttack(latest.Attack, timer.Clock);
+                if (hasSnapshot && latest.Round == timer.StartedAt) PresentThreat(latest.Threat, timer.Clock);
                 return;
             }
             if (breach.EntranceComplete) AdvanceHost();
             if (bypass) bypass.SetShutter(usingBypass, transform.position, body);
             PresentAttack(attack, timer.Clock);
+            PresentThreat(threat, timer.Clock);
             Publish(net, timer);
         }
 
         internal NetworkPlayer ChooseTarget()
         {
+            if (!InShowcase && fullRoute && fullRoute.TeamNeedsPursuit) { target = null; return null; }
             NetworkPlayer best = null;
             float bestDistance = float.PositiveInfinity;
             bool bestSafe = true;
             foreach (var player in NetworkPlayer.All)
             {
                 if (!player || !player.IsSpawned || player.State != PlayerState.Normal) continue;
-                if (!InShowcase && (fullRoute ? fullRoute.InTransit(player) || fullRoute.HasDeparted(player)
+                if (!InShowcase && (fullRoute ? fullRoute.HasDeparted(player)
                     : bypass && (bypass.InTransit(player) || bypass.HasCrossed(player)))) continue;
                 var feet = player.transform.position;
                 bool safe = InsideRefuge(feet);
@@ -106,6 +117,7 @@ namespace CurtainCall.EscapeRoute
 
         void AdvanceHost()
         {
+            if (!InShowcase && AdvanceThreat()) return;
             if (!InShowcase && boss && boss.AdvanceHost()) return;
             if (jumping) { AdvanceCartJump(Time.deltaTime); return; }
             double round = EscapeRouteTimer.Current.StartedAt;
@@ -114,12 +126,12 @@ namespace CurtainCall.EscapeRoute
             if (!committed)
             {
                 ChooseTarget();
-                usingBypass = !InShowcase && !target && (fullRoute ? fullRoute.Rearmost() != null : bypass && bypass.Active(round));
+                usingBypass = !InShowcase && !target && (fullRoute ? fullRoute.SelectTarget() != null : bypass && bypass.Active(round));
             }
             if (!InShowcase && fullRoute && fullRoute.Following) { AdvanceServiceRoute(); return; }
             bool divert = usingBypass;
             if (!divert && !target && !committed) { StopChase(); return; }
-            if (round != firstWalkRound) { firstWalkRound = round; firstWalkMetres = 0f; firstChargeFinished = false; }
+            if (round != firstWalkRound) { firstWalkRound = round; firstWalkMetres = 0f; charging = false; }
             if (!agent.enabled)
             {
                 agent.enabled = true;
@@ -143,6 +155,7 @@ namespace CurtainCall.EscapeRoute
                 : bypass && !InShowcase ? bypass.GunPosition(target) : target.transform.position;
             bool safe = !divert && (carrying || (committed ? attack.Reach == Reach.Boarding : InsideRefuge(feet) || bypass && bypass.AtGun(target)));
             var goal = safe ? refugeApproach.position : feet;
+            if (!InShowcase && !committed && TryDebrisAttack(target)) return;
             if (!InShowcase && (bypass || fullRoute) && UpdateAttack(divert, safe, ref goal, ref watch))
             {
                 agent.ResetPath();
@@ -159,12 +172,12 @@ namespace CurtainCall.EscapeRoute
             if (atDoor) watch = toRunner;
             if (!agent.updateRotation && watch.sqrMagnitude > .01f)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(watch), 75f * Time.deltaTime);
-            // A periodic destination refresh can briefly leave the current path pending.
-            bool hasRoute = agent.pathPending ? runUntil > 0f : agent.hasPath && agent.pathStatus == NavMeshPathStatus.PathComplete;
-            bool clear = !safe && clearance > 2.5f && Vector3.Distance(transform.position, refugeApproach.position) > 3f &&
-                hasRoute && Vector3.Dot(transform.forward, toRunner.normalized) > .7f;
-            bool burst = fast != null && (InShowcase || firstWalkMetres >= Tuning.firstWalkMetres) &&
-                (divert ? hurry && agent.hasPath : WantsRun(Time.time, toRunner.magnitude, clear));
+            if (firstWalkMetres >= Tuning.firstWalkMetres && !charging)
+            {
+                if (BeginChargeWarning(target)) return;
+                charging = true;
+            }
+            bool burst = fast != null && (InShowcase || charging);
             agent.speed = Speed(duck, burst ? 1f : 0f);
             SetBodyHeight(duck);
 
@@ -195,19 +208,24 @@ namespace CurtainCall.EscapeRoute
             usingBypass = true;
             if ((attack.Phase == AttackPhase.None || attack.Phase == AttackPhase.Grab) && fullRoute.TryJump(out var jumpFrom, out var jumpTo))
             {
+                if (walls && !walls.PrepareTravel(jumpFrom, jumpTo)) { AdvanceGait(0, 0, 0, true, Time.deltaTime); return; }
                 BeginServiceJump(jumpFrom, jumpTo);
                 return;
             }
-            var runner = fullRoute.Rearmost();
+            var runner = fullRoute.SelectTarget();
             Vector3 goal = transform.position, watch = Vector3.zero;
+            if (TryDebrisAttack(runner)) return;
             bool acting = UpdateAttack(true, runner && fullRoute.AtStation(runner), ref goal, ref watch);
             var before = transform.position;
             float run = 0;
+            if (!acting && walls && !walls.PrepareTravel(before, fullRoute.NextPosition)) acting = true;
             if (!acting && attack.Phase == AttackPhase.Grab)
                 transform.position = fullRoute.CarryToNextBay(before, walkSpeed, Time.deltaTime, EscapeRouteTimer.Current.Clock);
             else if (!acting && runner)
                 transform.position = fullRoute.Advance(before, walkSpeed,
-                    fullRoute.FinalSprint ? Tuning.finaleRunSpeed : runSpeed, Time.deltaTime, EscapeRouteTimer.Current.Clock, out run);
+                    ConcealedFromRunners() ? Mathf.Max(runSpeed, Tuning.concealedRunSpeed) :
+                    fullRoute.FinalSprint ? Mathf.Max(runSpeed, Tuning.finaleRunSpeed) : runSpeed,
+                    Time.deltaTime, EscapeRouteTimer.Current.Clock, out run);
             Vector3 forward = acting ? watch : Vector3.ProjectOnPlane(transform.position - before, Vector3.up);
             if (forward.sqrMagnitude > .0001f)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(forward), 140f * Time.deltaTime);
@@ -216,28 +234,18 @@ namespace CurtainCall.EscapeRoute
             previousPosition = transform.position;
         }
 
-        bool WantsRun(float now, float gap, bool clear)
+        bool ConcealedFromRunners()
         {
-            if (!firstChargeFinished && !InShowcase)
-            {
-                if (gap > Tuning.runStopGap) return clear;
-                firstChargeFinished = true;
-                nextRun = now + Tuning.runRestSeconds;
-            }
-            if (runUntil > 0f)
-            {
-                if (clear && gap > Tuning.runStopGap && now < runUntil) return true;
-                runUntil = 0f;
-                nextRun = now + Tuning.runRestSeconds;
-            }
-            if (!clear || gap < Tuning.runStartGap || now < nextRun) return false;
-            runUntil = now + Tuning.runBurstSeconds;
+            foreach (var player in NetworkPlayer.All)
+                if (player && player.IsSpawned && player.State == PlayerState.Normal &&
+                    ClearReach(transform.position + Vector3.up * 3f, PlayerFeet(player) + Vector3.up, player)) return false;
             return true;
         }
 
         internal void AdvanceGait(float distance, float duck, float run, bool resting, float dt)
         {
-            float cycles = distance / Mathf.Lerp(2.4f, 3.2f, run);
+            gaitResting = resting;
+            float cycles = distance / Mathf.Lerp(mascot ? mascot.walkCycleDistance : 2.4f, mascot ? mascot.runCycleDistance : 3.2f, run);
             stride = Mathf.Repeat(stride + cycles, 1f);
             stepProgress += cycles * 2f;
             if (stepProgress >= 1f)
@@ -252,6 +260,8 @@ namespace CurtainCall.EscapeRoute
 
         internal void SampleGait(float phase, float duck, float run = 0f)
         {
+            stride = phase;
+            if (InShowcase) gaitResting = false;
             duckWeight = duck;
             runWeight = fast != null ? run : 0f;
             tall.enabled = low.enabled = true;
@@ -298,6 +308,7 @@ namespace CurtainCall.EscapeRoute
         internal bool BossAttack(NetworkPlayer runner)
         {
             if (!runner && attack.Phase == AttackPhase.None) return false;
+            if (TryDebrisAttack(runner)) return true;
             Vector3 goal = transform.position, watch = Vector3.zero;
             bool busy = UpdateAttack(true, false, ref goal, ref watch, runner);
             if (watch.sqrMagnitude > .01f) transform.rotation = Quaternion.RotateTowards(transform.rotation,
@@ -310,7 +321,13 @@ namespace CurtainCall.EscapeRoute
             extendedForearm.gameObject.SetActive(true); graspingHand.gameObject.SetActive(true);
             StretchHand(Hand, point, point - Hand);
         }
-        internal void SampleAction(AnimationClip clip, float time) => clip.SampleAnimation(gait.gameObject, time);
+        internal void SampleAction(AnimationClip clip, float time)
+        {
+            clip.SampleAnimation(gait.gameObject, time);
+            sampledAction = clip == jumpClip ? 7 : clip == landingClip ? 8 : 0;
+            sampledTime = time / Mathf.Max(.01f, clip.length);
+            sampledFrame = Time.frameCount;
+        }
 
         internal void PlayStep(float pitchScale = 1f)
         {
@@ -319,14 +336,14 @@ namespace CurtainCall.EscapeRoute
             float distance = Vector3.Distance(transform.position, player.transform.position);
             float referenceDistance = Mathf.Max(.01f, footstep.minDistance);
             float fade = 1f - Mathf.Clamp01(distance / Mathf.Max(referenceDistance, footstep.maxDistance));
-            footstep.volume = stepVolume * fade * referenceDistance / (referenceDistance + distance);
+            footstep.volume = Mathf.Min(1f, stepVolume * 1.65f) * fade * Mathf.Sqrt(referenceDistance / (referenceDistance + distance));
             footstep.pitch = stepPitch * pitchScale;
             footstep.Play();
         }
 
         internal void RestPose()
         {
-            runUntil = nextRun = stride = stepProgress = 0f;
+            stride = stepProgress = 0f;
             if (tall == null) return;
             footstep.Stop();
             SampleGait(0f, 0f);
@@ -335,7 +352,10 @@ namespace CurtainCall.EscapeRoute
 
         void OnDisable()
         {
+            if (Current == this) Current = null;
             ClearAttack();
+            ResetThreat();
+            threatRound = -1;
             usingBypass = false;
             if (bypass) bypass.SetShutter(false, transform.position);
             Listen(null);

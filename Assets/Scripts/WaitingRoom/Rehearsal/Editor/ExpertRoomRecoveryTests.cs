@@ -36,6 +36,14 @@ namespace CurtainCall.WaitingRoom.EditorTools
         static object Get(object target, string name) => target.GetType().GetField(name, Private).GetValue(target);
         static void Set(object target, string name, object value) => target.GetType().GetField(name, Private).SetValue(target, value);
         static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name, Private).Invoke(target, args);
+        static bool CannonCanStart
+        {
+            get
+            {
+                var cannon = typeof(WaitingRoomCannonRehearsal).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                return cannon != null && (bool)typeof(WaitingRoomCannonRehearsal).GetProperty("CanStart", Private).GetValue(cannon);
+            }
+        }
         static void SetLocal(NetworkPlayer player) => typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
 
         GameObject Make(string name)
@@ -139,30 +147,26 @@ namespace CurtainCall.WaitingRoom.EditorTools
             WithRehearsal((_, _, _) =>
             {
                 book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
-                Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice);
-                Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                Assert.IsTrue(CannonCanStart);
                 book.Enter(0); Call(room, "Bind", service);
-                Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice);
-                Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
+                Assert.IsFalse(CannonCanStart);
                 Assert.IsFalse(WaitingRoomCannonRehearsal.StartPractice());
                 book.Tick(1000f); Call(room, "ReconcileLocalOccupancy");
-                Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice, "Exit snapshot must finish before relocation is offered.");
-                Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
+                Assert.IsFalse(CannonCanStart, "Exit snapshot must finish before relocation is offered.");
                 book.Tick(1000f);
-                Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice);
-                Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                Assert.IsTrue(CannonCanStart);
                 Assert.AreEqual(outside.position, local.transform.position);
                 Assert.IsFalse(((UIInputBlocker)Get(room, "workInput")).IsBlocking);
             });
         }
 
-        [TestCase("cannon"), TestCase("rope"), TestCase("pending")]
+        [TestCase("cannon"), TestCase("rope")]
         public void LateMedicalEntryCannotMoveARehearsalParticipant(string operation)
         {
             WithRehearsal((life, cannon, rope) =>
             {
                 if (operation == "cannon") Call(life, "Shared", "active", true);
-                else Set(rope, operation == "rope" ? "active" : "practiceVote", true);
+                else Set(rope, "active", true);
                 book.BookMedical(0, true, true, 1, 1, 3, () => true, 100);
                 Call(room, "Bind", service); Physics.SyncTransforms();
                 var result = ((bool ok, string text))Call(service, "Enter", 0UL);
@@ -170,7 +174,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.AreEqual(ExpertRoomPhase.Booked, book.Phase, "Keep the paid reservation for after rehearsal.");
                 Assert.AreEqual(outside.position, local.transform.position);
                 Assert.IsFalse((bool)Get(room, "localInside"));
-                Set(rope, "active", false); Set(rope, "practiceVote", false);
+                Set(rope, "active", false);
             });
         }
 
@@ -326,19 +330,13 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 WithRehearsal((life, cannon, rope) =>
                 {
                     var run = (CampaignRun)Get(life, "run"); var snapshot = run.State; snapshot.Phase = CampaignPhase.Night; Set(run, "state", snapshot);
-                    Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice); Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
+                    Assert.IsTrue(CannonCanStart);
                     var go = Make("Rehearsal captured player"); go.SetActive(false);
                     var pursuit = go.AddComponent<Pursuit.PursuitDirector>(); current.SetValue(null, pursuit);
                     var victimType = typeof(Pursuit.PursuitDirector).GetNestedType("Victim", BindingFlags.NonPublic);
                     var victim = System.Activator.CreateInstance(victimType, true); victimType.GetField("Object").SetValue(victim, local.gameObject);
                     var victims = (System.Collections.IDictionary)Get(pursuit, "victims"); victims.Add(0UL, victim);
-                    Assert.IsFalse(WaitingRoomCannonRehearsal.CanPractice); Assert.IsFalse(WaitingRoomCannonRehearsal.StartPractice());
-                    Assert.IsFalse(WaitingRoomRehearsal.CanProposePractice);
-                    Set(rope, "practiceVote", true); var yes = (HashSet<ulong>)Get(rope, "practiceYes");
-                    for (int i = 0; i < participants; i++) yes.Add((ulong)i);
-                    Call(rope, "HostTickVotes"); Assert.IsFalse((bool)Get(rope, "practice"));
-                    Set(rope, "practice", true); // A previously approved start must recheck before activation.
-                    Call(rope, "HostTickVotes"); Assert.IsFalse((bool)Get(rope, "practice"));
+                    Assert.IsFalse(CannonCanStart); Assert.IsFalse(WaitingRoomCannonRehearsal.StartPractice());
                     var mover = local.GetComponent<PlayerMover>(); mover.SetControlEnabled(false);
                     var before = local.transform.position; Set(rope, "local", local);
                     Call(rope, "Relocate", mover, before + Vector3.right * 20, Quaternion.identity);
@@ -349,30 +347,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
                     if (recovery == "retired") { ((NetworkVariable<PlayerState>)Get(local, "state")).Value = PlayerState.Retired; victimType.GetField("Retired").SetValue(victim, true); }
                     else if (recovery == "disconnected") typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(local, false);
                     else victims.Clear();
-                    Set(rope, "practiceVote", false);
-                    Assert.IsTrue(WaitingRoomCannonRehearsal.CanPractice); Assert.IsTrue(WaitingRoomRehearsal.CanProposePractice);
-                    Set(rope, "practiceVote", true); Call(rope, "HostTickVotes");
-                    Assert.IsTrue((bool)Get(rope, "practice"), "The remaining agreed players can start after capture finishes or the player leaves.");
+                    Assert.IsTrue(CannonCanStart);
                 });
             }
             finally { current.SetValue(null, previous); }
-        }
-
-        [TestCase(2), TestCase(3), TestCase(4), Category("RehearsalReturnCaptureRegression")]
-        public void EmptyRehearsalVoteDoesNotKeepNightLockedAfterEveryoneRetires(int participants)
-        {
-            for (int i = 1; i < participants; i++) Player((ulong)i);
-            WithRehearsal((life, cannon, rope) =>
-            {
-                var run = (CampaignRun)Get(life, "run"); var night = new RunState(false, true, true);
-                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
-                Assert.IsTrue(night.DebugBeginPursuit()); Set(run, "host", night); Set(run, "state", night.Snapshot);
-                Set(rope, "practiceVote", true); var yes = (HashSet<ulong>)Get(rope, "practiceYes");
-                foreach (var player in players) { yes.Add(player.OwnerClientId); ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Retired; }
-                Call(rope, "HostTickVotes"); Assert.IsFalse(WaitingRoomRehearsal.IsPracticePending);
-                Assert.IsEmpty(yes); Assert.IsFalse((bool)Get(rope, "practice"));
-                Call(run, "RefreshNight", night); Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase);
-            });
         }
 
         [Test, Category("RehearsalReturnCaptureRegression")]

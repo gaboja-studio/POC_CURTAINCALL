@@ -6,7 +6,7 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeUnderstageChase
     {
-        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v6";
+        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v7";
         const double SendInterval = .1;
         enum Stage : byte { Entrance, Idle, Pursuit, CartJump, ServiceRoute }
 
@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
             public uint Step, Landing;
             public Stage Stage;
             public AttackCue Attack;
+            public ThreatCue Threat;
         }
 
         CustomMessagingManager receiver;
@@ -27,6 +28,7 @@ namespace CurtainCall.EscapeRoute
         bool hasSnapshot;
         uint heardStep, heardLanding;
         AttackCue lastSentAttack;
+        ThreatCue lastSentThreat;
 
         void Listen(CustomMessagingManager next)
         {
@@ -40,13 +42,15 @@ namespace CurtainCall.EscapeRoute
         void Publish(NetworkManager net, EscapeRouteTimer timer)
         {
             double now = timer.Clock;
-            bool transition = attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started;
+            bool transition = attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started || attack.Stopped != lastSentAttack.Stopped || attack.Release != lastSentAttack.Release
+                || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started;
             if (net.ConnectedClientsIds.Count < 2 || now < nextSend && !transition) return;
             lastSentAttack = attack;
+            lastSentThreat = threat;
             nextSend = now + SendInterval;
             var state = new Snapshot
             {
-                Round = timer.StartedAt, Time = now, Attack = attack,
+                Round = timer.StartedAt, Time = now, Attack = attack, Threat = threat,
                 Position = transform.position, Rotation = transform.rotation,
                 Stride = stride, Duck = duckWeight, Run = runWeight, Step = stepNumber,
                 JumpTime = jumping ? jumpTime : 0f, Landing = landingNumber,
@@ -79,6 +83,11 @@ namespace CurtainCall.EscapeRoute
                 (byte)state.Attack.Phase > (byte)AttackPhase.Throw || (byte)state.Attack.Reach > (byte)Reach.Wire ||
                 !double.IsFinite(state.Attack.Started) || !float.IsFinite(state.Attack.Aim.sqrMagnitude) || !float.IsFinite(state.Attack.Origin.sqrMagnitude) ||
                 !float.IsFinite(state.Attack.MarkedFeet.sqrMagnitude) || !float.IsFinite(state.Attack.Release.sqrMagnitude) || !float.IsFinite(state.Attack.Drop.sqrMagnitude) ||
+                !float.IsFinite(state.Attack.StopPosition.sqrMagnitude) ||
+                (byte)state.Threat.Phase > (byte)ThreatPhase.Impact || !double.IsFinite(state.Threat.Started) ||
+                !float.IsFinite(state.Threat.From.sqrMagnitude) || !float.IsFinite(state.Threat.To.sqrMagnitude) ||
+                !float.IsFinite(state.Threat.Duration) || state.Threat.Duration < 0 || state.Threat.Duration > 10 ||
+                (state.Threat.Phase != ThreatPhase.None && state.Threat.Duration <= 0) ||
                 !float.IsFinite(state.JumpTime) || state.JumpTime < 0f ||
                 (state.Stage == Stage.CartJump && (!jumpClip || !landingClip || state.JumpTime > JumpDuration))) return false;
             bool sameRound = hasSnapshot && latest.Round == round;

@@ -19005,7 +19005,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &40209212
 Transform:
   m_ObjectHideFlags: 0
@@ -28875,7 +28875,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &82300614
 Transform:
   m_ObjectHideFlags: 0
@@ -44463,7 +44463,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapePursuitFire
   trigger: {fileID: 1323986115}
   ignitionBridge: {fileID: 2107038317}
-  pursuerIgnition: {fileID: 8142433937572708204}
+  pursuerIgnition: {fileID: 8919937337779346475}
   bays:
   - coverage: {fileID: 1943403846}
     effects:
@@ -63519,7 +63519,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &175272156
 Transform:
   m_ObjectHideFlags: 0
@@ -66315,7 +66315,7 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 1347527790}
   deviceId: 3
   scaleWithCrew: 1
-  finaleBoss: {fileID: 8142433937572708204}
+  finaleBoss: {fileID: 8919937337779346475}
   loadCollider: {fileID: 1298849744}
   intactCable: {fileID: 1696966017}
   severedCable: {fileID: 1223473688}
@@ -79593,7 +79593,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &229111041
 Transform:
   m_ObjectHideFlags: 0
@@ -104978,11 +104978,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 266225976}
   m_Mesh: {fileID: 6403645112100404772, guid: b10f0e01d1adedc4490a83745b6489de, type: 2}
---- !u!4 &266888449 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6383323422444196555, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
-  m_PrefabInstance: {fileID: 8142433937572708203}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &266965569
 GameObject:
   m_ObjectHideFlags: 0
@@ -133209,7 +133204,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &329963506
 Transform:
   m_ObjectHideFlags: 0
@@ -136407,7 +136402,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &340918233
 Transform:
   m_ObjectHideFlags: 0
@@ -138766,7 +138761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &346317245
 Transform:
   m_ObjectHideFlags: 0
@@ -168823,7 +168818,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &400544915
 Transform:
   m_ObjectHideFlags: 0
@@ -174231,7 +174226,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &428337090
 Transform:
   m_ObjectHideFlags: 0
@@ -175476,7 +175471,7 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 1245939631}
   deviceId: 2
   scaleWithCrew: 1
-  finaleBoss: {fileID: 8142433937572708204}
+  finaleBoss: {fileID: 8919937337779346475}
   loadCollider: {fileID: 2005175257}
   intactCable: {fileID: 1696966017}
   severedCable: {fileID: 1223473688}
@@ -179051,7 +179046,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &448083244
 Transform:
   m_ObjectHideFlags: 0
@@ -181170,7 +181165,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &456327261
 Transform:
   m_ObjectHideFlags: 0
@@ -184035,7 +184030,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &471591872
 Transform:
   m_ObjectHideFlags: 0
@@ -198003,7 +197998,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &494551005
 Transform:
   m_ObjectHideFlags: 0
@@ -198565,7 +198560,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &497082843
 Transform:
   m_ObjectHideFlags: 0
@@ -210591,7 +210586,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &530072967
 Transform:
   m_ObjectHideFlags: 0
@@ -213416,7 +213411,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &537244344
 Transform:
   m_ObjectHideFlags: 0
@@ -242576,7 +242571,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &589077143
 Transform:
   m_ObjectHideFlags: 0
@@ -247605,7 +247600,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &609567030
 Transform:
   m_ObjectHideFlags: 0
@@ -273554,7 +273549,7 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 1532504977}
   deviceId: 1
   scaleWithCrew: 1
-  finaleBoss: {fileID: 8142433937572708204}
+  finaleBoss: {fileID: 8919937337779346475}
   loadCollider: {fileID: 933229753}
   intactCable: {fileID: 1696966017}
   severedCable: {fileID: 1223473688}
@@ -320304,7 +320299,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &771823084
 Transform:
   m_ObjectHideFlags: 0
@@ -353694,7 +353689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &875817938
 Transform:
   m_ObjectHideFlags: 0
@@ -360415,7 +360410,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &885633156
 Transform:
   m_ObjectHideFlags: 0
@@ -371481,7 +371476,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &892699563
 Transform:
   m_ObjectHideFlags: 0
@@ -371993,7 +371988,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &895359734
 Transform:
   m_ObjectHideFlags: 0
@@ -433156,7 +433151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1022757460
 Transform:
   m_ObjectHideFlags: 0
@@ -437609,7 +437604,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1034546838
 Transform:
   m_ObjectHideFlags: 0
@@ -501106,7 +501101,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1220539447
 Transform:
   m_ObjectHideFlags: 0
@@ -502805,7 +502800,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1224256302
 Transform:
   m_ObjectHideFlags: 0
@@ -514104,7 +514099,7 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 506872827}
   deviceId: 0
   scaleWithCrew: 1
-  finaleBoss: {fileID: 8142433937572708204}
+  finaleBoss: {fileID: 8919937337779346475}
   loadCollider: {fileID: 204000581}
   intactCable: {fileID: 1696966017}
   severedCable: {fileID: 1223473688}
@@ -525031,7 +525026,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1305903123
 Transform:
   m_ObjectHideFlags: 0
@@ -538388,7 +538383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1349447467
 Transform:
   m_ObjectHideFlags: 0
@@ -547209,7 +547204,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1372772223
 Transform:
   m_ObjectHideFlags: 0
@@ -548018,7 +548013,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1373622123
 Transform:
   m_ObjectHideFlags: 0
@@ -563729,7 +563724,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1421596407
 Transform:
   m_ObjectHideFlags: 0
@@ -591151,7 +591146,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1471512145
 Transform:
   m_ObjectHideFlags: 0
@@ -606010,7 +606005,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1533083404
 Transform:
   m_ObjectHideFlags: 0
@@ -624080,7 +624075,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1565626970
 Transform:
   m_ObjectHideFlags: 0
@@ -642076,7 +642071,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1595024584
 Transform:
   m_ObjectHideFlags: 0
@@ -668714,7 +668709,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1662713675
 Transform:
   m_ObjectHideFlags: 0
@@ -713314,7 +713309,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1771866346
 Transform:
   m_ObjectHideFlags: 0
@@ -717441,7 +717436,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1790442463
 Transform:
   m_ObjectHideFlags: 0
@@ -720176,7 +720171,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1802575995
 Transform:
   m_ObjectHideFlags: 0
@@ -771340,8 +771335,8 @@ Transform:
   - {fileID: 1402247961}
   - {fileID: 1824383383}
   - {fileID: 1483391273}
-  - {fileID: 266888449}
   - {fileID: 1776535949}
+  - {fileID: 946449419862160707}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1923766780
@@ -793542,7 +793537,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1995584839
 Transform:
   m_ObjectHideFlags: 0
@@ -794947,7 +794942,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2002428995
 Transform:
   m_ObjectHideFlags: 0
@@ -799640,7 +799635,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2019941087
 Transform:
   m_ObjectHideFlags: 0
@@ -861275,6 +861270,11 @@ Transform:
   - {fileID: 6460053980027515320}
   m_Father: {fileID: 2156554376522308490}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &946449419862160707 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6383323422444196555, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+  m_PrefabInstance: {fileID: 8308015619173422696}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1003941909896294316
 GameObject:
   m_ObjectHideFlags: 0
@@ -862767,7 +862767,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 382606586153652654}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &8142433937572708203
+--- !u!1001 &8308015619173422696
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -862779,10 +862779,6 @@ PrefabInstance:
       propertyPath: fire
       value: 
       objectReference: {fileID: 142006361}
-    - target: {fileID: 3349996224511048611, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
-      propertyPath: finalePoles.Array.size
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 3349996224511048611, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
       propertyPath: 'finalePoles.Array.data[0]'
       value: 
@@ -862864,21 +862860,19 @@ PrefabInstance:
       value: EscapePursuer_A
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3225163721056039221, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 5176660736971819060, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 3130796565999892335, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 6380997021193389289, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 6483284421521917827, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 1137543259787885311, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 3957119852366891644, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 3006099811190739610, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+    - {fileID: 614687965673019267, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
---- !u!114 &8142433937572708204 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3349996224511048611, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
-  m_PrefabInstance: {fileID: 8142433937572708203}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ffbdae59fa7dbf45bc4751380d9bbe0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapePursuerBoss
 --- !u!23 &8344251058449768334
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -862928,6 +862922,17 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8919937337779346475 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3349996224511048611, guid: 3a6c3a3521e07534cb4132329b764b0b, type: 3}
+  m_PrefabInstance: {fileID: 8308015619173422696}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ffbdae59fa7dbf45bc4751380d9bbe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapePursuerBoss
 --- !u!1 &9042760003525224463
 GameObject:
   m_ObjectHideFlags: 0

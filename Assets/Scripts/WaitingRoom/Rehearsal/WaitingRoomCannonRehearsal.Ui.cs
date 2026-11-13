@@ -118,7 +118,7 @@ namespace CurtainCall.WaitingRoom
 
         void TickUi()
         {
-            // Another owner's station request can start practice while the host's prompt is open.
+            // 리허설이 시작되면 열려 있던 안내를 닫는다.
             if (shared.active) prompt = false;
             // 추격전이 시작되면 리허설 이동 안내를 닫는다. 미이수면 다음 쉬는 시간 시작에 다시 띄운다.
             if (prompt && WaitingRoomRehearsal.IsPursuitRunning) { prompt = false; votePanel.Hide(); }
@@ -259,12 +259,10 @@ namespace CurtainCall.WaitingRoom
                 if (notifiedRound == shared.round) return;
                 notifiedRound = shared.round;
                 WaitingRoomGuidePanel.Show(T("end-title", "리허설 종료"), shared.skipped
-                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 인간대포 공연을 선택할 수 있습니다.")
                     : shared.successful
-                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 인간대포 공연을 선택할 수 있습니다.")
                     : T("abandoned", "리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다."), 10f);
-                if(shared.skipped)
-                    RehearsalGuide.Show(T("retry-title", "다시 연습하기"), T("retry-body", "연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다."),6,"{interact}");
                 if (shared.successful)
                     quest.Show(T("completed-title", "리허설 종료"), T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
             }

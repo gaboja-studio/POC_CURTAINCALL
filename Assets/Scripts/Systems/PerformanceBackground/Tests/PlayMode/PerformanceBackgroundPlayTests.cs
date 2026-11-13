@@ -122,7 +122,7 @@ namespace CurtainCall.PerformanceBackground.Tests
             yield return WaitFor(() => Background.isLoaded && Placement() != null);
             yield return null;
             Assert.IsTrue(RenderSettings.fog);
-            Assert.That(RenderSettings.fogDensity, Is.EqualTo(0.00345f).Within(0.00001f));
+            Assert.That(RenderSettings.fogDensity, Is.EqualTo(0.00396f).Within(0.00001f));
             Assert.AreEqual(CameraClearFlags.SolidColor, camera.clearFlags);
             var loader = UnityEngine.Object.FindFirstObjectByType<PerformanceBackgroundLoader>();
             UnityEngine.Object.Destroy(loader.gameObject);

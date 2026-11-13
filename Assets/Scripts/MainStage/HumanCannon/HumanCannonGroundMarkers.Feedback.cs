@@ -1,49 +1,29 @@
-using CurtainCall.Network.PlayerSync;
-using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonGroundMarkers
     {
-        [Tooltip("발밑의 실제 안전 착지면에 정렬됐을 때 초록 테두리. 낙하 궤적의 도착 예측은 아니다.")]
+        [Tooltip("켜면 내 캐릭터(관전 대상)가 안전 체크 높이 안에서 아래 '외줄 착지 강조' 목록의 외줄에 안전하게 내려설 때, 외줄 위에 짧은 안전 색 강조를 띄운다. 그림자 외곽선의 안전/비안전 색은 이 값과 상관없이 공통 설정(Base Game Settings > 착지 표시)을 따른다.")]
         [SerializeField] bool showSafeLandingFeedback;
-        [Tooltip("짧은 착지 강조를 표시할 실제 외줄 충돌체. 크기/충돌/성공 판정은 바꾸지 않는다.")]
+        [Tooltip("안전 체크 높이 안에서 안전 착지일 때 짧은 착지 강조를 표시할 실제 외줄 충돌체. 크기/충돌/성공 판정은 바꾸지 않는다.")]
         [SerializeField] BoxCollider[] feedbackRopes = System.Array.Empty<BoxCollider>();
-        MaterialPropertyBlock tint;
-        static readonly int RimColor = Shader.PropertyToID("_RimColor");
-        static readonly Color SafeColor = new(.08f, 1f, .3f, 1f);
-        static readonly Color NeutralColor = new(.85f, .94f, 1f, 1f);
+        const float TargetOutlineWidth = .17f; // 외줄 강조 표시의 기존 테두리 폭(반지름 1 기준)
         Transform landingTarget;
 
-        bool HasSafeLandingBelow(PlayerMover mover, Vector3 feet, Vector3 point, Collider surface)
+        protected override bool ShowFocusTarget(bool safe, Collider surface, Vector3 point)
+            => ShowLandingTarget(safe ? surface as BoxCollider : null, point);
+
+        protected override void HideFocusTarget()
         {
-            if (mover == null || surface == null || !surface.enabled || !surface.gameObject.activeInHierarchy
-                || !HumanCannonSystem.IsSafeLandingSurface(mover, point)) return false;
-            // 유효한 바닥 위에 다른 구조물이 가로막고 있으면 초록으로 안내하지 않는다.
-            var origin = feet + Vector3.up * .05f;
-            float distance = origin.y - point.y;
-            int count;
-            do
-            {
-                count = Physics.RaycastNonAlloc(origin, Vector3.down, hits, distance,
-                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-                if (count < hits.Length) break;
-                System.Array.Resize(ref hits, hits.Length * 2);
-            } while (true);
-            for (int i = 0; i < count; i++)
-                if (hits[i].collider != surface && hits[i].distance < distance - .03f
-                    && hits[i].collider.GetComponentInParent<NetworkPlayer>() == null) return false;
-            return true;
+            if (landingTarget != null) landingTarget.gameObject.SetActive(false);
         }
 
-        void Tint(Transform marker, bool safe)
+        protected override void OnDestroy()
         {
-            tint ??= new MaterialPropertyBlock();
-            var renderer = marker.GetComponent<MeshRenderer>();
-            renderer.GetPropertyBlock(tint);
-            tint.SetColor(RimColor, safe ? SafeColor : NeutralColor);
-            renderer.SetPropertyBlock(tint);
+            base.OnDestroy();
+            if (landingTarget != null) Destroy(landingTarget.gameObject);
         }
 
         bool ShowLandingTarget(BoxCollider rope, Vector3 point)
@@ -54,10 +34,10 @@ namespace CurtainCall.HumanCannon
             {
                 landingTarget = CreateMarker(ulong.MaxValue);
                 landingTarget.name = "LocalRopeLandingTarget";
-                Tint(landingTarget, true);
-                tint.SetColor("_FillColor", new Color(SafeColor.r, SafeColor.g, SafeColor.b, .65f));
-                landingTarget.GetComponent<MeshRenderer>().SetPropertyBlock(tint);
             }
+            var safeColor = GameSettings.Base.LandingMarker.SafeColor;
+            Paint(landingTarget, new Color(safeColor.r, safeColor.g, safeColor.b, 1), TargetOutlineWidth, 0,
+                new Color(safeColor.r, safeColor.g, safeColor.b, .65f));
             // 원래 지지면 안에서 최대 2.4m만 강조한다. 외줄 끝에서 낭떠러지로 돌출하지 않는다.
             var scale = rope.transform.lossyScale;
             float halfLength = Mathf.Min(rope.size.z * .5f, 1.2f / Mathf.Abs(scale.z));

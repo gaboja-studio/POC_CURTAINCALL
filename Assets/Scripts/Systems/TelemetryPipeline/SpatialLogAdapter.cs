@@ -391,7 +391,7 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             if (Scene != "WAITINGROOM") return;
             var value = (active: WaitingRoomRehearsal.IsActive, stage: (int)WaitingRoomRehearsal.CurrentStage,
-                completed: WaitingRoomRehearsal.IsCompleted, practice: WaitingRoomRehearsal.IsPracticing);
+                completed: WaitingRoomRehearsal.IsCompleted, practice: false);
             if (value != rehearsal && (value.active || rehearsal != null))
                 log.Emit("REHEARSAL_STATE", new() { ["recordKind"] = "SNAPSHOT", ["state"] = $"{value.active}/{value.stage}/{value.completed}/{value.practice}",
                     ["stage"] = value.stage, ["active"] = value.active, ["completed"] = value.completed, ["practice"] = value.practice, ["trickId"] = "TIGHTROPE" });

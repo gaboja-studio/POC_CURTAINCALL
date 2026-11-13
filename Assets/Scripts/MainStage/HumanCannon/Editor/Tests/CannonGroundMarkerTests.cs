@@ -75,6 +75,31 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.IsFalse(markers.TryProjectGround(origin + new Vector3(20, 10, 0), out _, out _));
         }
 
+        [Test]
+        public void LandingMarkerSettings_ClearBelowHeight_BlurOutAcrossRange()
+        {
+            var settings = new CurtainCall.Settings.BaseGameSettings.LandingMarkerSettings();
+            float clear = settings.ClearHeight, range = settings.BlurRange;
+            Assert.That(range, Is.GreaterThan(0));
+            Assert.That(settings.BlurAt(0.5f), Is.EqualTo(0));
+            Assert.That(settings.BlurAt(clear), Is.EqualTo(0), "선명 높이까지는 선명한 원");
+            Assert.That(settings.BlurAt(clear + range * 0.5f), Is.EqualTo(0.5f).Within(0.001f));
+            Assert.That(settings.BlurAt(clear + range), Is.EqualTo(1), "번짐 구간 끝에서 완전히 사라진다");
+            Assert.That(settings.BlurAt(clear + range + 10), Is.EqualTo(1));
+            var outline = settings.OutlineColor(new Color(0.2f, 0.4f, 0.6f, 1));
+            Assert.That(outline.r, Is.EqualTo(0.2f)); Assert.That(outline.b, Is.EqualTo(0.6f), "외곽선은 플레이어 옷 색을 그대로 쓴다");
+            Assert.That(outline.a, Is.EqualTo(settings.OutlineOpacity), "외곽선 투명도는 색 알파로 전달");
+            Assert.That(settings.SafeColor.a, Is.EqualTo(settings.OutlineOpacity)); Assert.That(settings.UnsafeColor.a, Is.EqualTo(settings.OutlineOpacity));
+            Assert.That(settings.SafeColor, Is.Not.EqualTo(settings.UnsafeColor));
+            float check = settings.SafeCheckHeight;
+            Assert.That(check, Is.LessThan(clear), "기본값: 안전 체크 높이 < 선명 높이");
+            Assert.That(settings.BandAt(check * 0.5f), Is.EqualTo(CurtainCall.Settings.BaseGameSettings.LandingOutlineBand.SafetyCheck));
+            Assert.That(settings.BandAt(check), Is.EqualTo(CurtainCall.Settings.BaseGameSettings.LandingOutlineBand.SafetyCheck));
+            Assert.That(settings.BandAt((check + clear) * 0.5f), Is.EqualTo(CurtainCall.Settings.BaseGameSettings.LandingOutlineBand.Outfit), "체크 높이~선명 높이는 옷 색");
+            Assert.That(settings.BandAt(clear), Is.EqualTo(CurtainCall.Settings.BaseGameSettings.LandingOutlineBand.Outfit));
+            Assert.That(settings.BandAt(clear + 0.01f), Is.EqualTo(CurtainCall.Settings.BaseGameSettings.LandingOutlineBand.None), "선명 높이 위는 흐린 그림자만");
+        }
+
         BoxCollider Floor(string name, float height)
         {
             var floor = new GameObject(name);
