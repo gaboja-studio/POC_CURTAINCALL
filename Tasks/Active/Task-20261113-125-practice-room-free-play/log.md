@@ -18,3 +18,6 @@
 ## 2026-11-13 제출 준비
 - 커밋 a5d7f11b 뒤 origin/dev(371c0481) 병합, 충돌 없음. dev에 같은 번호의 Task-20261113-124(result-and-rewards)가 먼저 올라와 이 Task를 125로 바꿈.
 - 에디터 자동 변경 재질·글꼴 5개는 stash("editor-noise font/material before practice-room commit 2026-11-13")에 보관, 커밋 제외.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/367 (feat/practice-room-free-play → dev)
+- PR 등록: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/367 (feat/practice-room-free-play → dev, 검토 대기).
