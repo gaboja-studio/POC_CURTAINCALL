@@ -223,12 +223,6 @@ namespace CurtainCall.Player
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
 
-        internal int RopeTravelSign { get; private set; } = 1;
-        public Vector3 RopeTravelForward => CourseForward * RopeTravelSign;
-        internal void SetRopeTravel(float move)
-        {
-            if (Mathf.Abs(move) > .001f) RopeTravelSign = move < 0f ? -1 : 1;
-        }
         float LaunchGravity => Character.Gravity * (FreeMovement ? 1f : Mathf.Max(0.1f, CourseJumpGravityMultiplier));
         float EffectiveGravity => CurrentJump != JumpKind.None && jumpGravity > 0f ? jumpGravity : LaunchGravity;
         float LaunchHeight => (FreeMovement || CourseJumpHeightOverride <= 0f ? Character.JumpHeight : CourseJumpHeightOverride) * jumpHeightMultiplier;

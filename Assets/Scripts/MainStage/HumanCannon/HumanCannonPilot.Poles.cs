@@ -10,8 +10,7 @@ namespace CurtainCall.HumanCannon
         public bool IsHoldingPole => HeldPole >= 0;
         float poleFlightSpeedLimit;
         float polePumpInput;
-        int poleCameraSide;
-        int poleCameraLastInput;
+        Vector3 poleCameraForward;
 
         bool ReadPoleInput(in PlayerInputFrame input)
         {
@@ -20,10 +19,6 @@ namespace CurtainCall.HumanCannon
             if (IsHoldingPole)
             {
                 polePumpInput = input.Move;
-                int direction = input.Move > .01f ? 1 : input.Move < -.01f ? -1 : 0;
-                if (direction != 0 && direction != poleCameraLastInput) poleCameraSide = direction;
-                poleCameraLastInput = direction;
-                if (input.TurnAroundPressed) poleCameraSide = -poleCameraSide;
                 poles.RequestSwing(HeldPole, input.Move);
                 // Space spends the stored swing; holding F only lets go below the grip.
                 // Resolve the latch even on a jump frame so a stale hold cannot release the next pole.
@@ -66,9 +61,6 @@ namespace CurtainCall.HumanCannon
             mover.ResetExternalMotion(true);
             HeldPole = index;
             polePumpInput = 0f;
-            var pole = HumanCannonPoleSystem.Current?.Pole(index);
-            poleCameraSide = pole != null && Vector3.Dot(transform.forward, pole.Forward) < 0f ? -1 : 1;
-            poleCameraLastInput = 0;
             if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = true;
             stationIndex = -1;
             flightStationIndex = station;
@@ -82,6 +74,7 @@ namespace CurtainCall.HumanCannon
             steerPoleMomentum = false;
             latch.Reset();
             UpdatePolePose(true);
+            poleCameraForward = transform.forward;
         }
 
         internal void LeavePole(int station, uint launch, uint segment, Vector3 position,
