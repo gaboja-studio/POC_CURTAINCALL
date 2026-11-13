@@ -41,6 +41,16 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(1f)] float feedSeconds = 8f;
         bool feedShown; float feedUntil;
         RenderTexture monitorFeed;
+        [Tooltip("감시 화면(Monitor) 전용: 지정하면 판에 영상을 띄우지 않고 이 화면에 영상을 띄운 채 가까이서 직접 들여다본다(2026-11-13 사용자).")]
+        [SerializeField] Renderer screenSurface;
+        Camera lookCamera; Material screenMaterial;
+        [Tooltip("이 대상이 열리면 이 대상은 쓸모가 없어져 사라진다(관리실 문이 다른 방법으로 열린 뒤 남는 빗장·키 카드 단말기).")]
+        [SerializeField] string retiredBy = "";
+        bool Retired => !string.IsNullOrEmpty(retiredBy) && ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(retiredBy);
+        [Tooltip("열릴 때 hideOnOpen 물체들이 이만큼 밀려난 뒤 사라진다(탈출로 문이 벽 속으로 밀려 열리는 모습). 0초면 바로 사라진다.")]
+        [SerializeField] Vector3 openSlide;
+        [SerializeField, Min(0f)] float openSlideSeconds;
+        float slideT; bool slideReady; Vector3[] slideBase;
         [SerializeField] string rewardItemId = "";
         [SerializeField, Range(1, 99)] int rewardUidOffset = 60;
         [SerializeField] Transform rewardPoint;
@@ -143,7 +153,7 @@ namespace CurtainCall.WaitingRoom
             }
             return best;
         }
-        public bool IsAvailable => Visible && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
+        public bool IsAvailable => Visible && !Retired && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
         public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
             : AllowsBareHands ? StrikeLabel()
             // 도구로만 여는 대상(동력 소켓 등): 손에 없으면 무엇이 필요한지 알려 준다(문구 파일 target.<ID>.hint).
@@ -155,9 +165,10 @@ namespace CurtainCall.WaitingRoom
         string StrikeLabel()
         {
             bool tool = ExplorationTargets.LocalHolds(toolId);
-            if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label;
+            string hold = tool ? "" : ShopReach.BareHoldSuffix(this);
+            if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label + hold;
             var (n, total) = ExplorationTargets.StrikeCount(this, tool);
-            return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total));
+            return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total)) + hold;
         }
         public string DescribeStrike(bool opened, int done, int total, bool withTool) => opened
             ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
@@ -204,7 +215,9 @@ namespace CurtainCall.WaitingRoom
                 }
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
                 if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
-                if (IsTerminal) panelView.OpenTerminal(Label, password.Length, value => {
+                bool look = kind == ExplorationGateKind.Monitor && screenSurface != null && monitorFeed != null && BeginLook();
+                if (look) panelView.Open(Label, MonitorText, false, null, ClosePanel, true);
+                else if (IsTerminal) panelView.OpenTerminal(Label, password.Length, value => {
                     if (!PanelOwnerCanUse) { ClosePanel(); return; }
                     ExplorationState.Instance?.RequestCode(targetId, value);
                 }, ClosePanel);
@@ -217,9 +230,33 @@ namespace CurtainCall.WaitingRoom
         }
         void ClosePanel()
         {
+            EndLook();
             panel = false; feedShown = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
             panelOpenedBy = null; panelOpenedByNetworkPlayer = false;
             if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Answered;
+        }
+        // 감시 화면을 가까이서 들여다본다: 화면에 영상을 띄우고, 화면 바로 앞에 임시 카메라를 둔다.
+        // 화면과 카메라 사이에 선 내 캐릭터가 가리지 않게 화면 근처만 그린다(가까운 쪽을 잘라 낸다).
+        bool BeginLook()
+        {
+            var main = Camera.main; if (main == null) return false;
+            if (screenMaterial == null) screenMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = "MonitorFeedScreen", hideFlags = HideFlags.DontSave };
+            screenMaterial.SetTexture("_BaseMap", monitorFeed); screenMaterial.SetColor("_BaseColor", Color.white);
+            screenSurface.sharedMaterial = screenMaterial; screenSurface.enabled = true;
+            var b = screenSurface.bounds; Vector3 outward = -screenSurface.transform.forward;
+            float distance = b.size.y * .5f / Mathf.Tan(main.fieldOfView * .5f * Mathf.Deg2Rad) / .6f;
+            if (lookCamera == null) lookCamera = new GameObject("MonitorLookCamera").AddComponent<Camera>();
+            lookCamera.CopyFrom(main); lookCamera.targetTexture = null; lookCamera.depth = main.depth + 10; lookCamera.useOcclusionCulling = false;
+            lookCamera.nearClipPlane = Mathf.Max(.03f, distance - .25f);
+            // 아래쪽 설명 판에 가리지 않게 화면을 조금 위쪽에 둔다.
+            lookCamera.transform.SetPositionAndRotation(b.center + outward * distance + Vector3.down * (b.size.y * .28f), Quaternion.LookRotation(-outward, Vector3.up));
+            lookCamera.enabled = true;
+            return true;
+        }
+        void EndLook()
+        {
+            if (lookCamera != null) { Destroy(lookCamera.gameObject); lookCamera = null; }
+            if (screenSurface != null && kind == ExplorationGateKind.Monitor) screenSurface.enabled = false;
         }
         static bool LocalCanUsePanel => NetworkPlayer.Local != null
             ? PlayerInteraction.CanInteract(NetworkPlayer.Local)
@@ -258,13 +295,35 @@ namespace CurtainCall.WaitingRoom
         {
             if (monitorCamera != null) monitorCamera.targetTexture = null;
             if (monitorFeed != null) { monitorFeed.Release(); Destroy(monitorFeed); }
+            if (lookCamera != null) Destroy(lookCamera.gameObject);
+            if (screenMaterial != null) Destroy(screenMaterial);
         }
         void Update()
         {
             ShopReach.Pump();
             if (hiddenVisuals != null) foreach (var visual in hiddenVisuals) if (visual != null && visual != gameObject) visual.SetActive(Visible);
-            if (blocker != null) blocker.enabled = !Opened;
-            if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !Opened);
+            // 열리는 모습: 처음부터 열려 있던 문은 연출 없이 열린 채로 두고, 지금 열린 문만 밀려난 뒤 사라진다.
+            bool opened = Opened;
+            if (!slideReady) { slideReady = true; slideT = opened ? 1f : 0f; }
+            if (openSlideSeconds > 0f && hideOnOpen != null)
+            {
+                if (opened && slideT < 1f)
+                {
+                    if (slideBase == null) { slideBase = new Vector3[hideOnOpen.Length]; for (int i = 0; i < hideOnOpen.Length; i++) if (hideOnOpen[i] != null) slideBase[i] = hideOnOpen[i].transform.position; }
+                    slideT = Mathf.Min(1f, slideT + Time.deltaTime / openSlideSeconds);
+                    var moved = openSlide * Mathf.SmoothStep(0f, 1f, slideT);
+                    for (int i = 0; i < hideOnOpen.Length; i++) if (hideOnOpen[i] != null) hideOnOpen[i].transform.position = slideBase[i] + moved;
+                }
+                else if (!opened && slideBase != null)
+                {
+                    for (int i = 0; i < hideOnOpen.Length; i++) if (hideOnOpen[i] != null) hideOnOpen[i].transform.position = slideBase[i];
+                    slideBase = null; slideT = 0f;
+                }
+            }
+            else slideT = opened ? 1f : 0f;
+            bool gone = opened && slideT >= 1f;
+            if (blocker != null) blocker.enabled = !gone;
+            if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !gone && !Retired);
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
             if (!PanelOwnerCanUse) { ClosePanel(); return; }

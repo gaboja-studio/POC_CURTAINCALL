@@ -159,7 +159,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return WaitQuestReady("gather");
             var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
             Assert.IsFalse((bool)Field(State, "CannonUnlocked"), "Start this path before discovery, not with a HumanCannon dev launch.");
-            Assert.IsFalse(CannonFlag("CanPractice"));
             Assert.AreEqual("Locked", Call(board, "Set", 1, 1, "HumanCannon", 1).ToString());
             var discovery = Find("CurtainCall.WaitingRoom.PerformancePropDiscovery");
             Assert.IsNotNull(discovery, "The Base map must contain the real discoverable prop set.");
@@ -178,8 +177,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null;
             Assert.IsFalse(pickup.gameObject.activeInHierarchy);
             Assert.IsTrue(props.All(p => p.activeInHierarchy));
-            Assert.IsNotNull(Find("CurtainCall.WaitingRoom.RehearsalCannonPracticeStation"));
-            Assert.IsTrue(CannonFlag("CanPractice"));
             yield return CannonWait(() => CannonFlag("IsUnlockPromptVisible"), 4, "Unlock itself must offer rehearsal without opening the schedule");
             Assert.IsFalse((bool)Get(Find("CurtainCall.WaitingRoom.ScheduleBoardView"), "IsOpen"));
             CannonStatic("AnswerSchedulePrompt", false); yield return null;

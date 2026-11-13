@@ -53,12 +53,6 @@ namespace CurtainCall.WaitingRoom
             shownUnlocked = unlocked;
             SetActive(mapProps, !unlocked);
             SetActive(practiceProps, unlocked);
-            if (unlocked && trickId == CampaignSnapshot.HumanCannonId && practiceProps != null)
-                foreach (var prop in practiceProps)
-                    if (prop != null && (prop.GetComponentInChildren<CurtainCall.HumanCannon.HumanCannonStation>(true) != null
-                        || prop.name.IndexOf("cannon", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                        && prop.GetComponent<RehearsalCannonPracticeStation>() == null)
-                        prop.AddComponent<RehearsalCannonPracticeStation>();
         }
 
         static void SetActive(GameObject[] list, bool on)
