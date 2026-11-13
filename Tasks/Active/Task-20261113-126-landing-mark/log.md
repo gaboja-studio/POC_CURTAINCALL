@@ -29,3 +29,14 @@
 
 - 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/370 (fix/ui/landing-mark → dev)
 - PR #370 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/370 (fix/ui/landing-mark → dev, Squash). 사람 플레이 확인 대기.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-13 후속 수정(사용자 요청 4건):
+  - 안전 판정: 일반 바닥 전부 안전·트램펄린 위험이던 문제 수정. 트램펄린(반동 가능) = 안전, 일반 면은 `NetworkPlayer.PredictsSafeLanding`로 실제 부상 여부 예측. `CompleteFall`의 면제 규칙을 `IsSafeLandingSpot`으로 묶어 같이 사용. `HumanCannonTrampoline.BounceReady` 공개.
+  - 공간 설정에 리허설(기본 켬) 추가, 대기실과 분리. 공간 설정은 외곽선만 끄고 그림자·번짐은 항상 표시.
+  - 핫픽스: `HumanCannonPoleSystem.GrabTeammate` 추가, `CommonInteractionUI`가 외줄 공중그네(CanAttachToPole)·외줄 봉 출구·인간대포 그네 사슬 잡기 때 매달린 팀원 캐릭터에 외곽선(안내 문구는 그대로).
+  - 테스트: 컴파일 PASS(recompile). EditMode LandingShadowSpace 6(신규 1·변경 1), CannonLandingFeedback 4, CannonGroundMarker 4, NetworkFallSegment 19 통과. PlayMode 인간대포 GroundMarker 1, 외줄 RopeJump_ShowsCommonLandingShadow 1 통과. 그네 외곽선 자동 테스트 없음(사람 확인).
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL(다른 Task-081 log.md 143줄 hard 초과, 이 작업과 무관·미수정); 컴파일=SKIPPED(선행 실패, 별도 recompile PASS); 테스트=SKIPPED(위 개별 실행으로 대신)

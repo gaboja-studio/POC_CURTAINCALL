@@ -100,6 +100,13 @@ namespace CurtainCall.HumanCannon
             int seat = FindSeat(player, index);
             return poles[index].GrabPoint(GrabAngle(index), seat);
         }
+        /// <summary>지금 잡으면 매달리게 될 바로 위 팀원(사슬 아래칸 잡기). 봉 자체를 잡거나 잡을 수 없으면 <see cref="CannonSeatState.Nobody"/>.</summary>
+        public ulong GrabTeammate(int index, NetworkPlayer player)
+        {
+            if (!CanApproachPole(index, player)) return CannonSeatState.Nobody;
+            int seat = FindSeat(player, index);
+            return seat > 0 ? states[index].State.OccupantAt(seat - 1) : CannonSeatState.Nobody;
+        }
         public double Clock => session != null && session.NetworkManager != null
             && session.NetworkManager.IsListening ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
 
