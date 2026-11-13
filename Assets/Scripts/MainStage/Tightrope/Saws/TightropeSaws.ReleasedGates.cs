@@ -101,6 +101,7 @@ namespace CurtainCall.Tightrope.Saws
             // Collision stays independent of the authored visual's hierarchy.
             collider.sharedMesh = TightropeArtFit.UnitCylinder;
             collider.convex = true;
+            CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(root, CurtainCall.Settings.GamePhysicsLayers.TrickHazard);
             return root;
         }
 

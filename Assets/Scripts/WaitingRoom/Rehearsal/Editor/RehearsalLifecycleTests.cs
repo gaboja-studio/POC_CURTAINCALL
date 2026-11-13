@@ -791,6 +791,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
         {
             var dataType = typeof(PerformanceRewards).Assembly.GetType("CurtainCall.Reward.RewardStateData", true);
             var data = dataType.GetMethod("From").Invoke(null, new object[] { snapshot });
+            // 실제 SendState와 같이 현재 런의 엔딩 통계를 넣는다. 빠진 통계는 JsonUtility에서 generation=0으로 복원된다.
+            dataType.GetField("runStatistics").SetValue(data, new EscapeRunStatistics { generation = snapshot.Generation });
             string json = JsonUtility.ToJson(data);
             using var writer = new FastBufferWriter(FastBufferWriter.GetWriteSize(json), Allocator.Temp);
             writer.WriteValueSafe(json);

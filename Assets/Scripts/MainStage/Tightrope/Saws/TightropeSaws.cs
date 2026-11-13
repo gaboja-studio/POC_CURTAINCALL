@@ -827,6 +827,7 @@ namespace CurtainCall.Tightrope.Saws
             {
                 var instance = Instantiate(prefab, parent).transform;
                 instance.name = name;
+                GamePhysicsLayers.AssignHierarchy(instance, GamePhysicsLayers.TrickHazard);
                 TightropeOutline.AttachToHierarchy(instance.gameObject);
                 foreach (var outline in instance.GetComponentsInChildren<TightropeOutline>(true)) outline.SetWidth(3f);
                 return instance;
@@ -852,6 +853,7 @@ namespace CurtainCall.Tightrope.Saws
                 mark.localPosition = new Vector3(0f, side * thickness * 0.48f, diameter * 0.23f);
             }
             TightropeOutline.AttachToHierarchy(saw.gameObject).SetWidth(3f);
+            GamePhysicsLayers.AssignHierarchy(saw, GamePhysicsLayers.TrickHazard);
             return saw;
         }
 

@@ -43,7 +43,6 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
         Collider carryBody;
-        readonly System.Collections.Generic.List<Collider> limbCollisionBodies = new();
         CharacterController ignoredCarrierBody;
         bool previousCarrierIgnored;
         Vector3 lastSafeCarrierFeet;
@@ -51,6 +50,7 @@ namespace CurtainCall.HumanCannon
 
         void RefreshCarryBody(NetworkPlayer carrier)
         {
+            CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(transform, CurtainCall.Settings.GamePhysicsLayers.Trampoline);
             if (carryBody == null)
             {
                 carryBody = GetComponent<Collider>();
@@ -99,7 +99,7 @@ namespace CurtainCall.HumanCannon
                 if (diameter <= 0f || carryBody == null) return carryBody;
                 if (waitingRoomCheckBody == null)
                 {
-                    var holder = new GameObject("WaitingRoomCarryCheck") { layer = 2 }; // Ignore Raycast
+                    var holder = new GameObject("WaitingRoomCarryCheck") { layer = gameObject.layer };
                     holder.transform.SetParent(transform, false);
                     waitingRoomCheckBody = holder.AddComponent<BoxCollider>();
                     waitingRoomCheckBody.isTrigger = true;
@@ -135,7 +135,6 @@ namespace CurtainCall.HumanCannon
         void OnEnable()
         {
             RefreshCarryBody(null);
-            RefreshLimbCollisions();
             if (Current != null && Current != this)
             {
                 Debug.LogError("[HumanCannon] 1단계 테스트에는 트램폴린을 하나만 둡니다.", this);
@@ -152,14 +151,7 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Restarted += HandleRestart;
         }
 
-        // Run before physics, including while idle/dropping and when new limb pieces appear.
-        void FixedUpdate() => RefreshLimbCollisions();
-
-        void RefreshLimbCollisions()
-        {
-            GetComponentsInChildren(true, limbCollisionBodies);
-            foreach (var body in limbCollisionBodies) CurtainCall.Damage.DismemberedLimb.IgnoreFor(body);
-        }
+        void OnTransformChildrenChanged() => CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(transform, CurtainCall.Settings.GamePhysicsLayers.Trampoline);
 
         void Update()
         {
@@ -295,7 +287,6 @@ namespace CurtainCall.HumanCannon
             // A local rope catch can precede the host's ownership update.
             if (TightropeHangSystem.Current?.IsHanging(carrier) == true || HasRopeSupport(carrier)) return;
             RefreshCarryBody(carrier);
-            CurtainCall.Damage.DismemberedLimb.IgnoreFor(carryBody);
             if (collisionCarrier != Carrier || alignToCarrier) { collisionCarrier = Carrier; lastSafeCarrierFeet = carrier.transform.position; }
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
             // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
@@ -360,18 +351,25 @@ namespace CurtainCall.HumanCannon
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
-                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
-                || HumanCannonCarry.HasOccupiedHands(player)
-                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
-                || PracticeGrabAllowed?.Invoke() == false) return false;
-            var course = TightropeCourse.Current;
-            if (course != null && course.IsTraversalActive && course.UsesRopeRules(player)) return false;
+            if (!CanAcquire(player) || dropping) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
             return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
                 && HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
                 && HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false);
+        }
+
+        // Automatic rehearsal returns skip reach, but never skip the carrier's eligibility.
+        bool CanAcquire(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
+                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
+                || HumanCannonCarry.HasOccupiedHands(player)
+                || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)
+                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
+                || PracticeGrabAllowed?.Invoke() == false) return false;
+            var course = TightropeCourse.Current;
+            return course == null || !course.IsTraversalActive || !course.UsesRopeRules(player);
         }
 
         public void RequestUse() { } // 반동은 접촉으로 동작하며 사용 키는 소비하지 않는다.
@@ -412,9 +410,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
         {
-            if (session == null || !session.IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                || ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null || HasRopeSupport(player)
-                || HumanCannonSystem.Current == null) return false;
+            if (session == null || !session.IsHost || !CanAcquire(player)) return false;
             RefreshCarryBody(player);
             if (!HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true,
                 out var position, out var rotation, out _) || !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false)

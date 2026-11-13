@@ -60,6 +60,9 @@ namespace CurtainCall.HumanCannon
 
         void OnEnable()
         {
+            foreach (var view in horizontalViews) GamePhysicsLayers.AssignHierarchy(view, GamePhysicsLayers.TrickHazard);
+            GamePhysicsLayers.AssignHierarchy(verticalView, GamePhysicsLayers.TrickHazard);
+            GamePhysicsLayers.AssignHierarchy(secondaryVerticalView, GamePhysicsLayers.TrickHazard);
             if (Current != null && Current != this) { enabled = false; return; }
             Current = this;
             horizontalRenderers = new Renderer[horizontalViews.Length][];
