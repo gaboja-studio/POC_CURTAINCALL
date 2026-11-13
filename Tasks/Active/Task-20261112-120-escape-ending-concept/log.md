@@ -85,3 +85,5 @@
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 최신 dev의 기존 Task-115 log.md 길이 제한으로 전체 문서 검사 FAIL. 해당 Task 변경 없이 직접 Unity 검사를 별도로 실행해 컴파일 및 공통 설정 PASS 확인. 선택 자동 테스트 생략.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/360 (feat/escape-ending-submission → dev)
