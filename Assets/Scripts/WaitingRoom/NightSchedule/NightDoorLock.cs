@@ -92,9 +92,18 @@ namespace CurtainCall.WaitingRoom
             if (run == null) return false;
             var phase = run.State.Phase;
             if (CannonPracticeSeal) return true;
+            // 무대 입구 통로 철창은 정비 시간에만 닫는다(탐색 잠금·리허설 동선 제한과 무관, Task-129).
+            if (name == StageCorridorClosure.GateName) return StageCorridorClosure.IsClosed(run.State);
             if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
             return GameSettings.Base.Run.IsExplorationLocked(run.State)
                 || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
+        }
+
+        /// <summary>실행 중에 만든 철창(<see cref="StageCorridorClosure"/>)을 연결한다. 꺼진 오브젝트에 붙인 직후, 켜기 전에 부른다.</summary>
+        internal void Configure(Transform bars, bool legacyNotice)
+        {
+            shutter = bars;
+            showLegacyNotice = legacyNotice;
         }
 
         bool UpdateTutorialBarrier()

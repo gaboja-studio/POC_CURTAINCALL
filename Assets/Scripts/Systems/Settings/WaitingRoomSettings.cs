@@ -35,6 +35,11 @@ namespace CurtainCall.Settings
         public BreakPresentationSettings MaintenancePresentation => maintenancePresentation ??= new(true);
         public BreakPresentationSettings Presentation(Campaign.CampaignPhase phase) => phase == Campaign.CampaignPhase.Night ? MaintenancePresentation : RestPresentation;
 
+        [Header("정비 시간 · 무대 입구 통로")]
+        [Tooltip("켜면 밤 정비(이어지는 새벽 전환 포함) 동안 로비에서 무대 입구 통로로 가는 입구를 철창으로 닫고 통로 조명을 끈다. 아침·낮·가이드 쉬는 시간에는 열린다. 2026-11-14 사용자 요청. 기본 켬.")]
+        [SerializeField, InspectorName("정비 시간 무대 통로 봉쇄·소등")] bool closeStageCorridorDuringMaintenance = true;
+        public bool CloseStageCorridorDuringMaintenance => closeStageCorridorDuringMaintenance;
+
         [Serializable]
         public sealed class BreakNoticeSettings
         {
