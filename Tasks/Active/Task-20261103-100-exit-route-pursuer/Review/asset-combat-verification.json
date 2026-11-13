@@ -2,7 +2,7 @@
   "date": "2026-11-13",
   "branch": "feat/exit-route/pursuer",
   "startingDev": "08600e05",
-  "publication": "User requested only required assets; full package commit never published to branch. Minimal runtime assets published; preparing public PR.",
+  "publication": "Committed and pushed; PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/369 submitted to dev; not merged. Only 2 newly required sound clips and metadata published in private assets.",
   "appearance": "Greybox and Legacy animations in Escape A/test/prefab. Unused Mascot/stump objects removed; original packages and experiment backups remain local only.",
   "imports": [
     {

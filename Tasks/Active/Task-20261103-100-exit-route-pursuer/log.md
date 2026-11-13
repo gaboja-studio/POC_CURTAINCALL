@@ -129,3 +129,4 @@
 - Unity 의존성 조회 결과 신규 실제 참조는 돌진/투척 WAV2개뿐이다. A/test/프리팹에서 미사용 Mascot·절단 단면27객체를 제거하고 제거 전 파일은 .harness/local/pursuer-assets/pre-minimal-upload에 보관. 음원2개와 폴더/파일meta9파일(502820바이트)만 private a06b1871에 저장했고 최신 private main과 병합한 a31de665를 push했다. 나머지 패키지/실험 에셋은 로컬 미추적 보존이다.
 - 제출 대기 중 devb96a22fd 추가9커밋을 Unity 종료 상태에서 병합했다. 탈출 엔딩 낮/밤 설정과 추격자 설정은 자동 병합됐다. 기존 공개 미제출 커밋도 최소 에셋 참조로 수정해 전체 패키지 커밋을 가리키는 gitlink가 제출 이력에 남지 않게 했다.
 - 최소 에셋·devb96a22fd 기준 최종 검사: EditMode274/274, 카메라 PlayMode1/1, 컴파일/공용 설정/안전성/문서/원격 private 포인터 검사 PASS. A6545객체에서 missing script0, 기존8부위 활성, 엔딩/체크포인트 보존 확인. 최신 테스트 씬 dirty0/Play 정지로 열어 둠. 로컬 미사용 에셋과 폰트 자동 변경은 제출에서 제외한다.
+- 저장·제출 완료: private a31de665(신규 효과음2개·meta9파일), 공개0935817b까지 push 후 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/369 생성(feat/exit-route/pursuer → dev). 지정 팀원 검토 대기이며 병합하지 않았다. 이번 기록도 별도 문서 커밋으로 push한다.
