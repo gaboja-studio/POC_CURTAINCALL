@@ -39,14 +39,14 @@ namespace CurtainCall.PerformanceBackground
                 fogColor = RenderSettings.fogColor;
                 RenderSettings.skybox = null;
                 RenderSettings.ambientMode = AmbientMode.Trilight;
-                RenderSettings.ambientSkyColor = new Color(0.13f, 0.19f, 0.30f);
-                RenderSettings.ambientEquatorColor = new Color(0.10f, 0.115f, 0.16f);
-                RenderSettings.ambientGroundColor = new Color(0.30f, 0.11f, 0.035f);
+                RenderSettings.ambientSkyColor = new Color(0.085f, 0.12f, 0.19f);
+                RenderSettings.ambientEquatorColor = new Color(0.065f, 0.075f, 0.11f);
+                RenderSettings.ambientGroundColor = new Color(0.16f, 0.061f, 0.026f);
                 RenderSettings.ambientIntensity = 1f;
                 RenderSettings.fog = true;
                 RenderSettings.fogMode = FogMode.ExponentialSquared;
-                RenderSettings.fogDensity = 0.00115f / PerformanceBackgroundLayout.Scale;
-                RenderSettings.fogColor = new Color(0.028f, 0.034f, 0.055f);
+                RenderSettings.fogDensity = 0.00132f / PerformanceBackgroundLayout.Scale;
+                RenderSettings.fogColor = new Color(0.016f, 0.021f, 0.034f);
                 applied = true;
             }
             var camera = Camera.main;
