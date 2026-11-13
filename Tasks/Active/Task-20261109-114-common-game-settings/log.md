@@ -96,3 +96,7 @@
 - 컴파일·공통 설정 연결 검사 PASS, CampaignPlacementTests 6/6 PASS. 실제 A 씬 838/838 Renderer 속성 일치·dirty=false. 전후 렌더(.harness/local/shaft-before.png, shaft-after.png)로 심부 벽의 어둠 복구 확인. 실제 플레이 미실시.
 - PR361에 추가하고 병합하지 말라는 사용자 지시 유지.
 - 제출 직전 DEV 08600e05(PR362 리허설 안내) 반영 후 컴파일·공통 설정 PASS. Unity 종료 후 다시 fetch하여 같은 DEV 확인. 기존 PR361에 추가 제출하며 병합은 하지 않음. check-work 개별 검사 통과, 마지막 Task100/114 중복 기록 제약 유지.
+
+## 11/13 봉 타이머 탑승 중 표시
+- Unity 종료 상태에서 DEV 28ef042b 최신화, 기존 feat/exit-route/pursuer 유지. 일반·스위치 봉 공통 표시를 동기화된 State.Count > 0으로 제한. 빈 봉은 숨기고 1명 이상이면 기존 남은 시간 표시, 마지막 해제·시간 만료·초기화 후 숨김. GameSettings 제한시간·높이·반동 수치 유지.
+- 안전성·문서·컴파일·공통 설정 연결 PASS. check-work 마지막 기록 단계는 기존 Task100/114 중복으로 실패. UI 표시 조건만 변경하여 새 자동 테스트·실제 플레이는 미실시. 제출 요청에 따라 DEV 28ef042b를 재확인하고 기존 브랜치에서 봉 타이머 수정으로 PR을 제출한다.
