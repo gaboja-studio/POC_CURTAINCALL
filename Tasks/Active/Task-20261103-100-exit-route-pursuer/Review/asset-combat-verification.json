@@ -189,9 +189,9 @@
     "Subjective animation, fear, difficulty and full 2-4 player traversal need user play.",
     "Mascot partition is experimental, retained inactive; clean capped topology and stretched arm still need art polish if re-enabled."
   ],
-  "finalDev": "b96a22fd",
+  "finalDev": "cf65ae53",
   "finalPrivateBase": "8ece127e60b95c2bbef0c773ee4bf62e56b432e2",
-  "integration": "21 dev commits fast-forwarded with Unity closed. One code conflict retained both spectator-held-item collision and escape capture exclusion. Scene/settings auto-merged. Submission: 7 additional dev commits fast-forwarded with Unity closed; kept finished-performance spectator behavior and Korean setting tooltips with pursuer tuning. Final submission base b96a22fd merged with Unity closed; escape ending day/night setting preserved. Private a31de665 includes only 2 new sound clips and required meta on existing main.",
+  "integration": "21 dev commits fast-forwarded with Unity closed. One code conflict retained both spectator-held-item collision and escape capture exclusion. Scene/settings auto-merged. Submission: 7 additional dev commits fast-forwarded with Unity closed; kept finished-performance spectator behavior and Korean setting tooltips with pursuer tuning. Final submission base b96a22fd merged with Unity closed; escape ending day/night setting preserved. Private a31de665 includes only 2 new sound clips and required meta on existing main. After PR creation, merged cf65ae53 performance-background update. Resolved gitlink using a31de665, which contains dev asset commit d7464e91; no code/scene conflicts.",
   "scene": {
     "scene": "Assets/Scenes/Levels/escape_route.unity",
     "objects": 6545,
