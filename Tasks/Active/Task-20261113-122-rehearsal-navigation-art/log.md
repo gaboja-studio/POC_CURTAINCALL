@@ -89,3 +89,9 @@
 - 사용자가 에디터에서 공통 색상 흰색·파동 간격 1.5초로 바꾼 값을 확인해 보존했다. 기본값 1을 가정한 테스트 2건을 공통 값 기준으로 수정했다. 검증: EditMode Wayfinding 7/7, PlayMode 네비 4/4 PASS(실제 리허설에서 가장 가까운 표시 화살표 1.62m ≥ 비움 1.5m). 기존 Pursuit 테스트 FAIL은 무관. 재저장 폰트는 navigation-start-gap-preserve-font-atlas-20261113 stash.
 
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-13 최신 dev 반영 및 후속 PR
+- 최신 origin/dev 12c17d4f(PR374 포함)을 에디터 종료 상태에서 병합했다. BaseGameSettings 코드·에셋 자동 병합 정상, 사용자 설정 흰색/파동1.5초/비움1.5m 보존.
+- 병합 후 Unity 컴파일 오류 없음, EditMode 네비7/7, 실게임 네비 PlayMode2/2, 동적 보정/공통 설정 PlayMode1/1 PASS. 캡처3 갱신. 이번 재검증은 무관한 기존 추격 테스트를 제외한 정확한 필터로 실행했다.
+- 최종 에디터 종료 확인 후 dev 재fetch: 추가 변경 없음. 자동 재저장 폰트4개는 navigation-pr-final-font-atlases-20261113 stash 보존.
+- 최종 check-work(-SkipUnity -NoRecord): 안전성 PASS, 문서 FAIL(다른 Task081 log143줄/상한130), 후속 검사 SKIPPED. 실제 병합 후 에디터 컴파일/테스트 통과와 구분한다. 해당 무관 문서는 수정하지 않았다.
