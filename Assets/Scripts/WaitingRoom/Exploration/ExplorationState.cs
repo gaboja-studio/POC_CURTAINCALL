@@ -364,7 +364,7 @@ namespace CurtainCall.WaitingRoom
                     return;
                 }
                 var item = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + offset, itemId,
-                    itemId == ExplorationDrops.PerformanceTokenId ? "공연 토큰 (자금 10원)" : ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
+                    ExplorationDrops.IsToken(itemId) ? $"공연 토큰 (자금 {ExplorationDrops.TokenFunds(itemId)}원)" : ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
                 bool newlyPlaced = !carry.Exists(item.Uid);
                 if (newlyPlaced && carry.PlaceFound(item, at) != CarryRefusal.None) return;
                 book.Attempt(receipt, true, out _, out _);
@@ -390,7 +390,7 @@ namespace CurtainCall.WaitingRoom
                     {
                         var entry = drops.entries[i];
                         if (entry != null && !string.IsNullOrEmpty(entry.itemId) && entry.uidOffset == offset
-                            && !(ReferenceEquals(target, owner) && i == index)) return false;
+                            && !(ReferenceEquals(target, owner) && (i == index || drops.exclusiveWeighted))) return false;
                     }
                 }
                 else if (!string.IsNullOrEmpty(target.RewardItemId) && target.RewardUidOffset == offset

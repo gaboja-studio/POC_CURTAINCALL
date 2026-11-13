@@ -285,9 +285,11 @@ namespace CurtainCall.Cameras.Tests
                     "S10_Workshop/Shell/Ceiling", "P05_PipeZone/Shell/Ceiling",
                     "S05_JunkStorage/Shell/Ceiling", "B1_Office/Shell/Ceiling",
                     "B1_ChangingRoom/Shell/Ceiling", "S08_ElevatorHall/FreightLift/CarRoof",
-                    "S01_Lobby/Frame8Lobby/PipeJunkLink/Shell/Ceiling"
+                    "FacilityConnections/PipeJunkLink/Shell/Ceiling"
                 }) {
-                    var roof = GameObject.Find("WaitingRoom_LayoutA/" + room);
+                    // Pursuit still keeps the pre-prefab hierarchy where the link sits under the lobby.
+                    var roof = GameObject.Find("WaitingRoom_LayoutA/" + room)
+                        ?? GameObject.Find("WaitingRoom_LayoutA/" + room.Replace("FacilityConnections/", "S01_Lobby/Frame8Lobby/"));
                     Assert.IsNotNull(roof, room);
                     Bounds bounds = roof.GetComponent<Renderer>().bounds;
                     yield return Teleport(new Vector3(bounds.center.x, bounds.min.y - 2.5f, bounds.center.z));

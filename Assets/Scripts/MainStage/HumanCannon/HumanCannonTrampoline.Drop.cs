@@ -126,7 +126,7 @@ namespace CurtainCall.HumanCannon
 
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
             TryFindGround(from, out ground, avoidRope: true) && from.y - ground.y <= reach
-            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier);
+            && HumanCannonCarry.CanMove(transform, MoveCheckBody, ground, transform.rotation, carrier);
 
         void StartDrop(Vector3 target)
         {
