@@ -211,6 +211,10 @@ namespace CurtainCall.Player
         public float CourseJumpHeightOverride { get; set; }
 
         float jumpGravity, jumpHeight;
+        bool turnJumpRequested;
+        Quaternion turnJumpStart;
+        double turnJumpAt;
+        float turnJumpDuration;
         Vector3 laneFlightRight, laneFlightForward;
         double laneFlightUntil;
         public bool IsPlannedLaneFlight => CurrentJump == JumpKind.Lane && Time.timeAsDouble <= laneFlightUntil;
@@ -221,6 +225,12 @@ namespace CurtainCall.Player
             var direction = -CourseForward;
             CourseForwardOverride = direction;
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
+
+        internal void RequestRopeTurnJump()
+        {
+            if (!FreeMovement && !IsAirborne && ControlEnabled && Simulated && !InputGate.IsBlocked)
+                turnJumpRequested = true;
         }
 
         float LaunchGravity => Character.Gravity * (FreeMovement ? 1f : Mathf.Max(0.1f, CourseJumpGravityMultiplier));
@@ -407,6 +417,7 @@ namespace CurtainCall.Player
         /// <summary>아직 실행하지 않은 입력만 비운다. 공중 속도·중력·착지 상태와 실제 앉은 상태(머리 위가 막혀 있을 수 있음)는 유지한다.</summary>
         public void ClearPendingInput()
         {
+            turnJumpRequested = false;
             moveInput = sideInput = 0f;
             sprintInput = crouchInput = false;
             IsSprinting = false;
@@ -595,7 +606,13 @@ namespace CurtainCall.Player
 
             Vector3 forward = CourseForward;
             if (!FreeMovement && forward != Vector3.zero)
-                transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
+            {
+                float progress = turnJumpDuration > 0f
+                    ? Mathf.Clamp01((float)(Time.timeAsDouble - turnJumpAt) / turnJumpDuration) : 1f;
+                transform.rotation = progress < 1f
+                    ? Quaternion.AngleAxis(180f * Mathf.SmoothStep(0f, 1f, progress), Vector3.up) * turnJumpStart
+                    : Quaternion.LookRotation(forward, Vector3.up);
+            }
 
             bool grounded = controller.isGrounded && verticalSpeed <= 0f;
             float move = ControlEnabled ? moveInput : 0f;
@@ -614,7 +631,17 @@ namespace CurtainCall.Player
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 
-                if (ControlEnabled && !FreeMovement && laneJumpRequested != 0)
+                if (turnJumpRequested && ControlEnabled && !FreeMovement && JumpAllowed && !IsCrouched)
+                {
+                    turnJumpStart = transform.rotation;
+                    CourseForwardOverride = forward = -forward;
+                    groundVelocity = Vector3.zero;
+                    IsMoving = false;
+                    StartJump(JumpKind.InPlace, 0);
+                    turnJumpAt = Time.timeAsDouble;
+                    turnJumpDuration = Mathf.Min(AirTime, GameSettings.Tightrope.Camera.FramingSmoothTime);
+                }
+                else if (ControlEnabled && !FreeMovement && laneJumpRequested != 0)
                 {
                     if (LaneJumpAllowed && CanLaneJump(laneJumpRequested)) StartJump(JumpKind.Lane, laneJumpRequested);
                     else verticalSpeed = -1f; // 옆줄 점프를 막아도 제자리 점프로 바꾸지 않는다
@@ -658,6 +685,7 @@ namespace CurtainCall.Player
             sideInput = 0f;
             sprintInput = crouchInput = false;
             jumpRequested = false;
+            turnJumpRequested = false;
             laneJumpRequested = 0;
 
             UpdateAirborne();
@@ -993,6 +1021,7 @@ namespace CurtainCall.Player
 
         void ClearJump()
         {
+            turnJumpDuration = 0f;
             CurrentJump = JumpKind.None;
             jumpGravity = 0f;
             jumpHeight = 0f;

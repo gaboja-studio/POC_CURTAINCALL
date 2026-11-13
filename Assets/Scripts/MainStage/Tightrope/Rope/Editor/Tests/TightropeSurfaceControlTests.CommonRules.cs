@@ -209,26 +209,40 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
   }
 
   [Test]
-  public void CommonRules_TurnInputReversesImmediatelyButKeepsAirborneTarget()
+  public void CommonRules_TurnInputDoesNotRedirectAnAirborneLaneJump()
   {
    mover.FreeMovement=false; mover.CourseForwardOverride=Vector3.forward;
    mover.CourseJumpHeightOverride=1.5f;
    var target=mover.transform.position+Vector3.right*2;
    mover.LaneLandingTarget=_=>target;
    Invoke(mover,"StartJump",JumpKind.Lane,1);
+   typeof(PlayerMover).GetField("<IsAirborne>k__BackingField",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(mover,true);
    var velocity=typeof(PlayerMover).GetField("airVelocity",BindingFlags.Instance|BindingFlags.NonPublic);
    var before=(Vector3)velocity.GetValue(mover);
    var scheme=Track(ScriptableObject.CreateInstance<TightropeControlScheme>());
    var context=new PlayerControlContext(player.gameObject);
    scheme.Tick(context,new PlayerInputFrame{TurnAroundPressed=true});
-   Assert.That(mover.CourseForward,Is.EqualTo(Vector3.back));
-   Assert.That(Vector3.Dot(player.transform.forward,Vector3.back),Is.GreaterThan(.999f));
+   Assert.That(mover.CourseForward,Is.EqualTo(Vector3.forward));
    Assert.That((Vector3)velocity.GetValue(mover),Is.EqualTo(before));
    Assert.That((Vector3)Invoke(mover,"LimitToLaneTarget",Vector3.right*10),Is.EqualTo(Vector3.right*2));
-   scheme.Tick(context,default);
+  }
+
+  [Test]
+  public void CommonRules_GroundedTurnStartsStationaryJumpWithoutSnappingBody()
+  {
+   AddBox("Turn jump support", new Vector3(0,-.25f,4), new Vector3(2,.5f,2));
+   MovePlayer(new Vector3(0,.01f,4));
+   mover.Body.Move(Vector3.down*.05f);
+   Assert.IsTrue(mover.Body.isGrounded);
+   mover.FreeMovement=false; mover.CourseForwardOverride=Vector3.forward;
+   player.transform.rotation=Quaternion.identity;
+   var scheme=Track(ScriptableObject.CreateInstance<TightropeControlScheme>());
+   scheme.Tick(new PlayerControlContext(player.gameObject),new PlayerInputFrame{Move=1f,TurnAroundPressed=true});
+   Invoke(mover,"Update");
+   Assert.That(mover.CurrentJump,Is.EqualTo(JumpKind.InPlace));
    Assert.That(mover.CourseForward,Is.EqualTo(Vector3.back));
-   scheme.Tick(context,new PlayerInputFrame{TurnAroundPressed=true});
-   Assert.That(mover.CourseForward,Is.EqualTo(Vector3.forward));
+   Assert.That(Vector3.Dot(player.transform.forward,Vector3.forward),Is.GreaterThan(.99f));
+   Assert.That(mover.GroundVelocity,Is.EqualTo(Vector3.zero));
   }
 
   [TestCase(1f, -1)] [TestCase(-1f, -1)] [TestCase(-1f, 1)]
