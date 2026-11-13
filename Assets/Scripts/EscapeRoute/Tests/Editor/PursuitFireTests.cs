@@ -115,6 +115,20 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void LateFinaleEntryKeepsNonnegativeEpochAndSynchronizesFirstBay()
+        {
+            var fire = Fire();
+            Assert.That(Call(fire, "ApplySchedule", 1U, 0, 5d, 8), Is.True);
+            Assert.That(Call(fire, "PhaseAt", 7, 5d).ToString(), Is.EqualTo("Burning"));
+            Assert.That(Call(fire, "PhaseAt", 8, 5d).ToString(), Is.EqualTo("Dormant"));
+            Assert.That(Call(fire, "PhaseAt", 8, 25d).ToString(), Is.EqualTo("Burst"));
+            Assert.That(Call(fire, "ApplySchedule", 1U, 0, 5d, 9), Is.False);
+            Assert.That(Call(fire, "ApplySchedule", 2U, 0, -1d, 8), Is.False);
+            Assert.That(Call(fire, "ApplySchedule", 2U, 0, -1d, 0), Is.True);
+            Assert.That(Get(fire, "IsArmed"), Is.False);
+        }
+
+        [Test]
         public void RestartBarrierRejectsDelayedFireAndInvalidAcknowledgmentBeforeNewEpoch()
         {
             var fire = Fire(); Call(fire, "ApplyState", 8U, 0, 100d);

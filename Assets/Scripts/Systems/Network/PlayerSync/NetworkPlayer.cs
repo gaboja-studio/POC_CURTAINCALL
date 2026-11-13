@@ -174,7 +174,7 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>호스트: 요청 없이 상태를 바로 정한다.</summary>
         public void ServerSetState(PlayerState next, DeathOrigin origin = DeathOrigin.Fall)
         {
-            if (!IsServer) return;
+            if (!IsServer || State == PlayerState.EscapeCaptured || next == PlayerState.EscapeCaptured) return;
             if (next is PlayerState.Fallen or PlayerState.Retired) SetDeathOrigin(origin);
             state.Value = next;
         }
@@ -400,7 +400,8 @@ namespace CurtainCall.Network.PlayerSync
         void RequestStateRpc(PlayerState next, int requestedRestartCount)
         {
             // 재시작을 아직 받지 못한 화면의 이전 추락 요청은 새 시도에 적용하지 않는다.
-            if (requestedRestartCount != restartCount.Value) return;
+            if (requestedRestartCount != restartCount.Value || State == PlayerState.EscapeCaptured || next == PlayerState.EscapeCaptured
+                || State == PlayerState.Retired && next == PlayerState.Fallen) return;
             if (state.Value == next) return;
             if (ServerCanChangeState != null && !ServerCanChangeState(this, next)) return;
             // 추락 요청은 장소의 사망 상태로 바꾼다(탈출로 = 리타이어)
@@ -556,6 +557,11 @@ namespace CurtainCall.Network.PlayerSync
 
         void HandleStateChanged(PlayerState previous, PlayerState current)
         {
+            if (IsOwner && previous == PlayerState.EscapeCaptured)
+            {
+                mover.Simulated = true;
+                if (balance != null) balance.IsSuspended = false;
+            }
             ApplyState(current);
             StateChanged?.Invoke(previous, current);
         }
@@ -563,6 +569,14 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>확정된 상태를 이 화면에 반영한다.</summary>
         void ApplyState(PlayerState current)
         {
+            if (current == PlayerState.EscapeCaptured && IsOwner)
+            {
+                mover.ClearPendingInput();
+                mover.ResetExternalMotion(false);
+                mover.Simulated = false;
+                mover.SetControlEnabled(false);
+                if (balance != null) balance.IsSuspended = true;
+            }
             // 리타이어: 조작만 잠근다(쓰러뜨리지 않음). 사망으로 리타이어하면 추락·신체 손상이 이미 무너뜨렸다
             if (current == PlayerState.Retired && IsOwner) mover.SetControlEnabled(false);
             if (current != PlayerState.Fallen) return;

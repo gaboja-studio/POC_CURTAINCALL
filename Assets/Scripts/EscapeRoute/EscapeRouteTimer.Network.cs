@@ -7,9 +7,9 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeRouteTimer
     {
-        const string RequestName = "CurtainCall.Escape.Countdown.Request";
-        const string StateName = "CurtainCall.Escape.Countdown.State";
-        const int StateBytes = 28;
+        const string RequestName = "CurtainCall.Escape.EncounterClock.Request.v2";
+        const string StateName = "CurtainCall.Escape.EncounterClock.State.v2";
+        const int StateBytes = 20;
         readonly RouteResetBarrier resetBarrier = new();
         CustomMessagingManager messaging;
 
@@ -55,7 +55,7 @@ namespace CurtainCall.EscapeRoute
         {
             using var writer = new FastBufferWriter(StateBytes, Allocator.Temp);
             writer.WriteValueSafe(revision); writer.WriteValueSafe(token); writer.WriteValueSafe(generation);
-            writer.WriteValueSafe(startedAt); writer.WriteValueSafe(sharedDuration);
+            writer.WriteValueSafe(startedAt);
             messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -64,17 +64,16 @@ namespace CurtainCall.EscapeRoute
             if (session == null || session.IsHost || sender != NetworkManager.ServerClientId
                 || reader.Length - reader.Position != StateBytes) return;
             reader.ReadValueSafe(out uint incoming); reader.ReadValueSafe(out int token); reader.ReadValueSafe(out int round);
-            reader.ReadValueSafe(out double epoch); reader.ReadValueSafe(out double duration);
-            ApplyState(incoming, token, round, epoch, duration);
+            reader.ReadValueSafe(out double epoch);
+            ApplyState(incoming, token, round, epoch);
         }
 
-        bool ApplyState(uint incoming, int token, int round, double epoch, double duration)
+        bool ApplyState(uint incoming, int token, int round, double epoch)
         {
-            if (incoming < revision || token < 0 || round < 0 || !double.IsFinite(epoch) || epoch < 0 && epoch != -1
-                || !double.IsFinite(duration) || duration < 1) return false;
-            if (synchronized && incoming == revision && (epoch != startedAt || duration != sharedDuration || round != generation)) return false;
+            if (incoming < revision || token < 0 || round < 0 || !double.IsFinite(epoch) || epoch < 0 && epoch != -1) return false;
+            if (synchronized && incoming == revision && (epoch != startedAt || round != generation)) return false;
             if (!resetBarrier.Accept(token)) return false;
-            revision = incoming; generation = round; startedAt = epoch; sharedDuration = duration; synchronized = true;
+            revision = incoming; generation = round; startedAt = epoch; synchronized = true;
             return true;
         }
 

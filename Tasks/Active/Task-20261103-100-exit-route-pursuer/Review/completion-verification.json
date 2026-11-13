@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-13",
+  "dev": "5c7754ae2e5d1d76d10251e07d95b12f16291291",
+  "escapeTests": {
+    "total": 256,
+    "passed": 256,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "earlierCommonTests": {
+    "total": 686,
+    "passed": 686,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "revealProbe": "2 첫 외줄 재등장 bay=4 blocked=\n5 두 번째 외줄 재등장 bay=8 blocked=\n6 다음 봉 압박 bay=9 blocked=\n7 하부 외줄 정비대 bay=13 blocked=\n12 컨베이어 옆 재등장 bay=30 blocked=\n14 스위치 외줄 압박 bay=38 blocked=\n15 복귀 대포 압박 bay=43 blocked=\n19 협동 구간 진입 bay=62 blocked=\n22 트램폴린 옆 압박 bay=66 blocked=\n28 상부 버튼 압박 bay=73 blocked=\n33 화염 측면 재등장 bay=82 blocked=\n34 상승 대포 압박 bay=88 blocked=\n46 마지막 봉 옆 bay=145 blocked=\n47 반출동 재등장 bay=-1 blocked=\n52 접이교 전용 우회 bay=113 blocked=\n62 권상교 우회 bay=134 blocked=\n71 최종 추격 합류 bay=-1 blocked=\n73 출구 압박 bay=-1 blocked=\nREVEAL tested=18 blocked=0\nRESET bay=-1 actor active=True\nCOMPLETE\n",
+  "cannonProbe": "A04B_ConveyorCannon shell=\r\nA04B_ConveyorCannon start=(69.60, -20.00, 0.50) velocity=(0.00, 10.66, -8.00)\r\nA06_CoreEndAscentCannon shell=\r\nA06_CoreEndAscentCannon start=(124.00, -6.00, 104.12) velocity=(5.50, 12.81, 0.44)\r\n04_ReturnCannon shell=\r\n04_ReturnCannon start=(80.08, -16.50, -72.50) velocity=(1.29, 22.98, 23.42)\r\n03_Cannon shell=\r\n03_Cannon start=(30.50, 2.00, 75.00) velocity=(8.95, 5.13, 0.00)\r\n",
+  "sceneReferences": "Assets/Scenes/Levels/escape_route.unity objects=5879 missingScripts=0 missingPrefabs=0 points=74 bossParts=8 saws=4\r\nAssets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity objects=5879 missingScripts=0 missingPrefabs=0 points=74 bossParts=8 saws=4\r\n"
+}

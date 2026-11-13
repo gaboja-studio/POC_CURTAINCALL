@@ -18,19 +18,20 @@ namespace CurtainCall.EscapeRoute.Tests
         static void Set(object o,string n,object v)
         {var p=o.GetType().GetProperty(n,Flags);if(p!=null)p.SetValue(o,v);else o.GetType().GetField(n,Flags).SetValue(o,v);}
         static object Call(object o,string n,params object[] args)=>o.GetType().GetMethod(n,Flags).Invoke(o,args);
-        static bool Apply(object timer,uint version,int token,int round,double epoch,double duration=480)
-            =>(bool)Call(timer,"ApplyState",version,token,round,epoch,duration);
+        static bool Apply(object timer,uint version,int token,int round,double epoch)
+            =>(bool)Call(timer,"ApplyState",version,token,round,epoch);
 
-        [TestCase(90,100,480)] [TestCase(100,100,480)] [TestCase(160,100,420)]
-        [TestCase(579.9,100,.1)] [TestCase(580,100,0)] [TestCase(1000,100,0)] [TestCase(1000,-1,480)]
-        public void SharedServerEpochCountsEightMinutesWithoutNegativeOrEarlyTime(double now,double epoch,double expected)
+        [TestCase(90,100,0)] [TestCase(100,100,0)] [TestCase(160,100,60)]
+        [TestCase(580,100,480)] [TestCase(1000,100,900)] [TestCase(86500,100,86400)] [TestCase(1000,-1,0)]
+        [TestCase(double.NaN,100,0)] [TestCase(1000,double.PositiveInfinity,0)]
+        public void EncounterClockContinuesPastFormerDeadlineWithoutCountingDown(double now,double epoch,double expected)
         {
-            double remaining=(double)Timer.GetMethod("RemainingAt").Invoke(null,new object[]{now,epoch,480d});
-            Assert.That(remaining,Is.EqualTo(expected).Within(.00001));
+            double elapsed=(double)Timer.GetMethod("ElapsedAt").Invoke(null,new object[]{now,epoch});
+            Assert.That(elapsed,Is.EqualTo(expected).Within(.00001));
         }
 
         [Test]
-        public void LateClientCannotExtendDeadlineWithDuplicateOrOlderSnapshot()
+        public void LateClientKeepsTheSameEncounterEpochWithDuplicateOrOlderSnapshot()
         {
             var go=new GameObject("Offline timer snapshot fixture");go.SetActive(false);
             try
@@ -40,9 +41,9 @@ namespace CurtainCall.EscapeRoute.Tests
                 Assert.That(Apply(timer,5,0,2,100),Is.True);
                 Assert.That(Apply(timer,4,0,2,160),Is.False);
                 Assert.That(Apply(timer,5,0,2,160),Is.False);
-                Assert.That(Apply(timer,5,0,2,100,600),Is.False);
+                Assert.That(Apply(timer,5,0,3,100),Is.False);
                 Assert.That(Get(timer,"StartedAt"),Is.EqualTo(100d));
-                Assert.That(Get(timer,"DurationSeconds"),Is.EqualTo(480d));
+                Assert.That(Get(timer,"HasStarted"),Is.True);
             }
             finally {Object.DestroyImmediate(go);}
         }
@@ -67,7 +68,7 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void InvalidDeadlinePacketsNeverActivateCountdown()
+        public void InvalidClockPacketsNeverActivateEncounter()
         {
             var go=new GameObject("Offline timer validation fixture");go.SetActive(false);
             try
@@ -76,7 +77,6 @@ namespace CurtainCall.EscapeRoute.Tests
                 Assert.That(Apply(timer,1,-1,0,100),Is.False);
                 Assert.That(Apply(timer,1,0,-1,100),Is.False);
                 foreach(double epoch in new[]{-2d,double.NaN,double.PositiveInfinity})Assert.That(Apply(timer,1,0,0,epoch),Is.False);
-                foreach(double duration in new[]{0d,-1d,double.NaN,double.PositiveInfinity})Assert.That(Apply(timer,1,0,0,100,duration),Is.False);
                 Assert.That(Get(timer,"HasStarted"),Is.False);
             }
             finally {Object.DestroyImmediate(go);}
@@ -117,7 +117,7 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void ExistingWaitingRoomDisplayShowsEightMinutesAndItsWarningStates()
+        public void OldSceneCountdownIsHiddenWhenEncounterClockActivates()
         {
             var preview=EditorSceneManager.NewPreviewScene();
             try
@@ -125,14 +125,20 @@ namespace CurtainCall.EscapeRoute.Tests
                 var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/RestTimerV28/W1_RestTimer_v2_8.prefab");
                 var root=(GameObject)PrefabUtility.InstantiatePrefab(prefab,preview);
                 var view=root.GetComponent(T("CurtainCall.UI.RestTimerV28.RestTimerView"));
+                var bridge=root.AddComponent(T("CurtainCall.UI.SceneIntegration.RestTimerView"));
                 var snapshotType=T("CurtainCall.UI.RestTimerV28.RestTimerSnapshot");
                 object Snapshot(double remaining)=>Activator.CreateInstance(snapshotType,new[]{(object)true,1,
                     Enum.Parse(T("CurtainCall.UI.RestTimerV28.RestTimeOfDay"),"Unknown"),Enum.Parse(T("CurtainCall.UI.RestTimerV28.RestTimerMode"),"Limited"),remaining,480d,false});
                 Call(view,"SetSnapshot",Snapshot(480),false);
                 Assert.That(Get(view,"CountdownText"),Is.EqualTo("8:00"));
-                Assert.That(Get(view,"FillAmount"),Is.EqualTo(1f));
-                foreach(var item in new[]{(30d,"Warning"),(10d,"Critical"),(0d,"Expired")})
-                {Call(view,"SetSnapshot",Snapshot(item.Item1),false);Assert.That(Get(view,"VisualState").ToString(),Is.EqualTo(item.Item2));}
+                var clockObject=new GameObject("Legacy scene clock");
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clockObject,preview);
+                clockObject.SetActive(false);
+                var timer=clockObject.AddComponent(Timer);Set(timer,"display",bridge);
+                Call(timer,"OnEnable");
+                Assert.That(Get(view,"RequestedVisible"),Is.False);
+                Assert.That(Apply(timer,1,0,0,100),Is.True);
+                Assert.That(Get(view,"RequestedVisible"),Is.False);
             }
             finally {EditorSceneManager.ClosePreviewScene(preview);}
         }

@@ -15,6 +15,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(0)] int deviceId;
         [Tooltip("현재 접속 인원당 한 대만 제공한다. 들고 있는 장치는 인원 감소로 숨기지 않는다.")]
         [SerializeField] bool scaleWithCrew;
+        [SerializeField] EscapePursuerBoss finaleBoss;
+        public EscapePursuerBoss FinaleBoss => finaleBoss;
         static readonly System.Collections.Generic.List<EscapeExitSaw> devices = new();
         public static System.Collections.Generic.IReadOnlyList<EscapeExitSaw> Devices => devices;
         [SerializeField] BoxCollider loadCollider;
@@ -91,7 +93,8 @@ namespace CurtainCall.EscapeRoute
         }
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
-            : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용(추격자 공격 불가)"
+            : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.Defeated ? $"{UseKey} 발사 · 추격자 절단 {finaleBoss.Cuts}/8 · 배선 {CutCableCount}/{RequiredCableCount}"
+            : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용"
             : ProjectileMode ? $"색 전선을 조준하고 {UseKey}로 발사" // 끊은 횟수는 보여 주지 않는다(2026-11-13 사용자)
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";

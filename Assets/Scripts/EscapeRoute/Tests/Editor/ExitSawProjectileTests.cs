@@ -43,6 +43,17 @@ namespace CurtainCall.EscapeRoute.Tests
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
+        public void CosmeticPursuerChunksDoNotAbsorbShotsButWallsDo()
+        {
+            Fixture();
+            var chunk = Root("Severed cosmetic chunk", true);
+            var collider = chunk.AddComponent<BoxCollider>();
+            Assert.That(Call(saw, "ShotObstacle", collider), Is.True);
+            chunk.AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerDebris"));
+            Assert.That(Call(saw, "ShotObstacle", collider), Is.False);
+        }
+
+        [Test]
         public void HeldMachineDoesNotLimitLargeMovementStepsAndRestoresPairsOnDrop()
         {
             Fixture(true);var player=Player(41);var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));

@@ -26,6 +26,7 @@ namespace CurtainCall.EscapeRoute
 
         [SerializeField] BoxCollider trigger;
         [SerializeField] EscapeCooperativeSpan ignitionBridge;
+        [SerializeField] EscapePursuerBoss pursuerIgnition;
         [SerializeField] Bay[] bays = Array.Empty<Bay>();
         [SerializeField, Min(0)] float startDelay = 20;
         [SerializeField, Min(.1f)] float stepSeconds = 12;
@@ -39,6 +40,7 @@ namespace CurtainCall.EscapeRoute
         readonly Dictionary<ulong, Vector3> awaitingSpawn = new();
         NetworkSessionManager session;
         double armedAt = -1;
+        int firstBay;
         uint revision;
         bool synchronized;
         int resetFrame = -1;
@@ -55,8 +57,10 @@ namespace CurtainCall.EscapeRoute
         bool Configured => (trigger != null || ignitionBridge != null) && bays.Length > 0 && ValidSchedule(startDelay, stepSeconds, warnSeconds, burstSeconds)
             && float.IsFinite(safeExitX);
 
-        public FirePhase PhaseAt(int index, double now) => SchedulePhase(now, armedAt, index, bays.Length,
-            startDelay, stepSeconds, warnSeconds, burstSeconds);
+        public FirePhase PhaseAt(int index, double now) => index >= 0 && index < bays.Length && pursuerIgnition
+            && bays[index]?.coverage && pursuerIgnition.BeyondFireBoundary(bays[index].coverage.bounds.center)
+            ? FirePhase.Dormant : index >= 0 && index < firstBay && IsArmed && now >= armedAt
+                ? FirePhase.Burning : SchedulePhase(now, armedAt, index - firstBay, bays.Length - firstBay, startDelay, stepSeconds, warnSeconds, burstSeconds);
 
         /// <summary>Absolute server timestamps keep late join and dropped presentation frames on the same stage.</summary>
         public static FirePhase SchedulePhase(double now, double epoch, int index, int count,
@@ -86,9 +90,9 @@ namespace CurtainCall.EscapeRoute
         public bool Threatens(Vector3 feet, float radius, float height, double now)
         {
             // The exit is a hard safe boundary, including bodies whose trailing radius still overlaps the last bay.
-            if (!Finite(feet) || RouteX(feet) >= safeExitX || !float.IsFinite(radius) || radius < 0
+            if (!Finite(feet) || RouteX(feet) >= safeExitX || pursuerIgnition && pursuerIgnition.BeyondFireBoundary(feet) || !float.IsFinite(radius) || radius < 0
                 || !float.IsFinite(height) || height <= 0) return false;
-            int consumed = ConsumedCount(now, armedAt, bays.Length, startDelay, stepSeconds);
+            int consumed = IsArmed && now >= armedAt ? firstBay + ConsumedCount(now, armedAt, bays.Length - firstBay, startDelay, stepSeconds) : 0;
             for (int i = 0; i < consumed; i++)
                 if (bays[i] != null && OverlapsBody(bays[i].coverage, feet, radius, height)) return true;
             return false;
@@ -169,7 +173,7 @@ namespace CurtainCall.EscapeRoute
             double now = Clock;
             if (session.IsHost && resetFrame != Time.frameCount)
             {
-                if (!IsArmed && ignitionBridge != null && ignitionBridge.DeploymentRequested) Arm(now);
+                if (!IsArmed && !pursuerIgnition && ignitionBridge != null && ignitionBridge.DeploymentRequested) Arm(now);
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (!Alive(player)) continue;
@@ -178,7 +182,7 @@ namespace CurtainCall.EscapeRoute
                         if ((player.transform.position - spawn).sqrMagnitude > 9) continue;
                         awaitingSpawn.Remove(player.OwnerClientId);
                     }
-                    if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);
+                    if (!IsArmed && !pursuerIgnition && ignitionBridge == null && CanArm(player)) Arm(now);
                     if (IsArmed && DamageAllowed(player) && player.TryGetComponent(out PlayerMover mover)
                         && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(this,"OB_"));
                 }
@@ -190,6 +194,18 @@ namespace CurtainCall.EscapeRoute
         void Arm(double now)
         {
             armedAt = now; revision++; Publish();
+        }
+        public bool ServerIgniteFromPursuer(EscapePursuerBoss source)
+        {
+            if (source != pursuerIgnition || !Ready || !Configured || session == null || !session.IsHost || IsArmed) return false;
+            float rear = float.PositiveInfinity;
+            foreach (var player in NetworkPlayer.All) if (Alive(player)) rear = Mathf.Min(rear, RouteX(player.transform.position));
+            int first = 0;
+            for (int i = 0; i < bays.Length; i++)
+                if (bays[i]?.coverage && RouteX(bays[i].coverage.bounds.center) <= rear - 10f) first = i;
+            firstBay = first;
+            Arm(Clock);
+            return true;
         }
 
         void OnDisable()

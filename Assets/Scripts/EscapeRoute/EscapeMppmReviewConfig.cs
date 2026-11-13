@@ -13,6 +13,23 @@ namespace CurtainCall.EscapeRoute
     public static class EscapeMppmReviewConfig
     {
         public static string Key => "CurtainCall.Escape.MppmReview." + PlayerSettings.productGUID;
+        public const string PursuerScene = "Assets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity";
+        public static int PursuerPlayers
+        {
+            get => Mathf.Clamp(EditorPrefs.GetInt(Key + ".PursuerPlayers", 1), 1, 4);
+            set => EditorPrefs.SetInt(Key + ".PursuerPlayers", Mathf.Clamp(value, 1, 4));
+        }
+        internal static bool TryPursuerSession(Scene scene, out bool client, out int participants)
+        {
+            participants = PursuerPlayers;
+            client = false;
+            if (scene.path != PursuerScene || participants <= 1) return false;
+            var type = Type.GetType("Unity.Multiplayer.PlayMode.Editor.VirtualProjectsEditor, UnityEditor.MultiplayerModule");
+            if (type != null)
+                client = (bool)(type.GetProperty("IsClone", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? false)
+                    || (bool)(type.GetProperty("IsScenarioClone", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? false);
+            return true;
+        }
         [Serializable] public class Settings { public string folder; public string[] clones; public bool lowMemoryPreview; }
         static int originalMipmapLimit = -1;
         static int originalFrameRate, originalVSyncCount;
@@ -54,7 +71,8 @@ namespace CurtainCall.EscapeRoute
             if (TryGet(out _, out _)) return true;
             var spaces = GameSettings.Base.SpaceTransition;
             return SceneManager.GetSceneByName(spaces.WaitingRoomScene).isLoaded
-                || SceneManager.GetSceneByName(spaces.EscapeRouteScene).isLoaded;
+                || SceneManager.GetSceneByName(spaces.EscapeRouteScene).isLoaded
+                || SceneManager.GetSceneByPath(PursuerScene).isLoaded;
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void PrepareBackground()

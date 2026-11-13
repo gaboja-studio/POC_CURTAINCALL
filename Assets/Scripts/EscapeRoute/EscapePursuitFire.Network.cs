@@ -12,7 +12,7 @@ namespace CurtainCall.EscapeRoute
     {
         const string RequestName = "CurtainCall.Escape.PursuitFire.Request";
         const string StateName = "CurtainCall.Escape.PursuitFire.State";
-        const int StateBytes = 16;
+        const int StateBytes = 20;
         readonly RouteResetBarrier resetBarrier = new();
         CustomMessagingManager messaging;
 
@@ -57,6 +57,7 @@ namespace CurtainCall.EscapeRoute
         {
             using var writer = new FastBufferWriter(StateBytes, Allocator.Temp);
             writer.WriteValueSafe(revision); writer.WriteValueSafe(token); writer.WriteValueSafe(armedAt);
+            writer.WriteValueSafe(firstBay);
             messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -65,17 +66,21 @@ namespace CurtainCall.EscapeRoute
             if (session == null || session.IsHost || sender != NetworkManager.ServerClientId
                 || reader.Length - reader.Position != StateBytes) return;
             reader.ReadValueSafe(out uint incoming); reader.ReadValueSafe(out int token); reader.ReadValueSafe(out double epoch);
-            ApplyState(incoming, token, epoch);
+            reader.ReadValueSafe(out int first);
+            ApplySchedule(incoming, token, epoch, first);
         }
 
         bool ApplyState(uint incoming, int token, double epoch)
+            => ApplySchedule(incoming, token, epoch, 0);
+        bool ApplySchedule(uint incoming, int token, double epoch, int first)
         {
-            if (incoming < revision || token < 0 || !double.IsFinite(epoch) || epoch < 0 && epoch != -1) return false;
+            if (incoming < revision || token < 0 || !double.IsFinite(epoch) || epoch < 0 && epoch != -1
+                || first < 0 || first >= Mathf.Max(1, bays.Length) || epoch == -1 && first != 0) return false;
             // Same revision is only a repeated snapshot, never a different schedule.
-            if (synchronized && incoming == revision && epoch != armedAt) return false;
+            if (synchronized && incoming == revision && (epoch != armedAt || first != firstBay)) return false;
             if (!resetBarrier.Accept(token)) return false;
-            bool changed = epoch != armedAt;
-            revision = incoming; armedAt = epoch; synchronized = true;
+            bool changed = epoch != armedAt || first != firstBay;
+            revision = incoming; armedAt = epoch; firstBay = first; synchronized = true;
             if (changed) HidePresentation();
             return true;
         }
@@ -91,11 +96,11 @@ namespace CurtainCall.EscapeRoute
                     awaitingSpawn[player.OwnerClientId] = spawn;
                 }
                 if (resetFrame == Time.frameCount) return;
-                resetFrame = Time.frameCount; armedAt = -1; revision++; HidePresentation(); Publish();
+                resetFrame = Time.frameCount; armedAt = -1; firstBay = 0; revision++; HidePresentation(); Publish();
             }
             else if (player.IsLocal)
             {
-                synchronized = false; armedAt = -1; HidePresentation();
+                synchronized = false; armedAt = -1; firstBay = 0; HidePresentation();
                 RequestSnapshot(resetBarrier.Begin());
             }
         }
@@ -104,7 +109,7 @@ namespace CurtainCall.EscapeRoute
         {
             if (messaging != null)
             { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
-            messaging = null; session = null; synchronized = false; armedAt = -1; revision = 0;
+            messaging = null; session = null; synchronized = false; armedAt = -1; firstBay = 0; revision = 0;
             awaitingSpawn.Clear(); resetBarrier.Clear(); HidePresentation();
         }
     }

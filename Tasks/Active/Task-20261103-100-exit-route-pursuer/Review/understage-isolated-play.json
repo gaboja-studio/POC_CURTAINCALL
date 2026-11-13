@@ -1,0 +1,104 @@
+[
+  {
+    "time": 0.3865562,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, 3.10)",
+    "armAngle": 358.686646,
+    "panelSolid": true,
+    "fragments": true,
+    "openingRay": [
+      "Panel collision"
+    ],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.59, 0.82, 20.02)",
+    "sound": true
+  },
+  {
+    "time": 1.56142426,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, 3.10)",
+    "armAngle": 348.916962,
+    "panelSolid": true,
+    "fragments": true,
+    "openingRay": [
+      "Panel collision"
+    ],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.59, 0.82, 20.14)",
+    "sound": true
+  },
+  {
+    "time": 2.3764565,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, 1.77)",
+    "armAngle": 297.2618,
+    "panelSolid": false,
+    "fragments": true,
+    "openingRay": [],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.60, 0.82, 18.40)",
+    "sound": true
+  },
+  {
+    "time": 2.75960016,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, 1.04)",
+    "armAngle": 334.896881,
+    "panelSolid": false,
+    "fragments": true,
+    "openingRay": [],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.60, 0.82, 17.91)",
+    "sound": true
+  },
+  {
+    "time": 3.65049934,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, -0.75)",
+    "armAngle": 5.929059,
+    "panelSolid": false,
+    "fragments": false,
+    "openingRay": [],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.61, 0.82, 16.41)",
+    "sound": true
+  },
+  {
+    "time": 4.833382,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, -2.48)",
+    "armAngle": 344.032745,
+    "panelSolid": false,
+    "fragments": false,
+    "openingRay": [],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.62, 0.81, 14.84)",
+    "sound": true
+  },
+  {
+    "time": 6.43308067,
+    "epoch": 29.584922846816479,
+    "actorVisible": true,
+    "feet": "(0.00, 0.00, -4.05)",
+    "armAngle": 0.0,
+    "panelSolid": false,
+    "fragments": false,
+    "openingRay": [],
+    "originalExitRay": [],
+    "conservativeLimbBlockers": [],
+    "mainCameraTorsoViewport": "(0.64, 0.81, 13.38)",
+    "sound": false
+  }
+]

@@ -1,0 +1,65 @@
+{
+  "dev": "b22a5515",
+  "mapBlob": "39addb7d790379c22090ec5abdc494ddcb289bba",
+  "frame": "EscapeCampaignFrame local metres",
+  "source": "03_Cannon → A03_CannonLandingWire → A04A_01_CavernExit → A04A_UpperWire",
+  "serviceEntry": [
+    18.5,
+    0,
+    66.8
+  ],
+  "brakeMarker": [
+    41.5,
+    -4.36,
+    66.8
+  ],
+  "endOfWalk": [
+    54,
+    -6,
+    66.8
+  ],
+  "endOfPursuit": [
+    60.4,
+    -6,
+    66.8
+  ],
+  "geometry": {
+    "checks": [
+      "first cannon and local muzzle velocity match A",
+      "complete detour leg 1",
+      "complete detour leg 2",
+      "complete detour leg 3",
+      "complete detour leg 4",
+      "neutral flight lands on first wire",
+      "valid first-pole releases to upper wire clear new route"
+    ],
+    "poses": 502,
+    "footSamples": 502,
+    "metres": 48.7185745,
+    "flight": 1.90295792,
+    "landing": "(47.53, -6.00, 75.00)",
+    "poleSeatsSweep": 324,
+    "transfers": 624,
+    "firstVisible": {
+      "47.53": 49.49974,
+      "54": 46.0997925,
+      "60": 43.09984
+    },
+    "sourceDirty": false
+  },
+  "landingAndPace": [
+    "no bypass on failed landing, wrong station or wrong surface",
+    "actual cannon event starts this round only",
+    "first diversion step approaches shutter on foot",
+    "moves under cover on a continuous route",
+    "visible exit is walked even if another person is far ahead",
+    "stopped runner causes watch instead of automatic run",
+    "second arrival joins pursuit without restarting entrance",
+    "catch-up sustains until within 1.5m",
+    "brakes near runner",
+    "holds position after both targets leave",
+    "restart closes gate and clears diversion"
+  ],
+  "networkEditChecks": 26,
+  "playTest": "reserved for user"
+}
