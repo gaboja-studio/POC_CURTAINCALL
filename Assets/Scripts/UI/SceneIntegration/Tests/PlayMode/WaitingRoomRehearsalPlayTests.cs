@@ -1,6 +1,8 @@
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 
 namespace CurtainCall.UI.SceneIntegration.Tests
@@ -403,11 +405,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 ScreenCapture.CaptureScreenshot(".harness/local/rehearsal/corrected/01-rope-and-balance.png");
                 yield return null;
                 float sideBeforeJump = (float)Call(course, "GetSide", player.transform.position);
-                FlowKeys("E"); yield return null; yield return null;
-                FlowKeys("E", "Space"); yield return null; yield return null; yield return new WaitForSecondsRealtime(.15f); FlowKeys();
+                var mouse = InputSystem.AddDevice<Mouse>("Rehearsal lane jump");
+                try
+                {
+                    InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Right));
+                    yield return null; yield return null;
+                }
+                finally { InputSystem.RemoveDevice(mouse); }
                 until = Time.realtimeSinceStartup + 4f;
                 while ((float)Call(course, "GetSide", player.transform.position) < sideBeforeJump + 2f && Time.realtimeSinceStartup < until) yield return null;
-                Assert.Greater((float)Call(course, "GetSide", player.transform.position), sideBeforeJump + 2f, "강제 배치 없이 E+Space로 옆줄 이동");
+                Assert.Greater((float)Call(course, "GetSide", player.transform.position), sideBeforeJump + 2f, "강제 배치 없이 우클릭으로 옆줄 이동");
                 yield return new WaitForSecondsRealtime(.4f);
                 ScreenCapture.CaptureScreenshot(".harness/local/rehearsal/corrected/02-lane-jump.png");
                 yield return null;

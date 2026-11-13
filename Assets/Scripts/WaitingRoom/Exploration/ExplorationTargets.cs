@@ -43,6 +43,11 @@ namespace CurtainCall.WaitingRoom
 
     public static class ExplorationTargets
     {
+        public static bool ToolsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
+            && (CurtainCall.Campaign.CampaignRun.Instance?.State.Phase == CurtainCall.Campaign.CampaignPhase.Performance
+                || CurtainCall.Tightrope.TightropeRun.Current is { PracticeMode: false, State: CurtainCall.Tightrope.TightropeRunState.Running }
+                || CurtainCall.HumanCannon.HumanCannonSystem.Current is { PracticeMode: false } cannon
+                    && cannon.gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.HumanCannonScene);
         /// <summary>맨몸으로 칠 수 있는 대상인가.</summary>
         public static bool AllowsBareHands(IExplorationTarget t) => t is IBareHandTarget { AllowsBareHands: true };
 
@@ -83,6 +88,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>지금 내 손에 든 기물이 이 도구인가(F 안내용, 모든 화면).</summary>
         public static bool LocalHolds(string toolId)
         {
+            if (ToolsBlocked) return false;
             var carry = PropCarry.Instance;
             if (carry == null) return false;
             var item = carry.InHand(carry.LocalClientId);

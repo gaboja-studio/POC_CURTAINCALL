@@ -15,10 +15,10 @@ namespace CurtainCall.Tightrope.UI
         {
             if (passenger)
                 return top
-                    ? "A/D 균형 잡기 · Space 제자리 점프 · 방향키 + Space 분리 점프\nF 길게 눌러 가까운 곳에 내리기 · Q/E + Space 옆줄로 내리기"
+                    ? "A/D 균형 잡기 · Space 제자리 점프 · 방향키 + Space 분리 점프\nF 길게 눌러 가까운 곳에 내리기 · {side} 옆줄로 내리기"
                     : "A/D 균형 잡기 · 맨 위 동료부터 차례로 내리기\n마우스 시점 회전";
             if (onRope)
-                return "W/S 앞뒤 이동 · A/D 균형 잡기 · Space 점프 · Q/E + Space 옆줄 점프\n"
+                return "W/S 앞뒤 이동 · A/D 균형 잡기 · Space 점프 · {side} 옆줄 점프 · {turn} 앞뒤 전환\n"
                     + (carrying ? "위 동료가 F를 길게 눌러 내리기" : "F 가까운 동료 목마 / 빈 자리에서 받기 준비·취소")
                     + " · 마우스 시점 회전\n봉에서 날아갈 때만 WASD 공중 조절 · 청록색 띠 안에 착지하면 균형 흔들림 감소";
             return "W/S 앞뒤 이동 · A/D 옆걸음 · Space 점프\n마우스 방향 전환 · 줄 위로 걸어가면 자동 탑승·3인칭";
@@ -63,7 +63,8 @@ namespace CurtainCall.Tightrope.UI
             var stack = PiggybackSystem.Current;
             bool passenger = stack != null && stack.GetBelow(local) != null;
             bool carrying = stack != null && stack.GetAbove(local) != null;
-            string content = Describe(!mover.FreeMovement, passenger, !carrying, carrying);
+            string content = CurtainCall.UI.SceneIntegration.PerformanceHudProfile.FormatKeys(
+                Describe(!mover.FreeMovement, passenger, !carrying, carrying), local.GetComponent<PlayerInputReader>());
             string relayHint = relay != null ? relay.LocalHint : null;
             string trapezeHint = trapeze != null ? trapeze.LocalHint : null;
             var swing = TightropeSwingPole.Current;

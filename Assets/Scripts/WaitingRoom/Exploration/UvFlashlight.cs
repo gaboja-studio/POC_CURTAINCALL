@@ -60,7 +60,8 @@ namespace CurtainCall.WaitingRoom
             var player = NetworkPlayer.Local;
             var reader = player != null ? player.GetComponent<PlayerInputReader>() : FindFirstObjectByType<PlayerInputReader>();
             var body = reader != null ? reader.transform : null;
-            bool on = body != null && reader.isActiveAndEnabled && reader.Current.UvLightHeld && !InputGate.IsBlocked && Equipped(player, reader);
+            bool on = !ExplorationTargets.ToolsBlocked && body != null && reader.isActiveAndEnabled
+                && reader.Current.UvLightHeld && !InputGate.IsBlocked && Equipped(player, reader);
             IsOn = on;
             // 최적화(2026-10-31): 빛의 위치는 매 프레임, 낙서 판정(레이캐스트)은 0.1초마다. 낙서는 비춘 뒤 5초 남으므로 차이가 없다.
             bool check = Time.unscaledTime >= nextCheck;
@@ -121,7 +122,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var p in NetworkPlayer.All)
             {
                 if (p == null || p.IsLocal) continue;
-                bool on = p.UvOn && PlayerInteraction.CanInteract(p) && !HumanCannonCarry.HasOccupiedHands(p);
+                bool on = !ExplorationTargets.ToolsBlocked && p.UvOn && PlayerInteraction.CanInteract(p) && !HumanCannonCarry.HasOccupiedHands(p);
                 if (!remote.TryGetValue(p, out var light) || light == null)
                 {
                     if (!on) continue;

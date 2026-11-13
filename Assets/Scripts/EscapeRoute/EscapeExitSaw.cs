@@ -195,6 +195,10 @@ namespace CurtainCall.EscapeRoute
         public bool CanGrab(NetworkPlayer player)
         {
             if (!Ready || ownership.IsOccupied || !Grounded(player) || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            var course = TightropeCourse.Current;
+            if (CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockRopeWithSaw
+                && course != null && course.IsTraversalActive && player.TryGetComponent(out PlayerMover mover)
+                && course.TryGetSupportingRope(mover, out _)) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0

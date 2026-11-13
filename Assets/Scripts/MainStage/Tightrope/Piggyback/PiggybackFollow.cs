@@ -294,13 +294,16 @@ namespace CurtainCall.Tightrope
             var input = reader.Current;
             // While carried, PlayerMover does not run its normal posture update.
             if (localMover.IsCrouched && !input.CrouchHeld) localMover.TryStand();
-            if (system.GetAbove(local) != null || localMover.IsCrouched || !input.ActionPressed
+            if (system.GetAbove(local) != null || localMover.IsCrouched || (!input.ActionPressed && !input.LaneChangePressed)
                 || local.TryGetComponent(out HumanoidPlayerPresentation presentation)
                 && presentation.InteractionMovementLocked) return;
             int viewSign = TightropeControlScheme.LocalViewSign(localMover);
             if (input.AuxDirection != 0)
             {
-                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * viewSign);
+                var carrier = system.GetCarrier(local);
+                int cameraSide = carrier != null && carrier.TryGetComponent(out PlayerMover carrierMover)
+                    ? carrierMover.RopeTravelSign : localMover.RopeTravelSign;
+                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * cameraSide);
                 return;
             }
 
