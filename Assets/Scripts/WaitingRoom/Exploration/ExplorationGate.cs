@@ -35,6 +35,11 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] bool passwordPending, passwordExplicit;
         [SerializeField, TextArea] string monitorText = "";
         [SerializeField] Camera monitorCamera;
+        [Tooltip("단말기(관리실 컴퓨터) 전용: 암호가 맞은 뒤 카메라 영상 화면에서 '문이 열렸다'고 표시할 대상. 이 대상이 아직 안 열렸으면 '잠금만 풀렸다'고 표시한다.")]
+        [SerializeField] string feedOpenTarget = "";
+        [Tooltip("암호가 맞은 뒤 카메라 영상을 보여 주는 시간(초). 그 전에 EXIT·ESC·F로 닫을 수 있다.")]
+        [SerializeField, Min(1f)] float feedSeconds = 8f;
+        bool feedShown; float feedUntil;
         RenderTexture monitorFeed;
         [SerializeField] string rewardItemId = "";
         [SerializeField, Range(1, 99)] int rewardUidOffset = 60;
@@ -191,7 +196,8 @@ namespace CurtainCall.WaitingRoom
                 panelOpenedBy = NetworkPlayer.Local; panelOpenedByNetworkPlayer = panelOpenedBy != null;
                 if (kind == ExplorationGateKind.Monitor && !Opened) ExplorationState.Instance.RequestUse(targetId);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
-                if (monitorCamera != null)
+                feedShown = false;
+                if (monitorCamera != null && !IsTerminal)
                 {
                     if (monitorFeed == null) { monitorFeed = new RenderTexture(768, 432, 16); monitorFeed.name = "MachineRoomFeed"; monitorFeed.Create(); }
                     monitorCamera.targetTexture = monitorFeed; monitorCamera.enabled = true;
@@ -211,7 +217,7 @@ namespace CurtainCall.WaitingRoom
         }
         void ClosePanel()
         {
-            panel = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
+            panel = false; feedShown = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
             panelOpenedBy = null; panelOpenedByNetworkPlayer = false;
             if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Answered;
         }
@@ -227,6 +233,9 @@ namespace CurtainCall.WaitingRoom
             panelView.SetMessage(text); lastPanelMessage = text;
             if (text == ExplorationState.WrongCode) { Play(ref buzz, "KeypadWrong", .45f, 180f, true); panelView.ClearCode(); }
         }
+        string FeedStatus() => string.IsNullOrEmpty(feedOpenTarget) || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(feedOpenTarget))
+            ? WaitingRoomText.Get("gate.terminal-feed-open", "> EXIT DOOR : OPEN")
+            : WaitingRoomText.Get("gate.terminal-feed-locked", "> LOCK RELEASED / POWER LINE ACTIVE");
         AudioSource sound;
         AudioClip buzz, chime;
         void Play(ref AudioClip clip, string name, float seconds, float pitch, bool square)
@@ -259,6 +268,25 @@ namespace CurtainCall.WaitingRoom
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
             if (!PanelOwnerCanUse) { ClosePanel(); return; }
+            // 단말기: 암호가 맞으면 바로 닫지 않고 탈출로 문 카메라 영상을 잠깐 보여 준다(2026-11-13 사용자).
+            bool feed = IsTerminal && monitorCamera != null && Opened;
+            if (feed && !feedShown && panelView != null)
+            {
+                feedShown = true; feedUntil = Time.unscaledTime + feedSeconds; Play(ref chime, "KeypadRight", .3f, 880f, false);
+                if (monitorFeed == null) { monitorFeed = new RenderTexture(768, 432, 16); monitorFeed.name = "ExitDoorFeed"; monitorFeed.Create(); }
+                monitorCamera.targetTexture = monitorFeed; monitorCamera.enabled = true;
+                panelView.ShowFeed(Label, monitorFeed, FeedStatus(), ClosePanel);
+            }
+            if (feedShown)
+            {
+                if (panelView != null) panelView.SetFeedStatus(FeedStatus());
+                // 열린 뒤에는 이 대상에 더 닿을 수 없으므로(이미 열림) 거리 판정 대신 시간·키로만 닫는다.
+                if (Time.unscaledTime >= feedUntil || ExplorationState.Instance == null
+                    || (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                    || (Time.unscaledTime > feedUntil - feedSeconds + .4f && CurtainCall.Network.PlayerSync.NetworkPlayer.Local != null
+                        && CurtainCall.Network.PlayerSync.NetworkPlayer.Local.GetComponent<PlayerInputReader>()?.WasPressedThisFrame("Interact") == true)) ClosePanel();
+                return;
+            }
             if (NeedsPassword && Opened) Play(ref chime, "KeypadRight", .3f, 880f, false);
             if (panelView != null && NeedsPassword && ExplorationState.Instance != null && lastPanelMessage != ExplorationState.Instance.LastMessage)
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }

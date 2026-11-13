@@ -38,6 +38,9 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("카메라에서 단서까지 거리(m). 휠로 이 범위 안에서 당기고 민다.")]
         [SerializeField] Vector2 viewDistance = new(.35f, .9f);
 
+        [Tooltip("살펴볼 때 단서를 비추는 조명 세기. 밝은 종이(신문)는 낮춰야 글씨가 날아가지 않는다.")]
+        [SerializeField, Min(0f)] float inspectLight = 2.5f;
+
         [Tooltip("마우스 끌기 회전 속도(도/픽셀).")]
         [SerializeField, Min(.01f)] float rotateSpeed = .35f;
 
@@ -350,7 +353,7 @@ namespace CurtainCall.WaitingRoom
 
             var lamp = new GameObject("InspectLight").AddComponent<Light>();
             lamp.transform.SetParent(view, false); lamp.transform.localPosition = new Vector3(.25f, .3f, -.35f);
-            lamp.type = LightType.Point; lamp.range = 2f; lamp.intensity = 2.5f; lamp.color = new Color(1f, .95f, .85f); lamp.shadows = LightShadows.None;
+            lamp.type = LightType.Point; lamp.range = 2f; lamp.intensity = inspectLight; lamp.color = new Color(1f, .95f, .85f); lamp.shadows = LightShadows.None;
         }
 
         static Material shade;

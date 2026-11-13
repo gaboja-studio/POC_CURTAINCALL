@@ -31,7 +31,21 @@ namespace CurtainCall.WaitingRoom
         public void UnlockAfter(string targetId) => availableAfter = targetId ?? "";
 
         public string SpotId => spotId;
-        public Vector3 FloorPoint => transform.position;
+        /// <summary>
+        /// 기물을 놓을 점. 받침대·선반·상자 위에 찍은 자리는 높이가 바닥(0)으로 저장돼 기물이 그 물체 속에 묻히고,
+        /// 줍기 시야 판정이 막혀 주울 수 없었다(2026-11-13 스프링 신발). 묻혀 있으면 바로 위 표면으로 올린다.
+        /// </summary>
+        public Vector3 FloorPoint
+        {
+            get
+            {
+                var p = transform.position;
+                if (Physics.CheckSphere(p + Vector3.up * .125f, .05f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                    && Physics.Raycast(p + Vector3.up * 1.5f, Vector3.down, out var hit, 1.5f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                    && hit.normal.y > .5f && hit.point.y > p.y) p.y = hit.point.y;
+                return p;
+            }
+        }
 
         // 탐색 발견품은 기물 목록의 발견품 내구도(초안: 새 제품보다 적다)로 시작한다.
         // 디버그 보급품은 내구도 차감을 여러 번 시험할 수 있게 새 제품 내구도(2026-10-30 사용자 결정).

@@ -100,6 +100,16 @@ namespace CurtainCall.Settings
         [SerializeField, InspectorName("탐색 공연 토큰 금액"), Tooltip("상자에서 나온 공연 토큰을 주웠을 때 공동 자금에 더하는 금액(원). 2026-11-12 사용자: 50원."), Min(0)]
         int explorationTokenFunds = 50;
         public int ExplorationTokenFunds => explorationTokenFunds;
+        [SerializeField, InspectorName("탐색 공연 토큰 금액(작은 것)"), Min(0), Tooltip("상자에서 나오는 작은 공연 토큰 금액(원). 2026-11-13 사용자: 20원.")]
+        int explorationTokenFundsSmall = 20;
+        public int ExplorationTokenFundsSmall => explorationTokenFundsSmall;
+        [SerializeField, InspectorName("탐색 공연 토큰 금액(큰 것)"), Min(0), Tooltip("상자·물병에서 나오는 큰 공연 토큰 금액(원). 2026-11-13 사용자: 100원.")]
+        int explorationTokenFundsLarge = 100;
+        public int ExplorationTokenFundsLarge => explorationTokenFundsLarge;
+
+        [SerializeField, InspectorName("대기실 트램펄린 운반 판정 지름"), Min(0f), Tooltip("대기실에서 트램펄린을 들고 갈 때 벽·설비에 걸리는지 보는 판정의 지름(m). 공연 공통 판정(지름 약 4.95m)은 좁은 대기실에서 옮길 수 없어 대기실에서만 줄인다(2026-11-13 사용자). 0이면 공연과 같은 판정.")]
+        float trampolineCarryCheckDiameter = 1f;
+        public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
         [Header("재연습 공통 규칙")]
         [SerializeField] RehearsalSettings rehearsal = new();

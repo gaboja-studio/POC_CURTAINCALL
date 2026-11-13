@@ -181,6 +181,9 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var t = Selection.activeTransform;
             selected = IsIntegrated && t != null && t.gameObject.scene == SceneManager.GetActiveScene() ? InteractionRoot(t) : null;
+            // 다른 층을 보고 있을 때 Hierarchy에서 고른 물체가 무시되어 옮길 수 없었다 → 그 물체의 층으로 바꿔 준다.
+            if (selected != null && !OnSelectedFloor(selected) && floorHeights != null && floorHeights.Length > 0)
+            { planeHeight = FloorForHeight(selected.position.y, floorHeights); allFloors = false; RefreshFloors(); }
             if (selected != null && !OnSelectedFloor(selected)) selected = null;
             if (existingPaletteSource != selected) existingPaletteSource = null;
             linked.Clear(); Refresh();
@@ -240,12 +243,38 @@ namespace CurtainCall.WaitingRoom.Editor
             }
             details.Add(new HelpBox("상호작용·연결된 발견물·드롭 위치가 함께 이동합니다. 추가 위치 앵커만 아래에서 선택하세요. 기존 해제 조건과 획득 규칙은 유지됩니다.", HelpBoxMessageType.Info));
             DropControls();
+            DeleteControl();
             var readOnly = new VisualElement();
             readOnly.Add(new InspectorElement(selected.gameObject));
             foreach (var component in selected.GetComponents<Component>().Where(c => c != null && c is not Transform))
                 readOnly.Add(new InspectorElement(component));
             readOnly.SetEnabled(false); details.Add(readOnly);
             details.SetEnabled(!EditorApplication.isPlayingOrWillChangePlaymode);
+        }
+        // 이미 배치된 기물·상자를 지운다. 방 프리팹 안에 든 것은 프리팹을 깨지 않도록 끄기만 한다(되돌리기 가능).
+        void DeleteControl()
+        {
+            var target = selected; if (target == null) return;
+            bool inPrefab = PrefabUtility.IsPartOfPrefabInstance(target);
+            var button = new Button(() =>
+            {
+                if (EditorApplication.isPlayingOrWillChangePlaymode || target == null) return;
+                if (!EditorUtility.DisplayDialog("오브젝트 배치", $"'{target.name}'을(를) {(inPrefab ? "끌까요? (방 프리팹 안의 물체라 지우지 않고 끕니다)" : "지울까요?")}", inPrefab ? "끄기" : "지우기", "취소")) return;
+                var scene = target.gameObject.scene;
+                DeletePlaced(target, OwnedCompanions(target).ToArray());
+                selected = null; Selection.activeGameObject = null; EditorSceneManager.MarkSceneDirty(scene); Refresh();
+            }) { text = inPrefab ? "이 오브젝트 끄기" : "이 오브젝트 지우기" };
+            button.style.marginTop = 6; details.Add(button);
+        }
+        internal static void DeletePlaced(Transform target, Transform[] companions)
+        {
+            Undo.SetCurrentGroupName("배치 오브젝트 삭제");
+            foreach (var t in new[] { target }.Concat(companions ?? new Transform[0]).Where(t => t != null).Distinct().ToArray())
+            {
+                if (t == null) continue;
+                if (PrefabUtility.IsPartOfPrefabInstance(t)) { Undo.RecordObject(t.gameObject, "끄기"); t.gameObject.SetActive(false); PrefabUtility.RecordPrefabInstancePropertyModifications(t.gameObject); }
+                else Undo.DestroyObjectImmediate(t.gameObject);
+            }
         }
         internal static Transform[] MoveRoots(Transform root, IEnumerable<Transform> references)
         {

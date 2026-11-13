@@ -114,6 +114,35 @@ namespace CurtainCall.WaitingRoom
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
             if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);
         }
+        /// <summary>
+        /// 단말기 화면에 감시 카메라 영상을 띄운다(2026-11-13 사용자: 암호가 맞으면 탈출로 문이 열리는 화면을 보여 준다).
+        /// 자판은 없애고 영상과 한 줄 상태 문구, EXIT만 둔다.
+        /// </summary>
+        public void ShowFeed(string heading, Texture feed, string status, Action onClose)
+        {
+            if (canvasRoot != null) Destroy(canvasRoot);
+            submit = null; close = onClose; terminal = true; codeLabel = null; wordLabel = null;
+            canvasRoot = new GameObject("ExplorationPanelCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            canvasRoot.transform.SetParent(transform, false);
+            var canvas = canvasRoot.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 360;
+            var scaler = canvasRoot.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
+            const float w = 900, h = 640;
+            var frame = Box(canvasRoot.transform, "TerminalFrame", TerminalGreen); var fr = (RectTransform)frame;
+            fr.anchorMin = fr.anchorMax = fr.pivot = new Vector2(.5f, .5f); fr.sizeDelta = new Vector2(w + 6, h + 6);
+            var screen = Box(frame, "Terminal", new Color32(4, 12, 6, 250)); Place((RectTransform)screen, 3, -3, w, h);
+            var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
+            var title = Text(screen, "Title", heading + " :: " + WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed"), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
+            Place((RectTransform)Box(screen, "Rule", TerminalGreen), 28, -58, w - 56, 2);
+            var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(screen, false);
+            Place((RectTransform)picture.transform, 28, -72, w - 56, 430); var raw = picture.GetComponent<RawImage>(); raw.texture = feed; raw.raycastTarget = false;
+            message = Text(screen, "Message", status, font, 28, 28, -512, w - 56, 42); message.color = TerminalGreen; message.textWrappingMode = TextWrappingModes.NoWrap;
+            Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
+            var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
+            if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);
+        }
+        /// <summary>영상 화면의 상태 문구만 바꾼다(문이 열리는 순간 갱신).</summary>
+        public void SetFeedStatus(string text) { if (message != null && message.text != text) message.text = text; }
         /// <summary>단말기 자판. 숫자는 위 칸, 글자는 아래 칸으로 들어간다.</summary>
         public void PressKey(string key)
         {

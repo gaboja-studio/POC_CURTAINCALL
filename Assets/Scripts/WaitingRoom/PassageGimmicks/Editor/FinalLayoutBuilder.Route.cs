@@ -15,6 +15,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     public static partial class FinalLayoutBuilder
     {
         const string StairsBarId = "final:stairs-bar", CargoBarId = "final:cargo-door-bar", ManagementCableId = "final:management-cable";
+        const string QuartersDoorId = "final:quarters-door";
+        const string ManagementOpenId = "final:management-open", ManagementLatchId = "final:management-latch", ManagementKeycardId = "final:management-keycard";
         const string ComputerId = "final:office-computer", EscapeCableId = "final:escape-cable", EscapeRouteId = "final:escape-route";
         // 기계실 서벽·남벽 안쪽 면(충돌체 기준).
         const float MachineWestX = -3.8f, MachineSouthZ = 64.05f;
@@ -106,6 +108,35 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             cgo.FindProperty("blocker").objectReferenceValue = slab; cgo.ApplyModifiedPropertiesWithoutUndo();
             notes.Add($"화물 적재 철문 z {z0:F2}~{z1:F2} 높이 {top - floorCargo:F2}");
 
+            // 이전 세대 공연자 숙소 문(2026-11-13 사용자): 복도 ↔ 생활 장소 문틀(x -3~-1, 높이 2.6)을 낡은 문으로 막는다.
+            // 문 자체를 부순다: 맨몸 6회, 천막 말뚝 뽑개 1회. 양쪽 어디서든 칠 수 있다.
+            {
+                var green = Mat("LA_AbandonedInstitutionGreen") ?? plate;
+                float dz = CorZ0 - T * .5f; const float dx0 = -3f, dx1 = -1f, dTop = 2.6f, dHalf = .05f;
+                var qDoor = Child(root, "QuartersDoor"); qDoor.position = new Vector3((dx0 + dx1) * .5f, 0, dz);
+                var qVisual = Child(qDoor, "Visual"); qVisual.localPosition = Vector3.zero;
+                Plain(Box(qVisual, "DoorLeaf", green, new Vector3(dx0 + .01f, .01f, dz - dHalf), new Vector3(dx1 - .01f, dTop - .01f, dz + dHalf), false));
+                foreach (float y in new[] { .35f, 1.25f, 2.15f })
+                    foreach (float side in new[] { -1f, 1f })
+                        Plain(Box(qVisual, "DoorBand", iron, new Vector3(dx0 + .06f, y, dz + side * dHalf - (side < 0 ? .02f : 0)), new Vector3(dx1 - .06f, y + .1f, dz + side * dHalf + (side > 0 ? .02f : 0)), false));
+                foreach (float side in new[] { -1f, 1f })
+                    Plain(Box(qVisual, "DoorHandle", iron, new Vector3(dx1 - .28f, 1.0f, dz + side * dHalf - (side < 0 ? .06f : 0)), new Vector3(dx1 - .2f, 1.16f, dz + side * dHalf + (side > 0 ? .06f : 0)), false));
+                var qSlab = qDoor.gameObject.AddComponent<BoxCollider>();
+                qSlab.center = new Vector3(0, dTop * .5f, 0); qSlab.size = new Vector3(dx1 - dx0, dTop, .16f);
+                qDoor.gameObject.AddComponent<Pursuit.PursuitDoorObstacle>().Source = qSlab;
+                var qPoint = Child(qDoor, "InteractionPoint"); qPoint.localPosition = new Vector3(0, 1.2f, 0);
+                var qGate = qDoor.gameObject.AddComponent<ExplorationGate>(); var qso = new SerializedObject(qGate);
+                qso.FindProperty("targetId").stringValue = QuartersDoorId; qso.FindProperty("label").stringValue = "낡은 숙소 문";
+                qso.FindProperty("kind").enumValueIndex = (int)ExplorationGateKind.Breakable;
+                qso.FindProperty("toolId").stringValue = ItemUses.StakePuller;
+                qso.FindProperty("requiredHits").intValue = 1; qso.FindProperty("bareHandHits").intValue = 6;
+                qso.FindProperty("interactionPoint").objectReferenceValue = qPoint;
+                qso.FindProperty("blocker").objectReferenceValue = qSlab;
+                Refs(qso.FindProperty("hideOnOpen"), qVisual.gameObject);
+                qso.ApplyModifiedPropertiesWithoutUndo();
+                notes.Add("생활 장소 문(맨몸 6 / 뽑개 1)");
+            }
+
             // 관리실 문: 녹슨 벽 안 배선이 잘리면 열린다(문에 직접 F하지 않는다).
             // 위치는 사용자 구조도(2026-11-12)대로 기계실 남서 모서리: 녹슨 벽을 남벽 서쪽 끝에 붙이고 배선은 그 안쪽 남벽을 탄다.
             var rust = layout.Find(RootName + "/MachineWiring/RustWall");
@@ -114,7 +145,34 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Undo.RecordObject(rust, "Move rust wall"); rust.SetPositionAndRotation(corner, Quaternion.identity);
             Undo.RecordObject(hidden.transform, "Move cable"); hidden.transform.position = new Vector3(corner.x, corner.y, MachineSouthZ + .16f);
             Set(hidden, "openTarget", ManagementCableId);
-            Rewire(layout.Find("B1_Office/Exploration_A/management-door"), ManagementCableId);
+            // 관리실 문(2026-11-13 사용자): 배선 절단 말고도 안쪽 빗장(맨몸·도구 1회)이나 키 카드로 열린다. 셋 중 하나면 된다.
+            var officeDoor = layout.Find("B1_Office/Exploration_A/management-door");
+            Rewire(officeDoor, ManagementOpenId);
+            if (officeDoor != null)
+            {
+                var ob = Bounds(officeDoor); // 문은 z면에 서 있고 관리실 안쪽이 +z(북쪽)다.
+                var latch = Bar(root, "OfficeLatch", ManagementLatchId, 1, iron, new Vector3(ob.min.x + .12f, ob.min.y + 1.1f, ob.max.z), new Vector3(ob.max.x - .12f, ob.min.y + 1.1f, ob.max.z), Vector3.forward);
+                Set(latch, "label", "안쪽 빗장");
+                // 키 카드 단말기: 문 바깥(남쪽) 벽, 문 오른쪽 어깨 높이.
+                var readerAt = new Vector3(ob.max.x + .45f, ob.min.y + 1.25f, ob.min.z - .02f);
+                if (Physics.Raycast(new Vector3(readerAt.x, readerAt.y, ob.min.z - 1.2f), Vector3.forward, out var wallHit, 1.6f, ~0, QueryTriggerInteraction.Ignore)) readerAt.z = wallHit.point.z;
+                var reader = Child(root, "KeycardReader"); reader.position = readerAt + Vector3.back * .03f;
+                var rv = Child(reader, "Visual"); rv.localPosition = Vector3.zero;
+                Plain(Box(rv, "ReaderBody", iron, readerAt + new Vector3(-.07f, -.11f, -.05f), readerAt + new Vector3(.07f, .11f, 0), false));
+                Plain(Box(rv, "ReaderSlot", plate, readerAt + new Vector3(-.045f, -.02f, -.058f), readerAt + new Vector3(.045f, 0, -.05f), false));
+                var lampMat = Mat("LA_TentRed"); if (lampMat != null) Plain(Box(rv, "ReaderLamp", lampMat, readerAt + new Vector3(-.015f, .05f, -.058f), readerAt + new Vector3(.015f, .08f, -.05f), false));
+                var rp = Child(reader, "InteractionPoint"); rp.position = readerAt + Vector3.back * .12f;
+                var rg = reader.gameObject.AddComponent<ExplorationGate>(); var rso = new SerializedObject(rg);
+                rso.FindProperty("targetId").stringValue = ManagementKeycardId; rso.FindProperty("label").stringValue = "키 카드 단말기";
+                rso.FindProperty("kind").enumValueIndex = (int)ExplorationGateKind.Breakable;
+                rso.FindProperty("toolId").stringValue = KeycardId; rso.FindProperty("requiredHits").intValue = 1; rso.FindProperty("bareHandHits").intValue = 0;
+                rso.FindProperty("interactionPoint").objectReferenceValue = rp; rso.ApplyModifiedPropertiesWithoutUndo();
+                var anyDoor = root.gameObject.AddComponent<ExplorationAllOf>(); var aso = new SerializedObject(anyDoor);
+                var ways = aso.FindProperty("required"); ways.arraySize = 3;
+                ways.GetArrayElementAtIndex(0).stringValue = ManagementCableId; ways.GetArrayElementAtIndex(1).stringValue = ManagementLatchId; ways.GetArrayElementAtIndex(2).stringValue = ManagementKeycardId;
+                aso.FindProperty("any").boolValue = true; aso.FindProperty("openTarget").stringValue = ManagementOpenId; aso.ApplyModifiedPropertiesWithoutUndo();
+                notes.Add($"관리실 문: 배선·안쪽 빗장·키 카드 단말기 {readerAt:F1}");
+            }
 
             // 탈출로 배선 4가닥: 배관함이 있던 벽면을 타고 올라가 숨겨진 문 위 틀로 들어간다. 처음부터 드러나 있고 모두 잘라야 한다.
             var hiddenDoor = layout.Find("B1_MachineRoom/Exploration_A/machineDoor");
@@ -143,16 +201,21 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             Refs(sso.FindProperty("cables"), new Object[] { hidden }.Concat(escapeCables).ToArray()); sso.FindProperty("openTarget").stringValue = "";
             sso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(saw);
             Undo.RecordObject(saw.transform, "Move saw"); saw.transform.position = SawSpot;
-            // 충돌 범위: 몸통 상자가 1.15 x 1.5 x 1.05m라 좁은 곳을 들고 지나갈 수 없고 사람 길도 막았다 → 0.6 x 1.2 x 0.6m로 줄이고 손잡이 충돌체는 끈다.
-            foreach (var box in saw.GetComponentsInChildren<BoxCollider>(true))
+            // 충돌 범위(들고 갈 때 걸림 판정도 이 상자를 쓴다): 원래 1.15 x 1.5 x 1.05m → 0.6 x 1.2 x 0.6m로도 계단·난간에 걸렸다(2026-11-13 플레이).
+            // 계단을 오르내릴 때 앞쪽 바닥·난간에 닿지 않게 0.35 x 0.45 x 0.35m로 줄이고 바닥에서 0.75m 띄운다. 손잡이 충돌체는 끈다.
+            if (sso.FindProperty("loadCollider").objectReferenceValue is BoxCollider load)
             {
-                var world = box.bounds.size; if (world.x < .7f && world.z < .7f) continue;
-                Undo.RecordObject(box, "Shrink saw collider");
-                var size = box.size; var k = new Vector3(.6f / Mathf.Max(world.x, .01f), 1.2f / Mathf.Max(world.y, .01f), .6f / Mathf.Max(world.z, .01f));
-                // 로컬 축과 월드 축이 다를 수 있어, 로컬 축마다 가장 가까운 월드 축의 비율을 쓴다. 바닥 높이는 유지한다.
-                var t = box.transform; var scaled = size;
-                for (int axis = 0; axis < 3; axis++) { var dir = Vector3.zero; dir[axis] = 1; var w = t.TransformDirection(dir); int wa = Mathf.Abs(w.x) >= Mathf.Abs(w.y) && Mathf.Abs(w.x) >= Mathf.Abs(w.z) ? 0 : Mathf.Abs(w.y) >= Mathf.Abs(w.z) ? 1 : 2; scaled[axis] = size[axis] * Mathf.Min(1f, k[wa]); if (wa == 1) { var c = box.center; c[axis] -= (size[axis] - scaled[axis]) * .5f * Mathf.Sign(w.y); box.center = c; } }
-                box.size = scaled; PrefabUtility.RecordPrefabInstancePropertyModifications(box);
+                Undo.RecordObject(load, "Shrink saw collider");
+                var want = new Vector3(.35f, .45f, .35f); var t = load.transform; var size = load.size; var scale = t.lossyScale;
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    var dir = Vector3.zero; dir[axis] = 1; var w = t.TransformDirection(dir);
+                    int wa = Mathf.Abs(w.x) >= Mathf.Abs(w.y) && Mathf.Abs(w.x) >= Mathf.Abs(w.z) ? 0 : Mathf.Abs(w.y) >= Mathf.Abs(w.z) ? 1 : 2;
+                    size[axis] = want[wa] / Mathf.Max(.0001f, Mathf.Abs(scale[axis]));
+                }
+                var centre = load.bounds.center; centre.y = saw.transform.position.y + .75f + want.y * .5f;
+                load.size = size; load.center = t.InverseTransformPoint(centre);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(load);
             }
             foreach (var mesh in saw.GetComponentsInChildren<MeshCollider>(true)) { if (!mesh.enabled) continue; Undo.RecordObject(mesh, "Disable handle collider"); mesh.enabled = false; PrefabUtility.RecordPrefabInstancePropertyModifications(mesh); }
             PrefabUtility.RecordPrefabInstancePropertyModifications(saw.transform);
@@ -164,6 +227,28 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             pso.FindProperty("kind").enumValueIndex = (int)ExplorationGateKind.Keypad;
             pso.FindProperty("password").stringValue = ComputerDate; pso.FindProperty("passwordExplicit").boolValue = true;
             pso.FindProperty("terminalWord").stringValue = "RUN";
+            // 암호가 맞으면 단말기 화면에 탈출로 문 카메라 영상이 뜬다(2026-11-13 사용자). 문 앞 트인 쪽 위에서 문을 내려다본다.
+            {
+                var exitDoor = layout.Find("B1_EscapeEntrance/Exploration_A/escapeDoor");
+                var template = layout.Find("B1_MachineRoom/Exploration_A/MachineRoomMonitorCamera");
+                if (exitDoor != null)
+                {
+                    // 문이 서 있는 면의 앞쪽 = 숨겨진 문(기계실)에서 걸어오는 쪽. 그쪽 통로 위에서 문을 본다.
+                    var eb = Bounds(exitDoor); bool alongX = eb.size.x < eb.size.z;
+                    var towardMachine = (hiddenDoor != null ? hiddenDoor.position : eb.center + Vector3.right) - eb.center;
+                    Vector3 openDir = alongX ? new Vector3(Mathf.Sign(towardMachine.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(towardMachine.z));
+                    float farthest = Physics.Raycast(eb.center + openDir * ((alongX ? eb.extents.x : eb.extents.z) + .15f), openDir, out var seen, 12f, ~0, QueryTriggerInteraction.Ignore) ? seen.distance : 12f;
+                    var camGo = template != null && template.GetComponent<Camera>() != null ? Object.Instantiate(template.gameObject, root) : new GameObject("Cam", typeof(Camera));
+                    camGo.name = "ExitDoorFeedCamera"; camGo.transform.SetParent(root, true);
+                    float camBack = Mathf.Clamp(farthest - .4f, 2f, 5.5f);
+                    var camEye = eb.center + openDir * ((Mathf.Abs(openDir.x) > .5f ? eb.extents.x : eb.extents.z) + camBack) + Vector3.up * Mathf.Min(1.4f, eb.extents.y + .6f) + Vector3.Cross(Vector3.up, openDir) * .9f;
+                    camGo.transform.SetPositionAndRotation(camEye, Quaternion.LookRotation(eb.center - camEye));
+                    var feedCam = camGo.GetComponent<Camera>(); feedCam.enabled = false; feedCam.targetTexture = null; feedCam.fieldOfView = 58f; feedCam.nearClipPlane = .1f; feedCam.farClipPlane = 40f;
+                    foreach (var listener in camGo.GetComponents<AudioListener>()) Object.DestroyImmediate(listener);
+                    pso.FindProperty("monitorCamera").objectReferenceValue = feedCam; pso.FindProperty("feedOpenTarget").stringValue = EscapeRouteId;
+                    notes.Add($"문 카메라 {camEye:F1}");
+                }
+            }
             pso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(computer);
 
             // 컴퓨터 + 탈출로 배선 → 숨겨진 문·탈출로 문이 함께 열린다.

@@ -92,7 +92,7 @@ namespace CurtainCall.EscapeRoute
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
             : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용(추격자 공격 불가)"
-            : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하고 {UseKey}로 발사"
+            : ProjectileMode ? $"색 전선을 조준하고 {UseKey}로 발사" // 끊은 횟수는 보여 주지 않는다(2026-11-13 사용자)
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
         bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null

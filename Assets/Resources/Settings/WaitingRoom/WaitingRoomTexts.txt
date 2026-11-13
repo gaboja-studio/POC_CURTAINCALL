@@ -707,3 +707,24 @@ target.final:hidden-graffiti-4.desc | 두 개의 암호를 만들었어. 뭘 해
 target.final:uv-5.name | 숨겨진 낙서 — UV
 target.final:hidden-graffiti-5.name | 숨겨진 낙서 5
 target.final:hidden-graffiti-5.desc | 기계실 깊은 곳으로 와. 거기서 기다리고 있을게.
+
+# 대기실 최종본 탐색 오브젝트 (2026-11-13)
+item.keycard-copy.name | 키 카드 복제본
+item.keycard-copy.hint | 키 카드가 있어야 열 수 있을 것 같다.
+target.final:management-keycard.name | 키 카드 단말기
+target.final:management-latch.name | 안쪽 빗장
+target.final:quarters-door.name | 낡은 숙소 문
+target.final:broken-laptop.name | 망가진 노트북
+target.final:broken-laptop.desc | 누군가 사용하던 노트북. 지금은 작동하지 않는다. 먼 옛날, 한 기술자가 노트북을 찾아내 수리했고 시설 관리 프로그램을 해킹했다. 다행히도 시설의 관리인들은 이 사실을 모른다.
+target.final:broken-laptop.secret | 뒤에 붙은 낡은 포스트잇: 20240912 / RUN
+target.final:water-bottle.name | 물병
+target.final:water-bottle.desc | 누군가 사용하던 물병. 안에 공연 토큰 100원이 들었음.
+target.final:old-costume.name | 낡은 인형 옷
+target.final:old-costume.desc | 이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.
+target.final:torn-note-1.name | 찢겨진 노트 낱장
+target.final:torn-note-2.name | 찢겨진 노트 낱장
+target.final:torn-note-3.name | 찢겨진 노트 낱장
+target.final:torn-note-4.name | 찢겨진 노트 낱장
+gate.terminal-feed-title | cam_exit.feed
+gate.terminal-feed-open | > 탈출로 문 : 열림
+gate.terminal-feed-locked | > 잠금 해제 완료 · 문에 전력이 남아 있음

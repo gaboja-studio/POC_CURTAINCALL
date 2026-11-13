@@ -392,9 +392,10 @@ namespace CurtainCall.WaitingRoom
                     break;
                 }
             foreach (var currency in book.Floor)
-                if (currency.Item.Uid == uid && currency.Item.ItemId == ExplorationDrops.PerformanceTokenId) {
-                    if (CurtainCall.Reward.PerformanceRewards.Instance == null || !CurtainCall.Reward.PerformanceRewards.Instance.TryGrantDiscoveryFunds(CurtainCall.Settings.GameSettings.WaitingRoom.ExplorationTokenFunds)) return (false, "자금 처리를 준비 중입니다.");
-                    book.ConsumeFloor(uid); Publish(); return (true, $"공연 토큰 획득 · 공동 자금 +{CurtainCall.Settings.GameSettings.WaitingRoom.ExplorationTokenFunds}원");
+                if (currency.Item.Uid == uid && ExplorationDrops.IsToken(currency.Item.ItemId)) {
+                    int tokenFunds = ExplorationDrops.TokenFunds(currency.Item.ItemId);
+                    if (CurtainCall.Reward.PerformanceRewards.Instance == null || !CurtainCall.Reward.PerformanceRewards.Instance.TryGrantDiscoveryFunds(tokenFunds)) return (false, "자금 처리를 준비 중입니다.");
+                    book.ConsumeFloor(uid); Publish(); return (true, $"공연 토큰 획득 · 공동 자금 +{tokenFunds}원");
                 }
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));

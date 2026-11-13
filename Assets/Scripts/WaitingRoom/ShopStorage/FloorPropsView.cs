@@ -147,7 +147,7 @@ namespace CurtainCall.WaitingRoom
                 artwork.hideFlags = HideFlags.DontSave;
                 return artwork;
             }
-            bool token = prop.Item.ItemId == ExplorationDrops.PerformanceTokenId;
+            bool token = ExplorationDrops.IsToken(prop.Item.ItemId);
             var shape = GameObject.CreatePrimitive(token ? PrimitiveType.Cylinder : PrimitiveType.Cube);
             shape.name = $"FloorProp_{prop.Item.Uid}_{prop.Item.ItemId}";
             Destroy(shape.GetComponent<Collider>());

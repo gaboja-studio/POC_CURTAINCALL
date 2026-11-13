@@ -10,12 +10,15 @@ namespace CurtainCall.WaitingRoom
     {
         [SerializeField] string[] required;
         [SerializeField] string openTarget = "";
+        [Tooltip("켜면 하나만 열려도 연다(관리실 문: 배선 절단·안쪽 빗장·키 카드 중 하나).")]
+        [SerializeField] bool any;
 
         void Update()
         {
             var state = ExplorationState.Instance;
             if (state == null || string.IsNullOrEmpty(openTarget) || required == null || required.Length == 0 || state.IsOpen(openTarget)) return;
-            foreach (var id in required) if (!state.IsOpen(id)) return;
+            if (any) { bool one = false; foreach (var id in required) one |= state.IsOpen(id); if (!one) return; }
+            else foreach (var id in required) if (!state.IsOpen(id)) return;
             state.MarkVisited(openTarget);
         }
     }

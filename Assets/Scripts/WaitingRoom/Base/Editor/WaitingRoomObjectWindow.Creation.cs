@@ -156,7 +156,7 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var lottery = selected.GetComponent<ExplorationDrops>();
             if (lottery != null && lottery.exclusiveWeighted) {
-                details.Add(new HelpBox($"낡은 상자 · 머리핀 15% / 나머지는 공연 토큰({CurtainCall.Settings.GameSettings.WaitingRoom.ExplorationTokenFunds}원), 빈 상자 없음. 토큰은 F로 주우면 공동 자금에 들어갑니다.", HelpBoxMessageType.Info));
+                details.Add(new HelpBox($"낡은 상자 · 머리핀 20% / 공연 토큰 50원 35% · 20원 30% · 100원 15%, 빈 상자 없음. 토큰은 F로 주우면 공동 자금에 들어갑니다.", HelpBoxMessageType.Info));
                 return;
             }
             if (selected.TryGetComponent<FoundItemSpot>(out var found)) {
