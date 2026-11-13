@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>Shared failure result, held until the host explicitly returns to the lobby.</summary>
+    /// <summary>Shared failure result, held until the host starts the next run's first morning.</summary>
     [DefaultExecutionOrder(950)]
     public sealed class FailureEndingPresentation : MonoBehaviour
     {
@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
         EscapeEndingResults results;
         CampaignRun run;
         int generation = -1;
+        int restartNoticeGeneration;
         bool started, returning, release, finished;
         Coroutine sequence;
         public bool IsPresenting => started && !finished;
@@ -49,20 +50,39 @@ namespace CurtainCall.EscapeRoute
         void LateUpdate()
         {
             run = CampaignRun.Instance;
+            TryShowRestartNotice();
             if (run == null || !IsFailureEnding(run.State))
             {
+                if (IsPresenting && run != null && run.State.Generation > generation)
+                {
+                    restartNoticeGeneration = run.State.Generation;
+                    // Keep the failure frame covered until the destination has activated.
+                    var director = SpaceLinkDirector.Instance;
+                    if (director != null && director.Current == SpaceId.WaitingRoom && !director.IsTransitioning) Finish();
+                    return;
+                }
                 if (started) ResetPresentation();
                 return;
             }
             if (generation != run.State.Generation) ResetPresentation();
             if (!started) Begin();
             if (!IsPresenting) return;
-            // An additive return may reveal a lobby which was already loaded.
-            if (stage.Playing && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.Hub
-                && (release && !SpaceLinkDirector.Instance.IsTransitioning || CurtainCall.Network.Session.NetworkSessionManager.Instance?.IsHost == false))
-            { Finish(); return; }
             CurtainCall.UI.SceneIntegration.CommonPerformanceUI.Current?.HideHints();
             if (Ready) results.Show(run.HasAuthority);
+        }
+
+        void TryShowRestartNotice()
+        {
+            if (restartNoticeGeneration <= 0 || run == null || IsPresenting) return;
+            var state = run.State;
+            if (state.Generation != restartNoticeGeneration) { restartNoticeGeneration = 0; return; }
+            var director = SpaceLinkDirector.Instance;
+            if (director == null || director.Current != SpaceId.WaitingRoom || director.IsTransitioning
+                || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive) return;
+            var card = CurtainCall.UI.SceneIntegration.HudUIManager.Current.ShowSystemEvent(
+                "탈출하지 못했습니다.\n새로운 런 · 1일차 아침이 시작됩니다", transform, "탈출 실패",
+                kind: CurtainCall.UI.SceneIntegration.HudEventKind.Warning);
+            if (card != null) restartNoticeGeneration = 0;
         }
 
         void Begin()
@@ -98,7 +118,7 @@ namespace CurtainCall.EscapeRoute
             fade.blocksRaycasts = alpha > 0;
         }
 
-        public bool ReturnToLobby()
+        public bool StartNextRun()
         {
             if (!Ready || run == null || !run.HasAuthority) return false;
             returning = true;
@@ -109,6 +129,12 @@ namespace CurtainCall.EscapeRoute
         {
             yield return FadeTo(1, fadeOutSeconds);
             release = true;
+            if (run == null || !run.RestartAfterFailure())
+            {
+                release = returning = false;
+                yield return FadeTo(0, fadeInSeconds);
+                results.View?.SetReturnAllowed(run != null && run.HasAuthority);
+            }
             sequence = null;
         }
         public IEnumerator HoldBeforeTransition()
@@ -119,7 +145,9 @@ namespace CurtainCall.EscapeRoute
         }
         void Loaded(Scene scene, LoadSceneMode mode)
         {
-            if (IsPresenting && scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.HubScene) Finish();
+            if (IsPresenting && run != null && run.State.Generation > generation
+                && scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomScene)
+            { restartNoticeGeneration = run.State.Generation; Finish(); }
         }
         void Finish()
         {

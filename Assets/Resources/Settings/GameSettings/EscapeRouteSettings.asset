@@ -18,16 +18,24 @@ MonoBehaviour:
   endingTimeOfDay: 1
   endingNight:
     skyColor: {r: 0.027, g: 0.043, b: 0.075, a: 1}
+    fogColor: {r: 0.018, g: 0.025, b: 0.038, a: 1}
+    fogStartDistance: 18
+    fogEndDistance: 150
     fogDensity: 0.004
     ambientColor: {r: 0.25, g: 0.3, b: 0.43, a: 1}
     lightColor: {r: 0.52, g: 0.66, b: 1, a: 1}
     lightIntensity: 1.3
   endingDay:
-    skyColor: {r: 0.62, g: 0.78, b: 0.93, a: 1}
+    skyColor: {r: 0.42, g: 0.46, b: 0.5, a: 1}
+    fogColor: {r: 0.035, g: 0.045, b: 0.055, a: 1}
+    fogStartDistance: 18
+    fogEndDistance: 175
     fogDensity: 0.0025
-    ambientColor: {r: 0.62, g: 0.64, b: 0.62, a: 1}
-    lightColor: {r: 1, g: 0.95, b: 0.84, a: 1}
-    lightIntensity: 1.6
+    ambientColor: {r: 0.4, g: 0.42, b: 0.43, a: 1}
+    lightColor: {r: 0.91, g: 0.93, b: 1, a: 1}
+    lightIntensity: 1.35
+  endingCameraDistance: 6.5
+  endingCameraExtraPerPlayer: 1.6
   shaftFade:
     bottom: -73
     top: -29

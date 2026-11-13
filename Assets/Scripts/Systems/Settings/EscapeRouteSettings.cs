@@ -28,12 +28,19 @@ namespace CurtainCall.Settings
         public enum EndingTimeOfDay { Night, Day }
 
         [Header("탈출 엔딩 연출 배경")]
-        [Tooltip("탈출 엔딩(갈대밭 질주) 연출의 시간대. 밤은 달빛·짙은 남색 안개, 낮은 햇빛·하늘색 안개로 표시합니다.")]
+        [Tooltip("탈출 엔딩(갈대밭 질주)의 시간대. 낮에도 먼 지면은 어두운 안개로 가립니다.")]
         [SerializeField] EndingTimeOfDay endingTimeOfDay = EndingTimeOfDay.Night;
         [Tooltip("밤 배경의 조명·안개 값.")]
         [SerializeField] EndingLighting endingNight = EndingLighting.NightDefault();
         [Tooltip("낮 배경의 조명·안개 값.")]
         [SerializeField] EndingLighting endingDay = EndingLighting.DayDefault();
+        [Tooltip("1~2인 엔딩에서 카메라와 실제 플레이어 사이 거리(m).")]
+        [SerializeField, Min(3)] float endingCameraDistance = 6.5f;
+        [Tooltip("3인부터 한 명당 추가하는 카메라 거리(m). 결과창 옆에 모두 들어오도록 여유를 둡니다.")]
+        [SerializeField, Min(0)] float endingCameraExtraPerPlayer = 1.6f;
+
+        public float EndingCameraDistance(int survivors) => Mathf.Max(3, endingCameraDistance)
+            + Mathf.Max(0, survivors - 2) * Mathf.Max(0, endingCameraExtraPerPlayer);
 
         public EndingTimeOfDay EndingTime => endingTimeOfDay;
         public EndingLighting EndingLightingFor(EndingTimeOfDay time) => time == EndingTimeOfDay.Day
@@ -43,8 +50,12 @@ namespace CurtainCall.Settings
         [System.Serializable]
         public sealed class EndingLighting
         {
-            [Tooltip("하늘(카메라 배경)과 안개 색.")]
+            [Tooltip("엔딩 하늘의 상부 색. 먼 지면의 어둠은 fogColor로 별도 설정합니다.")]
             public Color skyColor = new(.027f, .043f, .075f);
+            [Tooltip("캐릭터 뒤 먼 지면·서커스가 묻히는 어두운 안개 색.")]
+            public Color fogColor = new(.018f, .025f, .038f);
+            [Min(0)] public float fogStartDistance = 18f;
+            [Min(1)] public float fogEndDistance = 150f;
             [Tooltip("안개 농도. 높을수록 멀리 있는 배경이 하늘색에 묻힙니다.")]
             [Min(0)] public float fogDensity = .004f;
             [Tooltip("그늘진 면에도 들어오는 주변광 색.")]
@@ -57,11 +68,12 @@ namespace CurtainCall.Settings
             public static EndingLighting NightDefault() => new();
             public static EndingLighting DayDefault() => new()
             {
-                skyColor = new Color(.62f, .78f, .93f),
+                skyColor = new Color(.42f, .46f, .50f),
+                fogColor = new Color(.035f, .045f, .055f),
                 fogDensity = .0025f,
-                ambientColor = new Color(.62f, .64f, .62f),
-                lightColor = new Color(1f, .95f, .84f),
-                lightIntensity = 1.6f
+                ambientColor = new Color(.35f, .37f, .38f),
+                lightColor = new Color(.88f, .91f, 1f),
+                lightIntensity = 1.25f
             };
         }
 

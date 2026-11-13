@@ -214,6 +214,8 @@ namespace CurtainCall.Campaign
         /// <summary>탈출로가 끝났다. 한 명 이상 도착이면 true(엔딩), 전원 리타이어면 false(런 실패).</summary>
         public bool EndEscape(bool anyoneArrived) => HostDo(r => r.EndEscape(anyoneArrived), nameof(EndEscape));
 
+        public bool RestartAfterFailure() => HostDo(r => r.RestartAfterFailure(), nameof(RestartAfterFailure));
+
         /// <summary><paramref name="day"/>일차(2일차부터) 공연 순서를 정한다(밤 정비의 세트리스트).</summary>
         public bool SetSetlist(int day, string[] tricks) => HostDo(r => r.SetSetlist(day, tricks), nameof(SetSetlist));
 
@@ -418,7 +420,8 @@ namespace CurtainCall.Campaign
             bool stepChanged = previous.Generation != next.Generation || previous.Day != next.Day || previous.Phase != next.Phase
                 || previous.Rest != next.Rest || previous.PerformanceIndex != next.PerformanceIndex;
 
-            if (newGeneration && next.LastEnd != RunEndReason.None)
+            if (newGeneration && next.LastEnd != RunEndReason.None
+                && !(previous.Phase == CampaignPhase.Ending && previous.LastEnd == next.LastEnd))
             {
                 Debug.Log($"[Campaign] 런 실패({next.LastEnd}) → 세대 {next.Generation}로 교체");
                 RunEnded?.Invoke(next.LastEnd);
@@ -427,7 +430,7 @@ namespace CurtainCall.Campaign
             {
                 Debug.Log($"[Campaign] {next.LastEnd} · {next.Day}일차 → 엔딩");
                 RunEnded?.Invoke(next.LastEnd);
-                if (host != null && !offlineRun && session != null) session.EndGame();
+                if (host != null && !offlineRun && session != null && next.LastEnd == RunEndReason.EscapeSucceeded) session.EndGame();
             }
             if (stepChanged)
             {

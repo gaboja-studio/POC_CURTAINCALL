@@ -5,6 +5,30 @@ namespace CurtainCall.EscapeRoute.EditorTools
 {
     public sealed class FailureEndingStateTests
     {
+        [TestCase(false)] [TestCase(true)]
+        public void FailureConfirmationStartsFreshFirstMorningAndResetsRunUnlocks(bool deadline)
+        {
+            var run=new RunState(false,false,true);
+            run.DebugStartAt(new RunStartPoint(deadline?4:3,deadline?RunStartPhase.Morning:RunStartPhase.Escape,0,CampaignSnapshot.TightropeId),true,(2,1));
+            if(deadline){run.DebugSetRemaining(.01f);run.Tick(1);}else run.EndEscape(false);
+            var failed=run.Snapshot;
+            Assert.IsTrue(run.RestartAfterFailure());
+            var next=run.Snapshot;
+            Assert.AreEqual(failed.Generation+1,next.Generation);
+            Assert.AreEqual(1,next.Day);Assert.AreEqual(0,next.PerformanceIndex);
+            Assert.AreEqual(CampaignPhase.RestTime,next.Phase);Assert.AreEqual(RestKind.Morning,next.Rest);
+            Assert.AreEqual(failed.LastEnd,next.LastEnd);Assert.IsFalse(next.CannonUnlocked);
+            Assert.AreEqual(0,run.ClearedTier(CampaignSnapshot.TightropeId));
+            Assert.AreEqual(0,run.ClearedTier(CampaignSnapshot.HumanCannonId));
+            Assert.IsFalse(run.RestartAfterFailure(),"A repeated click must not start another generation.");
+        }
+        [Test]
+        public void SuccessConfirmationCannotUseFailureRestart()
+        {
+            var run=new RunState();run.DebugStartAt(new RunStartPoint(3,RunStartPhase.Escape,0,CampaignSnapshot.TightropeId));
+            Assert.IsFalse(run.RestartAfterFailure());run.EndEscape(true);
+            Assert.IsFalse(run.RestartAfterFailure());Assert.AreEqual(1,run.Snapshot.Generation);
+        }
         [TestCase(1,false)] [TestCase(2,false)] [TestCase(3,false)] [TestCase(4,false)]
         [TestCase(1,true)] [TestCase(2,true)] [TestCase(3,true)] [TestCase(4,true)]
         public void EscapeOutcomePreservesDayGenerationAndUnlocks(int day,bool success)

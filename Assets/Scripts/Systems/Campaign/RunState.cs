@@ -74,6 +74,16 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>실패 결과 확인 후 새 세대의 1일차 아침. 공연 해금/클리어는 새 런에서 다시 얻는다.</summary>
+        public bool RestartAfterFailure()
+        {
+            if (s.Phase != CampaignPhase.Ending || s.Generation == int.MaxValue
+                || s.LastEnd is not (RunEndReason.Deadline or RunEndReason.EscapeAllRetired)) return false;
+            StartRun(s.Generation + 1, s.LastEnd);
+            EnterRest(RestKind.Morning, 0);
+            return true;
+        }
+
         /// <summary>
         /// 가이드 쉬는 시간: 이 플레이어가 대기실 tutorial(연계 안내)을 마쳤다. 전원이 마치면 <see cref="RefreshGuideRest"/>가 타이머를 흘린다.
         /// 다른 시간대·이미 흐르는 중이면 false.

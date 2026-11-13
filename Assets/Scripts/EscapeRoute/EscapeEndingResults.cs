@@ -165,7 +165,7 @@ namespace CurtainCall.EscapeRoute
         Sprite Portrait(int model) => portraits != null && model >= 0 && model < portraits.Length ? portraits[model] : null;
         void RequestReturn()
         {
-            if (failureOwner != null && failureOwner.ReturnToLobby()) return;
+            if (failureOwner != null && failureOwner.StartNextRun()) return;
             if (owner != null && owner.ReturnToLobby()) return;
             view.SetReturnAllowed(CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority);
         }

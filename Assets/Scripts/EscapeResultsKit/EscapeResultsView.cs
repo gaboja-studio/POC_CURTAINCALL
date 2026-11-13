@@ -58,6 +58,7 @@ namespace CurtainCall.UI.EscapeResultsKit
         public bool Visible => Group != null && Group.alpha > .5f;
         bool returnPending;
         bool returnAllowed;
+        bool restartAfterFailure;
         readonly Color positive = new Color32(115,199,161,255);
         readonly Color negative = new Color32(224,108,120,255);
 
@@ -117,8 +118,10 @@ namespace CurtainCall.UI.EscapeResultsKit
             returnAllowed = allowed;
             returnPending = false;
             ReturnButton.interactable = allowed;
-            ReturnLabel.text = allowed ? "로비로 돌아가기" : "방장의 결과 확인을 기다리는 중";
-            HelpLabel.text = help ?? (allowed ? "버튼을 누르면 로비로 이동합니다" : "방장이 로비로 돌아가기를 누르면 함께 이동합니다");
+            ReturnLabel.text = allowed ? (restartAfterFailure ? "다음 런 시작" : "로비로 돌아가기") : "방장의 결과 확인을 기다리는 중";
+            HelpLabel.text = help ?? (restartAfterFailure
+                ? (allowed ? "새 런의 1일차 아침으로 이동합니다" : "방장이 다음 런을 시작하면 함께 이동합니다")
+                : (allowed ? "버튼을 누르면 로비로 이동합니다" : "방장이 로비로 돌아가기를 누르면 함께 이동합니다"));
         }
 
         public void RequestReturn()
@@ -162,6 +165,7 @@ namespace CurtainCall.UI.EscapeResultsKit
 
         public void SetEnding(bool success, int day)
         {
+            restartAfterFailure = !success;
             // Older scene instances retain their existing serialized canvas unchanged.
             if (EndingTitle == null)
                 foreach (var text in GetComponentsInChildren<TMP_Text>(true))

@@ -1,0 +1,125 @@
+{
+  "status": "completed",
+  "duration": 0.06,
+  "summary": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.BulbHasSparseDipsAndNeverNegativeOrBrighterThanBaseline",
+      "Status": "Passed",
+      "Duration": 0.007554,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.DeadlineKeepsFinalDayAndNeverStartsPursuit(False)",
+      "Status": "Passed",
+      "Duration": 0.0029756,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.DeadlineKeepsFinalDayAndNeverStartsPursuit(True)",
+      "Status": "Passed",
+      "Duration": 7.12E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(1,False)",
+      "Status": "Passed",
+      "Duration": 0.0004424,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(2,False)",
+      "Status": "Passed",
+      "Duration": 5.7E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(3,False)",
+      "Status": "Passed",
+      "Duration": 3.85E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(4,False)",
+      "Status": "Passed",
+      "Duration": 3.49E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(1,True)",
+      "Status": "Passed",
+      "Duration": 3.38E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(2,True)",
+      "Status": "Passed",
+      "Duration": 3.48E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(3,True)",
+      "Status": "Passed",
+      "Duration": 3.13E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(4,True)",
+      "Status": "Passed",
+      "Duration": 3.02E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.FailureCheatCannotMutateRunWhenDevIsDisabled",
+      "Status": "Passed",
+      "Duration": 0.0002861,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.FailureConfirmationStartsFreshFirstMorningAndResetsRunUnlocks(False)",
+      "Status": "Passed",
+      "Duration": 0.0003423,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.FailureConfirmationStartsFreshFirstMorningAndResetsRunUnlocks(True)",
+      "Status": "Passed",
+      "Duration": 5.81E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.OnlySpecifiedFailuresUseTheStage",
+      "Status": "Passed",
+      "Duration": 0.0007743,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.SuccessConfirmationCannotUseFailureRestart",
+      "Status": "Passed",
+      "Duration": 0.0001689,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

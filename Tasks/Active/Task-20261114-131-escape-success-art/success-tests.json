@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 0.02,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.EndingCameraAndInputAreIdempotentAndRestartClearsTheTitle",
+      "Status": "Passed",
+      "Duration": 0.0048178,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.FadeWaitsThenRisesSmoothlyAndNeverProducesInvalidAlpha",
+      "Status": "Passed",
+      "Duration": 0.0039417,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.FirstArrivalShowsTitleWithoutWaitingForPartyOrRevealingThroughLockedDoor",
+      "Status": "Passed",
+      "Duration": 0.001672,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.EscapeEndingTests.OnlySuccessfulEscapeKeepsTheMeadowForTheEnding",
+      "Status": "Passed",
+      "Duration": 0.0015578,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
