@@ -751,6 +751,7 @@ namespace CurtainCall.Tightrope
             var startFloor = PreviewStartPlatformBounds(c);
             var startPlatform = CreateBox("StartPlatform", startFloor.center, startFloor.size, platformColor, true);
             TightropeOutline.AttachToHierarchy(startPlatform);
+            AddSafeGround(startPlatform, startFloor);
 
             // 색상 경계와 무관하게 지지면은 연속이다. 불탄 줄은 메시와 지지면을 함께 제거한다.
             laneGeometry.Clear();
@@ -766,6 +767,7 @@ namespace CurtainCall.Tightrope
                 {
                     var finishPlatform = CreateBox("FinishPlatform", finishFloor.center, finishFloor.size, platformColor, true);
                     TightropeOutline.AttachToHierarchy(finishPlatform);
+                    AddSafeGround(finishPlatform, finishFloor);
                 }
             }
 

@@ -110,7 +110,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(runtime.ReleaseDirection);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
-            // 비트 0: 지상 담당 통과, 비트 1~4: 예약(항상 0), 비트 5: 상단 점유로 톱벽이 열려 있음.
+            // 비트 0: 지상 담당 통과, 비트 1~4: 예약(항상 0), 비트 5: 톱벽이 열려 있음(재시작 전까지 유지).
             var gate = poles[index].LinkedGate;
             byte flags = (byte)(gate != null && gate.CarrierPassed ? 1 : 0);
             if (gate != null && gate.IsOpen) flags |= GateOpenFlag;
@@ -200,7 +200,7 @@ namespace CurtainCall.HumanCannon
             }
             if (poles[index].LinkedGate != null)
                 poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0,
-                    states[index].State.OccupantAt(0) != CannonSeatState.Nobody, Clock);
+                    (flags & GateOpenFlag) != 0 || states[index].State.OccupantAt(0) != CannonSeatState.Nobody, Clock);
             Apply(index, (PoleEvent)action, actor, station, launch, segment);
         }
 

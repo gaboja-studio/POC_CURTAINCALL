@@ -6,9 +6,10 @@ using UnityEngine;
 namespace CurtainCall.HumanCannon
 {
     /// <summary>
-    /// 연결 봉의 톱 관문. 봉을 처음 잡으면 톱이 멈추고(닿아도 안전) 잠시 뒤 가운데에서 좌우로 갈라져
-    /// 트램펄린이 지나갈 틈을 열고, 공연을 다시 시작할 때까지 열린 채 남는다. 다 열리면 양쪽 톱이 다시 돌며 닿으면 다친다.
-    /// 다 열린 뒤 지상 바닥 밖에 놓인 톱·철망 조각은 아래로 떨어지고, 플레이어 낙하 높이에 닿으면 사라진다.
+    /// 연결 봉의 톱 관문. 봉을 처음 잡으면 잠시 뒤 가운데에서 좌우로 갈라져 트램펄린이 지나갈 틈을 열고,
+    /// 봉을 놓아도 공연을 다시 시작할 때까지 열린 채 남는다. <see cref="spinWhileOpening"/>가 꺼져 있으면 잡는 순간
+    /// 톱이 멈추고(닿아도 안전) 다 열린 뒤 다시 돈다. 켜져 있으면 열리는 동안에도 계속 돌며 닿으면 다친다.
+    /// 다 열린 뒤 지상 바닥 밖에 놓인 톱·철망 조각은 아래로 떨어지고, 월드 높이 <see cref="dropDespawnHeight"/> 아래에서 사라진다.
     /// 호스트가 지상 담당의 통과와 접촉 부상을 확정한다.
     /// </summary>
     public sealed partial class HumanCannonSawGate : MonoBehaviour
@@ -18,18 +19,20 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform[] leftParts = System.Array.Empty<Transform>();
         [Tooltip("오른쪽으로 함께 밀리는 톱 묶음·철망·충돌 벽.")]
         [SerializeField] Transform[] rightParts = System.Array.Empty<Transform>();
-        [Tooltip("열린 가운데 틈 폭(m). 트램펄린 폭에 좌우 1m씩 더한 값."), Min(0f), SerializeField] float openGap = 7f;
+        [Tooltip("열린 가운데 틈 폭(m). 트램펄린 폭에 좌우 2m씩 더한 값."), Min(0f), SerializeField] float openGap = 9f;
         [Tooltip("봉을 잡아 톱이 멈춘 뒤 갈라지기 시작할 때까지(초)."), Min(0f), SerializeField] float stopSeconds = 0.5f;
         [Tooltip("좌우로 갈라지는 데 걸리는 시간(초)."), Min(0.05f), SerializeField] float openSeconds = 1f;
+        [Tooltip("켜면 봉을 잡아도 톱이 멈추지 않고 계속 돌며(닿으면 다침) 좌우로 갈라진다.")]
+        [SerializeField] bool spinWhileOpening;
         [Tooltip("바닥 밖 톱의 낙하 가속(m/s²). 조각마다 ±20% 다르다."), Min(0.1f), SerializeField] float dropGravity = 20f;
+        [Tooltip("떨어지는 톱·철망 조각이 사라지는 월드 높이(m).")]
+        [SerializeField] float dropDespawnHeight = -15f;
         [Tooltip("바닥 밖 조각이 떨어지기 시작하는 시점 차이의 최대(초). 조각마다 0~이 값 사이."), Min(0f), SerializeField] float dropStagger = 0.6f;
         [Tooltip("톱 접촉 여유(m)."), Min(0f), SerializeField] float contactPadding = 0.15f;
         [Tooltip("톱 외형 회전 속도(도/초)."), Min(0f), SerializeField] float spinSpeed = 180f;
         [Tooltip("열릴 때 문짝이 덜컹거리는 최대 폭(m). 멈춤 중에는 절반."), Min(0f), SerializeField] float shakeAmplitude = 0.06f;
         [Tooltip("갈라지는 동안 바닥에 끌리며 튀는 스파크.")]
         [SerializeField] ParticleSystem[] dragSparks = System.Array.Empty<ParticleSystem>();
-        // 경로 시스템이 없는 테스트 씬에서 떨어진 톱을 지울 관문 아래 거리(m).
-        const float FallbackDropDepth = 30f;
         readonly HashSet<ulong> touching = new();
         readonly Dictionary<ulong, float> carrierSides = new();
         readonly List<ulong> stale = new();
@@ -59,8 +62,8 @@ namespace CurtainCall.HumanCannon
         /// <summary>한 번 열리면 재시작 전까지 닫히지 않는다.</summary>
         public bool IsOpen { get; private set; }
         public float OpenAmount => openAmount;
-        /// <summary>닫혀 있거나 다 열린 뒤에만 톱이 돌고 다치게 한다. 멈춤·갈라짐 중에는 정지.</summary>
-        public bool IsSpinning => !IsOpen || openAmount >= 1f;
+        /// <summary>톱이 돌고 다치게 하는지. 기본은 닫혀 있거나 다 열린 뒤에만 돌고, 열리는 동안에도 돌게 할 수 있다.</summary>
+        public bool IsSpinning => spinWhileOpening || !IsOpen || openAmount >= 1f;
         public float OpenGap => openGap;
         public PoleSawPhase Phase { get; private set; } = PoleSawPhase.Active;
 
@@ -128,10 +131,10 @@ namespace CurtainCall.HumanCannon
 
         internal void Present(PoleSawPhase phase, bool passed, bool open, double time)
         {
-            if (IsOpen && !open) ResetGate();
             Phase = phase;
             CarrierPassed = passed;
-            IsOpen = open;
+            // 한 번 열리면 봉을 놓아도 닫지 않는다. 재시작(ResetGate)만 닫는다.
+            IsOpen |= open;
             bool spinning = IsSpinning;
             float clock = (float)(time * spinSpeed % 360.0);
             if (spinning && !wasSpinning) spinOffset = spinAngle - clock;
@@ -322,7 +325,10 @@ namespace CurtainCall.HumanCannon
             return value - Mathf.Floor(value);
         }
 
-        /// <summary>조각 중심 바로 아래, 관문 바닥 높이에 지상 바닥이 있는지. 관문 자신의 충돌 벽은 제외한다.</summary>
+        /// <summary>
+        /// 조각 중심 바로 아래, 관문 바닥 높이에 지상 바닥이 있는지. 관문 자신의 충돌 벽은 제외한다.
+        /// 철망 판은 4m라 바깥 끝으로 판정하면 톱보다 훨씬 먼저 잘리므로 중심으로만 본다.
+        /// </summary>
         bool HasFloorBelow(int piece)
         {
             Vector3 center = Center(piece);
@@ -347,9 +353,7 @@ namespace CurtainCall.HumanCannon
             return found ? bounds.center : pieces[piece].position;
         }
 
-        bool BelowCourse(Vector3 position) => HumanCannonRouteSystem.Current != null
-            ? HumanCannonRouteSystem.IsBelowCourse(position)
-            : position.y < transform.position.y - FallbackDropDepth;
+        bool BelowCourse(Vector3 position) => position.y < dropDespawnHeight;
 
         int Count(BladeDrop state, bool blade)
         {

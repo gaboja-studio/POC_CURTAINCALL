@@ -70,7 +70,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Assert.IsTrue((bool)Get(gate, "IsOpen"), "아래 사람만 놓으면 스위치는 유지한다.");
                 CommonPoleRequest(poles, Actor, "Release", index);
                 yield return null;
-                Assert.IsFalse((bool)Get(gate, "IsOpen"), "상단이 놓는 즉시 스위치를 해제한다.");
+                Assert.IsTrue((bool)Get(gate, "IsOpen"), "상단이 놓아도 톱벽은 재시작 전까지 열려 있다.");
                 Assert.IsTrue(Flying);
                 yield return WaitUntil(() => !Flying, 6, "공통 봉에서 일반 바닥으로 착지");
                 AssertBody(12); // 약 6m 내려온 실제 착지이므로 공통 낙하 규칙으로 두 다리를 잃는다.
