@@ -765,7 +765,7 @@ namespace CurtainCall.Player
                 var hit = groundHits[i];
                 var col = hit.collider;
                 if (col == null || hit.distance <= 0f || hit.distance >= nearest) continue; // 0은 시작부터 겹친 물체
-                if (col == controller || col.transform.IsChildOf(transform)) continue;
+                if (col == controller || col.transform.IsChildOf(transform) || CurtainCall.Damage.DismemberedLimb.Contains(col)) continue;
                 if (col is CharacterController && col.TryGetComponent(out PlayerMover _)) continue;
                 if (!IsWalkable(hit, minNormalY)) continue;
                 nearest = hit.distance;
@@ -811,7 +811,8 @@ namespace CurtainCall.Player
                 var hit = groundHits[i];
                 if (hit.collider == null || hit.distance <= 0f || hit.distance >= nearest
                     || hit.normal.y <= 0f || hit.normal.y >= minNormalY
-                    || hit.collider.transform.IsChildOf(transform) || hit.collider.GetComponentInParent<PlayerMover>() != null) continue;
+                    || hit.collider.transform.IsChildOf(transform) || hit.collider.GetComponentInParent<PlayerMover>() != null
+                    || CurtainCall.Damage.DismemberedLimb.Contains(hit.collider)) continue;
                 nearest = hit.distance;
                 normal = hit.normal;
             }

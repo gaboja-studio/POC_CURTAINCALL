@@ -70,7 +70,7 @@ namespace CurtainCall.HumanCannon
                 ? Mathf.Max(0f, origin.y - HumanCannonRouteSystem.Current.FallHeight) : DropProbeDistance;
             int count = Physics.RaycastNonAlloc(origin, Vector3.down, dropHits, distance,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            var hits = avoidRope && count == dropHits.Length
+            var hits = count == dropHits.Length
                 ? Physics.RaycastAll(origin, Vector3.down, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) : dropHits;
             if (hits != dropHits) count = hits.Length;
             float nearest = float.PositiveInfinity;
@@ -78,7 +78,8 @@ namespace CurtainCall.HumanCannon
             {
                 var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f || hit.transform.IsChildOf(transform)
-                    || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
+                    || hit.collider.GetComponentInParent<NetworkPlayer>() != null
+                    || DismemberedLimb.Contains(hit.collider)) continue;
                 if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
                 if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
                 nearest = hit.distance;
