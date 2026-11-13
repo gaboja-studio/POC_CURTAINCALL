@@ -89,3 +89,10 @@
 - 최신 DEV 병합 후 공통 검사 최초717/720: 엔딩 통계가 추가된 실제 전송 형식과 달리 구 검사 데이터가 통계를 생략하여 generation=0으로 역직렬화·거절됨. ReadState 보상 코드는 유지하고 검사 도우미만 현재 런 통계를 넣도록 수정. 재검사720/720 통과. 최신 DEV BreakFlow43/43도 통과.
 - 제출 직전 Unity 종료 후 DEV 재확인: ff8af551 동일, 이미 반영됨. 최종 개별 안전성·문서·컴파일·공통 연결 PASS, check-work 기록은 Task100/114 중복 제약 유지. 열린 UnderstagePursuerPlaytest는 dirty=false, 레이어 매트릭스 재개방 검증 정상. 폰트 캐시 변경은 제외.
 - 기존 feat/exit-route/pursuer에 ade3c4c9 저장·push, [PR361](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/361) 제출. base=dev, reviewer=MoHoDu, 병합하지 않음. 이전 자동 반환·포획 2건과 레이어 변경도 포함. 실제 플레이는 사용자 확인.
+
+## 11/13 탈출로 심부 어둠 복구
+- 수정·저장·PR361 추가 승인. 작업 시작 Unity 종료 확인 후 최신 DEV c0c11212 반영(안내 UI 프리팹 2개, 충돌 없음). 기존 브랜치 유지. doctor는 Task100/114 중복으로 중단.
+- EscapeRouteSettings의 루트 기준 높이 -73~-29/강도1에서 현재 월드 높이 -48~-4 계산. 기존 콘크리트 재질3개도 같은 값으로 저장. 직접 실행·캠페인 재배치·실행 중 높이/세팅 변경에 기존 EscapeCampaignContent가 적용. 게임 판정·씬 배치·B/C·셰이더 변경 없음, 새 런타임 스크립트 없음.
+- 컴파일·공통 설정 연결 검사 PASS, CampaignPlacementTests 6/6 PASS. 실제 A 씬 838/838 Renderer 속성 일치·dirty=false. 전후 렌더(.harness/local/shaft-before.png, shaft-after.png)로 심부 벽의 어둠 복구 확인. 실제 플레이 미실시.
+- PR361에 추가하고 병합하지 말라는 사용자 지시 유지.
+- 제출 직전 DEV 08600e05(PR362 리허설 안내) 반영 후 컴파일·공통 설정 PASS. Unity 종료 후 다시 fetch하여 같은 DEV 확인. 기존 PR361에 추가 제출하며 병합은 하지 않음. check-work 개별 검사 통과, 마지막 Task100/114 중복 기록 제약 유지.
