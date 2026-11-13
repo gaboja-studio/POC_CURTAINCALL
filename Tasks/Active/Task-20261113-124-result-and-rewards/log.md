@@ -8,3 +8,6 @@
 - 2026-11-13 origin/dev 병합: 충돌 없음. dev에 같은 번호 Task-123이 생겨 이 Task를 124로 바꿨다. _ThirdParty는 dev 기록 커밋으로 맞췄다.
 - 2026-11-13 수정: 포기 시 쓰러짐 제거(정산 모델에서만 사망, 결과 화면 동안 세계 정지), 결과창 '생존 보너스', 도착자 여유 시간 관전·조작 잠금.
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(에디터); 테스트=병합 후 PlayMode 재실행은 MCP 시간 초과로 결과 미수신.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/366 (fix/main-stage/result-and-rewards → dev)
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/366 (dev, 지정 팀원 검토 대기)
