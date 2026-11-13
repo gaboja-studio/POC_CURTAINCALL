@@ -120,7 +120,8 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
-        /// 호스트: 인간대포를 해금하고 리허설을 이수하지 않았으면 쉬는 시간이 시작될 때마다 리허설 이동 안내를 다시 띄운다(2026-11-13 사용자).
+        /// 호스트: 인간대포를 해금하고 리허설을 이수하지 않았으면 쉬는 시간·밤 정비가 시작될 때마다 리허설 이동 안내를 다시 띄운다(2026-11-13 사용자).
+        /// 1일차 가이드 쉬는 시간에 해금·거절하면 다음 공연 뒤는 밤 정비이므로 밤도 포함한다.
         /// 실제 표시는 <see cref="OfferUnlockedRehearsal"/>가 시작할 수 있는 때(추격전 아님·대기실) 한다.
         /// </summary>
         void QueueRestStartPrompt()
@@ -128,8 +129,8 @@ namespace CurtainCall.WaitingRoom
             var run = CampaignRun.Instance;
             if (run == null || !run.HasAuthority) return;
             var s = run.State;
-            if (!s.IsRunning || s.Phase != CampaignPhase.RestTime) { restStartKey = null; return; }
-            var key = (s.Generation, s.Day, s.Rest, s.PerformanceIndex);
+            if (!s.IsRunning || !PracticePhase) { restStartKey = null; return; }
+            var key = (s.Generation, s.Day, s.Phase, s.Rest, s.PerformanceIndex);
             if (restStartKey == key) return;
             restStartKey = key;
             if (!s.CannonUnlocked || HasMastered || shared.active) return;
@@ -137,7 +138,7 @@ namespace CurtainCall.WaitingRoom
             unlockPromptGeneration = s.Generation;
         }
 
-        (int, int, RestKind, int)? restStartKey;
+        (int, int, CampaignPhase, RestKind, int)? restStartKey;
 
         bool UpdatePracticeContext()
         {
