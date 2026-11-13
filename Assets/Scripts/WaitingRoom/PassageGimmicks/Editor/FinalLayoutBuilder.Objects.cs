@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     // 11단계: 탐색 오브젝트(2026-11-13 사용자). 다시 실행할 수 있다. 결과물은 FinalLayout/Objects.
     // - 망가진 노트북: 이전 세대 생활 장소 화장실 구석. 뒤집어 보면 포스트잇(20240912 / RUN).
     // - 키 카드 복제본: 무대 장치 보관실 캐비넷 3에서 나온다. 관리실 문 옆 단말기에 쓰면 사라지고 문이 열린다(5단계).
-    // - 낡은 인형 옷: 폐기물 보관소 옷걸이의 기존 코스튬을 조사할 수 있게 한다.
+    // - 낡은 인형 옷: 13단계에서 만든다(전시대 인형 옷 4벌).
     // - 물병: 생활 장소. 살펴보면 안에 든 공연 토큰(100원)이 나온다.
     // - 찢겨진 노트 낱장 4장: 캐비넷 1·잠긴 상자 2 안, 화물 적재장 2층 통로, 로비 2층 발판. 글귀는 나중에 넣는다(문구 파일의 page.N).
     // - 상자 보상 비율과 묻힌 발견품 자리 3곳도 여기서 맞춘다.
@@ -89,17 +89,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 notes.Add($"물병 {where} {spot:F1}");
             }
 
-            // ---- 낡은 인형 옷: 폐기물 보관소 전시대(은퇴한 단원 전시)의 기존 코스튬 ----
-            {
-                var costume = layout.Find("S05_JunkStorage/AbandonedResearchStorage/RetiredTroupeDisplay/04_Clown_Slumped_MissingLowerLeg");
-                if (costume == null) notes.Add("인형 옷을 찾지 못했습니다");
-                else
-                {
-                    var holder = Child(root, "OldCostume"); var cb = Bounds(costume); holder.position = cb.center;
-                    Clue(holder, "final:old-costume", "낡은 인형 옷", "", costume, null, .55f, 1.6f);
-                    notes.Add($"인형 옷 {cb.center:F1}");
-                }
-            }
+            // 낡은 인형 옷 4벌(곰·토끼·삐에로·인형)의 살펴보기 대상은 13단계(ReplaceDisplayCostumes)가 만든다. 이 단계를 다시 돌린 뒤에는 13단계도 다시 돌린다.
 
             // ---- 찢겨진 노트 낱장 4장 ----
             {

@@ -111,6 +111,10 @@ namespace CurtainCall.Settings
         float trampolineCarryCheckDiameter = 1f;
         public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
+        [SerializeField, InspectorName("맨몸 부수기 누르는 시간"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 한 번 치려면 F를 누르고 있어야 하는 시간(초). 도구를 들면 짧게 눌러 연타한다(2026-11-13 사용자). 0이면 맨몸도 짧게 눌러 친다. 초안 1.5초.")]
+        float bareHandHoldSeconds = 1.5f;
+        public float BareHandHoldSeconds => Mathf.Max(0f, bareHandHoldSeconds);
+
         [Header("재연습 공통 규칙")]
         [SerializeField] RehearsalSettings rehearsal = new();
         public RehearsalSettings Rehearsal => rehearsal ??= new();

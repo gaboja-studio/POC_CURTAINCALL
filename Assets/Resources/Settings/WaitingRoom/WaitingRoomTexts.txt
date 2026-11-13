@@ -719,8 +719,14 @@ target.final:broken-laptop.desc | 누군가 사용하던 노트북. 지금은 �
 target.final:broken-laptop.secret | 뒤에 붙은 낡은 포스트잇: 20240912 / RUN
 target.final:water-bottle.name | 물병
 target.final:water-bottle.desc | 누군가 사용하던 물병. 안에 공연 토큰 100원이 들었음.
-target.final:old-costume.name | 낡은 인형 옷
+target.final:old-costume.name | 낡은 곰인형 옷
 target.final:old-costume.desc | 이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.
+target.final:old-costume-rabbit.name | 낡은 토끼 인형 옷
+target.final:old-costume-rabbit.desc | 이전 세대 공연자가 사용하던 코스튬. 팔이 잘려 있다. 일행의 리더로서 계획을 세우고 사람들을 이끌었지만 실패했다.
+target.final:old-costume-pierrot.name | 낡은 삐에로 인형 옷
+target.final:old-costume-pierrot.desc | 이전 세대 공연자가 사용하던 코스튬. 두 다리가 없다. 부러진 머리핀 조각이 옷자락에 박혀 있다. 탈출에 실패하면 미래는 없다.
+target.final:old-costume-doll.name | 낡은 인형 옷
+target.final:old-costume-doll.desc | 이전 세대 공연자가 사용하던 코스튬. 왼팔이 없다. 희미한 잉크 자국이 남아 있다.
 target.final:torn-note-1.name | 찢겨진 노트 낱장
 target.final:torn-note-2.name | 찢겨진 노트 낱장
 target.final:torn-note-3.name | 찢겨진 노트 낱장
@@ -728,3 +734,6 @@ target.final:torn-note-4.name | 찢겨진 노트 낱장
 gate.terminal-feed-title | cam_exit.feed
 gate.terminal-feed-open | > 탈출로 문 : 열림
 gate.terminal-feed-locked | > 잠금 해제 완료 · 문에 전력이 남아 있음
+
+# 맨몸 부수기: 도구 없이 칠 때 F 안내 뒤에 붙는 말(2026-11-13)
+prompt.bare-hold | 꾹 누르기

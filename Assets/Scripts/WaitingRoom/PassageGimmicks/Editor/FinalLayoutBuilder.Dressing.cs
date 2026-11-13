@@ -15,6 +15,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
         const string Prop = Apocalypse + "SM_Prop_";
         const float CorridorCeiling = 5.2f;
         static readonly Color WarmBulb = new(1f, .74f, .46f);
+        // 이전 세대 생활 장소: 따뜻한 전구색 대신 창백하고 칙칙한 공장 형광등 색(2026-11-13 사용자).
+        internal static readonly Color PaleFactory = new(.72f, .82f, .78f);
+        internal const float PaleFactoryMax = 6.5f;
         // 생활 장소 홀 안쪽 면(FinalLayoutBuilder.Rooms와 같은 값).
         const float HallX0 = -20f, HallX1 = 2f, HallZ0 = 37f, HallZ1 = 45.35f, HallH = 7.5f;
 
@@ -105,8 +108,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             int tuned = 0;
             foreach (var light in quarters.GetComponentsInChildren<Light>(true))
             {
-                Undo.RecordObject(light, "Warm light");
-                light.color = WarmBulb; if (light.intensity > 9f) light.intensity = 8f; tuned++;
+                Undo.RecordObject(light, "Pale light");
+                light.color = PaleFactory; if (light.intensity > PaleFactoryMax) light.intensity = PaleFactoryMax; tuned++;
             }
             var power = layout.GetComponentInChildren<NightPower>(true);
             if (power != null)

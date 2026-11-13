@@ -134,7 +134,13 @@ namespace CurtainCall.EscapeRoute
             Vector3 direction = pendingBossAim.sqrMagnitude > .99f ? pendingBossAim
                 : Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return;
-            var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = origin.position, Direction = direction };
+            // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
+            // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
+            Vector3 start = origin.position;
+            float back = Vector3.Dot(start - CarryRoot.position, direction);
+            for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
+                start = origin.position - direction * (back * (step + 1) / 6f);
+            var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
             ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
             lastPresentedShot = shotSerial;
@@ -157,7 +163,8 @@ namespace CurtainCall.EscapeRoute
                 Vector3 normal = Quaternion.LookRotation(shot.Direction, Vector3.up) * Vector3.up;
                 if (host && finaleBoss && finaleBoss.TryHitSaw(from, to, normal, projectileRadius, projectileHalfThickness, out var bossContact))
                 { to = bossContact; blocked = true; }
-                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, normal, shot);
+                // 막혀서 못 나아간 자리에서도 날에 닿은 배선은 끊는다(벽에 붙은 배선을 가까이서 쏜 경우).
+                if (host) CutAlong(from, to, normal, shot);
                 shot.Position = to; shot.Age += step;
                 if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
                     if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
