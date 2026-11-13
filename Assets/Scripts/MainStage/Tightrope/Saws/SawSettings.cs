@@ -150,18 +150,27 @@ namespace CurtainCall.Tightrope.Saws
         public bool cooperativeGates;
         [Tooltip("관문이 멈춰 팀을 기다리는 진행 거리(m). 오름차순으로 배치한다.")]
         public float[] cooperativeGateDistances = { 170f, 320f };
+        [Tooltip("선두가 관문 위치보다 이 거리(m) 앞에 오면 협동 톱 관문이 나타난다.")]
         [Min(0f)] public float cooperativeGateTriggerLead = 24f;
+        [Tooltip("관문 톱이 멈출 자리까지 다가오며 움직이는 거리(m).")]
         [Min(0f)] public float cooperativeGateApproachDistance = 12f;
+        [Tooltip("관문 톱이 다가오는 속도(m/s).")]
         [Min(0.1f)] public float cooperativeGateApproachSpeed = 3f;
+        [Tooltip("관문 원형 톱의 높이(m). 톱 크기와 맞음 판정 높이를 정한다.")]
         [Min(0.1f)] public float cooperativeGateHeight = 2.1f;
+        [Tooltip("관문 원형 톱의 두께(m, 충돌 판정 포함).")]
         [Min(0.05f)] public float cooperativeGateThickness = 0.2f;
+        [Tooltip("관문 톱이 멈춘 위치에서 톱 너머 발판(버튼)까지의 거리(m). 목마 위층이 넘어가 착지하는 자리다.")]
         [Min(0.1f)] public float cooperativeGatePlateOffset = 2.2f;
+        [Tooltip("관문 너머 발판(버튼)의 길이(m).")]
         [Min(0.1f)] public float cooperativeGatePlateLength = 1.6f;
         [Tooltip("최후반 자동 개방의 상승·하강 시간(초).")]
         [FormerlySerializedAs("cooperativeGateLowerDuration")]
         [Min(0.1f)] public float cooperativeGateOpenDuration = 0.3f;
         [Header("버튼으로 톱을 뒤로 넘기기 (초기 테스트값)")]
+        [Tooltip("발판을 밟았을 때 톱이 동료 머리 위로 뒤로 넘어가는 시간(초).")]
         [Min(0.5f)] public float cooperativeGateHopDuration = 1.2f;
+        [Tooltip("발판을 밟았을 때 톱이 뒤로 넘어가는 거리(m).")]
         [Min(3f)] public float cooperativeGateHopDistance = 6f;
         [Tooltip("이전 에셋과 편집기 도구의 호환값. 실제 톱 홉 높이는 기본 캡슐 높이 × cooperativeGateHopHeightMultiplier를 쓴다.")]
         [Min(0f)] public float cooperativeGateHopHeight = 5f;
@@ -170,6 +179,7 @@ namespace CurtainCall.Tightrope.Saws
         [Header("최후반 협동 도약 (2명부터)")]
         [Tooltip("최후반 관문마다 출발선의 2~4인 목마를 확인한다. 접속 인원과 무관하게 2명으로 통과 가능하며, 3·4층이 떠나도 2층의 발판 작동은 유지된다.")]
         public bool finaleFourStackRequired;
+        [Tooltip("코스 전체 길이 대비 이 비율 이후에 있는 협동 톱 관문을 최후반 관문(협동 도약 확인)으로 본다.")]
         [Range(0.5f, 1f)] public float finaleStartFraction = 0.8f;
         [Tooltip("3·4층은 발판 뒤쪽 끝과 몸 반경을 지난 뒤 이 거리만큼 더 앞에 착지한다.")]
         [Min(0.5f)] public float cooperativeGateUpperLandingOffset = 2f;
@@ -178,6 +188,7 @@ namespace CurtainCall.Tightrope.Saws
         public bool finaleSoloAutoOpen = true;
         [Tooltip("마지막 관문이 이 코스 비율 이후에 있을 때만 주기적으로 열린다. 중반 협동 관문에는 적용하지 않는다.")]
         [Range(0.5f, 1f)] public float finaleSoloStartFraction = 0.9f;
+        [Tooltip("최후반 단독 통과 관문이 닫힌 채로 있는 시간(초). 이후 열림 시간만큼 열린다.")]
         [Min(0.1f)] public float finaleGateClosedSeconds = 4f;
         [Tooltip("완전히 열린 상태의 유지 시간. 다리 부상 상태의 보행도 통과할 수 있게 둔다.")]
         [Min(0.1f)] public float finaleGateOpenSeconds = 4f;

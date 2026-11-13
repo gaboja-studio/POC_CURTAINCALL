@@ -11,3 +11,7 @@
 
 - 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/366 (fix/main-stage/result-and-rewards → dev)
 - 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/366 (dev, 지정 팀원 검토 대기)
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-13 추가: 기다릴 생존자가 없으면(전원 도착 또는 나머지 사망·이탈) 여유 시간을 기다리지 않고 바로 정산. 게임 설정(GameSettings 아래 묶음·공연 종료 설정·톱날·추격·추격 조명)의 툴팁 없는 값에 한글 설명 추가.
+- 2026-11-13 테스트: 컴파일 PASS(에디터). `CompletionAudience_AllSurvivorsWaitForActualArrival`(혼자 도착 → 즉시 정산), `FirstArrivalSettlesOnceAndKeepsSessionPlaying` PASS.

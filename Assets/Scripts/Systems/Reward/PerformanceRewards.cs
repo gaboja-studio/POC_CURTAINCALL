@@ -413,7 +413,8 @@ namespace CurtainCall.Reward
             gracePerformance = model.Performance.Id;
             float seconds = GameSettings.Base.Run.FinishGraceSeconds;
             graceEndsAt = Time.unscaledTime + seconds;
-            if (seconds <= 0f) return FinishGrace();
+            // 기다릴 사람이 없으면(나머지가 이미 도착했거나 사망·이탈) 여유 시간 없이 바로 정산한다.
+            if (seconds <= 0f || NobodyLeftToWait()) return FinishGrace();
             Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
             model.Touch();
             Publish();
@@ -431,7 +432,16 @@ namespace CurtainCall.Reward
         {
             if (gracePerformance == null || !CanMutate()) return;
             if (model.Performance?.Id != gracePerformance) { ClearGrace(); return; }
-            if (Time.unscaledTime >= graceEndsAt) FinishGrace();
+            // 여유 시간 중 남은 사람이 모두 도착하거나 사망·이탈하면 남은 초와 상관없이 바로 끝낸다.
+            if (Time.unscaledTime >= graceEndsAt || NobodyLeftToWait()) FinishGrace();
+        }
+
+        /// <summary>아직 코스를 진행 중인 생존자가 없는지. 실제 도착자가 아닌 살아 있는 사람이 하나라도 있으면 기다린다.</summary>
+        bool NobodyLeftToWait()
+        {
+            foreach (var person in model.Snapshot().Segments)
+                if (person.Connected && !person.Dead && !graceClients.Contains(person.ClientId)) return false;
+            return true;
         }
 
         bool FinishGrace()

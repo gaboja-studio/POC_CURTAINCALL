@@ -599,14 +599,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.IsNull(Get(bridge, "Result"));
             var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-            // 첫 생존 도착은 종료 여유 시간을 열고, 여유 시간이 끝나면 공용 정산이 성공으로 확정한다(2026-11-13).
-            Assert.IsFalse((bool)Call(bridge, "TryFinishAtDestination"), "첫 도착은 바로 정산하지 않고 여유 시간을 연다.");
-            Assert.IsTrue((bool)Get(rewards, "FinishGraceActive"));
-            Assert.IsNull(Get(bridge, "Result"));
-            float grace = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FinishGraceSeconds");
-            float until = Time.unscaledTime + grace + 3f;
-            while (Get(bridge, "Result") == null && Time.unscaledTime < until) yield return null;
-            Assert.IsNotNull(Get(bridge, "Result"), "여유 시간이 끝나면 정산한다.");
+            // 첫 생존 도착은 종료 여유 시간을 열지만, 더 기다릴 생존자가 없으면(혼자 출연) 바로 정산한다(2026-11-13).
+            Assert.IsTrue((bool)Call(bridge, "TryFinishAtDestination"), "기다릴 사람이 없으면 여유 시간 없이 바로 정산한다.");
+            Assert.IsFalse((bool)Get(rewards, "FinishGraceActive"));
             Assert.IsTrue((bool)Get(Get(bridge, "Result"), "Succeeded"));
         }
 

@@ -24,37 +24,53 @@ namespace CurtainCall.Settings
     public sealed class BaseGameSettings : ScriptableObject
     {
         [Header("프레임 제한")]
+        [Tooltip("화면 프레임 상한. 기기 부담과 화면 부드러움을 조절한다.")]
         [SerializeField] FrameRateSettings frameRate = new();
 
         [Header("세션")]
+        [Tooltip("방 정원·게임 시작 최소 인원 등 온라인 방 기본값.")]
         [SerializeField] SessionSettings session = new();
         [Header("런 진행")]
+        [Tooltip("하루·공연 수, 쉬는 시간 길이, 공연 종료 여유 시간·포기 선택 시간 등 런 전체 흐름.")]
         [SerializeField] RunSettings run = new();
         [Header("기물 소지")]
+        [Tooltip("한 사람이 지닐 수 있는 기물 수.")]
         [SerializeField] ItemCarrySettings itemCarry = new();
         [Header("공통 운반 장치")]
+        [Tooltip("톱날 등 들고 다니는 장치의 크기·이동 속도·발사 간격 공통값.")]
         [SerializeField] CarryDeviceSettings carryDevices = new();
         [Header("캐릭터")]
+        [Tooltip("이동 속도·점프 높이·회전·걷기 애니메이션 등 캐릭터 공통 동작.")]
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
+        [Tooltip("점프 입력 미리 받기·길게 누르기 판정 등 입력 공통값.")]
         [SerializeField] InputSettings input = new();
         [Header("공통 상호작용")]
+        [Tooltip("상호작용 거리·구조 대상 우선 선택 등 모든 씬 공통 상호작용 규칙.")]
         [SerializeField] InteractionSettings interaction = new();
         [Header("공통 공중 조절")]
+        [Tooltip("점프·발사 중 공중에서 방향을 조절하는 정도.")]
         [SerializeField] AirControlSettings airControl = new();
         [Header("균형 공통")]
+        [Tooltip("줄 위 균형 게이지·몸 기울기 등 균형 공통 규칙.")]
         [SerializeField] BalanceSettings balance = new();
         [Header("HUD 배치")]
+        [Tooltip("균형 게이지 등 HUD 요소를 화면 어디에 둘지.")]
         [SerializeField] HudLayoutSettings hudLayout = new();
         [Header("연출")]
+        [Tooltip("걷기·달리기 애니메이션 재생 기준, 상호작용 동작 허용, 몸 기울기 등 캐릭터 연출.")]
         [SerializeField] PresentationSettings presentation = new();
         [Header("동기화")]
+        [Tooltip("다른 플레이어 위치·상태를 맞추는 네트워크 동기화 값.")]
         [SerializeField] SyncSettings sync = new();
         [Header("신체 손상")]
+        [Tooltip("추락·절단 부상과 재시작 때 부상 복구 규칙.")]
         [SerializeField] BodyDamageSettings bodyDamage = new();
         [Header("장소 전환")]
+        [Tooltip("대기실·공연·탈출로 사이 장소 이동에 쓰는 씬과 전환 값.")]
         [SerializeField] SpaceTransitionSettings spaceTransition = new();
         [Header("음성 채팅")]
+        [Tooltip("음성 채팅 사용 여부·사용 씬·거리 감쇠 등 공통값.")]
         [SerializeField] VoiceChatSettings voiceChat = new();
 
         public FrameRateSettings FrameRate => frameRate;
@@ -165,9 +181,13 @@ namespace CurtainCall.Settings
             [SerializeField, HideInInspector, Min(1f)] float guideRestDuration = 300f;
 
             [Header("시간대별 실제 제한시간 · 다음 단계 진입부터 적용")]
+            [Tooltip("하루 첫 공연 전 아침 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("아침 쉬는 시간")] RestTimeLimitSettings morningRest;
+            [Tooltip("공연과 공연 사이 낮 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("낮 쉬는 시간")] RestTimeLimitSettings noonRest;
+            [Tooltip("1일차 첫 공연 뒤 안내가 나오는 가이드 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("첫날 가이드 쉬는 시간")] RestTimeLimitSettings guideRest;
+            [Tooltip("하루 마지막 공연 뒤 밤 정비 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("밤 정비")] RestTimeLimitSettings nightMaintenance;
             [SerializeField, HideInInspector] bool timeLimitsMigrated;
 
@@ -175,6 +195,7 @@ namespace CurtainCall.Settings
             [Serializable]
             public sealed class RestTimeLimitSettings
             {
+                [Tooltip("켜면 이 시간대는 시간이 다 되어도 끝나지 않는다. 아래 초 값은 무시된다.")]
                 [SerializeField, InspectorName("제한 없음")] bool unlimited;
                 [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
                 [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
@@ -477,9 +498,13 @@ namespace CurtainCall.Settings
             }
 
             [Header("상호작용 애니메이션")]
+            [Tooltip("때리기·부수기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy strike = new();
+            [Tooltip("레버·버튼 등 조작 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy manipulate = new();
+            [Tooltip("당기기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy pull = new();
+            [Tooltip("열쇠로 여는 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy key = new();
             [Tooltip("바닥 또는 배송구의 기물 줍기")]
             [SerializeField] InteractionAnimationPolicy pickup = new();
