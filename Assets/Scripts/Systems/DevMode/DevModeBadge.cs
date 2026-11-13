@@ -37,6 +37,16 @@ namespace CurtainCall.Dev
                 DevStartLauncher.EnsureExists()?.Toggle();
             if (GUI.Button(new Rect(x, 30, width, 24), $"치트 [{DevCheatPanel.ShortcutLabel}]", _style))
                 DevCheatPanel.EnsureExists()?.Toggle();
+            // A held wipe looks like a freeze ("no spectate target"), so say why and how to continue.
+            if (Event.current.type == EventType.Repaint || Event.current.type == EventType.MouseDown)
+            {
+                if (Time.unscaledTime >= nextHoldCheck) { nextHoldCheck = Time.unscaledTime + .25f; holding = DevCheats.IsHoldingWipe(); }
+                if (holding && GUI.Button(new Rect(x, 56, width, 44), "전원 사망 · 정산 보류 중\nF9: 부활 또는 보류 해제", _style))
+                    DevCheatPanel.EnsureExists()?.Toggle();
+            }
         }
+
+        float nextHoldCheck;
+        bool holding;
     }
 }
