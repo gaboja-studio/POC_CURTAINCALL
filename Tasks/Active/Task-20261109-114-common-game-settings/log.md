@@ -88,3 +88,4 @@
 - 제출 직전 DEV가 ff8af551(PR359·360)로 전진하여 Unity 종료 상태에서 반영. 리허설 추격 중 시작 차단(DEV)과 치료·포획 차단/0명 투표 정리(이번 작업)를 모두 보존. Task115 기록은 DEV의 보관본과 기존 보관본 링크를 보존해 충돌 해결. 병합 커밋3bdf6d69. 외부 에셋은 DEV gitlink16982ba2로 동기화(기존 수정 없음).
 - 최신 DEV 병합 후 공통 검사 최초717/720: 엔딩 통계가 추가된 실제 전송 형식과 달리 구 검사 데이터가 통계를 생략하여 generation=0으로 역직렬화·거절됨. ReadState 보상 코드는 유지하고 검사 도우미만 현재 런 통계를 넣도록 수정. 재검사720/720 통과. 최신 DEV BreakFlow43/43도 통과.
 - 제출 직전 Unity 종료 후 DEV 재확인: ff8af551 동일, 이미 반영됨. 최종 개별 안전성·문서·컴파일·공통 연결 PASS, check-work 기록은 Task100/114 중복 제약 유지. 열린 UnderstagePursuerPlaytest는 dirty=false, 레이어 매트릭스 재개방 검증 정상. 폰트 캐시 변경은 제외.
+- 기존 feat/exit-route/pursuer에 ade3c4c9 저장·push, [PR361](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/361) 제출. base=dev, reviewer=MoHoDu, 병합하지 않음. 이전 자동 반환·포획 2건과 레이어 변경도 포함. 실제 플레이는 사용자 확인.
