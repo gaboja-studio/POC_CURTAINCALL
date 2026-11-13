@@ -23,6 +23,9 @@ namespace CurtainCall.Cameras
 
         /// <summary>관전 중인 플레이어. 관전 중이 아니거나 볼 사람이 없으면 null.</summary>
         public static NetworkPlayer Target { get; private set; }
+        // The escape victim moves with an animated hand. Watch the pursuer's locomotion root,
+        // never the hand, skinned body or victim, until the throw actually releases them.
+        public static Transform EscapeCaptureAnchor { get; private set; }
         /// <summary>정본 UI 연결 시 임시 IMGUI만 숨긴다. 관전 카메라/입력은 계속 동작한다.</summary>
         public bool ShowLegacyOverlay { get; set; } = true;
 
@@ -77,8 +80,25 @@ namespace CurtainCall.Cameras
         void UpdateSpectating()
         {
             var local = NetworkPlayer.Local;
+            bool escapeCaptured = local != null && local.State == PlayerState.EscapeCaptured;
+            var pursuer = CurtainCall.EscapeRoute.EscapeUnderstageChase.Current;
+            var captureAnchor = escapeCaptured && pursuer != null && !pursuer.HasReleasedCaptured(local) ? pursuer.transform : null;
+            if (EscapeCaptureAnchor != captureAnchor)
+            {
+                EscapeCaptureAnchor = captureAnchor;
+                director?.SpectatorTargetChanged();
+            }
+            if (captureAnchor != null)
+            {
+                if (!IsSpectating) spectateStartedAt = Time.time;
+                IsSpectating = true;
+                SetTarget(local);
+                virtualCamera.Target.TrackingTarget = captureAnchor;
+                lastDirection = 0;
+                return;
+            }
             // 리타이어(탈출로 사망·잡힘)도 사망처럼 관전한다(2026-10-14 PM). 관전 대상은 Normal만
-            bool dead = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
+            bool dead = local != null && (escapeCaptured || local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                                           || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
             // 공연 종료 여유 시간에 도착한 사람도 탈락자처럼 남은 사람을 관전한다(2026-11-13).
             dead |= CurtainCall.Reward.PerformanceRewards.IsFinishedSpectator(local);
@@ -92,7 +112,7 @@ namespace CurtainCall.Cameras
             if (!IsSpectating) spectateStartedAt = Time.time;
             IsSpectating = true;
             CollectAlive(local);
-            if (director != null && director.isActiveAndEnabled && director.IsShowingDeathFall)
+            if (!escapeCaptured && director != null && director.isActiveAndEnabled && director.IsShowingDeathFall)
             {
                 SetTarget(null);
                 lastDirection = 0;
@@ -101,7 +121,8 @@ namespace CurtainCall.Cameras
             // 보고 있던 사람이 추격자에게 잡히면 팔다리 절단 연출이 끝나 리타이어할 때까지 계속 본다(사용자 2026-11-11).
             // 새로 고를 때는 잡히지 않은 사람이 먼저다. 남은 사람이 모두 잡히는 중이면 그 연출을 본다.
             bool watchingCapture = IsWatchingCapture(Target);
-            var next = alive.Count > 0 ? alive[0] : FirstCapturePending(local);
+            var thrownAt = escapeCaptured && pursuer != null ? alive.Find(p => p.OwnerClientId == pursuer.CapturedThrowTarget) : null;
+            var next = thrownAt != null ? thrownAt : alive.Count > 0 ? alive[0] : FirstCapturePending(local);
             if (next != null && director != null) director.ResumeFromDeathView();
             if (!watchingCapture && (Target == null || !alive.Contains(Target))) SetTarget(next);
 
@@ -167,6 +188,7 @@ namespace CurtainCall.Cameras
         /// <summary>관전을 끝내고 카메라를 내 캐릭터로 돌린다.</summary>
         void Stop(NetworkPlayer local)
         {
+            EscapeCaptureAnchor = null;
             if (!IsSpectating) return;
             IsSpectating = false;
             Target = null;
@@ -181,7 +203,7 @@ namespace CurtainCall.Cameras
 
         void OnGUI()
         {
-            if (!IsSpectating || !ShowLegacyOverlay) return;
+            if (!IsSpectating || !ShowLegacyOverlay || EscapeCaptureAnchor != null) return;
             DrawDeathDim();
             labelStyle ??= new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 22, richText = true };
             string text = Target != null

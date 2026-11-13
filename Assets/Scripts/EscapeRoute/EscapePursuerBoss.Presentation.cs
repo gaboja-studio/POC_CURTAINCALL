@@ -57,7 +57,7 @@ namespace CurtainCall.EscapeRoute
                 {
                     if (!mesh) continue;
                     mesh.enabled = !lost;
-                    var color = CombatStarted && Exposed(state.Mask, i) ? new Color(.75f, .17f, .08f) : new Color(.35f, .37f, .39f);
+                    var color = CombatStarted && Exposed(state.Mask, i) ? new Color(.85f, .35f, .25f) : mesh is SkinnedMeshRenderer ? Color.white : new Color(.35f, .37f, .39f);
                     tint.SetColor("_BaseColor", color); tint.SetColor("_Color", color); mesh.SetPropertyBlock(tint);
                 }
             }
@@ -79,15 +79,31 @@ namespace CurtainCall.EscapeRoute
             if (blood) { blood.transform.position = state.HitPoint; blood.Emit(42); }
             foreach (var renderer in part.meshes)
             {
-                if (!renderer || !renderer.TryGetComponent<MeshFilter>(out var filter) || !filter.sharedMesh) continue;
+                if (!renderer) continue;
+                Mesh detached;
+                if (renderer is SkinnedMeshRenderer skin)
+                {
+                    detached = new Mesh();
+                    // Compensate the skin transform scale; the detached object inherits it below.
+                    skin.BakeMesh(detached, true);
+                    Destroy(detached, 4);
+                }
+                else if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh) detached = filter.sharedMesh;
+                else continue;
                 var go = new GameObject("Severed " + part.label, typeof(MeshFilter), typeof(MeshRenderer), typeof(BoxCollider), typeof(Rigidbody));
                 go.layer = 2;
                 go.AddComponent<EscapePursuerDebris>();
                 go.transform.SetPositionAndRotation(renderer.transform.position, renderer.transform.rotation);
                 go.transform.localScale = renderer.transform.lossyScale;
-                go.GetComponent<MeshFilter>().sharedMesh = filter.sharedMesh;
+                go.GetComponent<MeshFilter>().sharedMesh = detached;
                 go.GetComponent<MeshRenderer>().sharedMaterials = renderer.sharedMaterials;
-                var collider = go.GetComponent<BoxCollider>(); collider.center = filter.sharedMesh.bounds.center; collider.size = filter.sharedMesh.bounds.size;
+                // Partitioned skins retain the source vertex buffer; unused vertices must not
+                // turn a severed hand's collider into a whole-body box.
+                var vertices = detached.vertices;
+                var indices = detached.triangles;
+                var bounds = new Bounds(vertices[indices[0]], Vector3.zero);
+                foreach (int index in indices) bounds.Encapsulate(vertices[index]);
+                var collider = go.GetComponent<BoxCollider>(); collider.center = bounds.center; collider.size = bounds.size;
                 foreach (var own in GetComponentsInChildren<Collider>()) Physics.IgnoreCollision(collider, own);
                 foreach (var player in NetworkPlayer.All)
                     if (player) foreach (var own in player.GetComponentsInChildren<Collider>()) Physics.IgnoreCollision(collider, own);
