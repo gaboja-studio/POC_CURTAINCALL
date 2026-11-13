@@ -12,6 +12,7 @@ namespace CurtainCall.Settings
     public sealed class ExplorationSettings : ScriptableObject
     {
         [Header("더미 검증 전용 — 실제 신체 상태 아님")]
+        [Tooltip("더미 공간 검증 화면에서 쓰는 잃은 팔다리 수(0~4). 실제 캐릭터 부상과 무관하다.")]
         [SerializeField, Range(0, 4)] int dummyLostCount;
 
         public int DummyLostCount => Mathf.Clamp(dummyLostCount, 0, 4);
