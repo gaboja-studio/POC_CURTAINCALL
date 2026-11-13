@@ -65,3 +65,7 @@
 - 사용자가 에셋 PR #21 병합을 명시 승인하여 검사 SUCCESS와 head 8ece127e를 확인한 뒤 merge commit으로 병합했다. private origin/main 1253278a에 8ece127e가 포함됨을 확인했다. 기본 브랜치 직접 push는 하지 않았다.
 
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/365 (feat/rehearsal-navigation-art → dev)
+- 저장 시 현재 파일과 일치하는 check-work 결과를 재사용했다. 안전성/문서/컴파일/공통 설정 PASS, 선택 자동 테스트 SKIPPED이며 별도 PlayMode 결과는 위에 기록했다. 게임 브랜치 push와 LFS 업로드, private main 포함 검사 통과.
+- dev PR #365 생성 후 제출 링크·todo 기록만 추가 저장한다. 게임 dev는 병합하지 않았으며 지정 팀원 검토 대기다. 에디터 NavigationPulseReview는 dirty false, 새 프리팹 참조 정상, compilationFailed false.
