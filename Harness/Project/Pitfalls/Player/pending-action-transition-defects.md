@@ -2,7 +2,7 @@
 summary: 목마 복귀·메뉴 입력·장치 초기화·사지 조각 충돌의 상태 인계 회귀와 방지 규칙.
 status: active
 updated: 2026-11-13
-source: Task-20261109-114, Inventory/post353-transition-audit.md, RehearsalLifecycleTests, InputBindingPreferencesTests, TrampolineCarryPoseTests
+source: Task-20261109-114, Inventory/post353-transition-audit.md, Inventory/post355-transition-audit.md, RehearsalLifecycleTests
 ---
 
 # 행동 전환과 입력 초기화
@@ -26,3 +26,12 @@ source: Task-20261109-114, Inventory/post353-transition-audit.md, RehearsalLifec
 - 수정 후 치료 Working/Exiting 동안 양쪽 리허설 시작을 막고, 리허설/투표 뒤 늦은 의료 입장도 거부한다. 참가자는 의료 상태가 끝난 뒤 복귀점 저장·배치·종료 이동을 한다. 예약만 해둔 상태는 이동을 막지 않는다.
 - 의료 입장은 호스트의 운반·목마 해제 후 진행하고 참가자는 소유 해제 수신을 기다린다. 신규 운반/목마 요청은 의료 점유를 확인한다. 의료를 PiggybackSystem.UsingDevice에 넣으면 Follow가 원래 이동 소유권을 복원하지 않으므로 새 연결의 자격 판정에만 적용한다.
 - 새17사례 포함 치료36/36·공통618/618 통과. 서로 다른 PC의 실기 결과로 해석하지 않는다.
+
+## PR355 이후 리허설 입장 인계 — 수정 후 기준
+
+- 대포 재연습 배치 전 트램펄린 Grab을 수락하면 LocalTick은 Held 해제를 기다리고, placementBlock은 Drop 입력까지 막는다. 실제 공통 Mesh와 임시 코스에서 정상3회·2/3/4인 목록×절단0~3개 대표12조합 재현. 좌석의 IsPracticeReady 검사가 트램펄린에는 없다. 실제 패킷 지연 빈도·작성된 맵 위치는 미검증.
+- 밤의 수면 중 외줄 재연습 제안이 허용된다. ActivateLocal/Relocate는 수면 준비를 해제하지 않아 BedRestView 입력 잠금·시점과 NetworkBedPose의 침대 위치/누운 외형이 남는다(3회 재현). F/Esc 기상으로 풀릴 수 있다. 대포 EnsureCourse에는 SetReady(false)가 있으므로 동일하게 취급하지 않는다.
+- 수정 후 트램펄린 CanGrab도 기존 대포 IsPracticeReady(actor)를 확인한다. 배치 전과 종료 중에는 호스트 요청을 거부하고 정상 배치 후에는 잡기·놓기를 허용한다. 수치·씬별 예외는 추가하지 않는다.
+- 외줄/대포 시작은 BedRestView.EndForRehearsal로 준비·시점·입력·침대 선택을 정리한다. NetworkBedPose는 리허설 중 늦은 침대 상태를 적용하지 않는다. 침대와 호스트의 늦은 Ready 요청은 CampaignRun.CanSleep을 공유하고 종료 후 정상 수면을 허용한다.
+- NightBed에서 Ready 승인 뒤 시점을 만들 때 마지막 수면자가 즉시 Dawn으로 넘어가 localReady=false가 되는 경우도 처리해야 한다. 기존 밤→아침 시점을 누락시키지 않는다.
+- 관련 기존237개 통과와 새 결함 재현은 양립한다. 신규68검사는 2/3/4인×생존 사지 마스크15종과 양쪽 리허설/수면/원격 외형/밤 전환을 포함한다. 실제 다른 PC 플레이 보장은 아니다.

@@ -361,7 +361,8 @@ namespace CurtainCall.HumanCannon
         public bool CanGrab(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
-                || HumanCannonSystem.Current == null || HumanCannonCarry.HasOccupiedHands(player)
+                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
+                || HumanCannonCarry.HasOccupiedHands(player)
                 || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
                 || PracticeGrabAllowed?.Invoke() == false) return false;
             var course = TightropeCourse.Current;

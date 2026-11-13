@@ -40,7 +40,8 @@ namespace CurtainCall.WaitingRoom
             get
             {
                 var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
-                return !WaitingRoomCannonRehearsal.IsActive && (player == null || player.State == CurtainCall.Network.PlayerSync.PlayerState.Normal
+                return CampaignRun.CanSleep(player?.OwnerClientId ?? Unity.Netcode.NetworkManager.ServerClientId)
+                    && (player == null || player.State == CurtainCall.Network.PlayerSync.PlayerState.Normal
                     && !Pursuit.PursuitDirector.IsCaptured(player));
             }
         }
@@ -76,7 +77,11 @@ namespace CurtainCall.WaitingRoom
         {
             if (!LocalCanInteract || !IsNight(out var run)) return;
             if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice,transform); return; }
-            if (!run.IsLocalReady)
+            bool sleeping = !run.IsLocalReady;
+            bool accepted = run.SetReady(sleeping);
+            // A request rejected by the common eligibility check must not create a bed camera/pose.
+            // The last sleeper can advance the host to Dawn immediately, which clears localReady.
+            if (sleeping && (run.IsLocalReady || accepted && run.State.Phase == CampaignPhase.Dawn))
             {
                 var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
                 if (player != null) player.SetRestingBed(BedIndex);
@@ -84,7 +89,6 @@ namespace CurtainCall.WaitingRoom
                 if (rest == null) rest = gameObject.AddComponent<BedRestView>();
                 rest.Begin(footprint, Body.rotation);
             }
-            run.SetReady(!run.IsLocalReady);
         }
 
         static bool IsNight(out CampaignRun run)
