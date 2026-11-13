@@ -301,9 +301,8 @@ namespace CurtainCall.Tightrope
             if (input.AuxDirection != 0)
             {
                 var carrier = system.GetCarrier(local);
-                int cameraSide = carrier != null && carrier.TryGetComponent(out PlayerMover carrierMover)
-                    ? carrierMover.RopeTravelSign : localMover.RopeTravelSign;
-                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * cameraSide);
+                int side = carrier != null && Vector3.Dot(carrier.transform.forward, localMover.CourseForward) < 0f ? -1 : 1;
+                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * side);
                 return;
             }
 

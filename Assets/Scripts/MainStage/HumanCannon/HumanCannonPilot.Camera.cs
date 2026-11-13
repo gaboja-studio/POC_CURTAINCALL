@@ -70,11 +70,10 @@ namespace CurtainCall.HumanCannon
             if (carryCamera) UpdateCarryFraming(carried);
             else hadCarryFraming = false;
             // 탑승/비행이 운반보다 우선하며, 사망자는 위에서 요청을 해제해 공용 관전을 사용한다.
-            var pole = IsHoldingPole ? HumanCannonPoleSystem.Current?.Pole(HeldPole) : null;
             cannonView.RequestViewWithHeading(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView
                 : IsFlying && airborneView != null ? airborneView : flightView,
                 stationIndex >= 0 || IsFlying ? 200 : carrying ? 100 : 50,
-                pole != null ? pole.Forward * poleCameraSide : Vector3.zero, followHeading: pole != null);
+                IsHoldingPole ? poleCameraForward : Vector3.zero, followHeading: IsHoldingPole);
             HumanCannonViewInput.SetRequested(cannonView, this, true);
             requestedCannonView = true;
         }

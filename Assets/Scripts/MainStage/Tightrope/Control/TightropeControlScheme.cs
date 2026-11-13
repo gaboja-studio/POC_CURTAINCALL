@@ -25,7 +25,6 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
         public override void Enter(PlayerControlContext context)
         {
             ClearBuffer(context);
-            context.Mover?.SetRopeTravel(1f);
             ApplyMovementSettings(context);
         }
 
@@ -102,10 +101,8 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             if (input.TurnAroundPressed && context.Mover != null
                 && context.Mover.ControlEnabled && context.Mover.Simulated)
                 context.Mover.ReverseCourseDirection();
-            if (context.Mover != null && context.Mover.Simulated && context.Mover.ControlEnabled)
-                context.Mover.SetRopeTravel(input.Move);
             const int viewSign = 1;
-            context.HeldDirection = input.AuxDirection * (context.Mover?.RopeTravelSign ?? 1);
+            context.HeldDirection = input.AuxDirection * viewSign;
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
             ApplyMovementSettings(context);
             if (input.Move != 0f || input.ActionPressed || input.LaneChangePressed || input.InteractLongPressed) CancelCatch(context);

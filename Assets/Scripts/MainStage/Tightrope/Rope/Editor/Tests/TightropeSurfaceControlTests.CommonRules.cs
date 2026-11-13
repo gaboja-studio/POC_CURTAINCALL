@@ -231,16 +231,16 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    Assert.That(mover.CourseForward,Is.EqualTo(Vector3.forward));
   }
 
-  [TestCase(1f, -1, -1)] [TestCase(-1f, -1, 1)] [TestCase(-1f, 1, -1)]
-  public void LaneClickUsesTheDirectionOfTravelWithoutSpace(float move, int click, int expected)
+  [TestCase(1f, -1)] [TestCase(-1f, -1)] [TestCase(-1f, 1)]
+  public void LaneClickUsesRopeFacingWithoutSpace(float move, int click)
   {
    mover.FreeMovement=false; mover.CourseForwardOverride=Vector3.forward;
    var scheme=Track(ScriptableObject.CreateInstance<TightropeControlScheme>());
    var context=new PlayerControlContext(player.gameObject);
    scheme.Tick(context,new PlayerInputFrame{Move=move, AuxDirection=click, LaneChangePressed=true});
-   Assert.That(mover.RopeTravelForward,Is.EqualTo(Vector3.forward*move));
+   Assert.That(mover.CourseForward,Is.EqualTo(Vector3.forward));
    Assert.That(typeof(PlayerMover).GetField("laneJumpRequested",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(mover),
-    Is.EqualTo(expected));
+    Is.EqualTo(click));
   }
 
   [TestCase(2,false)] [TestCase(3,false)] [TestCase(4,false)]
