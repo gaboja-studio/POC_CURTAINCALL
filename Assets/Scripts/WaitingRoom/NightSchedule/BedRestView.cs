@@ -21,9 +21,16 @@ namespace CurtainCall.WaitingRoom
         CurtainCall.Network.PlayerSync.NetworkPlayer restingPlayer;
         bool beganWithNetworkPlayer;
         public bool IsResting => view != null;
+        internal static void EndForRehearsal()
+        {
+            CampaignRun.Instance?.WakeForRehearsal();
+            foreach (var rest in FindObjectsByType<BedRestView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                rest.End();
+            CurtainCall.Network.PlayerSync.NetworkPlayer.Local?.SetRestingBed(-1);
+        }
         public void Begin(Bounds bed, Quaternion rotation)
         {
-            if (view != null) return;
+            if (view != null || CampaignRun.RehearsalPendingOrActive) return;
             day = CampaignRun.Instance.State.Day;
             morning = false; blend = 0;
             restingPlayer = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
@@ -43,6 +50,11 @@ namespace CurtainCall.WaitingRoom
             if (view == null) { if (blocker != null || beganWithNetworkPlayer) End(); return; }
             var run = CampaignRun.Instance;
             if (run == null) { End(); return; }
+            if (WaitingRoomRehearsal.IsActive || WaitingRoomCannonRehearsal.IsActive)
+            {
+                run.WakeForRehearsal();
+                End(); return;
+            }
             var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
             if (beganWithNetworkPlayer && (restingPlayer == null || player != restingPlayer)) { End(); return; }
             if (player != null && !PlayerInteraction.CanInteract(player))

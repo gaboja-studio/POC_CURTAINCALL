@@ -524,6 +524,142 @@ namespace CurtainCall.WaitingRoom.EditorTools
             }
         }
 
+        [Test, Category("RehearsalEntryHandoff")]
+        public void TrampolineRejectsLateGrabUntilPlacementAndAllowsItAfterwards(
+            [Values(2, 3, 4)] int playerCount, [NUnit.Framework.Range(0, 14)] int lostMask)
+        {
+            using var gate = new CurtainCall.Tightrope.EditorTools.Tests.InputGateTestScope();
+            var previousSystem = HumanCannonSystem.Current;
+            var previousTrampoline = HumanCannonTrampoline.Current;
+            HumanCannonTrampoline trampoline = null;
+            try
+            {
+                var player = Player(0);
+                typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+                typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                ((NetworkVariable<int>)Get(player, "slot")).Value = 0;
+                var parts = (BodyPart)lostMask;
+                ((NetworkVariable<BodyPart>)Get(player, "lostParts")).Value = parts;
+                var condition = player.gameObject.AddComponent<PlayerCondition>(); condition.SetLostParts(parts);
+                var mover = player.GetComponent<PlayerMover>();
+                mover.SetStartPose(new Vector3(9000, 9000, 9000), Quaternion.identity);
+                var participants = new List<ulong> { 0 };
+                for (ulong id = 1; id < (ulong)playerCount; id++)
+                {
+                    var other = Player(id); other.transform.position = new Vector3(9200 + id * 10, 9000, 9000);
+                    participants.Add(id);
+                }
+                var hostObject = Make("Entry handoff host"); hostObject.SetActive(false);
+                var session = hostObject.AddComponent<NetworkSessionManager>();
+                Set(session, "_networkManager", hostObject.GetComponent<NetworkManager>());
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+                var system = hostObject.AddComponent<HumanCannonSystem>();
+                typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, system);
+                Set(system, "session", session);
+                Set(system, "seats", System.Array.CreateInstance(typeof(HumanCannonSystem).GetField("seats", Private).FieldType.GetElementType(), 0));
+                system.ConfigurePractice(new HumanCannonStation[0], 8990);
+                var shared = Get(cannon, "shared");
+                var placed = (List<ulong>)shared.GetType().GetField("placed").GetValue(shared);
+                Shared("active", true); Shared("round", 4); Shared("participants", participants);
+                system.SetPracticePlacementGate(id => (bool)shared.GetType().GetField("active").GetValue(shared)
+                    && !(bool)shared.GetType().GetField("ending").GetValue(shared) && placed.Contains(id));
+                var root = Make("Entry handoff trampoline"); root.transform.position = player.transform.position + Vector3.forward * 2;
+                root.hideFlags = HideFlags.None; player.gameObject.hideFlags = HideFlags.None;
+                var handle = Make("Entry handoff handle").transform; handle.SetParent(root.transform, false); handle.localPosition = Vector3.back * 2;
+                trampoline = root.AddComponent<HumanCannonTrampoline>(); Set(trampoline, "handle", handle); Set(trampoline, "session", session);
+                Call(trampoline, "RefreshCarryBody", player);
+                typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, trampoline);
+                HumanCannonCarry.Register(trampoline);
+                var course = Make("Entry handoff course").AddComponent<RehearsalCannonCourse>();
+                var floor = Make("Entry handoff floor").AddComponent<BoxCollider>();
+                floor.gameObject.hideFlags = HideFlags.None;
+                floor.transform.position = new Vector3(9020, 8999.5f, 9000); floor.size = new Vector3(12, 1, 8);
+                course.StartFloor = course.MiddleFloor = floor; course.Cannon = system; course.Trampoline = trampoline;
+                Set(cannon, "course", course);
+                var ownership = (CannonSeatState)Get(trampoline, "ownership");
+                var grab = System.Enum.Parse(typeof(HumanCannonTrampoline).GetNestedType("TrampolineAction", BindingFlags.NonPublic), "Grab");
+                void RequestGrab() => Call(trampoline, "HandleRequest", 0UL, grab, ownership.Revision, -1, 0U, 0U,
+                    root.transform.position, root.transform.rotation, true);
+                Physics.SyncTransforms();
+                Assert.IsFalse(trampoline.CanGrab(player));
+                RequestGrab(); // Host must reject even if the client sent before receiving the placement block.
+                Assert.IsNull(HumanCannonCarry.Held(0));
+                Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
+                Assert.AreEqual(4, Get(cannon, "placedRound"));
+                Assert.IsTrue(RehearsalCannonCourse.Contains(floor, player.transform.position));
+                placed.Add(0);
+                root.transform.position = player.transform.position + Vector3.forward * 2; root.transform.rotation = Quaternion.identity;
+                Physics.SyncTransforms();
+                Assert.IsTrue(trampoline.CanGrab(player), "Placement completion must restore normal common grab rules, including limb loss.");
+                RequestGrab(); Assert.AreEqual(0UL, trampoline.Carrier);
+                trampoline.RequestDrop(); Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Shared("ending", true);
+                RequestGrab(); Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier, "Late grab during return must also be rejected.");
+                Assert.AreEqual(parts, player.LostParts);
+            }
+            finally
+            {
+                if (trampoline != null) HumanCannonCarry.Unregister(trampoline);
+                typeof(HumanCannonSystem).GetProperty("Current").SetValue(null, previousSystem);
+                typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, previousTrampoline);
+            }
+        }
+
+        [TestCase("practiceVote"), TestCase("practice"), TestCase("active"), TestCase("cannon")]
+        [Category("RehearsalEntryHandoff")]
+        public void RehearsalRejectsLateSleepAndDoesNotAdvanceNight(string pending)
+        {
+            var previousGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => true;
+                var night = new RunState(false, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var player = Player(0); typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+                if (pending == "cannon") Shared("active", true); else Set(rehearsal, pending, true);
+                Assert.IsFalse(CampaignRun.CanSleep(0)); Assert.IsFalse(run.SetReady(true));
+                using (var writer = new FastBufferWriter(10, Allocator.Temp))
+                {
+                    writer.WriteValueSafe(true); writer.WriteValueSafe(run.State.Generation);
+                    writer.WriteValueSafe(run.State.Day); writer.WriteValueSafe((byte)CampaignPhase.Night);
+                    using var reader = new FastBufferReader(writer, Allocator.Temp);
+                    Call(run, "HandleReady", 0UL, reader);
+                }
+                Assert.IsFalse(night.IsReady(0), "The host must reject a delayed pre-rehearsal sleep packet.");
+                night.SetReady(0, true); Call(run, "RefreshNight", night);
+                Assert.AreEqual(CampaignPhase.Night, night.Snapshot.Phase);
+                Call(run, "WakeForRehearsal"); Assert.IsFalse(night.IsReady(0));
+                if (pending == "cannon") Shared("active", false); else Set(rehearsal, pending, false);
+                Assert.IsTrue(CampaignRun.CanSleep(0));
+                Assert.IsTrue(run.SetReady(true));
+                Assert.AreEqual(CampaignPhase.Dawn, night.Snapshot.Phase, "Ordinary sleeping must work again after ending/cancelling practice.");
+            }
+            finally { RunState.NightEndGate = previousGate; }
+        }
+
+        [Test, Category("RehearsalEntryHandoff")]
+        public void LastOrdinarySleeperStillCreatesTheBedViewWhenReadyAdvancesToDawn()
+        {
+            var previousGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => true;
+                var night = new RunState(false, true);
+                night.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+                Set(run, "host", night); Set(run, "state", night.Snapshot);
+                var player = Player(0); typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+                typeof(NetworkBehaviour).GetProperty("IsOwner").SetValue(player, true);
+                var bed = Make("Last sleeper bed").AddComponent<NightBed>(); bed.gameObject.hideFlags = HideFlags.None;
+                Call(bed, "Awake"); bed.Interact();
+                Assert.AreEqual(CampaignPhase.Dawn, run.State.Phase);
+                Assert.IsTrue(bed.GetComponent<BedRestView>()?.IsResting == true);
+                Assert.That(player.RestingBed, Is.GreaterThanOrEqualTo(0));
+            }
+            finally { RunState.NightEndGate = previousGate; }
+        }
+
         [TestCase(false)] [TestCase(true)]
         public void FirstDayTeamWaitDoesNotLockPlayersInsideRehearsal(bool cannonLesson)
         {

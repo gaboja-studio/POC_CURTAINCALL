@@ -113,6 +113,7 @@ namespace CurtainCall.WaitingRoom
 
         void ActivateLocal()
         {
+            BedRestView.EndForRehearsal();
             localRecoveryPending = false;
             WaitingRoomFirstDayFlow.SuspendForRehearsal();
             placedRound = -1; lastQuest = ""; lastDeviceGuide="";
