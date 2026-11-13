@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/checkpoint-submission-probe.cs",
+      "entry": "CheckpointSubmissionProbe.RecoverAndEnd",
+      "timeout_ms": "25000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 203,
+      "executeMs": 6694,
+      "assemblyName": "PipelineRunScript_checkpoint-submission-probe_96e0937322404de58f59c41208d56ca2",
+      "success": true,
+      "result": {
+        "checkpoint": "탈출로 · 마지막 문 앞",
+        "checkpointCount": 15,
+        "recovery": true,
+        "door": true,
+        "phase": "Ending",
+        "result": true,
+        "running": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-submission"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

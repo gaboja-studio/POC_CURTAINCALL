@@ -1,0 +1,107 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/ending-integration-probe.cs",
+      "entry": "EndingIntegrationProbe.ReturnAndInput",
+      "timeout_ms": "90000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 230,
+      "executeMs": 3285,
+      "assemblyName": "PipelineRunScript_ending-integration-probe_391fdd3da9e64cf68a7a09fb5c5b4390",
+      "success": true,
+      "result": {
+        "returned": {
+          "playing": true,
+          "scene": "Lobby",
+          "phase": "Ending",
+          "session": "Ended",
+          "playerState": "Normal",
+          "position": "(-1.800, 0.050, 1.400)",
+          "control": true,
+          "simulated": true,
+          "moving": false,
+          "sprint": false,
+          "gate": "요청자[] 키놓기대기=False",
+          "blocked": false,
+          "result": false,
+          "cinematic": false,
+          "liveCamera": null,
+          "transitioning": false,
+          "interaction": null
+        },
+        "distance": 1.55029488,
+        "moved": {
+          "playing": true,
+          "scene": "Lobby",
+          "phase": "Ending",
+          "session": "Ended",
+          "playerState": "Normal",
+          "position": "(-1.800, 0.080, 2.950)",
+          "control": true,
+          "simulated": true,
+          "moving": true,
+          "sprint": false,
+          "gate": "요청자[] 키놓기대기=False",
+          "blocked": false,
+          "result": false,
+          "cinematic": false,
+          "liveCamera": null,
+          "transitioning": false,
+          "interaction": "Ready Board"
+        },
+        "lever": {
+          "before": {
+            "playing": true,
+            "scene": "Lobby",
+            "phase": "Ending",
+            "session": "Ended",
+            "playerState": "Normal",
+            "position": "(3.200, 0.050, 4.800)",
+            "control": true,
+            "simulated": true,
+            "moving": false,
+            "sprint": false,
+            "gate": "요청자[] 키놓기대기=False",
+            "blocked": false,
+            "result": false,
+            "cinematic": false,
+            "liveCamera": null,
+            "transitioning": false,
+            "interaction": "Curtain Lever"
+          },
+          "after": {
+            "playing": true,
+            "scene": "Lobby",
+            "phase": "None",
+            "session": "Waiting",
+            "playerState": "Normal",
+            "position": "(3.200, 0.050, 4.800)",
+            "control": true,
+            "simulated": true,
+            "moving": false,
+            "sprint": false,
+            "gate": "요청자[] 키놓기대기=False",
+            "blocked": false,
+            "result": false,
+            "cinematic": false,
+            "liveCamera": null,
+            "transitioning": false,
+            "interaction": "Curtain Lever"
+          }
+        }
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

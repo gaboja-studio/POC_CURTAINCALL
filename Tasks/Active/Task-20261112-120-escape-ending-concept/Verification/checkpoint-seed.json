@@ -1,0 +1,78 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/checkpoint-submission-probe.cs",
+      "entry": "CheckpointSubmissionProbe.Seed",
+      "timeout_ms": "25000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 1483,
+      "executeMs": 6356,
+      "assemblyName": "PipelineRunScript_checkpoint-submission-probe_2af9acb095334e598a7b3c7ebffee433",
+      "success": true,
+      "result": [
+        {
+          "scene": "Tightrope",
+          "count": 6,
+          "order": [
+            "외줄 · 출발",
+            "외줄 · 균형과 점프 시작",
+            "외줄 · 해제봉 교대 시작",
+            "외줄 · 목마와 높은 봉 시작",
+            "외줄 · 한 줄 최종 협동 시작",
+            "외줄 · 도착"
+          ]
+        },
+        {
+          "scene": "HumanCannon",
+          "count": 11,
+          "order": [
+            "대포 1 탑승 위치",
+            "대포 2 탑승 위치",
+            "대포 3 탑승 위치",
+            "대포 4 탑승 위치",
+            "대포 5 탑승 위치",
+            "대포 6 탑승 위치",
+            "대포 7 탑승 위치",
+            "대포 8 탑승 위치",
+            "대포 9 탑승 위치",
+            "대포 10 탑승 위치",
+            "대포 · 최종 목적지"
+          ]
+        },
+        {
+          "scene": "escape_route",
+          "count": 15,
+          "order": [
+            "탈출로 · 추격 / 첫 대포 뒤 셔터",
+            "탈출로 · 추격 / 펌프 뒤 연결",
+            "탈출로 · 추격 / 트램폴린 옆 압박 뒤편",
+            "탈출로 · 추격 / 마지막 봉 옆 뒤편",
+            "탈출로 · 추격 / 접이교 전용 우회",
+            "탈출로 · 추격 / 마지막 접이교 우회 뒤편",
+            "탈출로 · 추격 / 출구 압박",
+            "탈출로 · 후반 질주 시작",
+            "탈출로 · 후반 그네 앞",
+            "탈출로 · 후반 그네 뒤",
+            "탈출로 · 마지막 화염 구간",
+            "탈출로 · 출구 절단기 앞",
+            "탈출로 · 추격자 최종 전투",
+            "탈출로 · 마지막 문 앞",
+            "탈출로 · 갈대밭 · 엔딩 도착"
+          ]
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-submission"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

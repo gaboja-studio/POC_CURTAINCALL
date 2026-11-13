@@ -140,6 +140,7 @@ namespace CurtainCall.Reward
         public RewardLedgerData[] ledger;
         public string finalPosePerformance;
         public RewardFinalPoseData[] finalPoses;
+        public EscapeRunStatistics runStatistics;
 
         public RewardSnapshot Read()
         {
