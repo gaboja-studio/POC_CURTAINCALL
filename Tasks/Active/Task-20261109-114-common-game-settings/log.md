@@ -100,3 +100,4 @@
 ## 11/13 봉 타이머 탑승 중 표시
 - Unity 종료 상태에서 DEV 28ef042b 최신화, 기존 feat/exit-route/pursuer 유지. 일반·스위치 봉 공통 표시를 동기화된 State.Count > 0으로 제한. 빈 봉은 숨기고 1명 이상이면 기존 남은 시간 표시, 마지막 해제·시간 만료·초기화 후 숨김. GameSettings 제한시간·높이·반동 수치 유지.
 - 안전성·문서·컴파일·공통 설정 연결 PASS. check-work 마지막 기록 단계는 기존 Task100/114 중복으로 실패. UI 표시 조건만 변경하여 새 자동 테스트·실제 플레이는 미실시. 제출 요청에 따라 DEV 28ef042b를 재확인하고 기존 브랜치에서 봉 타이머 수정으로 PR을 제출한다.
+- 봉 타이머 수정 8e1a6ca7을 [PR364](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/364)로 제출. PR361은 이미 병합되어 동일 작업 브랜치에서 후속 PR을 열었다.
