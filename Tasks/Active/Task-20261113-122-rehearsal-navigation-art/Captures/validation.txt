@@ -1,0 +1,1 @@
+PASS: 3 prefabs; 5 alpha sprites; 11 route markers; zero LineRenderers; references; shader; degenerate/invalid path; pooled reuse; hide. Captures are Unity Camera.Render outputs, not concept mockups.
