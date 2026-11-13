@@ -25,13 +25,24 @@ namespace CurtainCall.Player.LandingShadowTests
         }
 
         [Test]
-        public void DefaultSpaces_ShowInPerformanceAndEscape_HideInWaitingRoomAndLobby()
+        public void DefaultSpaces_OutlineInPerformanceEscapeRehearsal_HideInWaitingRoomAndLobby()
         {
             var settings = new BaseGameSettings.LandingMarkerSettings();
             Assert.IsTrue(settings.ShowIn(Space.Performance));
             Assert.IsTrue(settings.ShowIn(Space.EscapeRoute));
+            Assert.IsTrue(settings.ShowIn(Space.Rehearsal), "리허설은 대기실과 별도로 외곽선을 켠다");
             Assert.IsFalse(settings.ShowIn(Space.WaitingRoom));
             Assert.IsFalse(settings.ShowIn(Space.Lobby));
+            JsonUtility.FromJsonOverwrite("{\"showInRehearsal\":false}", settings);
+            Assert.IsFalse(settings.ShowIn(Space.Rehearsal));
+        }
+
+        [Test]
+        public void RehearsalAware_OnlyTurnsActiveWaitingRoomIntoRehearsal()
+        {
+            Assert.AreEqual(Space.Rehearsal, LandingShadowMarkers.RehearsalAware(Space.WaitingRoom, true));
+            Assert.AreEqual(Space.WaitingRoom, LandingShadowMarkers.RehearsalAware(Space.WaitingRoom, false));
+            Assert.AreEqual(Space.Performance, LandingShadowMarkers.RehearsalAware(Space.Performance, true));
         }
 
         [Test]

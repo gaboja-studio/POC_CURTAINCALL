@@ -31,14 +31,52 @@ namespace CurtainCall.Network.PlayerSync
         internal void ServerRecoverAtDevCheckpoint(Vector3 feet, Quaternion facing, string scene)
         {
             if (!IsServer || !IsSpawned || !DevMode.Enabled) return;
-            HumanCannonSystem.Current?.ServerReleaseForInspection(OwnerClientId);
-            HumanCannonCarry.Held(OwnerClientId)?.ServerReleaseForInspection(OwnerClientId);
-            TightropeHangSystem.Current?.ServerReleaseForInspection(OwnerClientId);
-            PiggybackSystem.Current?.ServerReleaseForInspection(OwnerClientId);
+            ReleaseHoldsForDev();
             checkpointRecoveryPending = feet;
             checkpointRecoveryRestart = RestartVersion;
             ServerRestoreAll();
             RecoverAtDevCheckpointRpc(feet, facing, scene, RestartVersion, reviveCount.Value, ++checkpointRequest);
+        }
+
+        void ReleaseHoldsForDev()
+        {
+            HumanCannonSystem.Current?.ServerReleaseForInspection(OwnerClientId);
+            HumanCannonCarry.Held(OwnerClientId)?.ServerReleaseForInspection(OwnerClientId);
+            TightropeHangSystem.Current?.ServerReleaseForInspection(OwnerClientId);
+            PiggybackSystem.Current?.ServerReleaseForInspection(OwnerClientId);
+        }
+
+        /// <summary>호스트: Dev F9 대상 이동. 살아 있는 플레이어를 붙잡힌 장치에서 풀고 소유자 화면에서 옮긴다.</summary>
+        internal bool ServerDevTeleport(Vector3 feet, Quaternion facing)
+        {
+            if (!IsServer || !IsSpawned || !DevMode.Enabled || State != PlayerState.Normal) return false;
+            ReleaseHoldsForDev();
+            if (IsOwner) return DevCheats.Teleport(this, feet, facing, out _);
+            DevTeleportRpc(feet, facing, gameObject.scene.name, RestartVersion, reviveCount.Value);
+            return true;
+        }
+
+        [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
+        void DevTeleportRpc(Vector3 feet, Quaternion facing, string scene, int restart, int revive)
+        {
+            if (!IsOwner || !CurrentFallEpoch(restart, revive) || !SceneManager.GetSceneByName(scene).isLoaded) return;
+            DevCheats.Teleport(this, feet, facing, out _);
+        }
+
+        /// <summary>호스트: Dev F9 대상의 균형을 소유자 화면에서 중앙으로 되돌린다.</summary>
+        internal void ServerDevResetBalance()
+        {
+            if (!IsServer || !IsSpawned || !DevMode.Enabled) return;
+            if (IsOwner) ResetDevBalance();
+            else DevResetBalanceRpc();
+        }
+
+        [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
+        void DevResetBalanceRpc() { if (IsOwner) ResetDevBalance(); }
+
+        void ResetDevBalance()
+        {
+            if (State == PlayerState.Normal && balance != null && balance.IsActive && !balance.HasFallen) balance.ResetBalance();
         }
 
         [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]

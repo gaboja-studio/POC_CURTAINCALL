@@ -135,8 +135,8 @@ namespace CurtainCall.Settings
             public BalanceHudPosition BalancePosition => balancePosition;
         }
 
-        /// <summary>착지 그림자를 켜고 끄는 공간 구분(<see cref="LandingMarkerSettings.ShowIn"/>).</summary>
-        public enum LandingMarkerSpace { Performance, EscapeRoute, WaitingRoom, Lobby, Other }
+        /// <summary>착지 그림자 외곽선을 켜고 끄는 공간 구분(<see cref="LandingMarkerSettings.ShowIn"/>). 리허설은 대기실 씬 안의 리허설 진행 중을 뜻한다.</summary>
+        public enum LandingMarkerSpace { Performance, EscapeRoute, WaitingRoom, Lobby, Other, Rehearsal }
 
         /// <summary>박스 착지면에서의 그림자 처리(<see cref="LandingMarkerSettings.ShapeFor"/>). 셰이더 _ClipMode 값과 같다.</summary>
         public enum LandingSurfaceShape { Circle = 0, Clip = 1, FadeOutside = 2 }
@@ -175,28 +175,32 @@ namespace CurtainCall.Settings
         }
 
         /// <summary>
-        /// 공중 플레이어 발밑의 원형 착지 그림자(Task-20261113-126). 공간별로 켜고 끄며(기본: 공연·탈출로 켬, 대기실·로비 끔), 모든 플레이어에게 보이고, 높이 차이가 클수록 뿌옇게 번져 사라진다.
+        /// 공중 플레이어 발밑의 원형 착지 그림자(Task-20261113-126). 그림자·번짐은 모든 공간에서 모든 플레이어에게 보이고, 높이 차이가 클수록 뿌옇게 번져 사라진다.
+        /// 공간별 설정은 외곽선(옷 색·안전/비안전)만 켜고 끈다(기본: 공연·탈출로·리허설 켬, 대기실·로비 끔).
         /// 외곽선은 내 캐릭터(관전 중이면 관전 대상)의 그림자에만 그린다. 안전 체크 높이 이하는 안전/비안전 색, 그 위 선명 높이까지는 옷 색. 단, 그 플레이어가 트램펄린을 잡고 있으면 설정에 따라 모든 그림자에 그린다.
         /// 착지·이동 규칙은 바꾸지 않는 표시 전용 값.
         /// </summary>
         [Serializable]
         public sealed class LandingMarkerSettings
         {
-            [Header("공간별 표시")]
+            [Header("공간별 외곽선 표시")]
             [InspectorName("공연")]
-            [Tooltip("켜면 모든 공연(외줄·인간대포 등 공연장 씬)에서 착지 그림자를 표시합니다.")]
+            [Tooltip("켜면 모든 공연(외줄·인간대포 등 공연장 씬)에서 착지 그림자 외곽선을 표시합니다. 끄더라도 그림자·번짐은 그대로 보입니다.")]
             [SerializeField] bool showInPerformance = true;
             [InspectorName("탈출로")]
-            [Tooltip("켜면 탈출로 씬에서 착지 그림자를 표시합니다.")]
+            [Tooltip("켜면 탈출로 씬에서 착지 그림자 외곽선을 표시합니다. 끄더라도 그림자·번짐은 그대로 보입니다.")]
             [SerializeField] bool showInEscapeRoute = true;
+            [InspectorName("리허설")]
+            [Tooltip("켜면 대기실에서 리허설(외줄·인간대포 리허설)이 진행 중일 때 착지 그림자 외곽선을 표시합니다. 끄더라도 그림자·번짐은 그대로 보입니다.")]
+            [SerializeField] bool showInRehearsal = true;
             [InspectorName("대기실")]
-            [Tooltip("켜면 대기실(탐색·밤 정비, 대기실 안의 연습실 포함)에서 착지 그림자를 표시합니다. 기본 끔.")]
+            [Tooltip("켜면 대기실(탐색·밤 정비, 대기실 안의 연습실 포함, 리허설 진행 중 제외)에서 착지 그림자 외곽선을 표시합니다. 끄더라도 그림자·번짐은 그대로 보입니다. 기본 끔.")]
             [SerializeField] bool showInWaitingRoom;
             [InspectorName("로비")]
-            [Tooltip("켜면 시작·로비 씬에서 착지 그림자를 표시합니다. 기본 끔.")]
+            [Tooltip("켜면 시작·로비 씬에서 착지 그림자 외곽선을 표시합니다. 끄더라도 그림자·번짐은 그대로 보입니다. 기본 끔.")]
             [SerializeField] bool showInLobby;
             [InspectorName("기타 씬")]
-            [Tooltip("위 공간으로 구분되지 않는 테스트·샘플 씬에서 착지 그림자를 표시할지 정합니다. 장소 전환에 등록되지 않은 씬은 이름·경로(WaitingRoom·Escape·MainStage)로 먼저 공간을 추정합니다.")]
+            [Tooltip("위 공간으로 구분되지 않는 테스트·샘플 씬에서 착지 그림자 외곽선을 표시할지 정합니다. 그림자·번짐은 항상 보입니다. 장소 전환에 등록되지 않은 씬은 이름·경로(WaitingRoom·Escape·MainStage)로 먼저 공간을 추정합니다.")]
             [SerializeField] bool showInOtherScenes = true;
 
             [Header("높이와 외곽선")]
@@ -210,13 +214,13 @@ namespace CurtainCall.Settings
             [Tooltip("완전히 번졌을 때 그림자 크기 배율. 1이면 크기를 유지합니다.")]
             [SerializeField, Range(1f, 3f)] float blurSpread = 1.6f;
             [InspectorName("안전 체크 높이(m)")]
-            [Tooltip("내 캐릭터(관전 중이면 관전 대상)의 발과 착지 지점 높이 차이가 이 값 이하이면, 외곽선을 옷 색 대신 안전/비안전 색으로 바꿔 지금 내려설 곳이 안전한지 알려줍니다. 이 값과 선명 높이 사이에서는 옷 색 외곽선, 선명 높이보다 높으면 흐린 그림자만 보입니다. 선명 높이보다 크게 잡아도 선명 높이 위에서는 외곽선이 없습니다. 안전 판정은 씬의 착지 표시 컴포넌트에서 '안전 착지 표시'를 켠 곳에서만 동작합니다.")]
+            [Tooltip("내 캐릭터(관전 중이면 관전 대상)의 발과 착지 지점 높이 차이가 이 값 이하이면, 외곽선을 옷 색 대신 안전/비안전 색으로 바꿔 지금 내려설 곳이 안전한지 알려줍니다. 안전 = 지금 떨어진 높이로 착지해도 부상이 없는 면(공통 낙하 부상 높이 미만, 외줄·안전 착지 구역 등 부상 면제 위치 포함) 또는 반동하는 트램펄린 위. 높은 곳에서 떨어지는 중이면 일반 바닥도 비안전입니다. 이 값과 선명 높이 사이에서는 옷 색 외곽선, 선명 높이보다 높으면 흐린 그림자만 보입니다. 선명 높이보다 크게 잡아도 선명 높이 위에서는 외곽선이 없습니다.")]
             [SerializeField, Min(0)] float safeCheckHeight = 1.5f;
             [InspectorName("안전 착지 색상")]
-            [Tooltip("안전 체크 높이 안에서 발밑이 실제 안전 착지면일 때의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다. 외줄 착지 강조 표시도 이 색을 씁니다.")]
+            [Tooltip("안전 체크 높이 안에서 발밑이 부상 없이 내려설 수 있는 면(또는 반동하는 트램펄린)일 때의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다. 외줄 착지 강조 표시도 이 색을 씁니다.")]
             [SerializeField, ColorUsage(false)] Color safeColor = new(.08f, 1f, .3f);
             [InspectorName("비안전 착지 색상")]
-            [Tooltip("안전 체크 높이 안에서 발밑이 안전 착지면이 아닐 때(위험한 면·가로막힌 면)의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다.")]
+            [Tooltip("안전 체크 높이 안에서 발밑에 내려서면 부상을 입을 때(부상 높이 이상 낙하·위험한 면·가로막힌 면·교육 바닥)의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다.")]
             [SerializeField, ColorUsage(false)] Color unsafeColor = new(1f, .18f, .12f);
             [InspectorName("외곽선 두께(m)")]
             [Tooltip("그림자 바깥 가장자리에서 안쪽으로 그리는 외곽선 폭(미터). 옷 색·안전·비안전 외곽선에 모두 적용합니다. 그림자 반지름보다 크면 반지름으로 제한합니다.")]
@@ -245,6 +249,7 @@ namespace CurtainCall.Settings
                 LandingMarkerSpace.Performance => showInPerformance,
                 LandingMarkerSpace.EscapeRoute => showInEscapeRoute,
                 LandingMarkerSpace.WaitingRoom => showInWaitingRoom,
+                LandingMarkerSpace.Rehearsal => showInRehearsal,
                 LandingMarkerSpace.Lobby => showInLobby,
                 _ => showInOtherScenes,
             };

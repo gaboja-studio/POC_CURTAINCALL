@@ -1,0 +1,17 @@
+# Log
+
+특별한 문제·해결·검사 결과·다음 할 일·PR 링크만 짧게 남긴다.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-13
+- 구현: F9 '적용 대상' 체크(전체 선택/나만), 제자리 신체 복구(모든 공간), 체크포인트 부활·이동·균형 대상 필터, 원격 이동/균형 RPC.
+- 검사: Unity 컴파일 PASS(오류 0). check-work Fast FAIL — 기존 `Task-20261030-081/log.md` 143줄 hard 초과(이 Task와 무관). Unity 검사·자동 테스트 SKIPPED.
+- 다음: 2인 이상 세션에서 호스트 대상 선택·원격 이동·체크포인트 부활을 사람이 확인.
+- 핫픽스(치명): 외줄·인간대포 공연에서 전원 사망 후 결과로 안 넘어가고 '관전 대상 없음'에서 멈춤.
+  - 원인: Dev 모드의 '전원 사망 시 F9 부활 대기'(`HoldCheckpointWipe`)가 기본 켜짐. 체크포인트 통과 기록이 있는 사망자가 있으면 `PerformanceRewards`·`TightropeRun`의 실패 정산을 무기한 보류했다.
+  - 수정: 기본값 끔(선택 사용). 켰을 때 전원 사망 보류 중이면 DEV 배지 아래에 '정산 보류 중 · F9' 버튼 표시. 끄면 다음 프레임에 정상 정산된다(보상 정산은 매 프레임 재판정).
+  - 검사: Unity 컴파일 PASS. 플레이 확인은 사람 확인 필요.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/373 (fix/dev-mode → dev)
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/373
