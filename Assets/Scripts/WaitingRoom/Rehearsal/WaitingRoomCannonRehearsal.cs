@@ -66,7 +66,7 @@ namespace CurtainCall.WaitingRoom
         bool Host => CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority;
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
-        bool CanStart => !shared.active && !ExpertService.IsMovingBuyer && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
+        bool CanStart => !shared.active && !CampaignRun.RehearsalEntryBlocked && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
             && CampaignRun.Instance.State.CannonUnlocked && !WaitingRoomRehearsal.IsPursuitRunning && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
@@ -375,6 +375,7 @@ namespace CurtainCall.WaitingRoom
                 WaitingRoomGuidePanel.ShowAs(T("fall-title", "사망"), DeathGuide, 10f, RoomNotice.Warning);
             local = p; previousState = p.State;
             if (p.State != PlayerState.Normal) { quest.Show(T("fall-title", "사망"), DeathGuide); return; }
+            if (Pursuit.PursuitDirector.IsCaptured(p)) return;
             if (!p.TryGetComponent(out PlayerMover mover) || p.Slot == NetworkPlayer.NoSlot
                 || (placedRound != shared.round && HumanCannonCarry.Held(p.OwnerClientId) != null)) return;
             PlaceLocalAtCheckpoint(p, mover);
@@ -409,7 +410,7 @@ namespace CurtainCall.WaitingRoom
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover)
         {
-            if (ExpertService.IsTreating(p.OwnerClientId)) return;
+            if (ExpertService.IsTreating(p.OwnerClientId) || Pursuit.PursuitDirector.IsCaptured(p)) return;
             CaptureReturnPose(p);
             var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
             bool validPosition = placingAfterRecovery ? course.IsRecoveryDeck(p.transform.position)

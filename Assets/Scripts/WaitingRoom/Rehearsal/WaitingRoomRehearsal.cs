@@ -163,7 +163,7 @@ namespace CurtainCall.WaitingRoom
         bool HasAuthority => run != null && run.HasAuthority;
         static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
-        bool CanOfferPractice => !active && !practice && !practiceVote && !ExpertService.IsMovingBuyer && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+        bool CanOfferPractice => !active && !practice && !practiceVote && !CampaignRun.RehearsalEntryBlocked && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
             && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
             && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
@@ -208,8 +208,8 @@ namespace CurtainCall.WaitingRoom
                 && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
             // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
             if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) EndPractice();
-            bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
             HostTickVotes();
+            bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
             TickVoteUi();
             if (!wanted)
             {

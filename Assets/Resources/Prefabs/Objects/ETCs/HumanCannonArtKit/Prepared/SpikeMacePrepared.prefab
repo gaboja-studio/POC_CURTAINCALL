@@ -47,6 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonHazard
   kind: 0
   visual: {fileID: 5901808242366039733}
+  cue: {fileID: 0}
+  boxSize: {x: 1, y: 1, z: 1}
   horizontalBlade: 0
   travel: {x: 3.5, y: 0, z: 0}
   periodSeconds: 8
@@ -55,6 +57,8 @@ MonoBehaviour:
   bladeHalfLength: 1.3
   bladeHalfThickness: 0.12
   rotationSpeed: 60
+  authoredPath: 0
+  showRail: 1
 --- !u!1001 &4673057488682891395
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115,9 +119,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5166394125594769147, guid: ca3270a7243a793498dd24175d9d4c49, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6859328363485526115, guid: ca3270a7243a793498dd24175d9d4c49, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8310809737308192603, guid: ca3270a7243a793498dd24175d9d4c49, type: 3}
       propertyPath: m_Name
       value: Visual
+      objectReference: {fileID: 0}
+    - target: {fileID: 8310809737308192603, guid: ca3270a7243a793498dd24175d9d4c49, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 9024591316588316519, guid: ca3270a7243a793498dd24175d9d4c49, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

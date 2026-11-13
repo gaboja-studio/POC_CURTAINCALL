@@ -57,7 +57,7 @@ namespace CurtainCall.WaitingRoom
 
         void CaptureReturnPose(NetworkPlayer player)
         {
-            if (ExpertService.IsTreating(player.OwnerClientId)) return;
+            if (ExpertService.IsTreating(player.OwnerClientId) || Pursuit.PursuitDirector.IsCaptured(player)) return;
             if (returnPoseRound == shared.round && returnPoseOwner == player) return;
             returnPose = new Pose(player.transform.position, player.transform.rotation);
             returnPoseOwner = player;

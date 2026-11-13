@@ -352,6 +352,12 @@ namespace CurtainCall.Campaign
         internal static bool RehearsalPendingOrActive => WaitingRoom.WaitingRoomRehearsal.IsActive
             || WaitingRoom.WaitingRoomRehearsal.IsPracticePending || WaitingRoom.WaitingRoomCannonRehearsal.IsActive;
 
+        // A captured player remains Normal until retirement. Do not let a new rehearsal
+        // move that player while the capture still owns input and presentation.
+        internal static bool RehearsalEntryBlocked => WaitingRoom.ExpertService.IsMovingBuyer
+            || Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
+                && p.State != Network.PlayerSync.PlayerState.Retired && WaitingRoom.Pursuit.PursuitDirector.IsCaptured(p));
+
         // Shared by the bed and the host's late ready-message validation.
         public static bool CanSleep(ulong id) => !RehearsalPendingOrActive && !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
             && p.OwnerClientId == id && (p.State != Network.PlayerSync.PlayerState.Normal

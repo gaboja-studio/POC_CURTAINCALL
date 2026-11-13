@@ -15,6 +15,10 @@ MonoBehaviour:
   dummyInputRows: 2
   exitDoorOpenAngle: 105
   exitDoorOpenSeconds: 4
+  shaftFade:
+    bottom: -73
+    top: -29
+    strength: 1
   pursuer:
     walkSpeed: 2.7
     crouchSpeed: 1.7

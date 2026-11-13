@@ -24,6 +24,24 @@ namespace CurtainCall.Settings
         public float ExitDoorOpenAngle => Mathf.Clamp(exitDoorOpenAngle, 90f, 120f);
         public float ExitDoorOpenSeconds => Mathf.Max(.1f, exitDoorOpenSeconds);
 
+        [Header("심부 어둠 · 탈출로 루트 기준 높이")]
+        [SerializeField] ShaftFadeTuning shaftFade = new();
+        public ShaftFadeTuning ShaftFade => shaftFade ??= new();
+
+        [System.Serializable]
+        public sealed class ShaftFadeTuning
+        {
+            [Tooltip("탈출로 루트보다 이 높이(m) 아래부터 완전히 어둡게 표시합니다. 맵의 월드 위치를 옮겨도 같은 구간에 적용됩니다.")]
+            [SerializeField] float bottom = -73f;
+            [Tooltip("탈출로 루트 기준 이 높이(m) 위에는 심부 어둠을 적용하지 않습니다. 아래로 내려갈수록 어두워집니다.")]
+            [SerializeField] float top = -29f;
+            [Tooltip("심부 어둠 강도. 0은 끄기, 1은 기존의 검은 심부 표현입니다. 충돌·낙사 판정에는 영향을 주지 않습니다.")]
+            [SerializeField, Range(0f, 1f)] float strength = 1f;
+            public float Bottom => bottom;
+            public float Top => Mathf.Max(bottom + .01f, top);
+            public float Strength => Mathf.Clamp01(strength);
+        }
+
         [Header("탈출로 5m 추격자")]
         [SerializeField] PursuerTuning pursuer = new();
         public PursuerTuning Pursuer => pursuer ??= new();
