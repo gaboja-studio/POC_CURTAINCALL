@@ -1,0 +1,323 @@
+[
+  {
+    "path": "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity",
+    "count": 8,
+    "added": [
+      "씬 출발점",
+      "외줄 · 공중그네 시작"
+    ],
+    "ordered": [
+      {
+        "label": "씬 출발점",
+        "radius": 0.65,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, -1.00)"
+      },
+      {
+        "label": "외줄 · 출발",
+        "radius": 0.65,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, -1.00)"
+      },
+      {
+        "label": "외줄 · 균형과 점프 시작",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, 0.50)"
+      },
+      {
+        "label": "외줄 · 해제봉 교대 시작",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, 30.50)"
+      },
+      {
+        "label": "외줄 · 목마와 높은 봉 시작",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, 75.50)"
+      },
+      {
+        "label": "외줄 · 공중그네 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, 116.00)"
+      },
+      {
+        "label": "외줄 · 한 줄 최종 협동 시작",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-7.50, 0.00, 130.50)"
+      },
+      {
+        "label": "외줄 · 도착",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-7.50, 0.00, 167.00)"
+      }
+    ]
+  },
+  {
+    "path": "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
+    "count": 12,
+    "added": [
+      "씬 출발점"
+    ],
+    "ordered": [
+      {
+        "label": "씬 출발점",
+        "radius": 0.65,
+        "teleportOnly": false,
+        "pos": "(-2.25, 5.05, 0.00)"
+      },
+      {
+        "label": "대포 1 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(0.00, 5.00, 1.50)"
+      },
+      {
+        "label": "대포 2 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-3.20, 5.00, 1.51)"
+      },
+      {
+        "label": "대포 3 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(3.20, 5.00, 1.51)"
+      },
+      {
+        "label": "대포 4 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(0.00, 6.00, 77.50)"
+      },
+      {
+        "label": "대포 5 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-3.20, 6.00, 77.51)"
+      },
+      {
+        "label": "대포 6 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(3.20, 6.00, 77.51)"
+      },
+      {
+        "label": "대포 7 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-9.00, 6.20, 145.63)"
+      },
+      {
+        "label": "대포 8 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-3.00, 6.20, 145.63)"
+      },
+      {
+        "label": "대포 9 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(3.00, 6.20, 145.63)"
+      },
+      {
+        "label": "대포 10 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(9.00, 6.20, 145.63)"
+      },
+      {
+        "label": "대포 · 최종 목적지",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(0.00, 6.20, 179.33)"
+      }
+    ]
+  },
+  {
+    "path": "Assets/Scenes/Levels/escape_route.unity",
+    "count": 27,
+    "added": [
+      "씬 출발점",
+      "대포 1 탑승 위치",
+      "대포 3 탑승 위치",
+      "대포 2 탑승 위치",
+      "외줄 · 출발",
+      "외줄 · 균형과 점프 시작",
+      "외줄 · 해제봉 교대 시작",
+      "외줄 · 목마와 높은 봉 시작",
+      "외줄 · 공중그네 시작",
+      "외줄 · 한 줄 최종 협동 시작",
+      "외줄 · 도착",
+      "대포 4 탑승 위치"
+    ],
+    "ordered": [
+      {
+        "label": "씬 출발점",
+        "radius": 0.65,
+        "teleportOnly": false,
+        "pos": "(-223.00, 25.05, 109.05)"
+      },
+      {
+        "label": "대포 1 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-227.50, 25.00, 43.30)"
+      },
+      {
+        "label": "탈출로 · 추격 / 첫 대포 뒤 셔터",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-229.00, 25.00, 43.30)"
+      },
+      {
+        "label": "대포 3 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-269.60, 3.00, 114.25)"
+      },
+      {
+        "label": "탈출로 · 추격 / 펌프 뒤 연결",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-269.60, 3.00, 116.30)"
+      },
+      {
+        "label": "대포 2 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-279.92, 6.50, 193.80)"
+      },
+      {
+        "label": "외줄 · 출발",
+        "radius": 0.65,
+        "teleportOnly": false,
+        "pos": "(-287.00, 25.00, 96.30)"
+      },
+      {
+        "label": "외줄 · 균형과 점프 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-288.50, 25.00, 96.30)"
+      },
+      {
+        "label": "탈출로 · 추격 / 트램폴린 옆 압박 뒤편",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-289.03, 20.00, 94.91)"
+      },
+      {
+        "label": "외줄 · 해제봉 교대 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-293.59, 25.00, 96.30)"
+      },
+      {
+        "label": "외줄 · 목마와 높은 봉 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-301.23, 25.00, 96.30)"
+      },
+      {
+        "label": "외줄 · 공중그네 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-305.47, 25.00, 96.30)"
+      },
+      {
+        "label": "외줄 · 한 줄 최종 협동 시작",
+        "radius": 1,
+        "teleportOnly": false,
+        "pos": "(-310.56, 25.00, 96.30)"
+      },
+      {
+        "label": "외줄 · 도착",
+        "radius": 1,
+        "teleportOnly": true,
+        "pos": "(-318.00, 25.00, 96.30)"
+      },
+      {
+        "label": "대포 4 탑승 위치",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-321.00, 17.00, 14.42)"
+      },
+      {
+        "label": "탈출로 · 추격 / 마지막 봉 옆 뒤편",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-335.00, 25.00, 18.65)"
+      },
+      {
+        "label": "탈출로 · 후반 질주 시작",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-340.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 추격 / 접이교 전용 우회",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-390.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 후반 그네 앞",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-474.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 후반 그네 뒤",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-502.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 추격 / 마지막 접이교 우회 뒤편",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-505.63, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 마지막 화염 구간",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-566.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 추격자 최종 전투",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-578.50, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 출구 절단기 앞",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-582.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 마지막 문 앞",
+        "radius": 2,
+        "teleportOnly": false,
+        "pos": "(-597.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 추격 / 출구 압박",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-598.00, 25.00, 40.30)"
+      },
+      {
+        "label": "탈출로 · 갈대밭 · 엔딩 도착",
+        "radius": 2,
+        "teleportOnly": true,
+        "pos": "(-604.00, 25.00, 40.30)"
+      }
+    ]
+  }
+]

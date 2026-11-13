@@ -30,14 +30,10 @@ namespace CurtainCall.EscapeRoute
         CommonInventoryUI inventory;
         EscapeInspectionSession inspection;
         PerformanceSpectatorBinding spectator;
-        GameObject resultPanel;
-        TMP_Text returnLabel;
-        HudRoleCard outcome;
-        [SerializeField] string resultHeading = "탈출 성공";
-        Button returnButton;
+        EscapeEndingResults results;
+        EscapeEndingCinematic cinematic;
         bool returnRequested;
-        readonly HashSet<ulong> observedArrivals = new();
-        int displayedArrivals = -1, displayedRetired = -1;
+        public bool IsPresenting => endingAt >= 0;
 
         public static bool IsSuccessfulEnding(CampaignSnapshot state) => state.Phase == CampaignPhase.Ending
             && state.LastEnd == RunEndReason.EscapeSucceeded;
@@ -59,6 +55,8 @@ namespace CurtainCall.EscapeRoute
         {
             Current = this;
             inspection = FindFirstObjectByType<EscapeInspectionSession>();
+            results = GetComponent<EscapeEndingResults>();
+            cinematic = GetComponent<EscapeEndingCinematic>();
             NetworkPlayer.Restarted += Restarted;
             ResetPresentation();
         }
@@ -73,9 +71,8 @@ namespace CurtainCall.EscapeRoute
         {
             shownAt = endingAt = -1;
             returnRequested = false;
-            observedArrivals.Clear();
-            displayedArrivals = displayedRetired = -1;
-            if (resultPanel != null) resultPanel.SetActive(false);
+            results?.Reset();
+            cinematic?.Stop();
             if (title != null) { title.alpha = 0; title.interactable = title.blocksRaycasts = false; }
             if (endingCamera != null) endingCamera.enabled = false;
             InputGate.SetBlocking(this, false);
@@ -85,6 +82,7 @@ namespace CurtainCall.EscapeRoute
             if (endingAt >= 0) return;
             endingAt = Time.unscaledTimeAsDouble;
             if (shownAt < 0) shownAt = endingAt;
+            results?.Freeze();
             if (endingCamera != null) endingCamera.enabled = true;
             InputGate.SetBlocking(this, true);
         }
@@ -92,16 +90,11 @@ namespace CurtainCall.EscapeRoute
         {
             if (content == null || !content.IsActive) return;
             var campaign = CampaignRun.Instance;
-            foreach (var actor in NetworkPlayer.All)
-                if (actor != null && actor.IsSpawned && actor.State == PlayerState.Arrived)
-                    observedArrivals.Add(actor.OwnerClientId);
             if (campaign != null && IsSuccessfulEnding(campaign.State)) BeginEnding();
-            var local = NetworkPlayer.Local;
-            if (shownAt < 0 && local != null && local.IsSpawned && CanReveal(local.State,
-                    exitSaw != null && exitSaw.DoorOpen, EscapeEntrance.Contains(arrivalArea, local.transform.position),
-                    inspection != null && inspection.IsInspecting(local.OwnerClientId))) shownAt = Time.unscaledTimeAsDouble;
-            if (title != null) title.alpha = shownAt < 0 ? 0 : RevealAlpha(Time.unscaledTimeAsDouble - shownAt, revealDelay, fadeSeconds);
+            // The old title is retained only as a serialized compatibility reference.
+            if (title != null) title.alpha = 0;
             if (endingAt < 0) return;
+            if (results != null && results.HasSnapshot && cinematic != null && !cinematic.Playing) cinematic.Begin(results.Arrivals);
             CommonPerformanceUI.Current?.HideHints();
             if (spectator == null) spectator = CommonPerformanceUI.Current != null ? CommonPerformanceUI.Current.GetComponent<PerformanceSpectatorBinding>() : null;
             spectator?.View?.HideImmediate();
@@ -112,25 +105,8 @@ namespace CurtainCall.EscapeRoute
 
         void ShowResult()
         {
-            if (resultPanel == null) CreateResult();
-            resultPanel.SetActive(true);
-            int participants = 0;
-            foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned)
-                    participants++;
-            var transfer = EscapeSceneTransfer.Current;
-            if (transfer != null && transfer.HasDeparture) participants = transfer.Participants.Count;
-            int arrived = observedArrivals.Count, retired = Mathf.Max(0, participants - arrived);
-            if (arrived != displayedArrivals || retired != displayedRetired)
-            {
-                outcome.SetText($"탈출 {arrived}명 · 리타이어 {retired}명", resultHeading);
-                displayedArrivals = arrived; displayedRetired = retired;
-            }
             var run = CampaignRun.Instance;
-            bool authority = run != null && run.HasAuthority;
-            returnButton.interactable = authority && !returnRequested;
-            string prompt = authority ? "로비로 돌아가기" : "방장의 결과 확인을 기다리는 중";
-            if (returnLabel.text != prompt) returnLabel.text = prompt;
+            results?.Show(run != null && run.HasAuthority);
         }
 
         public bool ReturnToLobby()
@@ -142,32 +118,6 @@ namespace CurtainCall.EscapeRoute
             // The existing lobby lever explicitly prepares the next run; never auto-start day one.
             returnRequested = true;
             return true;
-        }
-
-        void CreateResult()
-        {
-            resultPanel = new GameObject("Escape Result", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            resultPanel.transform.SetParent(transform, false);
-            var canvas = resultPanel.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 32000;
-            var scaler = resultPanel.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
-            outcome = HudUIManager.Current.ShowModalOutcome(" ", transform, resultHeading, resultPanel.transform);
-            var button = new GameObject("Return To Lobby", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            button.transform.SetParent(outcome.rows.transform, false);
-            var size = button.GetComponent<LayoutElement>(); size.preferredWidth = 350; size.preferredHeight = 50;
-            button.GetComponent<Image>().color = new Color(.22f,.23f,.2f,1);
-            returnButton = button.GetComponent<Button>(); returnButton.onClick.AddListener(() => ReturnToLobby());
-            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            label.transform.SetParent(button.transform,false);
-            var rect=(RectTransform)label.transform; rect.anchorMin=Vector2.zero; rect.anchorMax=Vector2.one; rect.offsetMin=rect.offsetMax=Vector2.zero;
-            returnLabel=label.GetComponent<TMP_Text>(); returnLabel.font=outcome.body.font; returnLabel.fontSize=24;
-            returnLabel.alignment=TextAlignmentOptions.Center; returnLabel.raycastTarget=false;
-            HudUIManager.Current.GetComponent<UiRuntimeFontFallback>()?.WarmUpLocalText(label.transform,"로비로 돌아가기방장의 결과 확인을 기다리는 중");
-            outcome.Fit();
-            if (EventSystem.current == null)
-            {
-                var events = new GameObject("EscapeResultEvents", typeof(EventSystem), typeof(InputSystemUIInputModule)); events.transform.SetParent(resultPanel.transform, false);
-            }
         }
 
         public IEnumerator HoldBeforeTransition()

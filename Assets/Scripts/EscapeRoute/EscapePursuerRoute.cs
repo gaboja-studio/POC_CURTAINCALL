@@ -25,10 +25,13 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] HumanCannonStation firstCannon;
         [SerializeField] HumanCannonLandingZone firstWire;
         readonly HashSet<ulong> departed = new();
+        readonly Dictionary<ulong, double> pressured = new();
+        NetworkPlayer focus;
+        double nextFocus, teamDepartedAt = -1;
+        static CurtainCall.Settings.EscapeRouteSettings.PursuerTuning Tuning => CurtainCall.Settings.GameSettings.EscapeRoute.Pursuer;
         double epoch = -1;
         float cursor, desired;
         bool entered;
-        float revealRemaining;
         double finaleReady;
 
         public IReadOnlyList<Point> Points => points;
@@ -36,6 +39,7 @@ namespace CurtainCall.EscapeRoute
         public bool Following => entered;
         public bool Valid => points.Length > 1;
         public Vector3 Entry => points[0].feet.position;
+        public Vector3 NextPosition => points[Mathf.Min(points.Length - 1, Mathf.FloorToInt(cursor) + 1)].feet.position;
         public bool FinalSprint => Valid && points[Mathf.Min(points.Length - 1, Mathf.FloorToInt(cursor))].finalSprint;
         public string CurrentSection => Valid ? points[Mathf.Min(points.Length - 1, Mathf.FloorToInt(cursor))].label : "";
 
@@ -50,7 +54,12 @@ namespace CurtainCall.EscapeRoute
             NetworkPlayer.Restarted -= ResetRoute;
             ResetRoute(null);
         }
-        void ResetRoute(NetworkPlayer _) { epoch = -1; cursor = desired = 0; entered = false; departed.Clear(); revealRemaining = 0; finaleReady = 0; }
+        void ResetRoute(NetworkPlayer _)
+        {
+            epoch = -1; cursor = desired = 0; entered = false; departed.Clear();
+            finaleReady = 0; pressured.Clear(); focus = null;
+            nextFocus = 0; teamDepartedAt = -1;
+        }
         void Landed(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
         {
             SynchronizeRound();
@@ -71,7 +80,7 @@ namespace CurtainCall.EscapeRoute
             if (departed.Contains(player.OwnerClientId)) return true;
             // Also recover state when a dev entry/checkpoint starts farther down the actual course.
             float progress = Project(PlayerFeet(player), out float distance);
-            if (progress >= 1f && distance < 8f && !InTransit(player)) departed.Add(player.OwnerClientId);
+            if (progress >= 1f && distance < 8f) departed.Add(player.OwnerClientId);
             return departed.Contains(player.OwnerClientId);
         }
         public bool InTransit(NetworkPlayer player) => cannon && cannon.IsFlying(player.OwnerClientId)
@@ -83,32 +92,70 @@ namespace CurtainCall.EscapeRoute
         }
         public bool AtStation(NetworkPlayer player) => cannon && cannon.SeatedStation(player.OwnerClientId);
 
-        public NetworkPlayer Rearmost()
+        public bool TeamNeedsPursuit
+        {
+            get
+            {
+                var runner = SelectTarget();
+                var timer = EscapeRouteTimer.Current;
+                if (!runner || !timer) return false;
+                if (teamDepartedAt < 0) teamDepartedAt = timer.Clock;
+                return timer.Clock - teamDepartedAt >= Tuning.distractionSeconds;
+            }
+        }
+
+        public void MarkPressured(NetworkPlayer player)
+        {
+            if (player && EscapeRouteTimer.Current)
+                pressured[player.OwnerClientId] = EscapeRouteTimer.Current.Clock;
+            nextFocus = 0;
+        }
+
+        public float RecentPressure(ulong actor, double now) => pressured.TryGetValue(actor, out double last)
+            ? Mathf.Clamp01(1f - (float)(now - last) / Mathf.Max(.1f, Tuning.targetMemorySeconds)) : 0f;
+
+        public NetworkPlayer SelectTarget()
         {
             SynchronizeRound();
-            NetworkPlayer best = null; float least = float.PositiveInfinity;
+            var timer = EscapeRouteTimer.Current;
+            double now = timer ? timer.Clock : 0;
+            if (focus && focus.IsSpawned && focus.State == PlayerState.Normal && now < nextFocus)
+            {
+                desired = Mathf.Max(cursor, Project(PlayerFeet(focus), out _));
+                return focus;
+            }
+            NetworkPlayer best = null;
+            float highest = float.NegativeInfinity;
             foreach (var player in NetworkPlayer.All)
             {
                 if (!player || !player.IsSpawned || player.State != PlayerState.Normal || !HasDeparted(player)) continue;
                 float progress = Project(PlayerFeet(player), out _);
-                if (progress < least) { least = progress; best = player; }
+                // Progress keeps the creature with the escaping team. Recent victims get a short
+                // reduction so one nearby decoy cannot monopolize every attack.
+                float score = progress;
+                score -= 5f * RecentPressure(player.OwnerClientId, now);
+                if (player == focus) score += .5f;
+                if (score > highest || score == highest && best && player.OwnerClientId < best.OwnerClientId)
+                { highest = score; best = player; }
             }
-            if (best) desired = Mathf.Clamp(least, 0, points.Length - 1);
-            return best;
+            focus = best;
+            nextFocus = now + Tuning.targetRefreshSeconds;
+            if (best) desired = Mathf.Max(cursor, Mathf.Clamp(Project(PlayerFeet(best), out _), 0, points.Length - 1));
+            return focus;
         }
         public bool TryEnter(Vector3 position)
         {
             if (entered) return true;
             if (!Valid || Vector3.Distance(position, Entry) > .65f) return false;
-            entered = true; cursor = 0; revealRemaining = 3;
+            entered = true; cursor = 0;
             return true;
         }
         public bool CanAim(NetworkPlayer player, Vector3 feet)
         {
-            if (!entered || !player || InTransit(player)) return false;
+            if (!entered || !player) return false;
             float progress = Project(PlayerFeet(player), out _);
             // Do not shoot through the facility from a different encounter, even within arm range.
-            return Mathf.Abs(progress - cursor) < 2.5f;
+            return Mathf.Abs(progress - cursor) < 4f;
         }
         public Vector3 ThrowEnd
         {
@@ -140,11 +187,8 @@ namespace CurtainCall.EscapeRoute
             if (FinalSprint && finaleReady == 0) finaleReady = now + CurtainCall.Settings.GameSettings.EscapeRoute.Pursuer.finalChaseLeadSeconds;
             if (FinalSprint && now < finaleReady) return from;
             float goal = Mathf.Max(cursor, desired);
-            float gap = Vector3.Distance(from, Position(goal));
-            bool hurry = revealRemaining <= 0 && (FinalSprint || gap > 7f);
-            run = hurry ? 1 : 0;
-            float speed = hurry ? runSpeed : walkSpeed;
-            float budget = Mathf.Max(0, dt * speed);
+            run = 1;
+            float budget = Mathf.Max(0, dt * runSpeed);
             while (budget > 0 && cursor < goal)
             {
                 index = Mathf.Min(points.Length - 2, Mathf.FloorToInt(cursor));
@@ -154,8 +198,6 @@ namespace CurtainCall.EscapeRoute
                 float consumed = Mathf.Min(budget, step * length);
                 cursor += length > .001f ? consumed / length : step;
                 budget -= length > .001f ? consumed : .001f;
-                revealRemaining = Mathf.Max(0, revealRemaining - consumed);
-                if (cursor >= index + 1f && points[index + 1].reveal) { revealRemaining = 3; break; }
             }
             return Position(cursor);
         }

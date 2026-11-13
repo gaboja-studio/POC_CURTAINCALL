@@ -1,5 +1,8 @@
 # Project Facts
 
+- [escape-results-kit.md](escape-results-kit.md) — 엔딩 키트·실게임 데이터·실제 플레이어 Cinemachine 연출·로비 복귀를 수정할 때
+- [Navigation/](Navigation/index.md) — 리허설 네비의 레이어·프리팹·호출 API·실게임 연결을 확인할 때
+
 - [Final-build/](Final-build/index.md) — 최종 빌드 개선의 Confluence 기준·확정 방향·미검증 범위를 확인할 때
 
 - [Pursuit/](Pursuit/index.md) — 추격자 외형·봉제·혈흔·기존 FBX 비율을 다룰 때
@@ -7,7 +10,7 @@
 - [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목
 
 - [escape-route-timer.md](escape-route-timer.md) — 제한시간 제거·추격자 연출용 서버 시계·재시작 동기화를 확인할 때
-- [escape-pursuer-layout.md](escape-pursuer-layout.md) — 첫 등장 우측 벽·숨은 정비로·패널/탄도/표면 겹침을 조정할 때
+- [escape-pursuer-layout.md](escape-pursuer-layout.md) — 첫 등장 벽·콘크리트 뒤 경로·Mascot 리그/8부위·준비/포획/투척을 조정할 때
 
 - [escape-waiting-transition.md](escape-waiting-transition.md) — 현재 인원 전원 합류 후 로딩·위치 인계·W 해제·A 계단 카메라와 미검증 범위를 확인할 때
 - [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 지상 그네·장거리 대포·연속 그네·교대 화염·개발 실행을 확인할 때

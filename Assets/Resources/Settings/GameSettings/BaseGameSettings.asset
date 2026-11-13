@@ -46,12 +46,15 @@ MonoBehaviour:
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
+    finishGraceSeconds: 10
+    forfeitPromptSeconds: 10
   itemCarry:
     baseSlots: 2
   carryDevices:
     sawScale: 0.7
     sawCarrySpeed: 3
     sawShotInterval: 1.15
+    blockPiggybackOnSawCarrier: 1
     collisionSkin: 0.02
   character:
     freeMoveSpeed: 3
@@ -78,7 +81,7 @@ MonoBehaviour:
     distance: 2.5
     prioritizeRescue: 1
   airControl:
-    speed: 3
+    speed: 4
     responseSeconds: 0.1
     pumpReleaseGrace: 0.15
   balance:
@@ -94,6 +97,24 @@ MonoBehaviour:
     tiltAcceleration: 0.5
   hudLayout:
     balancePosition: 0
+  landingMarker:
+    showInPerformance: 1
+    showInEscapeRoute: 1
+    showInWaitingRoom: 0
+    showInLobby: 0
+    showInOtherScenes: 1
+    clearHeight: 15
+    blurRange: 20
+    blurSpread: 1.6
+    safeCheckHeight: 10
+    safeColor: {r: 0.08, g: 1, b: 0.3, a: 1}
+    unsafeColor: {r: 1, g: 0.18, b: 0.12, a: 1}
+    outlineWidth: 0.1
+    outlineOpacity: 0.9
+    narrowSurfaceWidth: 0.5
+    fadeOutsideOnWideSurface: 0
+    outsideOpacity: 0.25
+    outlineAllForTrampolineCarrier: 1
   presentation:
     walkAnimationSpeed: 3
     runAnimationSpeed: 6

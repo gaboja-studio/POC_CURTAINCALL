@@ -74,6 +74,33 @@ namespace CurtainCall.EscapeRoute
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
+        internal bool DevOpenExit()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !SessionReady || !session.IsHost) return false;
+            if (DoorOpen) return true;
+            if (ProjectileMode)
+            {
+                uint required = RequiredMask;
+                if (required == 0) return false;
+                for (int i = 0; i < cables.Length && i < 32; i++)
+                {
+                    uint bit = 1u << i;
+                    if ((required & bit) == 0 || (cutMask & bit) != 0) continue;
+                    cables[i].SetCut(true);
+                    cutMask |= bit;
+                    cutPoints[i] = cables[i].CutPoint;
+                    if (!string.IsNullOrEmpty(cables[i].OpenTarget))
+                        CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cables[i].OpenTarget);
+                    ShareCut(cables[i], cutPoints[i]);
+                }
+            }
+            else cutProgress = cutSeconds;
+            cutting = false;
+            if (DoorOpen && !string.IsNullOrEmpty(openTarget))
+                CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+            Changed(); // Use the normal revision/snapshot path; presentation animates the door.
+            return DoorOpen;
+        }
         [Tooltip("배선 안내 위치 기준 팀 임무 구역. 마지막 통로의 절단기부터 출구까지 포함합니다.")]
         [SerializeField] Bounds objectiveZone = new(new Vector3(-3,2,0), new Vector3(34,10,14));
         public bool TeamReachedExitZone { get; private set; }
@@ -95,7 +122,7 @@ namespace CurtainCall.EscapeRoute
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
             : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.Defeated ? $"{UseKey} 발사 · 추격자 절단 {finaleBoss.Cuts}/8 · 배선 {CutCableCount}/{RequiredCableCount}"
             : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용"
-            : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하고 {UseKey}로 발사"
+            : ProjectileMode ? $"색 전선을 조준하고 {UseKey}로 발사" // 끊은 횟수는 보여 주지 않는다(2026-11-13 사용자)
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
         bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null

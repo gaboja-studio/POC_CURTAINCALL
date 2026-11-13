@@ -21,6 +21,7 @@ namespace CurtainCall.Reward
         const string StateMessage = "CurtainCall.Reward.State";
         const string RequestMessage = "CurtainCall.Reward.Request";
         const string PageMessage = "CurtainCall.Reward.LedgerPage";
+        const string ForfeitMessage = "CurtainCall.Reward.Forfeit";
         const int MaxPayloadBytes = 64 * 1024;
         const string DefaultTablePath = "Settings/GameSettings/Tricks/Rewards/temporary-reward";
 
@@ -56,8 +57,17 @@ namespace CurtainCall.Reward
         RewardFinalPoseData[] finalPoses;
         readonly Dictionary<ulong, Pose> remoteFinalPoses = new();
         float timeScaleBeforeResult;
+        // 첫 생존 도착 뒤 여유 시간(2026-11-13). 호스트는 그동안 도착한 사람을 모으고, 모든 화면은 남은 초를 표시한다.
+        string gracePerformance;
+        float graceEndsAt;
+        readonly Dictionary<string, string> graceArrivals = new();
+        readonly HashSet<ulong> graceClients = new();
 
         public RewardSnapshot State => state;
+        /// <summary>현재 공연의 종료 여유 시간 남은 초(모든 화면). 여유 시간이 아니면 0.</summary>
+        public float FinishGraceRemaining => FinishGraceActive ? Mathf.Max(0f, graceEndsAt - Time.unscaledTime) : 0f;
+        /// <summary>첫 생존 도착으로 정산 대기 중인지. 남은 초가 0이 된 뒤 호스트가 정산하기 전까지도 참이다.</summary>
+        public bool FinishGraceActive => gracePerformance != null && state?.Performance?.Id == gracePerformance && state.IsOpen;
         public RewardSnapshot LedgerPage => ledgerPage;
         public long Balance => state?.Balance ?? 0;
         public PerformanceResult Latest => state?.Latest;
@@ -68,6 +78,7 @@ namespace CurtainCall.Reward
         public int Difficulty => difficulty;
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
+        public EscapeRunStatistics RunStatistics { get; private set; } = new();
         public event Action Changed;
         public static event Action<string, int> AudienceReacted;
         public event Action SampleRecords;
@@ -107,6 +118,7 @@ namespace CurtainCall.Reward
                 ObserveNetwork();
                 if (model.Revision != previous) Publish();
                 EndIfInsufficientSurvivors();
+                UpdateFinishGrace();
             }
             if (pendingTransition && Time.unscaledTime >= nextTransitionRetry && Time.unscaledTime >= transitionAt)
             {
@@ -148,7 +160,8 @@ namespace CurtainCall.Reward
             if (!Application.isPlaying || campaign == null) return;
             var result = state?.Latest;
             var current = campaign.State;
-            bool currentSuccess = result != null && result.Succeeded && state.Performance?.Id == result.Performance.Id
+            // 성공과 공연 포기는 마지막 순간을 그대로 멈춰 결과 화면을 띄운다.
+            bool currentSuccess = FreezesWorld(result) && state.Performance?.Id == result.Performance.Id
                 && current.Phase == CampaignPhase.Performance && current.Generation == result.Performance.Generation
                 && current.Day == result.Performance.Day && current.PerformanceIndex == result.Performance.Index
                 && current.TrickId == result.Performance.TrickId;
@@ -193,7 +206,11 @@ namespace CurtainCall.Reward
             messaging = next;
             messagingHost = host;
             if (messaging == null) return;
-            if (host) messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
+            if (host)
+            {
+                messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
+                messaging.RegisterNamedMessageHandler(ForfeitMessage, HandleForfeit);
+            }
             else
             {
                 messaging.RegisterNamedMessageHandler(StateMessage, HandleState);
@@ -233,10 +250,12 @@ namespace CurtainCall.Reward
             if (model == null)
             {
                 model = new PerformanceRewardModel(Guid.NewGuid().ToString("N"), current.Generation);
+                RunStatistics.Reset(current.Generation, 0);
                 Publish();
             }
             else if (model.AdvanceGeneration(current.Generation, current.Day))
             {
+                RunStatistics.Reset(current.Generation, model.Ledger.Count);
                 pendingTransition = false;
                 ClearObservers();
                 Publish();
@@ -358,9 +377,156 @@ namespace CurtainCall.Reward
 
         void EndIfInsufficientSurvivors()
         {
-            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors)
+            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe())
                 FinishPerformance(false, "NoSurvivors");
         }
+
+        /// <summary>공연 포기 정산의 종료 사유와 포기한 사람의 판정 문자열.</summary>
+        public const string ForfeitReason = "Forfeit";
+
+        /// <summary>
+        /// 호스트: 묘기가 살아 있는 도착자를 확인할 때마다 부른다(외줄·인간대포 공통, 2026-11-13).
+        /// <paramref name="arrived"/>는 실제 도착자(여유 시간 동안 관전), <paramref name="nearFinish"/>는 완주로 인정할 사람(계속 플레이)이다.
+        /// 첫 도착에 종료 여유 시간(<see cref="BaseGameSettings.RunSettings.FinishGraceSeconds"/>)을 시작하고, 그동안 보고된 사람을 모은다.
+        /// 여유 시간이 끝나면 아직 살아 있는 사람만 도착으로 성공 정산한다. 정산을 마쳤으면 true.
+        /// </summary>
+        public bool ReportArrivals(IReadOnlyCollection<string> arrived, IReadOnlyCollection<string> nearFinish = null)
+        {
+            if (arrived == null || arrived.Count == 0 || !CanMutate()
+                || campaign.State.Phase != CampaignPhase.Performance || !SamePerformance()) return false;
+            bool start = gracePerformance != model.Performance.Id;
+            if (start) ClearGrace();
+            bool added = false;
+            foreach (string id in arrived)
+            {
+                graceArrivals[id] = "Arrived";
+                foreach (var person in model.Snapshot().Segments)
+                    if (person.ParticipantId == id) { added |= graceClients.Add(person.ClientId); break; }
+            }
+            if (nearFinish != null) foreach (string id in nearFinish) graceArrivals[id] = "Arrived";
+            if (!start)
+            {
+                // 새 도착자는 화면마다 관전으로 넘어가도록 바로 알린다.
+                if (added) { model.Touch(); Publish(); }
+                return false;
+            }
+            gracePerformance = model.Performance.Id;
+            float seconds = GameSettings.Base.Run.FinishGraceSeconds;
+            graceEndsAt = Time.unscaledTime + seconds;
+            // 기다릴 사람이 없으면(나머지가 이미 도착했거나 사망·이탈) 여유 시간 없이 바로 정산한다.
+            if (seconds <= 0f || NobodyLeftToWait()) return FinishGrace();
+            Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
+            model.Touch();
+            Publish();
+            return false;
+        }
+
+        /// <summary>여유 시간 중 실제로 도착한 사람인지(모든 화면). 도착자는 탈락자처럼 관전한다.</summary>
+        public bool IsFinishGraceArrival(ulong clientId) => FinishGraceActive && graceClients.Contains(clientId);
+
+        /// <summary>이 플레이어가 종료 여유 시간 중 도착해 관전 중인지(모든 화면, 관전 카메라·표시용).</summary>
+        public static bool IsFinishedSpectator(NetworkPlayer player) => player != null && Instance != null
+            && Instance.IsFinishGraceArrival(player.OwnerClientId);
+
+        void UpdateFinishGrace()
+        {
+            if (gracePerformance == null || !CanMutate()) return;
+            if (model.Performance?.Id != gracePerformance) { ClearGrace(); return; }
+            // 여유 시간 중 남은 사람이 모두 도착하거나 사망·이탈하면 남은 초와 상관없이 바로 끝낸다.
+            if (Time.unscaledTime >= graceEndsAt || NobodyLeftToWait()) FinishGrace();
+        }
+
+        /// <summary>아직 코스를 진행 중인 생존자가 없는지. 실제 도착자가 아닌 살아 있는 사람이 하나라도 있으면 기다린다.</summary>
+        bool NobodyLeftToWait()
+        {
+            foreach (var person in model.Snapshot().Segments)
+                if (person.Connected && !person.Dead && !graceClients.Contains(person.ClientId)) return false;
+            return true;
+        }
+
+        bool FinishGrace()
+        {
+            var arrivals = new Dictionary<string, string>();
+            foreach (var person in model.Snapshot().Segments)
+                if (person.Connected && !person.Dead && graceArrivals.TryGetValue(person.ParticipantId, out string judgement))
+                    arrivals[person.ParticipantId] = judgement;
+            if (arrivals.Count > 0) return FinishPerformance(true, "Completed", arrivals);
+            // 도착자가 여유 시간 안에 모두 사망·이탈했으면 공연을 이어 간다. 다음 도착이 새 여유 시간을 연다.
+            ClearGrace();
+            model.Touch();
+            Publish();
+            return false;
+        }
+
+        void ClearGrace()
+        {
+            gracePerformance = null;
+            graceEndsAt = 0f;
+            graceArrivals.Clear();
+            graceClients.Clear();
+        }
+
+        /// <summary>
+        /// 공연 포기 선택 대상인지(모든 화면). 외줄·인간대포 공연이 열려 있고, 2명 이상 출연한 공연에서 생존자가 이 사람 1명뿐이며,
+        /// 종료 여유 시간이 아닐 때. 혼자 출연한 공연은 묻지 않는다.
+        /// </summary>
+        public bool IsForfeitCandidate(ulong clientId)
+        {
+            var snapshot = state;
+            if (snapshot?.Performance == null || !snapshot.IsOpen || FinishGraceActive || pendingTransition
+                || (snapshot.Performance.TrickId != "Tightrope" && snapshot.Performance.TrickId != "HumanCannon")
+                || snapshot.Segments.Count < 2) return false;
+            int alive = 0;
+            bool self = false;
+            foreach (var person in snapshot.Segments)
+            {
+                if (!person.Connected || person.Dead) continue;
+                alive++;
+                self |= person.ClientId == clientId;
+            }
+            return alive == 1 && self;
+        }
+
+        /// <summary>현재 공연이 공연 포기로 끝났는지(모든 화면).</summary>
+        public bool EndedByForfeit => state?.Latest != null && state.Performance != null
+            && state.Latest.Performance.Id == state.Performance.Id && state.Latest.EndReason == ForfeitReason;
+
+        /// <summary>내 캐릭터의 공연 포기를 호스트에 요청한다. 호스트가 대상인지 다시 확인한 뒤 정산한다.</summary>
+        public bool RequestForfeit()
+        {
+            Bind();
+            if (session?.NetworkManager == null) return false;
+            if (session.IsHost) return ServerForfeit(session.NetworkManager.LocalClientId);
+            if (messaging == null || session.ConnectionState != SessionConnectionState.Client) return false;
+            using var writer = new FastBufferWriter(1, Allocator.Temp);
+            messaging.SendNamedMessage(ForfeitMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+            return true;
+        }
+
+        void HandleForfeit(ulong sender, FastBufferReader reader)
+        {
+            if (session == null || !session.IsHost || !ContainsClient(sender)) return;
+            ServerForfeit(sender);
+        }
+
+        /// <summary>
+        /// 포기는 정산만 사망과 같다(사망 호응 배율, 생존자 0명 실패). 캐릭터는 쓰러뜨리지 않고 지금 자리·자세·부상 그대로 둔다.
+        /// 결과 화면 동안 성공 때처럼 세계를 멈춰 포기 순간을 유지하고, 다음 시간대에는 부활 없이 지금 부상으로 대기실에 돌아간다(2026-11-13).
+        /// </summary>
+        bool ServerForfeit(ulong clientId)
+        {
+            if (!CanMutate() || dummyRoster || !IsForfeitCandidate(clientId)) return false;
+            var player = FindPlayer(clientId);
+            if (player == null || player.State != PlayerState.Normal) return false;
+            string id = null;
+            foreach (var person in model.Snapshot().Segments)
+                if (person.ClientId == clientId) { id = person.ParticipantId; break; }
+            if (id == null || !model.Observe(id, (int)player.LostParts, true, true, ReadRules())) return false;
+            Debug.Log($"[Reward] 마지막 생존자 공연 포기: client {clientId}");
+            return FinishPerformance(false, ForfeitReason, new Dictionary<string, string> { [id] = ForfeitReason });
+        }
+
+        static bool FreezesWorld(PerformanceResult result) => result != null && (result.Succeeded || result.EndReason == ForfeitReason);
 
         /// <summary>닫기 → 최종 관찰 → 정산 → 상태 송신 enqueue → Campaign 종료. 묘기의 판정 문자열은 그대로 보존한다.</summary>
         public bool FinishPerformance(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements = null)
@@ -376,7 +542,14 @@ namespace CurtainCall.Reward
             {
                 ObserveNetwork();
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
-                if (result.Succeeded) CaptureFinalPoses(result);
+                ClearGrace();
+                RunStatistics.Record(result, difficulty, client =>
+                {
+                    foreach (var player in NetworkPlayer.All)
+                        if (player != null && player.IsSpawned && player.OwnerClientId == client) return player.AppearanceModel;
+                    return -1;
+                });
+                if (FreezesWorld(result)) CaptureFinalPoses(result);
                 else { finalPosePerformance = null; finalPoses = null; }
                 // 성공한 단계를 런에 기록해 다음 밤 정비에서 다음 단계를 고를 수 있게 한다(M2 난이도 선택).
                 if (result.Succeeded && !dummyRoster) campaign.RecordClear(result.Performance.TrickId, difficulty);
@@ -452,6 +625,12 @@ namespace CurtainCall.Reward
             return Publish();
         }
 
+        internal void RestoreDevCheckpointParticipant(NetworkPlayer player)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !CanMutate() || dummyRoster || !SamePerformance()) return;
+            if (model.RestoreDevCheckpointParticipant(ParticipantId(player.OwnerClientId))) Publish();
+        }
+
         void ObserveNetwork()
         {
             if (dummyRoster || model == null || !model.IsOpen || session?.NetworkManager == null) return;
@@ -493,6 +672,7 @@ namespace CurtainCall.Reward
         bool Publish()
         {
             if (model == null) return false;
+            RunStatistics.ReadLedger(model.Ledger);
             state = model.Snapshot();
             ledgerPage = state;
             UpdateResultFreeze();
@@ -505,8 +685,15 @@ namespace CurtainCall.Reward
         {
             if (messaging == null || session == null || !session.IsHost) return false;
             var data = RewardStateData.From(snapshot);
+            data.runStatistics = RunStatistics;
             if (snapshot.Latest?.Performance.Id == finalPosePerformance)
             { data.finalPosePerformance = finalPosePerformance; data.finalPoses = finalPoses; }
+            if (gracePerformance != null && snapshot.IsOpen && snapshot.Performance?.Id == gracePerformance)
+            {
+                data.finishGracePerformance = gracePerformance;
+                data.finishGraceRemaining = Mathf.Max(0f, graceEndsAt - Time.unscaledTime);
+                data.finishGraceClients = new List<ulong>(graceClients).ToArray();
+            }
             string json = JsonUtility.ToJson(data);
             int size = FastBufferWriter.GetWriteSize(json);
             if (size > MaxPayloadBytes) { Debug.LogError("[Reward] 공유 상태가 메시지 상한을 넘었습니다."); return false; }
@@ -590,11 +777,22 @@ namespace CurtainCall.Reward
                     return;
                 }
                 if (!next.IsNewerThan(state)) return;
+                data.runStatistics?.Validate(next.Generation);
                 string previousId = state?.Latest?.Performance.Id;
+                RunStatistics = data.runStatistics ?? new EscapeRunStatistics { generation = next.Generation };
                 state = next;
                 ledgerPage = next;
+                ClearGrace();
+                if (next.IsOpen && next.Performance != null && data.finishGracePerformance == next.Performance.Id
+                    && float.IsFinite(data.finishGraceRemaining) && data.finishGraceRemaining >= 0f && data.finishGraceRemaining <= 600f)
+                {
+                    gracePerformance = data.finishGracePerformance;
+                    graceEndsAt = Time.unscaledTime + data.finishGraceRemaining;
+                    if (data.finishGraceClients != null && data.finishGraceClients.Length <= 64)
+                        foreach (ulong client in data.finishGraceClients) graceClients.Add(client);
+                }
                 remoteFinalPoses.Clear();
-                if (next.Latest?.Succeeded == true && data.finalPosePerformance == next.Latest.Performance.Id
+                if (FreezesWorld(next.Latest) && data.finalPosePerformance == next.Latest.Performance.Id
                     && data.finalPoses != null && data.finalPoses.Length <= 64)
                     foreach (var entry in data.finalPoses)
                         if (entry != null && float.IsFinite(entry.position.x) && float.IsFinite(entry.position.y)
@@ -640,9 +838,11 @@ namespace CurtainCall.Reward
             retiredSession = state?.SessionId ?? retiredSession;
             ClearObservers();
             model = null;
+            RunStatistics = new EscapeRunStatistics();
             state = ledgerPage = null;
             pendingTransition = false;
             rulesOverride = null;
+            ClearGrace();
             receivedHistory.Clear();
             requestTimes.Clear();
             NotifyChanged();
@@ -653,6 +853,7 @@ namespace CurtainCall.Reward
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(PageMessage);
+            messaging.UnregisterNamedMessageHandler(ForfeitMessage);
             messaging = null;
         }
         void OnDestroy()

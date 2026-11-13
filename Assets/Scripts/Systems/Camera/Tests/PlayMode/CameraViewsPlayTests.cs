@@ -285,9 +285,11 @@ namespace CurtainCall.Cameras.Tests
                     "S10_Workshop/Shell/Ceiling", "P05_PipeZone/Shell/Ceiling",
                     "S05_JunkStorage/Shell/Ceiling", "B1_Office/Shell/Ceiling",
                     "B1_ChangingRoom/Shell/Ceiling", "S08_ElevatorHall/FreightLift/CarRoof",
-                    "S01_Lobby/Frame8Lobby/PipeJunkLink/Shell/Ceiling"
+                    "FacilityConnections/PipeJunkLink/Shell/Ceiling"
                 }) {
-                    var roof = GameObject.Find("WaitingRoom_LayoutA/" + room);
+                    // Pursuit still keeps the pre-prefab hierarchy where the link sits under the lobby.
+                    var roof = GameObject.Find("WaitingRoom_LayoutA/" + room)
+                        ?? GameObject.Find("WaitingRoom_LayoutA/" + room.Replace("FacilityConnections/", "S01_Lobby/Frame8Lobby/"));
                     Assert.IsNotNull(roof, room);
                     Bounds bounds = roof.GetComponent<Renderer>().bounds;
                     yield return Teleport(new Vector3(bounds.center.x, bounds.min.y - 2.5f, bounds.center.z));
@@ -646,6 +648,53 @@ namespace CurtainCall.Cameras.Tests
                     Assert.IsFalse((bool)Get(director,"IsSpectatorOrbit"));
                 }
             } finally {players.Remove(survivor);Object.Destroy(other);Object.Destroy(wall);}
+        }
+
+        [UnityTest]
+        public IEnumerator EscapeCapture_UsesStablePursuerCenterWithWiderFramingAndWorldCollision()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var spectatorType = GameType("CurtainCall.Cameras.CameraSpectator");
+            var spectator = (Behaviour)director.GetComponent(spectatorType);
+            spectator.enabled = false;
+            var actor = new GameObject("Stable pursuer root");
+            actor.transform.position = new Vector3(12000, 12000, 12000);
+            var body = actor.AddComponent<CapsuleCollider>(); body.height = 5; body.radius = 1; body.center = Vector3.up * 2.5f;
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube); wall.SetActive(false);
+            var original = local.transform.position;
+            void Static(string name, object value) => spectatorType.GetProperty(name).SetValue(null, value);
+            try
+            {
+                Static("IsSpectating", true); Static("Target", local); Static("EscapeCaptureAnchor", actor.transform);
+                var preset = Get(Resources.Load("Settings/Camera/CameraViewSettings"), "DefaultThirdPerson");
+                SetPrivate(director, "selected", preset); SetPrivate(director, "spectatorOrbit", true);
+                SetPrivate(director, "transitionDuration", 0f); SetPrivate(director, "deathView", false);
+                director.GetType().GetMethod("SpectatorTargetChanged", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(director, null);
+                SetView(0, 0);
+                var apply = director.GetType().GetMethod("ApplyPose", BindingFlags.Instance | BindingFlags.NonPublic);
+                Vector3 Sample()
+                {
+                    object[] args = { CameraState.Default }; apply.Invoke(director, args);
+                    return ((CameraState)args[0]).GetFinalPosition();
+                }
+                Physics.SyncTransforms();
+                Vector3 first = Sample(), center = actor.transform.position + Vector3.up * 2.5f;
+                Assert.That(Vector3.Distance(first, center), Is.GreaterThan((float)Get(preset, "Distance") * 1.4f));
+                for (int i = 0; i < 20; i++)
+                {
+                    local.transform.position = actor.transform.position + new Vector3(1, Mathf.Sin(i) * 3, 1);
+                    Assert.That(Vector3.Distance(Sample(), first), Is.LessThan(.001f), "The carried victim's animation must not bob the camera.");
+                }
+                var direction = (first - center).normalized;
+                wall.transform.SetPositionAndRotation(center + direction * 2, Quaternion.LookRotation(direction));
+                wall.transform.localScale = new Vector3(5, 5, .2f); wall.SetActive(true); Physics.SyncTransforms();
+                Assert.That(Vector3.Distance(Sample(), center), Is.LessThan(1.8f), "Wider framing must still respect actual walls.");
+            }
+            finally
+            {
+                Static("EscapeCaptureAnchor", null); Static("Target", null); Static("IsSpectating", false);
+                local.transform.position = original; spectator.enabled = true; Object.Destroy(actor); Object.Destroy(wall);
+            }
         }
 
         void SetDead() => Call(local, "ServerSetState", Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));

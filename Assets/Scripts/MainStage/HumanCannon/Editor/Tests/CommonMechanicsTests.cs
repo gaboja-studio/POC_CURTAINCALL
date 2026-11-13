@@ -670,7 +670,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var station = root.AddComponent<HumanCannonStation>();
                 Assert.IsNull(station.GetType().GetField("boardingDistance", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)); Assert.IsNull(station.GetType().GetField("airControlSpeed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic));
                 Assert.That(station.BoardingDistance, Is.EqualTo(2.5f));
-                Assert.That(station.AirControlSpeed, Is.EqualTo(3f));
+                Assert.That(station.AirControlSpeed, Is.EqualTo(GameSettings.Base.AirControl.Speed));
             }
             finally { Object.DestroyImmediate(root); }
         }

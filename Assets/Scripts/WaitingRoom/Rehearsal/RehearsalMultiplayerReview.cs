@@ -49,9 +49,9 @@ namespace CurtainCall.WaitingRoom
             public bool completed, blocked, control, simulated, balanceVisible, walls, pathVisible, arrowVisible, pathValid;
             public bool active, director, transitioning, curtain, room;
             public bool cannonRehearsal, cannonMastered, cannonEnding, localBalanceActive, localBalanceFallen, freeMovement;
-            public bool cannonUnlocked, cannonCanPractice, cannonPrompt, scheduleConfirmed;
+            public bool cannonUnlocked, cannonPrompt, scheduleConfirmed;
             public string trick, scheduleSecond, scheduleResult, focusedInteraction;
-            public Vector3[] pickupPoints, practicePoints;
+            public Vector3[] pickupPoints;
             public bool[] pickupVisible, practiceVisible;
             public float localBalance, courseDistance, courseFinish;
             public Vector3 courseOrigin;
@@ -402,16 +402,15 @@ namespace CurtainCall.WaitingRoom
                     s.angles = Enumerable.Range(0, trapeze.PoleCount).Select(trapeze.SwingAngle).ToArray();
                     s.speeds = Enumerable.Range(0, trapeze.PoleCount).Select(trapeze.SwingSpeed).ToArray(); }
                 var guide = Read(Rehearsal, "guide");
-                if (guide != null)
+                if (guide is RehearsalPathGuide pulseGuide)
                 {
-                    s.pathVisible = Read(guide, "line") is LineRenderer line && line.enabled;
-                    s.arrowVisible = Read(guide, "arrow") is GameObject arrow && arrow.activeSelf;
-                    s.pathValid = (bool)Read(guide, "routeValid");
-                    s.path = (Read(guide, "path") as UnityEngine.AI.NavMeshPath)?.corners;
+                    s.pathVisible = pulseGuide.IsVisible;
+                    s.arrowVisible = pulseGuide.IsVisible;
+                    s.path = pulseGuide.Path;
+                    s.pathValid = s.path.Length >= 2;
                 }
                 var cannonLesson = FindFirstObjectByType<WaitingRoomCannonRehearsal>();
                 s.cannonUnlocked = CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
-                s.cannonCanPractice = WaitingRoomCannonRehearsal.CanPractice;
                 s.trick = CampaignRun.Instance?.State.TrickId;
                 s.scheduleSecond = ScheduleBoard.Instance?.Book.Get(1, 1);
                 s.scheduleConfirmed = ScheduleBoard.Instance != null && ScheduleBoard.Instance.Book.FirstDayConfirmed;
@@ -424,8 +423,6 @@ namespace CurtainCall.WaitingRoom
                     s.pickupPoints = map.Where(p => p != null).Select(p => p.GetComponent<PerformancePropPickup>().PresentationPoint).ToArray();
                     s.pickupVisible = map.Where(p => p != null).Select(p => p.activeInHierarchy).ToArray();
                     s.practiceVisible = discovery.PracticeProps.Where(p => p != null).Select(p => p.activeInHierarchy).ToArray();
-                    s.practicePoints = discovery.PracticeProps.Where(p => p != null && p.GetComponent<RehearsalCannonPracticeStation>() != null)
-                        .Select(p => p.GetComponent<RehearsalCannonPracticeStation>().PresentationPoint - Vector3.up).ToArray();
                 }
                 if (cannonLesson != null)
                 {

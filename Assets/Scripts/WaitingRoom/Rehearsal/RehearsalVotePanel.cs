@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 화면 오른쪽 아래 투표 패널(리허설 넘기기·리허설 다시 하기, 사용자 2026-11-04). 기존 BasicPanels 몸체와 CommonButtons 버튼을 쓴다.
+    /// 화면 오른쪽 아래 투표 패널(리허설 넘기기, 사용자 2026-11-04). 기존 BasicPanels 몸체와 CommonButtons 버튼을 쓴다.
     /// 내용이 바뀔 때만 다시 그린다. 패널 위에서는 커서를 다시 잠그지 않는다(Esc로 커서를 풀고 누른다).
     /// </summary>
     public sealed class RehearsalVotePanel : MonoBehaviour
@@ -43,6 +43,11 @@ namespace CurtainCall.WaitingRoom
             card.SetText(text,heading,hint);
             card.SetChoices(shownChoices);
             UpdateCursorRegion();
+        }
+        /// <summary>카드 맨 아래 남은 선택 시간 게이지(0~1). null이면 숨긴다.</summary>
+        public void SetTimerGauge(float? remaining)
+        {
+            if (IsVisible) card.SetTimerGauge(remaining);
         }
         public void Hide()
         {

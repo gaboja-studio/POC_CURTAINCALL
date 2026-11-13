@@ -99,7 +99,8 @@ namespace CurtainCall.Cameras
             : (Camera.main != null ? Camera.main.transform.forward : transform.forward)) : Vector3.zero;
 
         bool MouseLook => firstPerson || freeThirdPerson || spectatorOrbit;
-        Transform SpectatorAnchor => CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
+        Transform SpectatorAnchor => CameraSpectator.EscapeCaptureAnchor != null ? CameraSpectator.EscapeCaptureAnchor
+            : CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
         public bool IsSpectatorOrbit => spectatorOrbit;
         internal void SpectatorTargetChanged() { collisionDistance = -1; transitionDuration = 0; }
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
@@ -319,6 +320,13 @@ namespace CurtainCall.Cameras
                 framedTarget = CameraSpectator.Target;
                 if (CameraSpectator.Target == null && hasDeathOutput)
                     SetPose(ref state, deathOutput.GetFinalPosition() + Vector3.down * deathDropDistance, Quaternion.Euler(pitch,yaw,0));
+                else if (CameraSpectator.EscapeCaptureAnchor != null)
+                {
+                    Vector3 center = SpectatorAnchor.position + Vector3.up * 2.5f;
+                    Vector3 position = FreeThirdPersonPose(selected, center - Vector3.up * selected.LookHeight, yaw, pitch, out _);
+                    position = center + (position - center) * 1.5f;
+                    SetPose(ref state, position, Quaternion.LookRotation(center - position, Vector3.up));
+                }
                 else if (capture) SetPose(ref state, CaptureWatchPose(selected, focus, captureSide, pitch, out var watch), watch);
                 else SetPose(ref state, FreeThirdPersonPose(selected, SpectatorAnchor.position, yaw, pitch, out var rotation), rotation);
                 state.ReferenceLookAt = CameraState.kNoPoint;
@@ -393,6 +401,7 @@ namespace CurtainCall.Cameras
             // 앉으면 기준점도 몸 높이만큼 낮춘다. 낮은 통로(환풍구 등)에서 기준점이 천장 밖으로 나가 카메라가 벽 밖을 비추지 않게 한다.
             var anchorMover = spectatorOrbit ? null : anchor.GetComponent<PlayerMover>();
             float lookHeight = Mathf.Max(.1f, selected.LookHeight) * (anchorMover != null ? anchorMover.PostureHeightScale : 1f);
+            if (CameraSpectator.EscapeCaptureAnchor != null) lookHeight = 2.5f;
             Vector3 pivot = KeepPivotUnderCeiling(anchor.position, anchor.position + Vector3.up * lookHeight);
             Vector3 originalPivot = pivot;
             var subject = anchor.GetComponent<NetworkPlayer>();
@@ -514,7 +523,9 @@ namespace CurtainCall.Cameras
         static bool BlocksCamera(Collider obstacle)
         {
             if (obstacle == null || obstacle is CharacterController) return false;
-            var held = NetworkPlayer.Local != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(NetworkPlayer.Local.OwnerClientId) : null;
+            if (CameraSpectator.EscapeCaptureAnchor != null && obstacle.transform.IsChildOf(CameraSpectator.EscapeCaptureAnchor)) return false;
+            var subject = CameraSpectator.IsSpectating ? CameraSpectator.Target : NetworkPlayer.Local;
+            var held = subject != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(subject.OwnerClientId) : null;
             if (held != null && obstacle.transform.IsChildOf(held.CarryRoot)) return false;
             // These invisible walls prevent boarding a moving lift. They are not visible
             // geometry and must not squeeze the carry camera into the passenger enclosure.
@@ -688,8 +699,10 @@ namespace CurtainCall.Cameras
             state.Lens.Dutch = 0f;
         }
 
-        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.Fallen || player.State == PlayerState.Retired ||
-            (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
+        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.EscapeCaptured
+            ? CurtainCall.EscapeRoute.EscapeUnderstageChase.Current != null && CurtainCall.EscapeRoute.EscapeUnderstageChase.Current.HasReleasedCaptured(player)
+            : player.State == PlayerState.Fallen || player.State == PlayerState.Retired ||
+                (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
 
         static bool SourceActive(Object source) => source != null && source switch
         {

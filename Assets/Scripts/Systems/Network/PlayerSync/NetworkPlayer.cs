@@ -35,6 +35,8 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<int> appearanceOutfit = new(-1);
         public int AppearanceModel => appearanceModel.Value;
         public int AppearanceOutfit => appearanceOutfit.Value;
+        /// <summary>캐릭터 옷 색상. 고른 의상 번호가 있으면 그 색, 없으면 자리 색(<see cref="BaseGameSettings.CharacterSettings.GetPlayerColor"/>).</summary>
+        public Color OutfitColor => GameSettings.Base.Character.GetPlayerColor(AppearanceOutfit >= 0 ? AppearanceOutfit : Slot);
 
         public void RequestAppearance(int model, int outfit)
         {
@@ -557,6 +559,8 @@ namespace CurtainCall.Network.PlayerSync
 
         void HandleStateChanged(PlayerState previous, PlayerState current)
         {
+            if (IsServer && previous == PlayerState.Normal && current is PlayerState.Fallen or PlayerState.Retired
+                && CurtainCall.Dev.DevMode.Enabled) CurtainCall.Dev.DevCheats.RecordBeforeDeath(this);
             if (IsOwner && previous == PlayerState.EscapeCaptured)
             {
                 mover.Simulated = true;

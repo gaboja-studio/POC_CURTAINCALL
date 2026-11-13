@@ -76,8 +76,12 @@ namespace CurtainCall.WaitingRoom.Tests
         {
             const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
             var file = WaitingRoomText.Parse(File.ReadAllText(FilePath));
-            var ids = Regex.Matches(File.ReadAllText(ScenePath), @"^  targetId: (.+)$", RegexOptions.Multiline)
-                .Cast<Match>().Select(m => m.Groups[1].Value.Trim()).ToHashSet();
+            // 방은 공간 프리팹 인스턴스라 대상 id가 프리팹 파일과 씬의 오버라이드 값에 나뉘어 있다.
+            const string SpacesPath = "Assets/Resources/Prefabs/Spaces/WaitingRoom";
+            var sources = Directory.GetFiles(SpacesPath, "*.prefab").Prepend(ScenePath).Select(File.ReadAllText).ToList();
+            var ids = sources.SelectMany(text => Regex.Matches(text, @"^  targetId: (.+)$", RegexOptions.Multiline).Cast<Match>()
+                    .Concat(Regex.Matches(text, @"propertyPath: targetId\r?\n\s+value: (.+)$", RegexOptions.Multiline).Cast<Match>()))
+                .Select(m => m.Groups[1].Value.Trim()).ToHashSet();
             var keys = file.Keys.Where(k => k.StartsWith("target.")).ToList();
             Assert.Greater(keys.Count, 0, "탐색 대상 이름 구역이 비었음");
             var wrong = keys.Where(k =>

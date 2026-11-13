@@ -1,0 +1,224 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.61,
+      "summary": {
+        "total": 28,
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Between_StartsWithNormalTimerAndChosenNextPerformance(1,Guide)",
+          "Status": "Passed",
+          "Duration": 0.0589018,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Between_StartsWithNormalTimerAndChosenNextPerformance(2,Between)",
+          "Status": "Passed",
+          "Duration": 0.000795,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Escape_StartsEscapePhaseWithStoppedTimerOnAnyDay(1)",
+          "Status": "Passed",
+          "Duration": 0.0007389,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Escape_StartsEscapePhaseWithStoppedTimerOnAnyDay(2)",
+          "Status": "Passed",
+          "Duration": 0.0002261,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Escape_StartsEscapePhaseWithStoppedTimerOnAnyDay(4)",
+          "Status": "Passed",
+          "Duration": 0.0001596,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.FinalMorning_HasNoPerformanceAndUsesNormalDeadlineFailure",
+          "Status": "Passed",
+          "Duration": 0.0010389,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidDifficultyDoesNotResetTheCurrentRun(0)",
+          "Status": "Passed",
+          "Duration": 0.0017052,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidDifficultyDoesNotResetTheCurrentRun(4)",
+          "Status": "Passed",
+          "Duration": 0.0004661,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(0,Performance,0,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.0005498,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(1,Morning,0,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.0001285,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(1,Performance,-1,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.0001077,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(1,Performance,2,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.0001574,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(2,Between,0,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.000114,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(2,Performance,0,\"Missing\")",
+          "Status": "Passed",
+          "Duration": 0.0001036,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(4,Night,0,\"\")",
+          "Status": "Passed",
+          "Duration": 0.0000992,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(5,Morning,0,\"\")",
+          "Status": "Passed",
+          "Duration": 0.0000961,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(1,99,0,\"Tightrope\")",
+          "Status": "Passed",
+          "Duration": 0.000101,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(0,Escape,0,\"\")",
+          "Status": "Passed",
+          "Duration": 0.0000923,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.InvalidPoint_DoesNotChangeRun(6,Escape,0,\"\")",
+          "Status": "Passed",
+          "Duration": 0.000117,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.Reentry_ResetsReadinessAndOrdinaryRunRestoresDayOneOrder",
+          "Status": "Passed",
+          "Duration": 0.0013211,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"Tightrope\",1)",
+          "Status": "Passed",
+          "Duration": 0.0003832,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"Tightrope\",2)",
+          "Status": "Passed",
+          "Duration": 0.0000656,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"Tightrope\",3)",
+          "Status": "Passed",
+          "Duration": 0.0000513,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"HumanCannon\",1)",
+          "Status": "Passed",
+          "Duration": 0.000039,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"HumanCannon\",2)",
+          "Status": "Passed",
+          "Duration": 0.0000355,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedDifficultyAppliesWithoutInventingClearHistory(\"HumanCannon\",3)",
+          "Status": "Passed",
+          "Duration": 0.0000357,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.SelectedPerformance_ContinuesThroughNormalNightAndMorning",
+          "Status": "Passed",
+          "Duration": 0.000396,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DevStartPointTests.UnscheduledDays_DefaultToTightrope_AndNightEndsWithoutConfirmation",
+          "Status": "Passed",
+          "Duration": 0.0011896,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

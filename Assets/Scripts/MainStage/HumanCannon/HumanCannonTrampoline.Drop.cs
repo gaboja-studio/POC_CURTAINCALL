@@ -79,7 +79,8 @@ namespace CurtainCall.HumanCannon
                 var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f || hit.transform.IsChildOf(transform)
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
-                if (DismemberedLimb.Contains(hit.collider) || avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
                 nearest = hit.distance;
                 ground = hit.point;
             }
@@ -126,7 +127,7 @@ namespace CurtainCall.HumanCannon
 
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
             TryFindGround(from, out ground, avoidRope: true) && from.y - ground.y <= reach
-            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier);
+            && HumanCannonCarry.CanMove(transform, MoveCheckBody, ground, transform.rotation, carrier);
 
         void StartDrop(Vector3 target)
         {

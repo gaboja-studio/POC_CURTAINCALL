@@ -54,3 +54,50 @@
 - 제출 전 Unity 정상 종료 후 origin/dev fetch/merge: 4bf66bab 최신, 추가 변경 없음. 사용자 폰트 보존, 테스트로 생성된 CommonButtons 글꼴 캐시만 원래 추적 상태로 복원. 최종 공통 검사 진행.
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS. 공통686/686(신규68 포함), 실패/생략0. 공통 설정 연결 PASS. 기존 문서 WARN70/hard0 유지. 실제 플레이 미실행.
 - 저장/제출: 수정4b4ec89a, PR356 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/356. GitHub 연결 도구 PR 생성은403 권한 부족으로 로그인된 gh를 사용. PM 팀·MoHoDu 검토 요청. dev 병합/실제 플레이 미실행. 기존 사용자 변경은 제출 제외.
+
+## 11/13 PR356 이후 추가 검사
+- 원래 feat/exit-route/pursuer 27a7a1f8와 깨끗한 UnderstagePursuerPlaytest 씬을 확인하고 Unity 정상 종료. 사용자 저장 작업을 원래 브랜치에 보존. origin/dev fetch 후9a5baaa7(PR358 포함)에서 fix/common-action-audit 생성. doctor는 기존 Task ID 중복만 실패.
+- 공통/대기실 행동 전환 감사, 탈출로 제외. 실제 플레이·게임 코드 수정·제출 없이 재현 조사와 기록만 수행.
+- 최신 DEV의 공통686/686 통과. 자동 반환이 치료 입장을 우회하는 문제3/3, 포획 중 외줄/대포 재연습 배치 뒤 모션·입력 잔류 각3/3 재현. [상세](Inventory/post356-transition-audit.md). 치료 문제는 운반 소유 해제 후 입장이 회복됨. 목마 자동 반환은 이번 배치에서 거부되어 결함으로 집계하지 않음.
+- check-work: 안전성·지식 검사 통과, 기존 DEV Task115 log154줄이 제한130줄을 초과하여 문서 검사 실패. 해당 검사 단계의 컴파일은 생략, 별도 공통686검사는 완료. Assets/Packages/ProjectSettings 변경 없음, 원래 열린 씬 dirty=false 확인. 검사 기록만 저장하고 제출하지 않음.
+
+## 11/13 PR356 이후 재현2건 수정
+- 사용자 수정·저장·제출 승인. Unity 종료 후 DEV 9a5baaa7 fetch/반영(동일). doctor는 기존 Task ID 중복만 실패, 구현 도구/Unity 연결 정상.
+- 자동 반환은 일반 잡기 자격을 공유하고 치료/퇴실·목마 위·포획 등 점유를 우회하지 않음. 포획 중 재연습 시작 보류와 늦은 배치/복귀점 저장 차단. 외줄 활성화 직전 재검사와 전원 은퇴 뒤 빈 투표 정리 포함. GameSettings 수치·씬·에셋 변경 없음.
+- 신규22/22·컴파일·공통 연결 검사 통과. 기존 Task115 로그 길이 초과는 과거35줄을 History/004에 원문 보존하고 링크하여 정리. 실제 플레이는 사용자 확인.
+- 공통708/708 통과(신규22 포함), 실패·생략0. 결과 `.harness/local/post356-fix-common-results.json`. 실제 다인 플레이 결과와 구분.
+- 제출 전 Unity 정상 종료·DEV fetch/반영: 9a5baaa7 동일. 종료로 생성된 폰트 캐시만 사전 백업으로 복원. 원래 열려 있던 씬은 저장 변경 없이 유지.
+- 인계 수정은 5be27fc0으로 저장·push 완료. PR 생성 직전 사용자 레이어 추가 요청을 받아 같은 브랜치에서 계속 진행. 추가 수정 전 Unity 종료·DEV 9a5baaa7 재확인.
+- 레이어8/9/10을 Unity 에디터로 등록하고 Trampoline↔DismemberedLimb/TrickHazard 두 쌍만 해제. 트램펄린 운반/내려놓기 질의도 매트릭스를 사용. 프리팹5개·대포 씬은 레이어만 변경, [내역](Inventory/trampoline-collision-layers.md).
+- 레이어7/7·공통713/713 통과(실패/생략0). 첫 질의 검사2건은 비활성 임시 충돌체 때문에 실패하여 준비를 실제 활성 충돌체로 수정 후 통과. Physics 직렬화 행은 unsigned 값을 longValue로 보존해 두 쌍 외 모든 충돌 유지 확인. 실제 플레이 미실시.
+- 레이어 추가 제출 직전에도 Unity 정상 종료·DEV 9a5baaa7 fetch/반영 확인. 자동 생성 폰트 캐시와 escape-labels 캐시는 원본으로 복원하여 제출 제외. 탈출로 씬·배치는 변경하지 않음.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 11/13 기존 브랜치 복원·공중 이동·탈출로 제보
+- 사용자 지시에 따라 두 커밋을 feat/exit-route/pursuer로 fast-forward하고 push. fix/common-action-audit는 로컬·원격 삭제. DEV 9a5baaa7 동일 확인. 새 브랜치를 만들지 않음.
+- 일반 공중 Shift 가속 제거, BaseGameSettings AirControl.Speed 3→4. 지상 달리기/부상 배율/기물 발사 관성은 유지. 검사에서 방향 하차의 첫 속도 덮임을 잡아 보완.
+- 관전 대상 운반 기물이 카메라를 막는 문제를 수정 전 검사 실패로 재현·수정. 배선은 실제 호스트 수평 발사 처리 24가닥×30/60/144fps=72조건 절단 성공. 별도로 다른 발사대의 늦은 상태가 절단 표시를 되돌리는 문제 2/3/4개 조합에서 재현·수정.
+- 탈출로 암부는 루트 이동과 월드 Y 재질 기준의 불일치 확인. 사용자의 확인 요청 범위로 재질·배치는 변경하지 않음. [상세](Inventory/escape-air-camera-followup.md).
+- 최종 자동 검사: 공통718/718, 톱 발사대45/45(일부 공통 검사와 중복), 실패·생략0. 컴파일·공통 설정 연결 검사 통과. 실제 플레이는 수행하지 않음.
+- 추가 요청: BaseGameSettings CarryDevices.BlockPiggybackOnSawCarrier=true. 톱 운반자가 포함된 목마에는 신규 탑승 차단. 일반 F 후보·호스트 재확인·옆줄 합체가 같은 설정을 사용하며 내려놓으면 복구. 기존 목마를 강제 해체하지 않음.
+- 검사 스크립트는 안전성·문서·컴파일·공통 연결을 통과했으나 마지막 Task 탐색에서 동일 브랜치에 Task100/114가 함께 있어 실패. 사용자의 기존 브랜치 유지 지시를 따르며 Task114에 명시적으로 기록하고 직접 저장/제출한다.
+- 추가 목마 제한까지 최종 공통720/720·톱 발사대47/47 통과(중복 포함), 실패·생략0. 검사 준비용 반사 호출의 오버로드 모호성 1건은 검사 코드에서 해결. 실제 플레이 미실시.
+- 제출 직전 DEV가 ff8af551(PR359·360)로 전진하여 Unity 종료 상태에서 반영. 리허설 추격 중 시작 차단(DEV)과 치료·포획 차단/0명 투표 정리(이번 작업)를 모두 보존. Task115 기록은 DEV의 보관본과 기존 보관본 링크를 보존해 충돌 해결. 병합 커밋3bdf6d69. 외부 에셋은 DEV gitlink16982ba2로 동기화(기존 수정 없음).
+- 최신 DEV 병합 후 공통 검사 최초717/720: 엔딩 통계가 추가된 실제 전송 형식과 달리 구 검사 데이터가 통계를 생략하여 generation=0으로 역직렬화·거절됨. ReadState 보상 코드는 유지하고 검사 도우미만 현재 런 통계를 넣도록 수정. 재검사720/720 통과. 최신 DEV BreakFlow43/43도 통과.
+- 제출 직전 Unity 종료 후 DEV 재확인: ff8af551 동일, 이미 반영됨. 최종 개별 안전성·문서·컴파일·공통 연결 PASS, check-work 기록은 Task100/114 중복 제약 유지. 열린 UnderstagePursuerPlaytest는 dirty=false, 레이어 매트릭스 재개방 검증 정상. 폰트 캐시 변경은 제외.
+- 기존 feat/exit-route/pursuer에 ade3c4c9 저장·push, [PR361](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/361) 제출. base=dev, reviewer=MoHoDu, 병합하지 않음. 이전 자동 반환·포획 2건과 레이어 변경도 포함. 실제 플레이는 사용자 확인.
+
+## 11/13 탈출로 심부 어둠 복구
+- 수정·저장·PR361 추가 승인. 작업 시작 Unity 종료 확인 후 최신 DEV c0c11212 반영(안내 UI 프리팹 2개, 충돌 없음). 기존 브랜치 유지. doctor는 Task100/114 중복으로 중단.
+- EscapeRouteSettings의 루트 기준 높이 -73~-29/강도1에서 현재 월드 높이 -48~-4 계산. 기존 콘크리트 재질3개도 같은 값으로 저장. 직접 실행·캠페인 재배치·실행 중 높이/세팅 변경에 기존 EscapeCampaignContent가 적용. 게임 판정·씬 배치·B/C·셰이더 변경 없음, 새 런타임 스크립트 없음.
+- 컴파일·공통 설정 연결 검사 PASS, CampaignPlacementTests 6/6 PASS. 실제 A 씬 838/838 Renderer 속성 일치·dirty=false. 전후 렌더(.harness/local/shaft-before.png, shaft-after.png)로 심부 벽의 어둠 복구 확인. 실제 플레이 미실시.
+- PR361에 추가하고 병합하지 말라는 사용자 지시 유지.
+- 제출 직전 DEV 08600e05(PR362 리허설 안내) 반영 후 컴파일·공통 설정 PASS. Unity 종료 후 다시 fetch하여 같은 DEV 확인. 기존 PR361에 추가 제출하며 병합은 하지 않음. check-work 개별 검사 통과, 마지막 Task100/114 중복 기록 제약 유지.
+
+## 11/13 봉 타이머 탑승 중 표시
+- Unity 종료 상태에서 DEV 28ef042b 최신화, 기존 feat/exit-route/pursuer 유지. 일반·스위치 봉 공통 표시를 동기화된 State.Count > 0으로 제한. 빈 봉은 숨기고 1명 이상이면 기존 남은 시간 표시, 마지막 해제·시간 만료·초기화 후 숨김. GameSettings 제한시간·높이·반동 수치 유지.
+- 안전성·문서·컴파일·공통 설정 연결 PASS. check-work 마지막 기록 단계는 기존 Task100/114 중복으로 실패. UI 표시 조건만 변경하여 새 자동 테스트·실제 플레이는 미실시. 제출 요청에 따라 DEV 28ef042b를 재확인하고 기존 브랜치에서 봉 타이머 수정으로 PR을 제출한다.
+- 봉 타이머 수정 8e1a6ca7을 [PR364](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/364)로 제출. PR361은 이미 병합되어 동일 작업 브랜치에서 후속 PR을 열었다.

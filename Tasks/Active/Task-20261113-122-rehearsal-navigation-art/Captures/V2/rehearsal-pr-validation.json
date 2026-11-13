@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 31.84,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.NavigationAfterRehearsal_UsesPulsePrefabAndHidesAtGather",
+      "Status": "Passed",
+      "Duration": 31.7155747,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

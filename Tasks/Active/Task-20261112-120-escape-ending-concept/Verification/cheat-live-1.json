@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/cheat-probe.cs",
+      "entry": "CheatProbe.NextPerformance",
+      "timeout_ms": "120000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 1304,
+      "executeMs": 15927,
+      "assemblyName": "PipelineRunScript_cheat-probe_f10767af4ed64ccdbfd89c098243097e",
+      "success": true,
+      "result": {
+        "trick": "Tightrope",
+        "tier": 1,
+        "scene": "Tightrope",
+        "rewardTier": 1,
+        "cheatClosed": true,
+        "launcherClosed": true,
+        "frames": 83
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -531,7 +531,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
         }
 
         // 동쪽(x가 일정한) 벽 하나에 구멍을 낸다: 벽 면 메시 사본 + 벽 충돌체·벽판 조각. 구멍과 겹치는 벽 부품만 다룬다.
-        static string CutWall(Transform surfaceT, Transform[] solidParents, Bounds[] holes, string label)
+        internal static string CutWall(Transform surfaceT, Transform[] solidParents, Bounds[] holes, string label)
         {
             var surface = surfaceT != null ? surfaceT.GetComponent<MeshFilter>() : null;
             if (surface == null) return $"{label}: 벽 면을 찾지 못해 구멍을 내지 않았습니다.";
@@ -608,7 +608,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
         }
 
         // 벽 부품(큐브 또는 충돌체만 있는 상자)을 구멍 둘레 조각(_VentCut)으로 대신하고 원본은 꺼 둔다(_VentOriginal).
-        static bool Split(Transform t, BoxCollider box, Bounds b, Bounds hole)
+        internal static bool Split(Transform t, BoxCollider box, Bounds b, Bounds hole)
         {
             var pieces = new List<(Vector3, Vector3)>();
             if (hole.min.z > b.min.z) pieces.Add((new(b.min.x, b.min.y, b.min.z), new(b.max.x, b.max.y, hole.min.z)));

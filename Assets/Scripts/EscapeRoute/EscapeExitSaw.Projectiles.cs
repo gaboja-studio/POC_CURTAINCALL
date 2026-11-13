@@ -11,6 +11,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] EscapeCuttableCable[] cables = Array.Empty<EscapeCuttableCable>();
         [Tooltip("연결된 배선이 없어도 사용 키로 톱날을 발사할 수 있습니다. 배선 대상은 별도로 연결합니다.")]
         [SerializeField] bool fireWithoutCables;
+        [Tooltip("필수 배선을 모두 자르면 탐색 장부에서 열림으로 기록할 대상(대기실 문 등). 비우면 기록하지 않습니다.")]
+        [SerializeField] string openTarget = "";
         [SerializeField] Transform muzzle;
         [SerializeField] GameObject projectileVisual;
         float shotInterval => CurtainCall.Settings.GameSettings.Base.CarryDevices.SawShotInterval;
@@ -95,7 +97,20 @@ namespace CurtainCall.EscapeRoute
                 if (cables[i] != null)
                 {
                     bool cut = (cutMask & (1u << i)) != 0;
-                    if (cut) cables[i].SetCut(true, cutPoints[i], feedback && !cables[i].IsCut);
+                    uint newestCourse = courseEpoch;
+                    Vector3 point = cutPoints[i];
+                    // 발사대별 상태가 다른 순서로 도착해도 공유 배선의 절단을 되돌리지 않는다.
+                    // 새 코스의 복구는 이전 코스의 지연 절단보다 우선한다.
+                    foreach (var peer in devices)
+                    {
+                        if (peer == null || peer == this || peer.cables == null || peer.courseEpoch < newestCourse) continue;
+                        int index = Array.IndexOf(peer.cables, cables[i]);
+                        if (index < 0 || index >= 32) continue;
+                        if (peer.courseEpoch > newestCourse) { newestCourse = peer.courseEpoch; cut = false; }
+                        if (!cut && (peer.cutMask & (1u << index)) != 0)
+                        { cut = true; point = peer.cutPoints[index]; }
+                    }
+                    if (cut) cables[i].SetCut(true, point, feedback && !cables[i].IsCut);
                     else if (cables[i].IsCut) cables[i].SetCut(false);
                 }
         }
@@ -132,7 +147,13 @@ namespace CurtainCall.EscapeRoute
             Vector3 direction = pendingBossAim.sqrMagnitude > .99f ? pendingBossAim
                 : Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return;
-            var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = origin.position, Direction = direction };
+            // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
+            // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
+            Vector3 start = origin.position;
+            float back = Vector3.Dot(start - CarryRoot.position, direction);
+            for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
+                start = origin.position - direction * (back * (step + 1) / 6f);
+            var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
             ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
             lastPresentedShot = shotSerial;
@@ -155,7 +176,8 @@ namespace CurtainCall.EscapeRoute
                 Vector3 normal = Quaternion.LookRotation(shot.Direction, Vector3.up) * Vector3.up;
                 if (host && finaleBoss && finaleBoss.TryHitSaw(from, to, normal, projectileRadius, projectileHalfThickness, out var bossContact))
                 { to = bossContact; blocked = true; }
-                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, normal, shot);
+                // 막혀서 못 나아간 자리에서도 날에 닿은 배선은 끊는다(벽에 붙은 배선을 가까이서 쏜 경우).
+                if (host) CutAlong(from, to, normal, shot);
                 shot.Position = to; shot.Age += step;
                 if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
                     if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
@@ -200,6 +222,8 @@ namespace CurtainCall.EscapeRoute
                         CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
                 }
                 if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
+                if (DoorOpen && !string.IsNullOrEmpty(openTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                if (!string.IsNullOrEmpty(cable.OpenTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cable.OpenTarget);
                 ShareCut(cable, hit);
             }
         }

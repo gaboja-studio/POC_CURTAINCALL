@@ -51,16 +51,23 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null; yield return null;
             Assert.That(Get(VisibleRole("Objective"),"Title"),Is.EqualTo("갈대밭 도착"));
 
-            // 사망(탈출로 = 리타이어) 뒤 개발 세션이 출발점에서 다시 시작한다.
-            var setState=player.GetType().GetMethod("ServerSetState");
-            setState.Invoke(player,new[]{Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"),"Retired"),Type.Missing});
-            until = Time.realtimeSinceStartup + 5;
-            while (Get(player, "State").ToString() != "Normal" && Time.realtimeSinceStartup < until) yield return null;
-            Assert.AreEqual("Normal", Get(player, "State").ToString());
-            Assert.GreaterOrEqual((int)Get(session, "RecoveryCount"), 1);
+            // With the F9 wipe hold off, direct launch still retries automatically.
+            var cheats = T("CurtainCall.Dev.DevCheats");
+            var hold = cheats.GetProperty("HoldCheckpointWipe");
+            bool beforeHold = (bool)hold.GetValue(null);
+            hold.SetValue(null, false);
+            try
+            {
+                var setState = player.GetType().GetMethod("ServerSetState");
+                setState.Invoke(player, new[] { Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Retired"), Type.Missing });
+                until = Time.realtimeSinceStartup + 5;
+                while (Get(player, "State").ToString() != "Normal" && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreEqual("Normal", Get(player, "State").ToString());
+                Assert.GreaterOrEqual((int)Get(session, "RecoveryCount"), 1);
+            }
+            finally { hold.SetValue(null, beforeHold); }
 
             // F9 치트: 지점 목록과 순간이동.
-            var cheats = T("CurtainCall.Dev.DevCheats");
             var pointType = T("CurtainCall.Dev.DevCheats+TeleportPoint");
             var points = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(pointType));
             cheats.GetMethod("CollectTeleportPoints").Invoke(null, new object[] { player, points });
@@ -80,12 +87,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             }
             finally { cheats.GetProperty("SuppressFalls").SetValue(null, false); }
             Assert.IsNotNull(Object.FindFirstObjectByType(T("CurtainCall.Dev.DevCheatPanel")) ?? T("CurtainCall.Dev.DevCheatPanel").GetMethod("EnsureExists").Invoke(null, null));
-            var ending=Find("CurtainCall.EscapeRoute.EscapeEndingPresentation");
-            ending.GetType().GetMethod("ShowResult",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).Invoke(ending,null);
-            var result=VisibleRole("Outcome");
-            Assert.IsNotNull(result);
-            Assert.That(Get(result,"Title"),Is.EqualTo("탈출 성공"));
-            Assert.IsTrue(result.GetComponentInChildren<UnityEngine.UI.Button>().IsInteractable());
+            // The merged ending renders its own results canvas instead of the former Outcome HUD card.
+            var results = Find("CurtainCall.EscapeRoute.EscapeEndingResults");
+            Assert.IsNotNull(results);
+            Call(results, "Freeze");
+            Call(results, "Show", true);
+            var view = Get(results, "View");
+            Assert.IsNotNull(view);
+            Assert.IsTrue((bool)Get(view, "Visible"));
+            Assert.IsTrue(((UnityEngine.UI.Button)Field(view, "ReturnButton")).IsInteractable());
         }
     }
 }

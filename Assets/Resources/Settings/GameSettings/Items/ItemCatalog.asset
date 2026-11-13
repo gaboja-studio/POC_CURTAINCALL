@@ -319,3 +319,27 @@ MonoBehaviour:
     shopDescription: 
     shopTooltip: 
     useCue: 
+  - id: keycard-copy
+    displayName: "\uD0A4 \uCE74\uB4DC \uBCF5\uC81C\uBCF8"
+    wornName: 
+    wornAtOrBelow: -1
+    use: 1
+    kind: 1
+    newUses: 1
+    foundUses: 1
+    price: 0
+    cooldown: 0
+    effect: 0
+    effect2: 0
+    summary: "\uAD00\uB9AC\uC2E4 \uBB38 \uC606 \uB2E8\uB9D0\uAE30\uC5D0 \uB300\uBA74
+      \uBB38\uC774 \uC5F4\uB9B0\uB2E4. \uD55C \uBC88 \uC4F0\uBA74 \uC0AC\uB77C\uC9C4\uB2E4.
+      \uAD6C\uB9E4 \uBD88\uAC00."
+    shopDescription: "\uB204\uAD70\uAC00 \uBCF5\uC81C\uD55C \uAD00\uB9AC\uC2E4\uC758
+      \uD0A4 \uCE74\uB4DC. \uAD00\uB9AC\uC2E4\uC758 \uBB38\uC744 \uC5F4 \uC218 \uC788\uB2E4.
+      \uACF5\uC5F0 \uC900\uBE44\uC790\uB4E4\uC740 \uD0C8\uCD9C\uD558\uB824 \uD588\uACE0,
+      \uC2E4\uD328\uD588\uB2E4. \uB3D9\uB8CC\uB4E4\uC774 \uB04C\uB824\uAC00\uB358
+      \uC21C\uAC04, \uD55C \uBA85\uC774 \uD0A4 \uCE74\uB4DC\uB97C \uCE90\uBE44\uB137\uC5D0
+      \uBC00\uC5B4 \uB123\uC5C8\uB2E4. \uBD80\uB514 \uB2E4\uB978 \uC0AC\uB78C\uC774
+      \uCC3E\uC544\uB0BC \uC218 \uC788\uAE30\uB97C."
+    shopTooltip: 
+    useCue: 

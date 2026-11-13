@@ -43,7 +43,6 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
         Collider carryBody;
-        readonly System.Collections.Generic.List<Collider> limbCollisionBodies = new();
         CharacterController ignoredCarrierBody;
         bool previousCarrierIgnored;
         Vector3 lastSafeCarrierFeet;
@@ -51,6 +50,7 @@ namespace CurtainCall.HumanCannon
 
         void RefreshCarryBody(NetworkPlayer carrier)
         {
+            CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(transform, CurtainCall.Settings.GamePhysicsLayers.Trampoline);
             if (carryBody == null)
             {
                 carryBody = GetComponent<Collider>();
@@ -87,6 +87,29 @@ namespace CurtainCall.HumanCannon
             }
             if (next != null && next.enabled && next.gameObject.activeInHierarchy) Physics.IgnoreCollision(next, carryBody, true);
         }
+        // 대기실 전용 운반 판정(2026-11-13 사용자: 공통 설정은 그대로 두고 대기실만 줄인다).
+        // 실제 몸통 충돌체는 건드리지 않고, 들고 갈 때 "걸리는지"만 보는 작은 상자를 따로 둔다. 공연 씬에서는 쓰지 않는다.
+        BoxCollider waitingRoomCheckBody;
+        Collider MoveCheckBody
+        {
+            get
+            {
+                float diameter = gameObject.scene.name.StartsWith("WaitingRoom", System.StringComparison.Ordinal)
+                    ? CurtainCall.Settings.GameSettings.WaitingRoom.TrampolineCarryCheckDiameter : 0f;
+                if (diameter <= 0f || carryBody == null) return carryBody;
+                if (waitingRoomCheckBody == null)
+                {
+                    var holder = new GameObject("WaitingRoomCarryCheck") { layer = gameObject.layer };
+                    holder.transform.SetParent(transform, false);
+                    waitingRoomCheckBody = holder.AddComponent<BoxCollider>();
+                    waitingRoomCheckBody.isTrigger = true;
+                }
+                var scale = transform.lossyScale;
+                waitingRoomCheckBody.center = new Vector3(0, surfaceHeight * .5f, 0);
+                waitingRoomCheckBody.size = new Vector3(diameter / Mathf.Max(.0001f, Mathf.Abs(scale.x)), surfaceHeight, diameter / Mathf.Max(.0001f, Mathf.Abs(scale.z)));
+                return waitingRoomCheckBody;
+            }
+        }
         public static HumanCannonTrampoline Current { get; private set; }
         public ulong Carrier => ownership.Occupant;
         public Transform Handle => handle != null ? handle : transform;
@@ -112,7 +135,6 @@ namespace CurtainCall.HumanCannon
         void OnEnable()
         {
             RefreshCarryBody(null);
-            RefreshLimbCollisions();
             if (Current != null && Current != this)
             {
                 Debug.LogError("[HumanCannon] 1단계 테스트에는 트램폴린을 하나만 둡니다.", this);
@@ -129,14 +151,7 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Restarted += HandleRestart;
         }
 
-        // Run before physics, including while idle/dropping and when new limb pieces appear.
-        void FixedUpdate() => RefreshLimbCollisions();
-
-        void RefreshLimbCollisions()
-        {
-            GetComponentsInChildren(true, limbCollisionBodies);
-            foreach (var body in limbCollisionBodies) CurtainCall.Damage.DismemberedLimb.IgnoreFor(body);
-        }
+        void OnTransformChildrenChanged() => CurtainCall.Settings.GamePhysicsLayers.AssignHierarchy(transform, CurtainCall.Settings.GamePhysicsLayers.Trampoline);
 
         void Update()
         {
@@ -272,7 +287,6 @@ namespace CurtainCall.HumanCannon
             // A local rope catch can precede the host's ownership update.
             if (TightropeHangSystem.Current?.IsHanging(carrier) == true || HasRopeSupport(carrier)) return;
             RefreshCarryBody(carrier);
-            CurtainCall.Damage.DismemberedLimb.IgnoreFor(carryBody);
             if (collisionCarrier != Carrier || alignToCarrier) { collisionCarrier = Carrier; lastSafeCarrierFeet = carrier.transform.position; }
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
             // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
@@ -283,7 +297,7 @@ namespace CurtainCall.HumanCannon
                 float floorClearance = !alignToCarrier && mover != null && mover.Body != null
                     ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
                 // The authorized lift owns both poses until arrival; walking still uses the swept load collision.
-                if (!riding && !HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, !alignToCarrier,
+                if (!riding && !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, carrier, !alignToCarrier,
                     floorClearance, null, allowExistingOverlap: !alignToCarrier) && (alignToCarrier || !TryTranslateWithoutTurning(carrier, mover, floorClearance,
                         out position, out rotation, out carrierRotation)))
                 {
@@ -305,9 +319,9 @@ namespace CurtainCall.HumanCannon
             carrierRotation = toCenter.sqrMagnitude > .0001f ? Quaternion.LookRotation(toCenter) : carrier.transform.rotation;
             Vector3 handleOffset = transform.position - Handle.position + Vector3.up * Mathf.Max(0f, carryHandleHeight);
             position = carrier.transform.position + handleOffset;
-            if (HumanCannonCarry.CheckMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null,
+            if (HumanCannonCarry.CheckMove(transform, MoveCheckBody, position, rotation, carrier, true, floorClearance, null,
                 allowExistingOverlap: true, out var obstruction)) return true;
-            if (HumanCannonCarry.TryCarryOverStep(transform, carryBody, position, carrier, floorClearance,
+            if (HumanCannonCarry.TryCarryOverStep(transform, MoveCheckBody, position, carrier, floorClearance,
                 CurtainCall.Settings.GameSettings.Trampoline.MaxCarryStepLift, out var raised))
             { position = raised; return true; }
             if (!carrier.IsLocal || mover == null || !mover.Simulated || mover.Body == null || !mover.Body.enabled) return false;
@@ -318,12 +332,12 @@ namespace CurtainCall.HumanCannon
             Vector3 slide = Vector3.ProjectOnPlane(travel, wallNormal);
             if (slide.sqrMagnitude < .000001f || Vector3.Dot(travel, wallNormal) >= 0f) return false;
             Vector3 slideFeet = lastSafeCarrierFeet + slide;
-            if (!HumanCannonCarry.CanMove(transform, carryBody, slideFeet + handleOffset, rotation, carrier, true,
+            if (!HumanCannonCarry.CanMove(transform, MoveCheckBody, slideFeet + handleOffset, rotation, carrier, true,
                 floorClearance, null, allowExistingOverlap: true)) return false;
 
             mover.Body.Move(slideFeet - carrier.transform.position);
             position = carrier.transform.position + handleOffset;
-            return HumanCannonCarry.CanMove(transform, carryBody, position, rotation, carrier, true, floorClearance, null,
+            return HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, carrier, true, floorClearance, null,
                 allowExistingOverlap: true);
         }
 
@@ -337,18 +351,25 @@ namespace CurtainCall.HumanCannon
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied || dropping
-                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
-                || HumanCannonCarry.HasOccupiedHands(player)
-                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
-                || PracticeGrabAllowed?.Invoke() == false) return false;
-            var course = TightropeCourse.Current;
-            if (course != null && course.IsTraversalActive && course.UsesRopeRules(player)) return false;
+            if (!CanAcquire(player) || dropping) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = CurtainCall.Settings.GameSettings.Trampoline.GrabDistance * reach;
             return PlayerInteraction.InRange(player, GrabPoint, radius, transform)
                 && HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
-                && HumanCannonCarry.CanMove(transform, carryBody, position, rotation, player, false);
+                && HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false);
+        }
+
+        // Automatic rehearsal returns skip reach, but never skip the carrier's eligibility.
+        bool CanAcquire(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
+                || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
+                || HumanCannonCarry.HasOccupiedHands(player)
+                || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)
+                || PiggybackSystem.Current?.GetBelow(player) != null || HasRopeSupport(player)
+                || PracticeGrabAllowed?.Invoke() == false) return false;
+            var course = TightropeCourse.Current;
+            return course == null || !course.IsTraversalActive || !course.UsesRopeRules(player);
         }
 
         public void RequestUse() { } // 반동은 접촉으로 동작하며 사용 키는 소비하지 않는다.
@@ -389,12 +410,10 @@ namespace CurtainCall.HumanCannon
 
         internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
         {
-            if (session == null || !session.IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                || ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null || HasRopeSupport(player)
-                || HumanCannonSystem.Current == null) return false;
+            if (session == null || !session.IsHost || !CanAcquire(player)) return false;
             RefreshCarryBody(player);
             if (!HumanCannonCarry.TryFollowPose(player, transform, Handle, carryHandleHeight, true,
-                out var position, out var rotation, out _) || !HumanCannonCarry.CanMove(transform, carryBody, position, rotation, player, false)
+                out var position, out var rotation, out _) || !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player, false)
                 || !ownership.TryApply(CannonAction.Board, player.OwnerClientId, ownership.Revision)) return false;
             StopDrop();
             HumanCannonSystem.Current.StartCarrying(player.OwnerClientId);

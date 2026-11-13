@@ -24,37 +24,55 @@ namespace CurtainCall.Settings
     public sealed class BaseGameSettings : ScriptableObject
     {
         [Header("프레임 제한")]
+        [Tooltip("화면 프레임 상한. 기기 부담과 화면 부드러움을 조절한다.")]
         [SerializeField] FrameRateSettings frameRate = new();
 
         [Header("세션")]
+        [Tooltip("방 정원·게임 시작 최소 인원 등 온라인 방 기본값.")]
         [SerializeField] SessionSettings session = new();
         [Header("런 진행")]
+        [Tooltip("하루·공연 수, 쉬는 시간 길이, 공연 종료 여유 시간·포기 선택 시간 등 런 전체 흐름.")]
         [SerializeField] RunSettings run = new();
         [Header("기물 소지")]
+        [Tooltip("한 사람이 지닐 수 있는 기물 수.")]
         [SerializeField] ItemCarrySettings itemCarry = new();
         [Header("공통 운반 장치")]
+        [Tooltip("톱날 등 들고 다니는 장치의 크기·이동 속도·발사 간격 공통값.")]
         [SerializeField] CarryDeviceSettings carryDevices = new();
         [Header("캐릭터")]
+        [Tooltip("이동 속도·점프 높이·회전·걷기 애니메이션 등 캐릭터 공통 동작.")]
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
+        [Tooltip("점프 입력 미리 받기·길게 누르기 판정 등 입력 공통값.")]
         [SerializeField] InputSettings input = new();
         [Header("공통 상호작용")]
+        [Tooltip("상호작용 거리·구조 대상 우선 선택 등 모든 씬 공통 상호작용 규칙.")]
         [SerializeField] InteractionSettings interaction = new();
         [Header("공통 공중 조절")]
+        [Tooltip("점프·발사 중 공중에서 방향을 조절하는 정도.")]
         [SerializeField] AirControlSettings airControl = new();
         [Header("균형 공통")]
+        [Tooltip("줄 위 균형 게이지·몸 기울기 등 균형 공통 규칙.")]
         [SerializeField] BalanceSettings balance = new();
         [Header("HUD 배치")]
+        [Tooltip("균형 게이지 등 HUD 요소를 화면 어디에 둘지.")]
         [SerializeField] HudLayoutSettings hudLayout = new();
+        [Header("착지 표시")]
+        [SerializeField] LandingMarkerSettings landingMarker = new();
         [Header("연출")]
+        [Tooltip("걷기·달리기 애니메이션 재생 기준, 상호작용 동작 허용, 몸 기울기 등 캐릭터 연출.")]
         [SerializeField] PresentationSettings presentation = new();
         [Header("동기화")]
+        [Tooltip("다른 플레이어 위치·상태를 맞추는 네트워크 동기화 값.")]
         [SerializeField] SyncSettings sync = new();
         [Header("신체 손상")]
+        [Tooltip("추락·절단 부상과 재시작 때 부상 복구 규칙.")]
         [SerializeField] BodyDamageSettings bodyDamage = new();
         [Header("장소 전환")]
+        [Tooltip("대기실·공연·탈출로 사이 장소 이동에 쓰는 씬과 전환 값.")]
         [SerializeField] SpaceTransitionSettings spaceTransition = new();
         [Header("음성 채팅")]
+        [Tooltip("음성 채팅 사용 여부·사용 씬·거리 감쇠 등 공통값.")]
         [SerializeField] VoiceChatSettings voiceChat = new();
 
         public FrameRateSettings FrameRate => frameRate;
@@ -68,6 +86,7 @@ namespace CurtainCall.Settings
         public AirControlSettings AirControl => airControl;
         public BalanceSettings Balance => balance;
         public HudLayoutSettings HudLayout => hudLayout;
+        public LandingMarkerSettings LandingMarker => landingMarker;
         public PresentationSettings Presentation => presentation;
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
@@ -85,11 +104,14 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0)] float sawCarrySpeed = 3f;
             [Tooltip("사용 키를 한 번 누르면 톱날 한 발을 발사합니다. 다음 발사까지 필요한 시간(초). 계속 누르고 있어도 연속 발사하지 않습니다.")]
             [SerializeField, Min(.1f)] float sawShotInterval = 1.15f;
+            [Tooltip("켜면 톱날 발사대를 들고 있는 팀원 또는 그 팀원이 포함된 목마에 새로 올라탈 수 없습니다. 모든 씬의 목마 대상 선택과 호스트 승인에 공통 적용됩니다.")]
+            [SerializeField] bool blockPiggybackOnSawCarrier = true;
             [Tooltip("운반 장치의 충돌 검사에서 접촉 떨림을 줄이는 여유(m). 트램펄린과 톱날 발사기에 공통 적용합니다.")]
             [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;
             public float SawScale => Mathf.Clamp(sawScale, .3f, 1.5f);
             public float SawCarrySpeed => Mathf.Max(0, sawCarrySpeed);
             public float SawShotInterval => Mathf.Max(.1f, sawShotInterval);
+            public bool BlockPiggybackOnSawCarrier => blockPiggybackOnSawCarrier;
             public float CollisionSkin => Mathf.Clamp(collisionSkin, .001f, .05f);
         }
 
@@ -107,6 +129,135 @@ namespace CurtainCall.Settings
             [SerializeField] BalanceHudPosition balancePosition = BalanceHudPosition.BottomCenter;
 
             public BalanceHudPosition BalancePosition => balancePosition;
+        }
+
+        /// <summary>착지 그림자를 켜고 끄는 공간 구분(<see cref="LandingMarkerSettings.ShowIn"/>).</summary>
+        public enum LandingMarkerSpace { Performance, EscapeRoute, WaitingRoom, Lobby, Other }
+
+        /// <summary>박스 착지면에서의 그림자 처리(<see cref="LandingMarkerSettings.ShapeFor"/>). 셰이더 _ClipMode 값과 같다.</summary>
+        public enum LandingSurfaceShape { Circle = 0, Clip = 1, FadeOutside = 2 }
+
+        /// <summary>착지 그림자 외곽선 구간(<see cref="LandingMarkerSettings.BandAt"/>).</summary>
+        public enum LandingOutlineBand { None, Outfit, SafetyCheck }
+
+        /// <summary>
+        /// 공중 플레이어 발밑의 원형 착지 그림자(Task-20261113-126). 공간별로 켜고 끄며(기본: 공연·탈출로 켬, 대기실·로비 끔), 모든 플레이어에게 보이고, 높이 차이가 클수록 뿌옇게 번져 사라진다.
+        /// 외곽선은 내 캐릭터(관전 중이면 관전 대상)의 그림자에만 그린다. 안전 체크 높이 이하는 안전/비안전 색, 그 위 선명 높이까지는 옷 색. 단, 그 플레이어가 트램펄린을 잡고 있으면 설정에 따라 모든 그림자에 그린다.
+        /// 착지·이동 규칙은 바꾸지 않는 표시 전용 값.
+        /// </summary>
+        [Serializable]
+        public sealed class LandingMarkerSettings
+        {
+            [Header("공간별 표시")]
+            [InspectorName("공연")]
+            [Tooltip("켜면 모든 공연(외줄·인간대포 등 공연장 씬)에서 착지 그림자를 표시합니다.")]
+            [SerializeField] bool showInPerformance = true;
+            [InspectorName("탈출로")]
+            [Tooltip("켜면 탈출로 씬에서 착지 그림자를 표시합니다.")]
+            [SerializeField] bool showInEscapeRoute = true;
+            [InspectorName("대기실")]
+            [Tooltip("켜면 대기실(탐색·밤 정비, 대기실 안의 연습실 포함)에서 착지 그림자를 표시합니다. 기본 끔.")]
+            [SerializeField] bool showInWaitingRoom;
+            [InspectorName("로비")]
+            [Tooltip("켜면 시작·로비 씬에서 착지 그림자를 표시합니다. 기본 끔.")]
+            [SerializeField] bool showInLobby;
+            [InspectorName("기타 씬")]
+            [Tooltip("위 공간으로 구분되지 않는 테스트·샘플 씬에서 착지 그림자를 표시할지 정합니다. 장소 전환에 등록되지 않은 씬은 이름·경로(WaitingRoom·Escape·MainStage)로 먼저 공간을 추정합니다.")]
+            [SerializeField] bool showInOtherScenes = true;
+
+            [Header("높이와 외곽선")]
+            [InspectorName("선명 높이(m)")]
+            [Tooltip("발과 착지 지점의 높이 차이가 이 값 이하이면 그림자가 선명한 원으로 보이고 외곽선이 나타납니다.")]
+            [SerializeField, Min(0)] float clearHeight = 3f;
+            [InspectorName("번짐 구간(m)")]
+            [Tooltip("선명 높이 위로 이만큼 올라가면 그림자가 완전히 번져 보이지 않습니다. 그 사이는 점점 뿌옇고 넓게 번집니다. 0이면 선명 높이에서 바로 사라집니다.")]
+            [SerializeField, Min(0)] float blurRange = 4f;
+            [InspectorName("번짐 확산 배율")]
+            [Tooltip("완전히 번졌을 때 그림자 크기 배율. 1이면 크기를 유지합니다.")]
+            [SerializeField, Range(1f, 3f)] float blurSpread = 1.6f;
+            [InspectorName("안전 체크 높이(m)")]
+            [Tooltip("내 캐릭터(관전 중이면 관전 대상)의 발과 착지 지점 높이 차이가 이 값 이하이면, 외곽선을 옷 색 대신 안전/비안전 색으로 바꿔 지금 내려설 곳이 안전한지 알려줍니다. 이 값과 선명 높이 사이에서는 옷 색 외곽선, 선명 높이보다 높으면 흐린 그림자만 보입니다. 선명 높이보다 크게 잡아도 선명 높이 위에서는 외곽선이 없습니다. 안전 판정은 씬의 착지 표시 컴포넌트에서 '안전 착지 표시'를 켠 곳에서만 동작합니다.")]
+            [SerializeField, Min(0)] float safeCheckHeight = 1.5f;
+            [InspectorName("안전 착지 색상")]
+            [Tooltip("안전 체크 높이 안에서 발밑이 실제 안전 착지면일 때의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다. 외줄 착지 강조 표시도 이 색을 씁니다.")]
+            [SerializeField, ColorUsage(false)] Color safeColor = new(.08f, 1f, .3f);
+            [InspectorName("비안전 착지 색상")]
+            [Tooltip("안전 체크 높이 안에서 발밑이 안전 착지면이 아닐 때(위험한 면·가로막힌 면)의 외곽선 색. 외곽선 두께·투명도는 아래 공통 값을 따릅니다.")]
+            [SerializeField, ColorUsage(false)] Color unsafeColor = new(1f, .18f, .12f);
+            [InspectorName("외곽선 두께(m)")]
+            [Tooltip("그림자 바깥 가장자리에서 안쪽으로 그리는 외곽선 폭(미터). 옷 색·안전·비안전 외곽선에 모두 적용합니다. 그림자 반지름보다 크면 반지름으로 제한합니다.")]
+            [SerializeField, Range(0f, .5f)] float outlineWidth = .1f;
+            [InspectorName("외곽선 투명도")]
+            [Tooltip("0이면 외곽선을 그리지 않고 1이면 불투명합니다. 옷 색·안전·비안전 외곽선에 모두 적용합니다. 옷 색은 플레이어 구분을 위해 각 플레이어의 옷 색(캐릭터 > 플레이어 자리 색상)을 그대로 씁니다.")]
+            [SerializeField, Range(0f, 1f)] float outlineOpacity = .9f;
+            [Header("착지면 모양")]
+            [InspectorName("좁은 면 기준 폭(m)")]
+            [Tooltip("착지면(외줄·발판 등 박스 모양 면)의 좁은 쪽 폭이 이 값보다 좁으면, 원에서 면 밖으로 나간 부분을 잘라 면 모양대로 그림자와 외곽선을 그립니다. 이때 외곽선은 면 폭에 맞춰 자동으로 얇아집니다. 이 값 이상인 면은 아래 '넓은 면 바깥 옅게' 설정을 따릅니다.")]
+            [SerializeField, Min(0)] float narrowSurfaceWidth = .5f;
+            [InspectorName("넓은 면 바깥 옅게")]
+            [Tooltip("켜면 좁은 면 기준 폭 이상인 착지면에서는 원 모양을 그대로 두고, 면 밖으로 나간 그림자·외곽선만 아래 불투명도로 옅게 그립니다. 끄면 넓은 면도 면 모양대로 잘라 그립니다(외곽선 두께는 그대로). 박스가 아닌 면·트램펄린은 항상 원 그대로입니다.")]
+            [SerializeField] bool fadeOutsideOnWideSurface = true;
+            [InspectorName("면 밖 불투명도")]
+            [Tooltip("'넓은 면 바깥 옅게'를 켰을 때 착지면 밖 그림자·외곽선의 불투명도 배율. 0이면 보이지 않고 1이면 면 안과 같습니다.")]
+            [SerializeField, Range(0f, 1f)] float outsideOpacity = .25f;
+
+            [InspectorName("트램펄린 운반자에게 모든 외곽선 표시")]
+            [Tooltip("켜면 트램펄린을 잡고 있는 동안 내 그림자뿐 아니라 모든 플레이어의 착지 그림자에 외곽선을 그려, 떨어지는 동료 아래로 트램펄린을 옮기기 쉽게 합니다. 관전 중이면 관전 대상이 잡고 있을 때 적용됩니다. 선명 높이 조건은 같습니다. 끄면 항상 내 그림자(관전 대상)에만 그립니다.")]
+            [SerializeField] bool outlineAllForTrampolineCarrier = true;
+
+            public float ClearHeight => Mathf.Max(0, clearHeight);
+            public bool ShowIn(LandingMarkerSpace space) => space switch
+            {
+                LandingMarkerSpace.Performance => showInPerformance,
+                LandingMarkerSpace.EscapeRoute => showInEscapeRoute,
+                LandingMarkerSpace.WaitingRoom => showInWaitingRoom,
+                LandingMarkerSpace.Lobby => showInLobby,
+                _ => showInOtherScenes,
+            };
+            public float SafeCheckHeight => Mathf.Max(0, safeCheckHeight);
+            public Color SafeColor => OutlineColor(safeColor);
+            public Color UnsafeColor => OutlineColor(unsafeColor);
+            public float BlurRange => Mathf.Max(0, blurRange);
+            public float BlurSpread => Mathf.Clamp(blurSpread, 1f, 3f);
+            /// <summary>색(옷 색 등)에 외곽선 투명도를 적용한 외곽선 색.</summary>
+            public Color OutlineColor(Color outfit) => new(outfit.r, outfit.g, outfit.b, OutlineOpacity);
+            public float OutlineWidth => Mathf.Clamp(outlineWidth, 0f, .5f);
+            public float OutlineOpacity => Mathf.Clamp01(outlineOpacity);
+            public bool OutlineAllForTrampolineCarrier => outlineAllForTrampolineCarrier;
+            public float NarrowSurfaceWidth => Mathf.Max(0, narrowSurfaceWidth);
+            public bool FadeOutsideOnWideSurface => fadeOutsideOnWideSurface;
+            public float OutsideOpacity => Mathf.Clamp01(outsideOpacity);
+
+            /// <summary>좁은 면에서 외곽선 두께의 상한: 면 반폭에 대한 비율. 띠 가운데에 그림자 바탕이 남게 한다.</summary>
+            public const float NarrowOutlineShare = .35f;
+
+            /// <summary>
+            /// 박스 착지면의 반폭(m) 두 축으로 그림자 처리 방식을 고른다. 좁은 면은 자르기, 넓은 면은 설정에 따라 바깥 옅게 또는 자르기.
+            /// </summary>
+            public LandingSurfaceShape ShapeFor(Vector2 halfMeters) =>
+                Mathf.Min(halfMeters.x, halfMeters.y) * 2 < NarrowSurfaceWidth ? LandingSurfaceShape.Clip
+                : FadeOutsideOnWideSurface ? LandingSurfaceShape.FadeOutside : LandingSurfaceShape.Clip;
+
+            /// <summary>자를 때 쓸 외곽선 두께(m). 좁은 면이면 면 반폭의 일정 비율까지만 쓴다.</summary>
+            public float ClippedOutlineWidth(Vector2 halfMeters) =>
+                Mathf.Min(halfMeters.x, halfMeters.y) * 2 < NarrowSurfaceWidth
+                    ? Mathf.Min(OutlineWidth, Mathf.Min(halfMeters.x, halfMeters.y) * NarrowOutlineShare) : OutlineWidth;
+
+            /// <summary>
+            /// 높이 차이(m)에 따른 외곽선 구간. 안전 체크 높이 이하 = 안전 판정 색, 선명 높이 이하 = 옷 색, 그 위 = 외곽선 없음(흐린 그림자).
+            /// 안전 판정 구간은 내 캐릭터(관전 대상)에게만 쓰고, 다른 플레이어는 옷 색 구간으로 취급한다.
+            /// </summary>
+            public LandingOutlineBand BandAt(float height) =>
+                height > ClearHeight ? LandingOutlineBand.None
+                : height <= SafeCheckHeight ? LandingOutlineBand.SafetyCheck : LandingOutlineBand.Outfit;
+
+            /// <summary>높이 차이(m)를 번짐 정도로 바꾼다. 0 = 선명, 1 = 완전히 번져 보이지 않음.</summary>
+            public float BlurAt(float height)
+            {
+                float over = height - ClearHeight;
+                if (over <= 0) return 0;
+                return BlurRange <= 0 ? 1 : Mathf.Clamp01(over / BlurRange);
+            }
         }
 
         [Serializable]
@@ -162,9 +313,13 @@ namespace CurtainCall.Settings
             [SerializeField, HideInInspector, Min(1f)] float guideRestDuration = 300f;
 
             [Header("시간대별 실제 제한시간 · 다음 단계 진입부터 적용")]
+            [Tooltip("하루 첫 공연 전 아침 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("아침 쉬는 시간")] RestTimeLimitSettings morningRest;
+            [Tooltip("공연과 공연 사이 낮 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("낮 쉬는 시간")] RestTimeLimitSettings noonRest;
+            [Tooltip("1일차 첫 공연 뒤 안내가 나오는 가이드 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("첫날 가이드 쉬는 시간")] RestTimeLimitSettings guideRest;
+            [Tooltip("하루 마지막 공연 뒤 밤 정비 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("밤 정비")] RestTimeLimitSettings nightMaintenance;
             [SerializeField, HideInInspector] bool timeLimitsMigrated;
 
@@ -172,6 +327,7 @@ namespace CurtainCall.Settings
             [Serializable]
             public sealed class RestTimeLimitSettings
             {
+                [Tooltip("켜면 이 시간대는 시간이 다 되어도 끝나지 않는다. 아래 초 값은 무시된다.")]
                 [SerializeField, InspectorName("제한 없음")] bool unlimited;
                 [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
                 [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
@@ -214,6 +370,12 @@ namespace CurtainCall.Settings
             [Tooltip("공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초.")]
             [SerializeField, Min(0f)] float failedPerformanceHold = 2f;
 
+            [Tooltip("공연(외줄·인간대포 전 난이도) 첫 생존 도착 뒤 정산까지 기다리는 여유 시간(초). 그동안 상단에 남은 초를 알리고, 도착한 생존자를 모두 완주로 정산한다. 0이면 바로 정산. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(0f)] float finishGraceSeconds = 5f;
+
+            [Tooltip("공연 중 생존자가 1명만 남았을 때 그 플레이어에게 띄우는 공연 포기 선택의 대기 시간(초). 선택이 없으면 계속하기로 처리한다. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(1f)] float forfeitPromptSeconds = 5f;
+
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
             public RestTimeLimitSettings MorningRest { get { EnsureTimeLimits(); return morningRest; } }
@@ -238,6 +400,8 @@ namespace CurtainCall.Settings
             };
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
             public float FailedPerformanceHold => failedPerformanceHold;
+            public float FinishGraceSeconds => float.IsFinite(finishGraceSeconds) ? Mathf.Max(0f, finishGraceSeconds) : 5f;
+            public float ForfeitPromptSeconds => float.IsFinite(forfeitPromptSeconds) ? Mathf.Max(1f, forfeitPromptSeconds) : 5f;
 
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>
@@ -356,8 +520,8 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class AirControlSettings
         {
-            [SerializeField, Min(0f), Tooltip("봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 발사 속도와 별개다.")]
-            float speed = 3f;
+            [SerializeField, Min(0f), Tooltip("일반 점프·낙하의 수평 이동 속도 및 봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 공중에는 Shift 달리기 배율을 적용하지 않으며, 기물 발사 속도와는 별개다.")]
+            float speed = 4f;
             [Tooltip("봉·대포·트램펄린 비행의 수평 조절이 입력 방향을 따라가는 반응 시간(초). 작을수록 빠르게 방향을 바꾼다. 기본 0.1초.")]
             [SerializeField, Min(.001f)] float responseSeconds = .1f;
             [SerializeField, Min(0f), Tooltip("봉 도약 직후 반동을 주던 W/S가 공중 조절로 겹치지 않는 유예.")]
@@ -466,9 +630,13 @@ namespace CurtainCall.Settings
             }
 
             [Header("상호작용 애니메이션")]
+            [Tooltip("때리기·부수기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy strike = new();
+            [Tooltip("레버·버튼 등 조작 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy manipulate = new();
+            [Tooltip("당기기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy pull = new();
+            [Tooltip("열쇠로 여는 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy key = new();
             [Tooltip("바닥 또는 배송구의 기물 줍기")]
             [SerializeField] InteractionAnimationPolicy pickup = new();

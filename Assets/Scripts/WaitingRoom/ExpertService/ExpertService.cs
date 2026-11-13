@@ -232,7 +232,7 @@ namespace CurtainCall.WaitingRoom
         {
             RefreshReservation();
             // A request sent before practice began may arrive after all participants were relocated.
-            if (WaitingRoomRehearsal.IsActive || WaitingRoomRehearsal.IsPracticePending || WaitingRoomCannonRehearsal.IsActive)
+            if (WaitingRoomRehearsal.IsActive || WaitingRoomCannonRehearsal.IsActive)
                 return (false, "리허설을 마친 뒤 신체 복구 승강기를 이용하세요.");
             var player = Find(who);
             if (player == null || !PlayerInteraction.CanInteract(player))
