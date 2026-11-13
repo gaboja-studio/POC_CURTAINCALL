@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/cheat-probe.cs",
+      "entry": "CheatProbe.RetryAfterRetired",
+      "timeout_ms": "15000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 191,
+      "executeMs": 1016,
+      "assemblyName": "PipelineRunScript_cheat-probe_c6ba2753ab6d429c9145be602e788cda",
+      "success": true,
+      "result": {
+        "phase": "Escape",
+        "generation": 2,
+        "state": "Normal"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

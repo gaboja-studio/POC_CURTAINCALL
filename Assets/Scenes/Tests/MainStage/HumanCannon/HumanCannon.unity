@@ -59292,6 +59292,106 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 700051097}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &700734038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 700734040}
+  - component: {fileID: 700734039}
+  m_Layer: 0
+  m_Name: Dev Checkpoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &700734039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700734038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 687521821be17234d9574d15c799cfad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Dev.DevCheckpointRoute
+  points:
+  - label: "\uB300\uD3EC 1 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 0, y: 5, z: 1.5}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 2 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: -3.2024403, y: 5, z: 1.5137235}
+    yaw: 7.7563176
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 3 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 3.2024403, y: 5, z: 1.5137235}
+    yaw: -7.7563176
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 4 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 0, y: 6, z: 77.5}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 5 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: -3.2024403, y: 6, z: 77.513725}
+    yaw: 7.7563186
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 6 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 3.2024403, y: 6, z: 77.513725}
+    yaw: -7.7563186
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 7 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: -9, y: 6.2, z: 145.625}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 8 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: -3, y: 6.2, z: 145.625}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 9 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 3, y: 6.2, z: 145.625}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC 10 \uD0D1\uC2B9 \uC704\uCE58"
+    position: {x: 9, y: 6.2, z: 145.625}
+    yaw: 0
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+  - label: "\uB300\uD3EC \xB7 \uCD5C\uC885 \uBAA9\uC801\uC9C0"
+    position: {x: 0, y: 6.2, z: 179.32497}
+    yaw: 0
+    teleportOnly: 1
+    requiresOpenEscapeExit: 0
+--- !u!4 &700734040
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700734038}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &700928991
 GameObject:
   m_ObjectHideFlags: 0
@@ -175890,3 +175990,4 @@ SceneRoots:
   - {fileID: 850733818}
   - {fileID: 1770198952}
   - {fileID: 994690246}
+  - {fileID: 700734040}

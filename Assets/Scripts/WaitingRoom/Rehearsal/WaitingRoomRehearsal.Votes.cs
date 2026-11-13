@@ -43,7 +43,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>이수 뒤 대기실 쉬는 시간·밤에 연습실 외줄로 재연습 투표를 열 수 있다(모든 화면에서 같은 조건).</summary>
         public static bool CanProposePractice => instance != null && !instance.active && !IsPracticePending && !Campaign.CampaignRun.RehearsalEntryBlocked
-            && !WaitingRoomCannonRehearsal.IsActive && HasMastered
+            && !WaitingRoomCannonRehearsal.IsActive && HasMastered && !IsPursuitRunning
             && instance.run != null && PracticePhase(instance.run.State.Phase) && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning;
@@ -93,7 +93,7 @@ namespace CurtainCall.WaitingRoom
             changed |= skipVotes.RemoveWhere(id => !IsVoter(id)) > 0;
             changed |= practiceYes.RemoveWhere(id => !IsVoter(id)) > 0;
             if (!active || completed) { if (skipVotes.Count > 0) { skipVotes.Clear(); changed = true; } }
-            if (practiceVote && (voters == 0 || active || WaitingRoomCannonRehearsal.IsActive || !HasMastered || run == null || !PracticePhase(run.State.Phase)))
+            if (practiceVote && (voters == 0 || active || WaitingRoomCannonRehearsal.IsActive || !HasMastered || IsPursuitRunning || run == null || !PracticePhase(run.State.Phase)))
             { practiceVote = false; practiceYes.Clear(); changed = true; }
             if (practiceVote && voters > 0 && practiceYes.Count >= voters && !Campaign.CampaignRun.RehearsalEntryBlocked)
             {

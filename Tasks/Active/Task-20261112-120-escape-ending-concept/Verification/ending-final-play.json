@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/ending-integration-probe.cs",
+      "entry": "EndingIntegrationProbe.CaptureEnding",
+      "timeout_ms": "30000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 235,
+      "executeMs": 8632,
+      "assemblyName": "PipelineRunScript_ending-integration-probe_74cb1ab7eeac4fdc8615aa33bdc627cb",
+      "success": true,
+      "result": {
+        "players": {
+          "playing": true,
+          "scene": "escape_route",
+          "phase": "Ending",
+          "session": "Ended",
+          "playerState": "Arrived",
+          "position": "(-680.042, 24.980, -459.700)",
+          "control": true,
+          "simulated": true,
+          "moving": true,
+          "sprint": true,
+          "gate": "요청자[EscapeEndingPresentation(Escape ending presentation@escape_route)] 키놓기대기=True",
+          "blocked": true,
+          "result": true,
+          "cinematic": true,
+          "liveCamera": "Cinemachine front tracking",
+          "transitioning": true,
+          "interaction": null
+        },
+        "repeatedSnapshot": {
+          "statisticsStillSelected": true
+        }
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

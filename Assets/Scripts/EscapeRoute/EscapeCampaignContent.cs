@@ -40,11 +40,21 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, HideInInspector] Vector3 hazardPathScale = Vector3.one;
         public static EscapeCampaignContent Current { get; private set; }
         public bool IsActive => content != null && content.activeSelf;
+        public bool ExitOpen => exitSaw != null && exitSaw.DoorOpen;
+        public bool DevOpenExit(out string reason)
+        {
+            reason = "";
+            if (!CurtainCall.Dev.DevMode.Enabled) reason = "Dev 모드를 켜 주세요.";
+            else if (Current != this || !IsTraversalActive) reason = "탈출로 플레이 중에만 사용할 수 있습니다.";
+            else if (exitSaw == null || !exitSaw.DevOpenExit()) reason = "탈출로 준비가 끝난 뒤 호스트가 실행해 주세요.";
+            return reason.Length == 0;
+        }
         public bool IsCampaign { get; private set; }
         /// <summary>추가 로드된 탈출로가 실제 진행 공간일 때만 콘텐츠 규칙을 적용한다.</summary>
         public static bool IsTraversalActive => Current != null && Current.isActiveAndEnabled
             && Current.IsActive && Current.gameObject.scene == SceneManager.GetActiveScene();
         readonly HashSet<ulong> arrived = new();
+        readonly List<ulong> directParticipants = new();
         CampaignRun run;
         int generation;
         bool reported;
@@ -192,21 +202,43 @@ namespace CurtainCall.EscapeRoute
 
         void Update()
         {
-            if (!IsCampaign) return;
+            // F8 launches skip the waiting-room transfer, but still have an authoritative escape run.
+            // A standalone scene without that run keeps its existing development recovery loop.
+            if (!IsCampaign && (CampaignRun.Instance == null || CampaignRun.Instance.State.Phase != CampaignPhase.Escape)) return;
             Bind();
+            if (!IsCampaign && run != null && generation != run.State.Generation)
+            { generation = run.State.Generation; arrived.Clear(); reported = false; }
             if (run == null || !run.HasAuthority || run.State.Phase != CampaignPhase.Escape || !IsActive || reported) return;
             var transfer = EscapeSceneTransfer.Current;
-            if (transfer == null || !transfer.Ready || transfer.Participants.Count == 0) return;
-            int pending = 0;
-            foreach (ulong id in transfer.Participants)
+            IReadOnlyCollection<ulong> participants;
+            if (IsCampaign)
             {
-                if (arrived.Contains(id)) continue;
+                if (transfer == null || !transfer.Ready || transfer.Participants.Count == 0) return;
+                participants = transfer.Participants;
+            }
+            else
+            {
+                if (EscapeDevelopmentSession.AwaitingEntrance) return;
+                directParticipants.Clear();
+                foreach (var player in NetworkPlayer.All)
+                    if (player != null && player.IsSpawned && player.Slot != NetworkPlayer.NoSlot) directParticipants.Add(player.OwnerClientId);
+                if (directParticipants.Count == 0) return;
+                participants = directParticipants;
+            }
+            int pending = 0;
+            foreach (ulong id in participants)
+            {
                 NetworkPlayer player = null;
                 foreach (var candidate in NetworkPlayer.All)
                     if (candidate != null && candidate.IsSpawned && candidate.OwnerClientId == id) { player = candidate; break; }
+                if (arrived.Contains(id))
+                {
+                    if (IsCampaign || player == null || player.State != PlayerState.Normal) continue;
+                    arrived.Remove(id); // A development restart returned this participant to the start.
+                }
                 // A disconnected participant cannot keep the remaining team waiting forever.
                 if (player == null || player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
-                if (player.State == PlayerState.Normal && exitSaw != null && exitSaw.DoorOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
+                if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
                 {
                     arrived.Add(id);
                     CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(player,"ESCAPE_ARRIVED",new(){["position"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(player.transform.position),["reason"]="REED_FIELD_ENTRY"},"HOST");
@@ -216,6 +248,7 @@ namespace CurtainCall.EscapeRoute
                 else pending++;
             }
             if (pending != 0) return;
+            if (!IsCampaign && arrived.Count == 0) return; // Preserve the direct-start retry when everyone fails.
             reported = true;
             run.EndEscape(arrived.Count > 0);
         }

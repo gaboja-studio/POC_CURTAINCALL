@@ -1,0 +1,82 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/cheat-probe.cs",
+      "entry": "CheatProbe.KeepClearsAndOpenCheckpoints",
+      "timeout_ms": "25000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 195,
+      "executeMs": 4093,
+      "assemblyName": "PipelineRunScript_cheat-probe_d55d544e33774f79a9f89afa08669836",
+      "success": true,
+      "result": {
+        "scene": "escape_route",
+        "checkpoints": [
+          {
+            "Label": "탈출로 · 후반 질주 시작",
+            "position": "(-340.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "A07 접합 발판"
+          },
+          {
+            "Label": "탈출로 · 후반 그네 앞",
+            "position": "(-474.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "낙하 설비 아래 주행면"
+          },
+          {
+            "Label": "탈출로 · 후반 그네 뒤",
+            "position": "(-502.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "동료 역할 교대 정비대"
+          },
+          {
+            "Label": "탈출로 · 마지막 화염 구간",
+            "position": "(-566.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "마지막 34m 가속과 외벽 통과"
+          },
+          {
+            "Label": "탈출로 · 출구 절단기 앞",
+            "position": "(-582.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "마지막 34m 가속과 외벽 통과"
+          },
+          {
+            "Label": "탈출로 · 마지막 문 앞",
+            "position": "(-597.00, 25.00, 40.30)",
+            "displacement": 0.0499992371,
+            "state": "Normal",
+            "floor": true,
+            "support": "마지막 34m 가속과 외벽 통과"
+          }
+        ],
+        "tightrope": 2,
+        "cannon": 1,
+        "panel": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

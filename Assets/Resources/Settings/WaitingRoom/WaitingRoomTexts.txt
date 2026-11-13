@@ -628,6 +628,9 @@ cannon-rehearsal.fall | 사망했습니다. 자동으로 부활하지 않습니�
 cannon-rehearsal.required-title | 인간대포 리허설
 cannon-rehearsal.unlocked-title | 새 공연 해금 · 인간대포 리허설
 cannon-rehearsal.unlocked-body | 인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?
+cannon-rehearsal.reminder-title | 인간대포 리허설 미이수
+cannon-rehearsal.reminder-body | 아직 인간대포 리허설을 이수하지 않았습니다. 지금 리허설로 이동할까요?
+cannon-rehearsal.pursuit | 추격전 중에는 리허설을 진행할 수 없습니다. 다음 쉬는 시간에 다시 안내합니다.
 cannon-rehearsal.required | 인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?
 cannon-rehearsal.yes | 예
 cannon-rehearsal.no | 아니오
