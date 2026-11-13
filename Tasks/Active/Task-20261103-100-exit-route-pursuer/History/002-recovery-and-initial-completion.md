@@ -82,5 +82,3 @@
 - 복구 후 A/test 각각5879개 오브젝트, 누락 스크립트/프리팹0,74경로/8절단부위/4발사대/149패널 확인. 탈출로 EditMode256/256 PASS(실패·생략0). 최종 check-work는 컴파일·공용 설정·문서/규칙 PASS이며 자동 테스트는 중복 실행하지 않았다.
 - 이동한 파괴벽의 Left wall/Floor/Side -1은 이전 위치 기둥에 맞춘 절단을 쓰지 않도록 원래 Cube 메시로 복구하고 A/test를 저장했다. 원본 에셋은 보존했다.
 - 저장·제출 요청 후 Unity 정상 종료→origin/dev fetch/ff:5c7754ae, 이미 최신. private main의 추가분은 README뿐이며 게임 에셋 차이0. 신규 표면 에셋118파일을 0f7585c8로 저장하고 private main에 게시했다. 공개 저장소에는 gitlink만 반영한다.
-
-
