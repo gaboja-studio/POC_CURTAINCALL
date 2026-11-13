@@ -122,7 +122,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(0f)]
         [TestCase(6f)]
-        public void GrabOpensWallAndReleaseRestoresClosedWallAndFallenBlades(float floorHeight)
+        public void GrabOpensWallThatStaysOpenAfterReleaseUntilReset(float floorHeight)
         {
             gateObject.transform.position = Vector3.up * floorHeight;
             var visual = new GameObject("SawVisual").transform;
@@ -172,10 +172,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
             Present(PoleSawPhase.Active, false, 2.5d);
             Animate(10f);
-            Assert.That(gate.IsOpen, Is.False, "직접 잡은 사람이 놓으면 스위치가 즉시 해제된다.");
-            Assert.That(Inner(right, -1f) - Inner(left, 1f), Is.LessThan(.01f));
-            Assert.That(gate.GoneBladeCount, Is.Zero);
-            Assert.That(leftOuter.gameObject.activeSelf && rightOuter.gameObject.activeSelf, Is.True);
+            Assert.That(gate.IsOpen, Is.True, "봉을 놓아도 재시작 전까지 열려 있다.");
+            Assert.That(Inner(left, 1f), Is.EqualTo(-3f).Within(0.01f));
+            Assert.That(Inner(right, -1f), Is.EqualTo(3f).Within(0.01f));
+            Assert.That(gate.GoneBladeCount, Is.EqualTo(2), "떨어진 톱은 월드 높이 -15m 아래에서 사라진다.");
+            Assert.That(leftOuter.gameObject.activeSelf || rightOuter.gameObject.activeSelf, Is.False);
             Assert.That(leftRotor.gameObject.activeSelf, Is.True);
 
             typeof(HumanCannonSawGate).GetMethod("ResetGate", InternalInstance).Invoke(gate, null);
@@ -187,6 +188,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(leftOuter.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(gate.FallingBladeCount + gate.GoneBladeCount, Is.Zero);
             Object.DestroyImmediate(floor.gameObject);
+        }
+
+        [Test]
+        public void SpinWhileOpeningKeepsBladesSpinningAndHarmfulDuringTheSplit()
+        {
+            Set("spinWhileOpening", true);
+            Present(PoleSawPhase.Retracted, false, true);
+            Assert.That(gate.IsOpen, Is.True);
+            Assert.That(gate.OpenAmount, Is.LessThan(1f));
+            Assert.That(gate.IsSpinning, Is.True, "열리는 동안에도 톱이 돈다.");
         }
 
         [Test]

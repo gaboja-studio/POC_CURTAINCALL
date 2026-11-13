@@ -36,18 +36,18 @@ namespace CurtainCall.HumanCannon.Tests
             var walls = new[] { "LeftBlades", "RightBlades" }.Select(n => gateTransform.Find("SawVisual/" + n).GetComponent<Collider>()).ToArray();
             var fence = gateTransform.Find("Barrier/MetalMesh");
             Assert.IsTrue((bool)Get(gate, "IsOpen"), "봉을 잡는 순간 톱벽이 갈라지기 시작한다.");
-            Assert.IsFalse((bool)Get(gate, "IsSpinning"), "잡으면 톱이 먼저 멈춘다.");
+            Assert.IsTrue((bool)Get(gate, "IsSpinning"), "1구간 톱벽은 잡아도 톱이 계속 돈다.");
             Assert.That((float)Get(gate, "OpenAmount"), Is.LessThan(.5f), "멈춘 뒤 갈라지기 시작한다.");
             yield return WaitUntil(() => (float)Get(gate, "OpenAmount") >= 1f, 2.5f, "0.5초 멈춤 뒤 1초 동안 좌우로 갈라짐");
-            Assert.IsTrue((bool)Get(gate, "IsSpinning"), "다 열리면 양쪽 톱이 다시 돈다.");
+            Assert.IsTrue((bool)Get(gate, "IsSpinning"), "다 열린 뒤에도 양쪽 톱이 돈다.");
             Physics.SyncTransforms();
             float gap = walls[1].bounds.min.x - walls[0].bounds.max.x;
-            Assert.That(gap, Is.EqualTo((float)Get(gate, "OpenGap")).Within(.02f), "트램펄린 폭 + 좌우 0.5m 틈");
+            Assert.That(gap, Is.EqualTo((float)Get(gate, "OpenGap")).Within(.02f), "트램펄린 폭 + 좌우 2m 틈");
             Assert.IsTrue(walls.All(w => w.enabled), "갈라진 양쪽 벽은 계속 막는다.");
-            // 바닥(x ±22) 밖으로 밀려난 양쪽 바깥 톱 3장씩이 떨어져 낙하 부상 높이에서 사라진다.
-            yield return WaitUntil(() => (int)Get(gate, "GoneBladeCount") == 6, 3f, "바닥 밖 톱 낙하 후 소멸");
+            // 바닥(x ±22) 밖으로 밀려난 양쪽 바깥 톱 4장씩이 떨어져 월드 y -15m 아래에서 사라진다.
+            yield return WaitUntil(() => (int)Get(gate, "GoneBladeCount") == 8, 3f, "바닥 밖 톱 낙하 후 소멸");
             Assert.AreEqual(0, (int)Get(gate, "FallingBladeCount"));
-            // 바닥 밖으로 삐져나온 양쪽 끝 철망·위 파이프 조각 1개씩(4개)도 함께 떨어져 사라진다.
+            // 중심이 바닥 밖으로 나간 양쪽 끝 철망·위 파이프 조각 1개씩(4개)도 함께 떨어져 사라진다.
             Assert.That((int)Get(gate, "FallingFenceCount") + (int)Get(gate, "GoneFenceCount"), Is.EqualTo(4));
             yield return WaitUntil(() => (int)Get(gate, "GoneFenceCount") == 4, 2f, "바닥 밖 철망 낙하 후 소멸");
             Assert.IsTrue(fence.GetComponentsInChildren<Renderer>().All(r => r.enabled));
