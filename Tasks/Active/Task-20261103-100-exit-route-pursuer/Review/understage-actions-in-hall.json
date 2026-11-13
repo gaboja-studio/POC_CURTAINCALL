@@ -1,0 +1,97 @@
+[
+  {
+    "name": "menu opened original walkable scene; single local player and single pursuer",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "menu starts action mode in place",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "1 closes original wall for replay",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "W moves actual player during wall rehearsal",
+    "ok": true,
+    "data": {
+      "metres": 1.5631026
+    }
+  },
+  {
+    "name": "real panel breaks while player moves",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "2 walks in original hall",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "3 turns to chase moving participant via live AI",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "4 stoops at actual corridor lintel",
+    "ok": true,
+    "data": {
+      "height": 3.33460069,
+      "z": -0.3807125
+    }
+  },
+  {
+    "name": "upright at far side",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "automatic repeat",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "R replays current action",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "normal gameplay camera can look around",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "F6 resumes original chase with no player teleport or timer restart",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "live agent targets local player",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "leaving mid-action restores live pursuer position",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "session restart exits rehearsal and closes wall",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "player/camera identities preserved",
+    "ok": true,
+    "data": null
+  },
+  {
+    "name": "editor start override restored",
+    "ok": true,
+    "data": null
+  }
+]

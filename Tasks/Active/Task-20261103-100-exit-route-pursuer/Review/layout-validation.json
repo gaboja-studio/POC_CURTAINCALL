@@ -1,0 +1,114 @@
+{
+  "sourceScene": "Assets/Scenes/Levels/escape_route.unity",
+  "sourceHash": "30f324645001d6d308f3a3f950ebca886391548abd89cbdc4cf5e450497c497c",
+  "reviewScene": "Assets/Scenes/Tests/EscapeRoute/Pursuer/EscapePursuerLayout.unity",
+  "coordinateSpace": "EscapeCampaignFrame local metres; position is feet; module origins bind to current landmarks",
+  "models": [
+    {
+      "label": "Human 1.73m",
+      "requestedHeight": 1.73,
+      "measuredHeight": 1.72999954,
+      "measuredWidth": 0.9940796,
+      "depth": 0.406555176
+    },
+    {
+      "label": "2.8m",
+      "requestedHeight": 2.8,
+      "measuredHeight": 2.80000114,
+      "measuredWidth": 1.60888672,
+      "depth": 0.6579895
+    },
+    {
+      "label": "3.2m candidate",
+      "requestedHeight": 3.2,
+      "measuredHeight": 3.20000076,
+      "measuredWidth": 1.83874512,
+      "depth": 0.7519989
+    },
+    {
+      "label": "3.6m",
+      "requestedHeight": 3.6,
+      "measuredHeight": 3.59999847,
+      "measuredWidth": 2.068573,
+      "depth": 0.8460083
+    }
+  ],
+  "modules": [
+    {
+      "name": "00_Scale_1p73_2p8_3p2_3p6",
+      "world": {
+        "x": -218.0,
+        "y": -16.0,
+        "z": 108.3
+      },
+      "children": 4
+    },
+    {
+      "name": "01_FirstBreach__FirstCannon",
+      "world": {
+        "x": -229.0,
+        "y": -16.0,
+        "z": 43.3000031
+      },
+      "children": 6
+    },
+    {
+      "name": "02_OuterLane__Conveyor",
+      "world": {
+        "x": -251.0,
+        "y": -33.0,
+        "z": 150.3
+      },
+      "children": 7
+    },
+    {
+      "name": "03_CoopPressure__UpperLanding",
+      "world": {
+        "x": -318.5,
+        "y": -16.0,
+        "z": 92.80001
+      },
+      "children": 5
+    },
+    {
+      "name": "04_FinalEntry__BridgeOne",
+      "world": {
+        "x": -379.0,
+        "y": -16.0,
+        "z": 40.30002
+      },
+      "children": 2
+    },
+    {
+      "name": "05_BypassReserve__BridgeTwo",
+      "world": {
+        "x": -492.0,
+        "y": -16.0,
+        "z": 40.3000259
+      },
+      "children": 7
+    },
+    {
+      "name": "06_LastChase__BridgeThree",
+      "world": {
+        "x": -515.0,
+        "y": -16.0,
+        "z": 40.3000336
+      },
+      "children": 4
+    },
+    {
+      "name": "Label",
+      "world": {
+        "x": -218.0,
+        "y": -10.5,
+        "z": 108.3
+      },
+      "children": 0
+    }
+  ],
+  "colliders": 0,
+  "missingScripts": 0,
+  "sourceUnchanged": true,
+  "sourceDirty": false
+}

@@ -1,14 +1,14 @@
 ---
-summary: A 쇠창살 시작홀 첫 진입부터8분·대기실 UI 재사용·시간 만료와 기존 결과 집계
+summary: 탈출로 제한시간/카운트다운은 제거됐으며, 추격자 연출용 서버 시작 시각과 재시작 동기화만 유지한다.
 status: active
-updated: 2026-11-02
-source: Task-20261027-073 사용자8분 승인·저장 씬 및 EditMode 검사
+updated: 2026-11-13
+source: Task-20261103-100 사용자 타이머 제거 요청 (2026-11-13); 이전 Task-20261027-073 8분 제한을 대체
 ---
-# 탈출로 제한 시간
-- A EscapeCampaignFrame의 EscapeRouteTimer가480초를 담당한다. FacilityContent/53_EscapeCountdownStart는 시설 좌표 X0~30/Z0~22.5/Y0~5의 쇠창살 전망 시작홀이다. 계단 끝 접근 구역은 포함하지 않는다.
-- 로딩/배치가 끝나고 정상 상태 참가자 첫1명이 진입하면 한 번만 시작한다. 부상은 진입을 막지 않으며 전원 집결·봉/점프 조건은 없다. 진입 전 UI는 숨기고,진입 후 뒤로 나가도 초기화하지 않는다.
-- 호스트 ServerTime 절대 시작 시각/480초를 공유한다. 늦게 상태를 받아도 같은 마감 시각이며 재시작 토큰/증분 번호로 이전 타이머 재적용을 차단한다. 개발 R 재시작은 새480초로 초기화한다.
-- 기존 RestTimer v2.8 프리팹의 A 씬 인스턴스를 EscapeBodyStatusHud/ EscapeCountdownDisplay에 배치한다. 좌상단(48,-64),192×220. 시간 계산은 A 전용이며 대기실 시간·UI 원본·공용 RestTimer.Read는 변경하지 않는다. 기존30초 경고/10초 긴급 표현을 사용한다.
-- 만료 시 호스트가 아직 정상 상태인 참가자만 Retired로 바꾼다. 먼저 실행되는 기존 EscapeCampaignContent가 출구 도착을 확정하고,전원 도착/리타이어/이탈 후 도착1명 이상 성공을 그대로 결정한다. 최종 추격 화염 시간표는 별개로 유지한다.
-- 설정: A EscapeCampaignFrame → EscapeRouteTimer → Duration Seconds/Start Area/Display. 새 결과 판정이나 대기실 합류 타이머는 추가하지 않는다.
-- EditMode12/12·편집 연결/범위/원본 보존 확인. 실제 Play/MPPM은 사용자 요청으로 미실행. [구현·검사 범위](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/escape-countdown.md).
+# 탈출로 연출 시계와 제한시간 제거
+- 탈출로는 제한시간이 없다. 480초 카운트다운·시간 초과 리타이어·ESCAPE_TIMEOUT 발생 경로를 제거했다. 빠른 전진은 추격자와 실제 위험물이 압박한다.
+- EscapeRouteTimer는 기존 씬/프리팹 참조를 보존하는 이름이다. 이제 StartedAt/HasStarted/Clock/ElapsedSeconds만 제공하는 내부 연출 시계이며 Duration/Remaining/Expired API는 없다.
+- 시작홀 첫 정상 참가자 진입을 호스트가 기록하고 시작 시각·세대·리비전/재시작 토큰을 공유한다. 늦게 합류한 클라이언트와 재시작도 같은 추격자 라운드를 사용한다.
+- A와 전체 A 추격자 테스트 씬의 EscapeCountdownDisplay 인스턴스를 비활성화한다. 이전 씬의 display 참조가 남아 있어도 내부 시계가 Hide 처리한다. 대기실 시간과 공용 RestTimer 프리팹은 변경하지 않는다.
+- 추격자 등장/조준/도약·불꽃벽 점화 후 진행 시간은 유지한다. 출구는 필수 배선 절단 후 개방하며 기존 도착/리타이어/이탈 집계를 사용한다.
+- 로그 호환: ESCAPE_STARTED durationMs=0/timeLimitEnabled=false, ESCAPE_SECTION remainingMs=null 및 elapsedMs, ESCAPE_ENDED timeout=false. 시작/진행 시간은 제한시간을 뜻하지 않는다.
+- 이전 8분 규칙과 검사는 [과거 기록](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/escape-countdown.md)이다.

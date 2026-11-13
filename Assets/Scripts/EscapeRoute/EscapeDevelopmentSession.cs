@@ -7,6 +7,7 @@ using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Survival;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -71,6 +72,7 @@ namespace CurtainCall.EscapeRoute
         ISessionConnector connector;
         bool multiplayer;
         bool devLaunch;
+        SurvivalPlace? previousPracticePlace;
         IDisposable minimumPlayers;
         double recoverAt = -1;
         public bool Ready { get; private set; }
@@ -109,6 +111,8 @@ namespace CurtainCall.EscapeRoute
 #if UNITY_EDITOR
             if (EscapeMppmReviewConfig.TryGet(out _, out int reviewSlot, out configuredParticipants))
             { multiplayer = true; client = reviewSlot != 0; }
+            else if (!multiplayer && EscapeMppmReviewConfig.TryPursuerSession(gameObject.scene, out client, out configuredParticipants))
+                multiplayer = true;
 #endif
             if (multiplayer)
             {
@@ -184,13 +188,20 @@ namespace CurtainCall.EscapeRoute
         {
             if (Ready && multiplayer && session != null) Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
             if (!Ready || !OwnsRecovery) return;
+            // Direct A/test execution has no campaign step to establish the shared escape rules.
+            if (!previousPracticePlace.HasValue && CampaignRun.Instance == null && EscapeCampaignContent.IsTraversalActive)
+            {
+                previousPracticePlace = SurvivalRules.ServerPlace;
+                InjuryRevival.ServerApplyStep(new CampaignSnapshot { Phase = CampaignPhase.Escape });
+            }
             // 원본 기물이 종료를 요청하더라도 개발씬에서는 같은 플레이어로 계속 검토한다.
             if (!devLaunch && session.GameState == GameSessionState.Ended && session.RestartEndedGame()) Restart();
             var player = NetworkPlayer.Local;
             bool failed = player != null && player.IsSpawned
                 && (player.State == PlayerState.Fallen || player.State == PlayerState.Retired);
             if (multiplayer || devLaunch) foreach (var participant in NetworkPlayer.All)
-                if (participant != null && participant.IsSpawned && participant.State == PlayerState.Normal) failed = false;
+                if (participant != null && participant.IsSpawned &&
+                    (participant.State == PlayerState.Normal || participant.State == PlayerState.EscapeCaptured)) failed = false;
             if (!failed) { recoverAt = -1; return; }
             if (recoverAt < 0) recoverAt = Time.unscaledTimeAsDouble + RecoverySeconds;
             if (Time.unscaledTimeAsDouble >= recoverAt) Restart();
@@ -209,6 +220,9 @@ namespace CurtainCall.EscapeRoute
 
         void OnDisable()
         {
+            if (previousPracticePlace.HasValue && CampaignRun.Instance == null && SurvivalRules.ServerPlace == SurvivalPlace.EscapeRoute)
+                SurvivalRules.ServerPlace = previousPracticePlace.Value;
+            previousPracticePlace = null;
             if (entranceSession == this) entranceSession = null;
             entranceChannel?.Dispose();
             entranceChannel = null;

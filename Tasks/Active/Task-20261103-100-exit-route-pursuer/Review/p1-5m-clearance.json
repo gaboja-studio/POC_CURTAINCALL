@@ -1,0 +1,176 @@
+{
+  "sourcePath": "Assets/Scenes/Levels/escape_route.unity",
+  "sourceGuid": "c9bc27ef66a57414e8bd36141ad746b2",
+  "prefabPath": "Assets/Scenes/Tests/EscapeRoute/Pursuer/Prefabs/Pursuer5mGreybox.prefab",
+  "reviewInstances": 6,
+  "bodyHeight": 5.0,
+  "hullHalfWidth": 1.49258935,
+  "hullBottom": 0.035,
+  "hullTop": 5.05,
+  "floorSpacing": 0.25,
+  "cornerYawStepDegrees": 5,
+  "floorRayTolerance": 0.12,
+  "soleCorners": 8,
+  "method": "Static source non-trigger colliders. Continuous straight box sweeps and endpoint overlaps with a fixed square enclosing the neutral body at any yaw. Eight sole corners sampled along each line and through turns. Ignores proposed floors and animated poses.",
+  "breach": {
+    "routeName": "P1 approach",
+    "length": 10.5,
+    "segments": [
+      {
+        "from": [
+          3.49999642,
+          0.0,
+          40.0
+        ],
+        "to": [
+          13.9999962,
+          0.0,
+          40.0
+        ]
+      }
+    ],
+    "poses": 43,
+    "probes": 344,
+    "missedProbes": 208,
+    "unsupportedPoses": 28,
+    "firstUnsupported": [
+      3.49999642,
+      0.0,
+      40.0
+    ],
+    "lastUnsupported": [
+      10.2499962,
+      0.0,
+      40.0
+    ],
+    "blockers": [
+      "EscapeCampaignFrame/EscapeBackground/17_BrutalistRoute/02_CompressionGallery/타설 콘크리트 벽"
+    ]
+  },
+  "chase": {
+    "routeName": "P1 direct chase",
+    "length": 36.94427,
+    "segments": [
+      {
+        "from": [
+          13.9999962,
+          0.0,
+          40.0
+        ],
+        "to": [
+          17.9999962,
+          0.0,
+          48.0
+        ]
+      },
+      {
+        "from": [
+          17.9999962,
+          0.0,
+          48.0
+        ],
+        "to": [
+          17.9999943,
+          0.0,
+          65.0
+        ]
+      },
+      {
+        "from": [
+          17.9999943,
+          0.0,
+          65.0
+        ],
+        "to": [
+          17.9999943,
+          0.0,
+          75.0
+        ]
+      },
+      {
+        "from": [
+          17.9999943,
+          0.0,
+          75.0
+        ],
+        "to": [
+          18.9999943,
+          0.0,
+          75.0
+        ]
+      }
+    ],
+    "poses": 189,
+    "probes": 1512,
+    "missedProbes": 0,
+    "unsupportedPoses": 0,
+    "firstUnsupported": null,
+    "lastUnsupported": null,
+    "blockers": []
+  },
+  "previousChase": {
+    "routeName": "P1 direct chase",
+    "length": 41.64231,
+    "segments": [
+      {
+        "from": [
+          13.9999962,
+          0.0,
+          40.0
+        ],
+        "to": [
+          17.9999962,
+          0.0,
+          48.0
+        ]
+      },
+      {
+        "from": [
+          17.9999962,
+          0.0,
+          48.0
+        ],
+        "to": [
+          17.9999943,
+          0.0,
+          65.0
+        ]
+      },
+      {
+        "from": [
+          17.9999943,
+          0.0,
+          65.0
+        ],
+        "to": [
+          19.9999943,
+          0.0,
+          75.0
+        ]
+      },
+      {
+        "from": [
+          19.9999943,
+          0.0,
+          75.0
+        ],
+        "to": [
+          25.4999943,
+          0.0,
+          75.0
+        ]
+      }
+    ],
+    "poses": 209,
+    "probes": 1672,
+    "missedProbes": 0,
+    "unsupportedPoses": 0,
+    "firstUnsupported": null,
+    "lastUnsupported": null,
+    "blockers": [
+      "EscapeCampaignFrame/EscapeBackground/16_VerticalFacility/01_Shell_50x50_134m/서측 상부 외벽",
+      "EscapeCampaignFrame/EscapeBackground/16_VerticalFacility/01_Shell_50x50_134m/입구 남측 벽"
+    ]
+  },
+  "sourceSHA256": "30f324645001d6d308f3a3f950ebca886391548abd89cbdc4cf5e450497c497c"
+}

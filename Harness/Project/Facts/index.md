@@ -6,7 +6,8 @@
 
 - [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목
 
-- [escape-route-timer.md](escape-route-timer.md) — 쇠창살 시작홀8분·기존 대기실 타이머 UI 재사용·만료/성공 집계를 확인할 때
+- [escape-route-timer.md](escape-route-timer.md) — 제한시간 제거·추격자 연출용 서버 시계·재시작 동기화를 확인할 때
+- [escape-pursuer-layout.md](escape-pursuer-layout.md) — 첫 등장 우측 벽·숨은 정비로·패널/탄도/표면 겹침을 조정할 때
 
 - [escape-waiting-transition.md](escape-waiting-transition.md) — 현재 인원 전원 합류 후 로딩·위치 인계·W 해제·A 계단 카메라와 미검증 범위를 확인할 때
 - [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 지상 그네·장거리 대포·연속 그네·교대 화염·개발 실행을 확인할 때

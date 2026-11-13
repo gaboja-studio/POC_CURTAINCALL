@@ -5,33 +5,30 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
-using CurtainCall.UI.RestTimerV28;
 using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
 using TimerDisplay = CurtainCall.UI.SceneIntegration.RestTimerView;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>A host-owned escape deadline, started once when anyone enters the barred observation hall.</summary>
+    /// <summary>Shared escape encounter clock. The serialized type/GUID is retained; there is no deadline or countdown.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(-50)]
     public sealed partial class EscapeRouteTimer : MonoBehaviour
     {
         [SerializeField] EscapeCampaignContent content;
         [SerializeField] BoxCollider startArea;
-        [SerializeField, Min(1)] float durationSeconds = 480;
-        [SerializeField] TimerDisplay display;
+        // Hide an old scene's countdown during migration, without changing the waiting-room clock.
+        [SerializeField, HideInInspector] TimerDisplay display;
 
         public static EscapeRouteTimer Current { get; private set; }
         public bool HasStarted => synchronized && !resetBarrier.Waiting && startedAt >= 0;
         public double StartedAt => startedAt;
-        public double DurationSeconds => sharedDuration;
-        public double RemainingSeconds => RemainingAt(Clock, startedAt, sharedDuration);
-        public bool HasExpired => HasStarted && RemainingSeconds <= 0;
+        public double ElapsedSeconds => HasStarted ? ElapsedAt(Clock, startedAt) : 0;
         public BoxCollider StartArea => startArea;
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
 
-        double startedAt = -1, sharedDuration = 480, nextSnapshot, nextSync;
+        double startedAt = -1, nextSnapshot, nextSync;
         uint revision;
         int generation = -1, resetFrame = -1;
         bool synchronized;
@@ -45,11 +42,10 @@ namespace CurtainCall.EscapeRoute
         int CurrentGeneration => content != null && content.IsCampaign && CampaignRun.Instance != null
             ? CampaignRun.Instance.State.Generation : 0;
 
-        public static double RemainingAt(double now, double epoch, double duration)
+        public static double ElapsedAt(double now, double epoch)
         {
-            if (!double.IsFinite(now) || !double.IsFinite(epoch) || !double.IsFinite(duration)
-                || duration <= 0 || epoch < 0) return Math.Max(0, double.IsFinite(duration) ? duration : 0);
-            return Math.Max(0, duration - Math.Max(0, now - epoch));
+            if (!double.IsFinite(now) || !double.IsFinite(epoch) || epoch < 0) return 0;
+            return Math.Max(0, now - epoch);
         }
 
         bool IsParticipant(NetworkPlayer player)
@@ -77,15 +73,15 @@ namespace CurtainCall.EscapeRoute
         void Update()
         {
             Attach();
+            if (display != null) display.Hide();
             if (!RouteReady || SceneCurtainTransition.IsActive)
             {
-                if (display != null) display.Hide();
                 return;
             }
             if (session.IsHost)
             {
                 if (generation != CurrentGeneration) ResetClock();
-                if (resetFrame != Time.frameCount && float.IsFinite(durationSeconds) && durationSeconds >= 1)
+                if (resetFrame != Time.frameCount)
                 {
                     foreach (var player in NetworkPlayer.All)
                     {
@@ -97,11 +93,8 @@ namespace CurtainCall.EscapeRoute
                         }
                         if (!HasStarted && CanStart(player))
                         {
-                            startedAt = Clock; sharedDuration = durationSeconds; revision++; Publish();
+                            startedAt = Clock; revision++; Publish();
                         }
-                        // EscapeCampaignContent runs first: exit arrivals win this frame, then only pending players retire.
-                        // Its existing all-resolved / at-least-one-arrived result rule owns success and failure.
-                        if (HasExpired) player.ServerSetState(PlayerState.Retired, NetworkPlayer.DeathOrigin.Timeout);
                     }
                 }
                 if (Time.unscaledTimeAsDouble >= nextSnapshot)
@@ -113,23 +106,11 @@ namespace CurtainCall.EscapeRoute
                 nextSync = Time.unscaledTimeAsDouble + .5;
                 RequestSnapshot(resetBarrier.Waiting ? resetBarrier.Token : 0);
             }
-            Present();
-        }
-
-        void Present()
-        {
-            if (display == null) return;
-            var local = NetworkPlayer.Local;
-            bool visible = RouteReady && HasStarted && generation == CurrentGeneration && IsParticipant(local)
-                && !SceneCurtainTransition.IsActive;
-            int day = CampaignRun.Instance != null ? CampaignRun.Instance.State.Day : 1;
-            display.View.SetSnapshot(new RestTimerSnapshot(visible, day, RestTimeOfDay.Unknown,
-                RestTimerMode.Limited, RemainingSeconds, sharedDuration));
         }
 
         void ResetClock()
         {
-            startedAt = -1; sharedDuration = float.IsFinite(durationSeconds) ? Math.Max(1, durationSeconds) : 480;
+            startedAt = -1;
             generation = CurrentGeneration; synchronized = true; revision++; Publish();
             if (display != null) display.Hide();
         }

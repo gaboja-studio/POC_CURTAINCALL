@@ -129,7 +129,8 @@ namespace CurtainCall.EscapeRoute
         {
             if (shots.Count >= MaxProjectiles) return;
             var origin = muzzle != null ? muzzle : blade != null ? blade : CarryRoot;
-            Vector3 direction = Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
+            Vector3 direction = pendingBossAim.sqrMagnitude > .99f ? pendingBossAim
+                : Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return;
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = origin.position, Direction = direction };
             shots.Add(shot);
@@ -151,7 +152,10 @@ namespace CurtainCall.EscapeRoute
                 // 클라이언트도 자기 화면의 벽에서 즉시 숨긴다. 절단 확정은 호스트만 한다.
                 bool blocked = ObstructionDistance(from, shot.Direction, distance, out distance);
                 Vector3 to = from + shot.Direction * distance;
-                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, Vector3.up, shot);
+                Vector3 normal = Quaternion.LookRotation(shot.Direction, Vector3.up) * Vector3.up;
+                if (host && finaleBoss && finaleBoss.TryHitSaw(from, to, normal, projectileRadius, projectileHalfThickness, out var bossContact))
+                { to = bossContact; blocked = true; }
+                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, normal, shot);
                 shot.Position = to; shot.Age += step;
                 if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
                     if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
@@ -178,7 +182,9 @@ namespace CurtainCall.EscapeRoute
             return blocked;
         }
         bool ShotObstacle(Collider collider) => collider != null && !collider.transform.IsChildOf(CarryRoot)
-            && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null;
+            && !collider.GetComponent<EscapePursuerDebris>()
+            && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null
+            && (!finaleBoss || collider.GetComponentInParent<EscapePursuerBoss>() != finaleBoss);
         void CutAlong(Vector3 from, Vector3 to, Vector3 normal, Shot shot = null)
         {
             for (int i = 0; cables != null && i < cables.Length && i < 32; i++)
@@ -279,7 +285,7 @@ namespace CurtainCall.EscapeRoute
             {
                 var shot = incoming[i];
                 if (shot == null || shot.Id == 0 || (UnlimitedProjectiles ? shot.Epoch > epoch : shot.Epoch != epoch) || !Finite(shot.Position) || !Finite(shot.Direction)
-                    || Mathf.Abs(shot.Direction.y) > .001f || Mathf.Abs(shot.Direction.sqrMagnitude - 1) > .01f
+                    || Mathf.Abs(shot.Direction.y) > (finaleBoss ? .95f : .001f) || Mathf.Abs(shot.Direction.sqrMagnitude - 1) > .01f
                     || !float.IsFinite(shot.Age) || shot.Age < 0 || !UnlimitedProjectiles && shot.Age >= projectileLifetime) return false;
                 for (int j = 0; j < i; j++) if (incoming[j].Id == shot.Id) return false;
             }

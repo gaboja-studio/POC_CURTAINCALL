@@ -1,0 +1,37 @@
+{
+  "models": [
+    {
+      "label": "Human 1.73m",
+      "height": 1.72999954,
+      "width": 0.646118164,
+      "depth": 0.406555176
+    },
+    {
+      "label": "3.2m previous",
+      "height": 3.20000076,
+      "width": 1.83874512,
+      "depth": 0.7519989
+    },
+    {
+      "label": "5m proposal",
+      "height": 5.000002,
+      "width": 2.87298584,
+      "depth": 1.175003
+    },
+    {
+      "label": "6m comparison",
+      "height": 6.0,
+      "width": 3.4475708,
+      "depth": 1.41000366
+    }
+  ],
+  "proposalHeight": 5,
+  "comparisonHeight": 6,
+  "clearWidthProposal": 4.5,
+  "clearHeightProposal": 6,
+  "sourceDirty": false,
+  "reviewDirty": false,
+  "colliders": 0,
+  "footCoordinates": "EscapeCampaignFrame local metres",
+  "largerModelsNeedRouteRevalidation": true
+}

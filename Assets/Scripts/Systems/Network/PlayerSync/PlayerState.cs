@@ -14,5 +14,7 @@ namespace CurtainCall.Network.PlayerSync
         Arrived = 2,
         /// <summary>리타이어(탈출로에서 사망·잡힘). 조작 잠김. 런이 끝날 때까지 유지. 규칙: Harness/Project/Decisions/injury-rules.md #5</summary>
         Retired = 3,
+        /// <summary>탈출로 포획 연출 중. 호스트가 투척을 마치면 리타이어한다.</summary>
+        EscapeCaptured = 4,
     }
 }

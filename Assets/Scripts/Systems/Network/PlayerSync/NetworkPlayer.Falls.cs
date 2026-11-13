@@ -124,6 +124,7 @@ namespace CurtainCall.Network.PlayerSync
 
         void LateUpdate()
         {
+            MaintainEscapeCapture();
             if (!IsSpawned || (!IsOwner && !IsServer) || mover == null) return;
             if (naturalFallQueued) { naturalFallQueued = false; BeginNaturalFall(); }
             if (!fallTracking || fallScene != SceneManager.GetActiveScene().handle
