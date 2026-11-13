@@ -5,6 +5,8 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -26,7 +28,7 @@ namespace CurtainCall.Dev
         public string Status { get; private set; } = "";
 
         readonly List<DevCheats.TeleportPoint> points = new();
-        readonly List<DevCheats.TeleportPoint> checkpoints = new();
+
         UIInputBlocker input;
         float nextRefresh;
         Vector2 scroll;
@@ -51,10 +53,20 @@ namespace CurtainCall.Dev
 
         void OnDestroy() { if (Instance == this) Instance = null; }
 
+        void LateUpdate()
+        {
+            if (DevMode.Enabled) DevCheats.TrackCheckpoints();
+        }
+
         void Update()
         {
             var keyboard = Keyboard.current;
-            if (!DevMode.Enabled || keyboard == null) return;
+            if (!DevMode.Enabled)
+            {
+                if (IsOpen) { IsOpen = false; input.SetOpen(false); }
+                return;
+            }
+            if (keyboard == null) return;
             if (keyboard.f9Key.wasPressedThisFrame) Toggle();
         }
 
@@ -72,7 +84,7 @@ namespace CurtainCall.Dev
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + RefreshInterval;
             DevCheats.CollectTeleportPoints(NetworkPlayer.Local, points);
-            DevCheats.CollectCheckpoints(checkpoints);
+
         }
 
         void Report(bool done, string success, string failure) => Status = done ? success : failure;
@@ -111,7 +123,8 @@ namespace CurtainCall.Dev
             if (local == null || !local.IsSpawned) GUILayout.Label("내 캐릭터가 아직 없습니다. 대기실·공연·탈출로에 들어간 뒤 사용하세요.", label);
             else GUILayout.Label($"상태: {local.State} · 자리 {local.Slot + 1} · {(host ? "호스트" : "클라이언트")}", label);
 
-            DrawEscapeCheckpoints(local, host);
+            bool checkpointMode = DevCheats.CurrentCheckpointRoute() != null;
+            DrawCheckpoints(local, host, checkpointMode);
             GUILayout.Space(6);
             GUILayout.Label("공연 난이도 바로가기", heading);
             GUILayout.Label("새 테스트 런 · 접속한 팀원도 함께 이동합니다.", label);
@@ -144,7 +157,7 @@ namespace CurtainCall.Dev
                 Report(done, "균형을 중앙으로 되돌렸습니다.", "줄 위에서 살아 있을 때만 쓸 수 있습니다.");
             }
             GUI.enabled = host;
-            if (GUILayout.Button("모두 되살리기 (제자리, 부상 회복)", button))
+            if (!checkpointMode && GUILayout.Button("모두 되살리기 (제자리, 부상 회복)", button))
             {
                 NetworkPlayer.ServerRestoreEveryone();
                 Status = "모두 온전한 몸으로 되살렸습니다.";
@@ -173,7 +186,7 @@ namespace CurtainCall.Dev
                 Report(DevCheats.Teleport(local, local.transform.position + Vector3.up * NudgeUp, local.transform.rotation, out var why),
                     $"위로 {NudgeUp:0}m 이동", why);
             GUILayout.EndHorizontal();
-            DrawTeleportPoints(local, false);
+            if (!checkpointMode) DrawTeleportPoints(local, false);
 
             GUILayout.Space(8);
             if (Status.Length > 0) GUILayout.Label(Status, label);
@@ -183,31 +196,53 @@ namespace CurtainCall.Dev
             GUILayout.EndArea();
         }
 
-        void DrawEscapeCheckpoints(NetworkPlayer local, bool host)
+        void DrawCheckpoints(NetworkPlayer local, bool host, bool checkpointMode)
         {
             bool escape = EscapeCampaignContent.IsTraversalActive;
-            if (!escape && checkpoints.Count == 0) return;
+            if (!escape && !checkpointMode) return;
             GUILayout.Space(6);
-            GUILayout.Label(escape ? "탈출로 체크포인트" : "공연 체크포인트", heading);
+            bool waitingRoom = WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
+            GUILayout.Label(escape ? "탈출로 체크포인트" : waitingRoom ? "대기실 체크포인트" : "공연 체크포인트", heading);
             if (escape)
             {
                 GUI.enabled = host && !EscapeCampaignContent.Current.ExitOpen;
                 if (GUILayout.Button("마지막 문 열기 (호스트)", button)) TryOpenEscapeExit();
+                GUI.enabled = true;
             }
-            int last = checkpoints.FindLastIndex(p => p.TeamRecovery);
-            GUI.enabled = host && last >= 0;
-            if (GUILayout.Button("마지막 체크포인트에서 모두 부활", button))
+            if (!checkpointMode) { DrawTeleportPoints(local, true); return; }
+
+            GUILayout.Label("부활 · 플레이어별 마지막 통과 지점", label);
+            if (host)
             {
-                DevCheats.TryRecoverTeamAtLastCheckpoint(out var recoveryMessage);
-                Status = recoveryMessage;
+                bool canRevive = false;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (!player.IsSpawned || player.Slot == NetworkPlayer.NoSlot) continue;
+                    string passed = DevCheats.LastCheckpointLabel(player);
+                    bool dead = player.State is PlayerState.Fallen or PlayerState.Retired;
+                    canRevive |= dead && passed != null;
+                    GUILayout.Label($"단원 {player.Slot + 1}{(dead ? " (사망)" : "")}: {passed ?? "통과 기록 없음"}", label);
+                }
+                DevCheats.HoldCheckpointWipe = GUILayout.Toggle(DevCheats.HoldCheckpointWipe, " 전원 사망 시 F9 부활 대기", toggle);
+                GUI.enabled = canRevive;
+                if (GUILayout.Button("사망자를 각자의 마지막 체크포인트에서 부활", button))
+                {
+                    DevCheats.TryRecoverTeamAtLastCheckpoint(out var recoveryMessage);
+                    Status = recoveryMessage;
+                }
+                GUI.enabled = true;
+            }
+            else GUILayout.Label("체크포인트 부활은 호스트만 실행할 수 있습니다.", label);
+
+            GUILayout.Label("순간이동 · 체크포인트 순서", label);
+            if (points.Count == 0) GUILayout.Label("사용할 수 있는 체크포인트가 없습니다.", label);
+            GUI.enabled = local != null && local.State == PlayerState.Normal;
+            foreach (var point in points)
+            {
+                if (point.Order < 0 || !GUILayout.Button($"{point.Order + 1:00}. {point.Label}{(point.TeamRecovery ? "" : " (이동 전용)")}", button)) continue;
+                Report(DevCheats.Teleport(local, point.Position, point.Rotation, out var why), $"{point.Label}(으)로 이동", why);
             }
             GUI.enabled = true;
-            if (last >= 0) GUILayout.Label($"팀 부활 위치: {checkpoints[last].Label}", label);
-            if (checkpoints.Count == 0) DrawTeleportPoints(local, true);
-            else
-                foreach (var point in checkpoints)
-                    if (GUILayout.Button(point.Label, button) && local != null)
-                        Report(DevCheats.Teleport(local, point.Position, point.Rotation, out var why), $"{point.Label}(으)로 이동", why);
         }
 
         void DrawTeleportPoints(NetworkPlayer local, bool escape)
