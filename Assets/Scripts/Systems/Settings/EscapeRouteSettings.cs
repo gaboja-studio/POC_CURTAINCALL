@@ -110,6 +110,10 @@ namespace CurtainCall.Settings
             [Min(0)] public float aimLeadSeconds = .18f;
             [Tooltip("콘크리트 벽을 부수는 연출 시간(초).")]
             [Min(.1f)] public float wallBreakSeconds = .65f;
+            [Tooltip("벽 밖 플랫폼에서 봉·기물의 플레이어에게 뻗는 최대 거리(m).")]
+            [Min(3f)] public float exposedGrabRange = 12f;
+            [Tooltip("벽 밖에서 플레이어를 압박한 뒤 다음 구간으로 이동하기까지 최소 시간(초).")]
+            [Min(1f)] public float encounterMinimumSeconds = 3f;
             [Tooltip("달려들기 전에 대상을 노려보며 준비하는 시간(초).")]
             [Min(.2f)] public float chargeWarning = 1.15f;
             [Tooltip("콘크리트 파편을 던지기 전 예고 시간(초).")]

@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
             public bool reveal;
             public bool finalSprint;
             public bool jump;
+            public bool exposed;
         }
         [SerializeField] Point[] points = Array.Empty<Point>();
         [SerializeField] HumanCannonSystem cannon;
@@ -37,6 +38,8 @@ namespace CurtainCall.EscapeRoute
         public IReadOnlyList<Point> Points => points;
         public float Progress => cursor;
         public bool Following => entered;
+        public bool Exposed => Valid && points[Mathf.Min(points.Length - 1, Mathf.FloorToInt(cursor))].exposed;
+        public void ResumeAt(int point) { cursor = Mathf.Clamp(point, 0, points.Length - 1); entered = true; }
         public bool Valid => points.Length > 1;
         public Vector3 Entry => points[0].feet.position;
         public Vector3 NextPosition => points[Mathf.Min(points.Length - 1, Mathf.FloorToInt(cursor) + 1)].feet.position;
@@ -128,7 +131,7 @@ namespace CurtainCall.EscapeRoute
             float highest = float.NegativeInfinity;
             foreach (var player in NetworkPlayer.All)
             {
-                if (!player || !player.IsSpawned || player.State != PlayerState.Normal || !HasDeparted(player)) continue;
+                if (!player || !player.IsSpawned || player.State != PlayerState.Normal || !entered && !HasDeparted(player)) continue;
                 float progress = Project(PlayerFeet(player), out _);
                 // Progress keeps the creature with the escaping team. Recent victims get a short
                 // reduction so one nearby decoy cannot monopolize every attack.
@@ -153,9 +156,7 @@ namespace CurtainCall.EscapeRoute
         public bool CanAim(NetworkPlayer player, Vector3 feet)
         {
             if (!entered || !player) return false;
-            float progress = Project(PlayerFeet(player), out _);
-            // Do not shoot through the facility from a different encounter, even within arm range.
-            return Mathf.Abs(progress - cursor) < 4f;
+            return (PlayerFeet(player) - feet).sqrMagnitude < Tuning.armRange * Tuning.armRange;
         }
         public Vector3 ThrowEnd
         {

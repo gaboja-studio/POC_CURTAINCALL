@@ -72,7 +72,8 @@ namespace CurtainCall.EscapeRoute
         {
             foreach (var player in NetworkPlayer.All)
                 if (player && player.IsSpawned && player.State == PlayerState.Normal
-                    && EscapeEntrance.Contains(encounterArea, player.transform.position)) return true;
+                    && (EscapeEntrance.Contains(encounterArea, player.transform.position)
+                        || chase && chase.RunnerIsOnRoute(player))) return true;
             return false;
         }
 
