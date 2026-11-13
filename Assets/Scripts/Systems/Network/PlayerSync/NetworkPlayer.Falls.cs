@@ -293,14 +293,7 @@ namespace CurtainCall.Network.PlayerSync
                 ServerKill(DeathOrigin.Fall);
                 return false;
             }
-            var course = TightropeCourse.Current;
-            bool ropeLanding = GameSettings.Base.BodyDamage.SafeRopeLanding && course != null && course.IsTraversalActive
-                && course.TryGetSupportingRopeAt(mover, feet, out _);
-            bool safePlatformLanding = GameSettings.Base.BodyDamage.SafeLandingZones
-                && HumanCannonLandingZone.ContainsLanding(mover, feet);
-            bool safeWaitingRoom = GameSettings.WaitingRoom.SafeFallLandings
-                && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
-            var outcome = ropeLanding || safePlatformLanding || safeWaitingRoom ? FallOutcome.Safe : CommonDamageRules.Fall(height);
+            var outcome = IsSafeLandingSpot(feet) ? FallOutcome.Safe : CommonDamageRules.Fall(height);
             bool protectedFall = EscapeDevelopmentSession.FallConsequencesSuppressed(this);
             if (outcome != FallOutcome.Safe && !protectedFall && rebound != null && rebound())
             { ResetFallTracking(); return true; }
@@ -311,6 +304,28 @@ namespace CurtainCall.Network.PlayerSync
             if (outcome == FallOutcome.Dead) ServerKill(DeathOrigin.Fall);
             else ServerCut(GameSettings.Base.BodyDamage.FallInjuryCutCount, null, DeathOrigin.Fall);
             return false;
+        }
+
+        /// <summary>높이와 무관하게 부상 없이 끝나는 착지 위치(외줄 접촉·안전 착지 구역·대기실 안전 낙하).</summary>
+        bool IsSafeLandingSpot(Vector3 feet)
+        {
+            var course = TightropeCourse.Current;
+            return GameSettings.Base.BodyDamage.SafeRopeLanding && course != null && course.IsTraversalActive
+                    && course.TryGetSupportingRopeAt(mover, feet, out _)
+                || GameSettings.Base.BodyDamage.SafeLandingZones && HumanCannonLandingZone.ContainsLanding(mover, feet)
+                || GameSettings.WaitingRoom.SafeFallLandings && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
+        }
+
+        /// <summary>
+        /// 표시용 예측: 지금 낙하가 이 발 위치에서 끝나면 부상·사망 없이 끝나는지. <see cref="CompleteFall"/>과 같은 규칙
+        /// (교육 바닥 낙하 = 위험, 개발 보호·안전 착지 위치 = 안전, 그 밖은 지금까지의 최고점 기준 낙하 높이)을 쓴다.
+        /// 반동 장비(스프링 신발)는 보지 않는다. 최고점은 소유자·호스트만 알고, 다른 화면은 현재 높이로 대신한다.
+        /// </summary>
+        public bool PredictsSafeLanding(Vector3 feet)
+        {
+            if (IsTutorialFloorFall(feet)) return false;
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this) || IsSafeLandingSpot(feet)) return true;
+            return CommonDamageRules.Fall(FallHeightAt(feet)) == FallOutcome.Safe;
         }
 
         bool TryOrdinarySpringRebound()
