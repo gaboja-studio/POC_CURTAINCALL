@@ -5,6 +5,7 @@
 - **Assignee:** @MoHoDu
 - **Branch:** fix/waiting-room/maintenance-stage-corridor
 - **Base:** dev
+- **PR:** #381
 
 ## Context
 2026-11-14 사용자: 정비 시간에 공연장으로 가는 복도(무대 입구 통로) 조명을 끄고, 로비 → 복도 입구를 다른 곳과 같은 철창으로 닫는다. 쉬는 시간에는 열려 있어야 한다.
