@@ -67,5 +67,43 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse((bool)Static(RehearsalType, "IsActive"));
             Assert.IsTrue((bool)Call(director, "DebugResetTimer"));
         }
+
+        /// <summary>Task-129: 정비 시간에는 로비 → 무대 입구 통로 철창이 닫히고 통로 조명이 꺼진다. 쉬는 시간에는 열려 있다.</summary>
+        [UnityTest]
+        public IEnumerator UnifiedWaitingRoom_MaintenanceClosesStageCorridor()
+        {
+            SelectUnifiedRoom();
+            var closure = T("CurtainCall.WaitingRoom.StageCorridorClosure");
+            Component Gate() => SceneManager.GetSceneByName("WaitingRoom").GetRootGameObjects()
+                .SelectMany(r => r.GetComponentsInChildren(T("CurtainCall.WaitingRoom.NightDoorLock"), true))
+                .Single(c => c.name == (string)closure.GetField("GateName").GetValue(null));
+            Light[] CorridorLights() => (Light[])closure.GetMethod("CorridorLights").Invoke(null, new object[] {
+                SceneManager.GetSceneByName("WaitingRoom").GetRootGameObjects().Single(r => r.name == "WaitingRoom_LayoutA").transform });
+            // 로비 쪽(입구 앞)에서 통로 안쪽으로 사람 높이에서 쏜다.
+            bool Blocked() => Physics.Raycast(new Vector3(-9.7f, 1f, 89.8f), Vector3.forward, out var hit, 4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                && hit.collider.name == "GateCollision";
+
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
+            yield return new WaitForSecondsRealtime(.3f);
+            var gate = Gate();
+            var power = Find("CurtainCall.WaitingRoom.NightPower");
+            var lamps = CorridorLights();
+            Assert.Greater(lamps.Length, 0, "Corridor lights must be found under S06/S07.");
+            Assert.IsFalse((bool)Get(gate, "IsLocked"), "Rest time keeps the stage corridor open.");
+            Assert.IsFalse((bool)Get(power, "IsStageCorridorDark"));
+            Assert.IsTrue(lamps.Any(l => l.enabled));
+            Assert.IsFalse(Blocked(), "Open gate must not block the corridor mouth.");
+
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
+            gate = Gate(); power = Find("CurtainCall.WaitingRoom.NightPower"); lamps = CorridorLights();
+            float until = Time.realtimeSinceStartup + 5f;
+            while (!(bool)Get(gate, "IsFullyClosed") && Time.realtimeSinceStartup < until) yield return null;
+            yield return null;
+            Assert.IsTrue((bool)Get(gate, "IsLocked"), "Maintenance closes the stage corridor gate.");
+            Assert.IsTrue((bool)Get(gate, "IsFullyClosed"));
+            Assert.IsTrue((bool)Get(power, "IsStageCorridorDark"));
+            Assert.IsFalse(lamps.Any(l => l.enabled), "Every stage corridor light is off during maintenance.");
+            Assert.IsTrue(Blocked(), "Closed gate blocks the lobby side of the corridor mouth.");
+        }
     }
 }
