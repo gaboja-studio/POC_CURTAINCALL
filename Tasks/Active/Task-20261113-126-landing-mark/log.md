@@ -40,3 +40,4 @@
   - 핫픽스: `HumanCannonPoleSystem.GrabTeammate` 추가, `CommonInteractionUI`가 외줄 공중그네(CanAttachToPole)·외줄 봉 출구·인간대포 그네 사슬 잡기 때 매달린 팀원 캐릭터에 외곽선(안내 문구는 그대로).
   - 테스트: 컴파일 PASS(recompile). EditMode LandingShadowSpace 6(신규 1·변경 1), CannonLandingFeedback 4, CannonGroundMarker 4, NetworkFallSegment 19 통과. PlayMode 인간대포 GroundMarker 1, 외줄 RopeJump_ShowsCommonLandingShadow 1 통과. 그네 외곽선 자동 테스트 없음(사람 확인).
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=FAIL(다른 Task-081 log.md 143줄 hard 초과, 이 작업과 무관·미수정); 컴파일=SKIPPED(선행 실패, 별도 recompile PASS); 테스트=SKIPPED(위 개별 실행으로 대신)
+- 2026-11-13 PR #372 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/372 (fix/ui/landing-mark → dev). 공통 설정 착지 표시 값 조정 포함. 사람 플레이 확인 대기.
