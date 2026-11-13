@@ -23,6 +23,8 @@ namespace CurtainCall.Campaign
         readonly HashSet<ulong> tutorialDone = new();
         bool rehearsalPending;
         bool guideRestUnlimited;
+        // 쉬는 시간 타이머 멈춤 사유: 탐색 구역 규칙과 대기실 리허설. 하나라도 있으면 멈춘다.
+        bool zonePaused, rehearsalHold;
         readonly Dictionary<int, string[]> setlists = new();
         readonly Dictionary<int, int[]> levels = new();
         // 묘기별로 이번 런에서 성공한 가장 높은 단계(M2 난이도 선택). 런 범위라 세대 교체 때 지운다.
@@ -253,8 +255,38 @@ namespace CurtainCall.Campaign
         /// </summary>
         public bool SetRestTimerPaused(bool paused)
         {
-            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
-            var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
+            zonePaused = paused;
+            return ApplyRestTimerPause();
+        }
+
+        /// <summary>
+        /// 대기실 리허설(인간대포·외줄 재연습) 동안 구역 규칙과 상관없이 쉬는 시간 타이머를 멈춘다(2026-11-13 사용자).
+        /// 풀 때 남은 시간이 <paramref name="minimumOnRelease"/>초 미만이면 <paramref name="bonusOnRelease"/>초를 더해 공연 편성 시간을 보장한다.
+        /// 바뀐 때만 true.
+        /// </summary>
+        public bool HoldRestTimerForRehearsal(bool held, float minimumOnRelease, float bonusOnRelease)
+        {
+            if (rehearsalHold == held) return false;
+            rehearsalHold = held;
+            bool changed = false;
+            if (!held && IsFiniteRestTimer && s.TimeRemaining < minimumOnRelease && bonusOnRelease > 0f)
+            {
+                s.TimeRemaining += bonusOnRelease;
+                // 늘어난 시간이 소집 경보 시점보다 길면 경보를 다시 울릴 수 있게 한다.
+                if (s.TimeRemaining > Rules.RecallAlarmLeadTime) s.AlarmRaised = false;
+                CheckAlarm();
+                changed = true;
+            }
+            return ApplyRestTimerPause() | changed;
+        }
+
+        bool IsFiniteRestTimer => (s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night)
+            && (s.Timer == RestTimerState.Running || s.Timer == RestTimerState.Stopped);
+
+        bool ApplyRestTimerPause()
+        {
+            if (!IsFiniteRestTimer) return false;
+            var wanted = zonePaused || rehearsalHold ? RestTimerState.Stopped : RestTimerState.Running;
             if (s.Timer == wanted) return false;
             s.Timer = wanted;
             return true;

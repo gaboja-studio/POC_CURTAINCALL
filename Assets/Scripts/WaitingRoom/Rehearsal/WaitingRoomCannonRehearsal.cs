@@ -67,7 +67,7 @@ namespace CurtainCall.WaitingRoom
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
         bool CanStart => !shared.active && !ExpertService.IsMovingBuyer && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
-            && CampaignRun.Instance.State.CannonUnlocked && !SceneCurtainTransition.IsActive
+            && CampaignRun.Instance.State.CannonUnlocked && !WaitingRoomRehearsal.IsPursuitRunning && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -91,6 +91,8 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             TickNetwork();
+            HoldRestTimer();
+            QueueRestStartPrompt();
             if (!UpdatePracticeContext()) return;
             OfferUnlockedRehearsal();
             if (shared.active && !shared.ending)
@@ -104,6 +106,38 @@ namespace CurtainCall.WaitingRoom
             TickUi();
             TickEnding();
         }
+
+        /// <summary>
+        /// 호스트: 대기실 리허설(인간대포·외줄 재연습) 동안 쉬는 시간 타이머를 멈춘다(2026-11-13 사용자).
+        /// 인간대포는 종료 연출 뒤 전원이 원위치로 돌아와 진행이 끝날 때 풀리며, 남은 시간이 기준 미만이면 공통 세팅의 추가 시간을 더한다.
+        /// </summary>
+        void HoldRestTimer()
+        {
+            var run = CampaignRun.Instance;
+            if (run == null || !run.HasAuthority) return;
+            var rules = GameSettings.WaitingRoom.Rehearsal;
+            run.HoldRestTimerForRehearsal(shared.active || WaitingRoomRehearsal.IsPracticeRunning, rules.ReturnMinimumSeconds, rules.ReturnBonusSeconds);
+        }
+
+        /// <summary>
+        /// 호스트: 인간대포를 해금하고 리허설을 이수하지 않았으면 쉬는 시간이 시작될 때마다 리허설 이동 안내를 다시 띄운다(2026-11-13 사용자).
+        /// 실제 표시는 <see cref="OfferUnlockedRehearsal"/>가 시작할 수 있는 때(추격전 아님·대기실) 한다.
+        /// </summary>
+        void QueueRestStartPrompt()
+        {
+            var run = CampaignRun.Instance;
+            if (run == null || !run.HasAuthority) return;
+            var s = run.State;
+            if (!s.IsRunning || s.Phase != CampaignPhase.RestTime) { restStartKey = null; return; }
+            var key = (s.Generation, s.Day, s.Rest, s.PerformanceIndex);
+            if (restStartKey == key) return;
+            restStartKey = key;
+            if (!s.CannonUnlocked || HasMastered || shared.active) return;
+            pendingUnlockPrompt = true; reminderPrompt = true;
+            unlockPromptGeneration = s.Generation;
+        }
+
+        (int, int, RestKind, int)? restStartKey;
 
         bool UpdatePracticeContext()
         {

@@ -134,6 +134,14 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>호스트: 대기실 리허설 동안 쉬는 시간 타이머를 멈추고, 끝나면 복귀 보정과 함께 푼다(<see cref="RunState.HoldRestTimerForRehearsal"/>).</summary>
+        public bool HoldRestTimerForRehearsal(bool held, float minimumOnRelease, float bonusOnRelease)
+        {
+            if (host == null || !host.HoldRestTimerForRehearsal(held, minimumOnRelease, bonusOnRelease)) return false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 런 시작·종료 ──────────────────────────────────────
 
         /// <summary>접속하지 않은 상태에서 혼자 런을 시작한다(테스트용). 접속 중이면 false.</summary>
