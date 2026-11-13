@@ -21,6 +21,7 @@ namespace CurtainCall.Reward
         const string StateMessage = "CurtainCall.Reward.State";
         const string RequestMessage = "CurtainCall.Reward.Request";
         const string PageMessage = "CurtainCall.Reward.LedgerPage";
+        const string ForfeitMessage = "CurtainCall.Reward.Forfeit";
         const int MaxPayloadBytes = 64 * 1024;
         const string DefaultTablePath = "Settings/GameSettings/Tricks/Rewards/temporary-reward";
 
@@ -56,8 +57,16 @@ namespace CurtainCall.Reward
         RewardFinalPoseData[] finalPoses;
         readonly Dictionary<ulong, Pose> remoteFinalPoses = new();
         float timeScaleBeforeResult;
+        // 첫 생존 도착 뒤 여유 시간(2026-11-13). 호스트는 그동안 도착한 사람을 모으고, 모든 화면은 남은 초를 표시한다.
+        string gracePerformance;
+        float graceEndsAt;
+        readonly Dictionary<string, string> graceArrivals = new();
 
         public RewardSnapshot State => state;
+        /// <summary>현재 공연의 종료 여유 시간 남은 초(모든 화면). 여유 시간이 아니면 0.</summary>
+        public float FinishGraceRemaining => FinishGraceActive ? Mathf.Max(0f, graceEndsAt - Time.unscaledTime) : 0f;
+        /// <summary>첫 생존 도착으로 정산 대기 중인지. 남은 초가 0이 된 뒤 호스트가 정산하기 전까지도 참이다.</summary>
+        public bool FinishGraceActive => gracePerformance != null && state?.Performance?.Id == gracePerformance && state.IsOpen;
         public RewardSnapshot LedgerPage => ledgerPage;
         public long Balance => state?.Balance ?? 0;
         public PerformanceResult Latest => state?.Latest;
@@ -108,6 +117,7 @@ namespace CurtainCall.Reward
                 ObserveNetwork();
                 if (model.Revision != previous) Publish();
                 EndIfInsufficientSurvivors();
+                UpdateFinishGrace();
             }
             if (pendingTransition && Time.unscaledTime >= nextTransitionRetry && Time.unscaledTime >= transitionAt)
             {
@@ -194,7 +204,11 @@ namespace CurtainCall.Reward
             messaging = next;
             messagingHost = host;
             if (messaging == null) return;
-            if (host) messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
+            if (host)
+            {
+                messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
+                messaging.RegisterNamedMessageHandler(ForfeitMessage, HandleForfeit);
+            }
             else
             {
                 messaging.RegisterNamedMessageHandler(StateMessage, HandleState);
@@ -365,6 +379,107 @@ namespace CurtainCall.Reward
                 FinishPerformance(false, "NoSurvivors");
         }
 
+        /// <summary>
+        /// 호스트: 묘기가 살아 있는 도착자(와 완주 인정자)를 확인할 때마다 부른다(외줄·인간대포 공통, 2026-11-13).
+        /// 첫 도착에 종료 여유 시간(<see cref="BaseGameSettings.RunSettings.FinishGraceSeconds"/>)을 시작하고, 그동안 보고된 사람을 모은다.
+        /// 여유 시간이 끝나면 아직 살아 있는 사람만 도착으로 성공 정산한다. 정산을 마쳤으면 true.
+        /// </summary>
+        public bool ReportArrivals(IReadOnlyDictionary<string, string> judgements)
+        {
+            if (judgements == null || judgements.Count == 0 || !CanMutate()
+                || campaign.State.Phase != CampaignPhase.Performance || !SamePerformance()) return false;
+            foreach (var pair in judgements) graceArrivals[pair.Key] = pair.Value;
+            if (gracePerformance == model.Performance.Id) return false;
+            gracePerformance = model.Performance.Id;
+            float seconds = GameSettings.Base.Run.FinishGraceSeconds;
+            graceEndsAt = Time.unscaledTime + seconds;
+            if (seconds <= 0f) return FinishGrace();
+            Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
+            model.Touch();
+            Publish();
+            return false;
+        }
+
+        void UpdateFinishGrace()
+        {
+            if (gracePerformance == null || !CanMutate()) return;
+            if (model.Performance?.Id != gracePerformance) { ClearGrace(); return; }
+            if (Time.unscaledTime >= graceEndsAt) FinishGrace();
+        }
+
+        bool FinishGrace()
+        {
+            var arrivals = new Dictionary<string, string>();
+            foreach (var person in model.Snapshot().Segments)
+                if (person.Connected && !person.Dead && graceArrivals.TryGetValue(person.ParticipantId, out string judgement))
+                    arrivals[person.ParticipantId] = judgement;
+            if (arrivals.Count > 0) return FinishPerformance(true, "Completed", arrivals);
+            // 도착자가 여유 시간 안에 모두 사망·이탈했으면 공연을 이어 간다. 다음 도착이 새 여유 시간을 연다.
+            ClearGrace();
+            model.Touch();
+            Publish();
+            return false;
+        }
+
+        void ClearGrace()
+        {
+            gracePerformance = null;
+            graceEndsAt = 0f;
+            graceArrivals.Clear();
+        }
+
+        /// <summary>
+        /// 공연 포기 선택 대상인지(모든 화면). 외줄·인간대포 공연이 열려 있고, 2명 이상 출연한 공연에서 생존자가 이 사람 1명뿐이며,
+        /// 종료 여유 시간이 아닐 때. 혼자 출연한 공연은 묻지 않는다.
+        /// </summary>
+        public bool IsForfeitCandidate(ulong clientId)
+        {
+            var snapshot = state;
+            if (snapshot?.Performance == null || !snapshot.IsOpen || FinishGraceActive || pendingTransition
+                || (snapshot.Performance.TrickId != "Tightrope" && snapshot.Performance.TrickId != "HumanCannon")
+                || snapshot.Segments.Count < 2) return false;
+            int alive = 0;
+            bool self = false;
+            foreach (var person in snapshot.Segments)
+            {
+                if (!person.Connected || person.Dead) continue;
+                alive++;
+                self |= person.ClientId == clientId;
+            }
+            return alive == 1 && self;
+        }
+
+        /// <summary>내 캐릭터의 공연 포기를 호스트에 요청한다. 호스트가 대상인지 다시 확인한 뒤 그 자리에서 사망 처리한다.</summary>
+        public bool RequestForfeit()
+        {
+            Bind();
+            if (session?.NetworkManager == null) return false;
+            if (session.IsHost) return ServerForfeit(session.NetworkManager.LocalClientId);
+            if (messaging == null || session.ConnectionState != SessionConnectionState.Client) return false;
+            using var writer = new FastBufferWriter(1, Allocator.Temp);
+            messaging.SendNamedMessage(ForfeitMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+            return true;
+        }
+
+        void HandleForfeit(ulong sender, FastBufferReader reader)
+        {
+            if (session == null || !session.IsHost || !ContainsClient(sender)) return;
+            ServerForfeit(sender);
+        }
+
+        bool ServerForfeit(ulong clientId)
+        {
+            if (!CanMutate() || dummyRoster || !IsForfeitCandidate(clientId)) return false;
+            var player = FindPlayer(clientId);
+            if (player == null || !player.ServerForfeit()) return false;
+            Debug.Log($"[Reward] 마지막 생존자 공연 포기: client {clientId}");
+            // 상태 변경 관찰자가 사망을 기록하고 생존자 0명 실패로 정산한다. 늦은 관찰자에 대비해 한 번 더 확인한다.
+            ObserveNetwork();
+            Publish();
+            EndIfInsufficientSurvivors();
+            return true;
+        }
+
         /// <summary>닫기 → 최종 관찰 → 정산 → 상태 송신 enqueue → Campaign 종료. 묘기의 판정 문자열은 그대로 보존한다.</summary>
         public bool FinishPerformance(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements = null)
         {
@@ -379,6 +494,7 @@ namespace CurtainCall.Reward
             {
                 ObserveNetwork();
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
+                ClearGrace();
                 RunStatistics.Record(result, difficulty, client =>
                 {
                     foreach (var player in NetworkPlayer.All)
@@ -518,6 +634,11 @@ namespace CurtainCall.Reward
             data.runStatistics = RunStatistics;
             if (snapshot.Latest?.Performance.Id == finalPosePerformance)
             { data.finalPosePerformance = finalPosePerformance; data.finalPoses = finalPoses; }
+            if (gracePerformance != null && snapshot.IsOpen && snapshot.Performance?.Id == gracePerformance)
+            {
+                data.finishGracePerformance = gracePerformance;
+                data.finishGraceRemaining = Mathf.Max(0f, graceEndsAt - Time.unscaledTime);
+            }
             string json = JsonUtility.ToJson(data);
             int size = FastBufferWriter.GetWriteSize(json);
             if (size > MaxPayloadBytes) { Debug.LogError("[Reward] 공유 상태가 메시지 상한을 넘었습니다."); return false; }
@@ -606,6 +727,13 @@ namespace CurtainCall.Reward
                 RunStatistics = data.runStatistics ?? new EscapeRunStatistics { generation = next.Generation };
                 state = next;
                 ledgerPage = next;
+                ClearGrace();
+                if (next.IsOpen && next.Performance != null && data.finishGracePerformance == next.Performance.Id
+                    && float.IsFinite(data.finishGraceRemaining) && data.finishGraceRemaining >= 0f && data.finishGraceRemaining <= 600f)
+                {
+                    gracePerformance = data.finishGracePerformance;
+                    graceEndsAt = Time.unscaledTime + data.finishGraceRemaining;
+                }
                 remoteFinalPoses.Clear();
                 if (next.Latest?.Succeeded == true && data.finalPosePerformance == next.Latest.Performance.Id
                     && data.finalPoses != null && data.finalPoses.Length <= 64)
@@ -657,6 +785,7 @@ namespace CurtainCall.Reward
             state = ledgerPage = null;
             pendingTransition = false;
             rulesOverride = null;
+            ClearGrace();
             receivedHistory.Clear();
             requestTimes.Clear();
             NotifyChanged();
@@ -667,6 +796,7 @@ namespace CurtainCall.Reward
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(PageMessage);
+            messaging.UnregisterNamedMessageHandler(ForfeitMessage);
             messaging = null;
         }
         void OnDestroy()

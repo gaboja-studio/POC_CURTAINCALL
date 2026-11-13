@@ -137,6 +137,52 @@ namespace CurtainCall.UI.SceneIntegration
             if (changed) Fit();
         }
         Action[] callbacks;
+
+        // 선택 대기 시간 게이지(공연 포기 등, 2026-11-13). 카드 세로 줄의 맨 아래에 얇은 막대로 두고 남은 비율만큼 왼쪽에서 채운다.
+        // 색은 카드 테두리(20_Frame)와 그림자(00_Shadow) 톤을 따른다.
+        static readonly Color TimerTrackColor = new(0.019607844f, 0.03529412f, 0.043137256f, 0.55f);
+        static readonly Color TimerFillColor = new(0.78039217f, 0.84705883f, 0.8509804f, 0.9f);
+        const float TimerHeight = 4f;
+        RectTransform timerTrack, timerFill;
+
+        /// <summary>카드 맨 아래 남은 시간 게이지. 0~1(1 = 가득), null이면 숨긴다.</summary>
+        public void SetTimerGauge(float? remaining)
+        {
+            if (remaining == null)
+            {
+                if (timerTrack && timerTrack.gameObject.activeSelf) { timerTrack.gameObject.SetActive(false); Fit(); }
+                return;
+            }
+            if (!timerTrack) BuildTimerGauge();
+            if (!timerTrack.gameObject.activeSelf) { timerTrack.gameObject.SetActive(true); Fit(); }
+            float fraction = Mathf.Clamp01(remaining.Value);
+            if (!Mathf.Approximately(timerFill.anchorMax.x, fraction)) timerFill.anchorMax = new Vector2(fraction, 1f);
+        }
+
+        void BuildTimerGauge()
+        {
+            var parent = rows ? (RectTransform)rows.transform : Rect;
+            var track = new GameObject("TimerGauge", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(LayoutElement));
+            timerTrack = (RectTransform)track.transform;
+            timerTrack.SetParent(parent, false);
+            timerTrack.SetAsLastSibling();
+            var element = track.GetComponent<LayoutElement>();
+            element.minHeight = element.preferredHeight = TimerHeight;
+            var trackImage = track.GetComponent<Image>();
+            trackImage.color = TimerTrackColor;
+            trackImage.raycastTarget = false;
+            var fill = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            timerFill = (RectTransform)fill.transform;
+            timerFill.SetParent(timerTrack, false);
+            timerFill.anchorMin = Vector2.zero;
+            timerFill.anchorMax = Vector2.one;
+            timerFill.pivot = new Vector2(0f, .5f);
+            timerFill.offsetMin = timerFill.offsetMax = Vector2.zero;
+            var fillImage = fill.GetComponent<Image>();
+            fillImage.color = TimerFillColor;
+            fillImage.raycastTarget = false;
+        }
+
         void Awake()
         {
             if(role!=HudRole.Vote) return;

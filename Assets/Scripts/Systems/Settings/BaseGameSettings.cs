@@ -214,6 +214,12 @@ namespace CurtainCall.Settings
             [Tooltip("공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초.")]
             [SerializeField, Min(0f)] float failedPerformanceHold = 2f;
 
+            [Tooltip("공연(외줄·인간대포 전 난이도) 첫 생존 도착 뒤 정산까지 기다리는 여유 시간(초). 그동안 상단에 남은 초를 알리고, 도착한 생존자를 모두 완주로 정산한다. 0이면 바로 정산. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(0f)] float finishGraceSeconds = 5f;
+
+            [Tooltip("공연 중 생존자가 1명만 남았을 때 그 플레이어에게 띄우는 공연 포기 선택의 대기 시간(초). 선택이 없으면 계속하기로 처리한다. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(1f)] float forfeitPromptSeconds = 5f;
+
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
             public RestTimeLimitSettings MorningRest { get { EnsureTimeLimits(); return morningRest; } }
@@ -238,6 +244,8 @@ namespace CurtainCall.Settings
             };
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
             public float FailedPerformanceHold => failedPerformanceHold;
+            public float FinishGraceSeconds => float.IsFinite(finishGraceSeconds) ? Mathf.Max(0f, finishGraceSeconds) : 5f;
+            public float ForfeitPromptSeconds => float.IsFinite(forfeitPromptSeconds) ? Mathf.Max(1f, forfeitPromptSeconds) : 5f;
 
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>

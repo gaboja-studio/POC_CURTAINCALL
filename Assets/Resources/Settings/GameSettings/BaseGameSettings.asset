@@ -46,6 +46,8 @@ MonoBehaviour:
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
+    finishGraceSeconds: 5
+    forfeitPromptSeconds: 5
   itemCarry:
     baseSlots: 2
   carryDevices:

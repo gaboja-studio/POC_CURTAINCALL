@@ -324,7 +324,8 @@ namespace CurtainCall.Tightrope
                     if (player.State == PlayerState.Normal && IsParticipantReady(player) && course.GetDistance(player.transform.position) < 0f)
                         seenAtStart.Add(player);
                 if (campaignBridge.TryFinishAtDestination()) return;
-                if (TimeRemaining <= 0f) { campaignBridge.FinishTimedOut(); return; }
+                // 종료 여유 시간에는 남은 사람이 계속 도착할 수 있게 장애물을 그대로 돌리고 시간 초과만 미룬다.
+                if (TimeRemaining <= 0f && !campaignBridge.FinishGraceActive) { campaignBridge.FinishTimedOut(); return; }
                 if (InProgressCount > 0)
                 {
                     if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
@@ -348,7 +349,16 @@ namespace CurtainCall.Tightrope
                         break;
                     }
                     ServerMarkArrivals();
-                    if (ArrivedCount > 0) ServerSucceed(); // 도착이 이번 위험 판정보다 우선
+                    // 공용 런: 첫 도착은 공용 정산의 종료 여유 시간을 연다. 그동안 남은 사람의 장애물은 계속 돌리고 시간 초과·전원 판정은 미룬다(2026-11-13).
+                    if (ArrivedCount > 0 && UsesCampaign && campaignBridge.ReportExternalArrivals())
+                    {
+                        if (State == TightropeRunState.Running && InProgressCount > 0)
+                        {
+                            if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
+                            ServerHazardCheck?.Invoke();
+                        }
+                    }
+                    else if (ArrivedCount > 0) ServerSucceed(); // 도착이 이번 위험 판정보다 우선
                     else
                     {
                         if (InProgressCount > 0 && TimeRemaining > 0f)

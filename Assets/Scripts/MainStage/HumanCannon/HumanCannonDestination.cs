@@ -97,7 +97,8 @@ namespace CurtainCall.HumanCannon
                             if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
                                 arrivals[participant.ParticipantId] = "Arrived";
                     }
-                    rewards.FinishPerformance(true, "Completed", arrivals); return;
+                    // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
+                    rewards.ReportArrivals(arrivals); return;
                 }
                 // 전멸·이탈 실패는 공용 명부 관찰이 처리한다. 자체 정산/시간대 전환을 중복 호출하지 않는다.
             }

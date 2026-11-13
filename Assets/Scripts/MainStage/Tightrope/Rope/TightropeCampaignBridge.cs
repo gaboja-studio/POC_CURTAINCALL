@@ -126,11 +126,37 @@ namespace CurtainCall.Tightrope
                     if (player.OwnerClientId == participant.ClientId && run.HasCompletionProgress(player))
                     { arrivals[participant.ParticipantId] = "Arrived"; break; }
             }
-            return Rewards.FinishPerformance(true, "Completed", arrivals);
+            // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
+            return Rewards.ReportArrivals(arrivals);
         }
 
+        /// <summary>
+        /// 공용 런(SpaceLink 외부 관리)에서 도착 완료자가 생겼을 때 호스트가 부른다. 같은 공연이 열려 있으면 도착 완료자와 완주 인정자를
+        /// 공용 정산의 종료 여유 시간에 보고하고 true(정산은 공용 정산이 하고 결과는 <see cref="TightropeRun.AcceptCampaignResult"/>로 돌아온다).
+        /// 공용 공연이 아니면 false(묘기 자체 성공 판정을 쓴다).
+        /// </summary>
+        internal bool ReportExternalArrivals()
+        {
+            if (!run.ExternallyManaged || !PerformanceOpen || run.CampaignPerformanceId != PerformanceId
+                || NetworkSessionManager.Instance?.IsHost != true) return false;
+            var arrivals = new Dictionary<string, string>();
+            foreach (var participant in Rewards.State.Segments)
+            {
+                if (!participant.Connected || participant.Dead) continue;
+                foreach (var player in NetworkPlayer.All)
+                    if (player.OwnerClientId == participant.ClientId
+                        && (player.State == PlayerState.Arrived || run.HasCompletionProgress(player)))
+                    { arrivals[participant.ParticipantId] = "Arrived"; break; }
+            }
+            if (arrivals.Count > 0) Rewards.ReportArrivals(arrivals);
+            return true;
+        }
+
+        /// <summary>첫 생존 도착 뒤 종료 여유 시간 중인지. 이 동안에는 시간 초과로 실패시키지 않는다.</summary>
+        internal bool FinishGraceActive => Rewards != null && Rewards.FinishGraceActive;
+
         internal bool FinishTimedOut() => !run.ExternallyManaged && PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true
-            && Rewards.FinishPerformance(false, "TimeExpired");
+            && !FinishGraceActive && Rewards.FinishPerformance(false, "TimeExpired");
 
         void Clear()
         {

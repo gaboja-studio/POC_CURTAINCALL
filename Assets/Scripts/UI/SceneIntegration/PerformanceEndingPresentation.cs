@@ -43,6 +43,17 @@ namespace CurtainCall.UI.SceneIntegration
         public bool BlackVisible => curtain != null ? curtain.IsBusy : black != null && black.alpha > .99f;
         HudRoleCard deathNotice;
         public HudRoleCard TeamWarning {get;private set;}
+        // 첫 생존 도착 뒤 종료 여유 시간 안내(상단 시스템 안내, 2026-11-13).
+        const string GraceTitle = "공연 종료 알림";
+        HudRoleCard graceNotice;
+        int graceSeconds = -1;
+        public HudRoleCard GraceNotice => graceNotice != null && !graceNotice.Closing ? graceNotice : null;
+        // 마지막 생존자에게만 묻는 공연 포기 선택. 공연마다 한 번, 시간이 지나면 계속하기.
+        CurtainCall.WaitingRoom.RehearsalVotePanel forfeitPanel;
+        string forfeitAsked;
+        double forfeitStarted;
+        public bool ForfeitVisible => forfeitPanel != null && forfeitPanel.IsVisible;
+        public CurtainCall.WaitingRoom.RehearsalVotePanel ForfeitPanel => forfeitPanel;
         public bool DeathVisible => deathNotice != null && !deathNotice.Closing;
         float ResultAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.ResultAt : 1.5f;
         float BlackAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.BlackAt : 5.5f;
@@ -70,6 +81,8 @@ namespace CurtainCall.UI.SceneIntegration
             { ResetPresentation(); shownIdentity = deathIdentity = null; return; }
             ObserveDeath();
             ObserveTeammates(snapshot);
+            ObserveFinishGrace();
+            ObserveForfeit(snapshot);
             // 공유 스냅샷이 구독보다 먼저 도착한 경우도 현재 공연 결과만 복원한다.
             if (pending == null && CommonUiSceneLoader.HasPerformanceSpace && snapshot.Latest != null
                 && snapshot.Latest.Performance.Id == snapshot.Performance.Id) PresentResult(snapshot.Latest);
@@ -125,6 +138,62 @@ namespace CurtainCall.UI.SceneIntegration
             }
             TeamWarning=HudUIManager.Current.ShowDeathWarning("해당 단원의 호응도가 절반으로 줄어듭니다",transform,message,2);
         }
+        void ObserveFinishGrace()
+        {
+            float remaining = rewards != null && pending == null && CommonUiSceneLoader.HasPerformanceSpace ? rewards.FinishGraceRemaining : 0f;
+            if (remaining <= 0f) { CloseGraceNotice(); return; }
+            int seconds = Mathf.Max(1, Mathf.CeilToInt(remaining));
+            string text = $"{seconds}초 후에 공연이 종료됩니다";
+            if (GraceNotice == null)
+                graceNotice = HudUIManager.Current.ShowSystemEvent(text, transform, GraceTitle, remaining + .5f, HudEventKind.Notice);
+            else if (seconds != graceSeconds) graceNotice.SetText(text, GraceTitle);
+            // 표시 시간이 고정된 카드도 여유 시간이 끝날 때까지 남긴다.
+            graceNotice.Extend(remaining + .5f);
+            graceSeconds = seconds;
+        }
+
+        void CloseGraceNotice()
+        {
+            if (graceNotice != null) graceNotice.Close();
+            graceNotice = null;
+            graceSeconds = -1;
+        }
+
+        void ObserveForfeit(RewardSnapshot snapshot)
+        {
+            var local = NetworkPlayer.Local;
+            bool eligible = local != null && local.State == PlayerState.Normal && pending == null
+                && CommonUiSceneLoader.HasPerformanceSpace && rewards.IsForfeitCandidate(local.OwnerClientId);
+            if (ForfeitVisible)
+            {
+                float limit = GameSettings.Base.Run.ForfeitPromptSeconds;
+                float left = limit - (float)(Time.unscaledTimeAsDouble - forfeitStarted);
+                // 선택 없이 시간이 지나면 계속하기와 같다.
+                if (!eligible || left <= 0f) { HideForfeit(); return; }
+                forfeitPanel.SetTimerGauge(left / limit);
+                return;
+            }
+            if (!eligible || forfeitAsked == snapshot.Performance.Id) return;
+            forfeitAsked = snapshot.Performance.Id;
+            forfeitStarted = Time.unscaledTimeAsDouble;
+            if (forfeitPanel == null) forfeitPanel = gameObject.AddComponent<CurtainCall.WaitingRoom.RehearsalVotePanel>();
+            forfeitPanel.Show("공연 포기", "공연을 포기하고 대기실로 돌아갈까요?",
+                new HudVoteChoice("계속하기", true, HideForfeit),
+                new HudVoteChoice("포기하기", true, Forfeit));
+            forfeitPanel.SetTimerGauge(1f);
+        }
+
+        void Forfeit()
+        {
+            HideForfeit();
+            if (rewards != null) rewards.RequestForfeit();
+        }
+
+        void HideForfeit()
+        {
+            if (forfeitPanel != null) forfeitPanel.Hide();
+        }
+
         public static string ResultTitle(bool succeeded, long amount, int participants, int cap) => !succeeded ? "공연 실패" :
             participants > 0 && cap > 0 && amount >= (double)participants * cap * .8 ? "공연 대성공" : "공연 성공";
         void ObserveDeath()
@@ -215,6 +284,9 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (deathNotice != null) deathNotice.Close(true); deathNotice = null;
             if(TeamWarning)TeamWarning.Close(true);TeamWarning=null;
+            if (graceNotice != null) graceNotice.Close(true);
+            graceNotice = null; graceSeconds = -1;
+            HideForfeit();
             pending = null; loadedAt = -1;
             if (curtain != null && !SceneCurtainTransition.IsActive) curtain.Open();
             if (black != null) { black.alpha = 0; black.blocksRaycasts = false; }

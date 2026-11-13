@@ -153,7 +153,8 @@ namespace CurtainCall.Network.PlayerSync
         public event Action<JumpKind> JumpChanged;
 
         /// <summary>호스트가 확정한 상태(모든 화면에서 같음).</summary>
-        public enum DeathOrigin : byte { Fall, MapExit, Pursuit, FirePillar, Hazard, LimbLoss, HangExpired, Timeout, Debug }
+        /// <summary>사망 원인. 숫자로 공유하므로 새 값은 끝에만 붙인다. Forfeit = 마지막 생존자의 공연 포기(2026-11-13).</summary>
+        public enum DeathOrigin : byte { Fall, MapExit, Pursuit, FirePillar, Hazard, LimbLoss, HangExpired, Timeout, Debug, Forfeit }
         readonly NetworkVariable<Unity.Collections.FixedString64Bytes> deathObstacle = new();
         public string LastDeathObstacle => deathObstacle.Value.IsEmpty ? null : deathObstacle.Value.ToString();
         void SetDeathOrigin(DeathOrigin origin,string obstacle=null){deathObstacle.Value=new Unity.Collections.FixedString64Bytes(obstacle??"");deathOrigin.Value=origin;}
@@ -246,6 +247,18 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         /// <summary>
+        /// 호스트: 공연 포기. 지금 위치에서 사망한 것과 같게 정산되도록 장소의 사망 상태로 바꾼다(묘기의 피해 허용 규칙은 보지 않는다).
+        /// 다음 시간대 부활(<see cref="ServerRevive"/>)에서는 외팔로 바꾸지 않고 지금 부상을 유지한다. 누가 포기할 수 있는지는 부르는 쪽(공용 정산)이 정한다.
+        /// </summary>
+        public bool ServerForfeit()
+        {
+            if (!IsServer || state.Value != PlayerState.Normal) return false;
+            SetDeathOrigin(DeathOrigin.Forfeit);
+            state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace);
+            return true;
+        }
+
+        /// <summary>
         /// 호스트: 추격자에게 잡힘. 장소(<see cref="SurvivalRules.ServerPlace"/>)에 따라 백스테이지 = 외팔 상태까지 절단(이미 외팔이면 사망),
         /// 탈출로 = 리타이어, 공연 = 없음. 무대로 끌려가는 것(032)·누가 잡았는지(035)는 부르는 쪽이 한다.
         /// </summary>
@@ -309,7 +322,8 @@ namespace CurtainCall.Network.PlayerSync
         public bool ServerRevive()
         {
             if (!IsServer || state.Value != PlayerState.Fallen) return false;
-            lostParts.Value = PlayerCondition.OneArmParts;
+            // 공연 포기는 정산만 사망과 같고, 몸은 포기 순간의 부상 그대로 대기실로 돌아간다(2026-11-13 사용자).
+            if (deathOrigin.Value != DeathOrigin.Forfeit) lostParts.Value = PlayerCondition.OneArmParts;
             state.Value = PlayerState.Normal;
             reviveCount.Value++;
             return true;

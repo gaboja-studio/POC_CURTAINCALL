@@ -141,6 +141,9 @@ namespace CurtainCall.Reward
         public string finalPosePerformance;
         public RewardFinalPoseData[] finalPoses;
         public EscapeRunStatistics runStatistics;
+        // 첫 생존 도착 뒤 정산까지 남은 여유 시간. 화면마다 시계가 다르므로 보낸 순간의 남은 초로 전한다.
+        public string finishGracePerformance;
+        public float finishGraceRemaining;
 
         public RewardSnapshot Read()
         {
