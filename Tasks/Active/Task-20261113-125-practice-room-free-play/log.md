@@ -14,3 +14,7 @@
 - 미확인: 실제 플레이(줄 균형·옆줄 점프·그네 잡기와 간격·대포 발사와 착지·트램펄린), 다른 화면 동기화. 추격 NavMesh는 다시 굽지 않음.
 
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-13 제출 준비
+- 커밋 a5d7f11b 뒤 origin/dev(371c0481) 병합, 충돌 없음. dev에 같은 번호의 Task-20261113-124(result-and-rewards)가 먼저 올라와 이 Task를 125로 바꿈.
+- 에디터 자동 변경 재질·글꼴 5개는 stash("editor-noise font/material before practice-room commit 2026-11-13")에 보관, 커밋 제외.
