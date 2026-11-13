@@ -15,3 +15,5 @@
 - 2026-11-14 최종 dev 기준으로 두 묘기 총 20개 표본을 재검사했다. 겹침과 신규 콜라이더는 0건이다. Unity 컴파일과 공통 설정 검사도 통과했다.
 - 2026-11-14 공용 공연장 씬과 종속 메시를 비공개 main의 fdc858ae에 저장했다.
 - 2026-11-14 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(플레이 테스트는 사용자 진행)
+
+- 2026-11-14 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/380 (feat/uncanny-performance-venue → dev)
