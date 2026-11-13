@@ -80,6 +80,8 @@ namespace CurtainCall.Cameras
             // 리타이어(탈출로 사망·잡힘)도 사망처럼 관전한다(2026-10-14 PM). 관전 대상은 Normal만
             bool dead = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                                           || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
+            // 공연 종료 여유 시간에 도착한 사람도 탈락자처럼 남은 사람을 관전한다(2026-11-13).
+            dead |= CurtainCall.Reward.PerformanceRewards.IsFinishedSpectator(local);
             // 리허설은 추락해도 바로 출발대로 돌아오므로 관전하지 않는다(사용자 2026-11-04).
             if (!dead || CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsActive)
             {
@@ -116,6 +118,7 @@ namespace CurtainCall.Cameras
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player != local && player.isActiveAndEnabled
                     && player.State == PlayerState.Normal && !PursuitDirector.IsCaptured(player)
+                    && !CurtainCall.Reward.PerformanceRewards.IsFinishedSpectator(player)
                     && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)) alive.Add(player);
             alive.Sort((a, b) => a.Slot.CompareTo(b.Slot)); // 자리 번호 순으로 돈다
         }

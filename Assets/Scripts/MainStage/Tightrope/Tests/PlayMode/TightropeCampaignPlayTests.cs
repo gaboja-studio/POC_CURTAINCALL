@@ -29,7 +29,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         string previousSawsJson;
         object poleSettings;
         string previousPoleJson;
-        float ResultTransitionTimeout => (float)Get(Static("CurtainCall.Settings.PerformanceEndingSettings", "Current"), "TransitionAt") + 5f;
+        // 도착 성공은 공연 종료 여유 시간(2026-11-13)이 지난 뒤 정산하므로 그만큼 더 기다린다.
+        float ResultTransitionTimeout => (float)Get(Static("CurtainCall.Settings.PerformanceEndingSettings", "Current"), "TransitionAt") + 5f
+            + (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FinishGraceSeconds");
 
         [UnitySetUp]
         public IEnumerator SetUp()

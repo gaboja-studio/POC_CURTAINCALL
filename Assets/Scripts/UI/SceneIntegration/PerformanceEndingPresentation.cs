@@ -82,6 +82,7 @@ namespace CurtainCall.UI.SceneIntegration
             ObserveDeath();
             ObserveTeammates(snapshot);
             ObserveFinishGrace();
+            ObserveFinisher();
             ObserveForfeit(snapshot);
             // 공유 스냅샷이 구독보다 먼저 도착한 경우도 현재 공연 결과만 복원한다.
             if (pending == null && CommonUiSceneLoader.HasPerformanceSpace && snapshot.Latest != null
@@ -122,9 +123,11 @@ namespace CurtainCall.UI.SceneIntegration
                 return; // 늦은 접속/공연 변경은 이전 사망 알림을 재생하지 않는다.
             }
             var deaths = new List<string>();
+            // 공연 포기는 사망 연출 없이 결과로 넘어간다.
+            bool forfeit = rewards.EndedByForfeit;
             foreach (var person in snapshot.Segments)
             {
-                if (observedDeaths.TryGetValue(person.ClientId, out bool previous) && !previous && person.Dead
+                if (!forfeit && observedDeaths.TryGetValue(person.ClientId, out bool previous) && !previous && person.Dead
                     && (NetworkPlayer.Local == null || person.ClientId != NetworkPlayer.Local.OwnerClientId))
                     deaths.Add($"단원 {person.Slot + 1}");
                 observedDeaths[person.ClientId] = person.Dead;
@@ -150,6 +153,35 @@ namespace CurtainCall.UI.SceneIntegration
             // 표시 시간이 고정된 카드도 여유 시간이 끝날 때까지 남긴다.
             graceNotice.Extend(remaining + .5f);
             graceSeconds = seconds;
+        }
+
+        // 여유 시간 중 도착한 내 캐릭터는 탈락자처럼 관전한다(관전 카메라가 IsFinishedSpectator를 본다). 그동안 내 조작은 잠근다.
+        PlayerMover lockedFinisher;
+        void ObserveFinisher()
+        {
+            var local = NetworkPlayer.Local;
+            bool finished = local != null && pending == null && CommonUiSceneLoader.HasPerformanceSpace
+                && PerformanceRewards.IsFinishedSpectator(local);
+            if (finished)
+            {
+                if (lockedFinisher == null && local.TryGetComponent(out PlayerMover mover))
+                {
+                    mover.SetControlEnabled(false);
+                    lockedFinisher = mover;
+                }
+                return;
+            }
+            ReleaseFinisher();
+        }
+
+        void ReleaseFinisher()
+        {
+            if (lockedFinisher == null) return;
+            // 여유 시간 중 사망·리타이어로 바뀌었으면 그 상태의 잠금을 유지한다.
+            if (lockedFinisher.TryGetComponent(out NetworkPlayer player)
+                && (player.State == PlayerState.Normal || player.State == PlayerState.Arrived))
+                lockedFinisher.SetControlEnabled(true);
+            lockedFinisher = null;
         }
 
         void CloseGraceNotice()
@@ -205,6 +237,8 @@ namespace CurtainCall.UI.SceneIntegration
                 || state.Segments.Any(p => p.ClientId == local.OwnerClientId && p.Dead);
             if (!dead || deathIdentity == state.Performance.Id) return;
             deathIdentity = state.Performance.Id;
+            // 포기한 사람은 정산만 사망과 같다. 사망 경고 없이 그 자리 그대로 결과를 본다.
+            if (rewards.EndedByForfeit && local.State == PlayerState.Normal) return;
             float duration = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.deathNoticeSeconds : 2;
             deathNotice = HudUIManager.Current.ShowDeathWarning("사망한 단원의 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration));
         }
@@ -232,7 +266,7 @@ namespace CurtainCall.UI.SceneIntegration
                 int id = members.Count + 1;
                 bool local = NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == person.ClientId;
                 // 결과 칸(이름 208px·거리 160px, 24pt)에서 말줄임 없이 들어가도록 핵심만 짧게 쓴다. 사망 규칙은 하단 안내에 둔다.
-                string status = person.Dead ? "사망" : !person.Connected ? "이탈" : person.Arrived ? "완주" : "생존";
+                string status = person.Judgement == PerformanceRewards.ForfeitReason ? "포기" : person.Dead ? "사망" : !person.Connected ? "이탈" : person.Arrived ? "완주" : "생존";
                 members.Add(new ResultsMemberPresentation(id, $"단원 {person.Slot + 1}{(local ? "(나)" : "")} · {status}",
                     progress, (distance.HasValue ? $"{distance:0}m" : "-") + $" · +{person.Settlement}",
                     Color.HSVToRGB((id - 1) * .23f, .5f, 1), local));
@@ -246,7 +280,7 @@ namespace CurtainCall.UI.SceneIntegration
             return new ResultsPresentation(result.Performance.Id, result.Performance.Id, outcome, heading,
                 $"{result.Performance.Day}일차 · {(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포")}", time,
                 "개인 최종 위치", result.CourseLength.HasValue ? $"도착 지점 {result.CourseLength:0.0}m" : "코스 기록 없음",
-                maximum, "호응 보상", $"+{result.CheerReward}", $"완주 보너스 ({result.Participants.Count(p => p.Arrived)}명)", $"+{result.CompletionReward}", "공동 자금",
+                maximum, "호응 보상", $"+{result.CheerReward}", $"생존 보너스 ({result.Participants.Count(p => p.Arrived)}명)", $"+{result.CompletionReward}", "공동 자금",
                 $"이번 공연 +{result.Income}", (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
                 $"호응 보상: 생존 2배 · 사망 1배   |   다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
         }
@@ -286,6 +320,7 @@ namespace CurtainCall.UI.SceneIntegration
             if(TeamWarning)TeamWarning.Close(true);TeamWarning=null;
             if (graceNotice != null) graceNotice.Close(true);
             graceNotice = null; graceSeconds = -1;
+            ReleaseFinisher();
             HideForfeit();
             pending = null; loadedAt = -1;
             if (curtain != null && !SceneCurtainTransition.IsActive) curtain.Open();

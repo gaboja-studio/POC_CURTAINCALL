@@ -110,24 +110,10 @@ namespace CurtainCall.Tightrope
         internal bool TryFinishAtDestination()
         {
             if (run.ExternallyManaged || !PerformanceOpen || NetworkSessionManager.Instance?.IsHost != true) return false;
-            var arrivals = new Dictionary<string, string>();
-            foreach (var participant in Rewards.State.Segments)
-            {
-                if (!participant.Connected || participant.Dead) continue;
-                foreach (var player in NetworkPlayer.All)
-                    if (player.OwnerClientId == participant.ClientId && run.HasCampaignArrival(player))
-                    { arrivals[participant.ParticipantId] = "Arrived"; break; }
-            }
-            if (arrivals.Count == 0) return false;
-            foreach (var participant in Rewards.State.Segments)
-            {
-                if (!participant.Connected || participant.Dead) continue;
-                foreach (var player in NetworkPlayer.All)
-                    if (player.OwnerClientId == participant.ClientId && run.HasCompletionProgress(player))
-                    { arrivals[participant.ParticipantId] = "Arrived"; break; }
-            }
+            var arrived = Collect(run.HasCampaignArrival);
+            if (arrived.Count == 0) return false;
             // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
-            return Rewards.ReportArrivals(arrivals);
+            return Rewards.ReportArrivals(arrived, Collect(run.HasCompletionProgress));
         }
 
         /// <summary>
@@ -139,17 +125,23 @@ namespace CurtainCall.Tightrope
         {
             if (!run.ExternallyManaged || !PerformanceOpen || run.CampaignPerformanceId != PerformanceId
                 || NetworkSessionManager.Instance?.IsHost != true) return false;
-            var arrivals = new Dictionary<string, string>();
+            var arrived = Collect(player => player.State == PlayerState.Arrived);
+            if (arrived.Count > 0) Rewards.ReportArrivals(arrived, Collect(run.HasCompletionProgress));
+            return true;
+        }
+
+        /// <summary>살아 있는 공용 참가자 중 조건에 맞는 사람의 참가자 ID.</summary>
+        List<string> Collect(Func<NetworkPlayer, bool> match)
+        {
+            var ids = new List<string>();
             foreach (var participant in Rewards.State.Segments)
             {
                 if (!participant.Connected || participant.Dead) continue;
                 foreach (var player in NetworkPlayer.All)
-                    if (player.OwnerClientId == participant.ClientId
-                        && (player.State == PlayerState.Arrived || run.HasCompletionProgress(player)))
-                    { arrivals[participant.ParticipantId] = "Arrived"; break; }
+                    if (player.OwnerClientId == participant.ClientId && match(player))
+                    { ids.Add(participant.ParticipantId); break; }
             }
-            if (arrivals.Count > 0) Rewards.ReportArrivals(arrivals);
-            return true;
+            return ids;
         }
 
         /// <summary>첫 생존 도착 뒤 종료 여유 시간 중인지. 이 동안에는 시간 초과로 실패시키지 않는다.</summary>

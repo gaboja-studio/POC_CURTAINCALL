@@ -1,4 +1,4 @@
-# Task-20261113-123
+# Task-20261113-124
 
 - **Title:** 공연 종료 여유 시간·마지막 생존자 공연 포기
 - **Type:** fix
@@ -16,10 +16,11 @@
 - 설정: `GameSettings.Base.Run.FinishGraceSeconds`(5), `ForfeitPromptSeconds`(5).
 - 공용 정산 `PerformanceRewards.ReportArrivals`: 첫 도착에 여유 시간을 열고, 그동안 보고된 사람을 모은다. 끝나면 살아 있는 사람만 도착으로 성공 정산한다. 남은 초는 공유 상태 메시지로 보낸다.
 - 외줄(Bridge 경로·SpaceLink 외부 관리 경로)·인간대포 도착 판정이 즉시 정산 대신 `ReportArrivals`를 부른다. 여유 시간에는 장애물은 계속 돌고 시간 초과 실패는 미룬다.
-- 포기: `PerformanceRewards.RequestForfeit` → 호스트가 대상 확인 → `NetworkPlayer.ServerForfeit`(사망 원인 Forfeit, 장소의 사망 상태). 생존자 0명 실패 정산으로 이어진다. `ServerRevive`는 원인이 Forfeit이면 외팔로 바꾸지 않는다.
-- 표시: `PerformanceEndingPresentation`(상단 안내·포기 투표), `HudRoleCard.SetTimerGauge`(투표 카드 맨 아래 게이지).
+- 포기: `PerformanceRewards.RequestForfeit` → 호스트가 대상 확인 → 정산 모델에서만 사망으로 기록하고 `FinishPerformance(false, "Forfeit")`. 캐릭터 상태는 바꾸지 않아(쓰러짐·사망 경고 없음) 부활 없이 지금 부상으로 대기실에 돌아간다. 결과 화면 동안 성공 때처럼 세계를 멈춰 그 순간을 유지한다.
+- 도착자 관전: 호스트가 실제 도착자 목록을 여유 시간과 함께 공유한다(`IsFinishedSpectator`). 도착자는 조작을 잠그고 탈락자처럼 남은 사람을 관전하며, 관전 대상에서도 빠진다. 80% 완주 인정자는 계속 플레이한다.
+- 표시: `PerformanceEndingPresentation`(상단 안내·포기 투표·도착자 조작 잠금), `HudRoleCard.SetTimerGauge`(투표 카드 맨 아래 게이지), 결과창 '생존 보너스'·포기자 '포기'.
 
 ## 미정·주의
 - 혼자 출연한 공연에서는 포기를 묻지 않는다(2명 이상 출연한 공연에서 생존자 1명일 때만). 공연마다 한 번만 묻는다.
 - 여유 시간 중 도착자가 모두 사망·이탈하면 공연을 이어 가고, 다음 도착이 여유 시간을 다시 연다.
-- 포기한 사람도 결과 표시는 "사망"이다(정산이 사망과 같으므로).
+- 2026-11-13 dev 병합 때 dev에 같은 번호(Task-123)가 생겨 Task-124로 바꿨다.

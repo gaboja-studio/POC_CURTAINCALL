@@ -61,6 +61,7 @@ namespace CurtainCall.Reward
         string gracePerformance;
         float graceEndsAt;
         readonly Dictionary<string, string> graceArrivals = new();
+        readonly HashSet<ulong> graceClients = new();
 
         public RewardSnapshot State => state;
         /// <summary>현재 공연의 종료 여유 시간 남은 초(모든 화면). 여유 시간이 아니면 0.</summary>
@@ -159,7 +160,8 @@ namespace CurtainCall.Reward
             if (!Application.isPlaying || campaign == null) return;
             var result = state?.Latest;
             var current = campaign.State;
-            bool currentSuccess = result != null && result.Succeeded && state.Performance?.Id == result.Performance.Id
+            // 성공과 공연 포기는 마지막 순간을 그대로 멈춰 결과 화면을 띄운다.
+            bool currentSuccess = FreezesWorld(result) && state.Performance?.Id == result.Performance.Id
                 && current.Phase == CampaignPhase.Performance && current.Generation == result.Performance.Generation
                 && current.Day == result.Performance.Day && current.PerformanceIndex == result.Performance.Index
                 && current.TrickId == result.Performance.TrickId;
@@ -379,17 +381,35 @@ namespace CurtainCall.Reward
                 FinishPerformance(false, "NoSurvivors");
         }
 
+        /// <summary>공연 포기 정산의 종료 사유와 포기한 사람의 판정 문자열.</summary>
+        public const string ForfeitReason = "Forfeit";
+
         /// <summary>
-        /// 호스트: 묘기가 살아 있는 도착자(와 완주 인정자)를 확인할 때마다 부른다(외줄·인간대포 공통, 2026-11-13).
+        /// 호스트: 묘기가 살아 있는 도착자를 확인할 때마다 부른다(외줄·인간대포 공통, 2026-11-13).
+        /// <paramref name="arrived"/>는 실제 도착자(여유 시간 동안 관전), <paramref name="nearFinish"/>는 완주로 인정할 사람(계속 플레이)이다.
         /// 첫 도착에 종료 여유 시간(<see cref="BaseGameSettings.RunSettings.FinishGraceSeconds"/>)을 시작하고, 그동안 보고된 사람을 모은다.
         /// 여유 시간이 끝나면 아직 살아 있는 사람만 도착으로 성공 정산한다. 정산을 마쳤으면 true.
         /// </summary>
-        public bool ReportArrivals(IReadOnlyDictionary<string, string> judgements)
+        public bool ReportArrivals(IReadOnlyCollection<string> arrived, IReadOnlyCollection<string> nearFinish = null)
         {
-            if (judgements == null || judgements.Count == 0 || !CanMutate()
+            if (arrived == null || arrived.Count == 0 || !CanMutate()
                 || campaign.State.Phase != CampaignPhase.Performance || !SamePerformance()) return false;
-            foreach (var pair in judgements) graceArrivals[pair.Key] = pair.Value;
-            if (gracePerformance == model.Performance.Id) return false;
+            bool start = gracePerformance != model.Performance.Id;
+            if (start) ClearGrace();
+            bool added = false;
+            foreach (string id in arrived)
+            {
+                graceArrivals[id] = "Arrived";
+                foreach (var person in model.Snapshot().Segments)
+                    if (person.ParticipantId == id) { added |= graceClients.Add(person.ClientId); break; }
+            }
+            if (nearFinish != null) foreach (string id in nearFinish) graceArrivals[id] = "Arrived";
+            if (!start)
+            {
+                // 새 도착자는 화면마다 관전으로 넘어가도록 바로 알린다.
+                if (added) { model.Touch(); Publish(); }
+                return false;
+            }
             gracePerformance = model.Performance.Id;
             float seconds = GameSettings.Base.Run.FinishGraceSeconds;
             graceEndsAt = Time.unscaledTime + seconds;
@@ -399,6 +419,13 @@ namespace CurtainCall.Reward
             Publish();
             return false;
         }
+
+        /// <summary>여유 시간 중 실제로 도착한 사람인지(모든 화면). 도착자는 탈락자처럼 관전한다.</summary>
+        public bool IsFinishGraceArrival(ulong clientId) => FinishGraceActive && graceClients.Contains(clientId);
+
+        /// <summary>이 플레이어가 종료 여유 시간 중 도착해 관전 중인지(모든 화면, 관전 카메라·표시용).</summary>
+        public static bool IsFinishedSpectator(NetworkPlayer player) => player != null && Instance != null
+            && Instance.IsFinishGraceArrival(player.OwnerClientId);
 
         void UpdateFinishGrace()
         {
@@ -426,6 +453,7 @@ namespace CurtainCall.Reward
             gracePerformance = null;
             graceEndsAt = 0f;
             graceArrivals.Clear();
+            graceClients.Clear();
         }
 
         /// <summary>
@@ -449,7 +477,11 @@ namespace CurtainCall.Reward
             return alive == 1 && self;
         }
 
-        /// <summary>내 캐릭터의 공연 포기를 호스트에 요청한다. 호스트가 대상인지 다시 확인한 뒤 그 자리에서 사망 처리한다.</summary>
+        /// <summary>현재 공연이 공연 포기로 끝났는지(모든 화면).</summary>
+        public bool EndedByForfeit => state?.Latest != null && state.Performance != null
+            && state.Latest.Performance.Id == state.Performance.Id && state.Latest.EndReason == ForfeitReason;
+
+        /// <summary>내 캐릭터의 공연 포기를 호스트에 요청한다. 호스트가 대상인지 다시 확인한 뒤 정산한다.</summary>
         public bool RequestForfeit()
         {
             Bind();
@@ -467,18 +499,24 @@ namespace CurtainCall.Reward
             ServerForfeit(sender);
         }
 
+        /// <summary>
+        /// 포기는 정산만 사망과 같다(사망 호응 배율, 생존자 0명 실패). 캐릭터는 쓰러뜨리지 않고 지금 자리·자세·부상 그대로 둔다.
+        /// 결과 화면 동안 성공 때처럼 세계를 멈춰 포기 순간을 유지하고, 다음 시간대에는 부활 없이 지금 부상으로 대기실에 돌아간다(2026-11-13).
+        /// </summary>
         bool ServerForfeit(ulong clientId)
         {
             if (!CanMutate() || dummyRoster || !IsForfeitCandidate(clientId)) return false;
             var player = FindPlayer(clientId);
-            if (player == null || !player.ServerForfeit()) return false;
+            if (player == null || player.State != PlayerState.Normal) return false;
+            string id = null;
+            foreach (var person in model.Snapshot().Segments)
+                if (person.ClientId == clientId) { id = person.ParticipantId; break; }
+            if (id == null || !model.Observe(id, (int)player.LostParts, true, true, ReadRules())) return false;
             Debug.Log($"[Reward] 마지막 생존자 공연 포기: client {clientId}");
-            // 상태 변경 관찰자가 사망을 기록하고 생존자 0명 실패로 정산한다. 늦은 관찰자에 대비해 한 번 더 확인한다.
-            ObserveNetwork();
-            Publish();
-            EndIfInsufficientSurvivors();
-            return true;
+            return FinishPerformance(false, ForfeitReason, new Dictionary<string, string> { [id] = ForfeitReason });
         }
+
+        static bool FreezesWorld(PerformanceResult result) => result != null && (result.Succeeded || result.EndReason == ForfeitReason);
 
         /// <summary>닫기 → 최종 관찰 → 정산 → 상태 송신 enqueue → Campaign 종료. 묘기의 판정 문자열은 그대로 보존한다.</summary>
         public bool FinishPerformance(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements = null)
@@ -501,7 +539,7 @@ namespace CurtainCall.Reward
                         if (player != null && player.IsSpawned && player.OwnerClientId == client) return player.AppearanceModel;
                     return -1;
                 });
-                if (result.Succeeded) CaptureFinalPoses(result);
+                if (FreezesWorld(result)) CaptureFinalPoses(result);
                 else { finalPosePerformance = null; finalPoses = null; }
                 // 성공한 단계를 런에 기록해 다음 밤 정비에서 다음 단계를 고를 수 있게 한다(M2 난이도 선택).
                 if (result.Succeeded && !dummyRoster) campaign.RecordClear(result.Performance.TrickId, difficulty);
@@ -644,6 +682,7 @@ namespace CurtainCall.Reward
             {
                 data.finishGracePerformance = gracePerformance;
                 data.finishGraceRemaining = Mathf.Max(0f, graceEndsAt - Time.unscaledTime);
+                data.finishGraceClients = new List<ulong>(graceClients).ToArray();
             }
             string json = JsonUtility.ToJson(data);
             int size = FastBufferWriter.GetWriteSize(json);
@@ -739,9 +778,11 @@ namespace CurtainCall.Reward
                 {
                     gracePerformance = data.finishGracePerformance;
                     graceEndsAt = Time.unscaledTime + data.finishGraceRemaining;
+                    if (data.finishGraceClients != null && data.finishGraceClients.Length <= 64)
+                        foreach (ulong client in data.finishGraceClients) graceClients.Add(client);
                 }
                 remoteFinalPoses.Clear();
-                if (next.Latest?.Succeeded == true && data.finalPosePerformance == next.Latest.Performance.Id
+                if (FreezesWorld(next.Latest) && data.finalPosePerformance == next.Latest.Performance.Id
                     && data.finalPoses != null && data.finalPoses.Length <= 64)
                     foreach (var entry in data.finalPoses)
                         if (entry != null && float.IsFinite(entry.position.x) && float.IsFinite(entry.position.y)

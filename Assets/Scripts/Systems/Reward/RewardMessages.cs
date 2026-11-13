@@ -144,6 +144,8 @@ namespace CurtainCall.Reward
         // 첫 생존 도착 뒤 정산까지 남은 여유 시간. 화면마다 시계가 다르므로 보낸 순간의 남은 초로 전한다.
         public string finishGracePerformance;
         public float finishGraceRemaining;
+        // 여유 시간 중 실제로 도착한 사람(관전 대상에서 빠지고 스스로도 관전한다).
+        public ulong[] finishGraceClients;
 
         public RewardSnapshot Read()
         {

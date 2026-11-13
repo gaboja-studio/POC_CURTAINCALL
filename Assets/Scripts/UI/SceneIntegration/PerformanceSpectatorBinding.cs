@@ -3,6 +3,7 @@ using System.Linq;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Reward;
 using CurtainCall.UI.SpectatorV1;
 using UnityEngine;
 
@@ -36,17 +37,21 @@ namespace CurtainCall.UI.SceneIntegration
                 && !CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsActive
                 && local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
+            // 공연 종료 여유 시간에 도착한 사람은 탈락자처럼 관전한다(2026-11-13).
+            bool finished = PerformanceRewards.IsFinishedSpectator(local);
+            dead |= finished;
             var ending = PerformanceEndingPresentation.Current;
             if (ending != null && (ending.ResultVisible || ending.BlackVisible)) { view.HideImmediate(); return; }
             var state = ResolveState(dead, CameraSpectator.IsSpectating, CameraSpectator.Target != null);
             if (state == SpectatorState.Hidden) view.Hide();
             else
             {
-                int alive = NetworkPlayer.All.Count(p => p != null && p != local && p.State == PlayerState.Normal);
+                int alive = NetworkPlayer.All.Count(p => p != null && p != local && p.State == PlayerState.Normal
+                    && !PerformanceRewards.IsFinishedSpectator(p));
                 string detail = state == SpectatorState.Spectating ? $"플레이어 {CameraSpectator.Target.Slot + 1}" :
-                    state == SpectatorState.NoTarget ? "관전 대상 없음" : "사망했습니다";
+                    state == SpectatorState.NoTarget ? "관전 대상 없음" : finished ? "완주했습니다" : "사망했습니다";
                 var reader = local != null ? local.GetComponent<PlayerInputReader>() : null;
-                HudUIManager.ShowSpectator(detail,view,state,state == SpectatorState.Spectating ? "관전 중" : "사망",
+                HudUIManager.ShowSpectator(detail,view,state,state == SpectatorState.Spectating ? "관전 중" : finished ? "완주" : "사망",
                     reader != null ? reader.BindingPartLabel("Posture", "negative", "A") : "A",
                     reader != null ? reader.BindingPartLabel("Posture", "positive", "D") : "D",
                     alive > 1 && !InputGate.IsBlocked);
