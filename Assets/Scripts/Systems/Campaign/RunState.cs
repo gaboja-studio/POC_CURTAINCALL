@@ -391,11 +391,14 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>유효한 개발 시작 지점으로 새 세대를 만든다. 건너뛴 공연의 종료/보상 이벤트는 만들지 않는다.</summary>
-        public bool DebugStartAt(RunStartPoint point, bool preserveUnlock = false)
+        public bool DebugStartAt(RunStartPoint point, bool preserveUnlock = false,
+            (int Tightrope, int HumanCannon) clearHistory = default)
         {
             if (!point.IsValid(out _) || s.Generation == int.MaxValue) return false;
             bool cannonUnlocked = preserveUnlock;
             StartRun(s.Generation > 0 ? s.Generation + 1 : 1, RunEndReason.None);
+            RecordClear(CampaignSnapshot.TightropeId, clearHistory.Tightrope);
+            RecordClear(CampaignSnapshot.HumanCannonId, clearHistory.HumanCannon);
             s.CannonUnlocked = cannonUnlocked;
             s.Day = point.Day;
             // 후속 공연도 미정으로 떨어지지 않도록 테스트 런에만 기본 편성을 둔다.
@@ -412,7 +415,8 @@ namespace CurtainCall.Campaign
                 setlists[point.Day][next] = point.TrickId;
             switch (point.Phase)
             {
-                case RunStartPhase.Performance: EnterPerformance(next); break;
+                // A development launch selects this performance only, without fabricating clears/unlocks or changing settings.
+                case RunStartPhase.Performance: EnterPerformance(next); s.Difficulty = point.Difficulty; break;
                 case RunStartPhase.Rehearsal: EnterRehearsal(); break;
                 case RunStartPhase.Morning: EnterRest(RestKind.Morning, 0); break;
                 case RunStartPhase.Between: EnterRest(point.Day == 1 && next == 1 ? RestKind.Guide : RestKind.Between, next); break;

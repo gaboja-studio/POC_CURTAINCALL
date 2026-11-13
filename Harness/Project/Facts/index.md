@@ -1,5 +1,7 @@
 # Project Facts
 
+- [escape-results-kit.md](escape-results-kit.md) — 엔딩 키트·실게임 데이터·실제 플레이어 Cinemachine 연출·로비 복귀를 수정할 때
+
 - [Final-build/](Final-build/index.md) — 최종 빌드 개선의 Confluence 기준·확정 방향·미검증 범위를 확인할 때
 
 - [Pursuit/](Pursuit/index.md) — 추격자 외형·봉제·혈흔·기존 FBX 비율을 다룰 때

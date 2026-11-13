@@ -186,6 +186,9 @@ namespace CurtainCall.EscapeRoute
 
         void Update()
         {
+            // Successful ending owns the actors until its explicit return button. A retired observer
+            // must not restart the party while the surviving players are in the meadow cinematic.
+            if (CampaignRun.Instance != null && EscapeEndingPresentation.IsSuccessfulEnding(CampaignRun.Instance.State)) return;
             if (Ready && multiplayer && session != null) Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
             if (!Ready || !OwnsRecovery) return;
             // Direct A/test execution has no campaign step to establish the shared escape rules.

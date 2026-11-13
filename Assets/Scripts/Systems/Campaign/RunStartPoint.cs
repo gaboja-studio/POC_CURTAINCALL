@@ -8,17 +8,20 @@ namespace CurtainCall.Campaign
     /// <summary>개발용 새 런의 시작 지점. 진행 중 스냅샷을 임의 수정하지 않고 정상 진입 상태를 만든다.</summary>
     public readonly struct RunStartPoint
     {
-        public readonly int Day, PerformanceIndex;
+        public readonly int Day, PerformanceIndex, Difficulty;
         public readonly RunStartPhase Phase;
         public readonly string TrickId;
         public RunStartPoint(int day, RunStartPhase phase, int performanceIndex, string trickId)
-        { Day = day; Phase = phase; PerformanceIndex = performanceIndex; TrickId = trickId; }
+            : this(day, phase, performanceIndex, trickId, 1) { }
+        public RunStartPoint(int day, RunStartPhase phase, int performanceIndex, string trickId, int difficulty)
+        { Day = day; Phase = phase; PerformanceIndex = performanceIndex; TrickId = trickId; Difficulty = difficulty; }
 
         public bool IsValid(out string reason)
         {
             var rules = GameSettings.Base.Run;
             reason = "";
-            if (Day < 1 || Day > rules.DayCount + 1) reason = "선택할 수 없는 일차입니다.";
+            if (Difficulty < 1 || Difficulty > RunState.MaxDifficulty) reason = "난이도는 1~3단계에서 선택하세요.";
+            else if (Day < 1 || Day > rules.DayCount + 1) reason = "선택할 수 없는 일차입니다.";
             else if (Phase < RunStartPhase.Performance || Phase > RunStartPhase.Rehearsal) reason = "선택할 수 없는 시점입니다.";
             else if (Phase == RunStartPhase.Escape) { } // 탈출은 어느 날 쉬는 시간에서든 시작할 수 있다. 공연 선택은 쓰지 않는다.
             else if (Phase == RunStartPhase.Rehearsal) { if (Day != 1) reason = "최초 리허설은 1일차에만 있습니다."; }

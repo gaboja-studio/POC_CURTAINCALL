@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/cheat-probe.cs",
+      "entry": "CheatProbe.NextPerformance",
+      "timeout_ms": "120000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 172,
+      "executeMs": 6744,
+      "assemblyName": "PipelineRunScript_cheat-probe_0863fd46816f417ab2df2d1cc688fa32",
+      "success": true,
+      "result": {
+        "trick": "HumanCannon",
+        "tier": 1,
+        "scene": "HumanCannon",
+        "rewardTier": 1,
+        "cheatClosed": true,
+        "launcherClosed": true,
+        "frames": 3787
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
