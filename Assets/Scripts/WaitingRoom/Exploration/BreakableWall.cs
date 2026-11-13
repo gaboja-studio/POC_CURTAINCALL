@@ -76,7 +76,7 @@ namespace CurtainCall.WaitingRoom
                     return WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
                 var (n, total) = ExplorationTargets.StrikeCount(this, tool);
                 return tool ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", n), ("total", total))
-                    : WaitingRoomText.Format("wall.strike-bare", "맨몸으로 내려치기 ({n}/{total})", ("n", n), ("total", total));
+                    : WaitingRoomText.Format("wall.strike-bare", "맨몸으로 내려치기 ({n}/{total})", ("n", n), ("total", total)) + ShopReach.BareHoldSuffix(this);
             }
         }
 

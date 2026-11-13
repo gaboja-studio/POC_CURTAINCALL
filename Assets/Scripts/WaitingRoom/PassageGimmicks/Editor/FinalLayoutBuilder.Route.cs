@@ -18,6 +18,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
         const string QuartersDoorId = "final:quarters-door";
         const float SawProjectileRadius = .35f;
         const float RustWallWidth = 2f;
+        // 배선 굵기와 벽에서 띄우는 거리(배선 중심 기준).
+        const float CableRadius = .06f, CableStandoff = .2f, EscapeCableStart = 1.4f;
         const string ManagementOpenId = "final:management-open", ManagementLatchId = "final:management-latch", ManagementKeycardId = "final:management-keycard";
         const string ComputerId = "final:office-computer", EscapeCableId = "final:escape-cable", EscapeRouteId = "final:escape-route";
         // 기계실 서벽·남벽 안쪽 면(충돌체 기준).
@@ -152,8 +154,14 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var rb = Bounds(rust); float rustWidth = Mathf.Max(rb.size.x, rb.size.z);
             var corner = new Vector3(MachineWestX + .05f + rustWidth * .5f, rust.position.y, MachineSouthZ);
             Undo.RecordObject(rust, "Move rust wall"); rust.SetPositionAndRotation(corner, Quaternion.identity);
-            Undo.RecordObject(hidden.transform, "Move cable"); hidden.transform.position = new Vector3(corner.x, corner.y, MachineSouthZ + .16f);
+            // 배선은 벽에서 조금 띄워 건다. 톱날 판정은 네모 상자로 벽에 막히기 때문에 비스듬히 쏘면 날 끝이 벽에 닿기 전에 멈춰
+            // 벽에 바짝 붙은 배선에는 닿지 않았다(2026-11-13 플레이: 배선 절단 안 됨). 45도로 쏴도 닿는 거리까지 띄운다.
+            Undo.RecordObject(hidden.transform, "Move cable"); hidden.transform.position = new Vector3(corner.x, corner.y, MachineSouthZ + CableStandoff);
             Set(hidden, "openTarget", ManagementCableId);
+            { var hso = new SerializedObject(hidden); hso.FindProperty("radius").floatValue = CableRadius; hso.ApplyModifiedPropertiesWithoutUndo(); hidden.Rebuild(); }
+            // 녹슨 벽의 옆·윗 테두리 충돌체는 비스듬히 쏜 톱날을 먼저 막으므로 끈다(벽을 막는 충돌체는 따로 있다).
+            foreach (var frameName in new[] { "BoxSideL", "BoxSideR", "BoxTop" })
+                if (rust.Find(frameName)?.GetComponent<Collider>() is Collider frameCollider && frameCollider.enabled) { Undo.RecordObject(frameCollider, "Rust wall frame"); frameCollider.enabled = false; }
             // 관리실 문(2026-11-13 사용자): 배선 절단 말고도 안쪽 빗장(맨몸·도구 1회)이나 키 카드로 열린다. 셋 중 하나면 된다.
             var officeDoor = layout.Find("B1_Office/Exploration_A/management-door");
             Rewire(officeDoor, ManagementOpenId);
@@ -162,6 +170,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 var ob = Bounds(officeDoor); // 문은 z면에 서 있고 관리실 안쪽이 +z(북쪽)다.
                 var latch = Bar(root, "OfficeLatch", ManagementLatchId, 1, iron, new Vector3(ob.min.x + .12f, ob.min.y + 1.1f, ob.max.z), new Vector3(ob.max.x - .12f, ob.min.y + 1.1f, ob.max.z), Vector3.forward);
                 Set(latch, "label", "안쪽 빗장");
+                // 문이 다른 방법으로 열리면 빗장도 함께 사라진다(2026-11-13 사용자).
+                Set(latch, "retiredBy", ManagementOpenId);
                 // 키 카드 단말기: 문 바깥(남쪽) 벽, 문 오른쪽 어깨 높이.
                 var readerAt = new Vector3(ob.max.x + .45f, ob.min.y + 1.25f, ob.min.z - .02f);
                 if (Physics.Raycast(new Vector3(readerAt.x, readerAt.y, ob.min.z - 1.2f), Vector3.forward, out var wallHit, 1.6f, ~0, QueryTriggerInteraction.Ignore)) readerAt.z = wallHit.point.z;
@@ -175,7 +185,10 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 rso.FindProperty("targetId").stringValue = ManagementKeycardId; rso.FindProperty("label").stringValue = "키 카드 단말기";
                 rso.FindProperty("kind").enumValueIndex = (int)ExplorationGateKind.Breakable;
                 rso.FindProperty("toolId").stringValue = KeycardId; rso.FindProperty("requiredHits").intValue = 1; rso.FindProperty("bareHandHits").intValue = 0;
-                rso.FindProperty("interactionPoint").objectReferenceValue = rp; rso.ApplyModifiedPropertiesWithoutUndo();
+                rso.FindProperty("interactionPoint").objectReferenceValue = rp;
+                // 문이 열리면(어떤 방법이든) 단말기도 사라진다(2026-11-13 사용자).
+                rso.FindProperty("retiredBy").stringValue = ManagementOpenId; Refs(rso.FindProperty("hideOnOpen"), rv.gameObject);
+                rso.ApplyModifiedPropertiesWithoutUndo();
                 var anyDoor = root.gameObject.AddComponent<ExplorationAllOf>(); var aso = new SerializedObject(anyDoor);
                 var ways = aso.FindProperty("required"); ways.arraySize = 3;
                 ways.GetArrayElementAtIndex(0).stringValue = ManagementCableId; ways.GetArrayElementAtIndex(1).stringValue = ManagementLatchId; ways.GetArrayElementAtIndex(2).stringValue = ManagementKeycardId;
@@ -191,15 +204,19 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             for (int n = 0; n < colors.Length; n++)
             {
                 // 위치는 구조도(관리실 배선과 같은 기계실 남서 모서리): 녹슨 벽 옆 서벽을 타고 올라가 벽 위로 넘어간다(2026-11-13 사용자).
-                float cableZ = MachineSouthZ + .8f + n * .42f;
+                // 남쪽 모서리(녹슨 벽)에서 1.4m 떨어진 곳부터: 모서리에 붙어 있으면 비스듬히 쏜 톱날이 옆 벽에 먼저 막혔다.
+                float cableZ = MachineSouthZ + EscapeCableStart + n * .42f;
                 var cableGo = new GameObject("EscapeCable_" + (n + 1), typeof(MeshFilter), typeof(MeshRenderer)); cableGo.transform.SetParent(root, false);
-                cableGo.transform.position = new Vector3(wallX + .05f, floorY, cableZ);
+                cableGo.transform.position = new Vector3(wallX + CableStandoff, floorY, cableZ);
+                // 벽에서 띄운 배선을 잡아 주는 고정쇠(벽면 ~ 배선).
+                foreach (float clampY in new[] { .45f, 2.1f, 3.9f })
+                    Plain(Box(root, "CableClamp", iron, new Vector3(wallX, floorY + clampY, cableZ - .045f), new Vector3(wallX + CableStandoff + CableRadius + .01f, floorY + clampY + .05f, cableZ + .045f), false));
                 var cable = cableGo.AddComponent<EscapeCuttableCable>(); var cso = new SerializedObject(cable);
-                var path = new[] { new Vector3(0, 0, 0), new Vector3(0, 1.2f, .03f), new Vector3(0, 2.6f, -.03f), new Vector3(0, 4.7f, 0), new Vector3(-.14f, 4.96f, 0), new Vector3(-.36f, 4.99f, 0) };
+                var path = new[] { new Vector3(0, 0, 0), new Vector3(0, 1.2f, .03f), new Vector3(0, 2.6f, -.03f), new Vector3(0, 4.7f, 0), new Vector3(-.14f - CableStandoff, 4.96f, 0), new Vector3(-.36f - CableStandoff, 4.99f, 0) };
                 var points = cso.FindProperty("localPoints"); points.arraySize = path.Length;
                 for (int i = 0; i < path.Length; i++) points.GetArrayElementAtIndex(i).vector3Value = path[i];
                 cableIds[n] = EscapeCableId + "-" + (n + 1);
-                cso.FindProperty("radius").floatValue = .05f; cso.FindProperty("openTarget").stringValue = cableIds[n];
+                cso.FindProperty("radius").floatValue = CableRadius; cso.FindProperty("openTarget").stringValue = cableIds[n];
                 cso.FindProperty("insulationMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(CableMaterials + colors[n] + ".mat");
                 cso.FindProperty("copperMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(CableMaterials + "cable-copper-core.mat");
                 cso.ApplyModifiedPropertiesWithoutUndo(); cable.Rebuild(); escapeCables[n] = cable;
@@ -275,7 +292,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                     float camBack = Mathf.Clamp(farthest - .4f, 2f, 5.5f);
                     var camEye = eb.center + openDir * ((Mathf.Abs(openDir.x) > .5f ? eb.extents.x : eb.extents.z) + camBack) + Vector3.up * Mathf.Min(1.4f, eb.extents.y + .6f) + Vector3.Cross(Vector3.up, openDir) * .9f;
                     camGo.transform.SetPositionAndRotation(camEye, Quaternion.LookRotation(eb.center - camEye));
-                    var feedCam = camGo.GetComponent<Camera>(); feedCam.enabled = false; feedCam.targetTexture = null; feedCam.fieldOfView = 58f; feedCam.nearClipPlane = .1f; feedCam.farClipPlane = 40f;
+                    var feedCam = camGo.GetComponent<Camera>(); feedCam.enabled = false; feedCam.useOcclusionCulling = false; feedCam.targetTexture = null; feedCam.fieldOfView = 58f; feedCam.nearClipPlane = .1f; feedCam.farClipPlane = 40f;
                     foreach (var listener in camGo.GetComponents<AudioListener>()) Object.DestroyImmediate(listener);
                     pso.FindProperty("monitorCamera").objectReferenceValue = feedCam; pso.FindProperty("feedOpenTarget").stringValue = EscapeRouteId;
                     notes.Add($"문 카메라 {camEye:F1}");
@@ -295,12 +312,47 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var doorRequired = dso.FindProperty("required"); doorRequired.arraySize = 1; doorRequired.GetArrayElementAtIndex(0).stringValue = EscapeRouteId;
             dso.FindProperty("openTarget").stringValue = StructureAKeyRoute.EscapeDoor; dso.ApplyModifiedPropertiesWithoutUndo();
             Rewire(hiddenDoor, EscapeRouteId);
-            Rewire(layout.Find("B1_EscapeEntrance/Exploration_A/escapeDoor"), EscapeRouteId);
+            var escapeDoor = layout.Find("B1_EscapeEntrance/Exploration_A/escapeDoor");
+            Rewire(escapeDoor, EscapeRouteId);
+            // 탈출로 문은 바로 사라지지 않고 옆 벽 속으로 밀려 열린다(관리실 컴퓨터 화면에서 열리는 모습이 보이게, 2026-11-13 사용자).
+            if (escapeDoor != null && escapeDoor.GetComponent<ExplorationGate>() is ExplorationGate escapeGate)
+            {
+                var eso = new SerializedObject(escapeGate); var edb = Bounds(escapeDoor);
+                bool doorAlongZ = edb.size.z > edb.size.x; float doorWidth = doorAlongZ ? edb.size.z : edb.size.x;
+                Vector3 slideDir = doorAlongZ ? Vector3.forward : Vector3.right;
+                // 벽이 더 길게 이어진 쪽으로 민다.
+                float Room(Vector3 dir) => Physics.Raycast(edb.center + dir * (doorWidth * .5f + .05f) + Vector3.up * .3f, dir, out var wallEnd, 6f, ~0, QueryTriggerInteraction.Ignore) ? wallEnd.distance : 6f;
+                if (Room(-slideDir) < Room(slideDir)) slideDir = -slideDir;
+                eso.FindProperty("openSlide").vector3Value = slideDir * (doorWidth + .05f); eso.FindProperty("openSlideSeconds").floatValue = 2.5f;
+                var moving = eso.FindProperty("hideOnOpen");
+                for (int i = 0; i < moving.arraySize; i++) if (moving.GetArrayElementAtIndex(i).objectReferenceValue is GameObject part)
+                    foreach (var piece in part.GetComponentsInChildren<Transform>(true)) if (GameObjectUtility.GetStaticEditorFlags(piece.gameObject) != 0) GameObjectUtility.SetStaticEditorFlags(piece.gameObject, 0);
+                eso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(escapeGate);
+                notes.Add($"탈출로 문 열림 방향 {slideDir}");
+            }
+            // 조명 회로: 관리실 배선·탈출로 배선 어느 것이 잘려도 한 번 꺼졌다 켜진다. 다시 지은 새 공간 조명도 회로에 넣는다.
+            // 기계실 안에서도 꺼진 것이 보이게, 회로에서 빠져 있던 기계실 쪽 조명도 넣는다.
+            var power = layout.GetComponentInChildren<NightPower>(true);
+            if (power != null)
+            {
+                var nso = new SerializedObject(power); var circuit = nso.FindProperty("circuit");
+                for (int i = circuit.arraySize - 1; i >= 0; i--) if (circuit.GetArrayElementAtIndex(i).objectReferenceValue == null) circuit.DeleteArrayElementAtIndex(i);
+                var have = Enumerable.Range(0, circuit.arraySize).Select(i => circuit.GetArrayElementAtIndex(i).objectReferenceValue).ToHashSet();
+                var extra = layout.Find(RootName).GetComponentsInChildren<Light>(true).AsEnumerable();
+                foreach (var roomName in new[] { "B1_MachineRoom", "B1_EscapeCorridor", "B1_EscapeEntrance", "B1_Office" })
+                    if (layout.Find(roomName) is Transform powered) extra = extra.Concat(powered.GetComponentsInChildren<Light>(true));
+                int addedLights = 0;
+                foreach (var light in extra.Where(l => !have.Contains(l)).Distinct())
+                { circuit.InsertArrayElementAtIndex(circuit.arraySize); circuit.GetArrayElementAtIndex(circuit.arraySize - 1).objectReferenceValue = light; addedLights++; }
+                Refs(nso.FindProperty("blackoutCables"), new Object[] { hidden }.Concat(escapeCables).ToArray());
+                nso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(power);
+                notes.Add($"조명 회로 +{addedLights}, 정전 배선 {1 + escapeCables.Length}가닥");
+            }
             var panel = layout.Find("B1_MachineRoom/Exploration_A/HiddenPanel")?.GetComponent<ExplorationSlide>();
             if (panel != null) { Set(panel, "openedBy", EscapeRouteId); PrefabUtility.RecordPrefabInstancePropertyModifications(panel); }
 
             Physics.SyncTransforms();
-            notes.Add($"탈출로 배선 4가닥 z {MachineSouthZ + .8f:F2}~{MachineSouthZ + .8f + 3 * .42f:F2} / 톱날 발사기 {SawSpot}");
+            notes.Add($"탈출로 배선 4가닥 z {MachineSouthZ + EscapeCableStart:F2}~{MachineSouthZ + EscapeCableStart + 3 * .42f:F2} / 톱날 발사기 {SawSpot}");
             Undo.CollapseUndoOperations(undo); EditorSceneManager.MarkSceneDirty(layout.gameObject.scene);
             return string.Join(" / ", notes);
         }

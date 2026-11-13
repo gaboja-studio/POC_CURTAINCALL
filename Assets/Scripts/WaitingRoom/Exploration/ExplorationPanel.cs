@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsVisible => canvasRoot != null && canvasRoot.activeSelf;
         public string Entered => entered;
 
-        public void Open(string heading, string text, bool keypad, Action<string> onSubmit, Action onClose, bool overview = false, Texture image = null, bool reading = false)
+        public void Open(string heading, string text, bool keypad, Action<string> onSubmit, Action onClose, bool overview = false, Texture image = null, bool reading = false, int reserveLines = 0)
         {
             if (canvasRoot != null) Destroy(canvasRoot);
             submit = onSubmit; close = onClose; entered = ""; word = ""; codeLength = 4; terminal = false; wordLabel = null;
@@ -39,8 +39,16 @@ namespace CurtainCall.WaitingRoom
             var surface = Instantiate(template.gameObject, canvasRoot.transform, false); surface.name = "ExplorationPanel"; surface.SetActive(true);
             var rect = (RectTransform)surface.transform; rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, .5f);
             // reading: 노트처럼 글귀가 긴 단서. 아래쪽 판을 키워 한 쪽 분량이 들어가게 한다.
-            rect.anchoredPosition = overview ? new Vector2(0, reading ? -290 : -400) : Vector2.zero;
-            rect.sizeDelta = new Vector2(overview ? 1000 : 640, overview ? (reading ? 460 : 240) : keypad ? 660 : image != null ? 580 : 440);
+            // 살펴보기 판: 줄을 바꾼 설명이 잘리지 않게 줄 수만큼 판을 키운다(아래쪽 끝은 그대로 두고 위로 늘린다).
+            float grow = 0f;
+            if (overview && !reading)
+            {
+                int lines = reserveLines;
+                foreach (var line in (text ?? "").Split('\n')) lines += Mathf.Max(1, Mathf.CeilToInt(System.Text.RegularExpressions.Regex.Replace(line, "<.*?>", "").Length / 42f));
+                grow = Mathf.Clamp(lines * 30f - 68f, 0f, 330f);
+            }
+            rect.anchoredPosition = overview ? new Vector2(0, reading ? -290 : -400 + grow * .5f) : Vector2.zero;
+            rect.sizeDelta = new Vector2(overview ? 1000 : 640, overview ? (reading ? 460 : 240 + grow) : keypad ? 660 : image != null ? 580 : 440);
             var content = surface.transform.Find("50_Content");
             var cr = (RectTransform)content; cr.anchorMin = Vector2.zero; cr.anchorMax = Vector2.one; cr.offsetMin = cr.offsetMax = Vector2.zero;
             // The panel's visual layers stay; menu-specific controls do not belong to exploration.
@@ -48,7 +56,7 @@ namespace CurtainCall.WaitingRoom
             var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
             var width = rect.sizeDelta.x - 80;
             Text(content, "Title", heading, font, 32, 40, -24, width, 50);
-            message = Text(content, "Message", text, font, 22, 40, -88, width, overview ? (reading ? 288 : 68) : 100);
+            message = Text(content, "Message", text, font, 22, 40, -88, width, overview ? (reading ? 288 : 68 + grow) : 100);
             if (image != null)
             {
                 var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(content, false);
