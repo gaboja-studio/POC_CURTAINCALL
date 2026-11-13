@@ -16,6 +16,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     {
         const string StairsBarId = "final:stairs-bar", CargoBarId = "final:cargo-door-bar", ManagementCableId = "final:management-cable";
         const string QuartersDoorId = "final:quarters-door";
+        const float SawProjectileRadius = .35f;
+        const float RustWallWidth = 2f;
         const string ManagementOpenId = "final:management-open", ManagementLatchId = "final:management-latch", ManagementKeycardId = "final:management-keycard";
         const string ComputerId = "final:office-computer", EscapeCableId = "final:escape-cable", EscapeRouteId = "final:escape-route";
         // 기계실 서벽·남벽 안쪽 면(충돌체 기준).
@@ -140,6 +142,13 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             // 관리실 문: 녹슨 벽 안 배선이 잘리면 열린다(문에 직접 F하지 않는다).
             // 위치는 사용자 구조도(2026-11-12)대로 기계실 남서 모서리: 녹슨 벽을 남벽 서쪽 끝에 붙이고 배선은 그 안쪽 남벽을 탄다.
             var rust = layout.Find(RootName + "/MachineWiring/RustWall");
+            // 배선이 든 상자 틈이 1.15m라 톱날(지름 0.7m)을 정면에서 정확히 쏴야만 맞았다(2026-11-13 사용자: 넓혀 달라).
+            // 녹슨 벽과 그 뒤 상자를 폭 2m로 넓힌다. 다시 실행해도 같은 폭이 되게 지금 폭을 재서 맞춘다.
+            {
+                Undo.RecordObject(rust, "Widen rust wall"); rust.rotation = Quaternion.identity;
+                float nowWidth = Bounds(rust).size.x;
+                if (nowWidth > .01f) { var widened = rust.localScale; widened.x *= RustWallWidth / nowWidth; rust.localScale = widened; }
+            }
             var rb = Bounds(rust); float rustWidth = Mathf.Max(rb.size.x, rb.size.z);
             var corner = new Vector3(MachineWestX + .05f + rustWidth * .5f, rust.position.y, MachineSouthZ);
             Undo.RecordObject(rust, "Move rust wall"); rust.SetPositionAndRotation(corner, Quaternion.identity);
@@ -199,6 +208,29 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             // 톱날 발사기: 관리실 배선과 탈출로 배선 4가닥을 모두 자를 수 있게 연결하고 작업실 남쪽 벽 앞 바닥으로 옮긴다. 문은 배선마다 따로 열린다.
             var sso = new SerializedObject(saw);
             Refs(sso.FindProperty("cables"), new Object[] { hidden }.Concat(escapeCables).ToArray()); sso.FindProperty("openTarget").stringValue = "";
+            // 톱날 판정 반지름: 탈출로 씬 기준값(1.1m, 지름 2.2m)은 대기실에서 발사 순간 옆 벽·드럼통·녹슨 벽 상자에 닿아 바로 사라졌다
+            // (2026-11-13 플레이: 발사도 절단도 안 됨). 장치 크기(0.7배)에 맞는 0.35m로 줄인다. 이 씬의 발사기에만 적용.
+            sso.FindProperty("projectileRadius").floatValue = SawProjectileRadius;
+            // 날아가는 톱날의 모습도 판정 크기에 맞춘다(발사 때 본체 크기는 1로 되돌려지므로 자식들의 크기를 바꾼다).
+            if (sso.FindProperty("projectileVisual").objectReferenceValue is GameObject shotVisual)
+            {
+                float shotExtent = 0f;
+                foreach (var shotR in shotVisual.GetComponentsInChildren<Renderer>(true))
+                {
+                    var shotLb = shotR.localBounds;
+                    for (int bit = 0; bit < 8; bit++)
+                    {
+                        var shotLocal = shotLb.center + Vector3.Scale(shotLb.extents, new Vector3((bit & 1) != 0 ? 1 : -1, (bit & 2) != 0 ? 1 : -1, (bit & 4) != 0 ? 1 : -1));
+                        var shotInRoot = shotVisual.transform.InverseTransformPoint(shotR.transform.TransformPoint(shotLocal));
+                        shotExtent = Mathf.Max(shotExtent, Mathf.Abs(shotInRoot.x), Mathf.Abs(shotInRoot.z));
+                    }
+                }
+                float shotFit = shotExtent > .001f ? SawProjectileRadius / shotExtent : 1f;
+                if (Mathf.Abs(shotFit - 1f) > .03f)
+                    foreach (Transform shotChild in shotVisual.transform)
+                    { Undo.RecordObject(shotChild, "Fit saw projectile"); shotChild.localScale *= shotFit; shotChild.localPosition *= shotFit; PrefabUtility.RecordPrefabInstancePropertyModifications(shotChild); }
+                notes.Add($"톱날 모습 반지름 {shotExtent:F2} → {SawProjectileRadius:F2}(자식 {shotVisual.transform.childCount}개)");
+            }
             sso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(saw);
             Undo.RecordObject(saw.transform, "Move saw"); saw.transform.position = SawSpot;
             // 충돌 범위(들고 갈 때 걸림 판정도 이 상자를 쓴다): 원래 1.15 x 1.5 x 1.05m → 0.6 x 1.2 x 0.6m로도 계단·난간에 걸렸다(2026-11-13 플레이).
