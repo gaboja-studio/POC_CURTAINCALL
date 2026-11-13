@@ -29,10 +29,43 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Gate[] gates = Array.Empty<Gate>();
         const string Message = "CurtainCall.Escape.ConcreteBreaches.v1";
         CustomMessagingManager receiver;
-        double round = -1, nextSend, nextReveal;
+        double round = -1, nextSend;
         static float BreakSeconds => Mathf.Max(.1f, CurtainCall.Settings.GameSettings.EscapeRoute.Pursuer.wallBreakSeconds);
         public int GateCount => gates.Length;
         public int BrokenCount { get; private set; }
+        public Gate At(int index) => index >= 0 && index < gates.Length ? gates[index] : null;
+
+        public bool PrepareBreach(int index, Vector3 feet)
+        {
+            var gate = At(index);
+            var timer = EscapeRouteTimer.Current;
+            if (gate == null || !timer || !timer.HasStarted) return false;
+            if (gate.started >= 0) return timer.Clock - gate.started >= BreakSeconds;
+            // A wall is opened by the creature's committed strike, never player proximity.
+            Vector3 chest = feet + Vector3.up * 2.5f;
+            if (Vector3.Distance(chest, gate.barrier.ClosestPoint(chest)) > 2.8f) return false;
+            if (!NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return false;
+            gate.started = timer.Clock;
+            nextSend = 0;
+            return false;
+        }
+
+        public bool StrikePose(Vector3 feet, out Vector3 direction, out float progress)
+        {
+            direction = Vector3.zero; progress = 0;
+            var timer = EscapeRouteTimer.Current;
+            if (!timer) return false;
+            foreach (var gate in gates)
+            {
+                float age = (float)(timer.Clock - gate.started);
+                if (gate.started < 0 || age < 0 || age >= BreakSeconds ||
+                    Vector3.Distance(feet + Vector3.up * 2.5f, gate.panel.position) > 7f) continue;
+                direction = gate.panel.parent.TransformDirection(gate.outward);
+                progress = age / BreakSeconds;
+                return true;
+            }
+            return false;
+        }
 
         void OnEnable()
         {
@@ -60,33 +93,7 @@ namespace CurtainCall.EscapeRoute
             if (round != epoch) { ResetWalls(); round = epoch; }
             if (epoch < 0 || !actor || actor.InShowcase || !EscapeCampaignContent.IsTraversalActive) return;
             double now = timer.Clock;
-            if (net && net.IsServer && route.Following)
-            {
-                Gate candidate = null;
-                int available = 0;
-                foreach (var gate in gates)
-                {
-                    if (now < nextReveal || gate.started >= 0 || Mathf.Abs(route.Progress - gate.routePoint) > 2.5f) continue;
-                    if (Vector3.Distance(actor.transform.position, gate.panel.position) > 32f) continue;
-                    foreach (var player in NetworkPlayer.All)
-                        if (player && player.IsSpawned && player.State == PlayerState.Normal &&
-                            (player.transform.position - gate.panel.position).sqrMagnitude < 45f * 45f)
-                        {
-                            available++;
-                            if (UnityEngine.Random.Range(0, available) == 0) candidate = gate;
-                            break;
-                        }
-                }
-                if (candidate != null)
-                {
-                    candidate.started = now;
-                    nextSend = 0;
-                    var tuning = CurtainCall.Settings.GameSettings.EscapeRoute.Pursuer;
-                    nextReveal = now + UnityEngine.Random.Range(tuning.revealCooldownMin,
-                        Mathf.Max(tuning.revealCooldownMin, tuning.revealCooldownMax));
-                }
-                if (now >= nextSend) Publish(net, now);
-            }
+            if (net && net.IsServer && now >= nextSend) Publish(net, now);
             BrokenCount = 0;
             foreach (var gate in gates) Present(gate, now);
         }
@@ -97,15 +104,15 @@ namespace CurtainCall.EscapeRoute
             if (!timer || !timer.HasStarted) return true;
             bool clear = true;
             Vector3 delta = to - from;
-            foreach (var gate in gates)
+            for (int i = 0; i < gates.Length; i++)
             {
+                var gate = gates[i];
                 if (gate.started >= 0 && timer.Clock - gate.started >= BreakSeconds) continue;
                 var bounds = gate.barrier.bounds;
                 bounds.Expand(new Vector3(3f, 5f, 3f));
                 if (!bounds.IntersectRay(new Ray(from + Vector3.up * 2.5f, delta.normalized), out float distance)
-                    || distance > Mathf.Min(delta.magnitude, 8f)) continue;
-                if (gate.started < 0 && NetworkManager.Singleton && NetworkManager.Singleton.IsServer)
-                { gate.started = timer.Clock; nextSend = 0; }
+                    || distance > Mathf.Min(delta.magnitude, 1.1f)) continue;
+                PrepareBreach(i, from);
                 clear = false;
             }
             return clear;
@@ -117,7 +124,7 @@ namespace CurtainCall.EscapeRoute
             bool broken = age >= BreakSeconds;
             gate.panel.gameObject.SetActive(!broken);
             if (broken) BrokenCount++;
-            if (age >= 0 && !broken)
+            if (age >= BreakSeconds * .8f && !broken)
                 gate.panel.localPosition = gate.rest + gate.outward * (.025f * Mathf.Sin(age * 70f));
             gate.debris.gameObject.SetActive(broken && age < BreakSeconds + 1.5f);
             if (!broken) return;
@@ -171,7 +178,7 @@ namespace CurtainCall.EscapeRoute
 
         void ResetWalls()
         {
-            BrokenCount = 0; nextSend = nextReveal = 0;
+            BrokenCount = 0; nextSend = 0;
             foreach (var gate in gates)
             {
                 gate.started = -1; gate.sounded = false;

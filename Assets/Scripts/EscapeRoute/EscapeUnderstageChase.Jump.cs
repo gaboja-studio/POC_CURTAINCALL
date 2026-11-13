@@ -68,7 +68,8 @@ namespace CurtainCall.EscapeRoute
                 PlayStep(.8f);
             }
             if (jumpTime < JumpDuration) return;
-            if (serviceJump) fullRoute.CompleteJump();
+            if (encounterJump) CompleteEncounterJump();
+            else if (serviceJump) fullRoute.CompleteJump();
             else agent.CompleteOffMeshLink();
             agent.updatePosition = agent.updateRotation = true;
             jumping = false;
@@ -79,7 +80,9 @@ namespace CurtainCall.EscapeRoute
         internal void SampleJump(float time, Vector3 start, Vector3 end)
         {
             float flight = Mathf.InverseLerp(ContactTime * .45f, ContactTime, time);
-            transform.position = Vector3.Lerp(start, end, flight) + Vector3.up * (4.4f * flight * (1f - flight));
+            float arc = serviceJump ? Mathf.Max(4.4f, Mathf.Abs(end.y - start.y) * 4f + 4.4f) : 4.4f;
+            if (encounterJump) arc = Mathf.Max(12f, arc);
+            transform.position = Vector3.Lerp(start, end, flight) + Vector3.up * (arc * flight * (1f - flight));
             SampleJumpPose(time);
         }
 

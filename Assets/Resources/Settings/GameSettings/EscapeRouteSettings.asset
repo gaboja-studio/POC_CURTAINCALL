@@ -36,12 +36,14 @@ MonoBehaviour:
     walkSpeed: 2.7
     crouchSpeed: 1.7
     runSpeed: 6.6
-    concealedRunSpeed: 13
+    concealedRunSpeed: 24
     distractionSeconds: 5
     targetRefreshSeconds: 1.2
     targetMemorySeconds: 6
     aimLeadSeconds: 0.18
     wallBreakSeconds: 0.65
+    exposedGrabRange: 22
+    encounterMinimumSeconds: 3
     chargeWarning: 1.15
     debrisWarning: 1.1
     debrisCooldown: 8

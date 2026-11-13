@@ -39,6 +39,7 @@ namespace CurtainCall.EscapeRoute
         bool charging;
         internal bool InShowcase { get; set; }
         public static EscapeUnderstageChase Current { get; private set; }
+        internal bool RunnerIsOnRoute(NetworkPlayer player) => fullRoute && fullRoute.HasDeparted(player);
 
         void OnEnable() => Current = this;
 
@@ -79,12 +80,14 @@ namespace CurtainCall.EscapeRoute
                 PresentRemote(timer);
                 if (hasSnapshot && latest.Round == timer.StartedAt) PresentAttack(latest.Attack, timer.Clock);
                 if (hasSnapshot && latest.Round == timer.StartedAt) PresentThreat(latest.Threat, timer.Clock);
+                PresentWallStrike();
                 return;
             }
             if (breach.EntranceComplete) AdvanceHost();
             if (bypass) bypass.SetShutter(usingBypass, transform.position, body);
             PresentAttack(attack, timer.Clock);
             PresentThreat(threat, timer.Clock);
+            PresentWallStrike();
             Publish(net, timer);
         }
 
@@ -206,15 +209,16 @@ namespace CurtainCall.EscapeRoute
             body.enabled = true;
             SetBodyHeight(0);
             usingBypass = true;
+            var runner = fullRoute.SelectTarget();
+            if (AdvanceEncounter(runner)) return;
             if ((attack.Phase == AttackPhase.None || attack.Phase == AttackPhase.Grab) && fullRoute.TryJump(out var jumpFrom, out var jumpTo))
             {
                 if (walls && !walls.PrepareTravel(jumpFrom, jumpTo)) { AdvanceGait(0, 0, 0, true, Time.deltaTime); return; }
                 BeginServiceJump(jumpFrom, jumpTo);
                 return;
             }
-            var runner = fullRoute.SelectTarget();
             Vector3 goal = transform.position, watch = Vector3.zero;
-            if (TryDebrisAttack(runner)) return;
+            if (CanAttackFromRoute && TryDebrisAttack(runner)) return;
             bool acting = UpdateAttack(true, runner && fullRoute.AtStation(runner), ref goal, ref watch);
             var before = transform.position;
             float run = 0;
@@ -355,6 +359,7 @@ namespace CurtainCall.EscapeRoute
             if (Current == this) Current = null;
             ClearAttack();
             ResetThreat();
+            ResetEncounters();
             threatRound = -1;
             usingBypass = false;
             if (bypass) bypass.SetShutter(false, transform.position);

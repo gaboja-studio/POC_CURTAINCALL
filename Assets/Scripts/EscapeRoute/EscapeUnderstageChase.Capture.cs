@@ -138,19 +138,27 @@ namespace CurtainCall.EscapeRoute
 
             if (attack.Phase != AttackPhase.None) return AdvanceArm(now, ref watch);
             if (now < nextAim) return false;
+            if (!CanAttackFromRoute && !(boss && boss.InBattle)) return false;
             var runner = forcedRunner ? forcedRunner : divert ? fullRoute ? fullRoute.SelectTarget() : bypass.RearmostRunner() : target;
-            var reach = forcedRunner ? Reach.Hall : boarding ? Reach.Boarding : divert ? Reach.Wire : Reach.Hall;
-            if (!runner || !runner.IsSpawned || runner.State != PlayerState.Normal) return false;
+            var reach = fullRoute && fullRoute.Following ? Reach.Wire : forcedRunner ? Reach.Hall
+                : boarding ? Reach.Boarding : divert ? Reach.Wire : Reach.Hall;
+            // The nearest visible survivor remains attackable on poles, seats, piggyback and
+            // flight, even if a different player currently owns the route's progress target.
+            if (!AttackCandidate(runner, reach))
+            {
+                runner = null;
+                float best = float.PositiveInfinity;
+                foreach (var candidate in NetworkPlayer.All)
+                    if (AttackCandidate(candidate, reach))
+                    {
+                        float d = (PlayerFeet(candidate) - transform.position).sqrMagnitude;
+                        if (d < best) { best = d; runner = candidate; }
+                    }
+            }
+            if (!runner) return false;
 
             Vector3 aim = PlayerFeet(runner);
             var delta = aim - transform.position;
-            bool inReach = reach switch
-            {
-                Reach.Boarding => (divert && fullRoute ? fullRoute.CanAim(runner, transform.position) : Vector3.Distance(transform.position, refugeApproach.position) < .8f) && delta.sqrMagnitude < Tuning.armRange * Tuning.armRange,
-                Reach.Wire => (fullRoute ? fullRoute.CanAim(runner, transform.position) : bypass.CanAimAt(runner, transform.position)) && delta.sqrMagnitude < Tuning.armRange * Tuning.armRange,
-                _ => Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude < Tuning.contactRange * Tuning.contactRange && Mathf.Abs(delta.y) < Tuning.armRange
-            };
-            if (!inReach) return false;
             watch = Vector3.ProjectOnPlane(delta, Vector3.up);
             if (Vector3.Angle(transform.forward, watch) > 25f) return true;
             var mover = runner.GetComponent<PlayerMover>();
@@ -167,6 +175,16 @@ namespace CurtainCall.EscapeRoute
             attack = new AttackCue { Phase = AttackPhase.Warning, Reach = reach, Actor = runner.OwnerClientId, Started = now,
                 Origin = origin, Aim = aim, MarkedFeet = markedFeet };
             return true;
+        }
+
+        bool AttackCandidate(NetworkPlayer player, Reach reach)
+        {
+            if (!player || !player.IsSpawned || player.State != PlayerState.Normal || !player.TryGetComponent(out PlayerMover mover)) return false;
+            Vector3 feet = PlayerFeet(player), delta = feet - transform.position;
+            float range = fullRoute && fullRoute.Following ? Tuning.exposedGrabRange : Tuning.armRange;
+            bool close = reach == Reach.Hall ? Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude < Tuning.contactRange * Tuning.contactRange
+                && Mathf.Abs(delta.y) < range : delta.sqrMagnitude < range * range;
+            return close && ClearReach(transform.position + Vector3.up * 3f, feet + Vector3.up * (mover.BodyHeight * .68f), player);
         }
 
         bool AdvanceArm(double now, ref Vector3 watch)
@@ -260,6 +278,15 @@ namespace CurtainCall.EscapeRoute
             {
                 var hit = reachHits[i].transform;
                 if (hit.IsChildOf(transform) || hit.GetComponentInParent<NetworkPlayer>()) continue;
+                if (runner)
+                {
+                    var poles = HumanCannonPoleSystem.Current;
+                    int heldPole = poles ? poles.HeldBy(runner.OwnerClientId) : -1;
+                    if (heldPole >= 0 && hit.IsChildOf(poles.Pole(heldPole).transform)) continue;
+                    var cannon = HumanCannonSystem.Current;
+                    var seat = cannon ? cannon.SeatedStation(runner.OwnerClientId) : null;
+                    if (seat && hit.IsChildOf(seat.transform)) continue;
+                }
                 // A held launcher's coarse chassis collider must not turn its carrier into a safe spot.
                 // The finale grab reaches over the carried machine; fixed scenery still blocks it.
                 bool heldCutter = false;
