@@ -60,6 +60,54 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             finally { RunState.SecondPerformanceGate = original; }
         }
 
+        static RunState RunningRest(float remaining)
+        {
+            var run = new RunState(); run.StartSession(); run.EndIntro(); run.EndPerformance();
+            run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
+            Assert.IsTrue(run.DebugSetRemaining(remaining));
+            return run;
+        }
+
+        [Test]
+        public void RehearsalHoldStopsTimerOverZoneRuleAndResumesOnRelease()
+        {
+            var original = RunState.SecondPerformanceGate;
+            try
+            {
+                RunState.SecondPerformanceGate = () => true;
+                var run = RunningRest(200f);
+                Assert.IsTrue(run.HoldRestTimerForRehearsal(true, 60f, 60f));
+                Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer);
+                // 탐색 구역 규칙이 재생을 요구해도 리허설 중에는 멈춘 채로 둔다.
+                Assert.IsFalse(run.SetRestTimerPaused(false));
+                Assert.IsFalse(run.Tick(10f));
+                Assert.AreEqual(200f, run.Snapshot.TimeRemaining, .001f);
+                Assert.IsTrue(run.HoldRestTimerForRehearsal(false, 60f, 60f));
+                Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
+                Assert.AreEqual(200f, run.Snapshot.TimeRemaining, .001f, "기준 이상이면 시간을 더하지 않는다.");
+            }
+            finally { RunState.SecondPerformanceGate = original; }
+        }
+
+        [Test]
+        public void RehearsalReleaseAddsBonusBelowMinimumAndKeepsZonePause()
+        {
+            var original = RunState.SecondPerformanceGate;
+            try
+            {
+                RunState.SecondPerformanceGate = () => true;
+                var run = RunningRest(20f);
+                run.SetRestTimerPaused(true);
+                run.HoldRestTimerForRehearsal(true, 60f, 60f);
+                Assert.IsTrue(run.HoldRestTimerForRehearsal(false, 60f, 60f));
+                Assert.AreEqual(80f, run.Snapshot.TimeRemaining, .001f);
+                Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer, "리허설이 끝나도 탐색 구역 멈춤은 유지한다.");
+                Assert.IsFalse(run.HoldRestTimerForRehearsal(false, 60f, 60f), "반복 해제는 다시 더하지 않는다.");
+                Assert.AreEqual(80f, run.Snapshot.TimeRemaining, .001f);
+            }
+            finally { RunState.SecondPerformanceGate = original; }
+        }
+
         [Test]
         public void EveryRestStartsRunningWithoutLeavingWaitingRoom()
         {

@@ -28,6 +28,14 @@ namespace CurtainCall.HumanCannon
         [Tooltip("이동 경로(파란 레일)를 보여 준다. 끄면 플레이 중에도 레일을 숨기고 톱만 보인다.")]
         [SerializeField] bool showRail = true;
         int diagonalIndex;
+        Transform layeredVisual;
+        void OnEnable() => RefreshPhysicsLayer();
+        void RefreshPhysicsLayer()
+        {
+            if (visual == null) return;
+            GamePhysicsLayers.AssignHierarchy(visual, GamePhysicsLayers.TrickHazard);
+            layeredVisual = visual;
+        }
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
         public float PeriodSeconds => periodSeconds;
@@ -108,6 +116,7 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, float speed)
         {
             if (visual == null) return;
+            if (layeredVisual != visual) RefreshPhysicsLayer();
             visual.SetPositionAndRotation(Position(elapsed, speed), UsesBoxGeometry ? transform.rotation
                 : BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
         }

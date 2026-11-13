@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/github/POC_CURTAINCALL/.harness/local/escape-ending-concept/Tasks/Active/Task-20261112-120-escape-ending-concept/Tools/ending-feedback-probe.cs",
+      "entry": "EndingFeedbackProbe.EscapeSameRun",
+      "timeout_ms": "24000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 250,
+      "executeMs": 6,
+      "assemblyName": "PipelineRunScript_ending-feedback-probe_3941c1a4ef794ca3bee4ba85bd358f0e",
+      "success": true,
+      "result": {
+        "generation": 2,
+        "attempts": 1,
+        "clears": 1,
+        "teamBest": 0,
+        "personalBest": 0,
+        "earned": 200,
+        "players": 2
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

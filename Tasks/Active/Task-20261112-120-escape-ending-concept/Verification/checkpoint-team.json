@@ -1,0 +1,17 @@
+{
+  "checkpoint": "탈출로 · 마지막 문 앞",
+  "actors": [
+    {
+      "Slot": 0,
+      "state": "Normal",
+      "injury": "None",
+      "position": "(-597.00, 25.05, 40.30)"
+    },
+    {
+      "Slot": 1,
+      "state": "Normal",
+      "injury": "None",
+      "position": "(-596.30, 25.05, 40.30)"
+    }
+  ]
+}

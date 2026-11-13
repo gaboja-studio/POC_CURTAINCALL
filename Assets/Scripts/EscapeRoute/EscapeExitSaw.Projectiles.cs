@@ -97,7 +97,20 @@ namespace CurtainCall.EscapeRoute
                 if (cables[i] != null)
                 {
                     bool cut = (cutMask & (1u << i)) != 0;
-                    if (cut) cables[i].SetCut(true, cutPoints[i], feedback && !cables[i].IsCut);
+                    uint newestCourse = courseEpoch;
+                    Vector3 point = cutPoints[i];
+                    // 발사대별 상태가 다른 순서로 도착해도 공유 배선의 절단을 되돌리지 않는다.
+                    // 새 코스의 복구는 이전 코스의 지연 절단보다 우선한다.
+                    foreach (var peer in devices)
+                    {
+                        if (peer == null || peer == this || peer.cables == null || peer.courseEpoch < newestCourse) continue;
+                        int index = Array.IndexOf(peer.cables, cables[i]);
+                        if (index < 0 || index >= 32) continue;
+                        if (peer.courseEpoch > newestCourse) { newestCourse = peer.courseEpoch; cut = false; }
+                        if (!cut && (peer.cutMask & (1u << index)) != 0)
+                        { cut = true; point = peer.cutPoints[index]; }
+                    }
+                    if (cut) cables[i].SetCut(true, point, feedback && !cables[i].IsCut);
                     else if (cables[i].IsCut) cables[i].SetCut(false);
                 }
         }

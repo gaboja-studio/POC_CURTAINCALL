@@ -277,6 +277,7 @@ namespace CurtainCall.Player
             groundVelocity = Vector3.ProjectOnPlane(horizontalVelocity, Vector3.up);
             IsMoving = false;
             StartJump(JumpKind.InPlace, 0);
+            airVelocity = groundVelocity; // 방향 하차의 명시적인 발사 속도는 일반 공중 입력으로 덮지 않는다.
             directionalLaunchPending = preserveFirstStep;
         }
 
@@ -520,7 +521,7 @@ namespace CurtainCall.Player
             }
             if (ControlEnabled && crouchInput) IsCrouched = true;
             else if (IsCrouched && HasHeadroom(StandingHeight)) IsCrouched = false;
-            IsSprinting = ControlEnabled && sprintInput && !IsCrouched;
+            IsSprinting = ControlEnabled && sprintInput && !IsCrouched && !IsAirborne;
         }
 
         /// <summary>
@@ -623,9 +624,10 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
+                IsSprinting = false;
                 if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane && !directionalLaunchPending)
                 {
-                    airVelocity = ReadFreeMovement(forward, move, sideInput);
+                    airVelocity = ReadAirMovement(forward, move, sideInput);
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
                     if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
                 }
@@ -659,13 +661,20 @@ namespace CurtainCall.Player
         }
 
         Vector3 ReadFreeMovement(Vector3 forward, float move, float side)
+            => ReadMovement(forward, move, side, Character.FreeMoveSpeed * PostureSpeedMultiplier);
+
+        Vector3 ReadAirMovement(Vector3 forward, float move, float side)
+            => ReadMovement(forward, move, side, CurtainCall.Settings.GameSettings.Base.AirControl.Speed
+                * (IsCrouched ? Character.CrouchSpeedMultiplier : 1f));
+
+        Vector3 ReadMovement(Vector3 forward, float move, float side, float speed)
         {
             Vector3 direction = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
             IsMoving = direction.sqrMagnitude > .0001f;
             if (IsMoving)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation,
                     Quaternion.LookRotation(direction, Vector3.up), Character.TurnSpeed * Time.deltaTime);
-            return direction * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
+            return direction * (speed * speedMultiplier);
         }
 
         void MoveWithPassengers(Vector3 displacement)
@@ -899,6 +908,11 @@ namespace CurtainCall.Player
 
             // 뛴 순간의 수평 움직임을 착지까지 고정한다
             airVelocity = groundVelocity;
+            if (FreeMovement && FreeAirControl && kind == JumpKind.InPlace)
+            {
+                IsSprinting = false;
+                airVelocity = ReadAirMovement(CourseForward, ControlEnabled ? moveInput : 0f, ControlEnabled ? sideInput : 0f);
+            }
             if (kind == JumpKind.Lane)
             {
                 laneFlightRight = CourseRight;

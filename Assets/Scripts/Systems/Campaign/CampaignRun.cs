@@ -134,6 +134,14 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>호스트: 대기실 리허설 동안 쉬는 시간 타이머를 멈추고, 끝나면 복귀 보정과 함께 푼다(<see cref="RunState.HoldRestTimerForRehearsal"/>).</summary>
+        public bool HoldRestTimerForRehearsal(bool held, float minimumOnRelease, float bonusOnRelease)
+        {
+            if (host == null || !host.HoldRestTimerForRehearsal(held, minimumOnRelease, bonusOnRelease)) return false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 런 시작·종료 ──────────────────────────────────────
 
         /// <summary>접속하지 않은 상태에서 혼자 런을 시작한다(테스트용). 접속 중이면 false.</summary>
@@ -278,10 +286,11 @@ namespace CurtainCall.Campaign
         /// <summary>Dev 모드의 호스트/오프라인 전용. 선택 지점에서 새 테스트 런을 시작한다.</summary>
         public bool DebugStartAt(RunStartPoint point) => DebugStartAtPreservingUnlock(point, false);
 
-        public bool DebugStartAtPreservingUnlock(RunStartPoint point, bool preserveUnlock)
+        public bool DebugStartAtPreservingUnlock(RunStartPoint point, bool preserveUnlock,
+            (int Tightrope, int HumanCannon) clearHistory = default)
         {
             if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !point.IsValid(out _)) return false;
-            if (!host.DebugStartAt(point, preserveUnlock)) return false;
+            if (!host.DebugStartAt(point, preserveUnlock, clearHistory)) return false;
             localReady = false;
             Apply(host.Snapshot);
             return true;
@@ -342,6 +351,12 @@ namespace CurtainCall.Campaign
 
         internal static bool RehearsalPendingOrActive => WaitingRoom.WaitingRoomRehearsal.IsActive
             || WaitingRoom.WaitingRoomRehearsal.IsPracticePending || WaitingRoom.WaitingRoomCannonRehearsal.IsActive;
+
+        // A captured player remains Normal until retirement. Do not let a new rehearsal
+        // move that player while the capture still owns input and presentation.
+        internal static bool RehearsalEntryBlocked => WaitingRoom.ExpertService.IsMovingBuyer
+            || Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
+                && p.State != Network.PlayerSync.PlayerState.Retired && WaitingRoom.Pursuit.PursuitDirector.IsCaptured(p));
 
         // Shared by the bed and the host's late ready-message validation.
         public static bool CanSleep(ulong id) => !RehearsalPendingOrActive && !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned

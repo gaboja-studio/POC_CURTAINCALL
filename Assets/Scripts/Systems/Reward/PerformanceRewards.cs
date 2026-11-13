@@ -68,6 +68,7 @@ namespace CurtainCall.Reward
         public int Difficulty => difficulty;
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
+        public EscapeRunStatistics RunStatistics { get; private set; } = new();
         public event Action Changed;
         public static event Action<string, int> AudienceReacted;
         public event Action SampleRecords;
@@ -233,10 +234,12 @@ namespace CurtainCall.Reward
             if (model == null)
             {
                 model = new PerformanceRewardModel(Guid.NewGuid().ToString("N"), current.Generation);
+                RunStatistics.Reset(current.Generation, 0);
                 Publish();
             }
             else if (model.AdvanceGeneration(current.Generation, current.Day))
             {
+                RunStatistics.Reset(current.Generation, model.Ledger.Count);
                 pendingTransition = false;
                 ClearObservers();
                 Publish();
@@ -358,7 +361,7 @@ namespace CurtainCall.Reward
 
         void EndIfInsufficientSurvivors()
         {
-            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors)
+            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe())
                 FinishPerformance(false, "NoSurvivors");
         }
 
@@ -376,6 +379,12 @@ namespace CurtainCall.Reward
             {
                 ObserveNetwork();
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
+                RunStatistics.Record(result, difficulty, client =>
+                {
+                    foreach (var player in NetworkPlayer.All)
+                        if (player != null && player.IsSpawned && player.OwnerClientId == client) return player.AppearanceModel;
+                    return -1;
+                });
                 if (result.Succeeded) CaptureFinalPoses(result);
                 else { finalPosePerformance = null; finalPoses = null; }
                 // 성공한 단계를 런에 기록해 다음 밤 정비에서 다음 단계를 고를 수 있게 한다(M2 난이도 선택).
@@ -452,6 +461,12 @@ namespace CurtainCall.Reward
             return Publish();
         }
 
+        internal void RestoreDevCheckpointParticipant(NetworkPlayer player)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !CanMutate() || dummyRoster || !SamePerformance()) return;
+            if (model.RestoreDevCheckpointParticipant(ParticipantId(player.OwnerClientId))) Publish();
+        }
+
         void ObserveNetwork()
         {
             if (dummyRoster || model == null || !model.IsOpen || session?.NetworkManager == null) return;
@@ -493,6 +508,7 @@ namespace CurtainCall.Reward
         bool Publish()
         {
             if (model == null) return false;
+            RunStatistics.ReadLedger(model.Ledger);
             state = model.Snapshot();
             ledgerPage = state;
             UpdateResultFreeze();
@@ -505,6 +521,7 @@ namespace CurtainCall.Reward
         {
             if (messaging == null || session == null || !session.IsHost) return false;
             var data = RewardStateData.From(snapshot);
+            data.runStatistics = RunStatistics;
             if (snapshot.Latest?.Performance.Id == finalPosePerformance)
             { data.finalPosePerformance = finalPosePerformance; data.finalPoses = finalPoses; }
             string json = JsonUtility.ToJson(data);
@@ -590,7 +607,9 @@ namespace CurtainCall.Reward
                     return;
                 }
                 if (!next.IsNewerThan(state)) return;
+                data.runStatistics?.Validate(next.Generation);
                 string previousId = state?.Latest?.Performance.Id;
+                RunStatistics = data.runStatistics ?? new EscapeRunStatistics { generation = next.Generation };
                 state = next;
                 ledgerPage = next;
                 remoteFinalPoses.Clear();
@@ -640,6 +659,7 @@ namespace CurtainCall.Reward
             retiredSession = state?.SessionId ?? retiredSession;
             ClearObservers();
             model = null;
+            RunStatistics = new EscapeRunStatistics();
             state = ledgerPage = null;
             pendingTransition = false;
             rulesOverride = null;

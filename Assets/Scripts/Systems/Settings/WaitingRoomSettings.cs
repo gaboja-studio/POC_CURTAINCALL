@@ -128,8 +128,16 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f), InspectorName("재연습 사망 복귀 대기 시간")]
             [Tooltip("재연습 중 사망 후 체크포인트로 돌아오기까지 기다리는 시간(초). 기본 1.5초.")]
             float recoverSeconds = 1.5f;
+            [SerializeField, Min(0f), InspectorName("리허설 복귀 시간 보장 기준")]
+            [Tooltip("대기실 리허설(인간대포·외줄 재연습) 동안 쉬는 시간 타이머는 멈춘다. 끝나고 복귀할 때 남은 시간이 이 값(초) 미만이면 시간을 더한다. 기본 60초(2026-11-13 사용자).")]
+            float returnMinimumSeconds = 60f;
+            [SerializeField, Min(0f), InspectorName("리허설 복귀 추가 시간")]
+            [Tooltip("복귀 보장 기준 미만일 때 더하는 시간(초). 새 공연을 스케줄에 편성할 시간을 보장한다. 기본 60초.")]
+            float returnBonusSeconds = 60f;
             public bool RecoverAfterDeath => recoverAfterDeath;
             public float RecoverSeconds => Mathf.Max(0f, recoverSeconds);
+            public float ReturnMinimumSeconds => Mathf.Max(0f, returnMinimumSeconds);
+            public float ReturnBonusSeconds => Mathf.Max(0f, returnBonusSeconds);
         }
 
         [System.Serializable]

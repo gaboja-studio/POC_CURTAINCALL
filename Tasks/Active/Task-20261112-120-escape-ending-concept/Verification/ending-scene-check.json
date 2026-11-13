@@ -1,0 +1,36 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "eval",
+    "parameters": {
+      "code": "var s=UnityEditor.SceneManagement.EditorSceneManager.OpenScene(\"Assets/Scenes/Levels/escape_route.unity\"); var e=UnityEngine.Object.FindFirstObjectByType<CurtainCall.EscapeRoute.EscapeEndingResults>(); var d=new UnityEditor.SerializedObject(e); var p=(UnityEngine.GameObject)d.FindProperty(\"prefab\").objectReferenceValue; var c=new UnityEditor.SerializedObject(e.GetComponent<CurtainCall.EscapeRoute.EscapeEndingCinematic>()); return new { missingScripts=s.GetRootGameObjects().Sum(r=>r.GetComponentsInChildren<UnityEngine.Transform>(true).Sum(t=>UnityEditor.GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject))),canvas=p.name,view=p.GetComponentInChildren<CurtainCall.UI.EscapeResultsKit.EscapeResultsView>(true).name,portraits=Enumerable.Range(0,4).Select(i=>d.FindProperty(\"portraits\").GetArrayElementAtIndex(i).objectReferenceValue.name).ToArray(),tiles=c.FindProperty(\"meadowTiles\").arraySize,scenery=c.FindProperty(\"cinematicScenery\").objectReferenceValue.name,dirty=s.isDirty };"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "missingScripts": 0,
+        "canvas": "EscapeResultsCanvas",
+        "view": "EscapeResultsPanel",
+        "portraits": [
+          "rabbit",
+          "bear",
+          "pierrot",
+          "girl"
+        ],
+        "tiles": 3,
+        "scenery": "Ending cinematic scenery",
+        "dirty": false
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\escape-ending-concept"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -328,7 +328,7 @@ namespace CurtainCall.HumanCannon
                 float angle = DisplaySwingAngle(i);
                 poles[i].PresentSwing(angle);
                 double deadline = runtime.State.NextDeadline;
-                poles[i].PresentCountdown(deadline > 0d ? (float)(deadline - Clock) : poles[i].HoldSeconds, angle);
+                poles[i].PresentCountdown(deadline > 0d ? (float)(deadline - Clock) : poles[i].HoldSeconds, angle, runtime.State.Count > 0);
                 for (int seat = 0; seat < runtime.State.Capacity; seat++)
                 {
                     var player = FindPlayer(runtime.State.OccupantAt(seat));
