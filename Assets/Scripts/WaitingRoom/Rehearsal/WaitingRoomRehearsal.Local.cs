@@ -635,7 +635,7 @@ namespace CurtainCall.WaitingRoom
             guide.SetTarget(inside ? null : gather.GuideDestination);
             string body = inside
                 ? WaitingRoomText.Format("rehearsal.quest.gathered", "무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.", ("inside", gather.InsideCount), ("alive", gather.AliveCount))
-                : WaitingRoomText.Format("rehearsal.quest.gather", "점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.", ("inside", gather.InsideCount), ("alive", gather.AliveCount));
+                : WaitingRoomText.Format("rehearsal.quest.gather", "화살표를 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.", ("inside", gather.InsideCount), ("alive", gather.AliveCount));
             if (body == lastQuest && quest.Visible) return;
             if (quest.Show(QuestTitle(inside ? "gathered" : "gather"), body)) lastQuest = body;
         }

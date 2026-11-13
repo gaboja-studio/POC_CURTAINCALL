@@ -402,12 +402,12 @@ namespace CurtainCall.WaitingRoom
                     s.angles = Enumerable.Range(0, trapeze.PoleCount).Select(trapeze.SwingAngle).ToArray();
                     s.speeds = Enumerable.Range(0, trapeze.PoleCount).Select(trapeze.SwingSpeed).ToArray(); }
                 var guide = Read(Rehearsal, "guide");
-                if (guide != null)
+                if (guide is RehearsalPathGuide pulseGuide)
                 {
-                    s.pathVisible = Read(guide, "line") is LineRenderer line && line.enabled;
-                    s.arrowVisible = Read(guide, "arrow") is GameObject arrow && arrow.activeSelf;
-                    s.pathValid = (bool)Read(guide, "routeValid");
-                    s.path = (Read(guide, "path") as UnityEngine.AI.NavMeshPath)?.corners;
+                    s.pathVisible = pulseGuide.IsVisible;
+                    s.arrowVisible = pulseGuide.IsVisible;
+                    s.path = pulseGuide.Path;
+                    s.pathValid = s.path.Length >= 2;
                 }
                 var cannonLesson = FindFirstObjectByType<WaitingRoomCannonRehearsal>();
                 s.cannonUnlocked = CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
