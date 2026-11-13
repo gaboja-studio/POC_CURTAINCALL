@@ -13,3 +13,11 @@
 
 - 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/359 (fix/rehearsal-rest-timer → dev)
 - 제출: [PR #359](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/359) → dev. 다음: 지정 팀원 검토, 2인 플레이 확인.
+
+## 2026-11-13 후속: 거절 뒤 다음 시간대 재안내 안 뜸
+- 사용자 보고: 팝업 거절 → 공연 → 다음 쉬는 시간 진입 때 호스트 팝업이 다시 안 뜸.
+- 원인: 재안내 조건이 RestTime만 봄. 1일차 가이드 쉬는 시간에 해금·거절하면 다음 공연 뒤는 밤 정비(Night)라 대기열에 들어가지 않음.
+- 수정: 밤 정비 시작도 포함(PracticePhase), 키에 Phase 추가. 재컴파일 PASS, CannonRehearsal EditMode 1/1 PASS. 실제 플레이 재확인 필요.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/362 (fix/rehearsal-rest-timer → dev)
+- 제출: [PR #362](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/362) → dev. 다음: 검토, 밤 정비 재안내 플레이 확인.
