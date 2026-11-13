@@ -52,6 +52,7 @@ MonoBehaviour:
     sawScale: 0.7
     sawCarrySpeed: 3
     sawShotInterval: 1.15
+    blockPiggybackOnSawCarrier: 1
     collisionSkin: 0.02
   character:
     freeMoveSpeed: 3
@@ -78,7 +79,7 @@ MonoBehaviour:
     distance: 2.5
     prioritizeRescue: 1
   airControl:
-    speed: 3
+    speed: 4
     responseSeconds: 0.1
     pumpReleaseGrace: 0.15
   balance:
