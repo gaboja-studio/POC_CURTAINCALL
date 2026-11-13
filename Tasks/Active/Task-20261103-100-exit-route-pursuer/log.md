@@ -76,6 +76,9 @@
 
 - 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
+- 2026-11-13 제출: [PR #357](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/357), feat/exit-route/pursuer → dev. 구현 커밋8114eed9, private 에셋0f7585c8 게시 완료. GitHub 연결 도구의 PR 생성403은 로그인된 gh CLI로 처리했다. 병합하지 않았으며 지정 팀원 검토 대기다.
+- 테스트 씬을 1인/Play 중지/dirty0으로 열어 두었다. F6 개별 동작과 일반 추격 모두 사용자 직접 확인 가능. [최종 검사 및 남은 사람 확인](verification.md).
+
 - 복구 후 A/test 각각5879개 오브젝트, 누락 스크립트/프리팹0,74경로/8절단부위/4발사대/149패널 확인. 탈출로 EditMode256/256 PASS(실패·생략0). 최종 check-work는 컴파일·공용 설정·문서/규칙 PASS이며 자동 테스트는 중복 실행하지 않았다.
 - 이동한 파괴벽의 Left wall/Floor/Side -1은 이전 위치 기둥에 맞춘 절단을 쓰지 않도록 원래 Cube 메시로 복구하고 A/test를 저장했다. 원본 에셋은 보존했다.
 - 저장·제출 요청 후 Unity 정상 종료→origin/dev fetch/ff:5c7754ae, 이미 최신. private main의 추가분은 README뿐이며 게임 에셋 차이0. 신규 표면 에셋118파일을 0f7585c8로 저장하고 private main에 게시했다. 공개 저장소에는 gitlink만 반영한다.
