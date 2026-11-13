@@ -47,7 +47,7 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly Dictionary<int,List<Vector2>> recordedSpans = new();
         readonly Dictionary<int,bool> relayConnections = new();
         int geometryIndex;
-        bool escapeStarted, escapeExpired;
+        bool escapeStarted;
         CampaignPerformanceEntry performanceEntry;
         HumanCannonHazardCourse hazards;
         BodyPart lastLost;
@@ -134,7 +134,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (scope != Scope)
             {
                 if (scope != null) log.ReleaseSpatialBoundary();
-                scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = escapeExpired = false;
+                scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = false;
                 pursuitStates.Clear(); discoveries.Clear(); clueAvailability.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
                 BindCourse(null);
                 geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null; cannonRehearsal = null;
@@ -412,8 +412,7 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             var timer = EscapeRouteTimer.Current;
             if (Scene != "EXITROUTE" || timer == null) return;
-            if (!escapeStarted && timer.HasStarted && Ready(NetworkPlayer.Local)) escapeStarted = log.Emit("ESCAPE_STARTED", new() { ["durationMs"] = timer.DurationSeconds * 1000, ["startedAtServerMs"] = timer.StartedAt * 1000 });
-            if (Host && !escapeExpired && timer.HasExpired) escapeExpired = log.Emit("ESCAPE_TIMEOUT", new() { ["remainingMs"] = 0 }, "HOST");
+            if (!escapeStarted && timer.HasStarted && Ready(NetworkPlayer.Local)) escapeStarted = log.Emit("ESCAPE_STARTED", new() { ["durationMs"] = 0, ["timeLimitEnabled"] = false, ["startedAtServerMs"] = timer.StartedAt * 1000 });
         }
 
         void Departed(ulong client)
@@ -615,7 +614,7 @@ namespace CurtainCall.Telemetry.Pipeline
             int section = region.sectionId;
             if (section != lastEscapeSection) {
                 if (!visitedSections.Contains(section) && log.Emit("ESCAPE_SECTION", new() { ["sectionId"] = section, ["sectionName"] = region.sectionName, ["previousSectionId"] = lastEscapeSection,
-                    ["remainingMs"] = EscapeRouteTimer.Current != null ? EscapeRouteTimer.Current.RemainingSeconds * 1000 : null })) visitedSections.Add(section);
+                    ["remainingMs"] = null, ["elapsedMs"] = EscapeRouteTimer.Current != null ? EscapeRouteTimer.Current.ElapsedSeconds * 1000 : null })) visitedSections.Add(section);
                 lastEscapeSection = section;
             }
         }

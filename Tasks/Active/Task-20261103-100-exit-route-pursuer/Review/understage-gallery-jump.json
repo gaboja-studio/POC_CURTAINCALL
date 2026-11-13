@@ -1,0 +1,98 @@
+{
+  "dev": "b22a5515",
+  "mapBranch": "ee53e929",
+  "sceneBlob": "39addb7d790379c22090ec5abdc494ddcb289bba",
+  "source": "EscapeBackground/15_ServiceContext/작업대/SM_ToolCart",
+  "coordinateFrame": "EscapeCampaignFrame local metres",
+  "geometry": {
+    "tests": [
+      "A cart collision mesh, size and pose match",
+      "A cart render mesh and materials match",
+      "A floor cross section and entry match",
+      "chase uses saved bidirectional link and both clips",
+      "clear airborne arc and over cart in direction 0",
+      "clear airborne arc and over cart in direction 1",
+      "source scene preserved"
+    ],
+    "probes": 1092,
+    "lowestAboveCartBounds": 0.08190352,
+    "cart": "(11.07, 0.46, 45.25)",
+    "objectSize": "(0.65, 0.92, 1.10)",
+    "arc": 4.89470339
+  },
+  "navigation": {
+    "along": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(12.00, 0.05, 40.00)",
+        "(11.77, 0.05, 42.80)",
+        "(12.43, 0.05, 47.65)",
+        "(11.90, 0.05, 51.20)",
+        "(12.00, 0.05, 52.00)"
+      ]
+    },
+    "reverse": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(12.00, 0.05, 52.00)",
+        "(12.43, 0.05, 47.65)",
+        "(11.77, 0.05, 42.80)",
+        "(12.00, 0.05, 40.00)"
+      ]
+    },
+    "central": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(16.00, 0.05, 40.00)",
+        "(16.00, 0.05, 52.00)"
+      ]
+    },
+    "walkAround": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(12.00, 0.05, 40.00)",
+        "(13.00, 0.05, 44.60)",
+        "(13.00, 0.05, 45.90)",
+        "(12.00, 0.05, 52.00)"
+      ]
+    },
+    "fromBreach": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(26.75, 0.05, 18.95)",
+        "(22.10, 0.05, 17.90)",
+        "(18.80, 0.05, 17.90)",
+        "(18.00, 0.05, 18.30)",
+        "(17.60, 0.05, 18.90)",
+        "(17.30, 0.05, 19.40)",
+        "(11.77, 0.05, 42.80)",
+        "(12.43, 0.05, 47.65)",
+        "(11.90, 0.05, 51.20)",
+        "(12.00, 0.05, 52.00)"
+      ]
+    },
+    "refuge": {
+      "ok": true,
+      "status": "PathComplete",
+      "corners": [
+        "(16.00, 0.05, 40.00)",
+        "(15.00, 0.05, 54.70)"
+      ]
+    },
+    "insideRefuge": {
+      "ok": true,
+      "status": "PathPartial",
+      "corners": [
+        "(16.00, 0.05, 40.00)",
+        "(15.00, 0.05, 55.40)"
+      ]
+    },
+    "floor": "(12.50, 1.60, 35.00)"
+  },
+  "verification": "Edit Mode, original and saved test scene. Live player and network play reserved for developer."
+}

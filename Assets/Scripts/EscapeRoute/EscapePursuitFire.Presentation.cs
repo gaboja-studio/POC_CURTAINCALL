@@ -79,7 +79,7 @@ namespace CurtainCall.EscapeRoute
                 var bay = bays[i]; var view = presentation[i]; if (bay == null || view == null) continue;
                 FirePhase phase = PhaseAt(i, now);
                 if (phase == FirePhase.Dormant && phase == view.phase) continue;
-                double age = now - armedAt - startDelay - i * (double)stepSeconds;
+                double age = now - armedAt - startDelay - (i - firstBay) * (double)stepSeconds;
                 bool burning = phase == FirePhase.Burst || phase == FirePhase.Burning;
                 bool justIgnited = burning && view.phase != FirePhase.Burst && view.phase != FirePhase.Burning;
                 float rate = phase == FirePhase.Burst ? Mathf.Max(0, burstEmissionMultiplier) : Mathf.Max(.01f, steadyEmissionMultiplier);

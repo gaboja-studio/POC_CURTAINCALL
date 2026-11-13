@@ -1,0 +1,63 @@
+{
+  "dev": "b22a5515",
+  "mapBranch": "ee53e929",
+  "mapBlob": "39addb7d790379c22090ec5abdc494ddcb289bba",
+  "sourceScene": "Assets/Scenes/Levels/escape_route.unity",
+  "station": "EscapeCampaignFrame/EscapeGameplay_A/03_Cannon",
+  "frame": "EscapeCampaignFrame local metres",
+  "scope": "Edit Mode measures, walking/running silhouettes and four separate standing-character approaches. Human play and firing not exercised.",
+  "hold": [
+    18.65,
+    0,
+    73.1
+  ],
+  "seat": [
+    29,
+    1.2,
+    75
+  ],
+  "muzzle": [
+    30.5,
+    2,
+    75
+  ],
+  "measurements": {
+    "checks": [
+      "cart landing to door and back complete on the saved bake",
+      "NPC navigation excludes the boarding deck",
+      "station, boarding, seat and muzzle match latest A",
+      "all greybox parts including two feet",
+      "boarding reach lane 0 UnderstagePursuerPlaytest",
+      "boarding reach lane 1 UnderstagePursuerPlaytest",
+      "boarding reach lane 2 UnderstagePursuerPlaytest",
+      "boarding reach lane 3 UnderstagePursuerPlaytest",
+      "four distinct player positions UnderstagePursuerPlaytest",
+      "chest visible from boarding approach UnderstagePursuerPlaytest",
+      "boarding reach lane 0 escape_route",
+      "boarding reach lane 1 escape_route",
+      "boarding reach lane 2 escape_route",
+      "boarding reach lane 3 escape_route",
+      "four distinct player positions escape_route",
+      "chest visible from boarding approach escape_route",
+      "door is shelter and re-entry into gallery releases it",
+      "source was not modified"
+    ],
+    "metres": 26.19906,
+    "corners": [
+      "(12.43, 0.00, 47.65)",
+      "(18.65, 0.00, 73.10)"
+    ],
+    "watchDistance": 9.051652,
+    "boarding": "(27.50, 0.00, 75.00)",
+    "radius": 2.75,
+    "sampled": 1036,
+    "soleProbes": 8288,
+    "playerProbes": 616
+  },
+  "regression": {
+    "jumpPreserved": true,
+    "excludedNavProbes": 783,
+    "protectedBoardAngles": 72,
+    "meshes": 29
+  }
+}

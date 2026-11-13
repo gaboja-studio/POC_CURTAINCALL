@@ -1,0 +1,356 @@
+{
+  "base": "48ae6214",
+  "scene": "UnderstagePursuerPlaytest",
+  "method": "Two local host restarts. Normal PlayerMover sprint input on the same route, facing the corridor over 0.45 s on departure. Native free-third-person camera. Visibility is tested at head and torso centres in the viewport with a collider ray. Capture records rendered Camera.main, without screen-space UI. All times measured from the hall timer.",
+  "audioMethod": "48 kHz stereo mix recorded at the game AudioListener, with other sources enabled. Each playback identified by timeSamples and matched to its original attack waveform (first 170 ms). stepDbFS is stereo RMS level of the fitted attack. cameraMetres is 3D distance to the listener. playerMetres is distance between the player and actor origins.",
+  "runs": {
+    "watch": {
+      "view": "FreeThirdPerson",
+      "cameraListener": "Main Camera",
+      "runAt": 8.2,
+      "playerReachedEndOfRun": 12.476,
+      "turnWindows": [
+        {
+          "begin": 5.75,
+          "end": 6.4,
+          "uniqueFrames": 39,
+          "headVisible": 39,
+          "torsoVisible": 39,
+          "yawChangeDeg": 18.9
+        },
+        {
+          "begin": 6.4,
+          "end": 7.8,
+          "uniqueFrames": 84,
+          "headVisible": 84,
+          "torsoVisible": 84,
+          "yawChangeDeg": 2.12
+        },
+        {
+          "begin": 6.4,
+          "end": 8.2,
+          "uniqueFrames": 108,
+          "headVisible": 108,
+          "torsoVisible": 108,
+          "yawChangeDeg": 2.13
+        }
+      ],
+      "steps": [
+        {
+          "t": 7.09,
+          "cameraMetres": 14.003,
+          "playerMetres": 9.184,
+          "stepDbFS": -31.24,
+          "match": 0.997
+        },
+        {
+          "t": 7.539,
+          "cameraMetres": 12.849,
+          "playerMetres": 7.97,
+          "stepDbFS": -30.49,
+          "match": 0.997
+        },
+        {
+          "t": 7.977,
+          "cameraMetres": 11.736,
+          "playerMetres": 6.789,
+          "stepDbFS": -29.69,
+          "match": 0.997
+        },
+        {
+          "t": 8.423,
+          "cameraMetres": 9.963,
+          "playerMetres": 5.524,
+          "stepDbFS": -28.22,
+          "match": 0.997
+        },
+        {
+          "t": 8.872,
+          "cameraMetres": 8.592,
+          "playerMetres": 5.223,
+          "stepDbFS": -26.99,
+          "match": 0.997
+        },
+        {
+          "t": 9.306,
+          "cameraMetres": 8.281,
+          "playerMetres": 5.892,
+          "stepDbFS": -26.81,
+          "match": 0.997
+        },
+        {
+          "t": 9.757,
+          "cameraMetres": 8.481,
+          "playerMetres": 6.794,
+          "stepDbFS": -26.7,
+          "match": 0.997
+        },
+        {
+          "t": 10.207,
+          "cameraMetres": 6.835,
+          "playerMetres": 6.517,
+          "stepDbFS": -24.96,
+          "match": 0.997
+        },
+        {
+          "t": 10.641,
+          "cameraMetres": 6.054,
+          "playerMetres": 7.051,
+          "stepDbFS": -24.02,
+          "match": 0.997
+        },
+        {
+          "t": 11.091,
+          "cameraMetres": 6.029,
+          "playerMetres": 8.065,
+          "stepDbFS": -24.08,
+          "match": 0.997
+        },
+        {
+          "t": 11.543,
+          "cameraMetres": 6.605,
+          "playerMetres": 9.329,
+          "stepDbFS": -24.97,
+          "match": 0.997
+        },
+        {
+          "t": 12.108,
+          "cameraMetres": 8.1,
+          "playerMetres": 11.38,
+          "stepDbFS": -26.8,
+          "match": 0.997
+        },
+        {
+          "t": 12.825,
+          "cameraMetres": 8.848,
+          "playerMetres": 12.314,
+          "stepDbFS": -27.26,
+          "match": 0.997
+        },
+        {
+          "t": 13.524,
+          "cameraMetres": 7.793,
+          "playerMetres": 11.134,
+          "stepDbFS": -26.17,
+          "match": 0.997
+        },
+        {
+          "t": 14.224,
+          "cameraMetres": 6.792,
+          "playerMetres": 9.943,
+          "stepDbFS": -24.95,
+          "match": 0.997
+        },
+        {
+          "t": 14.941,
+          "cameraMetres": 5.842,
+          "playerMetres": 8.726,
+          "stepDbFS": -23.64,
+          "match": 0.997
+        },
+        {
+          "t": 15.641,
+          "cameraMetres": 5.026,
+          "playerMetres": 7.535,
+          "stepDbFS": -22.35,
+          "match": 0.997
+        },
+        {
+          "t": 16.336,
+          "cameraMetres": 4.373,
+          "playerMetres": 6.318,
+          "stepDbFS": -21.15,
+          "match": 0.997
+        },
+        {
+          "t": 17.006,
+          "cameraMetres": 3.996,
+          "playerMetres": 5.112,
+          "stepDbFS": -20.46,
+          "match": 0.997
+        },
+        {
+          "t": 17.511,
+          "cameraMetres": 3.962,
+          "playerMetres": 3.927,
+          "stepDbFS": -20.47,
+          "match": 0.997
+        },
+        {
+          "t": 17.963,
+          "cameraMetres": 4.28,
+          "playerMetres": 2.717,
+          "stepDbFS": -21.19,
+          "match": 0.997
+        },
+        {
+          "t": 18.494,
+          "cameraMetres": 4.87,
+          "playerMetres": 1.536,
+          "stepDbFS": -22.13,
+          "match": 0.997
+        },
+        {
+          "t": 19.277,
+          "cameraMetres": 4.847,
+          "playerMetres": 1.617,
+          "stepDbFS": -22.16,
+          "match": 0.997
+        }
+      ]
+    },
+    "flee": {
+      "view": "FreeThirdPerson",
+      "cameraListener": "Main Camera",
+      "runAt": 2.45,
+      "playerReachedEndOfRun": 6.729,
+      "turnWindows": [
+        {
+          "begin": 5.75,
+          "end": 6.4,
+          "uniqueFrames": 39,
+          "headVisible": 0,
+          "torsoVisible": 0,
+          "yawChangeDeg": 18.86
+        },
+        {
+          "begin": 6.4,
+          "end": 7.8,
+          "uniqueFrames": 84,
+          "headVisible": 0,
+          "torsoVisible": 0,
+          "yawChangeDeg": 57.73
+        },
+        {
+          "begin": 6.4,
+          "end": 8.2,
+          "uniqueFrames": 107,
+          "headVisible": 0,
+          "torsoVisible": 0,
+          "yawChangeDeg": 58.15
+        }
+      ],
+      "steps": [
+        {
+          "t": 7.097,
+          "cameraMetres": 13.348,
+          "playerMetres": 15.772,
+          "stepDbFS": -30.85,
+          "match": 0.997
+        },
+        {
+          "t": 7.546,
+          "cameraMetres": 12.59,
+          "playerMetres": 15.215,
+          "stepDbFS": -30.35,
+          "match": 0.997
+        },
+        {
+          "t": 7.979,
+          "cameraMetres": 11.93,
+          "playerMetres": 14.753,
+          "stepDbFS": -29.9,
+          "match": 0.997
+        },
+        {
+          "t": 8.433,
+          "cameraMetres": 11.33,
+          "playerMetres": 14.355,
+          "stepDbFS": -29.45,
+          "match": 0.997
+        },
+        {
+          "t": 8.986,
+          "cameraMetres": 10.634,
+          "playerMetres": 13.816,
+          "stepDbFS": -28.91,
+          "match": 0.997
+        },
+        {
+          "t": 9.674,
+          "cameraMetres": 10.024,
+          "playerMetres": 13.348,
+          "stepDbFS": -28.38,
+          "match": 0.997
+        },
+        {
+          "t": 10.389,
+          "cameraMetres": 9.432,
+          "playerMetres": 12.869,
+          "stepDbFS": -27.85,
+          "match": 0.997
+        },
+        {
+          "t": 11.069,
+          "cameraMetres": 8.483,
+          "playerMetres": 11.895,
+          "stepDbFS": -26.9,
+          "match": 0.997
+        },
+        {
+          "t": 11.808,
+          "cameraMetres": 7.427,
+          "playerMetres": 10.709,
+          "stepDbFS": -25.73,
+          "match": 0.997
+        },
+        {
+          "t": 12.508,
+          "cameraMetres": 6.448,
+          "playerMetres": 9.519,
+          "stepDbFS": -24.51,
+          "match": 0.997
+        },
+        {
+          "t": 13.209,
+          "cameraMetres": 5.551,
+          "playerMetres": 8.326,
+          "stepDbFS": -23.19,
+          "match": 0.997
+        },
+        {
+          "t": 13.925,
+          "cameraMetres": 4.77,
+          "playerMetres": 7.11,
+          "stepDbFS": -21.89,
+          "match": 0.997
+        },
+        {
+          "t": 14.585,
+          "cameraMetres": 4.21,
+          "playerMetres": 5.915,
+          "stepDbFS": -20.85,
+          "match": 0.997
+        },
+        {
+          "t": 15.221,
+          "cameraMetres": 3.943,
+          "playerMetres": 4.715,
+          "stepDbFS": -20.46,
+          "match": 0.997
+        },
+        {
+          "t": 15.711,
+          "cameraMetres": 4.037,
+          "playerMetres": 3.489,
+          "stepDbFS": -20.61,
+          "match": 0.997
+        },
+        {
+          "t": 16.162,
+          "cameraMetres": 4.45,
+          "playerMetres": 2.324,
+          "stepDbFS": -21.52,
+          "match": 0.997
+        },
+        {
+          "t": 16.761,
+          "cameraMetres": 4.852,
+          "playerMetres": 1.575,
+          "stepDbFS": -22.15,
+          "match": 0.997
+        }
+      ]
+    }
+  }
+}

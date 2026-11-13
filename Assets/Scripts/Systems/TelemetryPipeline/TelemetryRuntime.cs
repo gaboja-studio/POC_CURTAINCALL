@@ -313,7 +313,7 @@ namespace CurtainCall.Telemetry.Pipeline
 
         void RunEnded(RunEndReason reason)
         {
-            if (SceneType(sceneName) == "EXITROUTE" && session?.IsHost == true) Emit("ESCAPE_ENDED", new() { ["reason"] = reason.ToString(), ["timeout"]=CurtainCall.EscapeRoute.EscapeRouteTimer.Current?.HasExpired == true, ["arrived"]=NetworkPlayer.All.Count(p=>p!=null && p.State==PlayerState.Arrived), ["retired"]=NetworkPlayer.All.Count(p=>p!=null && (p.State==PlayerState.Retired || p.State==PlayerState.Fallen)) }, "HOST");
+            if (SceneType(sceneName) == "EXITROUTE" && session?.IsHost == true) Emit("ESCAPE_ENDED", new() { ["reason"] = reason.ToString(), ["timeout"]=false, ["arrived"]=NetworkPlayer.All.Count(p=>p!=null && p.State==PlayerState.Arrived), ["retired"]=NetworkPlayer.All.Count(p=>p!=null && (p.State==PlayerState.Retired || p.State==PlayerState.Fallen)) }, "HOST");
             spatialLogs?.Leaving(reason.ToString());
             performanceLogs?.Leave("RUN_ENDED"); waitingLogs?.SceneLeaving(); inputLogs?.CloseMicrophone();
             Emit("RUN_ENDED", new() { ["reason"] = reason.ToString(), ["identityScope"] = "SHARED_REWARD_SESSION" }); Seal("RUN_ENDED");

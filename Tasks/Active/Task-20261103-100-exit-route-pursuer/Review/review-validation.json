@@ -1,0 +1,84 @@
+{
+  "source": "Assets/Scenes/Levels/escape_route.unity",
+  "sourceHash": "30f324645001d6d308f3a3f950ebca886391548abd89cbdc4cf5e450497c497c",
+  "sourceUnchanged": true,
+  "sourceDirty": false,
+  "reviewDirty": false,
+  "playing": false,
+  "review": "Assets/Scenes/Tests/EscapeRoute/Pursuer/EscapePursuerLayout.unity",
+  "reviewRootEditorOnly": true,
+  "reviewColliders": 0,
+  "reviewMonoBehaviours": 0,
+  "missingScripts": 0,
+  "fiveMetreNeutralPoses": [
+    {
+      "module": "01_FirstBreach__FirstCannon",
+      "feet": {
+        "x": 13.9999962,
+        "y": 0.0,
+        "z": 40.0
+      },
+      "height": 5.000002,
+      "width": 2.87298584,
+      "depth": 1.175003,
+      "neutralPoseBlockers": []
+    },
+    {
+      "module": "02_OuterLane__Conveyor",
+      "feet": {
+        "x": 26.0000019,
+        "y": -18.5,
+        "z": -27.9999981
+      },
+      "height": 5.0,
+      "width": 2.87298584,
+      "depth": 1.17498779,
+      "neutralPoseBlockers": []
+    },
+    {
+      "module": "03_CoopPressure__UpperLanding",
+      "feet": {
+        "x": 106.0,
+        "y": 0.0,
+        "z": 41.0
+      },
+      "height": 5.000002,
+      "width": 2.87304688,
+      "depth": 1.175003,
+      "neutralPoseBlockers": []
+    },
+    {
+      "module": "04_FinalEntry__BridgeOne",
+      "feet": {
+        "x": 153.0,
+        "y": 0.0,
+        "z": 78.0
+      },
+      "height": 5.000002,
+      "width": 2.87304688,
+      "depth": 1.175003,
+      "neutralPoseBlockers": []
+    },
+    {
+      "module": "06_LastChase__BridgeThree",
+      "feet": {
+        "x": 336.0,
+        "y": 0.0,
+        "z": 78.0
+      },
+      "height": 5.000002,
+      "width": 2.87304688,
+      "depth": 1.175003,
+      "neutralPoseBlockers": []
+    }
+  ],
+  "sixMetreAtLowFinalEntry": {
+    "feet": {
+      "x": 153.0,
+      "y": 0.0,
+      "z": 78.0
+    },
+    "blockers": []
+  },
+  "limitations": "Neutral pose static AABB with safety margin only. No playable route, no locomotion/attack/crouch/jump/turn or multi-player validation. New floors are proposals without colliders."
+}
