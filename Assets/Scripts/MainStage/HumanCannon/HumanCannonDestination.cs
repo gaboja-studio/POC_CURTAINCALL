@@ -61,12 +61,8 @@ namespace CurtainCall.HumanCannon
             bool humanCannon = campaign.State.Phase == CampaignPhase.Performance && campaign.State.TrickId == "HumanCannon";
             if (humanCannon && session.IsHost)
             {
-                var hazards = HumanCannonHazardCourse.Current;
-                int chosen = campaign.State.Difficulty;
-                // 밤 정비에서 고른 단계를 공연마다 한 번, 발사 전 장애물에 맞춘다(발사 뒤에는 장애물 쪽에서 잠근다).
-                string step = $"{campaign.State.Generation}:{campaign.State.Day}:{campaign.State.PerformanceIndex}";
-                if (hazards != null && chosen > 0 && appliedTierStep != step && hazards.SetDifficulty(chosen)) appliedTierStep = step;
-                rewards.BeginPerformance(hazards != null ? hazards.Difficulty : chosen > 0 ? chosen : difficultyLevel);
+                if (!TryApplyScheduledDifficulty()) return;
+                rewards.BeginPerformance(campaign.State.Difficulty > 0 ? campaign.State.Difficulty : difficultyLevel);
             }
             var identity = rewards.State?.Performance;
             if (identity?.TrickId == "HumanCannon" && performanceId != identity.Id)
@@ -105,6 +101,21 @@ namespace CurtainCall.HumanCannon
                 PracticeCompleted = HasArrived(player);
                 PracticeFailed = player.State != PlayerState.Normal;
             }
+        }
+
+        internal bool TryApplyScheduledDifficulty()
+        {
+            if (campaign == null || campaign.State.Phase != CampaignPhase.Performance
+                || campaign.State.TrickId != CampaignSnapshot.HumanCannonId) return true;
+            var state = campaign.State;
+            string step = $"{state.Generation}:{state.Day}:{state.PerformanceIndex}";
+            if (appliedTierStep == step) return true;
+            var hazards = HumanCannonHazardCourse.Current;
+            if (hazards == null || hazards.gameObject.scene != gameObject.scene) return false;
+            int chosen = state.Difficulty > 0 ? state.Difficulty : difficultyLevel;
+            if (!hazards.ApplyScheduledDifficulty(chosen)) return false;
+            appliedTierStep = step;
+            return true;
         }
 
         public bool HasArrived(NetworkPlayer player)

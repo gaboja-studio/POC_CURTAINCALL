@@ -104,8 +104,7 @@ namespace CurtainCall.HumanCannon
                 {
                     var hit = obstacles[i];
                     if (hit == null || hit.transform.IsChildOf(root) || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
-                    if (DismemberedLimb.Contains(hit)
-                        && root.gameObject.layer != LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.Trampoline)) continue;
+                    if (DismemberedLimb.Contains(hit)) continue;
                     if (Physics.GetIgnoreLayerCollision(root.gameObject.layer, hit.gameObject.layer)) continue;
                     if (riddenTransport != null && riddenTransport.IsBoardingBarrier(hit)) continue;
                     if (Physics.ComputePenetration(body, bodyPosition, pose * relative, hit, hit.transform.position, hit.transform.rotation,
