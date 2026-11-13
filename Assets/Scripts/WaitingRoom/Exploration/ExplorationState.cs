@@ -188,6 +188,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool ok, string text, string reason) UseCore(ulong player, string targetId, string password, IExplorationTarget target)
         {
+            if (ExplorationTargets.ToolsBlocked && !string.IsNullOrEmpty(target?.ToolId))
+                return (false, "공연 중에는 탐색 도구를 사용할 수 없습니다.", "PERFORMANCE_TOOL_LOCK");
             if (!ExplorationKeys.Enabled && ExplorationGate.IsKeyTarget(targetId))
                 return (false, "열쇠를 사용할 수 없습니다.", "KEY_DISABLED");
             if (!PlayerInteraction.CanInteract(player))

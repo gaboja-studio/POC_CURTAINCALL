@@ -287,7 +287,7 @@ namespace CurtainCall.Tightrope.UI
                     if (safeLane > 0)
                         GUILayout.Label($"{burningLane}번 줄의 {(safeLane < burningLane ? "왼쪽" : "오른쪽")}에 남은 줄로 건너가세요.");
                     else GUILayout.Label("불붙기 전에 옆줄로 이동하세요.");
-                    GUILayout.Label("Q / E를 누른 채 Space: 옆줄로 점프");
+                    GUILayout.Label(CurtainCall.UI.SceneIntegration.PerformanceHudProfile.FormatKeys("{side}로 옆줄 점프 · {turn}으로 앞뒤 전환", NetworkPlayer.Local?.GetComponent<PlayerInputReader>()));
                 }
             }
             if (connectingSolo || startPending) GUILayout.Label("외줄타기를 준비하고 있습니다…");

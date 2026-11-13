@@ -21,6 +21,7 @@ namespace CurtainCall.Tightrope
         CustomMessagingManager messaging;
         NetworkPlayer player;
         Keyboard keyboard;
+        Mouse mouse;
         InputSettings workerSettings;
         InputSettings.BackgroundBehavior previousBackground;
         readonly List<InputDevice> disabledDevices = new();
@@ -66,6 +67,7 @@ namespace CurtainCall.Tightrope
             previousBackground = workerSettings.backgroundBehavior;
             workerSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             keyboard = InputSystem.AddDevice<Keyboard>("Tightrope Practice Bot Keyboard");
+            mouse = InputSystem.AddDevice<Mouse>("Tightrope Practice Bot Mouse");
             keyboard.MakeCurrent();
             var mover = player.GetComponent<PlayerMover>();
             if (mover != null && mover.Body != null) mover.Body.minMoveDistance = 0f;
@@ -152,15 +154,16 @@ namespace CurtainCall.Tightrope
             else if (input.Move < -.25f) keys.Add(Key.S);
             if (input.Posture > .25f) keys.Add(Key.D);
             else if (input.Posture < -.25f) keys.Add(Key.A);
-            if (input.AuxDirection > 0) keys.Add(Key.E);
-            else if (input.AuxDirection < 0) keys.Add(Key.Q);
-            if (input.ActionPressed) keys.Add(Key.Space);
+            if (input.ActionPressed && input.AuxDirection == 0) keys.Add(Key.Space);
             // 짧게 누르기는 한 프레임 눌렀다 떼고, 하차는 기존 F 길게 기준까지 유지한다.
             bool press = input.InteractLongPressed || (input.InteractTapped && !tapHeld);
             if (press) keys.Add(Key.F);
             tapHeld = press;
             keyboard.MakeCurrent();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys.ToArray()));
+            if (mouse != null && mouse.added)
+                InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Left, input.ActionPressed && input.AuxDirection < 0)
+                    .WithButton(MouseButton.Right, input.ActionPressed && input.AuxDirection > 0));
         }
 
         void SendStatus(string value)
@@ -186,6 +189,7 @@ namespace CurtainCall.Tightrope
             NetworkPlayer.Restarted -= Restarted;
             messaging?.UnregisterNamedMessageHandler(TightropePracticeBot.ControlMessage);
             if (keyboard != null && keyboard.added) InputSystem.RemoveDevice(keyboard);
+            if (mouse != null && mouse.added) InputSystem.RemoveDevice(mouse);
             foreach (var device in disabledDevices) if (device.added) InputSystem.EnableDevice(device);
             if (workerSettings != null) workerSettings.backgroundBehavior = previousBackground;
         }

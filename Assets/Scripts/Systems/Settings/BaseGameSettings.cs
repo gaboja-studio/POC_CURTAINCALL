@@ -110,12 +110,18 @@ namespace CurtainCall.Settings
             [SerializeField, Min(.1f)] float sawShotInterval = 1.15f;
             [Tooltip("켜면 톱날 발사대를 들고 있는 팀원 또는 그 팀원이 포함된 목마에 새로 올라탈 수 없습니다. 모든 씬의 목마 대상 선택과 호스트 승인에 공통 적용됩니다.")]
             [SerializeField] bool blockPiggybackOnSawCarrier = true;
+            [Tooltip("톱날 발사대 운반 중에는 외줄에 탑승하거나 외줄 위에서 발사대를 잡을 수 없습니다.")]
+            [SerializeField] bool blockRopeWithSaw = true;
+            [Tooltip("본 공연 중에는 UV와 탐색 도구의 효과를 비활성화합니다.")]
+            [SerializeField] bool blockExplorationToolsDuringPerformance = true;
             [Tooltip("운반 장치의 충돌 검사에서 접촉 떨림을 줄이는 여유(m). 트램펄린과 톱날 발사기에 공통 적용합니다.")]
             [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;
             public float SawScale => Mathf.Clamp(sawScale, .3f, 1.5f);
             public float SawCarrySpeed => Mathf.Max(0, sawCarrySpeed);
             public float SawShotInterval => Mathf.Max(.1f, sawShotInterval);
             public bool BlockPiggybackOnSawCarrier => blockPiggybackOnSawCarrier;
+            public bool BlockRopeWithSaw => blockRopeWithSaw;
+            public bool BlockExplorationToolsDuringPerformance => blockExplorationToolsDuringPerformance;
             public float CollisionSkin => Mathf.Clamp(collisionSkin, .001f, .05f);
         }
 

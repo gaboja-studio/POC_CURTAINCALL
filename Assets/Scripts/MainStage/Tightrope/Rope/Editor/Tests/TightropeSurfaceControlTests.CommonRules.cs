@@ -231,6 +231,18 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    Assert.That(mover.CourseForward,Is.EqualTo(Vector3.forward));
   }
 
+  [TestCase(1f, -1, -1)] [TestCase(-1f, -1, 1)] [TestCase(-1f, 1, -1)]
+  public void LaneClickUsesTheDirectionOfTravelWithoutSpace(float move, int click, int expected)
+  {
+   mover.FreeMovement=false; mover.CourseForwardOverride=Vector3.forward;
+   var scheme=Track(ScriptableObject.CreateInstance<TightropeControlScheme>());
+   var context=new PlayerControlContext(player.gameObject);
+   scheme.Tick(context,new PlayerInputFrame{Move=move, AuxDirection=click, LaneChangePressed=true});
+   Assert.That(mover.RopeTravelForward,Is.EqualTo(Vector3.forward*move));
+   Assert.That(typeof(PlayerMover).GetField("laneJumpRequested",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(mover),
+    Is.EqualTo(expected));
+  }
+
   [TestCase(2,false)] [TestCase(3,false)] [TestCase(4,false)]
   [TestCase(2,true)] [TestCase(3,true)] [TestCase(4,true)]
   [Category("PiggybackRopeFlow")]
@@ -496,7 +508,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     var target = (Vector3)typeof(HumanCannonTrampoline).GetField("dropTarget", fields).GetValue(trampoline);
     Assert.That(target.y, Is.EqualTo(origin.y - 1f).Within(.002f));
     Assert.That(target.x, Is.EqualTo(origin.x + 1f).Within(.002f));
-    Assert.IsFalse((bool)typeof(HumanCannonTrampoline).GetProperty("BounceReady", fields).GetValue(trampoline));
+    Assert.IsFalse(trampoline.BounceReady);
 
     Invoke(switcher, "UpdateSurfaceMode");
     Assert.IsTrue(switcher.IsLocalOnRope);
