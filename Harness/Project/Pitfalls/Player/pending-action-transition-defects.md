@@ -42,3 +42,4 @@ source: Task-20261109-114, Inventory/post353-transition-audit.md, Inventory/post
 - 대기실 추격 포획은 은퇴 전까지 PlayerState.Normal이다. 기존 리허설 시작/투표 확정/배치는 이를 통과시키고 PursuitVictimPose는 포획 위치와 입력 잠금을 계속 적용한다. 외줄/대포 배치 경로 각3/3 재현. 실제 NavMesh 접촉이나 다른 PC 플레이가 아닌 상태 주입 검사다.
 - 공통686/686 통과와 위 두 미검사 조합의 결함이 동시에 확인됨. 일반 자격 판정뿐 아니라 자동 반환 및 기능 간 이동 소유권 인계도 조사한다. 상세는 Task-114 Inventory/post356-transition-audit.md.
 - 수정: 트램펄린 일반 잡기/자동 반환이 CanAcquire를 공유. 양쪽 리허설은 CampaignRun.RehearsalEntryBlocked로 치료/포획 참가자를 확인하고, 늦은 배치·복귀점 저장도 포획을 검사한다. 외줄은 승인 다음 프레임에 재검사하며 투표 인원이 0이면 취소한다. 기존 예약 시간/거리와 GameSettings 수치는 유지한다.
+- 트램펄린 레이어 정책으로 실제 접촉을 제외해도 OverlapBox/ComputePenetration·바닥 Raycast는 자동으로 같은 쌍을 제외하지 않는다. 운반·내려놓기 질의도 Physics.GetIgnoreLayerCollision을 확인한다. 사지별 트램펄린 IgnoreCollision 반복 적용은 제거하고 플레이어의 개별 사지 제외는 유지한다.
