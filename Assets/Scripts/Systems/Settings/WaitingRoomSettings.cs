@@ -17,6 +17,7 @@ namespace CurtainCall.Settings
         public bool SafeFallLandings => safeFallLandings;
 
         [Header("더미 검증 전용 — 정식 상품 가격 아님")]
+        [Tooltip("더미 공간 검증 화면에서 공동 자금 지출을 시험할 때 쓰는 금액(토큰). 실제 상품 가격과 무관하다.")]
         [SerializeField, Min(1)] int dummySpendAmount = 10;
 
         [Header("기물 구매 가능 시간")]
@@ -25,8 +26,10 @@ namespace CurtainCall.Settings
         public bool AllowPurchasesDuringRest => allowPurchasesDuringRest;
 
         [Header("쉬는 시간 · 알림과 추격 팀 임무")]
+        [Tooltip("아침·낮·가이드 쉬는 시간에 나오는 남은 시간 알림과 추격 팀 임무 문구.")]
         [SerializeField, InspectorName("쉬는 시간 문구 설정")] BreakPresentationSettings restPresentation = new(false);
         [Header("정비 시간 · 알림과 추격 팀 임무")]
+        [Tooltip("밤 정비 시간에 나오는 남은 시간 알림과 추격 팀 임무 문구.")]
         [SerializeField, InspectorName("정비 시간 문구 설정")] BreakPresentationSettings maintenancePresentation = new(true);
         public BreakPresentationSettings RestPresentation => restPresentation ??= new(false);
         public BreakPresentationSettings MaintenancePresentation => maintenancePresentation ??= new(true);
@@ -35,7 +38,9 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class BreakNoticeSettings
         {
+            [Tooltip("알림 카드 제목.")]
             [SerializeField, InspectorName("제목")] string title;
+            [Tooltip("알림 카드 본문. {seconds}는 남은 초로 바뀐다.")]
             [SerializeField, TextArea(2, 4), InspectorName("본문")] string body;
             public string Title => title ?? "";
             public string Body => body ?? "";
@@ -45,17 +50,25 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class BreakPresentationSettings
         {
+            [Tooltip("남은 시간이 1분이 될 때 띄우는 알림.")]
             [SerializeField, InspectorName("1분 전 알림")] BreakNoticeSettings minute;
+            [Tooltip("남은 시간이 30초가 될 때 띄우는 알림.")]
             [SerializeField, InspectorName("30초 전 알림")] BreakNoticeSettings thirtySeconds;
+            [Tooltip("남은 시간이 10초 이하일 때 띄우는 알림.")]
             [SerializeField, InspectorName("10초 전 알림")] BreakNoticeSettings tenSeconds;
+            [Tooltip("시간이 다 되어 추격이 시작되거나 단계가 오를 때 나오는 알림 제목.")]
             [SerializeField, InspectorName("추격 단계 알림 제목")] string pursuitAlertTitle = "추격 경보";
             [Tooltip("단계 순서대로 입력합니다. 빈 칸은 기존 추격 문구 표/단계 설정을 사용합니다.")]
             [SerializeField, InspectorName("추격 단계별 알림 본문")] string[] stageAnnouncements = new string[4];
+            [Tooltip("추격 중 화면에 고정되는 팀 임무 카드 제목.")]
             [SerializeField, InspectorName("추격 팀 임무 제목")] string questTitle;
             [Tooltip("{stage}, {escape}, {sleep}는 해당 이동/수면 조건이 가능할 때만 표시됩니다. 자유롭게 문장을 바꾸거나 줄을 추가할 수 있습니다.")]
             [SerializeField, TextArea(3, 7), InspectorName("추격 팀 임무 본문")] string questBody = "{stage}\n{escape}\n{sleep}";
+            [Tooltip("임무 본문의 {stage} 자리에 들어가는 공연장 이동 문구. 공연장으로 갈 수 있을 때만 보인다.")]
             [SerializeField, TextArea(1, 3), InspectorName("공연장 이동 임무")] string stageObjective = "- 모든 플레이어가 공연장 입구로 가서 공연 진행";
+            [Tooltip("임무 본문의 {escape} 자리에 들어가는 탈출로 이동 문구. 탈출로가 열려 있을 때만 보인다.")]
             [SerializeField, TextArea(1, 3), InspectorName("탈출로 이동 임무")] string escapeObjective = "- 모든 플레이어가 탈출로로 진입해 탈출 시도";
+            [Tooltip("임무 본문의 {sleep} 자리에 들어가는 숙소 수면 문구. 밤 정비처럼 잠들 수 있을 때만 보인다.")]
             [SerializeField, TextArea(1, 3), InspectorName("수면 임무")] string sleepObjective;
             public BreakPresentationSettings(bool maintenance)
             {
@@ -86,10 +99,12 @@ namespace CurtainCall.Settings
         [SerializeField, Range(1, 4)] int bodyRestoreMaxParts = 3;
 
         [Header("추격 시스템 (M2)")]
+        [Tooltip("쉬는 시간이 끝난 뒤 추격자 등장·단계·속도·포획 규칙.")]
         [SerializeField] PursuitSettings pursuit = new();
         public PursuitSettings Pursuit => pursuit ??= new();
 
         [Header("최초 튜토리얼 공통 규칙")]
+        [Tooltip("최초 튜토리얼에서 모든 안내에 공통으로 쓰는 규칙.")]
         [SerializeField] TutorialSettings tutorial = new();
         public TutorialSettings Tutorial => tutorial ??= new();
 
@@ -111,7 +126,12 @@ namespace CurtainCall.Settings
         float trampolineCarryCheckDiameter = 1f;
         public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
+        [SerializeField, InspectorName("맨몸 부수기 누르는 시간"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 한 번 치려면 F를 누르고 있어야 하는 시간(초). 도구를 들면 짧게 눌러 연타한다(2026-11-13 사용자). 0이면 맨몸도 짧게 눌러 친다. 초안 1.5초.")]
+        float bareHandHoldSeconds = 1.5f;
+        public float BareHandHoldSeconds => Mathf.Max(0f, bareHandHoldSeconds);
+
         [Header("재연습 공통 규칙")]
+        [Tooltip("대기실 재연습(외줄·인간대포 리허설)의 복귀·타이머 보정 규칙.")]
         [SerializeField] RehearsalSettings rehearsal = new();
         public RehearsalSettings Rehearsal => rehearsal ??= new();
 

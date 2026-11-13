@@ -401,40 +401,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
             finally { Set(settings, "recoverAfterDeath", previous); }
         }
 
-        [TestCase(true, true)] [TestCase(false, true)] [TestCase(true, false)]
-        public void TightropePracticeEndingOnlyRecoversFallenPlayersWhilePracticeRulesApply(bool recoveryEnabled, bool practicePhase)
-        {
-            var player = Player(906);
-            typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
-            ((NetworkVariable<PlayerState>)Get(player, "state")).Value = PlayerState.Fallen;
-            Set(rehearsal, "active", true); Set(rehearsal, "practice", true);
-            var snapshot = run.State;
-            snapshot.Phase = practicePhase ? CampaignPhase.RestTime : CampaignPhase.Performance;
-            Set(run, "state", snapshot);
-
-            var settings = GameSettings.WaitingRoom.Rehearsal;
-            bool previous = settings.RecoverAfterDeath;
-            try
-            {
-                Set(settings, "recoverAfterDeath", recoveryEnabled);
-                Assert.That(WaitingRoomRehearsal.EndPractice(), Is.True);
-                Assert.That(player.State, Is.EqualTo(recoveryEnabled && practicePhase ? PlayerState.Normal : PlayerState.Fallen));
-            }
-            finally { Set(settings, "recoverAfterDeath", previous); }
-        }
-
-        [TestCase(false)] [TestCase(true)]
-        public void PendingTightropeVoteCannotStartOverCannon(bool ending)
-        {
-            var player = Player(902);
-            Shared("active", true); Shared("ending", ending);
-            Set(rehearsal, "practiceVote", true);
-            ((HashSet<ulong>)Get(rehearsal, "practiceYes")).Add(player.OwnerClientId);
-            Call(rehearsal, "HostTickVotes");
-            Assert.That(Get(rehearsal, "practice"), Is.False, "한 연습실에서 두 리허설이 동시에 시작되면 안 된다.");
-            Assert.That(Get(rehearsal, "practiceVote"), Is.False);
-        }
-
         [TestCase(true, true)] [TestCase(false, true)]
         [TestCase(true, false)] [TestCase(false, false)]
         public void LeavingPracticePhaseCancelsPendingReturnAndAllLocalLocks(bool active, bool host)
@@ -494,34 +460,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(Get(cannon, "guideRound"), Is.EqualTo(-1));
             Assert.That((HashSet<string>)Get(cannon, "actionGuides"), Is.Empty);
             Assert.That((Queue<(string title, string body)>)Get(cannon, "pendingGuides"), Is.Empty);
-        }
-
-        [TestCase("practiceVote")] [TestCase("practice")]
-        public void WaitingRoomStartRequestsAreExclusiveBeforeCourseActivation(string pending)
-        {
-            var oldDirector = SpaceLinkDirector.Instance;
-            var oldScene = SceneManager.GetActiveScene();
-            string oldName = oldScene.name;
-            try
-            {
-                // The EditMode runner owns an unsaved scene; restore its name without adding/saving any scene.
-                oldScene.name = GameSettings.Base.SpaceTransition.WaitingRoomScene;
-                var director = Make("Lifecycle space director").AddComponent<SpaceLinkDirector>();
-                typeof(SpaceLinkDirector).GetProperty("Instance").SetValue(null, director);
-                var state = run.State; state.CannonUnlocked = true; Set(run, "state", state);
-                Assert.That(WaitingRoomCannonRehearsal.CanPractice, Is.True);
-                Assert.That(WaitingRoomRehearsal.CanProposePractice, Is.True);
-                Shared("active", true);
-                Assert.That(WaitingRoomRehearsal.CanProposePractice, Is.False);
-                Shared("active", false); Set(rehearsal, pending, true);
-                Assert.That(WaitingRoomCannonRehearsal.CanPractice, Is.False);
-                Assert.That(WaitingRoomRehearsal.CanProposePractice, Is.False);
-            }
-            finally
-            {
-                typeof(SpaceLinkDirector).GetProperty("Instance").SetValue(null, oldDirector);
-                oldScene.name = oldName;
-            }
         }
 
         [Test, Category("RehearsalEntryHandoff")]
@@ -606,7 +544,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             }
         }
 
-        [TestCase("practiceVote"), TestCase("practice"), TestCase("active"), TestCase("cannon")]
+        [TestCase("active"), TestCase("cannon")]
         [Category("RehearsalEntryHandoff")]
         public void RehearsalRejectsLateSleepAndDoesNotAdvanceNight(string pending)
         {
@@ -660,7 +598,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             finally { RunState.NightEndGate = previousGate; }
         }
 
-        [TestCase(false)] [TestCase(true)]
+        [TestCase(true)]
         public void FirstDayTeamWaitDoesNotLockPlayersInsideRehearsal(bool cannonLesson)
         {
             var oldFlow = Singleton<WaitingRoomFirstDayFlow>().GetValue(null);
@@ -688,14 +626,14 @@ namespace CurtainCall.WaitingRoom.EditorTools
                     + "/" + run.State.Rest + "/" + run.State.PerformanceIndex);
                 var player = Player(904); typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
                 if (cannonLesson) Shared("active", true);
-                else { Set(rehearsal, "active", true); Set(rehearsal, "practice", true); }
+                else Set(rehearsal, "active", true);
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit));
                 Call(flow, "LateUpdate");
                 var blockers = (HashSet<object>)typeof(InputGate).GetField("blockers", Static).GetValue(null);
                 Assert.That(blockers.Contains(flow), Is.False,
                     "리허설이 일반 안내를 중단한 동안 안내 전원 완료 잠금이 걸리면 진행할 수 없다.");
                 Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.WaitingForExit), "안내 완료나 타이머를 강제로 건너뛰지 않는다.");
-                Shared("active", false); Set(rehearsal, "active", false); Set(rehearsal, "practice", false);
+                Shared("active", false); Set(rehearsal, "active", false);
                 Call(flow, "LateUpdate");
                 Assert.That(blockers.Contains(flow), Is.True, "리허설 뒤에는 기존 전원 안내 대기로 돌아간다.");
             }
@@ -1152,7 +1090,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var state = new RunState();
             state.StartSession(true); state.EndIntro();
             Set(run, "host", state); Set(run, "state", state.Snapshot);
-            Set(rehearsal, "active", true); Set(rehearsal, "practice", false); Set(rehearsal, "completed", completed);
+            Set(rehearsal, "active", true); Set(rehearsal, "completed", completed);
             Set(rehearsal, "practiceAreaFound", true);
             Set(rehearsal, "practiceArea", new Bounds(Vector3.zero, Vector3.one * 10f));
         }
@@ -1292,9 +1230,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"));
                 JsonUtility.FromJsonOverwrite("{\"waitForRecoveryBeforePerformance\":true}", rules);
                 Assert.IsTrue((bool)Call(gather, "MustWaitForTutorialRecovery"));
-                Set(rehearsal, "practice", true);
-                Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"), "일반 재연습은 최초 교육 복구 대기를 쓰지 않는다.");
-                Set(rehearsal, "practice", false);
                 var state = (RunState)Get(run, "host"); state.EndRehearsal(); state.EndPerformance();
                 Set(run, "state", state.Snapshot);
                 Assert.IsFalse((bool)Call(gather, "MustWaitForTutorialRecovery"), "첫 공연 뒤 일반 집결은 기존 생존자 기준을 유지한다.");

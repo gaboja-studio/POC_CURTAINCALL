@@ -54,7 +54,7 @@ namespace CurtainCall.WaitingRoom.Editor
                     if (kind != null && IsFurnitureGate((ExplorationGateKind)kind.enumValueIndex, gate.IsKeyPickup, gate.TargetId)) return true;
                 }
                 else if (c is BreakableWall wall) { if (wall.TargetId == "structure-a:machine-pipe-box") return true; }
-                else if (c.GetType().Name is "ShopPhone" or "NightBed" or "ScheduleBoardView" or "HandoverShelfView" or "DebugMoneyProp" or "DebugEscapeKeyProp" or "ClueInspectable" or "PerformancePropPickup" or "RehearsalCannonPracticeStation" or "ToolTarget" or "UvMark" or "FoundItemSpot") return true;
+                else if (c.GetType().Name is "ShopPhone" or "NightBed" or "ScheduleBoardView" or "HandoverShelfView" or "DebugMoneyProp" or "DebugEscapeKeyProp" or "ClueInspectable" or "PerformancePropPickup" or "ToolTarget" or "UvMark" or "FoundItemSpot") return true;
             }
             return false;
         }

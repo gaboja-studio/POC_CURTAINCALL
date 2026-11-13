@@ -350,7 +350,7 @@ namespace CurtainCall.Campaign
                 && session.NetworkManager.LocalClientId == clientId && localReady);
 
         internal static bool RehearsalPendingOrActive => WaitingRoom.WaitingRoomRehearsal.IsActive
-            || WaitingRoom.WaitingRoomRehearsal.IsPracticePending || WaitingRoom.WaitingRoomCannonRehearsal.IsActive;
+            || WaitingRoom.WaitingRoomCannonRehearsal.IsActive;
 
         // A captured player remains Normal until retirement. Do not let a new rehearsal
         // move that player while the capture still owns input and presentation.

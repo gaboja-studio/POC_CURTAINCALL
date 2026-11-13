@@ -96,7 +96,7 @@ namespace CurtainCall.WaitingRoom
             var player = NetworkPlayer.Local;
             if (player != null)
                 CurtainCall.Telemetry.Pipeline.SpatialLogAdapter.RehearsalAction("TIGHTROPE", state, round, stage,
-                    active, IsCompleted, IsPracticing, player.OwnerClientId, false, reason, guideId: guideId);
+                    active, IsCompleted, false, player.OwnerClientId, false, reason, guideId: guideId);
         }
 
         void DestroyLocal()
@@ -120,60 +120,23 @@ namespace CurtainCall.WaitingRoom
             rescueGuide = "";
             introductionUntil = Time.unscaledTime + IntroSeconds;
             gather = null;
-            if (practice)
-                ShowGuide("PRACTICE_INTRO",
-                    WaitingRoomText.Get("rehearsal.practice-title", "자유 연습"),
-                    GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
-                        ? WaitingRoomText.Get("rehearsal.practice-intro", "사망하면 잠시 뒤 소구간 출발대에서 다시 시작합니다. 호스트가 언제든 연습을 끝낼 수 있습니다.")
-                        : WaitingRoomText.Get("rehearsal.practice-intro-no-recovery", "공통 부상·사망 규칙이 적용됩니다. 호스트가 언제든 연습을 끝낼 수 있습니다."),
-                    IntroSeconds);
-            else
-                ShowGuide("INTRO",
-                    WaitingRoomText.Get("rehearsal.intro-title", "공연 전 리허설"),
-                    WaitingRoomText.Get("rehearsal.intro", "공연 전 리허설이 시작됩니다. 안내에 따라 리허설을 진행하세요. 추락하면 마지막 체크포인트에서 재시작합니다."),
-                    IntroSeconds);
+            ShowGuide("INTRO",
+                WaitingRoomText.Get("rehearsal.intro-title", "공연 전 리허설"),
+                WaitingRoomText.Get("rehearsal.intro", "공연 전 리허설이 시작됩니다. 안내에 따라 리허설을 진행하세요. 추락하면 마지막 체크포인트에서 재시작합니다."),
+                IntroSeconds);
         }
 
         void DeactivateLocal()
         {
             ReleasePlacementLock();
             skipCursorRegion.enabled = false;
-            // 재연습을 끝내면 줄 높이에 남지 않도록 연습실 바닥(링 위)으로 내려선다.
+            // 완료 전에 리허설이 꺼지면 줄 높이에 남지 않도록 연습실 바닥(링 위)으로 내려선다.
             if (!completed && local != null && local.IsSpawned && local.TryGetComponent(out PlayerMover mover) && InPracticeRoom(local.transform.position))
                 RelocateToDeck(mover);
             Bind(null);
             quest.Hide();
             guide.SetTarget(null);
             WaitingRoomTutorialPanel.Hide();
-        }
-
-        /// <summary>리허설·재연습 밖에서 호스트에게 재연습 선택 버튼을 보이기 위한 상태 갱신(커서 영역).</summary>
-        void TickPracticeOffer()
-        {
-            Bind(NetworkPlayer.Local);
-            // 소구간 골라 재연습하는 호스트 버튼은 Dev 확인용으로만 남긴다. 실제 재연습은 연습실 외줄 상호작용 + 전원 동의.
-            bool offer = CanOfferPractice && CurtainCall.Dev.DevMode.Enabled;
-            skipCursorRegion.enabled = offer;
-            if (offer) skipCursorRegion.SetScreenRect(new Rect(SkipButtonRect.x, SkipButtonRect.y - 44f * RehearsalStage.All.Length, SkipButtonRect.width, 44f * RehearsalStage.All.Length + SkipButtonRect.height));
-        }
-
-        void DrawPracticeButtons()
-        {
-            if (!active && CanOfferPractice && CurtainCall.Dev.DevMode.Enabled)
-            {
-                for (int i = 0; i < RehearsalStage.All.Length; i++)
-                {
-                    var rect = new Rect(SkipButtonRect.x, SkipButtonRect.y - 44f * (RehearsalStage.All.Length - i), SkipButtonRect.width, 38f);
-                    if (GUI.Button(rect, WaitingRoomText.Format("rehearsal.practice-button", "{stage} 재연습", ("stage", RehearsalStage.All[i].DisplayTitle))))
-                        StartPractice(i);
-                }
-                GUI.Label(new Rect(SkipButtonRect.x, SkipButtonRect.y - 44f * RehearsalStage.All.Length - 22f, 280f, 22f),
-                    WaitingRoomText.Get("rehearsal.practice-hint", "호스트 전용 · 연습실에서 소구간을 골라 다시 연습"));
-                return;
-            }
-            if (active && practice && HasAuthority
-                && GUI.Button(new Rect(SkipButtonRect.x, SkipButtonRect.y - 114f, SkipButtonRect.width, 38f), WaitingRoomText.Get("rehearsal.practice-end", "연습 종료")))
-                EndPractice();
         }
 
         void Bind(NetworkPlayer player)
@@ -244,7 +207,6 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            DrawPracticeButtons();
             // 호스트 전용 즉시 클리어.
             if (!CanClearCurrentStage) return;
             if (GUI.Button(DevClearRect, WaitingRoomText.Get("rehearsal.clear-button", "현재 구간 즉시 클리어 · 다음")))
@@ -259,8 +221,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (ExpertService.IsLocalInTreatment) return;
             bool devClear = CanClearCurrentStage;
-            skipCursorRegion.enabled = devClear || CanVote || (practice && HasAuthority);
-            // 호스트 버튼 영역: 호스트 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
+            skipCursorRegion.enabled = devClear || CanVote;
+            // 호스트 버튼 영역: 호스트 즉시 클리어(가운데)부터 투표(아래)까지.
             float top = devClear ? DevClearRect.y - 22f : SkipButtonRect.y - 114f;
             skipCursorRegion.SetScreenRect(new Rect(SkipButtonRect.x, top, SkipButtonRect.width, SkipButtonRect.yMax - top));
             Bind(NetworkPlayer.Local);
@@ -367,7 +329,7 @@ namespace CurtainCall.WaitingRoom
             if (finishWalls != null && finishWalls.activeSelf != block) finishWalls.SetActive(block);
         }
 
-        /// <summary>튜토리얼 도착대 네 둘레의 보이지 않는 벽. 재연습에서는 생성하지 않는다.</summary>
+        /// <summary>튜토리얼 도착대 네 둘레의 보이지 않는 벽.</summary>
         GameObject BuildFinishWalls()
         {
             const float Height = 4f, Thickness = RehearsalArrivalWalls.Thickness;
@@ -544,9 +506,7 @@ namespace CurtainCall.WaitingRoom
         string QuestFor(RehearsalStage s, PlayerMover mover)
         {
             if (local.State == PlayerState.Fallen)
-                return RecoversAfterDeath
-                    ? Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.")
-                    : Quest("practice-fallen", "사망했습니다. 호스트가 연습을 종료할 수 있습니다.");
+                return Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.");
             string rescue = RescueQuestKey();
             if (rescue.Length > 0) return Quest(rescue, RescueText(rescue));
             var p = local.transform.position;

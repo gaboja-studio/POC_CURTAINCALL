@@ -24,39 +24,55 @@ namespace CurtainCall.Settings
     public sealed class BaseGameSettings : ScriptableObject
     {
         [Header("프레임 제한")]
+        [Tooltip("화면 프레임 상한. 기기 부담과 화면 부드러움을 조절한다.")]
         [SerializeField] FrameRateSettings frameRate = new();
 
         [Header("세션")]
+        [Tooltip("방 정원·게임 시작 최소 인원 등 온라인 방 기본값.")]
         [SerializeField] SessionSettings session = new();
         [Header("런 진행")]
+        [Tooltip("하루·공연 수, 쉬는 시간 길이, 공연 종료 여유 시간·포기 선택 시간 등 런 전체 흐름.")]
         [SerializeField] RunSettings run = new();
         [Header("기물 소지")]
+        [Tooltip("한 사람이 지닐 수 있는 기물 수.")]
         [SerializeField] ItemCarrySettings itemCarry = new();
         [Header("공통 운반 장치")]
+        [Tooltip("톱날 등 들고 다니는 장치의 크기·이동 속도·발사 간격 공통값.")]
         [SerializeField] CarryDeviceSettings carryDevices = new();
         [Header("캐릭터")]
+        [Tooltip("이동 속도·점프 높이·회전·걷기 애니메이션 등 캐릭터 공통 동작.")]
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
+        [Tooltip("점프 입력 미리 받기·길게 누르기 판정 등 입력 공통값.")]
         [SerializeField] InputSettings input = new();
         [Header("공통 상호작용")]
+        [Tooltip("상호작용 거리·구조 대상 우선 선택 등 모든 씬 공통 상호작용 규칙.")]
         [SerializeField] InteractionSettings interaction = new();
         [Header("공통 공중 조절")]
+        [Tooltip("점프·발사 중 공중에서 방향을 조절하는 정도.")]
         [SerializeField] AirControlSettings airControl = new();
         [Header("균형 공통")]
+        [Tooltip("줄 위 균형 게이지·몸 기울기 등 균형 공통 규칙.")]
         [SerializeField] BalanceSettings balance = new();
         [Header("HUD 배치")]
+        [Tooltip("균형 게이지 등 HUD 요소를 화면 어디에 둘지.")]
         [SerializeField] HudLayoutSettings hudLayout = new();
         [Header("착지 표시")]
         [SerializeField] LandingMarkerSettings landingMarker = new();
         [Header("연출")]
+        [Tooltip("걷기·달리기 애니메이션 재생 기준, 상호작용 동작 허용, 몸 기울기 등 캐릭터 연출.")]
         [SerializeField] PresentationSettings presentation = new();
         [Header("동기화")]
+        [Tooltip("다른 플레이어 위치·상태를 맞추는 네트워크 동기화 값.")]
         [SerializeField] SyncSettings sync = new();
         [Header("신체 손상")]
+        [Tooltip("추락·절단 부상과 재시작 때 부상 복구 규칙.")]
         [SerializeField] BodyDamageSettings bodyDamage = new();
         [Header("장소 전환")]
+        [Tooltip("대기실·공연·탈출로 사이 장소 이동에 쓰는 씬과 전환 값.")]
         [SerializeField] SpaceTransitionSettings spaceTransition = new();
         [Header("음성 채팅")]
+        [Tooltip("음성 채팅 사용 여부·사용 씬·거리 감쇠 등 공통값.")]
         [SerializeField] VoiceChatSettings voiceChat = new();
 
         public FrameRateSettings FrameRate => frameRate;
@@ -297,9 +313,13 @@ namespace CurtainCall.Settings
             [SerializeField, HideInInspector, Min(1f)] float guideRestDuration = 300f;
 
             [Header("시간대별 실제 제한시간 · 다음 단계 진입부터 적용")]
+            [Tooltip("하루 첫 공연 전 아침 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("아침 쉬는 시간")] RestTimeLimitSettings morningRest;
+            [Tooltip("공연과 공연 사이 낮 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("낮 쉬는 시간")] RestTimeLimitSettings noonRest;
+            [Tooltip("1일차 첫 공연 뒤 안내가 나오는 가이드 쉬는 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("첫날 가이드 쉬는 시간")] RestTimeLimitSettings guideRest;
+            [Tooltip("하루 마지막 공연 뒤 밤 정비 시간의 제한시간·탐색 잠금.")]
             [SerializeField, InspectorName("밤 정비")] RestTimeLimitSettings nightMaintenance;
             [SerializeField, HideInInspector] bool timeLimitsMigrated;
 
@@ -307,6 +327,7 @@ namespace CurtainCall.Settings
             [Serializable]
             public sealed class RestTimeLimitSettings
             {
+                [Tooltip("켜면 이 시간대는 시간이 다 되어도 끝나지 않는다. 아래 초 값은 무시된다.")]
                 [SerializeField, InspectorName("제한 없음")] bool unlimited;
                 [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
                 [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
@@ -349,6 +370,12 @@ namespace CurtainCall.Settings
             [Tooltip("공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초.")]
             [SerializeField, Min(0f)] float failedPerformanceHold = 2f;
 
+            [Tooltip("공연(외줄·인간대포 전 난이도) 첫 생존 도착 뒤 정산까지 기다리는 여유 시간(초). 그동안 상단에 남은 초를 알리고, 도착한 생존자를 모두 완주로 정산한다. 0이면 바로 정산. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(0f)] float finishGraceSeconds = 5f;
+
+            [Tooltip("공연 중 생존자가 1명만 남았을 때 그 플레이어에게 띄우는 공연 포기 선택의 대기 시간(초). 선택이 없으면 계속하기로 처리한다. 2026-11-13 사용자 5초.")]
+            [SerializeField, Min(1f)] float forfeitPromptSeconds = 5f;
+
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
             public RestTimeLimitSettings MorningRest { get { EnsureTimeLimits(); return morningRest; } }
@@ -373,6 +400,8 @@ namespace CurtainCall.Settings
             };
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
             public float FailedPerformanceHold => failedPerformanceHold;
+            public float FinishGraceSeconds => float.IsFinite(finishGraceSeconds) ? Mathf.Max(0f, finishGraceSeconds) : 5f;
+            public float ForfeitPromptSeconds => float.IsFinite(forfeitPromptSeconds) ? Mathf.Max(1f, forfeitPromptSeconds) : 5f;
 
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>
@@ -601,9 +630,13 @@ namespace CurtainCall.Settings
             }
 
             [Header("상호작용 애니메이션")]
+            [Tooltip("때리기·부수기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy strike = new();
+            [Tooltip("레버·버튼 등 조작 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy manipulate = new();
+            [Tooltip("당기기 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy pull = new();
+            [Tooltip("열쇠로 여는 상호작용 애니메이션 중 허용할 동작.")]
             [SerializeField] InteractionAnimationPolicy key = new();
             [Tooltip("바닥 또는 배송구의 기물 줍기")]
             [SerializeField] InteractionAnimationPolicy pickup = new();

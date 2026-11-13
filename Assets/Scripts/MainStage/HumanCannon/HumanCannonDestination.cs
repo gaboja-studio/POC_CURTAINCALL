@@ -80,24 +80,20 @@ namespace CurtainCall.HumanCannon
             if (!session.IsHost || IsResolved) return;
             if (humanCannon && PerformanceOpen)
             {
-                var arrivals = new Dictionary<string, string>();
+                var arrived = new List<string>();
+                var nearFinish = new List<string>();
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (!HasArrived(player)) continue;
+                    bool landed = HasArrived(player);
+                    if (!landed && !HasCompletionProgress(player)) continue;
                     foreach (var participant in rewards.State.Segments)
                         if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
-                            arrivals[participant.ParticipantId] = "Arrived";
+                            (landed ? arrived : nearFinish).Add(participant.ParticipantId);
                 }
-                if (arrivals.Count > 0)
+                if (arrived.Count > 0)
                 {
-                    foreach (var player in NetworkPlayer.All)
-                    {
-                        if (!HasCompletionProgress(player)) continue;
-                        foreach (var participant in rewards.State.Segments)
-                            if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
-                                arrivals[participant.ParticipantId] = "Arrived";
-                    }
-                    rewards.FinishPerformance(true, "Completed", arrivals); return;
+                    // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
+                    rewards.ReportArrivals(arrived, nearFinish); return;
                 }
                 // 전멸·이탈 실패는 공용 명부 관찰이 처리한다. 자체 정산/시간대 전환을 중복 호출하지 않는다.
             }
