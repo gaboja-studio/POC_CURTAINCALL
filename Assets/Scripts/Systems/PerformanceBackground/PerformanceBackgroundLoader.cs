@@ -135,12 +135,18 @@ namespace CurtainCall.PerformanceBackground
             foreach (var root in roots) root.transform.SetParent(backgroundRoot, true);
             backgroundRoot.localScale = Vector3.one * PerformanceBackgroundLayout.Scale;
             backgroundRoot.position = position;
+            float intensityScale = PerformanceBackgroundLayout.Scale * PerformanceBackgroundLayout.Scale;
             foreach (var light in container.GetComponentsInChildren<Light>(true))
             {
                 light.range *= PerformanceBackgroundLayout.Scale;
                 if (light.type != LightType.Directional)
-                    light.intensity *= PerformanceBackgroundLayout.Scale * PerformanceBackgroundLayout.Scale;
+                    light.intensity *= intensityScale;
             }
+            // The pulse rewrites Light.intensity every frame, so it needs the same scale as its light.
+            foreach (var motion in container.GetComponentsInChildren<PerformanceBackgroundMotion>(true))
+                foreach (var pulse in motion.practicalLights)
+                    if (pulse?.target != null && pulse.target.type != LightType.Directional)
+                        pulse.restIntensity *= intensityScale;
         }
 
         void OnDestroy()
