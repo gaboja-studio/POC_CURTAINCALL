@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using CurtainCall.Campaign;
+using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using CurtainCall.HumanCannon;
@@ -247,7 +248,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 else pending++;
             }
-            if (pending != 0) return;
+            if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
             if (!IsCampaign && arrived.Count == 0) return; // Preserve the direct-start retry when everyone fails.
             reported = true;
             run.EndEscape(arrived.Count > 0);

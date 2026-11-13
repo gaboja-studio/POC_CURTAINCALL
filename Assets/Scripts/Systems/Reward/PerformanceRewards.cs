@@ -361,7 +361,7 @@ namespace CurtainCall.Reward
 
         void EndIfInsufficientSurvivors()
         {
-            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors)
+            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe())
                 FinishPerformance(false, "NoSurvivors");
         }
 
@@ -459,6 +459,12 @@ namespace CurtainCall.Reward
             if (amount == 0) return true;
             if (model.Balance != 0 || !model.DebugGrant(amount, campaign.State.Day)) return false;
             return Publish();
+        }
+
+        internal void RestoreDevCheckpointParticipant(NetworkPlayer player)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !CanMutate() || dummyRoster || !SamePerformance()) return;
+            if (model.RestoreDevCheckpointParticipant(ParticipantId(player.OwnerClientId))) Publish();
         }
 
         void ObserveNetwork()

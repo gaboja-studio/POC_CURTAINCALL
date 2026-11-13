@@ -59154,61 +59154,114 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Dev.DevCheckpointRoute
   points:
+  - label: "\uC52C \uCD9C\uBC1C\uC810"
+    position: {x: -2.25, y: 5.05, z: 0}
+    yaw: 0
+    radius: 0.65
+    teleportOnly: 0
+    requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 1206260274}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 1 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 0, y: 5, z: 1.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 2 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: -3.2024403, y: 5, z: 1.5137235}
     yaw: 7.7563176
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 3 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 3.2024403, y: 5, z: 1.5137235}
     yaw: -7.7563176
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 4 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 0, y: 6, z: 77.5}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 5 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: -3.2024403, y: 6, z: 77.513725}
     yaw: 7.7563186
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 6 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 3.2024403, y: 6, z: 77.513725}
     yaw: -7.7563186
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 7 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: -9, y: 6.2, z: 145.625}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 8 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: -3, y: 6.2, z: 145.625}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 9 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 3, y: 6.2, z: 145.625}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC 10 \uD0D1\uC2B9 \uC704\uCE58"
     position: {x: 9, y: 6.2, z: 145.625}
     yaw: 0
+    radius: 2
     teleportOnly: 0
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
   - label: "\uB300\uD3EC \xB7 \uCD5C\uC885 \uBAA9\uC801\uC9C0"
     position: {x: 0, y: 6.2, z: 179.32497}
     yaw: 0
+    radius: 2
     teleportOnly: 1
     requiresOpenEscapeExit: 0
+    sceneSpawn: {fileID: 0}
+    rope: {fileID: 0}
+    ropePlacement: 0
 --- !u!4 &700734040
 Transform:
   m_ObjectHideFlags: 0

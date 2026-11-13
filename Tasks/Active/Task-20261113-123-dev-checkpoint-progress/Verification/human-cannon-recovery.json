@@ -1,0 +1,14 @@
+{
+  "result": "사망자 1명 부활 · 단원 1: 대포 4 탑승 위치",
+  "activePerformance": true,
+  "players": [
+    {
+      "Slot": 0,
+      "IsLocal": true,
+      "state": "Normal",
+      "injury": "None",
+      "position": "(0.00, 6.05, 77.50)",
+      "last": "대포 4 탑승 위치"
+    }
+  ]
+}
