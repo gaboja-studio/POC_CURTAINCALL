@@ -1,0 +1,119 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.43,
+      "summary": {
+        "total": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.BulbHasSparseDipsAndNeverNegativeOrBrighterThanBaseline",
+          "Status": "Passed",
+          "Duration": 0.0073188,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.DeadlineKeepsFinalDayAndNeverStartsPursuit(False)",
+          "Status": "Passed",
+          "Duration": 0.016223,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.DeadlineKeepsFinalDayAndNeverStartsPursuit(True)",
+          "Status": "Passed",
+          "Duration": 0.0001477,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(1,False)",
+          "Status": "Passed",
+          "Duration": 0.0004989,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(2,False)",
+          "Status": "Passed",
+          "Duration": 0.0003288,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(3,False)",
+          "Status": "Passed",
+          "Duration": 0.0001127,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(4,False)",
+          "Status": "Passed",
+          "Duration": 0.0000576,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(1,True)",
+          "Status": "Passed",
+          "Duration": 0.0000476,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(2,True)",
+          "Status": "Passed",
+          "Duration": 0.0000441,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(3,True)",
+          "Status": "Passed",
+          "Duration": 0.0000429,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.EscapeOutcomePreservesDayGenerationAndUnlocks(4,True)",
+          "Status": "Passed",
+          "Duration": 0.0000402,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.FailureCheatCannotMutateRunWhenDevIsDisabled",
+          "Status": "Passed",
+          "Duration": 0.0003543,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.EscapeRoute.EditorTools.FailureEndingStateTests.OnlySpecifiedFailuresUseTheStage",
+          "Status": "Passed",
+          "Duration": 0.0008191,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

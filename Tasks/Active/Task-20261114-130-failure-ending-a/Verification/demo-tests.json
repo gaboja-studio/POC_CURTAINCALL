@@ -1,0 +1,77 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.04,
+      "summary": {
+        "total": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.Dawn_WaitsForEveryCoverBeforeAdvancingDay(1)",
+          "Status": "Passed",
+          "Duration": 0.0026351,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.Dawn_WaitsForEveryCoverBeforeAdvancingDay(2)",
+          "Status": "Passed",
+          "Duration": 0.0002112,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.Dawn_WaitsForEveryCoverBeforeAdvancingDay(3)",
+          "Status": "Passed",
+          "Duration": 0.0004563,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.DisconnectedPlayer_DoesNotLeaveEndingPermanentlyBlocked",
+          "Status": "Passed",
+          "Duration": 0.000322,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.EscapeAllRetired_PreservesRunForFailureResult",
+          "Status": "Passed",
+          "Duration": 0.0002281,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.OtherVersion_FourthMorningStillOffersNormalRest",
+          "Status": "Passed",
+          "Duration": 0.000345,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DemoRunEndingTests.ThirdNightReady_DemoEndsWithoutStartingOrExpiringRestTimer",
+          "Status": "Passed",
+          "Duration": 0.0004521,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

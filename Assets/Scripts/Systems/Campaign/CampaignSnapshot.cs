@@ -20,7 +20,7 @@ namespace CurtainCall.Campaign
         Night,
         /// <summary>탈출로. 쉬는 시간 타이머는 멈춘다.</summary>
         Escape,
-        /// <summary>탈출 성공 엔딩.</summary>
+        /// <summary>성공 또는 실패 엔딩. 날짜·런 기록을 유지하고 로비 확인을 기다린다.</summary>
         Ending,
         /// <summary>0.1.0 한정: 4일차 아침 데모 종료 연출. 탐색 타이머 없음.</summary>
         DemoEnding,

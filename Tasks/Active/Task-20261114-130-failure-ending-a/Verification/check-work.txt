@@ -1,0 +1,84 @@
+Safety: OK (174 files; 작업 구역 제한 없음)
+Structure: OK
+Knowledge: OK (20 folders)
+[WARN] Harness/Engine/Unity/Pitfalls/mppm-virtual-player-status.md 44줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/body-damage.md 44줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/common-poles.md 42줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/escape-control-baseline.md 55줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/injury-rules.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/reward-rules.md 60줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/space-workspaces.md 42줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/third-party-assets.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/tightrope-balance.md 44줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/tightrope-course-rules.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/tightrope-rules.md 54줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/exploration-time-limit.md 48줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/night-maintenance.md 56줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/open-items.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/pursuit-system.md 45줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/schedule-board.md 60줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Decisions/Waiting-room/space-layout.md 42줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/day-clock.md 48줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/escape-route-layouts.md 58줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/humanoid-validation.md 44줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/performance-background-motion.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/settings-ui.md 51줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/Final-build/game-settings-application.md 54줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/Waiting-room/pursuit-runtime.md 47줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Facts/Waiting-room/rehearsal-performance-reuse.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/escape-depth-route.md 53줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/escape-rope-landing.md 60줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/index.md 72줄 (warn 60, index) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/rehearsal-arrival-stall.md 43줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/relay-stall-disconnect.md 47줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/third-party-branch-sync.md 44줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/Characters/mppm-pink-shader-memory.md 41줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/Characters/trial-avatar-false-pass.md 60줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/Player/movement-presentation-handoffs.md 59줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Harness/Project/Pitfalls/Player/pending-action-transition-defects.md 45줄 (warn 40, knowledge) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Docs/Domains/common-game-systems.md 156줄 (warn 150, domain) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Docs/Guides/Ui-scene-integration/ui-editing.md 113줄 (warn 100, guide) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Docs/Log-system/event-catalog.md 109줄 (warn 100, default) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Docs/Log-system/m2-spatial-timeline.md 104줄 (warn 100, default) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Docs/Log-system/schema.md 108줄 (warn 100, default) → 압축, 그래도 길면 하위 문서로 분리
+[WARN] Tasks/Active/Task-20261015-044-human-cannon-hazards-course/todo.md 73줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261020-067-main-stage-background-save/log.md 118줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261021-069-telemetry-pipeline/todo.md 64줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-073-exit-route-space-design/installed-art-inventory.md 101줄 (warn 100, task/installed-art-inventory.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-073-exit-route-space-design/log.md 128줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-073-exit-route-space-design/plan.md 83줄 (warn 80, task/plan.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-073-exit-route-space-design/todo.md 78줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-074-tightrope-enhancement/log.md 130줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-075-waiting-room-design-rooms/log.md 106줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-075-waiting-room-design-rooms/plan.md 97줄 (warn 80, task/plan.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-075-waiting-room-design-rooms/todo.md 74줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-076-game-system-upgrade/log.md 130줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261027-076-game-system-upgrade/todo.md 79줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261028-077-ui-enhancement/log.md 113줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261028-077-ui-enhancement/plan.md 86줄 (warn 80, task/plan.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261028-077-ui-enhancement/todo.md 64줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261029-078-character-art-production/log.md 103줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261029-078-controls-and-rope-rescue/log.md 121줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261029-079-waiting-room-m2/log.md 124줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261029-079-waiting-room-m2/todo.md 73줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261031-086-waiting-room-tutorial/log.md 116줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261101-092-piece-usage-rules/log.md 108줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261102-097-rehearsal-flow/todo.md 76줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261102-097-rehearsal-flow/verification.md 105줄 (warn 100, task/verification.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261103-099-pursuit-network-perf/optimization-roadmap.md 108줄 (warn 100, task/optimization-roadmap.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261103-099-pursuit-network-perf/todo.md 74줄 (warn 60, task/todo.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261104-102-pursuit-joint-seams/log.md 110줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261109-114-common-game-settings/log.md 103줄 (warn 100, task/log.md) → 오래된 내용을 같은 폴더 History/로 이동
+[WARN] Tasks/Active/Task-20261109-114-common-game-settings/plan.md 100줄 (warn 80, task/plan.md) → 오래된 내용을 같은 폴더 History/로 이동
+Context: WARN (858 files, warn 69, hard 0)
+[주의] Assets/_ThirdParty 안에 저장하지 않은 변경 3건 — 지정 에셋 관리자 또는 PM이 private 레포에서 먼저 커밋·push
+ThirdParty: OK
+
+Fast: OK (문서/규칙 점검만 통과. 게임·Unity 테스트 결과가 아님)
+Project: D:\github\POC_CURTAINCALL\.harness\local\failure-ending-a
+Editor: ready (status=ready)
+Open scenes: 1, dirty 0
+Compile: PASS (up_to_date)
+Common settings: PASS (links, retired fields, builders, serialized scene/prefab data)
+Tests: SKIPPED
+- 2026-11-14 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

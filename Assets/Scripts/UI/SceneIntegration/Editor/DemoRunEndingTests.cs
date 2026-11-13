@@ -91,16 +91,17 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
-        public void EscapeAllRetired_ReturnsDirectlyToFirstPerformance()
+        public void EscapeAllRetired_PreservesRunForFailureResult()
         {
             var run = new RunState();
             run.DebugStartAt(new RunStartPoint(2, RunStartPhase.Morning, 0, "Tightrope"));
             int generation = run.Snapshot.Generation;
             run.StartEscape();
             Assert.IsTrue(run.EndEscape(false));
-            Assert.AreEqual(generation + 1, run.Snapshot.Generation);
+            Assert.AreEqual(generation, run.Snapshot.Generation);
             Assert.AreEqual(RunEndReason.EscapeAllRetired, run.Snapshot.LastEnd);
-            AssertFirstPerformance(run);
+            Assert.AreEqual(CampaignPhase.Ending, run.Snapshot.Phase);
+            Assert.AreEqual(2, run.Snapshot.Day);
         }
 
         static void AssertFirstPerformance(RunState run)

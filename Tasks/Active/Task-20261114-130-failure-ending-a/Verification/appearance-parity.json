@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261114-130-failure-ending-a/Tools/verify-ending-appearance.cs",
+      "entry": "EndingAppearanceVerification.Verify"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 91,
+      "executeMs": 193,
+      "assemblyName": "PipelineRunScript_verify-ending-appearance_486445a0c8fd40ada4c108383c74af38",
+      "success": true,
+      "result": {
+        "appearances": 16,
+        "surfaces": 160,
+        "sourceAtlasPreserved": true,
+        "paletteAndPatternPreserved": true,
+        "filamentBounds": "(0.0476, 0.0579, 0.0058)"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -166,6 +166,8 @@ namespace CurtainCall.Campaign
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
+                // The final morning ends the run immediately, even with pursuit enabled.
+                if (s.IsFinalMorning) { FailRun(RunEndReason.Deadline); return true; }
                 // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
                 if (pursuitEnabled) s.Timer = RestTimerState.Pursuit;
                 if (onExpired != null)
@@ -221,7 +223,11 @@ namespace CurtainCall.Campaign
             if (players.Count > 0 && s.ReadyCount >= s.RequiredCount && gateOpen)
             {
                 if (s.Phase == CampaignPhase.DemoEnding)
-                    FailRun(RunEndReason.Deadline);
+                {
+                    // Legacy demo acknowledgement is separate from the playable final morning.
+                    StartRun(s.Generation + 1, RunEndReason.Deadline);
+                    EnterPerformance(0);
+                }
                 else if (s.Phase == CampaignPhase.Night)
                     CompleteNight();
                 else
@@ -292,7 +298,7 @@ namespace CurtainCall.Campaign
             return true;
         }
 
-        /// <summary>탈출로가 끝났다. 한 명 이상 도착이면 엔딩, 전원 리타이어면 런 실패 → 세대 교체.</summary>
+        /// <summary>탈출로가 끝났다. 성공·실패 모두 날짜와 세대를 유지한 엔딩으로 간다.</summary>
         public bool EndEscape(bool anyoneArrived)
         {
             if (s.Phase != CampaignPhase.Escape) return false;
@@ -506,8 +512,23 @@ namespace CurtainCall.Campaign
 
         void FailRun(RunEndReason reason)
         {
+            if (reason == RunEndReason.Deadline || reason == RunEndReason.EscapeAllRetired)
+            {
+                ClearTimer();
+                s.Phase = CampaignPhase.Ending;
+                s.LastEnd = reason;
+                return;
+            }
             StartRun(s.Generation + 1, reason);
             EnterPerformance(0);
+        }
+
+        public bool DebugFailureEnding(RunEndReason reason)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !s.IsRunning || s.Phase == CampaignPhase.Ending
+                || (reason != RunEndReason.Deadline && reason != RunEndReason.EscapeAllRetired)) return false;
+            FailRun(reason);
+            return true;
         }
 
         // 연습실 최초 리허설. 첫 공연(1일차 0번)을 다음 공연으로 보여 주고 타이머는 없다.

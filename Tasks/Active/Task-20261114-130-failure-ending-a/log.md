@@ -1,0 +1,25 @@
+# Log
+
+- 2026-11-14: origin/dev c0d2cb09 기반 feat/failure-ending-a 독립 worktree. 원본 작업/Unity PID35684는 조작하지 않음. 이번 요청은 commit/push/PR 포함하지 않음.
+- doctor 1회: 최초 제한된 셸의 Unity 접근/서브모듈 경고는 권한 있는 도구에서 설치 확인·독립 서브모듈 초기화로 해소. 기존 Task 중복 ID 경고는 범위 밖.
+- FailureEndingA 프리팹/소품 메시·머티리얼을 Unity API로 생성. 기존 결과 UI와 명부·통계를 공용으로 연결, 성공/실패 모두 종료 일차 유지.
+- 사용자 후속 피드백: 1인 얼굴 약 2배, 인원별 스케일 조정, 벽/조명 간격으로 그림자 축소. 반복 주름 메시/큐브 신발 제거, 기존 4종 모델의 팔·다리 메시와 중립 천 마감 사용. 네 캐릭터 합성 배치에서 특수 셰이더 청록 표시 발견 → 엔딩 전용 URP Lit 재질에 원본 텍스처 참조. 원본 캐릭터 에셋은 미수정.
+- EditMode: FailureEndingStateTests 13/13, PursuitRulesTests 8/8, DemoRunEndingTests 7/7. 원본 JSON은 Verification에 저장.
+- 실제 창 모드 호스트: F8 3일차 → F9 전원 사망 치트, F8 4일차 아침 → RunState.Tick 타이머 만료, F8 2일차 탈출로 → 실제 NetworkPlayer Retired 집계, F8 1일차 → 문 치트/실제 도착 구역 성공. 각각 일차와 결과창 확인, 로비 버튼 뒤 Normal/ControlEnabled=true/InputGate 누수 없음.
+- 페이드 샘플링: fade-out → alpha 1에서 무대 카메라 활성 → fade-in → 결과창 순서 통과. 고정 카메라 이동 없음, 전구 강도 .63~3.50, 흔들림 최대 .80도, 7.5초 동안 480+프레임 확인.
+- 초기 배치 에디터에서는 기존 커튼이 렌더 프레임 확인에 실패해 창 모드로 전환. MaterialPropertyBlock 생성자를 필드 초기화에서 Begin으로 옮겨 직렬화 오류 수정. 성공 검사 스크립트는 오래된 표시용 arrivalArea 대신 실제 EscapeCampaignContent 도착 구역으로 교정.
+- Previews의 failure-players-final/failure-statistics-final/success-day-one은 실제 1인 호스트 GameView. composition-four-final은 4종 배치만 확인한 합성 명부 미리보기이며 4인 네트워크 검증이 아님. 다중 클라이언트 실접속은 이번에 미실행.
+- 수정 PlayMode 회귀 1/1 통과(합계 29개). 최종 로비 안개=true, Ambient Flat=(.16,.11,.11)로 로비 직렬화 값과 일치. 새로운 씬의 조명을 이전 씬 값으로 덮지 않도록 Stage.Stop은 원래 씬에서만 복구한다.
+- 최종 소품 메시에서 미사용 정점을 제거해 전체 Art 폴더 약28.2MB→9.6MB. 빌더 저장 범위를 자체 Art/프리팹으로 한정하여 TMP 동적 캐시 전역 저장을 방지했다.
+- 검사 중 생긴 공용/기존 폰트 캐시 및 import 줄바꿈 변경은 워크트리에 남아 있다. 해당 파일들을 HEAD로 되돌리는 명령은 자동 승인 검토가 미커밋 변경 손실 위험/명시적 reset 승인 부재로 거부했다. 우회/복구하지 않았으며 제출 시 구현 변경과 구분해야 한다.
+- check-work 1차: 안전성/문서·규칙 PASS, 컴파일 ENV_BLOCKED(전용 에디터 종료 상태), 자동 테스트는 별도 29개 결과 참조. 전용 에디터 재실행 후 환경 차단을 재검사한다.
+- check-work 재검사: 안전성 PASS, 문서/규칙 PASS, 컴파일 PASS(up_to_date), Common settings PASS. 자동 테스트는 중복 실행하지 않았으며 별도 29/29 결과 사용. 기존 문서 길이 경고와 보존된 private 동적 폰트 캐시 경고는 남김. Verification/check-work.txt 참조.
+- 원본 작업 폴더는 변경하지 않았다. 구현 및 피드백 수정은 분리 worktree에 저장 완료, commit/push/PR 미실행. 다음 단계는 사용자 시각 피드백 및 자동 생성 캐시 정리 승인.
+- 후속 미술 피드백: 낡은 회벽/콘크리트 노멀·상자 적층·마른 혈흔을 추가. 머리 깊이와 표면 노멀, 굽은 팔다리, 꼬인 로프와 매듭을 보강. 기존 메시 GPU가 남는 CopySerialized 문제를 Mesh API 갱신으로 해결. 로프 끝은 기울어진 실제 머리 메시의 뒷면 부착점으로 맞춘다.
+- 캐릭터 색상 교정: 앞선 일반 Lit 대체는 원본 UV별 색상 로직을 잃게 했다. RabbitSurfaceStates.SetVariant로 실제 표면을 준비하고, 캐릭터 전용 셰이더 원본의 팔레트/무늬 코드를 그대로 유지한 파생 셰이더에 엔딩의 오염·섬유·음영 층만 추가. 원본 재질/메시/아틀라스 미수정. 16개 모델·의상 조합, 160개 표면의 원본 아틀라스·색/무늬 비교 통과(appearance-parity.json).
+- 전구: 필라멘트 약4.8×5.8cm로 축소, 소켓/유리의 때·그을음 추가. 기존 URP Lit 발광 키워드가 꺼져 주변 빛에만 보이던 문제를 전용 Filament 셰이더로 수정. 전구를 명부 중앙 위에 배치하고 실제 필라멘트 중심에서 아래 방향 Spot 하나가 빛을 낸다. 필라멘트/유리/Light는 동일한 Flicker로 구동하고 밝기의 상수 하한 제거. 카메라 고정/미세 흔들림은 유지.
+- 조명 검사 초기에는 멀리 떨어진 탈출로 정비등 재점등까지 추가 광원으로 집계했다. 검사 범위를 실제 엔딩 렌더러 bounds와 광원 range/Directional로 교정했다. 엔딩에 영향을 주는 다른 광원은 0개이며 실제 Play의 20초 표본에서 발광/유리/조도 동기화를 확인했다. 수정한 실패 상태 회귀 13/13 통과.
+- 최종 단일 Spot은 필라멘트 중심과 2.9mm 이내, 방향 y=-.838. 20초 605표본에서 밝기 .035~1, 필라멘트/유리/조명 정규화 오차 최대 2.3e-7. 다른 광원 영향 0, 셰이더 진단 메시지 0, Console 오류 0. 실제 결과창 로비 버튼 후 Lobby/Normal/ControlEnabled=true/InputGate 누수 없음(aged-return.json).
+- 최종 failure-players-aged-final/failure-statistics-aged-final은 실제 1인 호스트 결과 화면. failure-four-appearance-final은 카탈로그의 4종 기본 바리에이션을 합성 명부로 배치한 미술 프리뷰(네트워크 4인 검사는 아님). 밝은 주기에 잠시 일시정지해 캡처 후 실제 명부와 재생을 복구했으며 로비 복귀 확인 뒤 Play 종료. 임시 Assets/Tasks PNG 13개를 Task/Previews로 해시 검증 복사하고 임시 캡처 폴더만 삭제했다. 원본 작업과 보존 중인 캐시는 건드리지 않음.
+- 최종 미술 묶음 check-work: 안전성/문서·규칙/컴파일/Common settings PASS. 자동 테스트 중복 실행은 생략(별도 최신 실패 회귀 13/13, 이전 기능 회귀 총29개 결과 유지). 기존 문서 길이와 보존 중인 private import/cache 변경 경고만 남음. Verification/art-check-work.txt에 전체 결과 저장. 분리 worktree 저장 완료, commit/push 미실행.
+- 제출 요청: 작업용 Unity PID22320만 정상 종료 후 origin/dev fetch 및 ff-only 동기화 확인(c0d2cb09, 차이 0). 코드/에셋은 검증 당시와 동일하여 기존 컴파일·플레이·회귀 근거 재사용. 폰트 캐시, escape-labels 자동 변경, Vivox 설정 및 private import 변경은 보존하고 PR 대상에서 제외한다. 사용자 요청에 따라 엔딩 A 관련 코드·에셋·빌더·검증·캡처·지식 문서를 선별 저장한다.

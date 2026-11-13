@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        /// <summary>Task-089: Dev 시작 지점 "탈출로"는 대기실 합류 없이 탈출로 출발점에 세우고, 사망하면 출발점에서 다시 시작한다. F9 치트 순간이동도 확인한다.</summary>
+        /// <summary>Dev 탈출로 출발·체크포인트 사망 보류 중 명시적 부활·F9 순간이동을 확인한다.</summary>
         [UnityTest, Category("SpaceRoleHud")]
         public IEnumerator EscapeLaunch_PlacesAtEscapeStart_RecoversAfterRetire_AndCheatsTeleport()
         {
@@ -51,15 +51,18 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null; yield return null;
             Assert.That(Get(VisibleRole("Objective"),"Title"),Is.EqualTo("갈대밭 도착"));
 
-            // With the F9 wipe hold off, direct launch still retries automatically.
+            // F9 checkpoint hold allows explicit recovery without triggering the ending.
             var cheats = T("CurtainCall.Dev.DevCheats");
             var hold = cheats.GetProperty("HoldCheckpointWipe");
             bool beforeHold = (bool)hold.GetValue(null);
-            hold.SetValue(null, false);
+            hold.SetValue(null, true);
             try
             {
                 var setState = player.GetType().GetMethod("ServerSetState");
                 setState.Invoke(player, new[] { Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Retired"), Type.Missing });
+                yield return new WaitForSecondsRealtime(.2f);
+                Assert.AreEqual("Escape", Field(State, "Phase").ToString());
+                Assert.IsTrue((bool)Call(session, "Restart"));
                 until = Time.realtimeSinceStartup + 5;
                 while (Get(player, "State").ToString() != "Normal" && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual("Normal", Get(player, "State").ToString());
@@ -88,7 +91,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             finally { cheats.GetProperty("SuppressFalls").SetValue(null, false); }
             Assert.IsNotNull(Object.FindFirstObjectByType(T("CurtainCall.Dev.DevCheatPanel")) ?? T("CurtainCall.Dev.DevCheatPanel").GetMethod("EnsureExists").Invoke(null, null));
             // The merged ending renders its own results canvas instead of the former Outcome HUD card.
-            var results = Find("CurtainCall.EscapeRoute.EscapeEndingResults");
+            var results = ((Component)content).GetComponentInChildren(T("CurtainCall.EscapeRoute.EscapeEndingResults"), true);
             Assert.IsNotNull(results);
             Call(results, "Freeze");
             Call(results, "Show", true);
