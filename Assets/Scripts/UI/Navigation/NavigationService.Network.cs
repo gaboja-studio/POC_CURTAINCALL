@@ -40,7 +40,7 @@ namespace CurtainCall.UI.Wayfinding
             if(manager==null)return;
             messaging=manager.CustomMessagingManager;
             messaging.RegisterNamedMessageHandler(server?RequestMessage:StateMessage,server?ReceiveRequest:ReceiveState);
-            nextRefresh=0;
+            nextRefresh=nextNetwork=0;
         }
         void UnbindNetwork()
         {
@@ -107,7 +107,7 @@ namespace CurtainCall.UI.Wayfinding
             foreach(var state in batch.routes)
             {
                 if(!shared.TryGetValue(state.key,out var route))shared[state.key]=route=new Route();
-                state.speed=SafeSpeed(state.speed);state.emphasis=SafeEmphasis(state.emphasis);state.color=SafeColor(state.color);
+                state.speed=SafeSpeed(state.speed);state.emphasis=SafeEmphasis(state.emphasis);state.color=SafeColor(state.color);state.interval=SafeInterval(state.interval);state.follow=SafeFollow(state.follow);state.startGap=SafeGap(state.startGap);
                 route.state=state;RenderPath(route);
             }
         }

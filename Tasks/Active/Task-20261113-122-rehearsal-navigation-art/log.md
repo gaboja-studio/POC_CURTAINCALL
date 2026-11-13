@@ -69,3 +69,23 @@
 - 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/365 (feat/rehearsal-navigation-art → dev)
 - 저장 시 현재 파일과 일치하는 check-work 결과를 재사용했다. 안전성/문서/컴파일/공통 설정 PASS, 선택 자동 테스트 SKIPPED이며 별도 PlayMode 결과는 위에 기록했다. 게임 브랜치 push와 LFS 업로드, private main 포함 검사 통과.
 - dev PR #365 생성 후 제출 링크·todo 기록만 추가 저장한다. 게임 dev는 병합하지 않았으며 지정 팀원 검토 대기다. 에디터 NavigationPulseReview는 dirty false, 새 프리팹 참조 정상, compilationFailed false.
+
+## 2026-11-13 동적 경로 부드러운 갱신과 1초 파동
+- 요청: 플레이어·오브젝트 끝점의 경로를 계속 자연스럽게 갱신하고(딱딱 끊기지 않게), 화살표 파동을 약 1초 간격으로 반복하며 간격 설정을 추가.
+- PR #365 병합 뒤 같은 브랜치가 origin/dev와 동일함을 확인하고 이어서 작업했다. doctor 실패2(기존 Task ID 중복, 에디터 설치 감지)는 기존 환경 문제이며 에디터 연결은 정상이다.
+- 마커를 목적지 거리 슬롯으로 고정하고 갱신 사이 위치·회전을 지수 보간, 생성/소멸·첫 표시는 페이드했다. 벽을 넘거나 6m 이상 이동은 페이드 후 재배치한다. 출발 확산 링도 같은 보간을 쓴다. 로컬 갱신 .4→.15초, 공유 송신은 .4초 유지.
+- 4.2초 단일 파동을 1초 간격 연속 파동(6m/s)으로 바꿨다. 프리팹 `pulseIntervalSeconds`/`waveSpeed`, 핸들 `SetPulseInterval`(공유 스냅샷 포함)로 설정한다. 공통 GameSettings·집결 규칙 변경 없음.
+- EditMode Wayfinding 7/7 PASS(새 간격 테스트 포함). 새 PlayMode 이동 대상 테스트 PASS: 최대 마커 이동 .066m/60fps 프레임(갱신 스냅이면 약 .45m), 3초간 근처 화살표 3회 점멸. 실게임 네비 PlayMode 2/2 PASS(21.6초/12.6초), 캡처 갱신.
+- 테스트가 재저장한 폰트2·escape-labels는 navigation-smooth-preserve-font-atlas-20261113 stash에 보존했다. 서브모듈 셰이더 가짜 수정은 git add로 stat만 갱신했다. 커밋/push 없음. 다중 PC 지연·사람 체감 확인은 남는다.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 후속 요청: 동적 보정을 더 빠르게. 기존 설정 RehearsalNavigationView `followSeconds`를 .22→.12초로 낮추고 프리팹에 followSeconds/fadeSeconds/relocateDistance를 명시했다. 이동 대상 PlayMode PASS(최대 마커 이동 .082m/60fps 프레임, 점멸 3회). 재저장 폰트는 navigation-follow-speed-preserve-font-atlas-20261113 stash에 보존.
+- 후속 피드백: 동적 변경 시 경로 밖 화살표가 .25초 페이드로 남음. 경로에서 빠진 슬롯과 벽/6m 재배치는 즉시 숨기고 새 화살표만 페이드인하도록 수정. PlayMode 이동 대상 PASS(경로 급단축 시 활성20→7, 잔존0, 마커 이동 .083m/60fps, 점멸4회/3초), 실게임 네비2 PASS. 같은 필터의 기존 PursuitNavigation_PatrolRestoresPathAfterListeningStop은 이전과 같은 비활성 에이전트 SetPath 오류로 FAIL(무관). 재저장 폰트는 navigation-no-linger-preserve-font-atlas-20261113 stash.
+- 후속 요청: 색상·밝기·보정 시간·파동 간격을 에디터 설정으로. 사용자 지시(모든 네비 공통, 리허설 포함)에 따라 BaseGameSettings > 네비게이션 안내 묶음을 추가하고 BaseGameSettings.asset에 저장했다. WorldNavigation 스타일 인자를 nullable 덮어쓰기로 바꾸고 null은 매 갱신마다 공통 값을 읽는다. 프리팹 pulseIntervalSeconds/followSeconds와 RehearsalPathGuide 색상·강조도·속도 칸을 제거해 값 위치를 하나로 했다.
+- 검증: EditMode Wayfinding 7/7, Settings 58/58 PASS. PlayMode 네비 4/4 PASS(공통 색상·간격 실시간 반영, 개별 색상 덮어쓰기, SetAppearance() 복귀 포함). 같은 필터의 기존 PursuitNavigation 테스트는 이전과 같은 무관 FAIL. 재저장 폰트는 navigation-common-settings-preserve-font-atlas-20261113 stash.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 후속 피드백: 플레이어 시작점에서 발밑 화살표가 경로 갱신마다 생기고 사라져 버벅임. 공통 설정 `플레이어 앞 비움 거리`(기본 1.5m)를 추가하고, 그 거리 안 슬롯은 만들지 않으며 이후 1m는 실제 플레이어 Transform과의 거리로 매 프레임 페이드했다. 공유 안내는 비움 거리를 스냅샷으로 배포하고 플레이어 앵커/자기 핸들로 Transform을 찾는다.
+- 사용자가 에디터에서 공통 색상 흰색·파동 간격 1.5초로 바꾼 값을 확인해 보존했다. 기본값 1을 가정한 테스트 2건을 공통 값 기준으로 수정했다. 검증: EditMode Wayfinding 7/7, PlayMode 네비 4/4 PASS(실제 리허설에서 가장 가까운 표시 화살표 1.62m ≥ 비움 1.5m). 기존 Pursuit 테스트 FAIL은 무관. 재저장 폰트는 navigation-start-gap-preserve-font-atlas-20261113 stash.
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

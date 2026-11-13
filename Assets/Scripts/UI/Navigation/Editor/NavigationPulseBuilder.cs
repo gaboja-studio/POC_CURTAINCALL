@@ -129,7 +129,7 @@ namespace CurtainCall.UI.Wayfinding.Editor
             var d=(GameObject)PrefabUtility.InstantiatePrefab(goal,gallery);d.transform.localPosition=new Vector3(1,.06f,-2.1f);d.transform.Find("Arrival echo").gameObject.SetActive(false);
             NavigationPrefabBuilder.Label(gallery,"PULSE ARROW",new Vector3(-4,.05f,-3.5f),.15f);
             NavigationPrefabBuilder.Label(gallery,"DESTINATION",new Vector3(-.1f,.05f,-3.5f),.15f);
-            NavigationPrefabBuilder.Label(gallery,"4.2s LOOP\nPLAYER > GOAL\nEDIT MODE PREVIEW",new Vector3(3,.05f,-2.2f),.16f);
+            NavigationPrefabBuilder.Label(gallery,"1s PULSE\nPLAYER > GOAL\nEDIT MODE PREVIEW",new Vector3(3,.05f,-2.2f),.16f);
         }
 
         [MenuItem("CurtainCall/UI/Navigation/V2 Capture and validate")]
@@ -142,13 +142,16 @@ namespace CurtainCall.UI.Wayfinding.Editor
             try
             {
                 if(view.VisibleMarkerCount<5)throw new Exception("Serialized route pool missing.");
-                var near=view.MarkerInstances[view.VisibleMarkerCount-1].GetComponent<NavigationPulseGlyph>();
+                int nearIndex=view.VisibleMarkerCount-1;
+                var near=view.MarkerInstances[nearIndex].GetComponent<NavigationPulseGlyph>();
                 var far=view.MarkerInstances[0].GetComponent<NavigationPulseGlyph>();
-                sequence.EvaluateAt(.2f);Require(near.Opacity>.95f&&far.Opacity<.001f,"First pulse must originate at player.");
-                sequence.EvaluateAt(sequence.TravelSeconds+.2f);Require(far.Opacity>.95f&&near.Opacity<.001f,"Pulse must reach goal after player.");
-                sequence.EvaluateAt(sequence.RepeatSeconds-.1f);Require(view.MarkerInstances.All(t=>t.GetComponent<NavigationPulseGlyph>().Opacity<.001f),"Rest phase must hide all arrows.");
-                sequence.EvaluateAt(sequence.RepeatSeconds+.2f);Require(near.Opacity>.95f&&far.Opacity<.001f,"Second cycle must repeat.");
-                view.SetPath(NavigationPrefabBuilder.PreviewPath());sequence.EvaluateAt(.2f);Require(near.Opacity>.95f,"Path refresh must retain animation binding.");
+                float interval=sequence.PulseIntervalSeconds,nearLit=sequence.LightTime(view.GetMarkerGoalDistance(nearIndex))+.2f;
+                float travel=(view.GetMarkerGoalDistance(nearIndex)-view.GetMarkerGoalDistance(0))/sequence.WaveSpeed;
+                sequence.EvaluateAt(nearLit);Require(near.Opacity>.95f,"A wave must light the arrow nearest the player.");
+                sequence.EvaluateAt(nearLit+travel);Require(far.Opacity>.95f,"The same wave must reach the goal side after the player side.");
+                if(interval>sequence.FlashSeconds+.05f){sequence.EvaluateAt(nearLit-.2f+(sequence.FlashSeconds+interval)*.5f);Require(near.Opacity<.001f,"Each arrow must rest between waves.");}
+                sequence.EvaluateAt(nearLit+interval);Require(near.Opacity>.95f,"The next wave must repeat after the pulse interval.");
+                view.SetPath(NavigationPrefabBuilder.PreviewPath());sequence.EvaluateAt(nearLit);Require(near.Opacity>.95f,"Path refresh must retain animation binding.");
                 foreach(var sr in sequence.GetComponentsInChildren<SpriteRenderer>(true))Require(sr.sprite!=null&&sr.sharedMaterial!=null,"Missing layer reference.");
                 Require(sequence.GetComponentsInChildren<LineRenderer>(true).Length==0,"LineRenderer found.");
                 Require(!ShaderUtil.ShaderHasError(Shader.Find("CurtainCall/NavigationSignal")),"Signal shader error.");
@@ -159,7 +162,7 @@ namespace CurtainCall.UI.Wayfinding.Editor
                 camera.transform.position=new Vector3(25,13,0);camera.transform.rotation=Quaternion.Euler(90,0,0);camera.orthographic=true;camera.orthographicSize=4.8f;
                 NavigationPrefabBuilder.Capture(camera,Evidence+"layers.png");
                 camera.transform.position=p;camera.transform.rotation=r;camera.orthographic=false;
-                string result="PASS: near-to-far order, fade-to-zero rest, second cycle, path refresh, serialized marker count, sprite/material references, shader compilation, zero LineRenderers. Preview values: repeat 4.2s, travel 2.35s, fade-in .12s, hold .16s, fade-out .48s, arrival .8s.";
+                string result=$"PASS: player-to-goal wave order, rest between waves, interval repeat, path refresh, serialized marker count, sprite/material references, shader compilation, zero LineRenderers. Preview values: interval {sequence.PulseIntervalSeconds}s, wave {sequence.WaveSpeed}m/s, flash {sequence.FlashSeconds}s, arrival .8s.";
                 File.WriteAllText(Evidence+"validation.txt",result);return result;
             }
             finally {sequence.AutomaticPlayback=automatic;}
@@ -176,7 +179,7 @@ namespace CurtainCall.UI.Wayfinding.Editor
             bool automatic=sequence.AutomaticPlayback;sequence.AutomaticPlayback=false;
             try
             {
-                int frames=Mathf.RoundToInt(sequence.RepeatSeconds*24);
+                int frames=Mathf.RoundToInt(sequence.PulseIntervalSeconds*24);
                 for(int i=0;i<frames;i++)
                 {
                     sequence.EvaluateAt(i/24f);
