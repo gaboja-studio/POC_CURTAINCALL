@@ -44,6 +44,11 @@ namespace CurtainCall.WaitingRoom
             card.SetChoices(shownChoices);
             UpdateCursorRegion();
         }
+        /// <summary>카드 맨 아래 남은 선택 시간 게이지(0~1). null이면 숨긴다.</summary>
+        public void SetTimerGauge(float? remaining)
+        {
+            if (IsVisible) card.SetTimerGauge(remaining);
+        }
         public void Hide()
         {
             if(card) card.Close();
