@@ -295973,7 +295973,7 @@ Transform:
   m_GameObject: {fileID: 920833396}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -32.92757, y: 2.369923, z: 55.64798}
+  m_LocalPosition: {x: -32.92757, y: 5.693, z: 55.64798}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -386115,7 +386115,7 @@ Transform:
   m_GameObject: {fileID: 1214941888}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -38.87604, y: 0.000000022351742, z: 54.53712}
+  m_LocalPosition: {x: -38.87604, y: 5.53, z: 54.53712}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -498201,6 +498201,56 @@ Transform:
   - {fileID: 566197977}
   m_Father: {fileID: 906797447}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1549024850
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1549024852}
+  - component: {fileID: 1549024851}
+  m_Layer: 0
+  m_Name: "\uC2A4\uD504\uB9C1 \uC2E0\uBC1C"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1549024851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1549024850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
+  spotId: placement-275a96b2850e48299764ed3e6b7775a6
+  uidOffset: 53
+  itemId: spring-shoes
+  itemName: "\uC2A4\uD504\uB9C1 \uC2E0\uBC1C"
+  availableAfter: 
+  debugOnly: 0
+--- !u!4 &1549024852
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1549024850}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -50.013, y: 5.651, z: 63.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1549077496
 GameObject:
   m_ObjectHideFlags: 0
@@ -498859,7 +498909,7 @@ Transform:
   m_GameObject: {fileID: 1550578083}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.5124044, y: 0.000000059604645, z: 105.74578}
+  m_LocalPosition: {x: -46.675983, y: 0.76, z: 54.602173}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -516011,7 +516061,7 @@ Transform:
   m_GameObject: {fileID: 1600623089}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -31.65048, y: 0.000000022351742, z: 63.72815}
+  m_LocalPosition: {x: -31.965, y: 0.382, z: 63.72815}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -716498,6 +716548,18 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3372711230854814170, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.96
+      objectReference: {fileID: 0}
+    - target: {fileID: 3372711230854814170, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 3372711230854814170, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 15.48
+      objectReference: {fileID: 0}
     - target: {fileID: 3804881394790702179, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -716789,3 +716851,4 @@ SceneRoots:
   - {fileID: 782313072}
   - {fileID: 2061510907}
   - {fileID: 194026014}
+  - {fileID: 1549024852}
