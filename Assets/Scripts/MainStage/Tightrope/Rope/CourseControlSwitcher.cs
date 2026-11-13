@@ -272,7 +272,8 @@ namespace CurtainCall.Tightrope
             if (mover.IsAirborne || player.IsAirborne) return;
             if (!mover.Simulated) return; // 위치를 다른 곳에 맡긴 동안(목마 위층)은 조작을 바꾸지 않는다
 
-            bool rope = course.TryGetSupportingRope(mover, out int lane);
+            int lane = TightropeCourse.NoLane;
+            bool rope = !TightropeCourse.BlocksRopeForSaw(player) && course.TryGetSupportingRope(mover, out lane);
             if (!rope)
             {
                 fallingRopeForward = null;
@@ -339,6 +340,11 @@ namespace CurtainCall.Tightrope
 
         void Apply(bool rope)
         {
+            if (rope && TightropeCourse.BlocksRopeForSaw(player))
+            {
+                ApplyPlatformMode();
+                return;
+            }
             if (rope && !StillOwnsControls)
                 returnScheme = controller != null && controller.HasAssignedScheme ? controller.Scheme : null;
             if (rope && !ownsAxes)

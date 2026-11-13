@@ -57,7 +57,8 @@ namespace CurtainCall.Player
         Quaternion startRotation;
         float verticalSpeed;
         Vector3 groundVelocity; // 땅에서의 수평 속도
-        Vector3 airVelocity;    // 이륙 수평 속력을 보존하며 공중 입력은 방향을 바꾼다.
+        Vector3 airVelocity;
+        Vector3 sprintJumpVelocity; // 이륙 때의 달리기 속도와 방향. 현재 부상 배율은 공중에서 따로 적용한다.
         Vector3 unsupportedSlideVelocity;
         float laneTargetSide;   // 옆줄 점프 도착 줄의 옆 좌표(CourseRight 방향 월드 좌표)
         bool laneAlongLimited;  // 옆줄 점프 착지 지점을 앞뒤로 보정했으면 그 거리에서 멈춘다
@@ -221,6 +222,13 @@ namespace CurtainCall.Player
             CourseForwardOverride = direction;
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
+
+        internal int RopeTravelSign { get; private set; } = 1;
+        public Vector3 RopeTravelForward => CourseForward * RopeTravelSign;
+        internal void SetRopeTravel(float move)
+        {
+            if (Mathf.Abs(move) > .001f) RopeTravelSign = move < 0f ? -1 : 1;
+        }
         float LaunchGravity => Character.Gravity * (FreeMovement ? 1f : Mathf.Max(0.1f, CourseJumpGravityMultiplier));
         float EffectiveGravity => CurrentJump != JumpKind.None && jumpGravity > 0f ? jumpGravity : LaunchGravity;
         float LaunchHeight => (FreeMovement || CourseJumpHeightOverride <= 0f ? Character.JumpHeight : CourseJumpHeightOverride) * jumpHeightMultiplier;
@@ -277,6 +285,7 @@ namespace CurtainCall.Player
             groundVelocity = Vector3.ProjectOnPlane(horizontalVelocity, Vector3.up);
             IsMoving = false;
             StartJump(JumpKind.InPlace, 0);
+            sprintJumpVelocity = Vector3.zero;
             airVelocity = groundVelocity; // 방향 하차의 명시적인 발사 속도는 일반 공중 입력으로 덮지 않는다.
             directionalLaunchPending = preserveFirstStep;
         }
@@ -661,20 +670,29 @@ namespace CurtainCall.Player
         }
 
         Vector3 ReadFreeMovement(Vector3 forward, float move, float side)
-            => ReadMovement(forward, move, side, Character.FreeMoveSpeed * PostureSpeedMultiplier);
+            => ReadMovementDirection(forward, move, side) * (Character.FreeMoveSpeed * PostureSpeedMultiplier * speedMultiplier);
 
         Vector3 ReadAirMovement(Vector3 forward, float move, float side)
-            => ReadMovement(forward, move, side, CurtainCall.Settings.GameSettings.Base.AirControl.Speed
-                * (IsCrouched ? Character.CrouchSpeedMultiplier : 1f));
+        {
+            Vector3 direction = ReadMovementDirection(forward, move, side);
+            float speed = GameSettings.Base.AirControl.Speed;
+            if (sprintJumpVelocity != Vector3.zero && verticalSpeed > 0f)
+            {
+                // 이륙 방향으로만 남은 속도를 더하고, 점프 정점에서 공통 공중 속도로 돌아온다.
+                float takeoffSpeed = Vector3.Dot(sprintJumpVelocity, direction.normalized);
+                speed = Mathf.Lerp(speed, Mathf.Max(speed, takeoffSpeed), verticalSpeed / JumpSpeed);
+            }
+            return direction * (speed * (IsCrouched ? Character.CrouchSpeedMultiplier : 1f) * speedMultiplier);
+        }
 
-        Vector3 ReadMovement(Vector3 forward, float move, float side, float speed)
+        Vector3 ReadMovementDirection(Vector3 forward, float move, float side)
         {
             Vector3 direction = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
             IsMoving = direction.sqrMagnitude > .0001f;
             if (IsMoving)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation,
                     Quaternion.LookRotation(direction, Vector3.up), Character.TurnSpeed * Time.deltaTime);
-            return direction * (speed * speedMultiplier);
+            return direction;
         }
 
         void MoveWithPassengers(Vector3 displacement)
@@ -900,6 +918,7 @@ namespace CurtainCall.Player
         void StartJump(JumpKind kind, int laneDirection)
         {
             jumpBufferedUntil = double.NegativeInfinity;
+            sprintJumpVelocity = Vector3.zero;
             jumpGravity = LaunchGravity; // 착지 전 조작 규칙이 바뀌어도 궤적과 옆줄 도착 위치를 유지한다.
             jumpHeight = LaunchHeight;
             CurrentJump = kind;
@@ -910,6 +929,7 @@ namespace CurtainCall.Player
             airVelocity = groundVelocity;
             if (FreeMovement && FreeAirControl && kind == JumpKind.InPlace)
             {
+                if (IsSprinting && speedMultiplier > 0f) sprintJumpVelocity = groundVelocity / speedMultiplier;
                 IsSprinting = false;
                 airVelocity = ReadAirMovement(CourseForward, ControlEnabled ? moveInput : 0f, ControlEnabled ? sideInput : 0f);
             }
@@ -984,6 +1004,7 @@ namespace CurtainCall.Player
             jumpHeight = 0f;
             LaneJumpDirection = 0;
             airVelocity = Vector3.zero;
+            sprintJumpVelocity = Vector3.zero;
             directionalLaunchPending = false;
             laneAlongLimited = false;
             laneFlightUntil = 0;

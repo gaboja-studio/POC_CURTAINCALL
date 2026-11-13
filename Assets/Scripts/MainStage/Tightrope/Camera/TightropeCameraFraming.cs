@@ -148,7 +148,13 @@ namespace CurtainCall.Cameras
             preset.Distance = currentFrame.Distance;
             preset.LookHeight = currentFrame.LookHeight;
             preset.LookAhead = currentFrame.LookAhead;
-            director.RequestView(this, usePlatformView ? platformView : preset, 0, course.Forward);
+            var travel = useLocal && !usePlatformView && !rescuing ? subject.GetComponent<PlayerMover>() : null;
+            var stack = PiggybackSystem.Current;
+            if (travel != null && stack != null && stack.GetSupportingPlayer(subject) != null
+                && stack.GetCarrier(subject) is { } carrier && carrier.TryGetComponent(out PlayerMover carrierMover))
+                travel = carrierMover;
+            director.RequestViewWithHeading(this, usePlatformView ? platformView : preset, 0,
+                travel != null ? travel.RopeTravelForward : course.Forward, followHeading: travel != null);
             director.SetInputBlocked(InputGate.IsBlocked || TightropeCampaignHud.RequiresStartCursor);
             ownsInput = true;
             if (fade == null) return;

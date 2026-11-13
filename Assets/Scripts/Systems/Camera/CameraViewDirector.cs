@@ -22,6 +22,7 @@ namespace CurtainCall.Cameras
         {
             public CameraViewPreset Preset;
             public Vector3 Forward;
+            public bool FollowHeading;
         }
 
         [SerializeField] CameraViewSettings settings;
@@ -34,6 +35,7 @@ namespace CurtainCall.Cameras
         CameraViewPreset selected;
         CameraViewKind selectedKind;
         Vector3 selectedForward = Vector3.forward;
+        Vector3 followedHeading;
         NetworkPlayer local;
         PlayerMover mover;
         float yaw;
@@ -154,10 +156,14 @@ namespace CurtainCall.Cameras
 
         /// <summary>출처당 하나. 갱신은 등록 순서를 유지하고 해제 후 재등록만 최근 요청이 된다.</summary>
         public void RequestView(Object source, CameraViewPreset preset, int priority, Vector3 worldForward = default)
+            => RequestViewWithHeading(source, preset, priority, worldForward, false);
+
+        internal void RequestViewWithHeading(Object source, CameraViewPreset preset, int priority, Vector3 worldForward,
+            bool followHeading)
         {
             if (source == null) return;
             if (preset == null) { ReleaseView(source); return; }
-            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward) }, priority);
+            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading }, priority);
         }
 
         public void ReleaseView(Object source) => requests.Remove(source);
@@ -261,6 +267,7 @@ namespace CurtainCall.Cameras
                 // 마우스 시선 시점에 새로 들어올 때만 시선을 현재 화면 방향으로 맞춘다(1인칭↔비고정은 시선 이어짐)
                 bool enterFirst = (useFirst || useFree || useSpectator) && !MouseLook;
                 winner = source;
+                followedHeading = Vector3.zero;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
@@ -290,6 +297,10 @@ namespace CurtainCall.Cameras
                 if (!MouseLook && !preserveCursorInFixedView) ReleaseCursor();
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
+            Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
+            if (heading != Vector3.zero && Vector3.Dot(heading, followedHeading) < .9999f)
+                yaw = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg;
+            followedHeading = heading;
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {

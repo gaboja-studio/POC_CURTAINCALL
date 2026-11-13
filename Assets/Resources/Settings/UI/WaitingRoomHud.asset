@@ -316,7 +316,7 @@ MonoBehaviour:
   - id: rehearsal.stage.3.title
     text: "5 \xB7 \uBAA9\uB9C8\uB85C \uB354 \uB192\uC740 \uADF8\uB124\uC5D0 \uD0D1\uC2B9\uD558\uAE30"
   - id: rehearsal.lane-guide
-    text: "[{side}]\uB97C \uB204\uB978 \uCC44\uB85C [{jump}]\uB97C \uB20C\uB7EC \uC591
+    text: "[{side}]\uB85C \uC591
       \uC606\uC5D0 \uC788\uB294 \uC904\uB85C \uC774\uB3D9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
   - id: rehearsal.lane-guide-title
     text: "\uC606 \uC904\uB85C \uC774\uB3D9"
@@ -414,7 +414,7 @@ MonoBehaviour:
   - id: rehearsal.quest.lane-jump.title
     text: "\uC606 \uC904 \uAC74\uB108\uAE30"
   - id: rehearsal.quest.lane-jump
-    text: "[{side}]\uB97C \uB204\uB978 \uCC44 [{jump}]\uB85C \uC606 \uC904 \uAC74\uB108\uAE30"
+    text: "[{side}]\uB85C \uC606 \uC904 \uAC74\uB108\uAE30"
   - id: rehearsal.quest.lane-platform.title
     text: "\uC911\uAC04 \uBC1C\uD310"
   - id: rehearsal.quest.lane-platform
@@ -424,7 +424,7 @@ MonoBehaviour:
   - id: rehearsal.quest.trapeze-lane.title
     text: "\uACF5\uC911\uADF8\uB124 \uC9C4\uC785"
   - id: rehearsal.quest.trapeze-lane
-    text: "[{side}]\uB97C \uB204\uB978 \uCC44 [{jump}]\uB97C \uB20C\uB7EC {lane}\uBC88 \uC904\uC758 \uACF5\uC911\uADF8\uB124 \uC9C4\uC785 \uC704\uCE58\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4."
+    text: "[{side}]\uB85C {lane}\uBC88 \uC904\uC758 \uACF5\uC911\uADF8\uB124 \uC9C4\uC785 \uC704\uCE58\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4."
   - id: rehearsal.quest.trapeze-mount.title
     text: "\uBAA9\uB9C8 \uD0C0\uAE30"
   - id: rehearsal.quest.trapeze-mount

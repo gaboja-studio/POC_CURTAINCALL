@@ -2,6 +2,7 @@ using CurtainCall.Cameras;
 using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 namespace CurtainCall.Player
 {
@@ -31,6 +32,7 @@ namespace CurtainCall.Player
         InputAction crouch;
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
         InputAction useDevice;
+        PlayerController controller;
         double interactPressedAt = -1d;
         bool interactLongSent;
         bool interactTapPending, interactLongPending;
@@ -71,6 +73,7 @@ namespace CurtainCall.Player
 
         void Awake()
         {
+            controller = GetComponent<PlayerController>();
             var source = inputAsset != null ? inputAsset : Resources.Load<InputActionAsset>(DefaultAssetPath);
             if (source == null)
             {
@@ -166,6 +169,14 @@ namespace CurtainCall.Player
                 return;
             }
             ReadInteract(Time.realtimeSinceStartupAsDouble, out bool tapped, out bool longPressed, out float holdProgress);
+            bool onRope = controller != null && controller.Scheme is TightropeControlScheme;
+            var mouse = Mouse.current;
+            bool canClick = mouse == null || Cursor.lockState == CursorLockMode.Locked
+                || ((CameraViewDirector.Current == null || !CameraViewDirector.Current.UsesMouseLook)
+                    && !CameraViewDirector.PointerBlocked(mouse.position.ReadValue()));
+            int direction = auxKeys.Update(auxLeft.IsPressed() && (auxLeft.activeControl?.device is not Mouse || canClick),
+                auxRight.IsPressed() && (auxRight.activeControl?.device is not Mouse || canClick));
+            bool lanePressed = onRope && direction != 0 && (direction < 0 ? auxLeft : auxRight).WasPressedThisFrame();
 
             Current = new PlayerInputFrame
             {
@@ -173,18 +184,27 @@ namespace CurtainCall.Player
                 Posture = postureKeys.Read(posture),
                 ActionPressed = action.WasPressedThisFrame(),
                 ActionHeld = action.IsPressed(),
-                TurnAroundPressed = turnAround != null && turnAround.WasPressedThisFrame(),
-                AuxDirection = auxKeys.Update(auxLeft.IsPressed(), auxRight.IsPressed()),
+                TurnAroundPressed = turnAround != null && turnAround.WasPressedThisFrame()
+                    && (turnAround.activeControl?.device is not Mouse || canClick),
+                AuxDirection = lanePressed ? direction : 0,
+                LaneChangePressed = lanePressed,
                 InteractTapped = tapped,
                 InteractHeld = interact.IsPressed(),
                 InteractLongPressed = longPressed,
                 InteractHoldProgress = holdProgress,
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
-                UvLightHeld = uvLight != null && uvLight.IsPressed(),
-                UseDevicePressed = ReadDeviceUse(),
+                UvLightHeld = uvLight != null && uvLight.IsPressed() && !CurtainCall.WaitingRoom.ExplorationTargets.ToolsBlocked
+                    && (!onRope || !SharesRopeBinding(uvLight)),
+                UseDevicePressed = ReadDeviceUse() && (!onRope || !SharesRopeBinding(useDevice)),
             };
             CommonInteractionSelection.Selected(this);
+        }
+
+        bool SharesRopeBinding(InputAction input)
+        {
+            var control = input.activeControl;
+            return control != null && (auxLeft.controls.ContainsReference(control) || auxRight.controls.ContainsReference(control));
         }
 
         bool ReadDeviceUse()

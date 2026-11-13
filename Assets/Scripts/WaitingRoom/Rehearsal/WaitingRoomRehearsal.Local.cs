@@ -253,7 +253,7 @@ namespace CurtainCall.WaitingRoom
             {
                 laneIntroAt = 0f;
                 ShowGuide("LANE_INTRO", WaitingRoomText.Get("rehearsal.lane-guide-title", "끊어진 줄"),
-                    WaitingRoomText.Get("rehearsal.lane-guide", "줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다."), IntroSeconds);
+                    WaitingRoomText.Get("rehearsal.lane-guide", "줄이 끊긴 지점에서는 [{side}]로 옆줄로 건너갈 수 있습니다."), IntroSeconds);
                 return;
             }
             if (!laneHintShown && Stage.Kind == RehearsalStageKind.LaneChange
@@ -261,7 +261,7 @@ namespace CurtainCall.WaitingRoom
             {
                 laneHintShown = true;
                 ShowGuide("LANE_CHANGE", WaitingRoomText.Get("rehearsal.lane-guide-title", "옆줄로 건너기"),
-                    WaitingRoomText.Get("rehearsal.lane-guide", "Q/E를 누른 채 Space로 옆줄로 건너세요. 동료가 서 있는 줄의 손잡기 범위에 착지해 보세요."), IntroSeconds);
+                    WaitingRoomText.Get("rehearsal.lane-guide", "[{side}]로 옆줄로 건너세요. 동료가 서 있는 줄의 손잡기 범위에 착지해 보세요."), IntroSeconds);
             }
             var target = PiggybackSystem.Current != null
                 ? PiggybackSystem.Current.FindMountTarget(local) : null;
@@ -555,7 +555,7 @@ namespace CurtainCall.WaitingRoom
                             if (trapeze.CanAttachToPole(i, local))
                                 return Quest("trapeze-attach", "봉을 잡은 동료 가까이에서 F로 매달리세요. 반동에 맞춰 Space로 다음 봉을 향해 날아갑니다.");
                         if (myLane != trapeze.LaneIndex && distance < course.TrapezeGapFrom)
-                            return QuestFormat("trapeze-lane", "Q/E + Space로 {lane}번 줄의 공중그네 진입 위치로 이동하세요.", trapeze.LaneIndex + 1);
+                            return QuestFormat("trapeze-lane", "[{side}]로 {lane}번 줄의 공중그네 진입 위치로 이동하세요.", trapeze.LaneIndex + 1);
                         var stack = PiggybackSystem.Current;
                         return stack != null && stack.CanEnterTrapeze(local)
                             ? Quest("trapeze-grab", "목마 위쪽 사람이 F로 첫 봉을 잡으세요. 목마가 풀리면 아래 동료도 F로 매달리세요.")
@@ -579,9 +579,9 @@ namespace CurtainCall.WaitingRoom
             }
             if (s.Kind == RehearsalStageKind.LaneChange && !local.IsAirborne && mover.FreeMovement
                 && distance >= course.Layout.GetLaneEnd(0) && distance < course.FinishDistance)
-                return Quest("lane-platform", "발판에서는 W/S·A/D로 이동합니다. 옆줄을 향해 이동하며 Space로 점프하세요. 줄 위에서는 Q/E + Space로 옆줄에 건너갑니다.");
+                return Quest("lane-platform", "발판에서는 W/S·A/D로 이동합니다. 옆줄을 향해 이동하며 Space로 점프하세요. 줄 위에서는 [{side}]로 옆줄에 건너갑니다.");
             if (s.Kind == RehearsalStageKind.LaneChange && myLane == 0 && distance >= s.CheckpointDistance)
-                return Quest("lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
+                return Quest("lane-jump", "[{side}]를 이용해 건너편 줄로 넘어가세요.");
             return Quest("balance", "W/S로 이동하고 A/D로 균형을 잡으며 외줄을 건너세요.");
         }
 

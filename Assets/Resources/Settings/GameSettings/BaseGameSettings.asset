@@ -55,6 +55,8 @@ MonoBehaviour:
     sawCarrySpeed: 3
     sawShotInterval: 1.15
     blockPiggybackOnSawCarrier: 1
+    blockRopeWithSaw: 1
+    blockExplorationToolsDuringPerformance: 1
     collisionSkin: 0.02
   character:
     freeMoveSpeed: 3

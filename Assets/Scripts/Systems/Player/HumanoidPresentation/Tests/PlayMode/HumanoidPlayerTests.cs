@@ -1087,9 +1087,6 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return Press(Key.D, Key.A);
                 Assert.That(Read("Posture"), Is.EqualTo(-1f), "D then A: A wins");
 
-                yield return Press(Key.Q);
-                yield return Press(Key.Q, Key.E);
-                Assert.That(Read("AuxDirection"), Is.EqualTo(1f), "Q then E: E wins");
                 yield return Press();
                 Assert.That(Read("Move"), Is.EqualTo(0f));
             }

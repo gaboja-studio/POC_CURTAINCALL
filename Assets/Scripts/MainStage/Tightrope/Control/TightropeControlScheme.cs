@@ -9,9 +9,8 @@ using UnityEngine;
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
 {
     /// <summary>
-    /// 외줄타기 조작 규칙. 이동 → 진입 방향 기준 줄 앞뒤(T로 180도 전환), 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
-    /// 좌우 보조 방향(Q/E) → 누르는 동안만 옆줄 이동 방향 지정(단독으로는 동작 없음),
-    /// 방향을 누른 채 기본 액션 → 옆줄 점프(제자리 점프 대신). 방향은 뛴 순간 고정되고 착지까지 바뀌지 않는다.
+    /// 외줄타기 조작 규칙. W/S로 앞뒤 이동, 휠 클릭으로 180도 전환, A/D로 균형 보정.
+    /// Space는 제자리 점프, 좌·우 클릭은 해당 방향 옆줄 점프다.
     /// 상호작용 짧게 → 목마 연결 시도, 길게 → 목마 해제(실제 처리는 목마 기능). 달리기(LShift)·앉기(LCtrl) → 동작 미정, 누른 순간 로그만.
     /// 규칙 근거: Docs/References/tightrope-keymap-summary.md, Harness/Project/Decisions/tightrope-rules.md
     /// 줄 위에서 <see cref="CurtainCall.Tightrope.CourseControlSwitcher"/>가 끼운다(공용 기본 규칙이 아니다).
@@ -26,6 +25,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
         public override void Enter(PlayerControlContext context)
         {
             ClearBuffer(context);
+            context.Mover?.SetRopeTravel(1f);
             ApplyMovementSettings(context);
         }
 
@@ -100,13 +100,15 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 return;
             }
             if (input.TurnAroundPressed && context.Mover != null
-                && context.Mover.ControlEnabled)
+                && context.Mover.ControlEnabled && context.Mover.Simulated)
                 context.Mover.ReverseCourseDirection();
+            if (context.Mover != null && context.Mover.Simulated && context.Mover.ControlEnabled)
+                context.Mover.SetRopeTravel(input.Move);
             const int viewSign = 1;
-            context.HeldDirection = input.AuxDirection * viewSign;
+            context.HeldDirection = input.AuxDirection * (context.Mover?.RopeTravelSign ?? 1);
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
             ApplyMovementSettings(context);
-            if (input.Move != 0f || input.ActionPressed || input.InteractLongPressed) CancelCatch(context);
+            if (input.Move != 0f || input.ActionPressed || input.LaneChangePressed || input.InteractLongPressed) CancelCatch(context);
 
             if (context.Mover != null)
             {
@@ -132,7 +134,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                         mover.Teleported += buffer.Clear;
                     }
                     mover.SetMoveInput(input.Move * viewSign);
-                    if (buffer.Resolve(input.ActionPressed, input.AuxDirection * viewSign, !mover.IsAirborne,
+                    if (buffer.Resolve(input.ActionPressed || input.LaneChangePressed, context.HeldDirection, !mover.IsAirborne,
                         Time.timeAsDouble, GameSettings.Tightrope.RopeMovement.JumpInputBuffer, out int direction))
                     {
                         if (direction != 0) mover.RequestLaneJump(direction);

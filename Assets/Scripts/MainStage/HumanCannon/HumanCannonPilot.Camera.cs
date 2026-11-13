@@ -34,7 +34,7 @@ namespace CurtainCall.HumanCannon
         {
             if (cannonView == null) return;
             if (!isActiveAndEnabled || system == null || player == null || player.State != PlayerState.Normal
-                || cannonView.LocalPlayer != player || (controller != null && controller.Scheme != scheme))
+                || cannonView.LocalPlayer != player || (!IsHoldingPole && controller != null && controller.Scheme != scheme))
             {
                 ClearCannonViewRequest();
                 return;
@@ -70,9 +70,11 @@ namespace CurtainCall.HumanCannon
             if (carryCamera) UpdateCarryFraming(carried);
             else hadCarryFraming = false;
             // 탑승/비행이 운반보다 우선하며, 사망자는 위에서 요청을 해제해 공용 관전을 사용한다.
-            cannonView.RequestView(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView
+            var pole = IsHoldingPole ? HumanCannonPoleSystem.Current?.Pole(HeldPole) : null;
+            cannonView.RequestViewWithHeading(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView
                 : IsFlying && airborneView != null ? airborneView : flightView,
-                stationIndex >= 0 || IsFlying ? 200 : carrying ? 100 : 50);
+                stationIndex >= 0 || IsFlying ? 200 : carrying ? 100 : 50,
+                pole != null ? pole.Forward * poleCameraSide : Vector3.zero, followHeading: pole != null);
             HumanCannonViewInput.SetRequested(cannonView, this, true);
             requestedCannonView = true;
         }

@@ -249,6 +249,16 @@ namespace CurtainCall.Tightrope
                 if (surface != null) Physics.IgnoreCollision(body, surface);
         }
 
+        internal void IgnoreRopeCollision(Collider body, HashSet<Collider> changed)
+        {
+            foreach (var surface in ropeSurfaces.Keys)
+            {
+                if (surface == null || !surface.enabled || !surface.gameObject.activeInHierarchy) continue;
+                if (!Physics.GetIgnoreCollision(body, surface)) changed.Add(surface);
+                if (changed.Contains(surface)) Physics.IgnoreCollision(body, surface, true);
+            }
+        }
+
         // ── 조회 ────────────────────────────────────────────
 
         /// <summary>위치의 진행 거리(m). 출발선이 0, 전진 방향이 +.</summary>
@@ -290,6 +300,10 @@ namespace CurtainCall.Tightrope
         /// </summary>
         public bool TryGetSupportingRope(PlayerMover mover, out int lane)
             => TryGetSupportingRopeAt(mover, mover != null ? mover.transform.position : Vector3.zero, out lane);
+
+        internal static bool BlocksRopeForSaw(NetworkPlayer player) => player != null
+            && GameSettings.Base.CarryDevices.BlockRopeWithSaw
+            && HumanCannon.HumanCannonCarry.Held(player.OwnerClientId) is CurtainCall.EscapeRoute.EscapeExitSaw;
 
         /// <summary>원격 착지 요청 좌표도 소유자의 표면 전환과 같은 몸통·지지면 기준으로 검사한다.</summary>
         public bool TryGetSupportingRopeAt(PlayerMover mover, Vector3 feet, out int lane)
