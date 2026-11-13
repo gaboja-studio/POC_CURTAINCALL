@@ -1,5 +1,7 @@
 # Character Pitfalls
 
+- [ending-costume-palette.md](ending-costume-palette.md) — 엔딩 소품이 원본 플레이어와 다른 색·무늬로 보이거나 필라멘트가 주변 빛에 의존할 때
+
 - [held-item-scene-lifetime.md](held-item-scene-lifetime.md) — 기물을 든 채 씬 이동 후 손 표시가 달라지거나 기물이 사라질 때
 
 - [capture-visibility-restores-old-limbs.md](capture-visibility-restores-old-limbs.md) — 포획 후 공연에서 외팔 판정인데 온전한 팔다리로 보일 때

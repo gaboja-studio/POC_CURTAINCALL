@@ -48,6 +48,7 @@ namespace CurtainCall.UI.EscapeResultsKit
         public UnityEngine.UI.Image PlayersUnderline, StatisticsUnderline;
         public Sprite TabNormal, TabSelected, EscapedIcon, NotEscapedIcon;
         public TMP_Text Summary, ReturnLabel, HelpLabel, TeamBest, PersonalBest, EarnedTokens, SpentTokens;
+        public TMP_Text EndingTitle;
         public UnityEngine.UI.Image PersonalBestPortrait;
         public GameObject PersonalBestPortraitFrame;
         public EscapePlayerRow[] PlayerRows;
@@ -57,6 +58,7 @@ namespace CurtainCall.UI.EscapeResultsKit
         public bool Visible => Group != null && Group.alpha > .5f;
         bool returnPending;
         bool returnAllowed;
+        bool restartAfterFailure;
         readonly Color positive = new Color32(115,199,161,255);
         readonly Color negative = new Color32(224,108,120,255);
 
@@ -116,8 +118,10 @@ namespace CurtainCall.UI.EscapeResultsKit
             returnAllowed = allowed;
             returnPending = false;
             ReturnButton.interactable = allowed;
-            ReturnLabel.text = allowed ? "로비로 돌아가기" : "방장의 결과 확인을 기다리는 중";
-            HelpLabel.text = help ?? (allowed ? "버튼을 누르면 로비로 이동합니다" : "결과를 확인하는 동안 달리기는 계속됩니다");
+            ReturnLabel.text = allowed ? (restartAfterFailure ? "다음 런 시작" : "로비로 돌아가기") : "방장의 결과 확인을 기다리는 중";
+            HelpLabel.text = help ?? (restartAfterFailure
+                ? (allowed ? "새 런의 1일차 아침으로 이동합니다" : "방장이 다음 런을 시작하면 함께 이동합니다")
+                : (allowed ? "버튼을 누르면 로비로 이동합니다" : "방장이 로비로 돌아가기를 누르면 함께 이동합니다"));
         }
 
         public void RequestReturn()
@@ -157,6 +161,22 @@ namespace CurtainCall.UI.EscapeResultsKit
                 }
             }
             Summary.text = $"탈출 {escaped}명 · 미탈출 {players.Length-escaped}명";
+        }
+
+        public void SetEnding(bool success, int day)
+        {
+            restartAfterFailure = !success;
+            // Older scene instances retain their existing serialized canvas unchanged.
+            if (EndingTitle == null)
+                foreach (var text in GetComponentsInChildren<TMP_Text>(true))
+                    if (text.name == "01_TitleTMP") { EndingTitle = text; break; }
+            if (EndingTitle != null)
+            {
+                EndingTitle.text = $"{Mathf.Max(1, day)}일차 · 탈출 {(success ? "성공" : "실패")}";
+                EndingTitle.enableAutoSizing = true;
+                EndingTitle.fontSizeMin = 30; EndingTitle.fontSizeMax = 44;
+                EndingTitle.color = success ? new Color32(240,238,220,255) : negative;
+            }
         }
 
         public void SetStatistics(EscapeStatisticData[] rows, string teamBest, string personalBest,

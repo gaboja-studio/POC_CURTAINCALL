@@ -435,6 +435,7 @@ MonoBehaviour:
   PersonalBest: {fileID: 7074191637620648725}
   EarnedTokens: {fileID: 6566671324870964551}
   SpentTokens: {fileID: 6572818661287068275}
+  EndingTitle: {fileID: 5738425966547270211}
   PersonalBestPortrait: {fileID: 3069912204046247510}
   PersonalBestPortraitFrame: {fileID: 2010119131521951000}
   PlayerRows:

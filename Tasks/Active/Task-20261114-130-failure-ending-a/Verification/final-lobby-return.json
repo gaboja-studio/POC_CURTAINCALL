@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261114-130-failure-ending-a/Tools/verify-ending.cs",
+      "entry": "EndingVerification.Return",
+      "timeout_ms": "120000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 97,
+      "executeMs": 2922,
+      "assemblyName": "PipelineRunScript_verify-ending_0dc6e9845e524b458b87ad78f47e6171",
+      "success": true,
+      "result": {
+        "scene": "Lobby",
+        "control": true,
+        "state": "Normal",
+        "inputBlockLeaked": false
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

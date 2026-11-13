@@ -24,7 +24,8 @@ namespace CurtainCall.EscapeRoute
             public bool escaped;
             public string[] items = Array.Empty<string>();
         }
-        [Serializable] sealed class Snapshot { public int generation; public Person[] people; }
+        [Serializable] sealed class Snapshot { public int generation, day; public bool success; public Person[] people; }
+        [SerializeField] bool failureMode;
         [SerializeField] GameObject prefab;
         [Tooltip("Appearance catalog model order: rabbit, bear, pierrot, girl")]
         [SerializeField] Sprite[] portraits;
@@ -34,22 +35,30 @@ namespace CurtainCall.EscapeRoute
         ShopChannel channel;
         EscapeResultsView view;
         EscapeEndingPresentation owner;
+        FailureEndingPresentation failureOwner;
+        int observedGeneration;
         bool populated;
         long shownRevision = -1;
         public bool HasSnapshot => snapshot != null;
         public IReadOnlyCollection<ulong> Arrivals => arrivals;
         public EscapeResultsView View => view;
+        public IReadOnlyList<Person> People => snapshot?.people ?? Array.Empty<Person>();
 
         void Awake()
         {
             owner = GetComponent<EscapeEndingPresentation>();
-            channel = new ShopChannel("CurtainCall.Escape.Results", (_, _) => Publish(), Receive, _ => { }, Reset, () => channel.Request("sync"));
+            failureOwner = GetComponent<FailureEndingPresentation>();
+            channel = new ShopChannel(failureMode ? "CurtainCall.Failure.Results" : "CurtainCall.Escape.Results", (_, _) => Publish(), Receive, _ => { }, Reset, () => channel.Request("sync"));
         }
         void Update()
         {
             channel.Update();
             var run = CampaignRun.Instance;
-            if (run == null || run.State.Phase != CampaignPhase.Escape || snapshot != null) return;
+            if (run == null) return;
+            if (observedGeneration != run.State.Generation || run.State.Phase == CampaignPhase.None)
+            { Reset(); observedGeneration = run.State.Generation; }
+            if (!run.State.IsRunning || run.State.Phase == CampaignPhase.Ending || snapshot != null
+                || !failureMode && run.State.Phase != CampaignPhase.Escape) return;
             foreach (var actor in NetworkPlayer.All)
             {
                 if (actor == null || !actor.IsSpawned) continue;
@@ -61,14 +70,14 @@ namespace CurtainCall.EscapeRoute
         {
             var held = PropCarry.Instance?.Held(actor.OwnerClientId);
             return new Person { client = actor.OwnerClientId, slot = actor.Slot, model = actor.AppearanceModel,
-                outfit = actor.AppearanceOutfit, escaped = arrivals.Contains(actor.OwnerClientId) || actor.State == PlayerState.Arrived,
+                outfit = actor.AppearanceOutfit, escaped = !failureMode && (arrivals.Contains(actor.OwnerClientId) || actor.State == PlayerState.Arrived),
                 items = held == null ? Array.Empty<string>() : held.Take(2).Select(item => item.ItemId).ToArray() };
         }
         void Observe(NetworkPlayer actor)
         {
             // Death may discard inventory in another system. Keep the last live inventory for this row.
             if (actor.State is PlayerState.Fallen or PlayerState.Retired && observed.TryGetValue(actor.OwnerClientId, out var previous))
-            { previous.escaped = arrivals.Contains(actor.OwnerClientId); return; }
+            { previous.escaped = !failureMode && arrivals.Contains(actor.OwnerClientId); return; }
             observed[actor.OwnerClientId] = Capture(actor);
         }
         public void Freeze()
@@ -81,7 +90,9 @@ namespace CurtainCall.EscapeRoute
                 if (actor.State == PlayerState.Arrived) arrivals.Add(actor.OwnerClientId);
                 Observe(actor);
             }
-            snapshot = new Snapshot { generation = CampaignRun.Instance.State.Generation,
+            observedGeneration = CampaignRun.Instance.State.Generation;
+            snapshot = new Snapshot { generation = observedGeneration, day = CampaignRun.Instance.State.Day,
+                success = CampaignRun.Instance.State.LastEnd == RunEndReason.EscapeSucceeded,
                 people = observed.Values.OrderBy(p => p.slot).Take(4).ToArray() };
             Publish();
         }
@@ -89,7 +100,7 @@ namespace CurtainCall.EscapeRoute
         void Receive(string json)
         {
             var incoming = JsonUtility.FromJson<Snapshot>(json);
-            if (incoming == null || incoming.people == null || incoming.people.Length < 1 || incoming.people.Length > 4
+            if (incoming == null || incoming.day < 1 || incoming.people == null || incoming.people.Length < 1 || incoming.people.Length > 4
                 || CampaignRun.Instance == null || incoming.generation != CampaignRun.Instance.State.Generation) return;
             var ids = new HashSet<ulong>();
             foreach (var p in incoming.people)
@@ -97,6 +108,7 @@ namespace CurtainCall.EscapeRoute
             // The roster is immutable for this ending. Periodic sync must not reset the selected tab or button guard.
             if (snapshot != null && snapshot.generation == incoming.generation) return;
             snapshot = incoming;
+            observedGeneration = incoming.generation;
             arrivals.Clear();
             foreach (var p in snapshot.people) if (p.escaped) arrivals.Add(p.client);
             populated = false;
@@ -124,6 +136,7 @@ namespace CurtainCall.EscapeRoute
                     SlotColor = GameSettings.Base.Character.GetPlayerColor(p.outfit >= 0 ? p.outfit : p.slot),
                     Escaped = p.escaped, Items = p.items.Select(id => ItemVisualAssets.Icon(id)).ToArray()
                 }).ToArray());
+                view.SetEnding(snapshot.success, snapshot.day);
                 view.SetReturnAllowed(authority); view.ShowPlayers(); view.SetVisible(true);
                 Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
                 EventSystem.current?.SetSelectedGameObject(view.PlayersTab.gameObject);
@@ -152,6 +165,7 @@ namespace CurtainCall.EscapeRoute
         Sprite Portrait(int model) => portraits != null && model >= 0 && model < portraits.Length ? portraits[model] : null;
         void RequestReturn()
         {
+            if (failureOwner != null && failureOwner.StartNextRun()) return;
             if (owner != null && owner.ReturnToLobby()) return;
             view.SetReturnAllowed(CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority);
         }

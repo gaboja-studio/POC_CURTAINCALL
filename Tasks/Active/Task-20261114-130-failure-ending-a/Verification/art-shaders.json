@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "eval",
+    "parameters": {
+      "code": "return string.Join(\"\\n\",UnityEditor.AssetDatabase.FindAssets(\"t:Shader\",new[]{\"Assets/Scenes/Levels/FailureEndingArt\"}).SelectMany(g=>UnityEditor.ShaderUtil.GetShaderMessages(UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Shader>(UnityEditor.AssetDatabase.GUIDToAssetPath(g)))).Select(m=>m.severity+\": \"+m.message));"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": ""
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

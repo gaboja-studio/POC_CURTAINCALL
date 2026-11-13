@@ -1,0 +1,34 @@
+[
+  {
+    "file": "01-solo-success.mp4",
+    "bytes": 28221004,
+    "seconds": 24.23767,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "BF3E46D6A88E12E069FE7BE3864EDCE1A0DD46640A556512A39DAE7DEC49AD02"
+  },
+  {
+    "file": "02-solo-failure-day4.mp4",
+    "bytes": 34068167,
+    "seconds": 22.35796,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "652E6293825C0205F7989FD01B408BC47C7CF8C42898A65C6AC96B2B98228C7E"
+  },
+  {
+    "file": "03-duo-success.mp4",
+    "bytes": 26401520,
+    "seconds": 23.33636,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "78A7C804838BB24B8CF37A30721ADF8B579A616CE01EA0055C1BE942ED46E634"
+  },
+  {
+    "file": "04-duo-failure-wipe.mp4",
+    "bytes": 33550492,
+    "seconds": 28.62123,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "B174B3F0F94FB747FEC84293C138CE1871304884F300EE02E92FEA0511D8FCCA"
+  }
+]

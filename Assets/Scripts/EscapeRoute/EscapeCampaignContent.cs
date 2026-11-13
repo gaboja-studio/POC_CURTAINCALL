@@ -174,7 +174,9 @@ namespace CurtainCall.EscapeRoute
         void Step(CampaignSnapshot state)
         {
             if (!IsCampaign) return;
-            bool active = state.Phase == CampaignPhase.Escape || EscapeEndingPresentation.IsSuccessfulEnding(state);
+            // Keep the outgoing scenery visible while failure fades to black.
+            bool active = state.Phase == CampaignPhase.Escape || EscapeEndingPresentation.IsSuccessfulEnding(state)
+                || FailureEndingPresentation.IsFailureEnding(state) && IsActive;
             if (active && generation != state.Generation) { generation = state.Generation; arrived.Clear(); reported = false; }
             if (active && run.HasAuthority && !stateRuleInstalled)
             {
@@ -279,7 +281,6 @@ namespace CurtainCall.EscapeRoute
                 else pending++;
             }
             if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
-            if (!IsCampaign && arrived.Count == 0) return; // Preserve the direct-start retry when everyone fails.
             reported = true;
             run.EndEscape(arrived.Count > 0);
         }

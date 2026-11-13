@@ -84,7 +84,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Assert.AreEqual(1, run.Snapshot.Generation);
         }
         [Test]
-        public void FinalMorningAllowsPursuitEscapeAndFailsOnlyWhenAllCaught()
+        public void FinalMorningTimeoutEndsTheRunBeforePursuit()
         {
             var run = Start(4);
             Assert.IsTrue(run.Snapshot.IsFinalMorning);
@@ -92,8 +92,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             run.DebugSetRemaining(.01f); run.Tick(1);
             Assert.AreEqual(1, run.Snapshot.Generation);
             Assert.IsFalse(run.NotifyAllAtStageEntrance());
-            Assert.IsTrue(run.NotifyAllPursuitCaught());
-            Assert.AreEqual(2, run.Snapshot.Generation);
+            Assert.IsFalse(run.NotifyAllPursuitCaught());
+            Assert.AreEqual(CampaignPhase.Ending, run.Snapshot.Phase);
+            Assert.AreEqual(4, run.Snapshot.Day);
+            Assert.AreEqual(1, run.Snapshot.Generation);
             Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
         }
         [Test]

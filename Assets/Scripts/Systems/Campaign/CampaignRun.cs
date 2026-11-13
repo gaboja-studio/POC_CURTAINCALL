@@ -72,7 +72,7 @@ namespace CurtainCall.Campaign
         /// <summary>내 준비 상태가 바뀌었을 때. 마지막 준비자의 즉시 시간대 전환보다 먼저 알린다.</summary>
         public event Action<bool> LocalReadyChanged;
 
-        /// <summary>런이 끝났다. 실패(기한 초과·전원 리타이어)면 다음 세대의 1일차 첫 공연이 시작된다.</summary>
+        /// <summary>런이 끝났다. 성공·기한 초과·전원 리타이어는 엔딩 확인을 기다리고, 포기는 기존 세대 교체를 따른다.</summary>
         public event Action<RunEndReason> RunEnded;
 
         void Awake()
@@ -84,6 +84,7 @@ namespace CurtainCall.Campaign
             }
             Instance = this;
             gameObject.AddComponent<CurtainCall.UI.SceneIntegration.DemoRunEnding>();
+            CurtainCall.EscapeRoute.FailureEndingPresentation.EnsureExists();
         }
 
         void Start()
@@ -171,6 +172,9 @@ namespace CurtainCall.Campaign
         /// <summary>도입 컷씬(세대 교체 연출)이 끝났다.</summary>
         public bool EndIntro() => HostDo(r => r.EndIntro(), nameof(EndIntro));
 
+        public bool DebugFailureEnding(RunEndReason reason)
+            => CurtainCall.Dev.DevMode.Enabled && HostDo(r => r.DebugFailureEnding(reason), nameof(DebugFailureEnding));
+
         /// <summary>최초 리허설이 끝나고 전원이 무대 입구 통로에 모였다 → 1일차 첫 공연(Task-097).</summary>
         public bool EndRehearsal() => HostDo(r => r.EndRehearsal(), nameof(EndRehearsal));
 
@@ -209,6 +213,8 @@ namespace CurtainCall.Campaign
 
         /// <summary>탈출로가 끝났다. 한 명 이상 도착이면 true(엔딩), 전원 리타이어면 false(런 실패).</summary>
         public bool EndEscape(bool anyoneArrived) => HostDo(r => r.EndEscape(anyoneArrived), nameof(EndEscape));
+
+        public bool RestartAfterFailure() => HostDo(r => r.RestartAfterFailure(), nameof(RestartAfterFailure));
 
         /// <summary><paramref name="day"/>일차(2일차부터) 공연 순서를 정한다(밤 정비의 세트리스트).</summary>
         public bool SetSetlist(int day, string[] tricks) => HostDo(r => r.SetSetlist(day, tricks), nameof(SetSetlist));
@@ -414,16 +420,17 @@ namespace CurtainCall.Campaign
             bool stepChanged = previous.Generation != next.Generation || previous.Day != next.Day || previous.Phase != next.Phase
                 || previous.Rest != next.Rest || previous.PerformanceIndex != next.PerformanceIndex;
 
-            if (newGeneration && next.LastEnd != RunEndReason.None)
+            if (newGeneration && next.LastEnd != RunEndReason.None
+                && !(previous.Phase == CampaignPhase.Ending && previous.LastEnd == next.LastEnd))
             {
                 Debug.Log($"[Campaign] 런 실패({next.LastEnd}) → 세대 {next.Generation}로 교체");
                 RunEnded?.Invoke(next.LastEnd);
             }
             if (next.Phase == CampaignPhase.Ending && previous.Phase != CampaignPhase.Ending)
             {
-                Debug.Log("[Campaign] 탈출 성공 → 엔딩");
-                RunEnded?.Invoke(RunEndReason.EscapeSucceeded);
-                if (host != null && !offlineRun && session != null) session.EndGame();
+                Debug.Log($"[Campaign] {next.LastEnd} · {next.Day}일차 → 엔딩");
+                RunEnded?.Invoke(next.LastEnd);
+                if (host != null && !offlineRun && session != null && next.LastEnd == RunEndReason.EscapeSucceeded) session.EndGame();
             }
             if (stepChanged)
             {

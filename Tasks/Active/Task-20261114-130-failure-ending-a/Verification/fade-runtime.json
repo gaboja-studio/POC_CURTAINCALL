@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261114-130-failure-ending-a/Tools/verify-ending.cs",
+      "entry": "EndingVerification.FadeProof",
+      "timeout_ms": "40000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 119,
+      "executeMs": 3839,
+      "assemblyName": "PipelineRunScript_verify-ending_fcc8f86b08c341b4aa07bf800b11082b",
+      "success": true,
+      "result": {
+        "fadeOut": true,
+        "fullyCovered": true,
+        "cameraSwitchUnderBlack": true,
+        "fadeIn": true,
+        "title": "2일차 · 탈출 실패"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

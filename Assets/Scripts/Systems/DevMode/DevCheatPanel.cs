@@ -144,6 +144,7 @@ namespace CurtainCall.Dev
             }
             GUI.enabled = true;
             DrawPursuitCheats();
+            DrawEndingCheats();
             GUILayout.Space(6);
             GUILayout.Label("생존", heading);
             bool suppress = GUILayout.Toggle(DevCheats.SuppressFalls, " 추락 무시 (균형·줄 밖 착지·대포 추락·목마·매달림 낙하)", toggle);
