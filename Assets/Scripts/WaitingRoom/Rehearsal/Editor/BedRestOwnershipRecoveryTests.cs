@@ -166,7 +166,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
                     Call(component, "AwakeNetwork");
                     var shared = Get(component, "shared"); shared.GetType().GetField("active").SetValue(shared, true);
                 }
-                else { Set(component, "active", true); Set(component, "practice", true); Set(component, "run", run); Set(component, "local", owner); }
+                else { Set(component, "active", true); Set(component, "run", run); Set(component, "local", owner); }
                 action(component);
             }
             finally { singleton.SetValue(null, previous); }

@@ -67,7 +67,7 @@ namespace CurtainCall.WaitingRoom
             if (SceneCurtainTransition.IsActive) return false;
             if (!Enabled) return instance == null || instance.closeUp == null || !instance.closeUp.IsBusy;
             if (instance == null || !instance.isActiveAndEnabled || SceneCurtainTransition.IsActive
-                || WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive) return false;
+                || WaitingRoomCannonRehearsal.IsActive) return false;
             string key = state.Generation + "/" + state.Day + "/" + state.Phase + "/" + state.Rest + "/" + state.PerformanceIndex;
             if (instance.stepKey != key || instance.sequence || instance.closeUp != null && instance.closeUp.IsBusy) return false;
             foreach (string id in LockedIds) if (Book.IsQueued(id)) return false;
