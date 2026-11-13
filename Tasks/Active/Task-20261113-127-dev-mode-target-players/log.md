@@ -12,3 +12,6 @@
   - 원인: Dev 모드의 '전원 사망 시 F9 부활 대기'(`HoldCheckpointWipe`)가 기본 켜짐. 체크포인트 통과 기록이 있는 사망자가 있으면 `PerformanceRewards`·`TightropeRun`의 실패 정산을 무기한 보류했다.
   - 수정: 기본값 끔(선택 사용). 켰을 때 전원 사망 보류 중이면 DEV 배지 아래에 '정산 보류 중 · F9' 버튼 표시. 끄면 다음 프레임에 정상 정산된다(보상 정산은 매 프레임 재판정).
   - 검사: Unity 컴파일 PASS. 플레이 확인은 사람 확인 필요.
+
+- 2026-11-13 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/373 (fix/dev-mode → dev)
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/373
