@@ -49,9 +49,9 @@ namespace CurtainCall.WaitingRoom
             public bool completed, blocked, control, simulated, balanceVisible, walls, pathVisible, arrowVisible, pathValid;
             public bool active, director, transitioning, curtain, room;
             public bool cannonRehearsal, cannonMastered, cannonEnding, localBalanceActive, localBalanceFallen, freeMovement;
-            public bool cannonUnlocked, cannonCanPractice, cannonPrompt, scheduleConfirmed;
+            public bool cannonUnlocked, cannonPrompt, scheduleConfirmed;
             public string trick, scheduleSecond, scheduleResult, focusedInteraction;
-            public Vector3[] pickupPoints, practicePoints;
+            public Vector3[] pickupPoints;
             public bool[] pickupVisible, practiceVisible;
             public float localBalance, courseDistance, courseFinish;
             public Vector3 courseOrigin;
@@ -411,7 +411,6 @@ namespace CurtainCall.WaitingRoom
                 }
                 var cannonLesson = FindFirstObjectByType<WaitingRoomCannonRehearsal>();
                 s.cannonUnlocked = CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
-                s.cannonCanPractice = WaitingRoomCannonRehearsal.CanPractice;
                 s.trick = CampaignRun.Instance?.State.TrickId;
                 s.scheduleSecond = ScheduleBoard.Instance?.Book.Get(1, 1);
                 s.scheduleConfirmed = ScheduleBoard.Instance != null && ScheduleBoard.Instance.Book.FirstDayConfirmed;
@@ -424,8 +423,6 @@ namespace CurtainCall.WaitingRoom
                     s.pickupPoints = map.Where(p => p != null).Select(p => p.GetComponent<PerformancePropPickup>().PresentationPoint).ToArray();
                     s.pickupVisible = map.Where(p => p != null).Select(p => p.activeInHierarchy).ToArray();
                     s.practiceVisible = discovery.PracticeProps.Where(p => p != null).Select(p => p.activeInHierarchy).ToArray();
-                    s.practicePoints = discovery.PracticeProps.Where(p => p != null && p.GetComponent<RehearsalCannonPracticeStation>() != null)
-                        .Select(p => p.GetComponent<RehearsalCannonPracticeStation>().PresentationPoint - Vector3.up).ToArray();
                 }
                 if (cannonLesson != null)
                 {

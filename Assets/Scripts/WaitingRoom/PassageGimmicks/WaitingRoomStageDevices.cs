@@ -10,7 +10,8 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 대기실 통로 기믹의 공연 장치(CC-252·253, 2026-11-10 사용자: 새로 만들지 않고 공연 시스템·에셋을 그대로 가져온다).
     /// - 인간대포 공연 시스템(대포 좌석 없음)을 대기실 씬에 켜 둬, 운반 조작(트램펄린·휴대 절단기)을 공연 규칙 그대로 쓴다.
-    /// - 인간대포가 해금되면 연습실의 장식 트램펄린 자리에 공연용 운반 트램펄린(RoundTrampolinePrepared)을 둔다. 해금 전에는 없다.
+    /// - 연습실 자유 연습의 인간 대포 구간이 열리면(인간대포 해금 + 대포 리허설 이수, <see cref="PracticeRoomFreePlay"/>)
+    ///   그 구간의 대포 2문을 이 시스템에 연결하고, 표시된 자리에 공연용 운반 트램펄린(RoundTrampolinePrepared)을 둔다. 그 전에는 없다(사용자 2026-11-13).
     /// - 인간대포 시스템·트램펄린은 씬당 1개라, 인간대포 리허설이 코스를 만들기 직전에 비우고(<see cref="ReleaseForRehearsal"/>)
     ///   리허설이 끝나면 원래 자리에 다시 만든다.
     /// 장치는 대기실 씬 안에 만들어 다른 공간으로 갈 때 씬과 함께 닫힌다.
@@ -18,12 +19,11 @@ namespace CurtainCall.WaitingRoom
     public sealed class WaitingRoomStageDevices : MonoBehaviour
     {
         const string TrampolinePrefab = "Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RoundTrampolinePrepared";
-        const string PracticeTrampolinePath = "LegacyRing/PracticeLanes/PracticeTrampoline";
 
         static WaitingRoomStageDevices instance;
         Transform room;
-        GameObject systemRoot, trampoline, practiceTrampoline;
-        bool hidPracticeTrampoline, warned;
+        GameObject systemRoot, trampoline;
+        bool systemHasCannons, warned;
         float nextSearch;
         NetworkPlayer reservedCarrier;
         Transform reservationRoom;
@@ -68,29 +68,30 @@ namespace CurtainCall.WaitingRoom
             {
                 nextSearch = Time.unscaledTime + 1f;
                 room = WaitingRoomScenes.FindPracticeRoom();
-                practiceTrampoline = room != null ? room.Find(PracticeTrampolinePath)?.gameObject : null;
             }
             if (room == null || WaitingRoomCannonRehearsal.IsActive) { Release(); return; }
+
+            var freePlay = PracticeRoomFreePlay.Current;
+            bool cannonLane = freePlay != null && freePlay.CannonLaneOpen;
+            // 대포 목록은 켜진 시스템에서 바꿀 수 없다. 대포 구간이 열리거나 닫히면 시스템을 다시 만든다.
+            if (systemRoot != null && systemHasCannons != cannonLane) Release();
 
             // 리허설 코스는 프레임 끝에 사라진다. 그 전에는 다시 만들지 않는다(씬당 1개).
             if (systemRoot == null)
             {
                 if (HumanCannonSystem.Current != null) return;
                 systemRoot = new GameObject("WaitingRoomCannonDevices");
+                systemRoot.SetActive(false);
                 SceneManager.MoveGameObjectToScene(systemRoot, room.gameObject.scene);
-                systemRoot.AddComponent<HumanCannonSystem>();
+                var system = systemRoot.AddComponent<HumanCannonSystem>();
+                if (cannonLane) system.ConfigurePractice(freePlay.Cannons, freePlay.transform.position.y);
+                systemHasCannons = cannonLane;
+                systemRoot.SetActive(true);
             }
 
-            bool unlocked = CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
-            if (unlocked && trampoline == null && HumanCannonTrampoline.Current == null) BuildTrampoline();
-            else if (!unlocked && trampoline != null) ReleaseTrampoline();
+            if (cannonLane && trampoline == null && HumanCannonTrampoline.Current == null) BuildTrampoline(freePlay.TrampolineSpot);
+            else if (!cannonLane && trampoline != null) ReleaseTrampoline();
             RestoreReservedCarrier();
-            // 장식 트램펄린은 해금 연출·리허설 정리가 다시 켤 수 있다. 운반 트램펄린이 있는 동안 숨긴다.
-            if (trampoline != null && practiceTrampoline != null && practiceTrampoline.activeSelf)
-            {
-                practiceTrampoline.SetActive(false);
-                hidPracticeTrampoline = true;
-            }
         }
 
         void RestoreReservedCarrier()
@@ -104,16 +105,15 @@ namespace CurtainCall.WaitingRoom
                 && prop.ServerRestoreRehearsalCarrier(reservedCarrier)) reservedCarrier = null;
         }
 
-        void BuildTrampoline()
+        void BuildTrampoline(Transform pose)
         {
             var prefab = Resources.Load<GameObject>(TrampolinePrefab);
-            if (practiceTrampoline == null || prefab == null)
+            if (pose == null || prefab == null)
             {
-                if (!warned) Debug.LogWarning($"[StageDevices] 연습실 트램펄린 자리({PracticeTrampolinePath}) 또는 공연 트램펄린({TrampolinePrefab})을 찾지 못했습니다.");
+                if (!warned) Debug.LogWarning($"[StageDevices] 연습실 트램펄린 자리 또는 공연 트램펄린({TrampolinePrefab})을 찾지 못했습니다.");
                 warned = true;
                 return;
             }
-            var pose = practiceTrampoline.transform;
             trampoline = Instantiate(prefab, pose.position, pose.rotation);
             trampoline.name = "WaitingRoomCarryTrampoline";
             SceneManager.MoveGameObjectToScene(trampoline, room.gameObject.scene);
@@ -123,8 +123,6 @@ namespace CurtainCall.WaitingRoom
         {
             if (trampoline != null) DestroyImmediate(trampoline);
             trampoline = null;
-            if (hidPracticeTrampoline && practiceTrampoline != null) practiceTrampoline.SetActive(true);
-            hidPracticeTrampoline = false;
         }
 
         void Release()

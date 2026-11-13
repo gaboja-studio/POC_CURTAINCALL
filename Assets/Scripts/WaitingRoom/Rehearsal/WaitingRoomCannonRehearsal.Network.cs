@@ -10,6 +10,7 @@ namespace CurtainCall.WaitingRoom
 {
     public sealed partial class WaitingRoomCannonRehearsal
     {
+        // Start는 삭제된 재연습 요청 자리다. 뒤 값이 밀리지 않게 남긴다.
         enum Request : byte { Start, Vote, Placed, Skip }
         const string RequestName = "CurtainCall.CannonRehearsal.Request";
         ScheduleChannel channel;
@@ -79,15 +80,6 @@ namespace CurtainCall.WaitingRoom
             shared = next;
         }
 
-        /// <summary>All owners may interact with the unlocked prop; the host validates position before starting.</summary>
-        public static void RequestPractice()
-        {
-            var r = instance;
-            if (r == null || !r.CanStart) return;
-            if (r.Host) { StartPractice(); return; }
-            r.Send(Request.Start);
-        }
-
         public static void VoteToAbandon(bool yes)
         {
             var r = instance;
@@ -145,11 +137,7 @@ namespace CurtainCall.WaitingRoom
             reader.ReadValueSafe(out byte operation); reader.ReadValueSafe(out int round);
             var player = NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == sender && p.State != PlayerState.Retired);
             if (player == null) return;
-            if ((Request)operation == Request.Start)
-            {
-                if (CanStart && FindRoom() && RehearsalCannonPracticeStation.IsNear(player.transform.position)) StartPractice();
-            }
-            else if (round == shared.round && (Request)operation == Request.Vote && reader.TryBeginRead(1))
+            if (round == shared.round && (Request)operation == Request.Vote && reader.TryBeginRead(1))
             { reader.ReadValueSafe(out bool yes); SetVote(sender, yes); }
             else if (round == shared.round && (Request)operation == Request.Skip && reader.TryBeginRead(1))
             { reader.ReadValueSafe(out bool yes); SetVote(sender, yes, true); }

@@ -468,17 +468,8 @@ rehearsal.fall | 온전한 몸으로 소구간 출발대에서 다시 시작합�
 rehearsal.complete-title | 리허설 완료
 rehearsal.complete | 바닥의 길안내를 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다.
 rehearsal.gather-title | 리허설 완료 · 무대로
-# 이수 후 선택 재연습(호스트 전용). {stage} = 소구간 제목
-rehearsal.practice-title | 자유 연습
-rehearsal.practice-intro | 고른 소구간부터 다시 연습합니다. 사망하면 잠시 뒤 소구간 출발대에서 다시 시작합니다. 호스트가 언제든 연습을 끝낼 수 있습니다.
-rehearsal.practice-intro-no-recovery | 고른 소구간부터 다시 연습합니다. 공통 부상·사망 규칙이 적용됩니다. 호스트가 언제든 연습을 끝낼 수 있습니다.
-rehearsal.practice-button | {stage} 재연습
-rehearsal.practice-hint | 호스트 전용 · 연습실에서 소구간을 골라 다시 연습
-rehearsal.practice-end | 연습 종료
 # 우측 퀘스트 패널 (기획서 4.4, 2026-11-04). 각 안내의 제목은 .title 키. 제목 줄이 없으면 본문만 표시
 rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
-rehearsal.quest.practice-fallen | 사망했습니다. 호스트가 연습을 종료할 수 있습니다.
-rehearsal.quest.practice-fallen.title | 연습 중 사망
 rehearsal.quest.wait-team | 도착했습니다. 다른 공연 준비자가 모두 도착할 때까지 기다리세요.
 rehearsal.quest.arrived | 도착했습니다. 곧 다음 단계로 넘어갑니다.
 rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
@@ -534,7 +525,7 @@ first-day.quest.night-bed.body | 다음 날 일정이 확정됐습니다. 정비
 first-day.quest.night-wait.title | 1일차 밤 · 일정 마무리하기
 first-day.quest.night-wait.body | 모든 공연 대기자가 준비하면 다음 날로 넘어갑니다.[{ready}/{total}]
 
-# ── 리허설 단계별 제목·좌측 설명 ── .title은 재연습 버튼 이름, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
+# ── 리허설 단계별 제목·좌측 설명 ── .title은 구간 제목, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
 # 제목/설명만 편집합니다. 코스·완료 규칙은 바뀌지 않습니다. 플레이 재시작 시 반영됩니다.
 rehearsal.stage.1.title | 1 · 외줄타기
 rehearsal.stage.1.intro | 줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다.
@@ -572,18 +563,9 @@ rehearsal.quest.trapeze-attach | 봉을 잡은 동료 가까이에서 F로 매�
 # 우측 하단 투표 패널 (2026-11-04). {votes} 동의 수, {required} 필요 수(전체 인원 과반), {total} 전체 인원
 rehearsal.skip.title | 현재 구간 넘기기
 rehearsal.skip.body | 과반수가 동의하면 현재 구간을 마치고 다음 단계로 이동합니다. (동의 {votes}/{required})
-rehearsal.skip.body-practice | 과반수가 동의하면 연습을 마칩니다. (동의 {votes}/{required})
 rehearsal.skip.agree | 다음 단계로
 rehearsal.skip.cancel | 동의 취소
 rehearsal.skip-ending | 리허설이 종료됩니다.
-rehearsal.practice-station.action | 리허설 다시 하기
-rehearsal.practice-vote.title | 리허설 다시 하기
-rehearsal.practice-vote.body | 모든 공연 준비자가 동의하면 외줄타기 리허설을 다시 연습합니다. (동의 {votes}/{total})
-rehearsal.practice-vote.agree | 동의
-rehearsal.practice-vote.agreed | 동의함
-rehearsal.practice-vote.disagree | 미동의
-rehearsal.practice-vote.cancel-title | 리허설 다시 하기 취소
-rehearsal.practice-vote.cancel | 동의하지 않은 공연 준비자가 있어 리허설 다시 하기를 취소했습니다.
 rehearsal.vote-panel.hint | 버튼에 표시된 키로 선택
 guide.title-color | #FFD5A0
 
@@ -634,7 +616,6 @@ cannon-rehearsal.pursuit | 추격전 중에는 리허설을 진행할 수 없습
 cannon-rehearsal.required | 인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?
 cannon-rehearsal.yes | 예
 cannon-rehearsal.no | 아니오
-cannon-rehearsal.station | 인간대포 리허설 시작
 cannon-rehearsal.unavailable | 연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요.
 cannon-rehearsal.abandon-title | 리허설 포기
 cannon-rehearsal.abandon | 리허설 포기
@@ -675,8 +656,6 @@ cannon-rehearsal.safe-title | 안전 지역으로 이동하기
 cannon-rehearsal.safe-body | 도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요.
 cannon-rehearsal.completed-title | 리허설 종료
 cannon-rehearsal.skipped | 리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 선택할 수 있습니다.
-cannon-rehearsal.retry-title | 다시 연습하기
-cannon-rehearsal.retry-body | 연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다.
 rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 Space로 도약하거나 F를 길게 눌러 아래로 내려오세요.
 rehearsal.quest.trigger-grab | 트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.
 rehearsal.quest.trigger-open | 연결된 줄을 따라 건너세요.
@@ -722,8 +701,14 @@ target.final:broken-laptop.desc | 누군가 사용하던 노트북. 지금은 �
 target.final:broken-laptop.secret | 뒤에 붙은 낡은 포스트잇: 20240912 / RUN
 target.final:water-bottle.name | 물병
 target.final:water-bottle.desc | 누군가 사용하던 물병. 안에 공연 토큰 100원이 들었음.
-target.final:old-costume.name | 낡은 인형 옷
+target.final:old-costume.name | 낡은 곰인형 옷
 target.final:old-costume.desc | 이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.
+target.final:old-costume-rabbit.name | 낡은 토끼 인형 옷
+target.final:old-costume-rabbit.desc | 이전 세대 공연자가 사용하던 코스튬. 팔이 잘려 있다. 일행의 리더로서 계획을 세우고 사람들을 이끌었지만 실패했다.
+target.final:old-costume-pierrot.name | 낡은 삐에로 인형 옷
+target.final:old-costume-pierrot.desc | 이전 세대 공연자가 사용하던 코스튬. 두 다리가 없다. 부러진 머리핀 조각이 옷자락에 박혀 있다. 탈출에 실패하면 미래는 없다.
+target.final:old-costume-doll.name | 낡은 인형 옷
+target.final:old-costume-doll.desc | 이전 세대 공연자가 사용하던 코스튬. 왼팔이 없다. 희미한 잉크 자국이 남아 있다.
 target.final:torn-note-1.name | 찢겨진 노트 낱장
 target.final:torn-note-2.name | 찢겨진 노트 낱장
 target.final:torn-note-3.name | 찢겨진 노트 낱장
@@ -731,3 +716,6 @@ target.final:torn-note-4.name | 찢겨진 노트 낱장
 gate.terminal-feed-title | cam_exit.feed
 gate.terminal-feed-open | > 탈출로 문 : 열림
 gate.terminal-feed-locked | > 잠금 해제 완료 · 문에 전력이 남아 있음
+
+# 맨몸 부수기: 도구 없이 칠 때 F 안내 뒤에 붙는 말(2026-11-13)
+prompt.bare-hold | 꾹 누르기

@@ -25,6 +25,46 @@ namespace CurtainCall.Settings
         public float ExitDoorOpenAngle => Mathf.Clamp(exitDoorOpenAngle, 90f, 120f);
         public float ExitDoorOpenSeconds => Mathf.Max(.1f, exitDoorOpenSeconds);
 
+        public enum EndingTimeOfDay { Night, Day }
+
+        [Header("탈출 엔딩 연출 배경")]
+        [Tooltip("탈출 엔딩(갈대밭 질주) 연출의 시간대. 밤은 달빛·짙은 남색 안개, 낮은 햇빛·하늘색 안개로 표시합니다.")]
+        [SerializeField] EndingTimeOfDay endingTimeOfDay = EndingTimeOfDay.Night;
+        [Tooltip("밤 배경의 조명·안개 값.")]
+        [SerializeField] EndingLighting endingNight = EndingLighting.NightDefault();
+        [Tooltip("낮 배경의 조명·안개 값.")]
+        [SerializeField] EndingLighting endingDay = EndingLighting.DayDefault();
+
+        public EndingTimeOfDay EndingTime => endingTimeOfDay;
+        public EndingLighting EndingLightingFor(EndingTimeOfDay time) => time == EndingTimeOfDay.Day
+            ? endingDay ??= EndingLighting.DayDefault()
+            : endingNight ??= EndingLighting.NightDefault();
+
+        [System.Serializable]
+        public sealed class EndingLighting
+        {
+            [Tooltip("하늘(카메라 배경)과 안개 색.")]
+            public Color skyColor = new(.027f, .043f, .075f);
+            [Tooltip("안개 농도. 높을수록 멀리 있는 배경이 하늘색에 묻힙니다.")]
+            [Min(0)] public float fogDensity = .004f;
+            [Tooltip("그늘진 면에도 들어오는 주변광 색.")]
+            public Color ambientColor = new(.25f, .30f, .43f);
+            [Tooltip("달빛/햇빛 색.")]
+            public Color lightColor = new(.52f, .66f, 1f);
+            [Tooltip("달빛/햇빛 밝기.")]
+            [Min(0)] public float lightIntensity = 1.3f;
+
+            public static EndingLighting NightDefault() => new();
+            public static EndingLighting DayDefault() => new()
+            {
+                skyColor = new Color(.62f, .78f, .93f),
+                fogDensity = .0025f,
+                ambientColor = new Color(.62f, .64f, .62f),
+                lightColor = new Color(1f, .95f, .84f),
+                lightIntensity = 1.6f
+            };
+        }
+
         [Header("심부 어둠 · 탈출로 루트 기준 높이")]
         [Tooltip("탈출로 아래 깊은 구멍을 어둡게 보이게 하는 높이 범위와 강도.")]
         [SerializeField] ShaftFadeTuning shaftFade = new();

@@ -327,44 +327,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_Rehearsal_PracticeAfterMasteryKeepsRecordAndEndsFreely()
-        {
-            // 이수 뒤 쉬는 시간: 호스트가 연습실에서 소구간을 골라 재연습하고 언제든 끝낸다. 이수 기록은 그대로다(CC-219).
-            var saved = T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            try
-            {
-                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
-                saved.SetValue(null, 5);
-                Assert.IsTrue((bool)Static(RehearsalType, "HasMastered"));
-                Assert.IsFalse((bool)Static(RehearsalType, "IsActive"), "쉬는 시간에는 리허설이 저절로 켜지지 않는다");
-                var ring = GameObject.Find("S09_PracticeRoom").transform.Find("LegacyRing/PracticeRing/DeckCollider").GetComponent<Collider>();
-                var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
-                Call(mover, "Relocate", new Vector3(ring.bounds.center.x, ring.bounds.max.y, ring.bounds.center.z), Quaternion.identity);
-                yield return null; yield return null;
-                FreshTutorial(); // 일반 안내가 켜져 있어도 리허설 설명이 우선해야 한다.
-                Assert.IsTrue((bool)T(RehearsalType).GetMethod("StartPractice").Invoke(null, new object[] { 3 }), "연습실 안에서 2-3 재연습 시작");
-                yield return WaitStage(3, 10f);
-                Assert.IsTrue((bool)Static(RehearsalType, "IsPracticing"));
-                Assert.IsNotNull(Priv(Rehearsal, "course"), "고른 소구간 코스 생성");
-                yield return null; yield return null;
-                Assert.AreEqual("자유 연습", Static(GuideType, "CurrentTitle"), "재연습 첫 설명을 일반 안내가 지우면 안 된다");
-                var selectedStage = ((System.Array)T("CurtainCall.WaitingRoom.RehearsalStage").GetField("All").GetValue(null)).GetValue(3);
-                yield return WaitGuide((string)Get(selectedStage, "DisplayGuideTitle"), 12f);
-                Assert.AreEqual(Get(selectedStage, "DisplayGuideTitle"), Static(GuideType, "CurrentTitle"), "재연습 설명을 일반 대기실 안내가 덮으면 안 된다");
-                Assert.IsFalse((bool)Static(FirstDayFlowType, "FirstDayQuestVisible"), "재연습 중에는 일반 집결 퀘스트를 숨긴다");
-                Assert.AreEqual("RestTime", Field(State, "Phase").ToString(), "재연습은 캠페인 단계를 바꾸지 않는다");
-                Assert.IsTrue((bool)T(RehearsalType).GetMethod("EndPractice").Invoke(null, null));
-                float until = Time.realtimeSinceStartup + 5f;
-                while ((bool)Static(RehearsalType, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
-                Assert.IsFalse((bool)Static(RehearsalType, "IsActive"), "자유 종료");
-                Assert.AreEqual(5, saved.GetValue(null), "재연습이 이수 기록을 지우지 않는다");
-                yield return new WaitForSecondsRealtime(1f); // 바닥 배치 뒤 착지까지
-                Assert.Less(Mathf.Abs(LocalPlayer.transform.position.y - ring.bounds.max.y), 1.5f, "종료 뒤 연습실 바닥으로 복귀");
-            }
-            finally { saved.SetValue(null, 0); EndTutorial(); }
-        }
-
-        [UnityTest]
         public IEnumerator W6_Rehearsal_ImmediateClearAdvancesOnlyCurrentStage()
         {
             FreshTutorial();

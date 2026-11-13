@@ -45,7 +45,7 @@ namespace CurtainCall.WaitingRoom
             if (tutorial == null) tutorial = FindFirstObjectByType<WaitingRoomTutorial>();
             // 리허설은 자기 안내를 사용한다. 정본 컴포넌트를 수정하지 않고 해당 시간대에만 실행을 양보받는다.
             bool rehearsal = run != null && run.State.Phase == CampaignPhase.Rehearsal
-                || WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+                || WaitingRoomCannonRehearsal.IsActive;
             if (rehearsal) SuspendForRehearsal();
             else RestoreTutorial();
         }
@@ -78,7 +78,7 @@ namespace CurtainCall.WaitingRoom
             // End the acknowledgement period even when the component instance stays the same.
             if (tutorialRun != run || !waiting) { tutorialRun = run; tutorialDoneKey = ""; }
             // Rehearsal suspends the ordinary guide, including its completion acknowledgement.
-            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+            bool rehearsing = WaitingRoomCannonRehearsal.IsActive;
             bool ready = !rehearsing && waiting && GuideDone();
             if (ready)
             {

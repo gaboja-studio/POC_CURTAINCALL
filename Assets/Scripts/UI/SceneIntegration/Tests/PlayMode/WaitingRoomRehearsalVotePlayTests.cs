@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     /// <summary>
     /// 2026-11-04 사용자: 발판 확대·링 장식 숨김·리허설 넘기기(과반 → 종료 안내 → 페이드 → 첫 공연)·
-    /// 연습실 외줄 상호작용 재연습(전원 동의). 합성 원격 1명으로 2인 투표 인원을 만든다. 실제 다인 입력 검증은 아니다.
+    /// 합성 원격 1명으로 2인 투표 인원을 만든다. 실제 다인 입력 검증은 아니다.
     /// 화면은 .harness/local/rehearsal/vote/ 에 저장한다.
     /// </summary>
     public sealed partial class DevStartLauncherPlayTests
@@ -45,7 +45,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_Rehearsal_SkipNeedsArrivalAndPracticeVoteNeedsEveryone()
+        public IEnumerator W6_Rehearsal_SkipNeedsArrival()
         {
             Component helper = null;
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
@@ -104,61 +104,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.5f);
                 if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
                 helper = null;
-                // 공연 시작 연출(커튼)이 끝난 뒤 다음 시작 지점으로 옮긴다.
-                float until = Time.realtimeSinceStartup + 30f;
-                while ((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive") && Time.realtimeSinceStartup < until) yield return null;
-                yield return new WaitForSecondsRealtime(3f);
-
-                // 이수 뒤 대기실 쉬는 시간: 연습실 외줄 상호작용 → 전원 동의 패널.
-                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
-                T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 5);
-                network = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
-                prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");
-                helper = Object.Instantiate(prefab).GetComponent(T("Unity.Netcode.NetworkObject"));
-                Call(helper, "SpawnWithOwnership", remoteId, true);
-                ((Behaviour)helper.GetComponent(T("Unity.Netcode.Components.NetworkTransform"))).enabled = false;
-                room = GameObject.Find("S09_PracticeRoom").transform;
-                var rope = room.Find("LegacyRing/PracticeLanes/Rope");
-                Assert.IsNotNull(rope.GetComponent(T("CurtainCall.WaitingRoom.RehearsalPracticeStation")), "연습실 외줄 상호작용");
-                localPlayer = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-                mover = localPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
-                var under = rope.GetComponentInChildren<Renderer>().bounds.center;
-                Call(mover, "Relocate", new Vector3(under.x + 3f, .7f, under.z - 1.5f), Quaternion.LookRotation(Vector3.left));
-                helper.transform.position = new Vector3(under.x - 3f, .7f, under.z - 1.5f);
-                yield return new WaitForSecondsRealtime(1f);
-                yield return CaptureVote("7-practice-station");
-                var station = rope.GetComponent(T("CurtainCall.WaitingRoom.RehearsalPracticeStation"));
-                Assert.IsTrue((float)Call(station, "Reach", localPlayer.transform.position, localPlayer) >= 0f, "줄 아래에서 닿는다");
-                Call(station, "Interact");
-                yield return null; yield return null;
-                Assert.IsTrue((bool)Static(RehearsalType, "IsPracticeVoteOpen"), "재연습 투표가 열린다");
-                Assert.AreEqual("리허설 다시 하기", Static(RehearsalType, "VotePanelTitle"));
-                yield return new WaitForSecondsRealtime(.5f);
-                yield return CaptureVote("8-practice-vote-panel");
-                // 미동의 → 취소.
-                Invoke(rehearsal, "HostAnswerPractice", remoteId, false);
-                yield return null; yield return null;
-                Assert.IsFalse((bool)Static(RehearsalType, "IsPracticeVoteOpen"), "한 명이라도 미동의면 취소");
-                Assert.IsFalse((bool)Static(RehearsalType, "IsPracticing"));
-                yield return new WaitForSecondsRealtime(.3f);
-                yield return CaptureVote("9-practice-vote-cancelled");
-                // 다시 열고 전원 동의 → 재연습(공연·1일차로 이어지지 않음).
-                yield return new WaitForSecondsRealtime(4.5f);
-                Call(station, "Interact");
-                yield return null;
-                Invoke(rehearsal, "HostAnswerPractice", remoteId, true);
-                until = Time.realtimeSinceStartup + 10f;
-                while (!((bool)Static(RehearsalType, "IsPracticing") && (int)Static(RehearsalType, "CurrentStage") == 0) && Time.realtimeSinceStartup < until) yield return null;
-                Assert.IsTrue((bool)Static(RehearsalType, "IsPracticing"), "전원 동의면 재연습");
-                Assert.AreEqual("RestTime", Field(State, "Phase").ToString(), "재연습은 캠페인 단계를 바꾸지 않는다");
-                yield return new WaitForSecondsRealtime(1.5f);
-                yield return CaptureVote("10-practice-started");
             }
             finally
             {
                 if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
                 T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
-                if ((bool)Static(RehearsalType, "IsPracticing")) T(RehearsalType).GetMethod("EndPractice").Invoke(null, null);
             }
         }
     }
