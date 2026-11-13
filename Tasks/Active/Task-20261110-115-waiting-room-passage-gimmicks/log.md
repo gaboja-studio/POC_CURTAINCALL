@@ -150,3 +150,5 @@
 ## 2026-11-13 PR 제출
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/358 (feat/waiting-room-passage-gimmicks → dev, 검토 대기). `new-pr.ps1`는 에디터가 바꾼 미커밋 파일 7개 때문에 막혀 `gh pr create`로 같은 양식을 채워 등록(첫 요청은 502가 났지만 등록은 됨).
 - 등록 직전 dev에 3커밋(PR 357, 탈출로 A 추격자)이 올라와 `EscapeExitSaw.cs`의 안내 문구 줄에서 충돌. 에디터가 열려 있어 아직 dev를 받지 않음 → 에디터를 닫은 뒤 병합·충돌 해소·컴파일 검사 필요.
+- 2026-11-13 dev 반영(3차): 에디터 종료 확인 뒤 origin/dev 3커밋(PR 357) 병합. `EscapeExitSaw.cs` 안내 문구 충돌 해소 — dev의 추격자 전투 문구와 "배선 절단용" 문구는 그대로 받고, 일반 발사 안내는 배선 횟수 없는 내 쪽 유지. 병합을 막던 에디터 변경 파일 `escape-labels.asset`은 stash("editor-noise escape-labels.asset before dev merge 2026-11-13")에 보관.
+- 검사: 컴파일=미실행(에디터가 닫혀 있음, 다음에 열 때 확인 필요); 테스트=SKIPPED
