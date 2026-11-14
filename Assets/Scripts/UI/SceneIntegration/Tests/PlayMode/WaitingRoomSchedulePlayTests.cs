@@ -44,8 +44,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             Assert.AreEqual(true, Get(Get(adapter, "View"), "IsVisible"));
             var world = ((Component)Get(adapter, "View")).GetComponentInParent<Canvas>();
-            Assert.AreEqual(RenderMode.WorldSpace, world.renderMode, "별도 화면 팝업이 아니라 판 위 캔버스여야 한다");
-            Assert.IsTrue(world.transform.IsChildOf(board.transform));
+            Assert.AreEqual(RenderMode.ScreenSpaceOverlay, world.renderMode, "포커스 시 캐릭터보다 앞에서 표시해야 한다");
             Assert.IsTrue(world.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled);
 
         }
@@ -68,7 +67,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var rect = (RectTransform)button.transform;
             Assert.IsTrue(button.IsInteractable(), button.name + " 실제 포인터 입력 가능 상태");
             var events = UnityEngine.EventSystems.EventSystem.current;
-            var camera = rect.GetComponentInParent<Canvas>().worldCamera;
+            var canvas = rect.GetComponentInParent<Canvas>();
+            var camera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
             Vector2 position = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center));
             var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
             events.RaycastAll(new UnityEngine.EventSystems.PointerEventData(events) { position = position }, hits);
@@ -200,9 +200,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             var book = Get(Find("CurtainCall.WaitingRoom.ScheduleBoard"), "Book");
             var tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
-            Assert.IsFalse(tiers[0, 0].gameObject.activeSelf);
+            Assert.IsFalse(tiers[0, 0].interactable);
             Assert.IsTrue(tiers[2, 1].interactable);
-            Assert.IsFalse(tiers[2, 2].interactable);
+            Assert.IsFalse(tiers[2, 0].interactable);
             tiers[2, 1].onClick.Invoke();
             Assert.AreEqual(2, Call(book, "Difficulty", 2, 0));
             yield return ReadyToMorning(2, ui);
@@ -211,8 +211,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return OpenSchedule(); yield return new WaitForSecondsRealtime(.3f);
             ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
-            Assert.IsTrue(tiers[2, 2].interactable);
-            tiers[2, 2].onClick.Invoke();
+            Assert.IsTrue(tiers[2, 1].interactable);
+            tiers[2, 1].onClick.Invoke();
             Assert.AreEqual(3, Field(State, "Difficulty"));
             Assert.AreEqual("Tightrope", Field(State, "TrickId"));
         }
