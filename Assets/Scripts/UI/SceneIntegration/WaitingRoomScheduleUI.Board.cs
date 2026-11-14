@@ -10,7 +10,8 @@ namespace CurtainCall.UI.SceneIntegration
     /// <summary>기존 편집 UI를 판 위 월드 캔버스에 붙인다. 화면 팝업이나 별도 읽기 전용 사본은 만들지 않는다.</summary>
     public sealed partial class WaitingRoomScheduleUI
     {
-        static readonly Vector2 PanelSize = new(1056f, 552f), StageSize = new(1920f, 1080f);
+        static readonly Vector2 StageSize = new(1920f, 1080f);
+        Vector2 PanelSize => ticketCards != null ? new Vector2(1800, 960) : new Vector2(1056, 552);
         const float PanelCenterOffset = 8f, BoardFill = 1f, FaceOffset = .04f;
         Transform boardDisplay;
         SchedulePanelView boardPanel;
@@ -22,6 +23,11 @@ namespace CurtainCall.UI.SceneIntegration
         Button[] templateEdits;
         Button templateConfirm, templateReady;
         Button[,] templateTiers;
+        ScheduleTicketCard[] templateTickets;
+        bool focusOverlay;
+        Vector3 boardLocalPosition, boardLocalScale;
+        Quaternion boardLocalRotation;
+        CanvasScaler focusScaler;
 
         void TickBoardDisplay()
         {
@@ -31,6 +37,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (boardDisplay == null) return;
             worldCanvas.worldCamera = Camera.main;
             bool editing = boardView.IsOpen;
+            SetFocusOverlay(editing);
             string key = $"{schedule.Book.Revision}|{schedule.HasAuthority}|{CampaignRun.Instance?.State.Day}|{CampaignRun.Instance?.State.Phase}|{CampaignRun.Instance?.State.PerformanceIndex}|{CampaignRun.Instance?.State.ReadyCount}|{CampaignRun.Instance?.State.RequiredCount}|{CampaignRun.Instance?.State.TrickId}|{CampaignRun.Instance?.State.Difficulty}|{schedule.MaxTier("Tightrope")}|{schedule.MaxTier("HumanCannon")}|{message}|{editing}|{session}";
             if (lastBoardKey != key || !view.IsVisible)
             {
@@ -53,6 +60,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         void HideConfirmationStamps()
         {
+            if (ticketCards != null) return;
             foreach (var text in view.GetComponentsInChildren<TMPro.TMP_Text>(true))
             {
                 if (text.name == "30_UnconfirmedTMP" || text.name == "20_ConfirmedTMP")
@@ -86,6 +94,7 @@ namespace CurtainCall.UI.SceneIntegration
             root.SetActive(false);
             templateView = view; templateEdits = editButtons;
             templateConfirm = confirmButton; templateReady = readyButton; templateTiers = tierButtons;
+            templateTickets = ticketCards;
             templateView.Closed -= Closed;
             templateView.Hide();
             var clone = Instantiate(templateView.gameObject, boardDisplay, false);
@@ -122,11 +131,45 @@ namespace CurtainCall.UI.SceneIntegration
             var rect = (RectTransform)boardDisplay;
             rect.sizeDelta = StageSize;
             rect.pivot = new Vector2(.5f, .5f);
-            rect.SetPositionAndRotation(bounds.center + normal * FaceOffset - rotation * (Vector3.up * PanelCenterOffset * scale), rotation);
+            rect.SetPositionAndRotation(bounds.center + normal * FaceOffset - rotation * (Vector3.up * (ticketCards != null ? 0 : PanelCenterOffset) * scale), rotation);
             var parentScale = target.transform.lossyScale;
             rect.localScale = new Vector3(scale / Mathf.Max(.0001f, Mathf.Abs(parentScale.x)),
                 scale / Mathf.Max(.0001f, Mathf.Abs(parentScale.y)), scale / Mathf.Max(.0001f, Mathf.Abs(parentScale.z)));
             displayedBoard = target; boardPanel = view; lastBoardKey = null;
+            boardLocalPosition = rect.localPosition; boardLocalRotation = rect.localRotation; boardLocalScale = rect.localScale;
+            ScheduleScreenHold.Keep(worldCanvas);
+        }
+
+        // 보는 사람의 UI만 화면 위로 올린다. 캐릭터 Renderer/Collider 및 네트워크 상태는 건드리지 않는다.
+        void SetFocusOverlay(bool focused)
+        {
+            if (focusOverlay == focused || worldCanvas == null) return;
+            focusOverlay = focused;
+            var backdrop = view.transform.Find("FocusBackdrop");
+            if (backdrop != null) backdrop.gameObject.SetActive(focused);
+            var rect = (RectTransform)boardDisplay;
+            if (focused)
+            {
+                ScheduleScreenHold.Keep(worldCanvas);
+                boardDisplay.SetParent(null, false);
+                worldCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                worldCanvas.sortingOrder = 110;
+                focusScaler = worldCanvas.GetComponent<CanvasScaler>() ?? worldCanvas.gameObject.AddComponent<CanvasScaler>();
+                focusScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                focusScaler.referenceResolution = StageSize;
+                focusScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+                focusScaler.enabled = true;
+            }
+            else
+            {
+                if (focusScaler != null) focusScaler.enabled = false;
+                worldCanvas.renderMode = RenderMode.WorldSpace;
+                worldCanvas.scaleFactor = 1;
+                if (displayedBoard != null) boardDisplay.SetParent(displayedBoard.transform, false);
+                rect.sizeDelta = StageSize;
+                rect.pivot = new Vector2(.5f, .5f);
+                rect.localPosition = boardLocalPosition; rect.localRotation = boardLocalRotation; rect.localScale = boardLocalScale;
+            }
         }
 
         /// <summary>
@@ -135,6 +178,7 @@ namespace CurtainCall.UI.SceneIntegration
         /// </summary>
         void FitPanelToBoard(float extraX, float extraY)
         {
+            if (ticketCards != null) return;
             extraX = Mathf.Max(0f, extraX); extraY = Mathf.Max(0f, extraY);
             if (extraX < .5f && extraY < .5f) return;
             var panel = view.transform.Find("00_Visuals/10_LayoutStage/00_SchedulePanel") as RectTransform;
@@ -175,10 +219,13 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (view != null) view.Closed -= Closed;
                 view = templateView; editButtons = templateEdits; confirmButton = templateConfirm; readyButton = templateReady; tierButtons = templateTiers;
+                ticketCards = templateTickets; templateTickets = null;
                 templateView = null;
             }
+            if (worldCanvas != null) ScheduleScreenHold.Forget(worldCanvas);
             if (boardDisplay != null) Destroy(boardDisplay.gameObject);
             boardDisplay = null; boardPanel = null; worldCanvas = null; boardRaycaster = null; displayedBoard = null;
+            focusOverlay = false; focusScaler = null;
         }
     }
 }

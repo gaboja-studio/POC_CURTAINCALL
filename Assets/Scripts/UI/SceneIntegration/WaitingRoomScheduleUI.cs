@@ -17,6 +17,7 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] UnityEngine.UI.Button confirmButton, readyButton;
         // 카드마다 단계 버튼 1~3(Task-082). 씬을 고치지 않도록 실행 중에 공용 버튼 프리팹으로 만든다.
         UnityEngine.UI.Button[,] tierButtons;
+        ScheduleTicketCard[] ticketCards;
         static readonly Color SelectedTier = new(1f, .84f, .45f, 1f);
         ScheduleBoardView boardView;
         EventSystem ownedEvents;
@@ -36,8 +37,13 @@ namespace CurtainCall.UI.SceneIntegration
             if (index < 0) return null;
             int day = index / 2 + 1;
             return schedule.HasAuthority && schedule.CanEdit(day, index % 2)
-                ? WaitingRoomText.Get("schedule.hover-editable", "클릭할 때마다 공연이 바뀝니다. 난이도는 카드 아래 단계 버튼으로 고릅니다.")
+                ? "슬롯 클릭으로 공연을 변경합니다. 좌우 화살표는 난이도만 변경합니다."
                 : "공연이 시작되기 전 쉬는 시간에 호스트가 변경할 수 있습니다.";
+        }
+        public string HoverTitle(UnityEngine.UI.Button button)
+        {
+            int index = TierIndex(button, out int tier);
+            return index >= 0 ? $"{tier}단계" : "공연 변경";
         }
         string TierDescription(ScheduleBoard schedule, int day, int slot, int tier)
         {
@@ -57,7 +63,12 @@ namespace CurtainCall.UI.SceneIntegration
             if (tierButtons == null || button == null) return -1;
             for (int i = 0; i < tierButtons.GetLength(0); i++)
                 for (int t = 0; t < tierButtons.GetLength(1); t++)
-                    if (tierButtons[i, t] == button) { tier = t + 1; return i; }
+                    if (tierButtons[i, t] == button)
+                    {
+                        tier = ticketCards != null ? (ScheduleBoard.Instance?.Book.Difficulty(i / 2 + 1, i % 2) ?? 1) + (t == 0 ? -1 : 1) : t + 1;
+                        tier = Mathf.Clamp(tier, 1, ScheduleBook.MaxDifficulty);
+                        return i;
+                    }
             return -1;
         }
         // 밤 정비 편집 중이거나, 쉬는 시간의 바로 다음 공연이면 호스트가 단계를 고칠 수 있다.
@@ -83,11 +94,24 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int t = 0; t < tierButtons.GetLength(1); t++)
                 {
                     int index = i, tier = t + 1;
-                    tierButtons[i, t].onClick.AddListener(() => ChooseTier(index / 2 + 1, index % 2, tier));
+                    int direction = t == 0 ? -1 : 1;
+                    tierButtons[i, t].onClick.AddListener(() =>
+                    {
+                        if (ticketCards != null) StepTier(index, direction);
+                        else ChooseTier(index / 2 + 1, index % 2, tier);
+                    });
                 }
         }
         void EnsureTierButtons()
         {
+            ticketCards = view != null ? view.GetComponentsInChildren<ScheduleTicketCard>(true) : null;
+            if (ticketCards != null && ticketCards.Length == 6)
+            {
+                tierButtons = new UnityEngine.UI.Button[6, 2];
+                for (int i = 0; i < 6; i++) { tierButtons[i, 0] = ticketCards[i].previousButton; tierButtons[i, 1] = ticketCards[i].nextButton; }
+                return;
+            }
+            ticketCards = null;
             if (tierButtons != null || editButtons == null) return;
             var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_General");
             if (prefab == null) { Debug.LogWarning("[Schedule] 단계 버튼 프리팹이 없어 단계 선택을 표시하지 않습니다.", this); return; }
@@ -177,6 +201,8 @@ namespace CurtainCall.UI.SceneIntegration
             string footer = !string.IsNullOrEmpty(message) ? message : run != null && (run.State.Phase == CampaignPhase.Dawn || run.State.Phase == CampaignPhase.DemoEnding)
                 ? WaitingRoomText.Get("schedule.footer-close-to-continue", "스케줄표를 닫아 연출을 진행하세요")
                 : schedule.HasAuthority ? "선택 즉시 적용 · 공연 입장 전까지 변경 가능 · 수면은 숙소 침대에서" : "호스트가 공연 입장 전까지 일정을 변경할 수 있습니다";
+            if (ticketCards != null && string.IsNullOrEmpty(message))
+                footer = schedule.HasAuthority ? "슬롯 클릭: 공연 변경   |   좌우 화살표: 난이도 변경   ·   선택 즉시 적용" : "호스트가 공연과 난이도를 변경합니다 · 선택 내용은 모두에게 적용됩니다";
             return new SchedulePresentation(session ?? "unopened", (++revision).ToString(), WaitingRoomText.Get("schedule.title", "공연 스케줄"), context, footer, days);
         }
         void RefreshControls()
@@ -198,6 +224,17 @@ namespace CurtainCall.UI.SceneIntegration
         static void Label(UnityEngine.UI.Button button, string text) => button.GetComponentInChildren<TMP_Text>(true).text = text;
         void RefreshTierButtons(ScheduleBoard schedule)
         {
+            if (ticketCards != null)
+            {
+                for (int i = 0; i < ticketCards.Length; i++)
+                {
+                    int day = i / 2 + 1, slot = i % 2;
+                    var trick = schedule.Book.Get(day, slot);
+                    ticketCards[i].Present(slot, schedule.TrickName(trick), schedule.Book.Difficulty(day, slot), schedule.MaxTier(trick),
+                        schedule.HasAuthority && schedule.CanEdit(day, slot), CanEditTier(schedule, day, slot), schedule.HasAuthority, boardView != null && boardView.IsOpen);
+                }
+                return;
+            }
             if (tierButtons == null) return;
             for (int i = 0; i < tierButtons.GetLength(0); i++)
             {
@@ -230,6 +267,7 @@ namespace CurtainCall.UI.SceneIntegration
             string nextTrick = choices[(Array.IndexOf(choices, trick) + 1) % choices.Length];
             int tier = Math.Clamp(schedule.Book.Difficulty(day, slot), 1, schedule.MaxTier(nextTrick));
             var result = schedule.Set(day, slot, nextTrick, tier);
+            if (result == ScheduleRefusal.None && nextTrick != trick && ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied("공연 변경됨");
             message = ScheduleBoard.Explain(result); lastKey = null; nextRefresh = 0;
         }
         public void ChooseTier(int day, int slot, int tier)
@@ -238,13 +276,24 @@ namespace CurtainCall.UI.SceneIntegration
             if (schedule == null || !view.IsVisible || boardView == null || !boardView.IsOpen || !CanEditTier(schedule, day, slot)) return;
             var run = CampaignRun.Instance;
             bool night = run != null && run.State.Phase == CampaignPhase.Night;
+            int previousTier = schedule.Book.Difficulty(day, slot);
             var result = schedule.Set(day, slot, schedule.Book.Get(day, slot), tier);
+            if (result == ScheduleRefusal.None && previousTier != tier && ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied($"{tier}단계 적용됨");
             message = result == ScheduleRefusal.None && !night ? WaitingRoomText.Format("schedule.tier-changed", "다음 공연을 {tier}단계로 바꿨습니다", ("tier", tier)) : ScheduleBoard.Explain(result);
             lastKey = null; nextRefresh = 0;
         }
         public void Confirm()
         {
             // 이전 프리팹/리뷰 도구 호환성. 선택 즉시 적용하므로 확인 동작은 없다.
+        }
+        void StepTier(int index, int direction)
+        {
+            var schedule = ScheduleBoard.Instance;
+            if (schedule == null) return;
+            int day = index / 2 + 1, slot = index % 2;
+            int next = schedule.Book.Difficulty(day, slot) + direction;
+            if (next < 1 || next > schedule.MaxTier(schedule.Book.Get(day, slot))) return;
+            ChooseTier(day, slot, next);
         }
         void Closed() { if (boardView != null) boardView.SetOpen(false); }
         void OnDisable()
