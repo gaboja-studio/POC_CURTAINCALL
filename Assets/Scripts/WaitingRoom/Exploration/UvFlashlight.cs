@@ -58,7 +58,7 @@ namespace CurtainCall.WaitingRoom
         void LateUpdate()
         {
             var player = NetworkPlayer.Local;
-            var reader = player != null ? player.GetComponent<PlayerInputReader>() : FindFirstObjectByType<PlayerInputReader>();
+            var reader = player != null ? player.GetComponent<PlayerInputReader>() : CurtainCall.Player.OfflineLocalPlayer.Reader;
             var body = reader != null ? reader.transform : null;
             bool on = body != null && reader.isActiveAndEnabled && reader.Current.UvLightHeld && !InputGate.IsBlocked && Equipped(player, reader);
             IsOn = on;

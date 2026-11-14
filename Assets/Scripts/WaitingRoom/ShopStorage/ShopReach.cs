@@ -69,7 +69,7 @@ namespace CurtainCall.WaitingRoom
             if (CurtainCall.Settings.GameSettings.WaitingRoom.BareHandHoldSeconds <= 0f) return "";
             float progress = ReferenceEquals(BareHoldTarget, target) ? BareHoldProgress
                 : target is IBareHandTarget hand ? ExplorationTargets.BareProgress(hand, 0f) : 0f;
-            if (progress <= 0f) return " · " + WaitingRoomText.Get("prompt.bare-hold", "F를 길게 눌러 물건 부수기");
+            if (progress <= 0f) return " · " + WaitingRoomText.Get("prompt.bare-hold", "F키로 상호작용 하기");
             int filled = Mathf.Clamp(Mathf.CeilToInt(progress * BareGaugeCells), 0, BareGaugeCells);
             return " " + new string('■', filled) + new string('□', BareGaugeCells - filled);
         }
@@ -183,7 +183,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (NetworkPlayer.All.Count > 0)
                 return NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
-            if (offlineReader == null) offlineReader = Object.FindFirstObjectByType<PlayerInputReader>();
+            if (offlineReader == null) offlineReader = CurtainCall.Player.OfflineLocalPlayer.Reader;
             return offlineReader;
         }
 

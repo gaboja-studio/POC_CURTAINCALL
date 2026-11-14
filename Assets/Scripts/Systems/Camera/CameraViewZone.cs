@@ -17,7 +17,13 @@ namespace CurtainCall.Cameras
         Collider[] overlaps = new Collider[16];
         CameraViewDirector registered;
 
-        void Awake() => volume = GetComponent<BoxCollider>();
+        void Awake()
+        {
+            volume = GetComponent<BoxCollider>();
+            // 구역 트리거가 주변 벽·소품 수백 개와 매 물리 tick 겹침 쌍을 만들어 이벤트 처리에 시간을 썼다(2026-11-14 대기실 최적화).
+            // 판정은 FixedUpdate가 매 tick 직접 하므로 물리 엔진의 트리거 쌍은 만들지 않는다(침투 계산은 그대로 된다).
+            if (Application.isPlaying && TryGetComponent(out Rigidbody body)) body.detectCollisions = false;
+        }
 
         void Reset()
         {
@@ -64,6 +70,16 @@ namespace CurtainCall.Cameras
             bool retaining = registered != null && exitPadding > 0f;
             if (retaining) half += new Vector3(exitPadding, 0f, exitPadding);
             Vector3 center = transform.TransformPoint(volume.center);
+            // 빠른 판정(2026-11-14 최적화): 예전에는 매 tick 구역 안 모든 콜라이더를 훑어 내 캐릭터를 찾았다(큰 구역은 2천 개 이상).
+            // 내 몸통 중심이 구역 안이면 겹침이 확실하고, 구역에서 3m 넘게 떨어졌으면 겹칠 수 없다. 경계 근처에서만 아래 정밀 검사를 한다.
+            if (local.TryGetComponent(out CharacterController body) && body.enabled)
+            {
+                Vector3 at = Quaternion.Inverse(transform.rotation) * (body.bounds.center - center);
+                Vector3 inner = Vector3.Scale(volume.size * 0.5f, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
+                if (Mathf.Abs(at.x) <= inner.x && Mathf.Abs(at.y) <= inner.y && Mathf.Abs(at.z) <= inner.z) return true;
+                const float Far = 3f;
+                if (Mathf.Abs(at.x) > half.x + Far || Mathf.Abs(at.y) > half.y + Far || Mathf.Abs(at.z) > half.z + Far) return false;
+            }
             int count = Physics.OverlapBoxNonAlloc(center, half, overlaps, transform.rotation, ~0, QueryTriggerInteraction.Collide);
             if (count == overlaps.Length)
             {

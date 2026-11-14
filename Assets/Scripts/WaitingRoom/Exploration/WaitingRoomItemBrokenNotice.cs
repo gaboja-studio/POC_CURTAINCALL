@@ -13,8 +13,8 @@ namespace CurtainCall.WaitingRoom
 
         static WaitingRoomItemBrokenNotice instance;
         ExplorationState watched;
-        WaitingRoomRightPanel panel;
-        float hideAt;
+        WaitingRoomRightPanel panel, usesPanel;
+        float hideAt, usesHideAt;
 
         public static bool IsVisible => instance != null && instance.panel != null && instance.panel.Visible;
         public static string CurrentTitle => IsVisible ? instance.panel.Title : "";
@@ -32,7 +32,20 @@ namespace CurtainCall.WaitingRoom
             instance = go.AddComponent<WaitingRoomItemBrokenNotice>();
         }
 
-        void Awake() => panel = new WaitingRoomRightPanel(transform, "ItemBrokenNoticeCanvas", CurtainCall.UI.SceneIntegration.HudRole.Feedback);
+        void Awake()
+        {
+            panel = new WaitingRoomRightPanel(transform, "ItemBrokenNoticeCanvas", CurtainCall.UI.SceneIntegration.HudRole.Feedback);
+            // 도구의 남은 횟수(2026-11-14 사용자): 화면 오른쪽 아래(소지 칸 위) 상태 패널에 잠깐 띄운다.
+            usesPanel = new WaitingRoomRightPanel(transform, "ToolUsesLeftCanvas", CurtainCall.UI.SceneIntegration.HudRole.Status);
+        }
+
+        /// <summary>도구의 남은 횟수 문구를 화면 오른쪽 아래 패널에 잠깐 띄운다.</summary>
+        public static void ShowUsesLeft(string text)
+        {
+            if (instance == null) Boot();
+            instance.usesPanel.Hide();
+            if (instance.usesPanel.Show("", text)) instance.usesHideAt = Time.unscaledTime + Seconds;
+        }
 
         /// <summary><paramref name="item"/>이 파괴되었다고 알린다.</summary>
         public static void Show(string item)
@@ -63,8 +76,9 @@ namespace CurtainCall.WaitingRoom
                 if (watched != null) watched.RequestAnswered += OnAnswered;
             }
             // 스케줄표를 보는 동안 가려진 알림은 남은 시간을 그대로 둔다.
-            if (ScheduleScreenHold.IsHeld && hideAt > 0f) { hideAt += Time.unscaledDeltaTime; return; }
+            if (ScheduleScreenHold.IsHeld && (hideAt > 0f || usesHideAt > 0f)) { if (hideAt > 0f) hideAt += Time.unscaledDeltaTime; if (usesHideAt > 0f) usesHideAt += Time.unscaledDeltaTime; return; }
             if (hideAt > 0f && Time.unscaledTime >= hideAt) { hideAt = 0f; panel.Hide(); }
+            if (usesHideAt > 0f && Time.unscaledTime >= usesHideAt) { usesHideAt = 0f; usesPanel.Hide(); }
         }
 
         void OnDestroy()
@@ -73,9 +87,12 @@ namespace CurtainCall.WaitingRoom
             if (instance == this) instance = null;
         }
 
+        // 도구의 남은 횟수(2026-11-14 사용자)는 결과 문구와 따로 화면 오른쪽 아래 패널에 띄운다.
         void OnAnswered(string _)
         {
-            if (watched != null && watched.LastUsedUp) Show(watched.LastUsedUpItem);
+            if (watched == null) return;
+            if (watched.LastUsedUp) Show(watched.LastUsedUpItem);
+            else if (!string.IsNullOrEmpty(watched.LastNote)) ShowUsesLeft(watched.LastNote);
         }
     }
 }

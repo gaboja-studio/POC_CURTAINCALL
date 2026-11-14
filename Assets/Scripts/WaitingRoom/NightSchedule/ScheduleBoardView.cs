@@ -141,7 +141,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (NetworkPlayer.All.Count > 0)
                 return NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
-            return FindFirstObjectByType<PlayerInputReader>();
+            return CurtainCall.Player.OfflineLocalPlayer.Reader;
         }
 
         static bool LocalCanUseBoard => NetworkPlayer.Local != null

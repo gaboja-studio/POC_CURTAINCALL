@@ -34,7 +34,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     if (offlinePlayer == null)
                     {
-                        var input = FindFirstObjectByType<PlayerInputReader>();
+                        var input = CurtainCall.Player.OfflineLocalPlayer.Reader;
                         offlinePlayer = input != null ? input.GetComponent<PlayerMover>() : FindFirstObjectByType<PlayerMover>();
                     }
                     if (offlinePlayer == null || !offlinePlayer.isActiveAndEnabled) return false;

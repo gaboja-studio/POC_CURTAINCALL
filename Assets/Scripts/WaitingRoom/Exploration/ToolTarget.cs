@@ -71,7 +71,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? Label
             : AllowsBareHands && !ExplorationTargets.LocalHolds(ToolId)
-                ? WaitingRoomText.Get("tool.pry-bare-hold", "맨몸으로 뜯기") + ShopReach.BareHoldSuffix(this)
+                ? Label + ShopReach.BareHoldSuffix(this) // 맨몸: 이름 · F키로 상호작용 하기(2026-11-14 사용자)
             : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {hint}", ("label", Label), ("hint", ExplorationTargets.Hint(this)))
             : kind == ToolTargetKind.HairpinLock
                 ? (Attempts > 0 ? WaitingRoomText.Format("tool.pick-lock-attempt", "{tool:으로} 자물쇠 따기 (시도 {n})", ("tool", ToolName), ("n", Attempts))
@@ -84,8 +84,7 @@ namespace CurtainCall.WaitingRoom
         Quaternion closedRot;
         int shownAttempts = -1;
         bool shownOpen, inReach;
-        float openT = -1f, jiggle, messageUntil;
-        string message = "";
+        float openT = -1f, jiggle;
         AudioClip click, fail;
 
         void Awake()
@@ -96,7 +95,7 @@ namespace CurtainCall.WaitingRoom
             if (sound == null) { sound = gameObject.AddComponent<AudioSource>(); sound.spatialBlend = 1f; sound.maxDistance = 20f; }
         }
 
-        void OnEnable() { ExplorationTargets.Add(this); ShopReach.Add(this); }
+        void OnEnable() { useGUILayout = false; ExplorationTargets.Add(this); ShopReach.Add(this); }
         void OnDisable()
         {
             ExplorationTargets.Remove(this); ShopReach.Remove(this);
@@ -158,7 +157,7 @@ namespace CurtainCall.WaitingRoom
 
         void PoseOpen(float t) { if (hinge != null) hinge.localRotation = closedRot * Quaternion.Euler(openEuler * Mathf.SmoothStep(0, 1, t)); }
 
-        void Show(string text) { if (inReach && !string.IsNullOrEmpty(text)) { message = text; messageUntil = Time.unscaledTime + 2f; } }
+        void Show(string text) { if (inReach && !string.IsNullOrEmpty(text)) WaitingRoomGuidePanel.ShowAs("", text, 3.5f, RoomNotice.Guide); } // 임시 상자 대신 왼쪽 가이드 패널(2026-11-14 사용자)
         void Play(AudioClip clip) { if (sound != null && clip != null) sound.PlayOneShot(clip); }
 
         // 임시 합성음(딸깍·헛도는 소리). 실제 효과음이 정해지면 바꾼다.
@@ -175,7 +174,6 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (Time.unscaledTime < messageUntil) GUI.Box(new Rect((Screen.width - 360) / 2f, Screen.height * .68f, 360, 28), message);
             if (inReach && !ShopReach.HasExternalPresentation && !InputGate.IsBlocked)
                 GUI.Box(new Rect((Screen.width - 360) / 2f, Screen.height * .62f, 360, 28), "[F] " + ActionLabel);
         }

@@ -87,7 +87,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var local = NetworkPlayer.Local;
                 return local != null && local.State == PlayerState.Normal ? local.transform : null;
             }
-            if (offline == null) offline = FindFirstObjectByType<PlayerInputReader>();
+            if (offline == null) offline = CurtainCall.Player.OfflineLocalPlayer.Reader;
             return offline != null && offline.isActiveAndEnabled ? offline.transform : null;
         }
 

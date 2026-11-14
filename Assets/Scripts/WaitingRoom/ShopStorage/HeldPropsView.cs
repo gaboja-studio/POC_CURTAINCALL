@@ -87,7 +87,7 @@ namespace CurtainCall.WaitingRoom
                     if (player != null && player.IsSpawned) bodies.Add((player.transform, player.OwnerClientId));
                 return;
             }
-            var reader = FindFirstObjectByType<PlayerInputReader>(); // 접속하지 않은 씬 확인
+            var reader = CurtainCall.Player.OfflineLocalPlayer.Reader; // 접속하지 않은 씬 확인
             if (reader != null) bodies.Add((reader.transform, carry.LocalClientId));
         }
 

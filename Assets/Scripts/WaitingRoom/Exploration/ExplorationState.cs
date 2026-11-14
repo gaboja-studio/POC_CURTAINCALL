@@ -37,6 +37,11 @@ namespace CurtainCall.WaitingRoom
         /// <summary>마지막 결과에서 다 써서 파괴된 기물 이름(없으면 "").</summary>
         public string LastUsedUpItem { get; private set; } = "";
         public static string WrongCode => WaitingRoomText.Get("explore.wrong-code", "비밀번호가 다릅니다.");
+        /// <summary>마지막 결과에 딸린 도구 상태 문구("남은 n회", 없으면 ""). 결과 문구와 따로 오른쪽 아래 패널에 띄운다(2026-11-14 사용자).</summary>
+        public string LastNote { get; private set; } = "";
+        /// <summary>마지막 결과가 치는 중의 진행 문구(n/전체)인지. F 안내에 이미 나오므로 가이드 패널에는 띄우지 않는다.</summary>
+        public bool LastWasProgress { get; private set; }
+        string answerNote = ""; bool answerProgress;
         bool answerUsedUp;
         string answerUsedUpItem = "";
 
@@ -270,14 +275,15 @@ namespace CurtainCall.WaitingRoom
                     var consumed = carry.UseItem(player, tool.Uid, out var after, out bool gone);
                     if (consumed == CarryRefusal.None) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(body.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>(), "EXPLORATION_TOOL", new(){["itemType"]=tool.ItemId,["uid"]=tool.Uid,["targetId"]=targetId,["state"]="USED",["usesBefore"]=tool.Uses,["usesAfter"]=gone?0:after.Uses,["objectPosition"]=target is Component component ? CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(component.transform.position) : null}, "HOST");
                     string item = ItemCatalog.DisplayName(after);
-                    text += " " + (gone ? WaitingRoomText.Format("explore.used-up", "{item:을} 다 썼습니다.", ("item", item))
-                        : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses)));
+                    // 남은 횟수는 결과 문구에 붙이지 않고 따로 보낸다(오른쪽 아래 패널). 다 쓴 경우는 기물 파괴 알림이 알린다.
+                    answerNote = gone ? "" : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses));
                     answerUsedUp = gone; answerUsedUpItem = gone ? item : "";
                 }
                 Debug.Log($"[Exploration] {targetId} 열림({count}번째) — {WaitingRoomShop.PlayerLabel(player)}");
             }
             DeliverRewards();
             Publish();
+            answerProgress = strike && !openedNow;
             return (true, text, openedNow ? "OPENED" : "HIT_REGISTERED");
         }
 
@@ -328,7 +334,10 @@ namespace CurtainCall.WaitingRoom
             {
                 if (seenGeneration > 0)
                 {
+                    var kept = new List<string>();
+                    foreach (var id in keptAcrossGenerations) if (book.IsOpen(id)) kept.Add(id);
                     book.Clear();
+                    foreach (var id in kept) book.Attempt(id, true, out _, out _);
                     cooperation.Clear();
                     Debug.Log($"[Exploration] 세대 교체 {seenGeneration} → {generation}: 탐색 진행을 비웠습니다.");
                     Publish();
@@ -444,22 +453,34 @@ namespace CurtainCall.WaitingRoom
             foreach (var player in NetworkPlayer.All)
                 if (player.IsSpawned && player.OwnerClientId == clientId) return player.transform;
             if (NetworkPlayer.All.Count > 0) return null;
-            var reader = FindFirstObjectByType<PlayerInputReader>(); // 접속하지 않은 씬 확인
+            var reader = CurtainCall.Player.OfflineLocalPlayer.Reader; // 접속하지 않은 씬 확인
             return reader != null ? reader.transform : null;
         }
 
         void Answer(ulong target, (bool ok, string text) result)
         {
             bool usedUp = answerUsedUp; string usedUpItem = answerUsedUpItem; answerUsedUp = false; answerUsedUpItem = "";
+            string note = answerNote; bool progress = answerProgress; answerNote = ""; answerProgress = false;
             if (string.IsNullOrEmpty(result.text)) return;
             if (target == channel.LocalClientId || !channel.IsHost)
             {
-                LastMessage = result.text; LastUsedUp = usedUp; LastUsedUpItem = usedUpItem;
+                LastMessage = result.text; LastUsedUp = usedUp; LastUsedUpItem = usedUpItem; LastNote = note; LastWasProgress = progress;
                 RequestAnswered?.Invoke(LastMessage);
                 return;
             }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, usedUp = usedUp, usedUpItem = usedUpItem }));
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, usedUp = usedUp, usedUpItem = usedUpItem, note = note, progress = progress }));
         }
+
+        /// <summary>
+        /// 참가자 화면이 판정 화면의 상태를 한 번이라도 받았는가(판정 화면은 늘 참). 연출처럼 "방금 바뀜"을 보고 재생하는 쪽은
+        /// 이 값이 참이 된 뒤의 변화만 본다. 그래야 늦게 들어온 사람에게 이미 끝난 연출이 다시 나오지 않는다(2026-11-14 사용자: 동기화).
+        /// </summary>
+        public bool StateReady => HasAuthority || receivedState;
+        bool receivedState;
+
+        /// <summary>세대가 바뀌어 탐색 진행을 비워도 남겨 둘 기록(한 번만 나오는 연출의 재생 여부 등). 새 게임(런 초기화) 때는 함께 지워진다.</summary>
+        static readonly HashSet<string> keptAcrossGenerations = new();
+        public static void KeepAcrossGenerations(params string[] ids) { foreach (var id in ids) if (!string.IsNullOrEmpty(id)) keptAcrossGenerations.Add(id); }
 
         void Publish()
         {
@@ -487,6 +508,7 @@ namespace CurtainCall.WaitingRoom
             var state = JsonUtility.FromJson<StateData>(json);
             if (state == null) return;
             book.Load(state.targets, state.hits, state.opened);
+            receivedState = true;
             Changed?.Invoke();
         }
 
@@ -494,7 +516,7 @@ namespace CurtainCall.WaitingRoom
         {
             var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
-            LastMessage = result.text; LastUsedUp = result.usedUp; LastUsedUpItem = result.usedUpItem ?? "";
+            LastMessage = result.text; LastUsedUp = result.usedUp; LastUsedUpItem = result.usedUpItem ?? ""; LastNote = result.note ?? ""; LastWasProgress = result.progress;
             RequestAnswered?.Invoke(LastMessage);
         }
 
@@ -505,13 +527,13 @@ namespace CurtainCall.WaitingRoom
             seeded.Clear();
             warnedDrops.Clear();
             lastHit.Clear();
-            seenGeneration = 0;
+            seenGeneration = 0; receivedState = false;
             LastMessage = "";
             Changed?.Invoke();
         }
 
         [Serializable] sealed class RequestData { public int kind; public string target; public string password; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; public bool usedUp; public string usedUpItem; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public bool usedUp; public string usedUpItem; public string note; public bool progress; }
 
         [Serializable]
         sealed class StateData

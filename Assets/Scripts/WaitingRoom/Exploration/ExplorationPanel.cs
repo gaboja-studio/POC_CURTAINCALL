@@ -135,16 +135,20 @@ namespace CurtainCall.WaitingRoom
             var canvas = canvasRoot.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 360;
             var scaler = canvasRoot.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
-            const float w = 900, h = 640;
+            // 영상이 없으면(문이 아직 열리지 않는 상황) 상태 문구만 있는 낮은 창으로 띄운다.
+            float w = 900, h = feed != null ? 640 : 230;
             var frame = Box(canvasRoot.transform, "TerminalFrame", TerminalGreen); var fr = (RectTransform)frame;
             fr.anchorMin = fr.anchorMax = fr.pivot = new Vector2(.5f, .5f); fr.sizeDelta = new Vector2(w + 6, h + 6);
             var screen = Box(frame, "Terminal", new Color32(4, 12, 6, 250)); Place((RectTransform)screen, 3, -3, w, h);
             var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
             var title = Text(screen, "Title", heading + " :: " + WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed"), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
             Place((RectTransform)Box(screen, "Rule", TerminalGreen), 28, -58, w - 56, 2);
-            var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(screen, false);
-            Place((RectTransform)picture.transform, 28, -72, w - 56, 430); var raw = picture.GetComponent<RawImage>(); raw.texture = feed; raw.raycastTarget = false;
-            message = Text(screen, "Message", status, font, 28, 28, -512, w - 56, 42); message.color = TerminalGreen; message.textWrappingMode = TextWrappingModes.NoWrap;
+            if (feed != null)
+            {
+                var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(screen, false);
+                Place((RectTransform)picture.transform, 28, -72, w - 56, 430); var raw = picture.GetComponent<RawImage>(); raw.texture = feed; raw.raycastTarget = false;
+            }
+            message = Text(screen, "Message", status, font, 28, 28, feed != null ? -512 : -84, w - 56, 42); message.color = TerminalGreen; message.textWrappingMode = TextWrappingModes.NoWrap;
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
             if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);

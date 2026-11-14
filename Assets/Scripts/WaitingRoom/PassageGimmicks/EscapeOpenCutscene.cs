@@ -15,6 +15,8 @@ namespace CurtainCall.WaitingRoom
     public sealed class EscapeOpenCutscene : MonoBehaviour
     {
         [SerializeField] string openedBy = "final:escape-route";
+        [Tooltip("재생 여부 기록. 한 번만 나온다(세대가 바뀌어 길을 다시 열어도 다시 나오지 않는다).")]
+        [SerializeField] string playedId = "cutscene:escape-open-played";
         [Tooltip("카메라가 지나가는 자리(순서대로). 첫 자리는 기계실 쪽 문 앞.")]
         [SerializeField] Vector3[] path = System.Array.Empty<Vector3>();
         [Tooltip("마지막에 바라보는 곳(탈출로 문).")]
@@ -30,10 +32,15 @@ namespace CurtainCall.WaitingRoom
 
         bool seen, was, playing;
 
+        void OnEnable() => ExplorationState.KeepAcrossGenerations(playedId);
+
         void Update()
         {
-            if (ExplorationState.Instance == null) return;
-            bool open = ExplorationGate.IsAnyOpen(openedBy);
+            var state = ExplorationState.Instance;
+            if (state == null || !state.StateReady) return; // 판정 화면의 상태를 받은 뒤부터 본다
+            // 판정 화면: 길이 열리면 재생 기록을 남긴다. 모든 화면은 그 기록이 생기는 순간 재생한다.
+            if (ExplorationGate.IsAnyOpen(openedBy)) state.MarkVisited(playedId);
+            bool open = state.IsOpen(playedId);
             if (seen && open && !was && !playing && path.Length >= 2) StartCoroutine(Play());
             seen = true; was = open;
         }

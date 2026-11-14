@@ -91,7 +91,6 @@ tool.needs-tool | {label} — {hint}
 tool.pick-lock | {tool:으로} 자물쇠 따기
 tool.pick-lock-attempt | {tool:으로} 자물쇠 따기 (시도 {n})
 tool.pry | {tool:으로} 뜯기
-tool.pry-bare-hold | 맨몸으로 뜯기
 # 결과 알림
 tool.pried-open | {label:을} 뜯어 열었습니다.
 tool.lock-opened | 딸깍 — {label}의 자물쇠가 열렸습니다.
@@ -101,7 +100,6 @@ tool.lock-failed | 자물쇠가 헛돌았습니다. (시도 {n})
 # [F] 문구 ({label} = 벽 이름, {tool} = 도구 이름, {hint} = 도구 힌트, {n} = 지금까지 친 횟수, {total} = 필요한 횟수)
 wall.collapsed | 무너진 벽
 wall.strike | {tool:으로} 내려치기 ({n}/{total})
-wall.strike-bare-hold | 맨몸으로 내려치기
 wall.needs-tool | {label} — {hint} ({n}/{total})
 # 결과 알림
 wall.broken | {label:이} 무너졌습니다.
@@ -435,6 +433,7 @@ target.trial-boarded-crate.name | 판자가 뜯어진 상자
 
 # 부술 수 있는 벽
 target.restroom-breach.name | 녹슨 벽
+target.learning:dorm-rust-wall.name | 녹슨 벽
 target.structure-a:machine-pipe-box.name | 배관함
 
 # 단서 (집어 들고 보는 노트·낙서·지도)
@@ -721,11 +720,10 @@ target.final:torn-note-3.desc | 누군가 쓴 일기. 글자가 마구잡이로 
 target.final:torn-note-4.name | 찢겨진 노트 낱장
 target.final:torn-note-4.desc | 누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.
 gate.terminal-feed-title | cam_exit.feed
-gate.terminal-feed-open | > 탈출로 문 : 열림
-gate.terminal-feed-locked | > 잠금 해제 완료 · 문에 전력이 남아 있음
+gate.terminal-feed-locked | > 잠금 해제 완료
 
 # 맨몸 부수기: 도구 없이 칠 때 F 안내 뒤에 붙는 말(2026-11-13)
-prompt.bare-hold | F를 길게 눌러 물건 부수기
+prompt.bare-hold | F키로 상호작용 하기
 
 # 탐색 학습용 기물(2026-11-13, Task-126)
 target.final:post-it.name | 떨어진 포스트잇
@@ -761,8 +759,6 @@ target.dorm:tv.in | {tool:을} 넣었습니다. 화면이 켜집니다.
 target.dorm:tv.out | {tool:을} 꺼냈습니다.
 
 # 튜토리얼 안내(2026-11-14, 문구 초안). 자리 앞에 처음 갔을 때 또는 상황이 처음 생겼을 때 한 번 뜹니다.
-guide.rust-door.title | 녹슨 문
-guide.rust-door.body | 녹슨 문과 벽은 약해져 있습니다. F를 길게 눌러 부술 수 있습니다.
 guide.practice.title | 연습실
 guide.practice.body | 연습실에서 자유롭게 공연을 연습할 수 있습니다.
 guide.pursuer.title | 추격자
@@ -776,3 +772,7 @@ cutscene.escape-open.body | 나가는 길이 개방되었습니다. 서커스장
 # 숙소 입구 이벤트(2026-11-14). 화면 위 시스템 알림.
 cutscene.dorm-door.title | 잠긴 문
 cutscene.dorm-door.body | 절단기를 이용해 배선을 끊어 숙소 문을 여세요.
+
+# 녹슨 문 발견 연출(2026-11-14). 화면 위 시스템 알림.
+cutscene.rust-door.title | 녹슨 벽
+cutscene.rust-door.body | 파괴할 수 있는 기물이 존재합니다. F키를 눌러 상호작용하세요. 도구가 있으면 더 빠르게 부술 수 있습니다.

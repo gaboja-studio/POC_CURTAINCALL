@@ -167,6 +167,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnEnable()
         {
+            useGUILayout = false; // OnGUI에서 GUILayout을 쓰지 않으므로 배치 단계 호출을 건너뛴다(2026-11-14 최적화)
             // 이전 배치도 씬/계층 경로로 식별. 정식 배치에는 명시적 ID 권장.
             if (string.IsNullOrEmpty(targetId))
             {
@@ -499,7 +500,7 @@ namespace CurtainCall.WaitingRoom
         static PlayerInputReader LocalReader()
         {
             if (NetworkPlayer.All.Count > 0) return NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
-            return FindFirstObjectByType<PlayerInputReader>();
+            return CurtainCall.Player.OfflineLocalPlayer.Reader;
         }
 
         void OnGUI()

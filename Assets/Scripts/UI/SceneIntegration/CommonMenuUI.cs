@@ -89,6 +89,9 @@ namespace CurtainCall.UI.SceneIntegration
         void EnsureEvents()
         {
             if (!HasSupportedSpace) return;
+            // 씬 전체 검색이라 매 프레임 하지 않는다(2026-11-14 최적화). 다른 EventSystem이 생겨도 0.5초 안에 넘겨준다.
+            if (Time.unscaledTime < nextEventsCheck) return;
+            nextEventsCheck = Time.unscaledTime + .5f;
             EventSystem external = null;
             foreach (var events in FindObjectsByType<EventSystem>(FindObjectsSortMode.None))
                 if (events != ownedEvents && events.isActiveAndEnabled) { external = events; break; }
@@ -107,6 +110,7 @@ namespace CurtainCall.UI.SceneIntegration
             root.transform.SetParent(transform, false);
             ownedEvents = root.GetComponent<EventSystem>();
         }
+        float nextEventsCheck;
         void LateUpdate() => SyncInput();
         void SyncInput()
         {

@@ -41,6 +41,9 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Vector3 fallenEuler;
         [Header("카메라")]
         [SerializeField] Vector3 wideCamera, wideLook, closeCamera, closeLook;
+        [Tooltip("절단기를 비춘 뒤 끊어야 하는 배선을 보여 주는 자리(2026-11-14 사용자).")]
+        [SerializeField] Vector3 wireCamera, wireLook;
+        [SerializeField, Min(.1f)] float wireSeconds = 2.6f;
         [SerializeField, Min(.1f)] float wideSeconds = 2.4f, fallSeconds = .7f, closeSeconds = 3.2f, returnSeconds = .8f;
         [SerializeField] string title = "잠긴 문";
         [SerializeField, TextArea] string message = "절단기를 이용해 배선을 끊어 숙소 문을 여세요.";
@@ -48,6 +51,9 @@ namespace CurtainCall.WaitingRoom
         Vector3 leafClosed, standPosition; Quaternion standRotation;
         float closedAmount, cutSeenAt = -1f;
         bool seen, wasJammed, playing, falling;
+
+        // 한 번만 나오는 이벤트: 세대가 바뀌어도 닫힘·배선 절단 기록은 남긴다(문은 열린 채, 절단기는 사라진 채).
+        void OnEnable() => ExplorationState.KeepAcrossGenerations(jammedId, cableId);
 
         void Awake()
         {
@@ -60,7 +66,7 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             var state = ExplorationState.Instance;
-            if (state == null) return;
+            if (state == null || !state.StateReady) return; // 판정 화면의 상태를 받은 뒤부터 본다(늦게 들어온 화면에서 다시 재생되지 않게)
             bool jammed = Open(jammedId), cut = Open(cableId);
 
             // 판정 화면: 첫 공연 전 동선 제한이 풀린 뒤, 누군가 입구 통로에 들어서면 닫는다.
@@ -104,7 +110,7 @@ namespace CurtainCall.WaitingRoom
         IEnumerator Play()
         {
             playing = true; falling = true;
-            float total = wideSeconds + fallSeconds + closeSeconds;
+            float total = wideSeconds + fallSeconds + closeSeconds + wireSeconds;
             InputGate.SetBlocking(this, true);
             PursuitDirector.HoldForCutscene(total + .5f);
             // 문 안쪽(입구 통로 안·숙소 안)에 있던 내 캐릭터는 문 밖으로.
@@ -144,12 +150,15 @@ namespace CurtainCall.WaitingRoom
                     // 절단기 쪽으로 다가가 가까이 비춘다.
                     float c = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((t - (wideSeconds - .2f)) / .9f));
                     var at = Vector3.Lerp(wideCamera, closeCamera, c); var look = Vector3.Lerp(wideLook, closeLook, c);
+                    // 절단기를 비춘 뒤 끊어야 하는 배선으로 옮겨 간다.
+                    float w = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((t - (wideSeconds + fallSeconds + closeSeconds)) / .9f));
+                    at = Vector3.Lerp(at, wireCamera, w); look = Vector3.Lerp(look, wireLook, w);
                     go.transform.SetPositionAndRotation(at, Quaternion.LookRotation(look - at, Vector3.up));
                 }
                 if (t >= wideSeconds + fallSeconds && !noticeShown)
                 {
                     noticeShown = true;
-                    WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("cutscene.dorm-door.title", title), WaitingRoomText.Get("cutscene.dorm-door.body", message), closeSeconds + 3f, RoomNotice.Notice);
+                    WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("cutscene.dorm-door.title", title), WaitingRoomText.Get("cutscene.dorm-door.body", message), closeSeconds + wireSeconds + 2f, RoomNotice.Notice);
                 }
                 yield return null;
             }

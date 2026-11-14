@@ -307,7 +307,7 @@ namespace CurtainCall.WaitingRoom
         }
         static bool LocalCanUsePanel => NetworkPlayer.Local != null
             ? PlayerInteraction.CanInteract(NetworkPlayer.Local)
-            : NetworkPlayer.All.Count == 0 && PlayerInteraction.CanInteract(FindFirstObjectByType<PlayerInputReader>());
+            : NetworkPlayer.All.Count == 0 && PlayerInteraction.CanInteract(CurtainCall.Player.OfflineLocalPlayer.Reader);
         bool PanelOwnerCanUse => LocalCanUsePanel
             && (!panelOpenedByNetworkPlayer || panelOpenedBy != null && panelOpenedBy == NetworkPlayer.Local);
         // 오답: 경고음 + 입력 비움, 다시 입력 가능. 정답: 짧은 확인음 뒤 패널이 닫힌다.
@@ -317,9 +317,9 @@ namespace CurtainCall.WaitingRoom
             panelView.SetMessage(text); lastPanelMessage = text;
             if (text == ExplorationState.WrongCode) { Play(ref buzz, "KeypadWrong", .45f, 180f, true); panelView.ClearCode(); }
         }
-        string FeedStatus() => string.IsNullOrEmpty(feedOpenTarget) || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(feedOpenTarget))
-            ? WaitingRoomText.Get("gate.terminal-feed-open", "> EXIT DOOR : OPEN")
-            : WaitingRoomText.Get("gate.terminal-feed-locked", "> LOCK RELEASED / POWER LINE ACTIVE");
+        bool FeedDoorOpens => string.IsNullOrEmpty(feedOpenTarget) || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(feedOpenTarget));
+        bool feedPicture;
+        string FeedStatus() => WaitingRoomText.Get("gate.terminal-feed-locked", "> LOCK RELEASED");
         AudioSource sound;
         AudioClip buzz, chime;
         void Play(ref AudioClip clip, string name, float seconds, float pitch, bool square)
@@ -386,15 +386,20 @@ namespace CurtainCall.WaitingRoom
             bool feed = IsTerminal && monitorCamera != null && Opened;
             if (feed && !feedShown && panelView != null)
             {
-                feedShown = true; feedUntil = Time.unscaledTime + feedSeconds; Play(ref chime, "KeypadRight", .3f, 880f, false);
-                if (monitorFeed == null) { monitorFeed = new RenderTexture(768, 432, 16); monitorFeed.name = "ExitDoorFeed"; monitorFeed.Create(); }
-                monitorCamera.targetTexture = monitorFeed; monitorCamera.enabled = true;
-                panelView.ShowFeed(Label, monitorFeed, FeedStatus(), ClosePanel);
+                feedShown = true; feedPicture = false; feedUntil = Time.unscaledTime + (FeedDoorOpens ? feedSeconds : 3f); Play(ref chime, "KeypadRight", .3f, 880f, false);
+                // 문이 아직 열리지 않는 상황이면 영상 없이 "잠금 해제 완료"만 띄운다(2026-11-14 사용자: 영상은 열리는 화면만).
+                if (!FeedDoorOpens) panelView.ShowFeed(Label, null, FeedStatus(), ClosePanel);
             }
             if (feedShown)
             {
-                feedWatchedUntil = Time.unscaledTime + .5f;
-                if (panelView != null) panelView.SetFeedStatus(FeedStatus());
+                if (!feedPicture && FeedDoorOpens && panelView != null)
+                {
+                    feedPicture = true; feedUntil = Time.unscaledTime + feedSeconds;
+                    if (monitorFeed == null) { monitorFeed = new RenderTexture(768, 432, 16); monitorFeed.name = "ExitDoorFeed"; monitorFeed.Create(); }
+                    monitorCamera.targetTexture = monitorFeed; monitorCamera.enabled = true;
+                    panelView.ShowFeed(Label, monitorFeed, FeedStatus(), ClosePanel);
+                }
+                if (feedPicture) feedWatchedUntil = Time.unscaledTime + .5f;
                 // 열린 뒤에는 이 대상에 더 닿을 수 없으므로(이미 열림) 거리 판정 대신 시간·키로만 닫는다.
                 if (Time.unscaledTime >= feedUntil || ExplorationState.Instance == null
                     || (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
