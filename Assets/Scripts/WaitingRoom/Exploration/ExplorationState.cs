@@ -276,7 +276,7 @@ namespace CurtainCall.WaitingRoom
                     if (consumed == CarryRefusal.None) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(body.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>(), "EXPLORATION_TOOL", new(){["itemType"]=tool.ItemId,["uid"]=tool.Uid,["targetId"]=targetId,["state"]="USED",["usesBefore"]=tool.Uses,["usesAfter"]=gone?0:after.Uses,["objectPosition"]=target is Component component ? CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(component.transform.position) : null}, "HOST");
                     string item = ItemCatalog.DisplayName(after);
                     // 남은 횟수는 결과 문구에 붙이지 않고 따로 보낸다(오른쪽 아래 패널). 다 쓴 경우는 기물 파괴 알림이 알린다.
-                    answerNote = gone ? "" : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses));
+                    answerNote = gone ? "" : WaitingRoomText.Format("explore.uses-left", "{item} 남은 횟수 {n}회", ("item", item), ("n", after.Uses));
                     answerUsedUp = gone; answerUsedUpItem = gone ? item : "";
                 }
                 Debug.Log($"[Exploration] {targetId} 열림({count}번째) — {WaitingRoomShop.PlayerLabel(player)}");

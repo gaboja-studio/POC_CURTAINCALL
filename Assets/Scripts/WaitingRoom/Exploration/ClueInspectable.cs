@@ -68,7 +68,7 @@ namespace CurtainCall.WaitingRoom
             if (pageSurfaceCopy == null || pageImages == null || pageImages.Length == 0) return;
             var image = pageImages[Mathf.Clamp(page, 0, pageImages.Length - 1)]; if (image == null) return;
             pageBlock ??= new MaterialPropertyBlock(); pageSurfaceCopy.GetPropertyBlock(pageBlock);
-            pageBlock.SetTexture("_BaseMap", image); pageBlock.SetTexture("_MainTex", image); pageSurfaceCopy.SetPropertyBlock(pageBlock);
+            pageBlock.SetTexture("_BaseMap", image); pageBlock.SetTexture("_MainTex", image); pageBlock.SetTexture("_EmissionMap", image); pageSurfaceCopy.SetPropertyBlock(pageBlock);
             if (pageBackCopy != null) pageBackCopy.SetPropertyBlock(pageBlock);
         }
         int page;
@@ -375,6 +375,7 @@ namespace CurtainCall.WaitingRoom
             var source = Body; var bounds = Measure(source);
             // 메시·재질만 옮긴 사본(충돌·스크립트 없음).
             var copy = new GameObject("ClueCopy"); copy.transform.SetParent(pivot, false);
+            Transform textOnly = null; bool anySolid = false;
             foreach (var r in source.GetComponentsInChildren<MeshRenderer>())
             {
                 // 꺼 둔 받침판(벽 낙서 자리 등)은 빼고 그려진 그림만 보인다.
@@ -389,6 +390,7 @@ namespace CurtainCall.WaitingRoom
                 pr.shadowCastingMode = ShadowCastingMode.Off; pr.receiveShadows = false;
                 if (secretMark != null && r.transform.IsChildOf(secretMark)) { pr.sharedMaterial = SecretMaterial(r.sharedMaterial); secretParts.Add(pr); }
                 if (pageSurface != null && r == pageSurface) pageSurfaceCopy = pr;
+                if (r.GetComponent<TMPro.TMP_Text>() != null) { if (textOnly == null) textOnly = part; } else anySolid = true;
                 // 종이처럼 두께 없는 한 장짜리 면은 뒤에서 보면 그려지지 않아 사라졌다(2026-11-14 사용자). 뒤집은 면을 한 장 더 붙여 뒷면에서도 보이게 한다.
                 if (r.GetComponent<TMPro.TMP_Text>() == null && BackFace(mf.sharedMesh) is Mesh back)
                 {
@@ -407,18 +409,41 @@ namespace CurtainCall.WaitingRoom
                 secretCopy.localRotation = Quaternion.Inverse(source.rotation) * secretMark.rotation;
             }
             copy.transform.localRotation = ViewRotation(source.rotation, viewFace != null ? viewFace.rotation : (Quaternion?)null, viewEuler, main.transform.eulerAngles.y);
-            float scale = viewSize / Mathf.Max(.001f, Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z)));
-            copy.transform.localScale = source.lossyScale * scale;
-            // 사본의 중심을 회전축에 맞춘다.
-            copy.transform.localPosition = -(copy.transform.localRotation * Vector3.Scale(source.InverseTransformPoint(bounds.center), copy.transform.localScale));
-
+            // 벽 낙서처럼 글자만 있는 단서(2026-11-15 사용자: 살펴보기 화면이 검게 나옴): 글자는 한쪽 면만 그려져서, 비스듬히·뒤에서 보면 아무것도 안 보였다.
+            // 글자 앞면이 늘 보는 사람을 향하게 놓고, 꺼 둔 받침판(벽 조각)을 뒤에 깔아 글자가 읽히게 한다.
+            if (textOnly != null && !anySolid)
+            {
+                copy.transform.localRotation = Quaternion.Inverse(textOnly.localRotation);
+                // 받침: 글자 크기보다 조금 넓은 벽 조각을 글자 바로 뒤에 깐다(꺼 둔 받침판의 재질을 빌린다).
+                var textMesh = textOnly.GetComponent<MeshFilter>().sharedMesh; var tb = textMesh.bounds;
+                Material wallMaterial = null;
+                foreach (var r in source.GetComponentsInChildren<MeshRenderer>())
+                    if (!r.enabled && r.GetComponent<TMPro.TMP_Text>() == null && r.sharedMaterial != null) { wallMaterial = r.sharedMaterial; break; }
+                var backing = GameObject.CreatePrimitive(PrimitiveType.Quad); backing.name = "TextBacking";
+                var collider = backing.GetComponent<Collider>(); if (collider != null) Destroy(collider);
+                backing.transform.SetParent(textOnly, false);
+                backing.transform.localPosition = new Vector3(tb.center.x, tb.center.y, tb.center.z + .01f);
+                backing.transform.localRotation = Quaternion.identity;
+                backing.transform.localScale = new Vector3(tb.size.x * 1.3f + .06f, tb.size.y * 1.5f + .06f, 1f);
+                var br2 = backing.GetComponent<MeshRenderer>(); if (wallMaterial != null) br2.sharedMaterial = wallMaterial;
+                br2.shadowCastingMode = ShadowCastingMode.Off; br2.receiveShadows = false;
+            }
+            // 스스로 빛나게(2026-11-15 사용자: 신문·지도가 어둡게 나옴): 살펴보기 조명이 적용되지 않는 상황에서는 주변광만 받아 거의 안 보였다.
+            // 사본 재질에 제 그림을 빛으로 얹어 조명과 상관없이 읽히게 하고, 조명은 입체감을 주는 정도로만 쓴다.
+            foreach (var r in copy.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (secretParts.Contains(r)) continue;
+                var mats = r.sharedMaterials; bool changed = false;
+                for (int i = 0; i < mats.Length; i++) { var g = SelfLit(mats[i]); if (g != mats[i]) { mats[i] = g; changed = true; } }
+                if (changed) r.sharedMaterials = mats;
+            }
             var lamp = new GameObject("InspectLight").AddComponent<Light>();
             lamp.transform.SetParent(view, false); lamp.transform.localPosition = new Vector3(.25f, .3f, -.35f);
-            lamp.type = LightType.Point; lamp.range = 2f; lamp.intensity = inspectLight; lamp.color = new Color(1f, .95f, .85f); lamp.shadows = LightShadows.None;
+            lamp.type = LightType.Point; lamp.range = 2f; lamp.intensity = inspectLight * LampShare; lamp.color = new Color(1f, .95f, .85f); lamp.shadows = LightShadows.None;
             // 장면 조명이 닿지 않는 곳이라 반대쪽에서 약하게 받쳐 준다.
             var fill = new GameObject("InspectFill").AddComponent<Light>();
             fill.transform.SetParent(view, false); fill.transform.localPosition = new Vector3(-.35f, -.1f, -.3f);
-            fill.type = LightType.Point; fill.range = 2f; fill.intensity = inspectLight * .35f; fill.color = new Color(.85f, .9f, 1f); fill.shadows = LightShadows.None;
+            fill.type = LightType.Point; fill.range = 2f; fill.intensity = inspectLight * .35f * LampShare; fill.color = new Color(.85f, .9f, 1f); fill.shadows = LightShadows.None;
         }
 
         /// <summary>
@@ -459,6 +484,21 @@ namespace CurtainCall.WaitingRoom
         static readonly System.Collections.Generic.Dictionary<Material, Material> secretMaterials = new();
 
         // 새김 글자 사본 재질: 원래 색 그대로, 찾았을 때만 발광색을 올린다.
+        const float SelfLight = .6f, LampShare = .4f;
+        static readonly System.Collections.Generic.Dictionary<Material, Material> selfLit = new();
+        // 제 그림(_BaseMap)을 빛으로 얹은 사본 재질. 이미 빛나는 재질이나 글자(TMP) 재질은 그대로 둔다.
+        static Material SelfLit(Material source)
+        {
+            if (source == null || !source.HasProperty("_EmissionColor") || !source.HasProperty("_BaseMap") || source.IsKeywordEnabled("_EMISSION")) return source;
+            if (selfLit.TryGetValue(source, out var m) && m != null) return m;
+            m = new Material(source) { name = "ClueSelfLit_" + source.name, hideFlags = HideFlags.DontSave };
+            m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            if (m.HasProperty("_EmissionMap")) m.SetTexture("_EmissionMap", source.GetTexture("_BaseMap"));
+            var tint = source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor") : Color.white;
+            m.SetColor("_EmissionColor", new Color(tint.r * SelfLight, tint.g * SelfLight, tint.b * SelfLight, 1f));
+            return selfLit[source] = m;
+        }
+
         static Material SecretMaterial(Material source)
         {
             if (source == null) return null;

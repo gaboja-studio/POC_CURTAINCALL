@@ -26,6 +26,12 @@ namespace CurtainCall.WaitingRoom
         bool cut, dimmed;
         float blackoutUntil;
         public bool IsCut => cut;
+        bool allCutSeen, allCutWas;
+        static float BlackoutUntilUnscaled;
+        /// <summary>배선 정전 연출이 진행 중인가. 나가는 길 개방 연출이 이 뒤에 이어지도록 기다린다.</summary>
+        public static bool BlackoutPlaying => Time.unscaledTime < BlackoutUntilUnscaled;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetBlackout() => BlackoutUntilUnscaled = 0f;
         void Awake()
         {
             original = new bool[circuit.Length];
@@ -50,12 +56,11 @@ namespace CurtainCall.WaitingRoom
                 for (int i = 0; i < circuit.Length; i++)
                     if (circuit[i] != null) { circuit[i].color = nightColor; circuit[i].intensity = originalIntensity[i] * nightBrightness; }
             // 배선 상태는 모든 참가자에게 동기화되므로 각자 화면에서 같은 순간에 꺼진다.
-            for (int i = 0; i < wasCut.Length; i++)
-            {
-                bool now = blackoutCables[i] != null && blackoutCables[i].IsCut;
-                if (now && !wasCut[i]) blackoutUntil = Time.time + blackoutSeconds;
-                wasCut[i] = now;
-            }
+            // 정전은 선 하나마다가 아니라 모든 선이 끊어졌을 때 한 번만 난다(2026-11-15 사용자). 들어왔을 때 이미 다 끊겨 있었으면 나지 않는다.
+            bool allCut = wasCut.Length > 0;
+            for (int i = 0; i < wasCut.Length; i++) allCut &= blackoutCables[i] != null && blackoutCables[i].IsCut;
+            if (allCutSeen && allCut && !allCutWas) { blackoutUntil = Time.time + blackoutSeconds; BlackoutUntilUnscaled = Mathf.Max(BlackoutUntilUnscaled, Time.unscaledTime + blackoutSeconds); }
+            allCutSeen = true; allCutWas = allCut;
             // 들어왔을 때 이미 열려 있던 것은 깜빡이지 않는다.
             if (flickerOnOpen.Length > 0 && ExplorationState.Instance != null)
             {

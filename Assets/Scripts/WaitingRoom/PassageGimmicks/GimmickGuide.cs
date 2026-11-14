@@ -27,8 +27,24 @@ namespace CurtainCall.WaitingRoom
             WaitingRoomGuidePanel.Show(WaitingRoomText.Get("guide." + id + ".title", fallbackTitle), WaitingRoomText.Get("guide." + id + ".body", fallbackBody), seconds);
         }
 
+        // 안내는 한 게임에 한 번이다. 같은 실행에서 새 게임을 시작하면(일차·세대가 되돌아가면) 다시 나온다(2026-11-15: 새 게임에서 안내가 안 나옴).
+        static (int generation, int day) lastRun; static int trackedFrame = -1;
+        static void TrackRun()
+        {
+            if (trackedFrame == Time.frameCount) return;
+            trackedFrame = Time.frameCount;
+            var run = CurtainCall.Campaign.CampaignRun.Instance;
+            if (run == null || !run.State.IsRunning) { if (lastRun != default) { shown.Clear(); lastRun = default; } return; }
+            var now = (run.State.Generation, run.State.Day);
+            if (now.Generation < lastRun.generation || (now.Generation == lastRun.generation && now.Day < lastRun.day)) shown.Clear();
+            lastRun = now;
+        }
+
         void Update()
         {
+            TrackRun();
+            // 다른 알림이 떠 있거나 연출 중이면 덮어쓰지 않고, 끝난 뒤 아직 근처에 있을 때 띄운다.
+            if (WaitingRoomGuidePanel.IsVisible || CurtainCall.Player.InputGate.IsBlocked) return;
             if (shown.Contains(guideId) || ExplorationState.Instance == null || !(ExplorationState.Instance.LocalFeet is Vector3 feet)) return;
             if (Mathf.Abs(feet.y - transform.position.y) > height || new Vector2(feet.x - transform.position.x, feet.z - transform.position.z).sqrMagnitude > radius * radius) return;
             shown.Add(guideId);

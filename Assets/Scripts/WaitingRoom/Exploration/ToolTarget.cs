@@ -157,7 +157,7 @@ namespace CurtainCall.WaitingRoom
 
         void PoseOpen(float t) { if (hinge != null) hinge.localRotation = closedRot * Quaternion.Euler(openEuler * Mathf.SmoothStep(0, 1, t)); }
 
-        void Show(string text) { if (inReach && !string.IsNullOrEmpty(text)) WaitingRoomGuidePanel.ShowAs("", text, 3.5f, RoomNotice.Guide); } // 임시 상자 대신 왼쪽 가이드 패널(2026-11-14 사용자)
+        void Show(string text) { if (inReach && !string.IsNullOrEmpty(text)) WaitingRoomGuidePanel.ShowAs("", text, 6f, RoomNotice.Guide); } // 임시 상자 대신 왼쪽 가이드 패널(2026-11-14 사용자)
         void Play(AudioClip clip) { if (sound != null && clip != null) sound.PlayOneShot(clip); }
 
         // 임시 합성음(딸깍·헛도는 소리). 실제 효과음이 정해지면 바꾼다.

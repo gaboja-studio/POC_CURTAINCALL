@@ -141,7 +141,7 @@ namespace CurtainCall.WaitingRoom
             fr.anchorMin = fr.anchorMax = fr.pivot = new Vector2(.5f, .5f); fr.sizeDelta = new Vector2(w + 6, h + 6);
             var screen = Box(frame, "Terminal", new Color32(4, 12, 6, 250)); Place((RectTransform)screen, 3, -3, w, h);
             var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
-            var title = Text(screen, "Title", heading + " :: " + WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed"), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
+            var title = Text(screen, "Title", heading + " :: " + (feed != null ? WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed") : WaitingRoomText.Get("gate.terminal-title", "door_override.bat")), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
             Place((RectTransform)Box(screen, "Rule", TerminalGreen), 28, -58, w - 56, 2);
             if (feed != null)
             {
@@ -188,6 +188,8 @@ namespace CurtainCall.WaitingRoom
             message.text = terminal && text == ExplorationState.WrongCode ? WaitingRoomText.Get("gate.terminal-error", "Error") : text;
         }
         public void Hide() { if (canvasRoot != null) canvasRoot.SetActive(false); submit = null; close = null; }
+        /// <summary>창을 닫지 않고 잠시 가리거나 다시 보인다(연출이 화면을 쓰는 동안).</summary>
+        public void SetVisible(bool visible) { if (canvasRoot != null && canvasRoot.activeSelf != visible) canvasRoot.SetActive(visible); }
         void OnDisable() => Hide();
         void OnDestroy() { if (canvasRoot != null) Destroy(canvasRoot); }
         static TMP_Text Text(Transform parent, string name, string value, TMP_FontAsset font, float size, float x, float y, float w, float h)

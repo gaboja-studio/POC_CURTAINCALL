@@ -68,6 +68,8 @@ namespace CurtainCall.WaitingRoom
             var state = ExplorationState.Instance;
             if (state == null || !state.StateReady) return; // 판정 화면의 상태를 받은 뒤부터 본다(늦게 들어온 화면에서 다시 재생되지 않게)
             bool jammed = Open(jammedId), cut = Open(cableId);
+            // 리허설 뒤 첫 공연을 마치기 전에는 문이 닫혀 있어 숙소에 들어갈 수 없다(2026-11-15 사용자). 이벤트는 그 뒤부터.
+            bool sealedBefore = WaitingRoomRehearsal.IsPreTutorialRestricted;
 
             // 판정 화면: 첫 공연 전 동선 제한이 풀린 뒤, 누군가 입구 통로에 들어서면 닫는다.
             if (!jammed && !WaitingRoomRehearsal.IsPreTutorialRestricted)
@@ -84,11 +86,11 @@ namespace CurtainCall.WaitingRoom
 
             // 들어왔을 때 이미 닫혀 있었다면 연출 없이 그 상태로 둔다.
             if (seen && jammed && !wasJammed && !cut && !playing) StartCoroutine(Play());
-            if (!seen) closedAmount = jammed && !cut ? 1f : 0f;
+            if (!seen) closedAmount = sealedBefore || (jammed && !cut) ? 1f : 0f;
             seen = true; wasJammed = jammed;
 
             if (cut && cutSeenAt < 0f) cutSeenAt = Time.unscaledTime - (playing || closedAmount > .5f ? 0f : 10f);
-            if (!playing) closedAmount = Mathf.MoveTowards(closedAmount, jammed && !cut ? 1f : 0f, Time.deltaTime / 1.2f);
+            if (!playing) closedAmount = Mathf.MoveTowards(closedAmount, sealedBefore || (jammed && !cut) ? 1f : 0f, Time.deltaTime / 1.2f);
             ApplyDoor();
 
             // 절단기: 문이 닫히기 전에는 세워 둔 모습만, 넘어진 뒤부터 실제 장치, 문이 열리고 잠시 뒤 부서져 사라진다.

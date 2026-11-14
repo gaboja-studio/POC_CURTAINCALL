@@ -8,7 +8,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 발견 튜토리얼 연출(2026-11-14 사용자: 숙소 녹슨 문). 누군가 대상 가까이에 처음 다가가면 한 번 재생한다.
+    /// 발견 튜토리얼 연출(2026-11-14 사용자: 숙소 녹슨 벽). 누군가 대상 가까이에 처음 다가가면 한 번 재생한다.
     /// 순서: 조작 잠금 + 추격자·탐색 제한 시간 정지 → 카메라가 대상을 가까이 비춤 → 화면 위 시스템 알림 → 내 시점으로 복귀 → 잠금·정지 해제.
     /// 발견 여부(<see cref="seenId"/>)는 탐색 장부로 공유되고, 모든 화면이 같은 순간에 재생한다. 들어왔을 때 이미 발견돼 있으면 재생하지 않는다.
     /// </summary>
@@ -23,8 +23,8 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.5f)] float seconds = 4.5f;
         [SerializeField, Min(.1f)] float enterSeconds = .5f, returnSeconds = .8f;
         [SerializeField] string textKey = "cutscene.rust-door";
-        [SerializeField] string title = "녹슨 문";
-        [SerializeField, TextArea] string message = "녹이 슨 문은 부숴서 열 수 있습니다. F키를 눌러 상호작용하세요. 도구가 있으면 더 빠르게 부술 수 있습니다.";
+        [SerializeField] string title = "상호작용 가능한 기물";
+        [SerializeField, TextArea] string message = "상호작용 가능한 기물이 존재합니다. 맨몸, 혹은 적합한 도구를 선택한 후 F를 눌러 대상에 상호작용하세요.";
 
         bool seen, was, playing;
 

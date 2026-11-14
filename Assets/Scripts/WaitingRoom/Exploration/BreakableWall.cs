@@ -64,7 +64,19 @@ namespace CurtainCall.WaitingRoom
 
         public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
         public bool HideOutline => !showOutline;
-        public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
+        // F 안내 자리: 벽 한가운데(벽 속)로 잡으면 화면에서 그 자리까지의 시선이 벽 자신의 충돌체에 막혀 안내·게이지가 뜨지 않았다(2026-11-15).
+        // 보는 사람 쪽 벽면 바로 앞으로 잡는다.
+        public Vector3 PresentationPoint
+        {
+            get
+            {
+                var point = transform.position + Vector3.up * 1.6f;
+                var cam = Camera.main;
+                if (cam == null) return point;
+                float half = blocker is BoxCollider box ? box.size.z * Mathf.Abs(transform.lossyScale.z) * .5f : .25f;
+                return point + transform.forward * ((Vector3.Dot(cam.transform.position - point, transform.forward) >= 0f ? 1f : -1f) * (half + .12f));
+            }
+        }
         public bool IsAvailable => !Opened;
         public string ActionLabel
         {
@@ -120,10 +132,19 @@ namespace CurtainCall.WaitingRoom
         {
             ExplorationTargets.Remove(this);
             ShopReach.Remove(this);
-            if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Show;
+            if (listening != null) { listening.RequestAnswered -= Show; listening = null; }
         }
 
-        void Start() { if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered += Show; }
+        // 탐색 상태가 나중에 생겨도(접속 직후) 결과 문구를 받도록 Update에서 연결한다.
+        ExplorationState listening;
+        void Listen()
+        {
+            var state = ExplorationState.Instance;
+            if (state == listening) return;
+            if (listening != null) listening.RequestAnswered -= Show;
+            listening = state;
+            if (listening != null) listening.RequestAnswered += Show;
+        }
 
         public float Reach(Vector3 feet, Component actor = null)
         {
@@ -139,7 +160,7 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
-            ShopReach.Pump();
+            ShopReach.Pump(); Listen();
             inReach = ShopReach.Focused == (IShopTarget)this;
             if (inReach) reachedAt = Time.unscaledTime;
             int hits = Hits; bool open = Opened;
@@ -238,7 +259,7 @@ namespace CurtainCall.WaitingRoom
             if (Time.unscaledTime - reachedAt > 1f || string.IsNullOrEmpty(text)) return;
             // 화면 가운데 임시 상자 대신 왼쪽 가이드 패널에 띄운다(2026-11-14 사용자). 치는 중의 n/전체는 F 안내에 이미 나온다.
             if (ExplorationState.Instance != null && ExplorationState.Instance.LastWasProgress) return;
-            WaitingRoomGuidePanel.ShowAs("", text, 3.5f, RoomNotice.Guide);
+            WaitingRoomGuidePanel.ShowAs("", text, 6f, RoomNotice.Guide);
         }
 
         void Play(AudioClip clip) { if (sound != null && clip != null) sound.PlayOneShot(clip); }
