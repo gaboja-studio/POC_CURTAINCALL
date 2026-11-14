@@ -254,7 +254,7 @@ namespace CurtainCall.WaitingRoom
             // 공연 대포는 앞 7.1·위 12m/s다(포구 u -12.5, 높이 2m). 꼭대기는 u -3.8(높이 약 9.3m),
             // 그네를 잡지 않으면 발판 높이(2.5m)에 u 4.5쯤 떨어진다. 그네·발판을 이 탄도에 맞췄다(초안, 플레이 확인 필요).
             poles.Add(Pole(parent, "Cannon_Swing", -4.1f, -12.5f, 7.8f, Vector3.right));
-            Floor(parent, "Cannon_Middle", -2f, 2.5f, -16f, -9f);
+            // 가운데 두 번째 발판은 두지 않는다(2026-11-15 사용자: 대포·트램펄린·공중 그네·마지막 발판만).
             Floor(parent, "Cannon_Finish", 3.5f, 11.5f, -16.5f, -8.5f);
             Stair(parent, "Cannon_FinishStair", 11.5f, -10.5f, new Vector3(1, 0, 0));
             return stations;

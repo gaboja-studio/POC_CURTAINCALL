@@ -115,6 +115,9 @@ namespace CurtainCall.WaitingRoom
                     string ch = rows[r][c].ToString();
                     Key(screen, "Key" + ch, ch, font, indent[r] + c * (key + gap), -262 - r * (56 + gap), key, 56, () => PressKey(ch));
                 }
+            // 한 글자 지우기(2026-11-15 사용자: 모두 지우기만 있었다). 셋째 줄 끝, 모두 지우기 바로 위.
+            typed = "";
+            Key(screen, "Back", WaitingRoomText.Get("gate.terminal-back", "DEL"), font, 789, -262 - 2 * (56 + gap), 83, 56, Backspace);
             Key(screen, "Clear", WaitingRoomText.Get("gate.terminal-clear", "CLR"), font, 700, -262 - 3 * (56 + gap), 172, 56, ClearCode);
             Key(screen, "Submit", WaitingRoomText.Get("gate.terminal-submit", "ENTER"), font, 28, -h + 76, 300, 56, SubmitCode);
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
@@ -160,14 +163,25 @@ namespace CurtainCall.WaitingRoom
         {
             if (key == null || key.Length != 1) return;
             if (key[0] >= '0' && key[0] <= '9') PressDigit(key);
-            else if (terminal && key[0] >= 'A' && key[0] <= 'Z' && word.Length < MaxWord) { word += key; SetMessage(""); RefreshCode(); }
+            else if (terminal && key[0] >= 'A' && key[0] <= 'Z' && word.Length < MaxWord) { word += key; typed += 'w'; SetMessage(""); RefreshCode(); }
         }
         public void PressDigit(string digit)
         {
             if (digit == null || digit.Length != 1 || digit[0] < '0' || digit[0] > '9' || entered.Length >= codeLength) return;
-            entered += digit; if (terminal) SetMessage(""); RefreshCode();
+            entered += digit; typed += 'd'; if (terminal) SetMessage(""); RefreshCode();
         }
-        public void ClearCode() { entered = ""; word = ""; RefreshCode(); }
+        public void ClearCode() { entered = ""; word = ""; typed = ""; RefreshCode(); }
+        // 마지막에 누른 한 글자를 지운다(숫자 칸·글자 칸 중 마지막으로 친 쪽).
+        string typed = "";
+        public void Backspace()
+        {
+            bool wordLast = typed.Length > 0 ? typed[typed.Length - 1] == 'w' : word.Length > 0;
+            if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1);
+            if (wordLast && word.Length > 0) word = word.Substring(0, word.Length - 1);
+            else if (entered.Length > 0) entered = entered.Substring(0, entered.Length - 1);
+            else if (word.Length > 0) word = word.Substring(0, word.Length - 1);
+            RefreshCode();
+        }
         public void SubmitCode()
         {
             if (!terminal) { if (ExplorationPuzzleRules.IsFourDigits(entered)) submit?.Invoke(entered); return; }

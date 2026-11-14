@@ -42,6 +42,8 @@ namespace CurtainCall.Player
         public PlayerInputFrame Current { get; private set; }
         /// <summary>상호작용 패널을 닫을 때도 사용자가 바꾼 공통 키 매핑을 따른다.</summary>
         public bool WasPressedThisFrame(string actionName) => commonMap?.FindAction(actionName, false)?.WasPressedThisFrame() == true;
+        /// <summary>그 행동의 키를 지금 누르고 있는가(창을 띄운 동안 길게 누르기 판정용).</summary>
+        public bool IsPressed(string actionName) => commonMap?.FindAction(actionName, false)?.IsPressed() == true;
 
         public string BindingLabel(string actionName, string fallback)
         {

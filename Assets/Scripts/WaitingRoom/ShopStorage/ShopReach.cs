@@ -42,6 +42,13 @@ namespace CurtainCall.WaitingRoom
     /// 내 캐릭터 기준 상점 상호작용 선택. 수화기 바로 아래에 배송구가 있어 둘 다 닿으므로, 가장 가까운 대상 하나에만 F를 준다.
     /// 접속 중이면 <see cref="NetworkPlayer.Local"/>, 접속하지 않은 씬 확인에서는 씬에 놓인 플레이어를 쓴다.
     /// </summary>
+    /// <summary>F를 길게 눌러 쓰는 기능이 따로 있는 대상(2026-11-15: 숙소 TV의 테이프 꺼내기).</summary>
+    public interface IShopHoldTarget
+    {
+        bool WantsHold { get; }
+        void HoldInteract();
+    }
+
     public static class ShopReach
     {
         static readonly List<IShopTarget> targets = new();
@@ -153,6 +160,12 @@ namespace CurtainCall.WaitingRoom
                         reader.GetComponent<HumanoidPlayerPresentation>()?.RequestItemMotion(MotionKind(Focused), presentation.PresentationPoint, PolicyKind(Focused));
                 }
                 Focused.Interact();
+            }
+            // 길게 눌러 쓰는 대상(숙소 TV의 테이프 꺼내기) 앞에서는 길게 누르기가 기물 내려놓기 대신 그 대상으로 간다.
+            if (reader.Current.InteractLongPressed && Focused is IShopHoldTarget hold && hold.WantsHold)
+            {
+                if (CommonInteractionSelection.Consume(reader, CommonInteractionSelection.Selected(reader) is IShopTarget ? Focused : CommonInteractionSelection.Idle)) hold.HoldInteract();
+                return;
             }
             if (reader.Current.InteractLongPressed
                 && CommonInteractionSelection.Consume(reader, CommonInteractionSelection.Selected(reader) is IShopTarget ? Focused : CommonInteractionSelection.Idle)) LongPressed?.Invoke();

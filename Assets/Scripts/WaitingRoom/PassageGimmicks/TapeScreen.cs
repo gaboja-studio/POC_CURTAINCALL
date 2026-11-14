@@ -1,4 +1,6 @@
+using CurtainCall.Player;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Video;
 
 namespace CurtainCall.WaitingRoom
@@ -32,10 +34,73 @@ namespace CurtainCall.WaitingRoom
             Apply(false);
         }
 
+        // ---- 화면 들여다보기(2026-11-15 사용자) ----
+        // 켜진 TV에 F를 짧게 누르면 기계실 모니터처럼 화면을 가까이서 본다(내 화면에서만, 아래에 설명 판).
+        // 다시 F를 짧게 누르거나 ESC면 닫힌다. F를 길게 누르면 테이프를 꺼낸다. 누가 테이프를 꺼내면 보던 사람의 화면도 닫힌다.
+        [Header("들여다보기")]
+        [SerializeField] string viewTitle = "낡은 TV";
+        [SerializeField, TextArea] string viewText = "화면이 지직거린다.\nF를 꾹 눌러서 비디오 테이프 꺼내기";
+        [Tooltip("테이프를 꺼내려면 F를 누르고 있어야 하는 시간(초).")]
+        [SerializeField, Min(.2f)] float removeHoldSeconds = .8f;
+        ExplorationGate viewGate; Camera lookCamera; ExplorationPanel panel; UIInputBlocker blocker;
+        bool waitRelease; float heldFor;
+        public bool Viewing => viewGate != null;
+
+        public void Open(ExplorationGate gate)
+        {
+            var main = Camera.main;
+            if (Viewing || gate == null || screen == null || main == null || !playing) return;
+            viewGate = gate; waitRelease = true; heldFor = 0f;
+            var b = screen.bounds; Vector3 outward = -screen.transform.forward;
+            float distance = b.size.y * .5f / Mathf.Tan(main.fieldOfView * .5f * Mathf.Deg2Rad) / .6f;
+            lookCamera = new GameObject("TvLookCamera").AddComponent<Camera>();
+            lookCamera.CopyFrom(main); lookCamera.targetTexture = null; lookCamera.depth = main.depth + 10; lookCamera.useOcclusionCulling = false;
+            lookCamera.nearClipPlane = Mathf.Max(.03f, distance - .25f);
+            // 아래쪽 설명 판에 가리지 않게 화면을 조금 위쪽에 둔다.
+            lookCamera.transform.SetPositionAndRotation(b.center + outward * distance + Vector3.down * (b.size.y * .28f), Quaternion.LookRotation(-outward, Vector3.up));
+            if (blocker == null) { blocker = gameObject.AddComponent<UIInputBlocker>(); blocker.BlockWhileActive = false; }
+            blocker.SetOpen(true);
+            if (panel == null) panel = gameObject.AddComponent<ExplorationPanel>();
+            panel.Open(WaitingRoomText.Get("target." + openedBy + ".name", viewTitle), WaitingRoomText.Get("target." + openedBy + ".view-text", viewText).Replace("\\n", "\n"), false, null, Close, true);
+        }
+
+        public void Close()
+        {
+            if (!Viewing) return;
+            viewGate = null;
+            if (lookCamera != null) { Destroy(lookCamera.gameObject); lookCamera = null; }
+            if (panel != null) panel.Hide();
+            if (blocker != null) blocker.SetOpen(false);
+        }
+
+        void TickView()
+        {
+            // 누가 테이프를 꺼냈으면(화면이 꺼지면) 강제로 닫는다.
+            if (!playing) { Close(); return; }
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) { Close(); return; }
+            var local = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+            var reader = local != null ? local.GetComponent<PlayerInputReader>() : OfflineLocalPlayer.Reader;
+            if (reader == null) return;
+            bool pressed = reader.IsPressed("Interact");
+            if (waitRelease) { if (!pressed) waitRelease = false; return; } // 화면을 연 그 입력은 넘긴다
+            if (pressed)
+            {
+                heldFor += Time.unscaledDeltaTime;
+                if (heldFor >= removeHoldSeconds) { var gate = viewGate; Close(); gate.HoldInteract(); }
+            }
+            else
+            {
+                // 짧게 눌렀다 뗐으면 닫는다.
+                if (heldFor > 0f) Close();
+                heldFor = 0f;
+            }
+        }
+
         void Update()
         {
             bool on = ExplorationGate.IsAnyOpen(openedBy);
             if (on != playing) Apply(on);
+            if (Viewing) TickView();
             if (!playing || clip != null || playMaterial == null || Time.unscaledTime < nextNoise) return;
             // 노이즈: 무늬를 매번 다른 자리로 옮겨 지직거리게 한다.
             nextNoise = Time.unscaledTime + .05f;
@@ -85,6 +150,8 @@ namespace CurtainCall.WaitingRoom
             }
             screen.sharedMaterial = playMaterial;
         }
+
+        void OnDisable() => Close();
 
         void OnDestroy()
         {

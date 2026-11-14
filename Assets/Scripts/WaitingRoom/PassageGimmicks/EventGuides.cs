@@ -43,7 +43,7 @@ namespace CurtainCall.WaitingRoom
                 }
                 foreach (var area in craftAreas)
                     if (area != null && area.bounds.Contains(feet + Vector3.up * .5f))
-                    { GimmickGuide.ShowOnce("power-circuit", "잠긴 문", "전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요."); break; }
+                    { GimmickGuide.ShowOnce("power-circuit", "잠긴 문", "잠긴 문을 열린 채로 유지하려면 전력을 끊어 문을 고장내거나, 배터리를 삽입해야 합니다."); break; }
             }
             if (practiceArea == null) { var area = GameObject.Find("Area_S09_PracticeRoom"); practiceArea = area != null ? area.GetComponent<Collider>() : null; if (practiceArea == null) return; }
             bool inside = practiceArea.bounds.Contains(feet + Vector3.up * .5f);

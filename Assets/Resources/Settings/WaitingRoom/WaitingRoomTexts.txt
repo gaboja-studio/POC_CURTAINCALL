@@ -78,6 +78,7 @@ gate.terminal-code | DATE
 gate.terminal-word | CMD
 gate.terminal-error | Error
 gate.terminal-clear | CLR
+gate.terminal-back | DEL
 gate.terminal-submit | ENTER
 gate.terminal-close | EXIT
 
@@ -736,7 +737,7 @@ shop.craft-rooms-locked | 작업실과 소품실을 개방하지 않아 구매�
 guide.power-door.title | 잠긴 문
 guide.power-door.body | 잠긴 문을 열려면 전력이 필요합니다. 전력을 공급할 도구를 찾아보세요.
 guide.power-circuit.title | 잠긴 문
-guide.power-circuit.body | 전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요.
+guide.power-circuit.body | 잠긴 문을 열린 채로 유지하려면 전력을 끊어 문을 고장내거나, 배터리를 삽입해야 합니다.
 target.learning:craft-socket.name | 동력 소켓
 target.learning:craft-socket.hint | 전력이 부족합니다. 동력원을 찾아 연결하세요.
 target.learning:craft-pipebox.name | 배관함
@@ -755,6 +756,8 @@ target.dorm:tv.name | 낡은 TV
 target.dorm:tv.hint | 재생할 테이프가 필요할 것 같다.
 target.dorm:tv.insert | {label} — {tool} 넣기
 target.dorm:tv.remove | {label} — {tool} 꺼내기
+target.dorm:tv.view | {label} — 화면 보기
+target.dorm:tv.view-text | 화면이 지직거린다.\nF를 꾹 눌러서 비디오 테이프 꺼내기
 target.dorm:tv.in | {tool:을} 넣었습니다. 화면이 켜집니다.
 target.dorm:tv.out | {tool:을} 꺼냈습니다.
 

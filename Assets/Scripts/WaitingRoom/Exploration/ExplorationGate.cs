@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom
     public enum ExplorationGateKind { Open, Monitor, Keypad, Cooperative, Breakable }
 
     /// <summary>F 공통 대상. 열쇠/단서/패드 등 선행 대상의 열린 상태를 조건으로 사용한다.</summary>
-    public sealed class ExplorationGate : MonoBehaviour, IBareHandTarget, IShopTarget, IShopPresentation
+    public sealed class ExplorationGate : MonoBehaviour, IShopHoldTarget, IBareHandTarget, IShopTarget, IShopPresentation
     {
         [SerializeField] string targetId = "gate";
         [SerializeField] string label = "조사";
@@ -193,7 +193,11 @@ namespace CurtainCall.WaitingRoom
         // 꽂기·빼기 문구는 대상마다 바꿀 수 있다(문구 파일 target.<ID>.insert / .remove. 예: TV에 테이프 넣기).
         string SocketText(string action, string common, string fallback) => WaitingRoomText.Format(
             WaitingRoomText.Has("target." + targetId + "." + action) ? "target." + targetId + "." + action : common, fallback, ("label", Label), ("tool", ToolName));
-        public string ActionLabel => IsSocket && ConditionsMet ? (Opened ? SocketText("remove", "gate.socket-remove", "{label} — {tool} 빼기")
+        [Tooltip("소켓에 물건이 들어 있는 동안 F로 들여다보는 화면(숙소 TV). 있으면 짧게 누르기는 화면 보기, 길게 누르기는 꺼내기가 된다.")]
+        [SerializeField] TapeScreen socketView;
+        public bool WantsHold => IsSocket && socketView != null && Opened && ConditionsMet && !Retired;
+        public void HoldInteract() { if (WantsHold && ExplorationState.Instance != null) ExplorationState.Instance.RequestUse(targetId); }
+        public string ActionLabel => IsSocket && ConditionsMet ? (Opened ? (socketView != null ? SocketText("view", "gate.socket-view", "{label} — 화면 보기") : SocketText("remove", "gate.socket-remove", "{label} — {tool} 빼기"))
                 : ExplorationTargets.LocalHolds(toolId) ? SocketText("insert", "gate.socket-insert", "{label} — {tool} 꽂기")
                 : Label + " — " + ExplorationTargets.Hint(this))
             : !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
@@ -246,6 +250,8 @@ namespace CurtainCall.WaitingRoom
         public void Interact()
         {
             if (!ConditionsMet || ExplorationState.Instance == null || !LocalCanUsePanel) return;
+            // 켜진 TV: 짧게 누르면 화면을 들여다본다. 테이프는 길게 눌러야 꺼낸다(2026-11-15 사용자).
+            if (WantsHold) { socketView.Open(this); return; }
             if (NeedsPassword || kind == ExplorationGateKind.Monitor)
             {
                 // 문구 창을 F로 닫은 그 입력이 곧바로 창을 다시 열던 것을 막는다(2026-11-15 사용자: 닫아도 문구가 다시 나옴).

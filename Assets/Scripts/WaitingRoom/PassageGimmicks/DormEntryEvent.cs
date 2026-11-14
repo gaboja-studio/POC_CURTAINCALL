@@ -89,13 +89,24 @@ namespace CurtainCall.WaitingRoom
             if (!seen) closedAmount = sealedBefore || (jammed && !cut) ? 1f : 0f;
             seen = true; wasJammed = jammed;
 
-            if (cut && cutSeenAt < 0f) cutSeenAt = Time.unscaledTime - (playing || closedAmount > .5f ? 0f : 10f);
+            if (cut && cutSeenAt < 0f)
+            {
+                bool witnessed = playing || closedAmount > .5f; // 들어왔을 때 이미 끊겨 있던 경우는 알리지 않는다
+                cutSeenAt = Time.unscaledTime - (witnessed ? 0f : 10f);
+                announceBroken = witnessed;
+            }
             if (!playing) closedAmount = Mathf.MoveTowards(closedAmount, sealedBefore || (jammed && !cut) ? 1f : 0f, Time.deltaTime / 1.2f);
             ApplyDoor();
 
             // 절단기: 문이 닫히기 전에는 세워 둔 모습만, 넘어진 뒤부터 실제 장치, 문이 열리고 잠시 뒤 부서져 사라진다.
             bool broken = cut && cutSeenAt >= 0f && Time.unscaledTime - cutSeenAt > 1.5f;
             if (saw != null) saw.Suppressed = !jammed || falling || broken;
+            // 절단기가 부서져 사라질 때 기존 기물 파괴 알림을 한 번 띄운다(2026-11-15 사용자).
+            if (broken && announceBroken)
+            {
+                announceBroken = false;
+                WaitingRoomItemBrokenNotice.Show(WaitingRoomText.Get("cutscene.dorm-door.saw-name", "녹슨 휴대 절단기"));
+            }
             if (standingSaw != null)
             {
                 bool show = (!jammed || falling) && !cut;
@@ -172,7 +183,7 @@ namespace CurtainCall.WaitingRoom
             InputGate.SetBlocking(this, false);
             playing = false;
         }
-        bool noticeShown;
+        bool noticeShown, announceBroken;
 
         void OnDisable()
         {
