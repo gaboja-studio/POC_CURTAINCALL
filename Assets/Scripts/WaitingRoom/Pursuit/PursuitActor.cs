@@ -28,6 +28,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public GameObject ChasedPlayer => remote ? remoteTarget : target != null ? target.gameObject : null;
         GameObject remoteTarget;
         NavMeshAgent agent;
+        bool cutsceneHeld;
         PursuitDirector director;
         Transform target;
         float unseen, repathAt;
@@ -180,6 +181,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             // 다음 Legacy Animation 평가에 전 프레임 IK가 누적되지 않도록 되돌린다.
             climbIk?.Restore();
             SyncClimbClip();
+            // 연출 중(나가는 길 개방)에는 제자리에 멈춘다. 끝나면 다시 움직인다.
+            bool hold = !remote && PursuitDirector.CutsceneHold;
+            if (hold != cutsceneHeld && agent != null && agent.enabled && agent.isOnNavMesh) { agent.isStopped = hold; if (hold) agent.velocity = Vector3.zero; cutsceneHeld = hold; }
             if (remote) {
                 if (poseBuffer.Sample(Time.unscaledDeltaTime, out var p, out var q)) { remotePosition = p; remoteRotation = q; }
                 // A delayed burst can never trigger the old 3m teleport. ResetActor is the explicit warp path.

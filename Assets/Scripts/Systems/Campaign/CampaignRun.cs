@@ -107,6 +107,13 @@ namespace CurtainCall.Campaign
             Instance = null;
         }
 
+        /// <summary>연출 중에는 탐색 제한 시간이 멈춘다(2026-11-14 사용자: 모든 연출). 같은 연출을 재생하는 각 화면이 스스로 걸고, 판정은 호스트 화면의 정지를 따른다.</summary>
+        static float clockHeldUntil;
+        public static bool ClockHeld => Time.unscaledTime < clockHeldUntil;
+        public static void HoldClock(float seconds) => clockHeldUntil = Mathf.Max(clockHeldUntil, Time.unscaledTime + seconds);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetClockHold() => clockHeldUntil = 0f;
+
         void Update()
         {
             if (host != null)
@@ -115,10 +122,10 @@ namespace CurtainCall.Campaign
                 bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
                     || state.Phase == CampaignPhase.DemoEnding) && RefreshNight(host);
                 if (host.IsGuideRestWaiting) changed |= host.RefreshGuideRest(Players());
-                changed |= host.Tick(Time.deltaTime, Expired);
+                changed |= host.Tick(ClockHeld ? 0f : Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
             }
-            else if (state.Timer == RestTimerState.Running && state.TimeRemaining > 0f)
+            else if (state.Timer == RestTimerState.Running && state.TimeRemaining > 0f && !ClockHeld)
             {
                 // 받는 쪽은 다음 상태가 올 때까지 화면 표시만 줄인다(판정은 호스트).
                 state.TimeRemaining = Mathf.Max(0f, state.TimeRemaining - Time.deltaTime);

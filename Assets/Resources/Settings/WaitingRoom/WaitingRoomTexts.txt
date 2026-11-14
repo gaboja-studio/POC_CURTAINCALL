@@ -91,6 +91,7 @@ tool.needs-tool | {label} — {hint}
 tool.pick-lock | {tool:으로} 자물쇠 따기
 tool.pick-lock-attempt | {tool:으로} 자물쇠 따기 (시도 {n})
 tool.pry | {tool:으로} 뜯기
+tool.pry-bare-hold | 맨몸으로 뜯기
 # 결과 알림
 tool.pried-open | {label:을} 뜯어 열었습니다.
 tool.lock-opened | 딸깍 — {label}의 자물쇠가 열렸습니다.
@@ -100,6 +101,7 @@ tool.lock-failed | 자물쇠가 헛돌았습니다. (시도 {n})
 # [F] 문구 ({label} = 벽 이름, {tool} = 도구 이름, {hint} = 도구 힌트, {n} = 지금까지 친 횟수, {total} = 필요한 횟수)
 wall.collapsed | 무너진 벽
 wall.strike | {tool:으로} 내려치기 ({n}/{total})
+wall.strike-bare-hold | 맨몸으로 내려치기
 wall.needs-tool | {label} — {hint} ({n}/{total})
 # 결과 알림
 wall.broken | {label:이} 무너졌습니다.
@@ -428,7 +430,7 @@ target.structure-a:cabinet-2.name | 캐비넷 2
 target.structure-a:cabinet-3.name | 캐비넷 3
 target.structure-a:locked-box-1.name | 자물쇠가 걸린 트렁크
 target.structure-a:locked-box-2.name | 잠긴 상자 2
-target.structure-a:management-drawer.name | 관리실 서랍
+target.structure-a:management-drawer.name | 낡은 서랍
 target.trial-boarded-crate.name | 판자가 뜯어진 상자
 
 # 부술 수 있는 벽
@@ -438,7 +440,8 @@ target.structure-a:machine-pipe-box.name | 배관함
 # 단서 (집어 들고 보는 노트·낙서·지도)
 # target.<id>.desc = 단서를 들고 볼 때 아래에 나오는 설명. 설명 줄이 없는 단서도 같은 형식으로 줄을 넣으면 표시됩니다.
 target.structure-a:confiscated-notebook.name | 압수된 노트
-# 압수된 노트: 설명은 비워 둔다. 오버뷰에서 뒷면 구석의 새김 글자를 마주 보면 아래 문구가 설명에 더해진다.
+# 압수된 노트: 오버뷰에서 뒷면 구석의 새김 글자를 마주 보면 .secret 문구가 설명에 더해진다.
+target.structure-a:confiscated-notebook.desc | 누군가 작성하던 일기. 낱장이 잔뜩 뜯겨나가 있는 볼품없는 모습이다.
 target.structure-a:confiscated-notebook.secret | 노트 구석에 "34"라는 숫자가 새겨져 있다.
 target.structure-a:graffiti-1.name | 벽의 낙서 1
 target.structure-a:graffiti-2.name | 벽의 낙서 2
@@ -700,7 +703,7 @@ target.final:broken-laptop.name | 망가진 노트북
 target.final:broken-laptop.desc | 누군가 사용하던 노트북. 지금은 작동하지 않는다. 먼 옛날, 한 기술자가 노트북을 찾아내 수리했고 시설 관리 프로그램을 해킹했다. 다행히도 시설의 관리인들은 이 사실을 모른다.
 target.final:broken-laptop.secret | 뒤에 붙은 낡은 포스트잇: 20240912 / RUN
 target.final:water-bottle.name | 물병
-target.final:water-bottle.desc | 누군가 사용하던 물병. 안에 공연 토큰 100원이 들었음.
+target.final:water-bottle.desc | 누군가 사용하던 물병. 안에는 검정색 얼룩이 가득하다.
 target.final:old-costume.name | 낡은 곰인형 옷
 target.final:old-costume.desc | 이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.
 target.final:old-costume-rabbit.name | 낡은 토끼 인형 옷
@@ -710,12 +713,66 @@ target.final:old-costume-pierrot.desc | 이전 세대 공연자가 사용하던 
 target.final:old-costume-doll.name | 낡은 인형 옷
 target.final:old-costume-doll.desc | 이전 세대 공연자가 사용하던 코스튬. 왼팔이 없다. 희미한 잉크 자국이 남아 있다.
 target.final:torn-note-1.name | 찢겨진 노트 낱장
+target.final:torn-note-1.desc | 누군가 쓴 일기. 얼룩이 번져있다. 낙서가 가득하다.
 target.final:torn-note-2.name | 찢겨진 노트 낱장
+target.final:torn-note-2.desc | 누군가 쓴 일기. 고심한 흔적이 보인다.
 target.final:torn-note-3.name | 찢겨진 노트 낱장
+target.final:torn-note-3.desc | 누군가 쓴 일기. 글자가 마구잡이로 적혀 있다.
 target.final:torn-note-4.name | 찢겨진 노트 낱장
+target.final:torn-note-4.desc | 누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.
 gate.terminal-feed-title | cam_exit.feed
 gate.terminal-feed-open | > 탈출로 문 : 열림
 gate.terminal-feed-locked | > 잠금 해제 완료 · 문에 전력이 남아 있음
 
 # 맨몸 부수기: 도구 없이 칠 때 F 안내 뒤에 붙는 말(2026-11-13)
-prompt.bare-hold | 꾹 누르기
+prompt.bare-hold | F를 길게 눌러 물건 부수기
+
+# 탐색 학습용 기물(2026-11-13, Task-126)
+target.final:post-it.name | 떨어진 포스트잇
+target.final:post-it.desc | 바닥에 떨어진 포스트잇 낱장. 짧은 메모가 적혀 있다.
+gate.socket-insert | {label} — {tool} 꽂기
+gate.socket-remove | {label} — {tool} 빼기
+explore.socket-in | {tool:을} 꽂았습니다.
+explore.socket-out | {tool:을} 뺐습니다.
+shop.craft-rooms-locked | 작업실과 소품실을 개방하지 않아 구매할 수 없습니다.
+guide.power-door.title | 잠긴 문
+guide.power-door.body | 잠긴 문을 열려면 전력이 필요합니다. 전력을 공급할 도구를 찾아보세요.
+guide.power-circuit.title | 잠긴 문
+guide.power-circuit.body | 전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요.
+target.learning:craft-socket.name | 동력 소켓
+target.learning:craft-socket.hint | 전력이 부족합니다. 동력원을 찾아 연결하세요.
+target.learning:craft-pipebox.name | 배관함
+target.learning:craft-circuit.name | 회로
+
+# 환풍구 안내·키 카드 복제본(2026-11-14)
+guide.vent-crouch.title | 좁은 통로
+guide.vent-crouch.body | 좁은 곳에서는 Ctrl키로 앉아서 이동하세요.
+target.final:keycard-overview.name | 키 카드 복제본
+target.final:keycard-overview.desc | 누군가 복제한 관리실의 키 카드. 관리실의 문을 열 수 있다. 공연 준비자들은 탈출하려 했고, 실패했다. 동료들이 끌려가던 순간, 한 명이 키 카드를 캐비넷에 밀어 넣었다. 부디 다른 사람이 찾아낼 수 있기를.
+
+
+# 숙소 TV와 비디오 테이프(2026-11-14)
+item.video-tape.name | 비디오 테이프
+target.dorm:tv.name | 낡은 TV
+target.dorm:tv.hint | 재생할 테이프가 필요할 것 같다.
+target.dorm:tv.insert | {label} — {tool} 넣기
+target.dorm:tv.remove | {label} — {tool} 꺼내기
+target.dorm:tv.in | {tool:을} 넣었습니다. 화면이 켜집니다.
+target.dorm:tv.out | {tool:을} 꺼냈습니다.
+
+# 튜토리얼 안내(2026-11-14, 문구 초안). 자리 앞에 처음 갔을 때 또는 상황이 처음 생겼을 때 한 번 뜹니다.
+guide.rust-door.title | 녹슨 문
+guide.rust-door.body | 녹슨 문과 벽은 약해져 있습니다. F를 길게 눌러 부술 수 있습니다.
+guide.practice.title | 연습실
+guide.practice.body | 연습실에서 자유롭게 공연을 연습할 수 있습니다.
+guide.pursuer.title | 추격자
+guide.pursuer.body | 시간이 지나면 추격자가 나타납니다. 추격자를 피해 공연장까지 가야 합니다.
+
+
+# 나가는 길 개방 연출(2026-11-14). 화면 위 시스템 알림.
+cutscene.escape-open.title | 나가는 길
+cutscene.escape-open.body | 나가는 길이 개방되었습니다. 서커스장에서 탈출하세요.
+
+# 숙소 입구 이벤트(2026-11-14). 화면 위 시스템 알림.
+cutscene.dorm-door.title | 잠긴 문
+cutscene.dorm-door.body | 절단기를 이용해 배선을 끊어 숙소 문을 여세요.

@@ -200,6 +200,12 @@ namespace CurtainCall.WaitingRoom
             ? WaitingRoomText.Get("shop.purchase-rest-night-only", "기물은 쉬는 시간과 밤 정비에만 구매할 수 있습니다.")
             : WaitingRoomText.Get("shop.purchase-night-only", "기물은 밤 정비에만 구매할 수 있습니다.");
 
+        /// <summary>작업실·소품실 전실의 동력 소켓과, 한 번이라도 열었다는 기록(탐색 장부).</summary>
+        public const string CraftRoomsSocketId = "learning:craft-socket", CraftRoomsUnlockedId = "learning:craft-unlocked";
+        /// <summary>작업실·소품실을 아직 열지 않아 살 수 없는 공연 기물인가(상점 화면도 같은 기준으로 회색 처리한다, 2026-11-14 사용자).</summary>
+        public static bool CraftRoomsLocked(string itemId) => ItemCatalog.Get(itemId)?.use == ItemUse.Performance && ExplorationTargets.Find(CraftRoomsSocketId) != null
+            && ExplorationState.Instance != null && !ExplorationState.Instance.IsOpen(CraftRoomsUnlockedId);
+        public static string CraftRoomsLockedText => WaitingRoomText.Get("shop.craft-rooms-locked", "작업실과 소품실을 개방하지 않아 구매할 수 없습니다.");
         static string PerformanceRefusal => WaitingRoomText.Get("shop.in-performance", "공연 중에는 상점을 쓸 수 없습니다.");
 
         (bool, string) Buy(string itemId, ulong buyer)
@@ -207,6 +213,10 @@ namespace CurtainCall.WaitingRoom
             if (!CurtainCall.Player.PlayerInteraction.CanInteract(buyer))
                 return Reject(buyer, "PURCHASE", itemId, 0, "NOT_ALIVE", "살아 있는 사람만 주문할 수 있습니다.");
             if (!CanPurchase) return Reject(buyer, "PURCHASE", itemId, 0, "NOT_NIGHT", PurchaseTimeRefusal);
+            // 작업실·소품실을 열기 전에는 공연용 기물을 살 수 없다(2026-11-13 사용자). 탐색 도구는 처음부터 살 수 있다.
+            // 전실 동력 소켓이 놓인 씬에서만 적용한다.
+            if (CraftRoomsLocked(itemId))
+                return Reject(buyer, "PURCHASE", itemId, 0, "CRAFT_ROOMS_LOCKED", CraftRoomsLockedText);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");

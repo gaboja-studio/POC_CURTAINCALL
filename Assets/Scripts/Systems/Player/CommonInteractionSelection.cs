@@ -155,7 +155,9 @@ namespace CurtainCall.Player
                     if (target is IShopPresentation display && !display.IsAvailable) continue;
                     if (target is ExplorationGate gate && (!gate.ConditionsMet || gate.UsesKey && !gate.LocalHasKey)) continue;
                     if (target is IExplorationTarget tool && !string.IsNullOrEmpty(tool.ToolId)
-                        && !ExplorationTargets.LocalHolds(tool.ToolId) && !ExplorationTargets.AllowsBareHands(tool)) continue;
+                        && !ExplorationTargets.LocalHolds(tool.ToolId) && !ExplorationTargets.AllowsBareHands(tool)
+                        // 배터리가 꽂힌 동력 소켓은 빈손으로도 고를 수 있어야 한다(배터리 빼기, 2026-11-14).
+                        && !(target is ExplorationGate { IsSocket: true, Opened: true })) continue;
                     float distance = target.Reach(actor.transform.position, actor);
                     var next = new Candidate(target, 2, distance, "shop:" + (target is IShopPresentation view ? Path(view.VisualRoot) : target.GetType().FullName));
                     if (Better(next, best)) best = next;

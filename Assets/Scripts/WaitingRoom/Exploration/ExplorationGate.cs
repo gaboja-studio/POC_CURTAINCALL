@@ -46,10 +46,34 @@ namespace CurtainCall.WaitingRoom
         Camera lookCamera; Material screenMaterial;
         [Tooltip("이 대상이 열리면 이 대상은 쓸모가 없어져 사라진다(관리실 문이 다른 방법으로 열린 뒤 남는 빗장·키 카드 단말기).")]
         [SerializeField] string retiredBy = "";
-        bool Retired => !string.IsNullOrEmpty(retiredBy) && ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(retiredBy);
+        // 배터리가 꽂힌 소켓은 사라지지 않는다(빼야 하므로). 뺀 뒤에 사라진다.
+        bool Retired => !string.IsNullOrEmpty(retiredBy) && ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(retiredBy)
+            && !(IsSocket && ExplorationState.Instance.IsOpen(targetId));
+        [Tooltip("지정하면 이 Transform의 앞쪽(+Z)에 선 사람만 닿는다(2026-11-14 사용자: 전실 동력 소켓은 방 안쪽에서 못 쓰고 로비 쪽에서만).")]
+        [SerializeField] Transform reachFront;
+        [Tooltip("동력 소켓 전용: 배터리를 뺐을 때 한 번 띄울 안내 ID(문구 파일 guide.<ID>.title/.body). 비우면 띄우지 않는다.")]
+        [SerializeField] string removeGuideId = "";
+        bool socketSeen, socketWasIn;
         [Tooltip("열릴 때 hideOnOpen 물체들이 이만큼 밀려난 뒤 사라진다(탈출로 문이 벽 속으로 밀려 열리는 모습). 0초면 바로 사라진다.")]
         [SerializeField] Vector3 openSlide;
         [SerializeField, Min(0f)] float openSlideSeconds;
+        [Tooltip("0보다 크면, 열려도 누군가 이 거리(m) 안으로 오거나 단말기 화면으로 문을 보고 있을 때까지 닫힌 채로 기다렸다가 열린다(2026-11-14 사용자: 아무도 없는 사이 열려 버려 열리는 모습을 못 보던 탈출로 문).")]
+        [SerializeField, Min(0f)] float openWhenWithin;
+        /// <summary>단말기 화면으로 문 카메라 영상을 보는 중(이 시각까지).</summary>
+        static float feedWatchedUntil;
+        /// <summary>연출 카메라가 문을 비추는 동안에도 본 것으로 친다.</summary>
+        public static void WatchDoors(float seconds) => feedWatchedUntil = Mathf.Max(feedWatchedUntil, Time.unscaledTime + seconds);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetFeedWatch() => feedWatchedUntil = 0f;
+        bool Witnessed()
+        {
+            if (Time.unscaledTime < feedWatchedUntil) return true;
+            bool Near(Vector3 feet) => Mathf.Abs(feet.y - transform.position.y) < 4f
+                && new Vector2(feet.x - transform.position.x, feet.z - transform.position.z).sqrMagnitude < openWhenWithin * openWhenWithin;
+            foreach (var player in CurtainCall.Network.PlayerSync.NetworkPlayer.All)
+                if (player != null && player.IsSpawned && Near(player.transform.position)) return true;
+            return ExplorationState.Instance != null && ExplorationState.Instance.LocalFeet is Vector3 local && Near(local);
+        }
         float slideT; bool slideReady; Vector3[] slideBase;
         [SerializeField] string rewardItemId = "";
         [SerializeField, Range(1, 99)] int rewardUidOffset = 60;
@@ -95,9 +119,20 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("지정하면 그 대상이 열릴 때 함께 열리고 직접 F하지 않는다. 예: 키패드 정답 → 숨겨진 문.")]
         [SerializeField] string openedBy = "";
         public string OpenedBy => openedBy;
+        [Tooltip("동력 소켓(2026-11-13 사용자): 배터리(toolId)를 꽂으면 열리고, 다시 F로 빼면 닫힌다. 배터리는 닳지 않고 손으로 돌아온다. kind는 Open으로 둔다.")]
+        [SerializeField] bool socket;
+        public bool IsSocket => socket && !string.IsNullOrEmpty(toolId);
+        public static bool IsAnyOpen(string ids) => AnyOpen(ids);
+        static bool AnyOpen(string ids)
+        {
+            if (string.IsNullOrEmpty(ids) || ExplorationState.Instance == null) return false;
+            if (ids.IndexOf('|') < 0) return ExplorationState.Instance.IsOpen(ids);
+            foreach (var id in ids.Split('|')) if (ExplorationState.Instance.IsOpen(id)) return true;
+            return false;
+        }
         public void ConfigureOpenedBy(string id) => openedBy = id ?? "";
-        public bool Opened => ExplorationState.Instance != null && (ExplorationState.Instance.IsOpen(targetId)
-            || (!string.IsNullOrEmpty(openedBy) && ExplorationState.Instance.IsOpen(openedBy)));
+        // openedBy는 "|"로 여러 대상을 적을 수 있다(하나만 열려도 열림: 배터리 소켓 또는 회로 고정).
+        public bool Opened => ExplorationState.Instance != null && (ExplorationState.Instance.IsOpen(targetId) || AnyOpen(openedBy));
         public bool Visible => (ExplorationKeys.Enabled || !IsKeyPickup) && !revealPending
             && (string.IsNullOrEmpty(revealTarget) || !ExplorationKeys.Enabled && IsKeyTarget(revealTarget)
                 || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(revealTarget)));
@@ -153,22 +188,29 @@ namespace CurtainCall.WaitingRoom
             }
             return best;
         }
-        public bool IsAvailable => Visible && !Retired && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
-        public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
+        public bool IsAvailable => Visible && !Retired && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor || IsSocket || CanReviewFeed);
+        // 암호를 푼 단말기는 다시 열어 문 카메라 영상을 볼 수 있다(2026-11-14 사용자: 배선을 끊기 전에 암호를 풀면 문이 열리는 화면을 볼 방법이 없었다).
+        bool CanReviewFeed => IsTerminal && monitorCamera != null;
+        // 꽂기·빼기 문구는 대상마다 바꿀 수 있다(문구 파일 target.<ID>.insert / .remove. 예: TV에 테이프 넣기).
+        string SocketText(string action, string common, string fallback) => WaitingRoomText.Format(
+            WaitingRoomText.Has("target." + targetId + "." + action) ? "target." + targetId + "." + action : common, fallback, ("label", Label), ("tool", ToolName));
+        public string ActionLabel => IsSocket && ConditionsMet ? (Opened ? SocketText("remove", "gate.socket-remove", "{label} — {tool} 빼기")
+                : ExplorationTargets.LocalHolds(toolId) ? SocketText("insert", "gate.socket-insert", "{label} — {tool} 꽂기")
+                : Label + " — " + ExplorationTargets.Hint(this))
+            : !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
             : AllowsBareHands ? StrikeLabel()
             // 도구로만 여는 대상(동력 소켓 등): 손에 없으면 무엇이 필요한지 알려 준다(문구 파일 target.<ID>.hint).
             : !string.IsNullOrEmpty(ToolId) && !ExplorationTargets.LocalHolds(toolId) ? Label + " — " + ExplorationTargets.Hint(this)
             : UsesKey && !LocalHasKey ? Label + " — 맞는 열쇠를 선택하세요"
             : NeedsPartner ? (HasKeySlots ? WaitingRoomText.Format("gate.needs-two-keys", "{label} — 두 명이 각자 열쇠 구멍에서 함께 F", ("label", Label))
                 : WaitingRoomText.Format("gate.needs-two", "{label} — 두 명이 함께 F", ("label", Label))) : Label;
-        // 맨몸 겸용 부수기 대상: 친 적이 있으면 지금 방식(맨몸/뽑개) 기준 진행을 함께 보여 준다.
+        // 맨몸 겸용 부수기 대상: 뽑개를 들었으면 친 수를, 맨몸이면 횟수 없이 게이지 하나만 보여 준다(2026-11-13 사용자).
         string StrikeLabel()
         {
-            bool tool = ExplorationTargets.LocalHolds(toolId);
-            string hold = tool ? "" : ShopReach.BareHoldSuffix(this);
-            if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label + hold;
-            var (n, total) = ExplorationTargets.StrikeCount(this, tool);
-            return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total)) + hold;
+            if (!ExplorationTargets.LocalHolds(toolId)) return Label + ShopReach.BareHoldSuffix(this);
+            if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label;
+            var (n, total) = ExplorationTargets.StrikeCount(this, true);
+            return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total));
         }
         public string DescribeStrike(bool opened, int done, int total, bool withTool) => opened
             ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
@@ -190,6 +232,11 @@ namespace CurtainCall.WaitingRoom
         {
             if (!IsAvailable) return -1;
             if (HasKeySlots) { SlotAt(feet, out float distance, actor); return distance; }
+            if (reachFront != null)
+            {
+                Vector3 body = actor != null ? PlayerInteraction.Center(actor) : feet;
+                if (Vector3.Dot(body - reachFront.position, reachFront.forward) < 0f) return -1f;
+            }
             return ExplorationReach.From(transform, PresentationPoint, feet, CommonReach, true, actor: actor);
         }
         public bool MatchesPassword(string value) => !passwordPending && (IsTerminal ? value == password + "\n" + terminalWord
@@ -301,13 +348,21 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             ShopReach.Pump();
+            // 배터리를 꽂아 문이 열리면(또는 빼서 닫히면) 문을 고정하는 방법을 한 번 알려 준다(2026-11-14 사용자: 꽂은 직후에 안 나오던 것).
+            if (IsSocket && !string.IsNullOrEmpty(removeGuideId))
+            {
+                bool inserted = ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
+                if (socketSeen && socketWasIn != inserted) GimmickGuide.ShowOnce(removeGuideId, "잠긴 문", "전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요.");
+                socketSeen = true; socketWasIn = inserted;
+            }
             if (hiddenVisuals != null) foreach (var visual in hiddenVisuals) if (visual != null && visual != gameObject) visual.SetActive(Visible);
             // 열리는 모습: 처음부터 열려 있던 문은 연출 없이 열린 채로 두고, 지금 열린 문만 밀려난 뒤 사라진다.
             bool opened = Opened;
             if (!slideReady) { slideReady = true; slideT = opened ? 1f : 0f; }
             if (openSlideSeconds > 0f && hideOnOpen != null)
             {
-                if (opened && slideT < 1f)
+                if (opened && slideT <= 0f && openWhenWithin > 0f && !Witnessed()) { }
+                else if (opened && slideT < 1f)
                 {
                     if (slideBase == null) { slideBase = new Vector3[hideOnOpen.Length]; for (int i = 0; i < hideOnOpen.Length; i++) if (hideOnOpen[i] != null) slideBase[i] = hideOnOpen[i].transform.position; }
                     slideT = Mathf.Min(1f, slideT + Time.deltaTime / openSlideSeconds);
@@ -338,6 +393,7 @@ namespace CurtainCall.WaitingRoom
             }
             if (feedShown)
             {
+                feedWatchedUntil = Time.unscaledTime + .5f;
                 if (panelView != null) panelView.SetFeedStatus(FeedStatus());
                 // 열린 뒤에는 이 대상에 더 닿을 수 없으므로(이미 열림) 거리 판정 대신 시간·키로만 닫는다.
                 if (Time.unscaledTime >= feedUntil || ExplorationState.Instance == null

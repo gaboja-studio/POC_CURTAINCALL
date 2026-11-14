@@ -91,6 +91,14 @@ namespace CurtainCall.WaitingRoom
             Revision++;
         }
 
+        /// <summary>열린 대상을 다시 닫는다(동력 소켓에서 배터리를 뺀 경우). 시도 수는 남긴다.</summary>
+        public bool Close(string target)
+        {
+            if (target == null || !opened.Remove(target)) return false;
+            Revision++;
+            return true;
+        }
+
         /// <summary>세대 교체·방 바뀜: 모두 비운다.</summary>
         public void Clear()
         {

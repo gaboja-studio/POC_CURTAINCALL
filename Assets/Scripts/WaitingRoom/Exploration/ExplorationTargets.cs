@@ -53,6 +53,14 @@ namespace CurtainCall.WaitingRoom
             return (StrikeProgress.Done(units, t.BareHits, t.ToolHits, withTool), withTool ? t.ToolHits : t.BareHits);
         }
 
+        /// <summary>맨몸 부수기 전체 진행(0~1, F 안내 게이지용). <paramref name="partial"/>은 지금 채우는 한 대 분량의 비율.</summary>
+        public static float BareProgress(IBareHandTarget t, float partial)
+        {
+            int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(t.TargetId) : 0;
+            float step = StrikeProgress.Step(t.BareHits, t.ToolHits, false);
+            return UnityEngine.Mathf.Clamp01((units + UnityEngine.Mathf.Clamp01(partial) * step) / StrikeProgress.Total(t.BareHits, t.ToolHits));
+        }
+
         static readonly List<IExplorationTarget> all = new();
 
         public static IReadOnlyList<IExplorationTarget> All => all;

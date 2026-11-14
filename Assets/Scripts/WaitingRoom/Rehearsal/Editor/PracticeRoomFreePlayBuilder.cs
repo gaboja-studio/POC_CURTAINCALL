@@ -16,8 +16,10 @@ namespace CurtainCall.WaitingRoom
     /// - 가운데: 인간 그네(오→왼). 발판 → 연속 그네 3개 → 발판 → 외줄 2개 → 나란한 그네 2개 → 외줄 2개 → 발판 → 계단.
     /// - 아래: 인간 대포(왼→오). 대포 2문·트램펄린 자리 → 그네 1개 → 중간 발판 → 도착 지역 → 계단.
     /// 기물은 공연 준비 프리팹을 그대로 쓴다(바닥·계단·외줄·봉·대포). 줄은 탈출로와 같은 "씬에 놓은 독립 외줄" 방식이다.
-    /// 수치: 줄 높이 2.5m·줄 간격 3m·연속 봉 간격 8m·봉 높이(줄 위 0.6m에 발)는 리허설 값. 나머지 길이는 링(반지름 20m)에 맞췄다.
+    /// 수치: 줄 높이 2.5m·줄 간격 3m·연속 봉 간격 8m·봉 높이(줄 위 0.6m에 발)는 리허설 값. 나머지 길이는 링에 맞췄다.
     /// 링의 옛 연습 소품(탑·사다리·그물·옛 줄·장식 대포·장식 트램펄린)은 지운다.
+    /// 2026-11-13 사용자: 관객석을 없애고 링 바닥을 연습실 벽(반지름 26.5m)까지 넓혔다. 난간·옆 계단도 지우고, 입구 계단은 통로 안으로 옮겼다.
+    /// 기물은 넓어진 바닥에 맞춰 길이와 자리를 늘렸다(조명탑 네 개는 그대로 두고 피해서 놓는다).
     /// </summary>
     public static class PracticeRoomFreePlayBuilder
     {
@@ -28,7 +30,11 @@ namespace CurtainCall.WaitingRoom
         const float Height = 2.5f;
         /// <summary>봉 높이(발판 기준): 매달린 발이 줄 위 0.6m(리허설의 낮은 봉) + 매달린 길이.</summary>
         static float PoleGrip => .6f + GameSettings.Poles.HangLength;
-        const float SupportReach = 19.3f;
+        /// <summary>연습실 둥근 벽 안쪽 반지름(벽 외형 기준). 링 바닥을 여기까지 넓힌다.</summary>
+        const float RoomRadius = 26.5f;
+        /// <summary>넓히기 전 링 반지름(바닥·별무늬·나무 테의 원래 배율 기준).</summary>
+        const float OriginalRingRadius = 20f;
+        const float SupportReach = RoomRadius - 1f;
 
         static Vector3 center;
         static Transform supports;
@@ -42,6 +48,8 @@ namespace CurtainCall.WaitingRoom
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new System.InvalidOperationException("편집 모드에서 실행하세요.");
             var room = WaitingRoomScenes.FindPracticeRoom(EditorSceneManager.GetActiveScene());
             if (room == null) throw new System.InvalidOperationException("대기실 씬(연습실)을 열고 실행하세요.");
+            FillRoomWithRing(room);
+            Physics.SyncTransforms();
             var deck = room.Find("LegacyRing/PracticeRing/DeckCollider").GetComponent<Collider>().bounds;
             center = new Vector3(deck.center.x, deck.max.y, deck.center.z);
 
@@ -135,31 +143,90 @@ namespace CurtainCall.WaitingRoom
             Debug.Log($"[PracticeFreePlay] 배치 완료: 외줄 {supportColliders.Count}개, 봉 {all.Count}개, 대포 {stations.Length}문.");
         }
 
+        /// <summary>
+        /// 관객석을 없애고 링 바닥을 연습실 벽까지 넓힌다(2026-11-13 사용자). 다시 실행해도 같은 결과가 된다.
+        /// 지우는 것: 관객석, 링 가장자리 난간·깃발·전구·옆 치마, 옆 계단 두 벌. 입구 계단은 벽 밖 통로 안으로 옮긴다(바닥 높이 0.6m 그대로).
+        /// </summary>
+        static void FillRoomWithRing(Transform room)
+        {
+            foreach (string path in new[] { "RoundArena/RingSeating", "RoundArena/Stand" })
+            {
+                var seats = room.Find(path);
+                if (seats != null) Object.DestroyImmediate(seats.gameObject);
+            }
+            var ring = room.Find("LegacyRing/PracticeRing");
+            float grow = RoomRadius / OriginalRingRadius;
+            for (int i = ring.childCount - 1; i >= 0; i--)
+            {
+                var part = ring.GetChild(i);
+                // 원래 배율: 바닥 충돌체 지름 40, 별무늬·나무 테 2.5.
+                if (part.name == "DeckCollider") part.localScale = new Vector3(OriginalRingRadius * 2f * grow, part.localScale.y, OriginalRingRadius * 2f * grow);
+                else if (part.name == "StarFloor" || part.name == "WoodenRim") part.localScale = new Vector3(2.5f * grow, 1f, 2.5f * grow);
+                else Object.DestroyImmediate(part.gameObject);
+            }
+            var deck = ring.Find("DeckCollider");
+            var middle = new Vector3(deck.position.x, 0f, deck.position.z);
+
+            // 입구 계단: 통로 축(링 가운데 → 연습실 문)을 따라 벽 바로 밖에 둔다.
+            var access = room.Find("LegacyRing/RaisedRingAccess");
+            var gate = GameObject.Find(NightDoorLock.RehearsalPassageName);
+            if (access != null && gate != null)
+            {
+                Vector3 axis = gate.transform.position - middle; axis.y = 0f; axis.Normalize();
+                Vector3 shift = Vector3.zero; int step = 0;
+                var steps = new List<Transform>();
+                for (int i = access.childCount - 1; i >= 0; i--)
+                {
+                    var part = access.GetChild(i);
+                    if (!part.name.EndsWith("_Entry")) Object.DestroyImmediate(part.gameObject);
+                    else if (part.name == "RingAccessStep_Entry") steps.Add(part);
+                }
+                // 높은 단(바닥과 같은 0.6m)이 벽 쪽, 낮은 단이 통로 쪽. 한 단 깊이 0.45m.
+                steps.Sort((a, b) => b.localScale.y.CompareTo(a.localScale.y));
+                foreach (var part in steps)
+                {
+                    Vector3 at = middle + axis * (RoomRadius + .45f * (step++ + .5f)) + Vector3.up * part.position.y;
+                    if (step == 1) shift = at - part.position;
+                    part.position = at;
+                }
+                var ramp = access.Find("RingStairCollision_Entry");
+                if (ramp != null) ramp.position += shift;
+            }
+            // 관객석 통로(바닥 높이 0)에 서 있던 추격 배치물은 넓어진 바닥 위로 올린다.
+            var placements = room.Find("PursuitPlacements");
+            float top = deck.GetComponent<Collider>().bounds.max.y;
+            if (placements != null)
+                foreach (Transform placed in placements)
+                    if (placed.position.y < top - .01f) placed.position = new Vector3(placed.position.x, top, placed.position.z);
+        }
+
         static List<BoxCollider> BuildRopes(Transform parent, List<HumanCannonPole> poles)
         {
             supports = Group(parent, "Supports");
             var list = new List<BoxCollider>();
+            // 조명탑 네 개(가운데에서 대각선 약 ±16.7m, 하나는 (11.1, -20.8))를 피해서 놓는다.
             // ── 위: 외줄타기(왼→오) ──
-            Floor(parent, "Tightrope_Start", -13f, -10f, 5.5f, 17.5f);
-            Stair(parent, "Tightrope_StartStair", -11.5f, 5.5f, new Vector3(0, 0, -1));
-            for (int i = 0; i < 4; i++) list.Add(Rope(parent, "Tightrope_Rope" + (i + 1), -10f, 8f, 7f + i * 3f));
-            Floor(parent, "Tightrope_Finish", 8f, 13f, 5.5f, 17.5f);
-            Floor(parent, "Tightrope_FinishWalk", 13f, 20.3f, 5.5f, 8.5f);
+            // 2026-11-14 사용자: 외줄은 2개만 둔다(4개가 자리를 너무 차지했다). 길이 19.6m, 계단은 구조도처럼 출발대 왼쪽.
+            Floor(parent, "Tightrope_Start", -11.3f, -7.8f, 6.5f, 12.5f);
+            Stair(parent, "Tightrope_StartStair", -11.3f, 9.5f, new Vector3(-1, 0, 0));
+            for (int i = 0; i < 2; i++) list.Add(Rope(parent, "Tightrope_Rope" + (i + 1), -7.8f, 11.8f, 8f + i * 3f));
+            Floor(parent, "Tightrope_Finish", 11.8f, 15.3f, 6.5f, 12.5f);
+            Floor(parent, "Tightrope_FinishWalk", 15.3f, 23.5f, 6.5f, 9.5f);
             // 도착 지역 → 가운데 구간 오른쪽 발판(위→아래)
-            poles.Add(Pole(parent, "Swing_ToSwingLane", 19.3f, 6.5f, Height + PoleGrip, Vector3.back));
+            poles.Add(Pole(parent, "Swing_ToSwingLane", 22.5f, 7.5f, Height + PoleGrip, Vector3.back));
             // ── 가운데: 인간 그네(오→왼) ──
-            Floor(parent, "Swing_Start", 17.8f, 21.3f, -5.5f, .5f);
-            for (int i = 0; i < 3; i++) poles.Add(Pole(parent, "Swing_Chain" + (i + 1), 18.8f - i * 8f, -2.5f, Height + PoleGrip, Vector3.left));
-            Floor(parent, "Swing_Middle", -4.7f, -2.2f, -5.5f, .5f);
+            Floor(parent, "Swing_Start", 21f, 24.5f, -4.5f, 1.5f);
+            for (int i = 0; i < 3; i++) poles.Add(Pole(parent, "Swing_Chain" + (i + 1), 22f - i * 8f, -1.5f, Height + PoleGrip, Vector3.left));
+            Floor(parent, "Swing_Middle", -1.5f, 1f, -4.5f, 1.5f);
             for (int i = 0; i < 2; i++)
             {
-                float v = -1f - i * 3f;
-                list.Add(Rope(parent, "Swing_RopeA" + (i + 1), -4.7f, -7.7f, v, endPost: true));
-                poles.Add(Pole(parent, "Swing_Pair" + (i + 1), -6.7f, v, Height + PoleGrip, Vector3.left));
-                list.Add(Rope(parent, "Swing_RopeB" + (i + 1), -15.7f, -18.7f, v, startPost: true));
+                float v = -i * 3f;
+                list.Add(Rope(parent, "Swing_RopeA" + (i + 1), -1.5f, -7.5f, v, endPost: true));
+                poles.Add(Pole(parent, "Swing_Pair" + (i + 1), -6.5f, v, Height + PoleGrip, Vector3.left));
+                list.Add(Rope(parent, "Swing_RopeB" + (i + 1), -15.5f, -21.5f, v, startPost: true));
             }
-            Floor(parent, "Swing_Finish", -21.2f, -18.7f, -5.5f, 3.9f);
-            Stair(parent, "Swing_FinishStair", -18.7f, 2.2f, Vector3.right);
+            Floor(parent, "Swing_Finish", -24f, -21.5f, -4.5f, 4.9f);
+            Stair(parent, "Swing_FinishStair", -21.5f, 3.2f, Vector3.right);
             return list;
         }
 
@@ -170,19 +237,26 @@ namespace CurtainCall.WaitingRoom
             var stations = new HumanCannonStation[2];
             for (int i = 0; i < 2; i++)
             {
-                var cannon = (GameObject)PrefabUtility.InstantiatePrefab(stationPrefab, parent);
+                // 2026-11-14 사용자: 공연에 쓰는 대포를 그대로 가져온다(포신 연출·공연 기물 그림 포함). 공연 코스 사본의 대포를 복제한다.
+                var performance = AssetDatabase.LoadAssetAtPath<GameObject>(CannonKit + "RehearsalCourseFromPerformance.prefab");
+                var source = performance != null ? performance.transform.Find("Cannon_1") : null;
+                var cannon = source != null ? Object.Instantiate(source.gameObject, parent) : (GameObject)PrefabUtility.InstantiatePrefab(stationPrefab, parent);
+                cannon.SetActive(true);
                 cannon.name = "Cannon_" + (i + 1);
-                cannon.transform.SetPositionAndRotation(At(-12f, -11f - i * 3.5f, 0f), Quaternion.LookRotation(Vector3.right));
+                cannon.transform.SetPositionAndRotation(At(-14f, -10.5f - i * 4f, 0f), Quaternion.LookRotation(Vector3.right));
                 stations[i] = cannon.GetComponent<HumanCannonStation>();
             }
+            // 2026-11-14 사용자: 대포 구간을 넓힌다. 인간 그네 구간 아래(v -7 ~ -19)를 통째로 쓴다.
+            // 대포 2문(4m 간격) → 트램펄린을 들고 받는 빈 바닥 → 그네 → 중간 발판 → 도착 지역(계단은 오른쪽).
             trampolineSpot = new GameObject("TrampolineSpot").transform;
             trampolineSpot.SetParent(parent, false);
-            trampolineSpot.position = At(-14.5f, -7.5f, 0f);
-            // 대포 탄도(앞 8·위 12m/s) 꼭대기 바로 아래. 전구 줄(바닥에서 약 8.2m)보다 낮게 건다.
-            poles.Add(Pole(parent, "Cannon_Swing", -1f, -12.75f, 7.8f, Vector3.right));
-            Floor(parent, "Cannon_Middle", 1.5f, 5.5f, -14.75f, -10.75f);
-            Floor(parent, "Cannon_Finish", 8.5f, 12.5f, -14.75f, -10.75f);
-            Stair(parent, "Cannon_FinishStair", 10.5f, -10.75f, new Vector3(0, 0, 1));
+            trampolineSpot.position = At(-17.5f, -7.5f, 0f);
+            // 공연 대포는 앞 7.1·위 12m/s다(포구 u -12.5, 높이 2m). 꼭대기는 u -3.8(높이 약 9.3m),
+            // 그네를 잡지 않으면 발판 높이(2.5m)에 u 4.5쯤 떨어진다. 그네·발판을 이 탄도에 맞췄다(초안, 플레이 확인 필요).
+            poles.Add(Pole(parent, "Cannon_Swing", -4.1f, -12.5f, 7.8f, Vector3.right));
+            Floor(parent, "Cannon_Middle", -2f, 2.5f, -16f, -9f);
+            Floor(parent, "Cannon_Finish", 3.5f, 11.5f, -16.5f, -8.5f);
+            Stair(parent, "Cannon_FinishStair", 11.5f, -10.5f, new Vector3(1, 0, 0));
             return stations;
         }
 
@@ -215,6 +289,17 @@ namespace CurtainCall.WaitingRoom
             // 원본 계단은 로컬 +z가 아래쪽 진입, -z가 위쪽이다.
             stair.transform.SetPositionAndRotation(At(u + toward.x * half, v + toward.z * half, 0f), Quaternion.LookRotation(toward));
             stair.transform.localScale = Vector3.one * scale;
+            // 원본 계단은 첫 단이 0.51m(키우면 0.7m)라 점프해야 올라갈 수 있었다(2026-11-14 사용자). 아래에 두 단을 덧대 끊김 없이 오른다.
+            var material = stair.GetComponentInChildren<Renderer>()?.sharedMaterial;
+            foreach (var (height, z) in new[] { (.34f, 1.405f), (.17f, 1.715f) })
+            {
+                var step = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                step.name = "ExtraStep";
+                step.transform.SetParent(stair.transform, false);
+                step.transform.localPosition = new Vector3(0f, height * .5f, z);
+                step.transform.localScale = new Vector3(2.5f, height, .31f);
+                if (material != null) step.GetComponent<Renderer>().sharedMaterial = material;
+            }
         }
 
         /// <summary>줄 하나 = 충돌 상자 하나(코스의 줄 번호 순서) + 공연 외줄 외형.</summary>

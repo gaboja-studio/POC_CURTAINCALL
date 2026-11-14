@@ -196,6 +196,7 @@ namespace CurtainCall.WaitingRoom
             if (WaitingRoomRehearsal.IsPreTutorialRestricted)
                 return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."), "PRE_TUTORIAL_LOCK");
             if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."), "UNKNOWN_TARGET");
+            if (target is ExplorationGate powerSocket && powerSocket.IsSocket) return UseSocket(player, targetId, powerSocket);
             if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."), "ALREADY_OPEN");
             var body = FindBody(player);
             if (body == null || (target is UvMark ? target.Reach(body.position, body) : CurtainCall.Player.PlayerInteraction.RestrictReach(target.Reach(body.position, body), body)) < 0f)
@@ -244,7 +245,8 @@ namespace CurtainCall.WaitingRoom
                 int total = StrikeProgress.Total(bare.BareHits, bare.ToolHits);
                 refusal = book.Strike(targetId, StrikeProgress.Step(bare.BareHits, bare.ToolHits, needsTool), total, out count, out openedNow);
                 if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
-                text = bare.DescribeStrike(openedNow, StrikeProgress.Done(count, bare.BareHits, bare.ToolHits, needsTool),
+                // 맨몸은 게이지로만 진행을 보여 주므로(2026-11-13 사용자) 부서지기 전에는 횟수 문구를 보내지 않는다.
+                text = !needsTool && !openedNow ? "" : bare.DescribeStrike(openedNow, StrikeProgress.Done(count, bare.BareHits, bare.ToolHits, needsTool),
                     needsTool ? bare.ToolHits : bare.BareHits, needsTool);
             }
             else
@@ -277,6 +279,44 @@ namespace CurtainCall.WaitingRoom
             DeliverRewards();
             Publish();
             return (true, text, openedNow ? "OPENED" : "HIT_REGISTERED");
+        }
+
+        // 동력 소켓(2026-11-13 사용자): 배터리를 꽂으면 열리고, 꽂힌 배터리를 빼면 닫힌다. 배터리는 닳지 않는다.
+        // 꽂을 때 손에서 사라지고(소켓 속으로), 뺄 때 같은 배터리가 손으로 돌아온다.
+        readonly Dictionary<string, int> socketBattery = new();
+        (bool ok, string text, string reason) UseSocket(ulong player, string targetId, ExplorationGate gate)
+        {
+            var body = FindBody(player);
+            if (body == null || CurtainCall.Player.PlayerInteraction.RestrictReach(gate.Reach(body.position, body), body) < 0f)
+                return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."), body == null ? "ACTOR_UNAVAILABLE" : "OUT_OF_REACH");
+            if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."), "PREREQUISITE_UNMET");
+            var carry = PropCarry.Instance;
+            if (carry == null) return (false, "기물 소지를 준비 중입니다.", "CARRY_UNAVAILABLE");
+            float now = Time.unscaledTime;
+            if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "", "RATE_LIMITED");
+            lastHit[player] = now;
+            string toolName = gate.ToolName;
+            if (!book.IsOpen(targetId))
+            {
+                var tool = carry.InHand(player);
+                if (tool.Uid == 0 || tool.ItemId != gate.ToolId) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(gate))), "REQUIRED_TOOL_MISSING");
+                if (carry.UseItem(player, tool.Uid, out _, out bool gone) != CarryRefusal.None || !gone) return (false, PropCarry.Explain(CarryRefusal.NotFound), "CARRY_REFUSED");
+                socketBattery[targetId] = tool.Uid;
+                book.Attempt(targetId, true, out _, out _);
+                Debug.Log($"[Exploration] {targetId} 배터리 꽂음 — {WaitingRoomShop.PlayerLabel(player)}");
+                DeliverRewards(); Publish();
+                return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".in") ? "target." + targetId + ".in" : "explore.socket-in", "{tool:을} 꽂았습니다.", ("tool", toolName)), "OPENED");
+            }
+            var refusal = carry.CanReceive(player);
+            if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "HANDS_FULL");
+            int uid = socketBattery.TryGetValue(targetId, out int kept) ? kept : 900000 + Mathf.Abs(targetId.GetHashCode() % 90000);
+            refusal = carry.Receive(player, ItemCatalog.NewProduct(uid, gate.ToolId, toolName));
+            if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "CARRY_REFUSED");
+            socketBattery.Remove(targetId);
+            book.Close(targetId);
+            Debug.Log($"[Exploration] {targetId} 배터리 뺌 — {WaitingRoomShop.PlayerLabel(player)}");
+            Publish();
+            return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".out") ? "target." + targetId + ".out" : "explore.socket-out", "{tool:을} 뺐습니다.", ("tool", toolName)), "CLOSED");
         }
 
         void WatchGeneration()

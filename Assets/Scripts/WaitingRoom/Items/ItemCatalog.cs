@@ -158,9 +158,18 @@ namespace CurtainCall.WaitingRoom
                 summary = "설비실 동력 소켓에 넣으면 기계실로 가는 셔터가 열린다. 넣으면 사라진다. 구매 불가." });
         }
 
+        void EnsureVideoTape()
+        {
+            if (items.Exists(e => e != null && e.id == ItemUses.VideoTape)) return;
+            items.Add(new Entry { id = ItemUses.VideoTape, displayName = "비디오 테이프", wornName = "", wornAtOrBelow = -1,
+                use = ItemUse.Exploration, kind = ItemKind.Tool, newUses = 1, foundUses = 1, price = 0, cooldown = 0f,
+                summary = "숙소 TV에 넣으면 화면에 재생된다. 닳지 않고 다시 뺄 수 있다. 구매 불가." });
+        }
+
         public void EnsureExplorationKeys()
         {
             EnsurePowerBattery();
+            EnsureVideoTape();
             foreach (var target in ExplorationKeys.Targets)
             {
                 string id = ExplorationKeys.ItemId(target);

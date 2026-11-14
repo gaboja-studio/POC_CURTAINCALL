@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     // - 키 카드 복제본: 무대 장치 보관실 캐비넷 3에서 나온다. 관리실 문 옆 단말기에 쓰면 사라지고 문이 열린다(5단계).
     // - 낡은 인형 옷: 13단계에서 만든다(전시대 인형 옷 4벌).
     // - 물병: 생활 장소. 살펴보면 안에 든 공연 토큰(100원)이 나온다.
-    // - 찢겨진 노트 낱장 4장: 캐비넷 1·잠긴 상자 2 안, 화물 적재장 2층 통로, 로비 2층 발판. 글귀는 나중에 넣는다(문구 파일의 page.N).
+    // - 찢겨진 노트 낱장 4장: 캐비넷 1·폐기물 보관소 트렁크·잠긴 상자 2·관리실 서랍 안(2026-11-14). 그림은 14단계가 입힌다.
     // - 상자 보상 비율과 묻힌 발견품 자리 3곳도 여기서 맞춘다.
     public static partial class FinalLayoutBuilder
     {
@@ -107,9 +107,11 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                     Clue(holder, "final:torn-note-" + n, "찢겨진 노트 낱장", "", null, null, .36f, 1.2f);
                     return holder;
                 }
-                // 1·2: 캐비넷·상자 안. 열면 그 앞 바닥에 드러난다(지도 단서와 같은 방식).
+                // 네 장 모두 보상이 없던 캐비넷·상자·서랍 안(2026-11-14 사용자). 열면 그 앞 바닥에 드러난다(지도 단서와 같은 방식).
+                // 1: 숙소 캐비넷 1, 2: 폐기물 보관소 자물쇠 트렁크, 3: 화물 적재 장소 잠긴 상자 2, 4: 서랍(물체 이름은 managementDrawer 그대로, 2026-11-14 사용자 요청으로 이전 세대 공연자 숙소 소품 방 남쪽 벽 앞으로 옮김).
                 int placed = 0;
-                foreach (var (n, path) in new[] { (1, "S02_Dormitory/Exploration_A/emptyCabinet"), (2, "S12_CargoBay/Exploration_A/lockedBox2") })
+                foreach (var (n, path) in new[] { (1, "S02_Dormitory/Exploration_A/emptyCabinet"), (2, "S05_JunkStorage/TrialPadlockedTrunk"),
+                    (3, "S12_CargoBay/Exploration_A/lockedBox2"), (4, "B1_Office/Exploration_A/managementDrawer") })
                 {
                     var box = layout.Find(path); var target = box != null ? box.GetComponent<ToolTarget>() : null;
                     if (target == null) { notes.Add($"낱장 {n}: {path} 없음"); continue; }
@@ -123,31 +125,16 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                     so.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(target);
                     page.gameObject.SetActive(false); placed++;
                 }
-                // 3·4: 2층(트램펄린·목마로 올라가는 곳).
-                foreach (var (n, path, yaw) in new[] { (3, "S12_CargoBay/HallMezzanine/CargoWalkway/CargoNorthB_Deck_3", 20f), (4, "S01_Lobby/LobbyMezzanine/Lobby0_Deck_0", 140f) })
-                {
-                    var deck = layout.Find(path);
-                    if (deck == null) { notes.Add($"낱장 {n}: {path} 없음"); continue; }
-                    // 발판 판(DeckPlate) 윗면 가운데.
-                    var plate = deck.Find("DeckPlate"); var pc = plate != null ? plate.GetComponent<Collider>() : null; Vector3 at = default; bool ok = pc != null;
-                    if (ok) at = new Vector3(pc.bounds.center.x, pc.bounds.max.y, pc.bounds.center.z);
-                    if (!ok) { notes.Add($"낱장 {n}: 발판 윗면을 찾지 못함"); continue; }
-                    Page(n, at, yaw); placed++; notes.Add($"낱장 {n} 2층 {at:F1}");
-                }
                 notes.Add($"낱장 {placed}/4");
             }
 
-            // ---- 키 카드 복제본: 캐비넷 3에서 나온다 ----
+            // ---- 키 카드 복제본: 캐비넷 3(2026-11-14: 무대 장치 보관실 2층 통로 위)에서 나온다 ----
+            // 캐비넷이 열리면 오버뷰(FinalLayout/Objects/KeycardReveal, ClueDropReveal)가 먼저 뜨고, 닫으면 바닥에 떨어진다.
+            // 그래서 캐비넷의 직접 보상은 비워 둔다. KeycardReveal은 씬에서 직접 만든 것이라 이 단계가 지우면 다시 만들어야 한다.
             {
                 var cabinet = layout.Find("S11_StageGear/Exploration_A/cabinet3"); var target = cabinet != null ? cabinet.GetComponent<ToolTarget>() : null;
                 if (target == null) notes.Add("캐비넷 3 없음");
-                else
-                {
-                    var so = new SerializedObject(target);
-                    if (so.FindProperty("rewardItemId").stringValue != KeycardId) { so.FindProperty("rewardItemId").stringValue = KeycardId; so.FindProperty("rewardUidOffset").intValue = FreeUidOffset(layout.gameObject.scene); }
-                    so.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                    notes.Add($"키 카드 → 캐비넷 3(번호 {so.FindProperty("rewardUidOffset").intValue})");
-                }
+                else if (root.Find("KeycardReveal") == null) notes.Add("키 카드: KeycardReveal이 없습니다(오버뷰·낙하 연출을 다시 만들어야 합니다)");
             }
 
             // ---- 상자 보상 비율(하나만 나오는 낡은 상자 전부) ----

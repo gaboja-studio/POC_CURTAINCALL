@@ -61,7 +61,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Texture2D[] pageImages = Array.Empty<Texture2D>();
         [Tooltip("쪽 그림을 보여 줄 면(몸체 안의 렌더러). 살펴보는 사본에서 이 면의 그림만 바뀐다.")]
         [SerializeField] Renderer pageSurface;
-        Renderer pageSurfaceCopy; MaterialPropertyBlock pageBlock;
+        Renderer pageSurfaceCopy, pageBackCopy; MaterialPropertyBlock pageBlock;
         int PageCount => Mathf.Max(Pages.Length, pageImages != null ? pageImages.Length : 0);
         void ShowPageImage()
         {
@@ -69,6 +69,7 @@ namespace CurtainCall.WaitingRoom
             var image = pageImages[Mathf.Clamp(page, 0, pageImages.Length - 1)]; if (image == null) return;
             pageBlock ??= new MaterialPropertyBlock(); pageSurfaceCopy.GetPropertyBlock(pageBlock);
             pageBlock.SetTexture("_BaseMap", image); pageBlock.SetTexture("_MainTex", image); pageSurfaceCopy.SetPropertyBlock(pageBlock);
+            if (pageBackCopy != null) pageBackCopy.SetPropertyBlock(pageBlock);
         }
         int page;
         string[] pageCache;
@@ -134,7 +135,9 @@ namespace CurtainCall.WaitingRoom
         public string SecretText => WaitingRoomText.Get("target." + targetId + ".secret", secretText);
 
         public Transform VisualRoot => Body;
-        public Vector3 PresentationPoint => Body.position + Vector3.up * .25f;
+        [Tooltip("손이 닿는지 재는 점. 비우면 몸체 원점 위 0.25m. 몸체 원점이 받침대 속에 묻힌 단서(다리 없는 인형 옷)는 이걸 지정한다.")]
+        [SerializeField] Transform reachPoint;
+        public Vector3 PresentationPoint => reachPoint != null ? reachPoint.position : Body.position + Vector3.up * .25f;
         public bool IsAvailable => Revealed && Current == null;
         public string ActionLabel => WaitingRoomText.Format("prompt.inspect-clue", "{title} 살펴보기", ("title", Title));
 
@@ -335,7 +338,7 @@ namespace CurtainCall.WaitingRoom
                 if (studio != null) Destroy(studio);
                 if (studioFeed != null) { studioFeed.Release(); Destroy(studioFeed); }
                 studio = null; studioFeed = null;
-                view = pivot = secretCopy = null; pageSurfaceCopy = null; secretParts.Clear(); secretHeld = 0f;
+                view = pivot = secretCopy = null; pageSurfaceCopy = pageBackCopy = null; secretParts.Clear(); secretHeld = 0f;
                 if (blocker != null) blocker.SetOpen(false);
             }
         }
@@ -385,6 +388,15 @@ namespace CurtainCall.WaitingRoom
                 pr.shadowCastingMode = ShadowCastingMode.Off; pr.receiveShadows = false;
                 if (secretMark != null && r.transform.IsChildOf(secretMark)) { pr.sharedMaterial = SecretMaterial(r.sharedMaterial); secretParts.Add(pr); }
                 if (pageSurface != null && r == pageSurface) pageSurfaceCopy = pr;
+                // 종이처럼 두께 없는 한 장짜리 면은 뒤에서 보면 그려지지 않아 사라졌다(2026-11-14 사용자). 뒤집은 면을 한 장 더 붙여 뒷면에서도 보이게 한다.
+                if (r.GetComponent<TMPro.TMP_Text>() == null && BackFace(mf.sharedMesh) is Mesh back)
+                {
+                    var bp = new GameObject(r.name + "_Back"); bp.transform.SetParent(part, false);
+                    bp.AddComponent<MeshFilter>().sharedMesh = back;
+                    var br = bp.AddComponent<MeshRenderer>(); br.sharedMaterials = pr.sharedMaterials;
+                    br.shadowCastingMode = ShadowCastingMode.Off; br.receiveShadows = false;
+                    if (pr == pageSurfaceCopy) pageBackCopy = br;
+                }
             }
             if (secretMark != null)
             {
@@ -416,6 +428,31 @@ namespace CurtainCall.WaitingRoom
         {
             if (face is Quaternion f) return Quaternion.Euler(extraEuler) * Quaternion.Inverse(Quaternion.Inverse(body) * f);
             return Quaternion.Euler(extraEuler) * Quaternion.Euler(-18f, 0, 0) * Quaternion.Inverse(Quaternion.Euler(0, viewerYaw, 0)) * body;
+        }
+
+        static readonly System.Collections.Generic.Dictionary<Mesh, Mesh> backFaces = new();
+
+        // 두께 없는 면(Quad 등)의 뒤집은 사본: 삼각형 방향과 법선을 반대로 한다. 두께 있는 물체·읽을 수 없는 메시는 null.
+        static Mesh BackFace(Mesh source)
+        {
+            if (source == null) return null;
+            if (backFaces.TryGetValue(source, out var cached)) return cached;
+            Mesh made = null;
+            var size = source.bounds.size;
+            float longest = Mathf.Max(size.x, Mathf.Max(size.y, size.z)), thinnest = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
+            if (source.isReadable && longest > 0f && thinnest <= longest * .01f)
+            {
+                made = Instantiate(source); made.name = source.name + "_Back"; made.hideFlags = HideFlags.DontSave;
+                var normals = made.normals; for (int i = 0; i < normals.Length; i++) normals[i] = -normals[i];
+                made.normals = normals;
+                for (int sub = 0; sub < made.subMeshCount; sub++)
+                {
+                    var tris = made.GetTriangles(sub);
+                    for (int i = 0; i + 2 < tris.Length; i += 3) (tris[i], tris[i + 1]) = (tris[i + 1], tris[i]);
+                    made.SetTriangles(tris, sub);
+                }
+            }
+            return backFaces[source] = made;
         }
 
         static readonly System.Collections.Generic.Dictionary<Material, Material> secretMaterials = new();

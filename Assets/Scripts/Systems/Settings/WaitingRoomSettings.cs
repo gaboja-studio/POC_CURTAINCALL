@@ -121,12 +121,15 @@ namespace CurtainCall.Settings
         [SerializeField, InspectorName("탐색 공연 토큰 금액(큰 것)"), Min(0), Tooltip("상자·물병에서 나오는 큰 공연 토큰 금액(원). 2026-11-13 사용자: 100원.")]
         int explorationTokenFundsLarge = 100;
         public int ExplorationTokenFundsLarge => explorationTokenFundsLarge;
+        [SerializeField, InspectorName("탐색 공연 토큰 금액(동전)"), Min(0), Tooltip("숨겨진 방의 10원짜리 동전 금액(원). 2026-11-13 사용자: 10원.")]
+        int explorationTokenFundsCoin = 10;
+        public int ExplorationTokenFundsCoin => explorationTokenFundsCoin;
 
         [SerializeField, InspectorName("대기실 트램펄린 운반 판정 지름"), Min(0f), Tooltip("대기실에서 트램펄린을 들고 갈 때 벽·설비에 걸리는지 보는 판정의 지름(m). 공연 공통 판정(지름 약 4.95m)은 좁은 대기실에서 옮길 수 없어 대기실에서만 줄인다(2026-11-13 사용자). 0이면 공연과 같은 판정.")]
         float trampolineCarryCheckDiameter = 1f;
         public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
-        [SerializeField, InspectorName("맨몸 부수기 누르는 시간"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 한 번 치려면 F를 누르고 있어야 하는 시간(초). 도구를 들면 짧게 눌러 연타한다(2026-11-13 사용자). 0이면 맨몸도 짧게 눌러 친다. 초안 1.5초.")]
+        [SerializeField, InspectorName("맨몸 부수기 누르는 시간"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 한 대 분량을 채우는 데 F를 누르고 있어야 하는 시간(초). 게이지 하나가 끝까지 차야 부서지며, 전체 시간 = 이 값 × 대상의 맨몸 횟수(예: 1.5초 × 5 = 7.5초). 느린 타격 동작 한 번도 이 시간에 맞춘다. 도구를 들면 짧게 눌러 연타한다(2026-11-13 사용자). 0이면 맨몸도 짧게 눌러 친다. 초안 1.5초.")]
         float bareHandHoldSeconds = 1.5f;
         public float BareHandHoldSeconds => Mathf.Max(0f, bareHandHoldSeconds);
 

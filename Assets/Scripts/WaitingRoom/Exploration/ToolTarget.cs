@@ -71,7 +71,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? Label
             : AllowsBareHands && !ExplorationTargets.LocalHolds(ToolId)
-                ? WaitingRoomText.Format("tool.pry-bare", "맨몸으로 뜯기 ({n}/{total})", ("n", ExplorationTargets.StrikeCount(this, false).done), ("total", bareHandHits)) + ShopReach.BareHoldSuffix(this)
+                ? WaitingRoomText.Get("tool.pry-bare-hold", "맨몸으로 뜯기") + ShopReach.BareHoldSuffix(this)
             : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {hint}", ("label", Label), ("hint", ExplorationTargets.Hint(this)))
             : kind == ToolTargetKind.HairpinLock
                 ? (Attempts > 0 ? WaitingRoomText.Format("tool.pick-lock-attempt", "{tool:으로} 자물쇠 따기 (시도 {n})", ("tool", ToolName), ("n", Attempts))

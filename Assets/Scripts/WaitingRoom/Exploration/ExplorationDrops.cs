@@ -9,10 +9,13 @@ namespace CurtainCall.WaitingRoom
         public const string PerformanceTokenId = "performance-token-10";
         // 금액이 다른 공연 토큰(2026-11-13 사용자: 20원·50원·100원). 기존 ID는 50원(설정값)으로 그대로 쓴다.
         public const string SmallTokenId = "performance-token-20", LargeTokenId = "performance-token-100";
-        public static bool IsToken(string itemId) => itemId == PerformanceTokenId || itemId == SmallTokenId || itemId == LargeTokenId;
+        /// <summary>10원짜리 동전(2026-11-13 사용자: 숨겨진 방 1). PerformanceTokenId는 이름과 달리 50원짜리다.</summary>
+        public const string CoinTokenId = "performance-token-coin";
+        public static bool IsToken(string itemId) => itemId == PerformanceTokenId || itemId == SmallTokenId || itemId == LargeTokenId || itemId == CoinTokenId;
         public static int TokenFunds(string itemId)
         {
             var settings = CurtainCall.Settings.GameSettings.WaitingRoom;
+            if (itemId == CoinTokenId) return settings.ExplorationTokenFundsCoin;
             return itemId == SmallTokenId ? settings.ExplorationTokenFundsSmall : itemId == LargeTokenId ? settings.ExplorationTokenFundsLarge : settings.ExplorationTokenFunds;
         }
         public bool exclusiveWeighted;

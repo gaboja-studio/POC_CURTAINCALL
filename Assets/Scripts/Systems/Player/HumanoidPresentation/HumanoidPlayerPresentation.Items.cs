@@ -65,6 +65,29 @@ namespace CurtainCall.Player
             yield return new WaitForSeconds(.5f);
             if (revision == itemActionRevision) toolUse = null;
         }
+        float slowStrikeUntil, slowStrikeProgress;
+        /// <summary>
+        /// 맨몸 부수기(2026-11-13 사용자): F를 누르고 있는 동안 타격 동작을 진행(0~1)에 맞춰 느리게 보여 준다. 매 프레임 부르고, 부르지 않으면 곧 끝난다.
+        /// 지금 손을 쓸 수 없으면 false. 다른 화면에는 한 번 휘두를 때마다 타격 동작을 한 번 알린다.
+        /// </summary>
+        public bool HoldSlowStrike(int kind, Vector3 point, float progress)
+        {
+            if (kind < 0 || kind > 2 || model == null || condition.AllLimbsLost || !CanUseItemHands) return false;
+            progress = Mathf.Clamp(progress, 0f, .98f);
+            bool begin = Time.time >= slowStrikeUntil || progress < slowStrikeProgress;
+            slowStrikeProgress = progress;
+            slowStrikeUntil = Time.time + .15f;
+            if (begin)
+            {
+                if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
+                bool allowMovement = GameSettings.Base.Presentation.InteractionPolicy(kind).AllowMovement;
+                ReceiveItemMotion(kind, point, allowMovement);
+                if (network != null && network.IsSpawned) network.SendItemGesture(kind, point, allowMovement);
+            }
+            itemActionUntil = slowStrikeUntil;
+            if (!activeInteractionAllowsMovement) interactionMoveLockUntil = slowStrikeUntil;
+            return true;
+        }
         public void RequestItemMotion(int kind, Vector3 point) => RequestItemMotion(kind, point, kind);
         /// <summary>kind는 재생할 동작, policyKind는 이동·스킵 허용을 읽을 설정 항목(예: 열쇠 줍기 = 줍기 동작 + 열쇠 설정).</summary>
         public void RequestItemMotion(int kind, Vector3 point, int policyKind)
@@ -157,13 +180,16 @@ namespace CurtainCall.Player
             int targetLayer = fullBody ? 0 : layer;
             bool playing = a.GetCurrentAnimatorStateInfo(targetLayer).IsName(state)
                 || (a.IsInTransition(targetLayer) && a.GetNextAnimatorStateInfo(targetLayer).IsName(state));
-            bool restoreState = itemLayerState != layerState || !playing;
+            // 느린 타격(맨몸 부수기)은 누른 진행에 맞춰 매 프레임 동작 위치를 정한다.
+            bool slow = interaction && Time.time < slowStrikeUntil;
+            bool restoreState = itemLayerState != layerState || !playing || slow;
+            float at = slow ? slowStrikeProgress : action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0f;
             if (fullBody)
             {
                 model.Play(state);
-                if (restoreState) a.Play(state, 0, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0);
+                if (restoreState) a.Play(state, 0, at);
             }
-            else if (restoreState) a.Play(state, layer, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0f);
+            else if (restoreState) a.Play(state, layer, at);
             itemLayerState = layerState;
             return fullBody;
         }
@@ -203,7 +229,7 @@ namespace CurtainCall.Player
             itemActionRevision++;
             if (gestureItem != null) shownItem = null;
             itemAction = itemLayerState = gestureItem = null;
-            itemActionUntil = interactionActionUntil = interactionMoveLockUntil = 0f;
+            itemActionUntil = interactionActionUntil = interactionMoveLockUntil = slowStrikeUntil = 0f;
             activeInteractionKind = -1;
             activeInteractionAllowsMovement = false;
         }

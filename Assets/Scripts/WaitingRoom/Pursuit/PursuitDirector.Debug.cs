@@ -13,7 +13,13 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public bool DebugInvulnerable => debugInvulnerable;
         public bool DebugRecognitionEnabled => !debugIgnorePlayers;
         internal bool PlayerRecognitionEnabled => !DevMode.Enabled || !debugIgnorePlayers;
-        bool CaptureSuppressed => DevMode.Enabled && debugInvulnerable;
+        bool CaptureSuppressed => (DevMode.Enabled && debugInvulnerable) || CutsceneHold;
+        /// <summary>연출 중(나가는 길 개방 등): 추격자가 멈추고 아무도 잡히지 않는다(2026-11-14 사용자). 각 화면이 같은 연출을 재생하며 스스로 건다.</summary>
+        static float cutsceneHoldUntil;
+        public static bool CutsceneHold => Time.unscaledTime < cutsceneHoldUntil;
+        public static void HoldForCutscene(float seconds) { cutsceneHoldUntil = Mathf.Max(cutsceneHoldUntil, Time.unscaledTime + seconds); CampaignRun.HoldClock(seconds); }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetCutsceneHold() => cutsceneHoldUntil = 0f;
         public bool CanDebug => DevMode.Enabled && isActiveAndEnabled && run != null && run.HasAuthority
             && IsPursuitPhase(run.State.Phase);
         public bool StageIsForced => forcedStage >= 0;

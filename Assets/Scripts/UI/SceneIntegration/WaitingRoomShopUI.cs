@@ -110,7 +110,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var item in shop.Catalog)
                 {
-                    string reason = !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
+                    string reason = WaitingRoomShop.CraftRoomsLocked(item.Id) ? WaitingRoomShop.CraftRoomsLockedText : !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
                     string icon = view.ResolveIcon(item.Id) != null ? item.Id : texts.itemFallbackIcon;
                     string description = string.Join("\n", new[] { ItemCatalog.Description(item.Id), Fill(texts.itemDescriptionFooter) }.Where(line => !string.IsNullOrEmpty(line)));
                     entries.Add(new ShopEntryPresentation("item:" + item.Id, ShopTab.Items, icon, item.Name, Fill(texts.itemSubtitle), item.Price.ToString(),
