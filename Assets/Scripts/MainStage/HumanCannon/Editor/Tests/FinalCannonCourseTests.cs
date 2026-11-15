@@ -211,6 +211,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(right.min.x, Is.EqualTo(deck.max.x).Within(0.001f));
             Assert.That(right.max.x, Is.EqualTo(back.max.x).Within(0.001f));
             Assert.That(Find("SplitRouteCourse/SecondSectionPoleGate/ReceivingArea"), Is.Null, "옛 쿠션 테두리 선은 남기지 않는다.");
+            // 2026-11-13 담당자 요청: 쉼터 앞(1구간 끝) 초록 사각 선도 지운다. 시작 지점 앞 FirstCatch 선은 유지.
+            Assert.That(Find("PoleGateCourse/ReceivingArea"), Is.Null);
+            Assert.That(Find("SplitRouteCourse/FirstCatch"), Is.Not.Null);
             // 2026-11-02 담당자 결정: 초록 쿠션과 대포 바닥 외형을 하나의 매끈한 초록 면(FinalGreenGround)으로 합친다.
             // 지상에 닿는 바깥 3면(뒤·좌·우)은 1.2m 경사로 지면까지 내린다. 외형 전용이며 충돌·착지는 기존 4개 구역이 맡는다.
             Assert.That(Find("LandingCushionSurround"), Is.Null);
@@ -268,13 +271,33 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var pad = SafeSurface("FinalCannonCourse/FlightLandingPad").bounds;
             var root = Find("FinalCannonCourse/FinishFireworks");
             Assert.That(root, Is.Not.Null);
-            Assert.That(root.childCount, Is.EqualTo(6));
+            // 2026-11-13 담당자 요청: 도착지점 좌우에 2개씩 더 두고 도착지점 중앙 쪽으로 뿌린다(앞줄 6 + 좌 2 + 우 2).
+            Assert.That(root.childCount, Is.EqualTo(10));
             Assert.That(root.GetComponentsInChildren<Collider>(true), Is.Empty, "소품은 착지·이동을 막지 않는다");
             foreach (Transform firework in root)
             {
+                bool side = firework.name.StartsWith("Firework_Left") || firework.name.StartsWith("Firework_Right");
                 var bounds = firework.GetComponentInChildren<Renderer>().bounds;
                 Assert.That(bounds.min.y, Is.EqualTo(pad.max.y).Within(0.01f), firework.name + " 바닥 위에 선다");
                 Assert.That(bounds.size.y, Is.LessThan(1.2f), firework.name + " 막대는 거의 없게 줄인 짧은 폭죽");
+                if (side)
+                {
+                    float sign = firework.name.StartsWith("Firework_Left") ? -1f : 1f;
+                    Assert.That(bounds.center.z, Is.InRange(pad.min.z + 1f, pad.max.z - 1f), firework.name + " 도착지점 옆면");
+                    Assert.That(bounds.center.x * sign, Is.InRange(pad.max.x - 1.5f, pad.max.x), firework.name + " 도착지점 옆 끝");
+                    Assert.That(bounds.max.x * sign, Is.LessThanOrEqualTo(pad.max.x), firework.name + " 착지대 밖으로 나가지 않는다");
+                    Vector3 toCenter = Vector3.ProjectOnPlane(pad.center - bounds.center, Vector3.up).normalized;
+                    foreach (var system in firework.GetComponentsInChildren<ParticleSystem>(true))
+                        if (system.transform.parent == firework)
+                        {
+                            Vector3 flat = Vector3.ProjectOnPlane(system.transform.forward, Vector3.up).normalized;
+                            Assert.That(Vector3.Angle(flat, toCenter), Is.LessThan(2f), firework.name + " 도착지점 중앙을 향해 뿌린다");
+                            Assert.That(system.transform.forward.y, Is.GreaterThan(0.5f), firework.name + " 위로도 솟는다");
+                            // 2026-11-13 담당자 요청: 외형도 쏘는 각도에 맞춰 기울인다(폭죽 축 = 로컬 +Z).
+                            Assert.That(Vector3.Angle(firework.forward, system.transform.forward), Is.LessThan(1f), firework.name + " 외형과 발사 방향 일치");
+                        }
+                    continue;
+                }
                 Assert.That(bounds.center.z, Is.EqualTo(pad.max.z - 0.5f).Within(0.05f), firework.name + " 도착지점 상단 끝");
                 Assert.That(bounds.center.x, Is.InRange(pad.min.x, pad.max.x), firework.name);
                 // 2026-11-02 담당자 결정: 공연 첫 도착 때 한 번 색종이·불꽃이 함께 터진다.
@@ -299,7 +322,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
             var celebration = root.GetComponent<HumanCannonFinishCelebration>();
             Assert.That(celebration, Is.Not.Null);
-            Assert.That(celebration.Bursts, Has.Length.EqualTo(12));
+            Assert.That(celebration.Bursts, Has.Length.EqualTo(20));
             foreach (var burst in celebration.Bursts)
             {
                 Assert.That(burst, Is.Not.Null);

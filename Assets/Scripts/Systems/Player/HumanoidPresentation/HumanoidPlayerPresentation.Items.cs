@@ -35,6 +35,7 @@ namespace CurtainCall.Player
         float lastWallMash = -1f;
         public void UseToolAtContact(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool)
         {
+            if (ExplorationTargets.ToolsBlocked) return;
             if (model == null || condition.AllLimbsLost || !CanUseItemHands) return;
             if (target is BreakableWall)
             {

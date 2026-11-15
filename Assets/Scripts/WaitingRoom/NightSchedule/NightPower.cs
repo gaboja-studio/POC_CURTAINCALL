@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.EscapeRoute;
 using UnityEngine;
@@ -25,6 +26,10 @@ namespace CurtainCall.WaitingRoom
         Color[] dayColor;
         bool cut, dimmed;
         float blackoutUntil;
+        // 정비 시간에 따로 끄는 무대 입구 통로 조명(Task-129). 회로에 없는 통로 조명도 여기서 함께 다룬다.
+        readonly HashSet<Light> corridor = new();
+        Light[] corridorExtra = System.Array.Empty<Light>();
+        bool[] corridorExtraOriginal = System.Array.Empty<bool>();
         public bool IsCut => cut;
         bool allCutSeen, allCutWas;
         static float BlackoutUntilUnscaled;
@@ -32,6 +37,8 @@ namespace CurtainCall.WaitingRoom
         public static bool BlackoutPlaying => Time.unscaledTime < BlackoutUntilUnscaled;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetBlackout() => BlackoutUntilUnscaled = 0f;
+        /// <summary>정비 시간이라 무대 입구 통로 조명을 꺼 두었는가.</summary>
+        public bool IsStageCorridorDark { get; private set; }
         void Awake()
         {
             original = new bool[circuit.Length];
@@ -43,7 +50,15 @@ namespace CurtainCall.WaitingRoom
                 if (circuit[i] != null) originalIntensity[i] = circuit[i].intensity;
             }
             wasCut = new bool[blackoutCables.Length];
+            corridor.UnionWith(StageCorridorClosure.CorridorLights(transform.parent));
+            var inCircuit = new HashSet<Light>(circuit);
+            var extra = new List<Light>();
+            foreach (var light in corridor) if (light != null && !inCircuit.Contains(light)) extra.Add(light);
+            corridorExtra = extra.ToArray();
+            corridorExtraOriginal = new bool[corridorExtra.Length];
+            for (int i = 0; i < corridorExtra.Length; i++) corridorExtraOriginal[i] = corridorExtra[i].enabled;
         }
+        void Start() => StageCorridorClosure.InstallGate(transform);
         void LateUpdate()
         {
             var state = CampaignRun.Instance != null ? CampaignRun.Instance.State : default;
@@ -55,6 +70,8 @@ namespace CurtainCall.WaitingRoom
             if (dim)
                 for (int i = 0; i < circuit.Length; i++)
                     if (circuit[i] != null) { circuit[i].color = nightColor; circuit[i].intensity = originalIntensity[i] * nightBrightness; }
+            bool wasCorridorDark = IsStageCorridorDark;
+            IsStageCorridorDark = corridor.Count > 0 && StageCorridorClosure.IsClosed(state);
             // 배선 상태는 모든 참가자에게 동기화되므로 각자 화면에서 같은 순간에 꺼진다.
             // 정전은 선 하나마다가 아니라 모든 선이 끊어졌을 때 한 번만 난다(2026-11-15 사용자). 들어왔을 때 이미 다 끊겨 있었으면 나지 않는다.
             bool allCut = wasCut.Length > 0;
@@ -77,7 +94,13 @@ namespace CurtainCall.WaitingRoom
             // 조명만 꺼서는 주변광 때문에 거의 티가 나지 않는다(기계실). 정전·깜빡임 동안에는 주변광도 함께 낮춘다(2026-11-14 사용자: 탈출로 배선 정전이 안 보임).
             SetAmbientDimmed(Time.time < blackoutUntil || flickerOff);
             bool dark = (cut && !dim) || Time.time < blackoutUntil || flickerOff;
-            for (int i = 0; i < circuit.Length; i++) if (circuit[i] != null) circuit[i].enabled = !dark && original[i];
+            bool corridorDark = dark || IsStageCorridorDark;
+            for (int i = 0; i < circuit.Length; i++)
+                if (circuit[i] != null) circuit[i].enabled = !(corridor.Contains(circuit[i]) ? corridorDark : dark) && original[i];
+            // 회로 밖 통로 조명은 다른 연출이 켜고 끌 수 있어, 정비 시간에만 끄고 끝날 때 한 번 원래대로 돌린다.
+            if (IsStageCorridorDark || wasCorridorDark)
+                for (int i = 0; i < corridorExtra.Length; i++)
+                    if (corridorExtra[i] != null) corridorExtra[i].enabled = !IsStageCorridorDark && corridorExtraOriginal[i];
         }
         // 밤에 들어갈 때의 색을 기억했다가 아침에 돌려놓는다. 밝기는 처음 값으로 돌린다(깜박임 조명은 스스로 다시 정한다).
         void SetDimmed(bool on)
@@ -114,7 +137,8 @@ namespace CurtainCall.WaitingRoom
             if (original == null) return;
             if (dimmed) SetDimmed(false);
             for (int i = 0; i < circuit.Length; i++) if (circuit[i] != null) circuit[i].enabled = original[i];
-            cut = false; blackoutUntil = 0;
+            for (int i = 0; i < corridorExtra.Length; i++) if (corridorExtra[i] != null) corridorExtra[i].enabled = corridorExtraOriginal[i];
+            cut = false; blackoutUntil = 0; IsStageCorridorDark = false;
         }
     }
 }

@@ -75,3 +75,12 @@
 - 제출(2026-11-11): PR #328 (fix/main-stages → dev), PM 팀 검토 요청. 병합 후 컴파일은 Unity 종료 상태라 미확인.
 
 - 2026-11-11 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-13 외줄 시작·도착 초록 지면과 도착 좌우 폭죽
+- 사용자 요청: 인간 대포 안전지대처럼 외줄 시작·도착 지점에도 초록 지면, 인간 대포 도착지점 폭죽 배치(앞줄 6 + 좌우 2개씩, 중앙 조준·외형 기울임)를 외줄에도 똑같이. 인간 대포 쪽 작업은 Task-081 log.
+- `TightropeCourse.SafeGround.cs`: `safeGroundMaterial`(비우면 없음)·`safeGroundUv`. `BuildMeshes`가 `StartPlatform`·`FinishPlatform`을 만든 뒤 외형(준비본, 테두리 제외) 윗면 +0.01m에 같은 가로·세로 초록 판(충돌체 없음, 그림자 없음)을 덧붙인다. 중간 발판은 제외. 프리팹 기본값은 비어 있어 탈출로 등 다른 씬은 그대로이고, `Tightrope.unity`에서만 `Color.mat`(ithappy, 인간 대포 초록과 같은 재질·UV)을 지정. 코스가 실행 중 생성되므로 편집 화면에는 보이지 않으며 실제 플레이 확인 필요.
+- `FinishFireworks`(도착 발판 뒤 가장자리 가운데를 따라감)에 `Firework_1` 복제로 `Firework_Left1·Left2·Right1·Right2` 추가: 도착 발판(x±9.5, z165~171) 옆 끝 x±9.42, 옆면 3등분 z≈166.95·169.05. 외형과 색종이·불길을 발판 중앙 쪽 45° 위로 기울이고 받침을 발판 윗면에 맞춤. `TightropeFinishCelebration.bursts` 12 → 20. 편집기 파티클 시뮬레이션으로 중앙에 모이는 것 확인. 도착 발판 크기 설정이 바뀌면 좌우 폭죽 위치는 다시 맞춰야 한다(앞줄 6개와 같은 고정 배치).
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-13 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

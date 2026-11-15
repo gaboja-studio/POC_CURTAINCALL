@@ -60,7 +60,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var state = ExplorationState.Instance;
             bool visited = state != null && state.HasVisited(ExplorationState.EscapeEntranceVisit);
             bool night = s.Phase == CampaignPhase.Night;
-            panel.Show(PursuitTexts.QuestTitleFor(s.Phase), PursuitTexts.QuestBody(!s.IsFinalMorning && (!night || s.Day < CurtainCall.Settings.GameSettings.Base.Run.DayCount), visited, night));
+            // 정비 시간에 무대 입구 통로가 철창으로 닫혀 있으면 공연장 이동 임무를 띄우지 않는다(Task-129).
+            bool stageOpen = !s.IsFinalMorning && (!night || s.Day < CurtainCall.Settings.GameSettings.Base.Run.DayCount) && !StageCorridorClosure.BlocksStage(s);
+            panel.Show(PursuitTexts.QuestTitleFor(s.Phase), PursuitTexts.QuestBody(stageOpen, visited, night));
         }
 
         static bool ShouldShow(CampaignSnapshot s)

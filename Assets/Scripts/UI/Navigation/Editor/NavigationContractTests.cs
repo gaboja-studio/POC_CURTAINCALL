@@ -35,6 +35,42 @@ namespace CurtainCall.UI.Wayfinding.Editor
         }
 
         [Test]
+        public void LongRouteRepeatsWaveEveryIntervalAndOverrideApplies()
+        {
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Navigation/V2/RehearsalNavigationPulse");
+            var go = Object.Instantiate(prefab);
+            try
+            {
+                var view = go.GetComponent<RehearsalNavigationView>();
+                var pulse = go.GetComponent<NavigationPulseSequence>();
+                pulse.AutomaticPlayback = false;
+                view.SetPath(new[] { Vector3.zero, new Vector3(0, 0, 40), new Vector3(30, 0, 40) });
+                float common = CurtainCall.Settings.GameSettings.Base.Navigation.PulseIntervalSeconds;
+                Assert.AreEqual(common, pulse.PulseIntervalSeconds, .001f, "Guides without overrides use the common interval.");
+                int nearIndex = view.VisibleMarkerCount - 1;
+                var near = view.MarkerInstances[nearIndex].GetComponent<NavigationPulseGlyph>();
+                float lit = pulse.LightTime(view.GetMarkerGoalDistance(nearIndex)) + .2f;
+                for (int wave = 0; wave < 4; wave++)
+                {
+                    pulse.EvaluateAt(lit + wave * pulse.PulseIntervalSeconds);
+                    Assert.Greater(near.Opacity, .95f, $"Arrow near the player must flash on wave {wave} even on a 70m route.");
+                }
+                if (pulse.PulseIntervalSeconds > pulse.FlashSeconds + .1f)
+                {
+                    pulse.EvaluateAt(lit + .65f);
+                    Assert.Less(near.Opacity, .001f, "Each arrow rests between waves.");
+                }
+                pulse.SetPulseIntervalOverride(2);
+                lit = pulse.LightTime(view.GetMarkerGoalDistance(nearIndex)) + .2f;
+                pulse.EvaluateAt(lit + 1); Assert.Less(near.Opacity, .001f);
+                pulse.EvaluateAt(lit + 2); Assert.Greater(near.Opacity, .95f);
+                pulse.SetPulseIntervalOverride(0);
+                Assert.AreEqual(common, pulse.PulseIntervalSeconds, .001f, "0 returns to the common interval.");
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [Test]
         public void TintIsIndependentAndEmphasisDoesNotCompound()
         {
             var prefab = Resources.Load<GameObject>("Prefabs/UIs/Navigation/V2/PulseArrow");

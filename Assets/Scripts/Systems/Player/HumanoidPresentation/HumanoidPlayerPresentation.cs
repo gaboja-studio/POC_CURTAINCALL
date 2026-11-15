@@ -77,7 +77,7 @@ namespace CurtainCall.Player
             landUntil = 0;
             if (model == null) return;
             model.Animator.enabled = true;
-            color = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+            color = network != null ? network.OutfitColor : GameSettings.Base.Character.GetPlayerColor(0);
             model.SetColor(color);
             ApplySurface(model);
             model.Apply(condition.LostParts, condition.LostParts, false, mover.Body);
@@ -156,7 +156,7 @@ namespace CurtainCall.Player
                 shownItem = null;
             }
             if (model == null) return;
-            Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+            Color next = network != null ? network.OutfitColor : GameSettings.Base.Character.GetPlayerColor(0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
             ClearItemLayers(model.Animator);

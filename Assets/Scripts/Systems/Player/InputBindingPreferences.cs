@@ -18,6 +18,16 @@ namespace CurtainCall.Player
         public const string DeviceUseAction = "UseDevice";
         public const string LeftClickPath = "<Mouse>/leftButton";
         public const string LeftClickLabel = "좌클릭";
+        public const string RightClickPath = "<Mouse>/rightButton";
+        public const string MiddleClickPath = "<Mouse>/middleButton";
+        public static bool IsLaneAction(string name) => name is "DirectionLeft" or "DirectionRight";
+        public static bool AllowsLeftClick(string name) => IsLaneAction(name) || name == DeviceUseAction;
+        public static bool CanShareBinding(string first, string second, string path)
+        {
+            if (IsLaneAction(second)) (first, second) = (second, first);
+            return IsLaneAction(first) &&
+                (second == DeviceUseAction && path == LeftClickPath || second == "UvLight" && path == RightClickPath);
+        }
         public static event Action Changed;
 
         public readonly struct BindingEntry
@@ -50,13 +60,15 @@ namespace CurtainCall.Player
         {
             if (string.IsNullOrEmpty(path)) return fallback;
             if (string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase)) return LeftClickLabel;
+            if (string.Equals(path, RightClickPath, StringComparison.OrdinalIgnoreCase)) return "우클릭";
+            if (string.Equals(path, MiddleClickPath, StringComparison.OrdinalIgnoreCase)) return "휠 클릭";
             string label = InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice);
             return string.IsNullOrWhiteSpace(label) ? fallback : label;
         }
 
         [Serializable] sealed class SavedBindings
         {
-            public int version = 1;
+            public int version = 2;
             public List<SavedBinding> bindings = new();
         }
 
@@ -78,7 +90,7 @@ namespace CurtainCall.Player
                 if (!string.IsNullOrEmpty(json))
                 {
                     var saved = JsonUtility.FromJson<SavedBindings>(json);
-                    if (saved == null || saved.version != 1 || saved.bindings == null)
+                    if (saved == null || saved.version is not (1 or 2) || saved.bindings == null)
                         throw new ArgumentException("Invalid binding preferences");
                     foreach (var entry in saved.bindings)
                     {
@@ -89,7 +101,10 @@ namespace CurtainCall.Player
                         if (index < 0 || action.bindings[index].isComposite) continue;
                         if (!TryValidateKeyPath(entry.path, out var path, out _, action.name))
                             throw new ArgumentException("Invalid saved key");
-                        action.ApplyBindingOverride(index, path);
+                        if (saved.version != 1 || !(action.name == "DirectionLeft" && path == "<Keyboard>/q"
+                            || action.name == "DirectionRight" && path == "<Keyboard>/e"
+                            || action.name == "TurnAround" && path == "<Keyboard>/t"))
+                            action.ApplyBindingOverride(index, path);
                     }
                     // Preserve older mappings when a newly introduced action shares their default key.
                     var assigned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -146,7 +161,7 @@ namespace CurtainCall.Player
             return entries;
         }
 
-        /// <summary>좌클릭은 UI와 운반 장치 발사에서만 사용한다.</summary>
+        /// <summary>좌클릭은 UI, 외줄 이동과 운반 장치 사용에 쓴다.</summary>
         static readonly string[] MouseButtons = { "rightButton", "middleButton", "forwardButton", "backButton" };
 
         /// <summary>실제 Keyboard Key 이름 또는 허용된 마우스 버튼만 받는다. 장치 연결은 필요 없다.</summary>
@@ -154,7 +169,7 @@ namespace CurtainCall.Player
         {
             normalizedPath = null;
             error = "키보드의 단일 키나 마우스 버튼을 선택해 주세요.";
-            if (actionName == DeviceUseAction && string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase))
+            if (AllowsLeftClick(actionName) && string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase))
             { normalizedPath = LeftClickPath; error = null; return true; }
             const string mousePrefix = "<Mouse>/";
             if (!string.IsNullOrEmpty(path) && path.StartsWith(mousePrefix, StringComparison.OrdinalIgnoreCase))
@@ -162,7 +177,7 @@ namespace CurtainCall.Player
                 var button = path.Substring(mousePrefix.Length);
                 foreach (var allowed in MouseButtons)
                     if (string.Equals(allowed, button, StringComparison.OrdinalIgnoreCase)) { normalizedPath = mousePrefix + allowed; error = null; return true; }
-                error = "좌클릭은 UI와 운반 장치 발사에서 사용합니다.";
+                error = "좌클릭은 UI, 외줄 이동과 운반 장치 사용에 배정할 수 있습니다.";
                 return false;
             }
             const string prefix = "<Keyboard>/";
@@ -208,6 +223,7 @@ namespace CurtainCall.Player
             foreach (var entry in entries)
             {
                 if (entry.BindingId == bindingId || !string.Equals(entry.Path, normalized, StringComparison.OrdinalIgnoreCase)) continue;
+                if (CanShareBinding(binding.ActionName, entry.ActionName, normalized)) continue;
                 error = $"이미 {entry.ActionName} {entry.PartName}에 배정된 키입니다. 다른 키를 선택해 주세요.";
                 return false;
             }
@@ -225,7 +241,7 @@ namespace CurtainCall.Player
             var defaults = source?.FindActionMap(MapName);
             var map = draft?.FindActionMap(MapName);
             if (defaults == null || map == null || defaults.id != map.id) return false;
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var used = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (var original in defaults.actions)
             {
                 var action = map.FindAction(original.id.ToString());
@@ -246,11 +262,14 @@ namespace CurtainCall.Player
                     if (string.IsNullOrWhiteSpace(binding.effectivePath))
                     { error = "할당되지 않은 조작의 키를 모두 설정해 주세요."; return false; }
                     if (!TryValidateKeyPath(binding.effectivePath, out var normalized, out error, action.name)) return false;
-                    if (!used.Add(normalized))
+                    if (!used.TryGetValue(normalized, out var actions))
+                        used[normalized] = actions = new List<string>();
+                    if (actions.Exists(name => !CanShareBinding(name, action.name, normalized)))
                     {
                         error = $"{normalized} 키가 중복 배정되어 있습니다. 다른 키를 선택해 주세요.";
                         return false;
                     }
+                    actions.Add(action.name);
                 }
             }
             error = null;

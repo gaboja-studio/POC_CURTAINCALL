@@ -16,6 +16,7 @@ namespace CurtainCall.EscapeRoute
         // Left/right foot, left/right hand, left/right leg, left/right arm.
         [SerializeField] SeverablePart[] parts = Array.Empty<SeverablePart>();
         public int PartCount => parts.Length;
+        public bool IsCut(int index) => index >= 0 && index < 8 && (state.Mask & (1 << index)) != 0;
         public bool IsPart(Collider collider) => Array.Exists(parts, part => part.hitbox == collider);
         public BoxCollider Hitbox(int index) => index >= 0 && index < parts.Length ? parts[index].hitbox : null;
         public static bool Exposed(byte mask, int index) => index >= 0 && index < 8 && (mask & (1 << index)) == 0

@@ -1,0 +1,84 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.05,
+      "summary": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.AllCaughtOnOrdinaryDayStartsPerformance",
+          "Status": "Passed",
+          "Duration": 0.0006178,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.CapturedArrivalIsInsideAssemblyInsteadOfOriginalDistantRoom",
+          "Status": "Passed",
+          "Duration": 0.0030256,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.DebugTimerResetAndExpiryWorkWhilePausedAndRejectOtherPhases",
+          "Status": "Passed",
+          "Duration": 0.0005809,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.FinalMorningTimeoutEndsTheRunBeforePursuit",
+          "Status": "Passed",
+          "Duration": 0.0002888,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.PatrolBoundaryUsesSegmentsHeightAndFallbackInsteadOfWaypointRadius",
+          "Status": "Passed",
+          "Duration": 0.0010518,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.StageThresholdsAndSpeedSettingsAreIndependent",
+          "Status": "Passed",
+          "Duration": 0.0002711,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.SurvivorsMayAssembleForPerformanceOrEscape",
+          "Status": "Passed",
+          "Duration": 0.0001803,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.TimeoutStaysInRestAndEmitsOnce",
+          "Status": "Passed",
+          "Duration": 0.0002413,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -1,6 +1,6 @@
 # Project Facts
 
-- [escape-results-kit.md](escape-results-kit.md) — 엔딩 키트·실게임 데이터·실제 플레이어 Cinemachine 연출·로비 복귀를 수정할 때
+- [escape-results-kit.md](escape-results-kit.md) — 엔딩 키트·실제 플레이어 Cinemachine·성공 로비/실패 새 런·공유 영상을 확인할 때
 - [Navigation/](Navigation/index.md) — 리허설 네비의 레이어·프리팹·호출 API·실게임 연결을 확인할 때
 
 - [Final-build/](Final-build/index.md) — 최종 빌드 개선의 Confluence 기준·확정 방향·미검증 범위를 확인할 때
@@ -10,7 +10,7 @@
 - [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목
 
 - [escape-route-timer.md](escape-route-timer.md) — 제한시간 제거·추격자 연출용 서버 시계·재시작 동기화를 확인할 때
-- [escape-pursuer-layout.md](escape-pursuer-layout.md) — 첫 등장 우측 벽·숨은 정비로·패널/탄도/표면 겹침을 조정할 때
+- [escape-pursuer-layout.md](escape-pursuer-layout.md) — 첫 등장 벽·콘크리트 뒤 경로·Mascot 리그/8부위·준비/포획/투척을 조정할 때
 
 - [escape-waiting-transition.md](escape-waiting-transition.md) — 현재 인원 전원 합류 후 로딩·위치 인계·W 해제·A 계단 카메라와 미검증 범위를 확인할 때
 - [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 지상 그네·장거리 대포·연속 그네·교대 화염·개발 실행을 확인할 때
@@ -29,7 +29,7 @@
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
 - [title-logo.md](title-logo.md) — 타이틀 로고 정적2레이어·Sprite/1920기준 배치 계약. Canvas 배치·크기/그림자 조절 전에
 - [results-ui.md](results-ui.md) — C12 공연 결과 표시·확인 의도·장식 동전 계약과 독립 씬. 조립/결과 어댑터 연결 전에
-- [schedule-ui.md](schedule-ui.md) — W3 읽기 전용 3일 공연 일정표·독립 열 스크롤·현재/확정 표시 계약. 조립/일정 표시 어댑터 연결 전에
+- [schedule-ui.md](schedule-ui.md) — W3 티켓 v2·공연/난이도 분리 입력·포커스 overlay·GPT Image 키트. 조립/일정 표시 어댑터 연결 전에
 - [shop-ui.md](shop-ui.md) — W2 수화기 구매·판매 표시 패널·요청 토큰 계약과 독립 확인 씬. 조립/거래 어댑터 연결 전에
 - [settings-ui.md](settings-ui.md) — C14 v1·실게임 v2 프리팹/5탭·키 재지정·음성 기기·그래픽·런 포기·폰트/토큰 계약. 설정 UI·실제 옵션 서비스 연결 전에
 - [transition-curtain.md](transition-curtain.md) — C16 커튼 차폐/렌더 장벽·독립 프리팹·원본 보존. 전환 표시 배치·연결 전에

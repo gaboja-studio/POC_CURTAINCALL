@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261114-130-failure-ending-a/Tools/verify-ending.cs",
+      "entry": "EndingVerification.FailureReady"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 100,
+      "executeMs": 8378,
+      "assemblyName": "PipelineRunScript_verify-ending_ecaea49d938848f9bfe92bea5df43368",
+      "success": true,
+      "result": {
+        "title": "3일차 · 탈출 실패",
+        "summary": "탈출 0명 · 미탈출 1명",
+        "participants": 1,
+        "fade": 0,
+        "minIntensity": 0.288000017,
+        "maxIntensity": 4.8,
+        "maxAngle": 0.799998,
+        "cameraStationary": true,
+        "frames": 498,
+        "phase": "Ending",
+        "day": 3
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

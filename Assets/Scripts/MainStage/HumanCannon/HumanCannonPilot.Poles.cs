@@ -10,6 +10,7 @@ namespace CurtainCall.HumanCannon
         public bool IsHoldingPole => HeldPole >= 0;
         float poleFlightSpeedLimit;
         float polePumpInput;
+        Vector3 poleCameraForward;
 
         bool ReadPoleInput(in PlayerInputFrame input)
         {
@@ -73,6 +74,7 @@ namespace CurtainCall.HumanCannon
             steerPoleMomentum = false;
             latch.Reset();
             UpdatePolePose(true);
+            poleCameraForward = transform.forward;
         }
 
         internal void LeavePole(int station, uint launch, uint segment, Vector3 position,

@@ -258,7 +258,11 @@ namespace CurtainCall.UI.SceneIntegration
                         return;
                     }
                     if (trapeze.CanAttachToPole(i, player))
-                    { DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, ""); return; }
+                    {
+                        DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, "");
+                        AddHangingTeammate(trapeze.HolderAt(i), feet);
+                        return;
+                    }
                 }
                 if (trapeze.IsInFlight(player))
                 { DeviceGuide(player, feet, "F", "봉 또는 동료 잡기", false, "봉이나 동료 가까이 이동하세요"); return; }
@@ -387,6 +391,18 @@ namespace CurtainCall.UI.SceneIntegration
             var fill = child.GetComponent<RescueProgressRing>(); fill.Sprite = rescueTrack; fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Radial360; fill.fillOrigin = (int)Image.Origin360.Top; fill.fillClockwise = true; fill.color = new Color(1f, .12f, .12f, 1f); fill.raycastTarget = false;
             return rect;
         }
+        /// <summary>그네에 매달린 팀원에게 매달릴 수 있으면 그 팀원 캐릭터에 상호작용 외곽선을 그린다(안내 문구는 바꾸지 않음).</summary>
+        void AddHangingTeammate(ulong teammate, Vector3 feet)
+        {
+            if (teammate == CannonSeatState.Nobody) return;
+            foreach (var other in NetworkPlayer.All)
+            {
+                if (other == null || !other.IsSpawned || other.OwnerClientId != teammate || other == NetworkPlayer.Local) continue;
+                Add(other.transform, PlayerInteraction.Center(other), "매달린 동료 잡기", true, false, feet);
+                candidates[candidates.Count - 1].Pole = true;
+                return;
+            }
+        }
         void DeviceGuide(NetworkPlayer player, Vector3 feet, string key, string action, bool available, string helper, bool hold = false)
         {
             candidates.Add(new Candidate { Root = player.transform, Point = feet, Key = key, Action = action,
@@ -461,6 +477,7 @@ namespace CurtainCall.UI.SceneIntegration
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
                     if (locks != null && locks.IsHelperPole(pole))
                         candidates[candidates.Count - 1].Helper = locks.HelperInstruction(pole);
+                    AddHangingTeammate(exitPoles.GrabTeammate(exitPole, player), feet);
                 }
                 return;
             }
@@ -537,6 +554,7 @@ namespace CurtainCall.UI.SceneIntegration
                         candidates[candidates.Count - 1].Device = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
                         else if (pole.RiderCapacity > 1) candidates[candidates.Count - 1].Helper = "W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다";
+                        if (i == focused) AddHangingTeammate(poles.GrabTeammate(i, player), feet);
                     }
                 }
             }

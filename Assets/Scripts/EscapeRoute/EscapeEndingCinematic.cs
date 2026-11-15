@@ -24,8 +24,14 @@ namespace CurtainCall.EscapeRoute
         bool fogBefore;
         Color fogColorBefore, ambientBefore, cameraColorBefore;
         float fogDensityBefore;
+        float fogStartBefore, fogEndBefore;
+        int lightingScene;
+        EscapeEndingArt art;
         FogMode fogModeBefore;
         UnityEngine.Rendering.AmbientMode ambientModeBefore;
+        Light sceneLight;
+        Color sceneLightColorBefore;
+        float sceneLightIntensityBefore;
         Camera renderCamera;
         CameraClearFlags clearBefore;
         EscapeEndingRunner runner;
@@ -44,13 +50,27 @@ namespace CurtainCall.EscapeRoute
             foreach (var root in gameObject.scene.GetRootGameObjects())
                 foreach (var light in root.GetComponentsInChildren<Light>())
                     if (light.type == LightType.Directional && light.enabled) { lights.Add(light); light.enabled = false; }
+            sceneLight = null;
+            foreach (var light in cinematicScenery.GetComponentsInChildren<Light>(true))
+                if (light.type == LightType.Directional) { sceneLight = light; break; }
             fogBefore = RenderSettings.fog; fogColorBefore = RenderSettings.fogColor;
             fogModeBefore = RenderSettings.fogMode; fogDensityBefore = RenderSettings.fogDensity;
+            fogStartBefore = RenderSettings.fogStartDistance; fogEndBefore = RenderSettings.fogEndDistance;
+            lightingScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle;
             ambientBefore = RenderSettings.ambientLight; ambientModeBefore = RenderSettings.ambientMode;
-            RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogDensity = .004f; RenderSettings.fogColor = new Color(.027f,.043f,.075f);
+            var settings = CurtainCall.Settings.GameSettings.EscapeRoute;
+            var look = settings.EndingLightingFor(settings.EndingTime);
+            RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogDensity = look.fogDensity; RenderSettings.fogColor = look.fogColor;
+            RenderSettings.fogStartDistance = look.fogStartDistance;
+            RenderSettings.fogEndDistance = Mathf.Max(look.fogStartDistance + 1, look.fogEndDistance);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(.25f,.30f,.43f);
+            RenderSettings.ambientLight = look.ambientColor;
+            if (sceneLight != null)
+            {
+                sceneLightColorBefore = sceneLight.color; sceneLightIntensityBefore = sceneLight.intensity;
+                sceneLight.color = look.lightColor; sceneLight.intensity = look.lightIntensity;
+            }
             renderCamera = Camera.main;
             if (renderCamera != null)
             {
@@ -64,6 +84,12 @@ namespace CurtainCall.EscapeRoute
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && Contains(escaped, player.OwnerClientId)) survivors.Add(player);
             survivors.Sort((a,b) => a.Slot.CompareTo(b.Slot));
+            var artPrefab = Resources.Load<EscapeEndingArt>("Prefabs/Endings/SuccessEndingArt");
+            if (artPrefab != null)
+            {
+                art = Instantiate(artPrefab, cinematicScenery.transform);
+                art.Begin(pathStart, cameraTarget, meadowTiles, survivors, look);
+            }
             float slowest = 1;
             foreach (var actor in survivors)
                 if (actor.TryGetComponent(out PlayerMover motor)) slowest = Mathf.Min(slowest, motor.SpeedMultiplier);
@@ -81,7 +107,7 @@ namespace CurtainCall.EscapeRoute
             }
             UpdateTarget();
             var follow = cinematicCamera.GetComponent<CinemachineFollow>();
-            if (follow != null) follow.FollowOffset = pathStart.TransformDirection(new Vector3(0, 1.05f, 10));
+            if (follow != null) follow.FollowOffset = pathStart.TransformDirection(new Vector3(0, 1.05f, settings.EndingCameraDistance(survivors.Count)));
             cinematicCamera.Follow = cameraTarget; cinematicCamera.LookAt = cameraTarget;
             cinematicCamera.enabled = true;
             cinematicCamera.PreviousStateIsValid = false;
@@ -135,17 +161,21 @@ namespace CurtainCall.EscapeRoute
         }
         public void Stop()
         {
+            if (art != null) { art.Restore(); Destroy(art.gameObject); art = null; }
             if (runner != null) { runner.Stop(); Destroy(runner); runner = null; }
             localActor = null;
             if (cinematicCamera != null) cinematicCamera.enabled = false;
             if (meadowTiles != null)
                 for (int i = 0; i < tileHomes.Count; i++) if (meadowTiles[i] != null) meadowTiles[i].localPosition = tileHomes[i];
-            if (playing)
+            if (playing && UnityEngine.SceneManagement.SceneManager.GetActiveScene().handle == lightingScene)
             {
                 RenderSettings.fog = fogBefore; RenderSettings.fogMode = fogModeBefore;
                 RenderSettings.fogColor = fogColorBefore; RenderSettings.fogDensity = fogDensityBefore;
+                RenderSettings.fogStartDistance = fogStartBefore; RenderSettings.fogEndDistance = fogEndBefore;
                 RenderSettings.ambientMode = ambientModeBefore; RenderSettings.ambientLight = ambientBefore;
                 if (renderCamera != null) { renderCamera.clearFlags = clearBefore; renderCamera.backgroundColor = cameraColorBefore; }
+                if (sceneLight != null) { sceneLight.color = sceneLightColorBefore; sceneLight.intensity = sceneLightIntensityBefore; }
+                sceneLight = null;
             }
             foreach (var item in hidden) if (item != null) item.SetActive(true);
             foreach (var light in lights) if (light != null) light.enabled = true;

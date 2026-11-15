@@ -197,8 +197,11 @@ namespace CurtainCall.Tightrope.Tests
             else if (input.Move < -.001f) keys.Add(Key.S);
             if (input.Posture > .15f) keys.Add(Key.D);
             else if (input.Posture < -.15f) keys.Add(Key.A);
-            if (input.AuxDirection != 0) keys.Add(input.AuxDirection > 0 ? Key.E : Key.Q);
-            if (input.ActionPressed) keys.Add(Key.Space);
+            if (input.ActionPressed && input.AuxDirection == 0) keys.Add(Key.Space);
+            if (probeMouse != null && probeMouse.added)
+                InputSystem.QueueStateEvent(probeMouse, new UnityEngine.InputSystem.LowLevel.MouseState()
+                    .WithButton(UnityEngine.InputSystem.LowLevel.MouseButton.Left, input.ActionPressed && input.AuxDirection < 0)
+                    .WithButton(UnityEngine.InputSystem.LowLevel.MouseButton.Right, input.ActionPressed && input.AuxDirection > 0));
             if (input.InteractLongPressed) journeyLongUntil = Mathf.Max(journeyLongUntil, Time.time + .6f);
             if (input.InteractTapped || Time.time < journeyLongUntil) keys.Add(Key.F);
             if (journeyPhase == 3 && (input.InteractTapped || input.ActionPressed) && journeyEvents.Count < 2048)

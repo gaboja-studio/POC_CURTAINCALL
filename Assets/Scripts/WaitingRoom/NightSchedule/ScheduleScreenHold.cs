@@ -27,6 +27,11 @@ namespace CurtainCall.WaitingRoom
             keep.Add(canvas);
             if (hidden.Remove(canvas)) canvas.enabled = true;
         }
+        public static void Forget(Canvas canvas)
+        {
+            if (canvas == null) return;
+            keep.Remove(canvas); hidden.Remove(canvas);
+        }
 
         public static void Set(bool held)
         {

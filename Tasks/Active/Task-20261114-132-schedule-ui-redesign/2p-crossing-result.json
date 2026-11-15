@@ -1,0 +1,133 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/github/POC_CURTAINCALL/Tasks/Active/Task-20261114-132-schedule-ui-redesign/multiplayer-probe.cs",
+      "entry": "ScheduleMultiplayerProbe.ClickDuringCrossing",
+      "timeout_ms": "90000"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 220,
+      "executeMs": 4584,
+      "assemblyName": "PipelineRunScript_multiplayer-probe_baa5862c674047168cfaebf778ffa6e9",
+      "success": true,
+      "result": {
+        "hit": "NextTier",
+        "input": "NextTier",
+        "before": {
+          "trick": "HumanCannon",
+          "tier": 1
+        },
+        "after": {
+          "scene": "WaitingRoom",
+          "frame": 19528,
+          "phase": "Night",
+          "host": true,
+          "count": 2,
+          "id": 0,
+          "net": [
+            {
+              "id": 0,
+              "owner": true,
+              "state": "Normal",
+              "lost": "None",
+              "xyz": "(-12.034, 0.030, 85.574)"
+            },
+            {
+              "id": 1,
+              "owner": false,
+              "state": "Normal",
+              "lost": "None",
+              "xyz": "(-11.305, 0.543, 86.923)"
+            }
+          ],
+          "trick": "HumanCannon",
+          "tier": 2,
+          "authority": true,
+          "shown": "인간 대포",
+          "shownTier": "2단계",
+          "slot": true,
+          "arrow": false,
+          "open": true,
+          "canvas": "ScreenSpaceOverlay"
+        },
+        "feedback": "2단계 적용됨",
+        "samples": [
+          {
+            "mask": 0,
+            "frame": 19387,
+            "overlap": false,
+            "remotePosition": "(-13.480, 0.030, 85.680)"
+          },
+          {
+            "mask": 1,
+            "frame": 19523,
+            "overlap": true,
+            "remotePosition": "(-12.314, 0.668, 86.346)"
+          },
+          {
+            "mask": 0,
+            "frame": 19525,
+            "overlap": false,
+            "remotePosition": "(-11.645, 0.676, 86.728)"
+          }
+        ],
+        "geometry": {
+          "remote": 1,
+          "bounds": "Center: (-12.32, 1.20, 86.35), Extents: (0.42, 0.99, 0.52)",
+          "screen": [
+            0.587804556,
+            -0.3245011,
+            1.1655699
+          ],
+          "boardDepth": 2.00017023,
+          "visibleMeshCount": 1,
+          "intersectsArrowRay": true,
+          "state": {
+            "scene": "WaitingRoom",
+            "frame": 19523,
+            "phase": "Night",
+            "host": true,
+            "count": 2,
+            "id": 0,
+            "net": [
+              {
+                "id": 0,
+                "owner": true,
+                "state": "Normal",
+                "lost": "None",
+                "xyz": "(-12.034, 0.030, 85.574)"
+              },
+              {
+                "id": 1,
+                "owner": false,
+                "state": "Normal",
+                "lost": "None",
+                "xyz": "(-12.314, 0.668, 86.346)"
+              }
+            ],
+            "trick": "HumanCannon",
+            "tier": 1,
+            "authority": true,
+            "shown": "인간 대포",
+            "shownTier": "1단계",
+            "slot": true,
+            "arrow": true,
+            "open": true,
+            "canvas": "ScreenSpaceOverlay"
+          }
+        }
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

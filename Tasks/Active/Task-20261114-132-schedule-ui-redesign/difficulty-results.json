@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 0.12,
+      "summary": {
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.ChosenTierIsLimitedToNextAfterCleared",
+          "Status": "Passed",
+          "Duration": 0.0358669,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.HumanCannonNeedsDiscoveryAndResetsWithRun",
+          "Status": "Passed",
+          "Duration": 0.0008265,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.NewRunForgetsClearedTiers",
+          "Status": "Passed",
+          "Duration": 0.0002933,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.RestTimeAdjustsOnlyNextPerformanceTier",
+          "Status": "Passed",
+          "Duration": 0.0008615,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DifficultySelectionTests.RestTimeAdjustWorksWithoutChosenTiersAndNotOnDayOne",
+          "Status": "Passed",
+          "Duration": 0.000351,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\github\\POC_CURTAINCALL"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

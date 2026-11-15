@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-13",
+  "branch": "feat/exit-route/pursuer",
+  "startingDev": "9a5baaa7",
+  "finalDev": "c0c11212",
+  "privateAssets": "16982ba2",
+  "committed": false,
+  "devSceneConflict": "User approved preserving ending and checkpoints with one improved pursuer instance",
+  "references": {
+    "scene": "Assets/Scenes/Levels/escape_route.unity",
+    "objects": 6543,
+    "missing": 0,
+    "missingPrefabs": 0,
+    "ending": true,
+    "checkpoints": true,
+    "routes": 1,
+    "points": 74,
+    "gates": 21,
+    "dirty": false
+  },
+  "geometry": {
+    "serviceSegments": 70,
+    "blockedSegments": 0,
+    "visibleAnchorSamples": 0,
+    "attackBays": 19,
+    "blockedAttackBays": 0,
+    "blockedPlayerAnchors": 0,
+    "finalJump": {
+      "samples": 121,
+      "jumpFrom": 70,
+      "jumpTo": 71,
+      "blocked": [],
+      "dirty": false
+    },
+    "cannons": [
+      {
+        "i": 0,
+        "first": "EscapeBackground/34_AFusedRoute/03_04A_CannonWireDescent/A03_CannonLandingWire",
+        "added": false,
+        "hitAt": 1.89999878
+      },
+      {
+        "i": 1,
+        "first": "EscapeBackground/34_AFusedRoute/05_CooperativeReboundAndExit/A05_PermanentEntryWire",
+        "added": false,
+        "hitAt": 3.77500534
+      },
+      {
+        "i": 2,
+        "first": "EscapeBackground/41_AReadableRoute/01_SealedFacilityAndReveal/빛이 닿지 않는 심부",
+        "added": false,
+        "hitAt": 6.37501526
+      },
+      {
+        "i": 3,
+        "first": "EscapeBackground/34_AFusedRoute/06_FlamesSwingCannonAndUpperWire/A06_UpperReturnWire",
+        "added": false,
+        "hitAt": 1.99999869
+      }
+    ]
+  },
+  "tests": {
+    "total": 258,
+    "passed": 258,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "host": {
+    "samples": 206,
+    "seconds": 21.922108199999997,
+    "phases": [
+      "None",
+      "Warning",
+      "Strike",
+      "Grab"
+    ],
+    "playerStates": [
+      "Normal",
+      "EscapeCaptured"
+    ],
+    "maxRunWeight": 1,
+    "wallRestartBeforeFinalDev": {
+      "before": 1,
+      "after": 0
+    },
+    "currentConsoleErrors": 0
+  },
+  "limits": [
+    "Controlled one-player host reproduction, not a continuous human completion",
+    "Two-to-four-player balance and remote breach presentation unverified",
+    "Visibility sampled at authored path anchors, not every gameplay camera",
+    "Cannon checks use baseline trajectories, not interactive air control"
+  ],
+  "doctor": "Existing duplicate Task IDs (10) failed; implementation not blocked",
+  "checkWork": {
+    "safety": "PASS",
+    "documents": "PASS",
+    "compile": "PASS",
+    "commonSettings": "PASS",
+    "tests": "SKIPPED (separately ran 258/258)"
+  },
+  "finalSync": {
+    "editorClosed": true,
+    "dev": "c0c11212",
+    "ahead": 0,
+    "behind": 0
+  }
+}

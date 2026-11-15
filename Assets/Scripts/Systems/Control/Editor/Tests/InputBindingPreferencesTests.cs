@@ -352,12 +352,16 @@ namespace CurtainCall.Control.Editor.Tests
         }
 
         [Test]
-        public void TurnAround_DefaultsToT_AndExistingReadersUseItsSavedBinding()
+        public void RopeMouseDefaultsAllowContextualSharingAndSavedTurnBinding()
         {
             var reader = CreateReader();
             var draft = Draft();
             var action = draft.FindAction("Common/TurnAround", true);
-            Assert.That(action.bindings[0].effectivePath, Is.EqualTo("<Keyboard>/t"));
+            Assert.That(action.bindings[0].effectivePath, Is.EqualTo("<Mouse>/middleButton"));
+            Assert.That(reader.BindingLabel("DirectionLeft", ""), Is.EqualTo("좌클릭"));
+            Assert.That(reader.BindingLabel("DirectionRight", ""), Is.EqualTo("우클릭"));
+            Assert.That(reader.BindingLabel("TurnAround", ""), Is.EqualTo("휠 클릭"));
+            Assert.That(InputBindingPreferences.TryValidateDraft(draft, out var defaultError), Is.True, defaultError);
             Assert.That(InputBindingPreferences.TryRebind(draft, action.bindings[0].id, "<Keyboard>/u", out _), Is.True);
             Assert.That(InputBindingPreferences.TryApply(draft, out string error), Is.True, error);
             Assert.That(reader.BindingLabel("TurnAround", "T"), Is.EqualTo("U"));

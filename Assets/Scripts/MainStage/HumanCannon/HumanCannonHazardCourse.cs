@@ -106,6 +106,18 @@ namespace CurtainCall.HumanCannon
         public bool SetDifficulty(int level)
         {
             if (!CanChangeDifficulty || !CannonDifficulty.Valid(level)) return false;
+            return ApplyDifficulty(level);
+        }
+
+        // A campaign's selected tier is authoritative even if the shared roster arrived first.
+        internal bool ApplyScheduledDifficulty(int level)
+        {
+            if (session == null || !session.IsHost || !CannonDifficulty.Valid(level)) return false;
+            return difficulty == level || runStart < 0 && ApplyDifficulty(level);
+        }
+
+        bool ApplyDifficulty(int level)
+        {
             if (difficulty == level) return true;
             difficulty = level; epoch = Clock; ClearContacts(); revision++; Publish();
             return true;

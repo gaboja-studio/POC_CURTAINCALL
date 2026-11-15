@@ -138,7 +138,8 @@ namespace CurtainCall.Tightrope
         /// </summary>
         public bool ServerTryHang(NetworkPlayer player, float distance, int preferredLane = -1)
         {
-            if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
+                || TightropeCourse.BlocksRopeForSaw(player)) return false;
             if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (PiggybackSystem.UsingDevice(player)) return false;

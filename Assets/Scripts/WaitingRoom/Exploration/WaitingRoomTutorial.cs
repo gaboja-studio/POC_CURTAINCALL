@@ -242,7 +242,8 @@ namespace CurtainCall.WaitingRoom
         void CheckRest(CampaignSnapshot s)
         {
             var b = Book;
-            if (s.Rest == RestKind.Guide) foreach (var id in RestChain) b.Enqueue(id);
+            if (s.Rest == RestKind.Guide || s.Day == 1 && s.Rest == RestKind.Morning)
+                foreach (var id in RestChain) b.Enqueue(id);
             if (s.Timer == RestTimerState.Running && zones != null && ShopReach.TryLocalFeet(out var feet) && zones.IsRunningZone(feet)) b.Enqueue("G02");
             if (s.AlarmRaised) b.Enqueue("G11A");
             if (ExpertService.LocalLostLimbs > 0) b.Enqueue("G10");

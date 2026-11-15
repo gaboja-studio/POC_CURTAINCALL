@@ -1,8 +1,8 @@
 ---
-summary: 노말 엔딩 결과창 키트·실게임 데이터·실제 플레이어 Cinemachine 연출·로비 복귀 계약
+summary: 성공/실패 결과창·실제 플레이어 Cinemachine·성공 로비/실패 새 런 계약
 status: active
-updated: 2026-11-12
-source: human 실게임 연결 요청, Task-20261112-120, Unity 6000.3.25f1 단일 호스트 플레이 검사
+updated: 2026-11-14
+source: human 성공 아트/실패 재시작 요청, Task-20261112-120, Task-20261114-131, Unity 6000.3.25f1 LAN 1/2인 검사
 ---
 
 # 탈출 결과창 키트
@@ -19,6 +19,9 @@ source: human 실게임 연결 요청, Task-20261112-120, Unity 6000.3.25f1 단�
 - ReturnRequested는 의도 이벤트만 발생한다. 자동 숨김·로비 이동 없음. 전역 커서/입력·성공 집계·보상·씬 전환은 게임이 소유한다.
 
 ## 실게임 연결
+- 2026-11-14 변경: 성공은 기존 로비 복귀, 실패 A(Deadline/EscapeAllRetired)는 `RestartAfterFailure`로 세대+1/1일차 아침 쉬는 시간. 공연 해금·클리어 단계는 초기화하며 본 가이드/이수 리허설은 유지한다. 미열람/미이수는 계속 제공한다.
+- 실패 확인은 `다음 런 시작`, 목적지 WaitingRoom의 전환 차폐가 끝나면 기존 Warning 시스템 UI로 빨간 `탈출 실패` 안내를 표시한다. 실패 시 세션 Playing을 유지하며 전원 신체와 조작을 복구한다.
+- 성공 배경은 `Resources/Prefabs/Endings/SuccessEndingArt`를 기존 달리기 경로에 추가한다. GameSettings의 낮 하늘/거리 안개 색을 분리하고 서커스·갈대·지면 및 원본 4모델 파생 재질을 적용한다. 원본 팔레트/변형/혈흔 표시 옵션을 보존하며 복귀 때 원래 재질을 복구한다.
 - `escape_route.unity`의 EscapeEndingPresentation에 EscapeEndingResults/Cinematic을 연결했다. Canvas 루트를 인스턴스화하고 자식 EscapeResultsPanel의 View를 찾는다. 결과 sorting600, 공유 전환 커튼2000.
 - 호스트가 도착 명부/마지막 관측 기물 최대2칸을 동결해 기존 ShopChannel로 전달한다. 실제 모델 순서 rabbit/bear/pierrot/girl, 슬롯 색/ItemVisualAssets 아이콘을 사용한다. 같은 세대의 재동기화는 탭을 초기화하지 않는다.
 - PerformanceRewards의 EscapeRunStatistics는 현재 세대의 모든 확정 공연을 누적한다. 최근10개 History와 독립이며 미시도는 —, 동률 개인 최고는 첫 기록 유지. 세대/새 런 초기화, 기존 RewardState 메시지 공유.
@@ -35,4 +38,5 @@ source: human 실게임 연결 요청, Task-20261112-120, Unity 6000.3.25f1 단�
 - 독립 Unity에서 컴파일/프리팹 생성/61개 TMP 필드·Sprite 참조 확인, 두 탭1920×1080 렌더 확인. Play Mode raycast+합성 pointer click19개 검사 통과. 사람 입력/NGO 연결 검사는 아님.
 - 검증 에디터 SearchDatabase 초기 인덱싱에 엔진 내부 예외가 있어 전체 Console 오류0으로 기록하지 않는다.
 - 실제 일반 에디터 LAN 호스트 Start→Lobby→Escape→성공 경계→결과 버튼→Lobby 확인. W 0.5초에1.55m, F 레버로 Waiting 복구. 통계3/엔딩4 테스트 통과, 씬 missing script0. 상세는 Task-120 integration-review.
-- 전 구간 수동 완주/다중 클라이언트/부상 조합 실플레이는 미검증. 전체 보상 검사 기존 기대값 불일치1건과 저장소 문서 검사 실패를 별도 기록한다. 배치 모드에서는 C16 커튼이 전환을 거부하므로 복귀 검사는 일반 에디터를 쓴다.
+- Task-131에서 실제 LAN 1인/2인 성공·실패 전환부터 결과 탭과 목적지까지 MP4 네 편을 저장했다. 2인 성공은 토끼/부상 곰, 실패 후 양쪽 Day1/Morning/정상 신체/조작 복구를 확인했다. 영상은 개발 시작점으로 공연을 건너뛰었고 통계는 실제 미시도 값이다.
+- 전 구간 수동 완주/3~4인/모든 부상 조합은 미검증. 기존 Task-120의 전체 보상 기대값 불일치와 문서 검사 실패는 과거 기록을 참조한다. 배치 모드에서는 C16 커튼이 전환을 거부하므로 복귀 검사는 일반 에디터를 쓴다.

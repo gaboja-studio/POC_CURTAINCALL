@@ -22,6 +22,7 @@ namespace CurtainCall.Cameras
         {
             public CameraViewPreset Preset;
             public Vector3 Forward;
+            public bool FollowHeading;
         }
 
         [SerializeField] CameraViewSettings settings;
@@ -34,6 +35,8 @@ namespace CurtainCall.Cameras
         CameraViewPreset selected;
         CameraViewKind selectedKind;
         Vector3 selectedForward = Vector3.forward;
+        Vector3 followedHeading;
+        float headingTurnStart, headingTurnDelta, headingTurnApplied;
         NetworkPlayer local;
         PlayerMover mover;
         float yaw;
@@ -99,7 +102,8 @@ namespace CurtainCall.Cameras
             : (Camera.main != null ? Camera.main.transform.forward : transform.forward)) : Vector3.zero;
 
         bool MouseLook => firstPerson || freeThirdPerson || spectatorOrbit;
-        Transform SpectatorAnchor => CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
+        Transform SpectatorAnchor => CameraSpectator.EscapeCaptureAnchor != null ? CameraSpectator.EscapeCaptureAnchor
+            : CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
         public bool IsSpectatorOrbit => spectatorOrbit;
         internal void SpectatorTargetChanged() { collisionDistance = -1; transitionDuration = 0; }
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
@@ -153,10 +157,14 @@ namespace CurtainCall.Cameras
 
         /// <summary>출처당 하나. 갱신은 등록 순서를 유지하고 해제 후 재등록만 최근 요청이 된다.</summary>
         public void RequestView(Object source, CameraViewPreset preset, int priority, Vector3 worldForward = default)
+            => RequestViewWithHeading(source, preset, priority, worldForward, false);
+
+        internal void RequestViewWithHeading(Object source, CameraViewPreset preset, int priority, Vector3 worldForward,
+            bool followHeading)
         {
             if (source == null) return;
             if (preset == null) { ReleaseView(source); return; }
-            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward) }, priority);
+            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading }, priority);
         }
 
         public void ReleaseView(Object source) => requests.Remove(source);
@@ -260,6 +268,8 @@ namespace CurtainCall.Cameras
                 // 마우스 시선 시점에 새로 들어올 때만 시선을 현재 화면 방향으로 맞춘다(1인칭↔비고정은 시선 이어짐)
                 bool enterFirst = (useFirst || useFree || useSpectator) && !MouseLook;
                 winner = source;
+                followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
@@ -289,6 +299,8 @@ namespace CurtainCall.Cameras
                 if (!MouseLook && !preserveCursorInFixedView) ReleaseCursor();
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
+            Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
+            UpdateFollowedHeading(heading);
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
@@ -297,6 +309,28 @@ namespace CurtainCall.Cameras
                 composer.TargetOffset = new Vector3(0f, framing.LookHeight - postureDrop, framing.LookAhead);
             }
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
+        }
+
+        void UpdateFollowedHeading(Vector3 heading)
+        {
+            if (heading == Vector3.zero)
+            {
+                followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
+                return;
+            }
+            if (followedHeading == Vector3.zero || Vector3.Dot(heading, followedHeading) < .9999f)
+            {
+                followedHeading = heading;
+                headingTurnStart = Time.unscaledTime;
+                headingTurnApplied = 0f;
+                headingTurnDelta = Mathf.DeltaAngle(yaw, Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg);
+            }
+            float duration = Mathf.Max(.01f, CurtainCall.Settings.GameSettings.Tightrope.Camera.FramingSmoothTime);
+            float progress = Mathf.Clamp01((Time.unscaledTime - headingTurnStart) / duration);
+            float applied = headingTurnDelta * Mathf.SmoothStep(0f, 1f, progress);
+            yaw = Mathf.Repeat(yaw + applied - headingTurnApplied, 360f);
+            headingTurnApplied = applied;
         }
 
         internal void ApplyPose(ref CameraState state)
@@ -319,6 +353,13 @@ namespace CurtainCall.Cameras
                 framedTarget = CameraSpectator.Target;
                 if (CameraSpectator.Target == null && hasDeathOutput)
                     SetPose(ref state, deathOutput.GetFinalPosition() + Vector3.down * deathDropDistance, Quaternion.Euler(pitch,yaw,0));
+                else if (CameraSpectator.EscapeCaptureAnchor != null)
+                {
+                    Vector3 center = SpectatorAnchor.position + Vector3.up * 2.5f;
+                    Vector3 position = FreeThirdPersonPose(selected, center - Vector3.up * selected.LookHeight, yaw, pitch, out _);
+                    position = center + (position - center) * 1.5f;
+                    SetPose(ref state, position, Quaternion.LookRotation(center - position, Vector3.up));
+                }
                 else if (capture) SetPose(ref state, CaptureWatchPose(selected, focus, captureSide, pitch, out var watch), watch);
                 else SetPose(ref state, FreeThirdPersonPose(selected, SpectatorAnchor.position, yaw, pitch, out var rotation), rotation);
                 state.ReferenceLookAt = CameraState.kNoPoint;
@@ -393,6 +434,7 @@ namespace CurtainCall.Cameras
             // 앉으면 기준점도 몸 높이만큼 낮춘다. 낮은 통로(환풍구 등)에서 기준점이 천장 밖으로 나가 카메라가 벽 밖을 비추지 않게 한다.
             var anchorMover = spectatorOrbit ? null : anchor.GetComponent<PlayerMover>();
             float lookHeight = Mathf.Max(.1f, selected.LookHeight) * (anchorMover != null ? anchorMover.PostureHeightScale : 1f);
+            if (CameraSpectator.EscapeCaptureAnchor != null) lookHeight = 2.5f;
             Vector3 pivot = KeepPivotUnderCeiling(anchor.position, anchor.position + Vector3.up * lookHeight);
             Vector3 originalPivot = pivot;
             var subject = anchor.GetComponent<NetworkPlayer>();
@@ -514,6 +556,7 @@ namespace CurtainCall.Cameras
         static bool BlocksCamera(Collider obstacle)
         {
             if (obstacle == null || obstacle is CharacterController) return false;
+            if (CameraSpectator.EscapeCaptureAnchor != null && obstacle.transform.IsChildOf(CameraSpectator.EscapeCaptureAnchor)) return false;
             var subject = CameraSpectator.IsSpectating ? CameraSpectator.Target : NetworkPlayer.Local;
             var held = subject != null ? CurtainCall.HumanCannon.HumanCannonCarry.Held(subject.OwnerClientId) : null;
             if (held != null && obstacle.transform.IsChildOf(held.CarryRoot)) return false;
@@ -689,8 +732,10 @@ namespace CurtainCall.Cameras
             state.Lens.Dutch = 0f;
         }
 
-        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.Fallen || player.State == PlayerState.Retired ||
-            (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
+        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.EscapeCaptured
+            ? CurtainCall.EscapeRoute.EscapeUnderstageChase.Current != null && CurtainCall.EscapeRoute.EscapeUnderstageChase.Current.HasReleasedCaptured(player)
+            : player.State == PlayerState.Fallen || player.State == PlayerState.Retired ||
+                (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
 
         static bool SourceActive(Object source) => source != null && source switch
         {

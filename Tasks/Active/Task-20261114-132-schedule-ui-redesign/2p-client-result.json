@@ -1,0 +1,68 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/github/POC_CURTAINCALL/Tasks/Active/Task-20261114-132-schedule-ui-redesign/multiplayer-probe.cs",
+      "entry": "ScheduleMultiplayerProbe.Snapshot",
+      "timeout_ms": "90000",
+      "args": "[\"2p-client-after\",2]"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 231,
+      "executeMs": 171,
+      "assemblyName": "PipelineRunScript_multiplayer-probe_00a50f5f10e34932884885c1eba2ae67",
+      "success": true,
+      "result": {
+        "state": {
+          "scene": "WaitingRoom",
+          "frame": 19029,
+          "phase": "Night",
+          "host": false,
+          "count": 2,
+          "id": 1,
+          "net": [
+            {
+              "id": 0,
+              "owner": false,
+              "state": "Normal",
+              "lost": "None",
+              "xyz": "(-12.034, 0.030, 85.574)"
+            },
+            {
+              "id": 1,
+              "owner": true,
+              "state": "Normal",
+              "lost": "None",
+              "xyz": "(-12.034, 0.030, 85.574)"
+            }
+          ],
+          "trick": "HumanCannon",
+          "tier": 2,
+          "authority": false,
+          "shown": "인간 대포",
+          "shownTier": "2단계",
+          "slot": false,
+          "arrow": false,
+          "open": true,
+          "canvas": "ScreenSpaceOverlay"
+        },
+        "capture": {
+          "path": "D:/github/POC_CURTAINCALL/Tasks/Active/Task-20261114-132-schedule-ui-redesign/Captures/2p-client-after.png",
+          "frame": 19031,
+          "width": 1920,
+          "height": 1080
+        }
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7802,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\Library\\VP\\mppm476bfb2f"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
