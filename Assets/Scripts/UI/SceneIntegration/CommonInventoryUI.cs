@@ -71,7 +71,7 @@ namespace CurtainCall.UI.SceneIntegration
             var held = carry != null ? carry.Held(id) : null;
             int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots();
             var selected = carry != null ? carry.Selected(id) : default;
-            var reader = local != null ? local.GetComponent<PlayerInputReader>() : FindFirstObjectByType<PlayerInputReader>();
+            var reader = local != null ? local.GetComponent<PlayerInputReader>() : CurtainCall.Player.OfflineLocalPlayer.Reader;
             bool ownsUv = false;
             if (held != null) foreach (var item in held) if (item.ItemId == ItemUses.UvLamp) ownsUv = true;
             bool uvHeld = reader != null && reader.Current.UvLightHeld && !InputGate.IsBlocked && ownsUv;

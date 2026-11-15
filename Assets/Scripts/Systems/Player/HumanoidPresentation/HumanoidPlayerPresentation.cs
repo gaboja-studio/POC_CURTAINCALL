@@ -227,12 +227,18 @@ namespace CurtainCall.Player
             else model.Play("Idle");
         }
 
+        /// <summary>막혀서 못 움직일 때 이동 동작의 최소 재생 배율(1 = 평소 속도).</summary>
+        const float BlockedLocomotionRate = .8f;
         void PlayLocomotion(string motion)
         {
             var velocity = Vector3.ProjectOnPlane(presentationVelocity, Vector3.up);
             float speed = velocity.magnitude;
             if (balance != null && balance.IsActive && Vector3.Dot(velocity, transform.forward) < 0f) speed = -speed;
-            model.PlayLocomotion(motion, speed / GameSettings.Base.Presentation.LocomotionAnimationSpeed(motion));
+            float rate = speed / GameSettings.Base.Presentation.LocomotionAnimationSpeed(motion);
+            // 벽에 막혀 실제로는 못 나아가도 이동 입력 중이면 걷기·달리기 동작이 멈춘 자세로 굳지 않게 한다(2026-11-14 사용자).
+            // 외줄 균형 중에는 속도·방향을 그대로 따른다(뒤로 걷기 포함).
+            if (!(balance != null && balance.IsActive)) rate = Mathf.Max(rate, BlockedLocomotionRate);
+            model.PlayLocomotion(motion, rate);
         }
 
         bool TryHangGrip(out Vector3 grip, out Vector3 axis)

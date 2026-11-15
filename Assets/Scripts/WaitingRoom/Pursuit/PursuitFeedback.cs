@@ -39,7 +39,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var p = NetworkPlayer.Local;
                 return p != null && p.IsSpawned && p.State == PlayerState.Normal ? p.gameObject : null;
             }
-            if (offlineReader == null) offlineReader = FindFirstObjectByType<PlayerInputReader>();
+            if (offlineReader == null) offlineReader = CurtainCall.Player.OfflineLocalPlayer.Reader;
             return offlineReader != null && offlineReader.isActiveAndEnabled ? offlineReader.gameObject : null;
         }
         public static bool Threatens(PursuitActor actor, GameObject observer) => actor != null && observer != null

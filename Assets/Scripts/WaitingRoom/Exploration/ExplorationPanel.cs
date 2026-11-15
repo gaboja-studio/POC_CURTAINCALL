@@ -115,6 +115,9 @@ namespace CurtainCall.WaitingRoom
                     string ch = rows[r][c].ToString();
                     Key(screen, "Key" + ch, ch, font, indent[r] + c * (key + gap), -262 - r * (56 + gap), key, 56, () => PressKey(ch));
                 }
+            // 한 글자 지우기(2026-11-15 사용자: 모두 지우기만 있었다). 셋째 줄 끝, 모두 지우기 바로 위.
+            typed = "";
+            Key(screen, "Back", WaitingRoomText.Get("gate.terminal-back", "DEL"), font, 789, -262 - 2 * (56 + gap), 83, 56, Backspace);
             Key(screen, "Clear", WaitingRoomText.Get("gate.terminal-clear", "CLR"), font, 700, -262 - 3 * (56 + gap), 172, 56, ClearCode);
             Key(screen, "Submit", WaitingRoomText.Get("gate.terminal-submit", "ENTER"), font, 28, -h + 76, 300, 56, SubmitCode);
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
@@ -135,16 +138,20 @@ namespace CurtainCall.WaitingRoom
             var canvas = canvasRoot.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 360;
             var scaler = canvasRoot.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
-            const float w = 900, h = 640;
+            // 영상이 없으면(문이 아직 열리지 않는 상황) 상태 문구만 있는 낮은 창으로 띄운다.
+            float w = 900, h = feed != null ? 640 : 230;
             var frame = Box(canvasRoot.transform, "TerminalFrame", TerminalGreen); var fr = (RectTransform)frame;
             fr.anchorMin = fr.anchorMax = fr.pivot = new Vector2(.5f, .5f); fr.sizeDelta = new Vector2(w + 6, h + 6);
             var screen = Box(frame, "Terminal", new Color32(4, 12, 6, 250)); Place((RectTransform)screen, 3, -3, w, h);
             var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
-            var title = Text(screen, "Title", heading + " :: " + WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed"), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
+            var title = Text(screen, "Title", heading + " :: " + (feed != null ? WaitingRoomText.Get("gate.terminal-feed-title", "cam_exit.feed") : WaitingRoomText.Get("gate.terminal-title", "door_override.bat")), font, 24, 28, -16, w - 56, 38); title.color = TerminalGreen; title.textWrappingMode = TextWrappingModes.NoWrap;
             Place((RectTransform)Box(screen, "Rule", TerminalGreen), 28, -58, w - 56, 2);
-            var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(screen, false);
-            Place((RectTransform)picture.transform, 28, -72, w - 56, 430); var raw = picture.GetComponent<RawImage>(); raw.texture = feed; raw.raycastTarget = false;
-            message = Text(screen, "Message", status, font, 28, 28, -512, w - 56, 42); message.color = TerminalGreen; message.textWrappingMode = TextWrappingModes.NoWrap;
+            if (feed != null)
+            {
+                var picture = new GameObject("MonitorFeed", typeof(RectTransform), typeof(RawImage)); picture.transform.SetParent(screen, false);
+                Place((RectTransform)picture.transform, 28, -72, w - 56, 430); var raw = picture.GetComponent<RawImage>(); raw.texture = feed; raw.raycastTarget = false;
+            }
+            message = Text(screen, "Message", status, font, 28, 28, feed != null ? -512 : -84, w - 56, 42); message.color = TerminalGreen; message.textWrappingMode = TextWrappingModes.NoWrap;
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
             if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);
@@ -156,14 +163,25 @@ namespace CurtainCall.WaitingRoom
         {
             if (key == null || key.Length != 1) return;
             if (key[0] >= '0' && key[0] <= '9') PressDigit(key);
-            else if (terminal && key[0] >= 'A' && key[0] <= 'Z' && word.Length < MaxWord) { word += key; SetMessage(""); RefreshCode(); }
+            else if (terminal && key[0] >= 'A' && key[0] <= 'Z' && word.Length < MaxWord) { word += key; typed += 'w'; SetMessage(""); RefreshCode(); }
         }
         public void PressDigit(string digit)
         {
             if (digit == null || digit.Length != 1 || digit[0] < '0' || digit[0] > '9' || entered.Length >= codeLength) return;
-            entered += digit; if (terminal) SetMessage(""); RefreshCode();
+            entered += digit; typed += 'd'; if (terminal) SetMessage(""); RefreshCode();
         }
-        public void ClearCode() { entered = ""; word = ""; RefreshCode(); }
+        public void ClearCode() { entered = ""; word = ""; typed = ""; RefreshCode(); }
+        // 마지막에 누른 한 글자를 지운다(숫자 칸·글자 칸 중 마지막으로 친 쪽).
+        string typed = "";
+        public void Backspace()
+        {
+            bool wordLast = typed.Length > 0 ? typed[typed.Length - 1] == 'w' : word.Length > 0;
+            if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1);
+            if (wordLast && word.Length > 0) word = word.Substring(0, word.Length - 1);
+            else if (entered.Length > 0) entered = entered.Substring(0, entered.Length - 1);
+            else if (word.Length > 0) word = word.Substring(0, word.Length - 1);
+            RefreshCode();
+        }
         public void SubmitCode()
         {
             if (!terminal) { if (ExplorationPuzzleRules.IsFourDigits(entered)) submit?.Invoke(entered); return; }
@@ -184,6 +202,8 @@ namespace CurtainCall.WaitingRoom
             message.text = terminal && text == ExplorationState.WrongCode ? WaitingRoomText.Get("gate.terminal-error", "Error") : text;
         }
         public void Hide() { if (canvasRoot != null) canvasRoot.SetActive(false); submit = null; close = null; }
+        /// <summary>창을 닫지 않고 잠시 가리거나 다시 보인다(연출이 화면을 쓰는 동안).</summary>
+        public void SetVisible(bool visible) { if (canvasRoot != null && canvasRoot.activeSelf != visible) canvasRoot.SetActive(visible); }
         void OnDisable() => Hide();
         void OnDestroy() { if (canvasRoot != null) Destroy(canvasRoot); }
         static TMP_Text Text(Transform parent, string name, string value, TMP_FontAsset font, float size, float x, float y, float w, float h)

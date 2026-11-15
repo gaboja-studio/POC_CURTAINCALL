@@ -47,6 +47,8 @@ namespace CurtainCall.WaitingRoom
         public const string UvLamp = "uv-lamp";
         /// <summary>배터리(통로 기믹 설비실 동력 소켓, 2026-11-11 사용자). 탐색에서만 얻고 상점에 없다. 소켓에 넣으면 사라진다.</summary>
         public const string PowerBattery = "power-battery";
+        /// <summary>비디오 테이프(2026-11-14 사용자). 숙소에서 주워 숙소 TV에 넣으면 화면에 재생된다. 닳지 않고 다시 뺄 수 있다. 상점에 없다.</summary>
+        public const string VideoTape = "video-tape";
     }
 
     /// <summary>바닥에 놓인 기물과 위치(m).</summary>

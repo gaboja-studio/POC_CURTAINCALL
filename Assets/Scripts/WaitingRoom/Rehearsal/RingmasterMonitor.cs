@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom
     public sealed class RingmasterMonitor : MonoBehaviour
     {
         const float StaticSeconds = 1.3f, NoiseStep = .05f;
-        enum Mode { Off, Static, Face }
+        enum Mode { Off, Static, Face, Slide, Watch, Image }
 
         static Texture2D faceTexture;
         static AudioClip staticClip;
@@ -22,6 +22,14 @@ namespace CurtainCall.WaitingRoom
         bool externallyTimed;
 
         public bool IsOn => mode != Mode.Off;
+        /// <summary>치직 잡음·웃는 얼굴 연출이 재생 중인가(이 동안에는 안내 화면·감시 화면으로 덮지 않는다).</summary>
+        public bool IsPlayingFace => mode == Mode.Static || mode == Mode.Face;
+
+        TMPro.TextMeshPro slideTitle, slideBody;
+        Texture2D watchTexture;
+        Color[] watchBase;
+        Vector2 pupil, shownPupil = new(99f, 99f);
+        string shownSlide;
 
         /// <summary>뒷면(본체 뒤) 두께(m). 벽걸이는 이 만큼 벽에서 띄워 뒷면이 벽에 닿게 둔다.</summary>
         public const float BackDepth = .15f;
@@ -59,17 +67,35 @@ namespace CurtainCall.WaitingRoom
             screen = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = Color.black };
             quad.GetComponent<Renderer>().sharedMaterial = screen;
             if (hang > 0f)
-                foreach (float x in new[] { -size.x * .35f, size.x * .35f })
+            {
+                // 모니터 암(2026-11-14 사용자): 천장 판 → 내려오는 기둥 → 본체 뒤 받침. 기둥은 본체 뒤쪽에 있어 화면을 가리지 않는다.
+                void Part(string name, Vector3 at, Vector3 scale)
                 {
-                    // 화면 위 끝(본체 위 끝)에서 천장까지 이어지는 막대. 원기둥은 높이 2라 절반을 크기로 쓴다.
-                    var rod = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                    rod.name = "HangingRod"; Destroy(rod.GetComponent<Collider>());
-                    rod.transform.SetParent(transform, false);
-                    float top = size.y * .5f + .09f;
-                    rod.transform.localPosition = new Vector3(x, top + hang * .5f, -.08f);
-                    rod.transform.localScale = new Vector3(.04f, hang * .5f, .04f);
-                    if (bezel != null) rod.GetComponent<Renderer>().sharedMaterial = bezel;
+                    var part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    part.name = name; Destroy(part.GetComponent<Collider>());
+                    part.transform.SetParent(transform, false); part.transform.localPosition = at; part.transform.localScale = scale;
+                    if (bezel != null) part.GetComponent<Renderer>().sharedMaterial = bezel;
                 }
+                float top = size.y * .5f + .09f, thick = Mathf.Clamp(size.x * .03f, .08f, .2f), back = -.15f - thick * .5f;
+                Part("ArmColumn", new Vector3(0f, (top + hang) * .5f, back), new Vector3(thick, top + hang, thick));
+                Part("ArmMount", new Vector3(0f, 0f, back + thick * .25f), new Vector3(size.x * .3f, size.y * .3f, thick * .5f));
+                Part("ArmCeilingPlate", new Vector3(0f, top + hang - .02f, back), new Vector3(thick * 4f, .04f, thick * 4f));
+            }
+            // 안내 화면 글자(공연 안내가 넘어가는 화면, 2026-11-14 사용자). 화면 면과 같은 방향으로 살짝 앞에 둔다.
+            var overlay = new GameObject("Overlay").transform; overlay.SetParent(transform, false);
+            overlay.localPosition = new Vector3(0f, 0f, .004f); overlay.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            // 한글 전체가 들어 있는 공통 글꼴(화면 UI의 대체 글꼴과 같은 것). 없으면 패널 글꼴.
+            var font = Resources.Load<TMPro.TMP_FontAsset>("Fonts/Pretendard-Medium/Pretendard-Medium SDF") ?? Resources.Load<TMPro.TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
+            TMPro.TextMeshPro Text(string name, float y, float height, float maxSize, Color color)
+            {
+                var go = new GameObject(name); go.transform.SetParent(overlay, false); go.transform.localPosition = new Vector3(0f, y, 0f);
+                var text = go.AddComponent<TMPro.TextMeshPro>(); if (font != null) text.font = font;
+                text.rectTransform.sizeDelta = new Vector2(size.x * .88f, height); text.alignment = TMPro.TextAlignmentOptions.Center;
+                text.enableAutoSizing = true; text.fontSizeMin = .5f; text.fontSizeMax = maxSize; text.color = color; text.text = ""; go.SetActive(false);
+                return text;
+            }
+            slideTitle = Text("SlideTitle", size.y * .24f, size.y * .3f, size.y * 2.2f, new Color(1f, .86f, .5f));
+            slideBody = Text("SlideBody", -size.y * .16f, size.y * .46f, size.y * 1.3f, new Color(.95f, .93f, .88f));
             noise = new Texture2D(96, 54, TextureFormat.RGB24, false) { filterMode = FilterMode.Point, hideFlags = HideFlags.HideAndDontSave };
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false; audioSource.spatialBlend = .85f; audioSource.volume = .7f;
@@ -79,7 +105,8 @@ namespace CurtainCall.WaitingRoom
         /// <summary>치직 소리와 함께 켜진다. 잡음 뒤 단장 얼굴.</summary>
         public void TurnOn()
         {
-            if (mode != Mode.Off) return;
+            if (IsPlayingFace) return;
+            HideSlide();
             externallyTimed = false;
             mode = Mode.Static; modeStarted = Time.time; nextNoise = 0f;
             screen.color = Color.white;
@@ -96,7 +123,7 @@ namespace CurtainCall.WaitingRoom
 
         void RenderAt(float elapsed)
         {
-            if (elapsed >= StaticSeconds + 3f) { TurnOff(); return; }
+            if (elapsed >= StaticSeconds + 3f) { if (IsPlayingFace) TurnOff(); return; }
             if (elapsed < StaticSeconds)
             {
                 mode = Mode.Static;
@@ -114,13 +141,128 @@ namespace CurtainCall.WaitingRoom
         public void TurnOff()
         {
             mode = Mode.Off;
-            if (screen != null) { screen.mainTexture = null; screen.color = Color.black; }
+            HideSlide();
+            if (screen != null) { screen.mainTexture = null; screen.mainTextureOffset = Vector2.zero; screen.color = Color.black; }
             if (audioSource != null) audioSource.Stop();
         }
 
         void Update()
         {
-            if (!externallyTimed && mode != Mode.Off) RenderAt(Time.time - modeStarted);
+            if (!externallyTimed && IsPlayingFace) RenderAt(Time.time - modeStarted);
+        }
+
+        Texture shownImage;
+        float burstUntil, nextBurst;
+        /// <summary>
+        /// 그림 한 장을 띄운다(2026-11-14 사용자: 단장 그림). 꺼져 있다가 켜질 때와 그림이 바뀔 때, 그리고 주기적으로 치직거리는 잡음이 잠깐 낀다.
+        /// 켜질 때는 치직 소리가 길게, 그 밖에는 짧게 난다. 매 프레임 불러도 된다.
+        /// </summary>
+        public void ShowImage(Texture image)
+        {
+            if (screen == null || image == null) return;
+            float now = Time.unscaledTime;
+            if (mode != Mode.Image)
+            {
+                bool poweringOn = mode == Mode.Off;
+                HideSlide(); mode = Mode.Image; shownImage = image; externallyTimed = false;
+                Burst(poweringOn ? StaticSeconds : .45f, true);
+            }
+            else if (shownImage != image) { shownImage = image; Burst(.45f, true); }
+            else if (now >= nextBurst) Burst(Random.Range(.18f, .5f), Random.value < .6f);
+            screen.mainTextureOffset = Vector2.zero;
+            if (now < burstUntil)
+            {
+                screen.color = Color.white;
+                if (now >= nextNoise) { FillNoise(); nextNoise = now + NoiseStep; }
+                return;
+            }
+            if (audioSource != null && audioSource.isPlaying) audioSource.Stop();
+            // 평소에도 화면이 아주 약하게 떨리고, 가끔 한 줄이 밀린다.
+            float flicker = .9f + .1f * Mathf.PerlinNoise(Time.time * 7f, 1.3f);
+            screen.mainTexture = shownImage; screen.color = new Color(flicker, flicker, flicker);
+            if (Mathf.PerlinNoise(Time.time * 2.1f, 9.1f) > .86f) screen.mainTextureOffset = new Vector2(Random.Range(-.012f, .012f), 0f);
+        }
+
+        void Burst(float seconds, bool withSound)
+        {
+            burstUntil = Time.unscaledTime + seconds; nextBurst = burstUntil + Random.Range(5f, 13f); nextNoise = 0f;
+            if (withSound && audioSource != null) { audioSource.clip = StaticClip(); audioSource.time = 0f; audioSource.Play(); }
+        }
+
+        void HideSlide()
+        {
+            shownSlide = null;
+            if (slideTitle != null) slideTitle.gameObject.SetActive(false);
+            if (slideBody != null) slideBody.gameObject.SetActive(false);
+        }
+
+        /// <summary>공연 안내 화면 한 장을 띄운다(평소 화면). 웃는 얼굴 연출 중에는 무시한다.</summary>
+        public void ShowSlide(string title, string body, Color background)
+        {
+            if (IsPlayingFace || screen == null) return;
+            mode = Mode.Slide;
+            float hum = .94f + .06f * Mathf.PerlinNoise(Time.time * 4f, 3f);
+            screen.mainTexture = null; screen.mainTextureOffset = Vector2.zero; screen.color = background * hum;
+            string key = title + "\n" + body;
+            if (shownSlide == key) return;
+            shownSlide = key;
+            slideTitle.text = title; slideBody.text = body;
+            slideTitle.gameObject.SetActive(true); slideBody.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// 감시 화면: 눈을 뜬 단장 얼굴이 <paramref name="worldTarget"/>(사람 머리)을 눈동자로 따라본다. 얼굴도 그쪽으로 살짝 기운다.
+        /// 사람 위치는 모든 화면에 공유되므로 같은 모습으로 보인다.
+        /// </summary>
+        public void Watch(Vector3 worldTarget)
+        {
+            if (IsPlayingFace || screen == null) return;
+            if (mode != Mode.Watch) { HideSlide(); mode = Mode.Watch; shownPupil = new Vector2(99f, 99f); }
+            var local = transform.InverseTransformPoint(worldTarget);
+            float depth = Mathf.Max(1.5f, local.z);
+            // 화면 그림 기준 오른쪽(+u)은 모니터의 -x 쪽이다.
+            var want = new Vector2(Mathf.Clamp(-local.x / depth, -1f, 1f), Mathf.Clamp(local.y / depth, -1f, 1f));
+            pupil = Vector2.MoveTowards(pupil, want, Time.deltaTime * 4f);
+            var tex = WatchTexture();
+            if ((pupil - shownPupil).sqrMagnitude > .0004f) { PaintEyes(tex, pupil); shownPupil = pupil; }
+            screen.mainTexture = tex; screen.mainTextureOffset = new Vector2(-pupil.x * .025f, -pupil.y * .012f);
+            float flicker = .9f + .1f * Mathf.PerlinNoise(Time.time * 6f, 0f);
+            screen.color = new Color(flicker, flicker, flicker);
+        }
+
+        Texture2D WatchTexture()
+        {
+            if (watchTexture != null) return watchTexture;
+            watchBase = Paint(true);
+            watchTexture = new Texture2D(FaceW, FaceH, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
+            watchTexture.SetPixels(watchBase); watchTexture.Apply(false);
+            return watchTexture;
+        }
+
+        // 눈구멍(검정) 안에서 붉은 눈동자가 움직인다. 눈 둘레만 다시 칠한다.
+        void PaintEyes(Texture2D tex, Vector2 look)
+        {
+            const int rx = 12, ry = 8;
+            var block = new Color[(rx * 2 + 1) * (ry * 2 + 1)];
+            foreach (int cx in new[] { 110, 146 })
+            {
+                float px = look.x * 6f, py = look.y * 3.5f;
+                for (int y = -ry; y <= ry; y++)
+                    for (int x = -rx; x <= rx; x++)
+                    {
+                        var c = watchBase[(78 + y) * FaceW + cx + x];
+                        float e = x * x / (float)(rx * rx) + y * y / (float)(ry * ry);
+                        if (e <= 1f)
+                        {
+                            c = new Color(.03f, .02f, .03f);
+                            float d = (x - px) * (x - px) + (y - py) * (y - py);
+                            if (d < 20f) c = d < 5f ? new Color(1f, .85f, .5f) : new Color(.95f, .15f, .1f);
+                        }
+                        block[(y + ry) * (rx * 2 + 1) + x + rx] = c;
+                    }
+                tex.SetPixels(cx - rx, 78 - ry, rx * 2 + 1, ry * 2 + 1, block);
+            }
+            tex.Apply(false);
         }
 
         void FillNoise()
@@ -140,6 +282,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (screen != null) Destroy(screen);
             if (noise != null) Destroy(noise);
+            if (watchTexture != null) Destroy(watchTexture);
         }
 
         // ── 임시 자원(코드로 그림) ──
@@ -147,8 +290,17 @@ namespace CurtainCall.WaitingRoom
         static Texture2D FaceTexture()
         {
             if (faceTexture != null) return faceTexture;
-            const int w = 256, h = 160;
-            var tex = new Texture2D(w, h, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, hideFlags = HideFlags.HideAndDontSave };
+            var tex = new Texture2D(FaceW, FaceH, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, hideFlags = HideFlags.HideAndDontSave };
+            tex.SetPixels(Paint(false)); tex.Apply(false);
+            return faceTexture = tex;
+        }
+
+        const int FaceW = 256, FaceH = 160;
+
+        /// <summary>단장 얼굴 그림. <paramref name="watching"/>이면 웃는 눈 대신 눈구멍을 비워 두고(눈동자는 따로 칠한다) 입을 다문 옅은 웃음으로 그린다.</summary>
+        static Color[] Paint(bool watching)
+        {
+            const int w = FaceW, h = FaceH;
             var px = new Color[w * h];
             var ink = new Color(.05f, .03f, .04f);
             for (int y = 0; y < h; y++)
@@ -166,15 +318,17 @@ namespace CurtainCall.WaitingRoom
                     // 볼 홍조.
                     foreach (int cx in new[] { 100, 156 })
                         if ((x - cx) * (x - cx) + (y - 52) * (y - 52) < 64) c = Color.Lerp(c, new Color(.95f, .45f, .5f), .6f);
-                    // 웃는 눈(∩ 모양 곡선).
+                    // 웃는 눈(∩ 모양 곡선). 감시 화면은 눈썹만 그리고 눈은 따로 칠한다.
                     foreach (int cx in new[] { 110, 146 })
                     {
                         float dx = x - cx;
-                        if (Mathf.Abs(dx) <= 11f && Mathf.Abs(y - (78f - dx * dx / 16f)) < 2.2f) c = ink;
+                        if (!watching && Mathf.Abs(dx) <= 11f && Mathf.Abs(y - (78f - dx * dx / 16f)) < 2.2f) c = ink;
+                        if (watching && Mathf.Abs(dx) <= 13f && Mathf.Abs(y - (92f - (x - 128) * Mathf.Sign(cx - 128) * .22f)) < 1.6f) c = ink;
                     }
-                    // 크게 웃는 입(U 모양 곡선 + 붉은 안쪽).
+                    // 크게 웃는 입(U 모양 곡선 + 붉은 안쪽). 감시 화면은 다문 입꼬리만 올라간 선.
                     float mx = x - 128;
-                    if (Mathf.Abs(mx) <= 26f)
+                    if (watching) { if (Mathf.Abs(mx) <= 24f && Mathf.Abs(y - (38f + mx * mx / 60f)) < 1.8f) c = ink; }
+                    else if (Mathf.Abs(mx) <= 26f)
                     {
                         float top = 46f + mx * mx / 80f, bottom = 30f + mx * mx / 34f;
                         if (y > bottom && y < top) c = new Color(.6f, .05f, .08f);
@@ -184,8 +338,7 @@ namespace CurtainCall.WaitingRoom
                     if (y % 3 == 0) c *= .85f;
                     px[y * w + x] = c;
                 }
-            tex.SetPixels(px); tex.Apply(false);
-            return faceTexture = tex;
+            return px;
         }
 
         static AudioClip StaticClip()

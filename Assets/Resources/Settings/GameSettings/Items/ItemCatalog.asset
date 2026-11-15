@@ -343,3 +343,21 @@ MonoBehaviour:
       \uCC3E\uC544\uB0BC \uC218 \uC788\uAE30\uB97C."
     shopTooltip: 
     useCue: 
+  - id: video-tape
+    displayName: "\uBE44\uB514\uC624 \uD14C\uC774\uD504"
+    wornName: 
+    wornAtOrBelow: -1
+    use: 1
+    kind: 1
+    newUses: 1
+    foundUses: 1
+    price: 0
+    cooldown: 0
+    effect: 0
+    effect2: 0
+    summary: "\uC219\uC18C TV\uC5D0 \uB123\uC73C\uBA74 \uD654\uBA74\uC5D0 \uC7AC\uC0DD\uB41C\uB2E4.
+      \uB2F3\uC9C0 \uC54A\uACE0 \uB2E4\uC2DC \uBE84 \uC218 \uC788\uB2E4. \uAD6C\uB9E4
+      \uBD88\uAC00."
+    shopDescription: 
+    shopTooltip: 
+    useCue: 

@@ -42,7 +42,7 @@ MonoBehaviour:
     nightMaintenance:
       unlimited: 0
       seconds: 300
-      explorationLocked: 0
+      explorationLocked: 1
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2

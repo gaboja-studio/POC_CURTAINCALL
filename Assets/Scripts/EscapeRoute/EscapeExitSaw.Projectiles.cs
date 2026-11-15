@@ -111,6 +111,8 @@ namespace CurtainCall.EscapeRoute
                         { cut = true; point = peer.cutPoints[index]; }
                     }
                     if (cut) cables[i].SetCut(true, point, feedback && !cables[i].IsCut);
+                    // 대기실 장부에 이미 끊김으로 남은 배선은 씬을 다시 불러와도 끊긴 채로 둔다(2026-11-15 사용자: 씬 이동 뒤 숙소 배선이 다시 보임).
+                    else if (!string.IsNullOrEmpty(cables[i].OpenTarget) && CurtainCall.WaitingRoom.ExplorationState.Instance is { } book && book.IsOpen(cables[i].OpenTarget)) cables[i].SetCut(true);
                     else if (cables[i].IsCut) cables[i].SetCut(false);
                 }
         }

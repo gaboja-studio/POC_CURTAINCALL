@@ -64,7 +64,19 @@ namespace CurtainCall.WaitingRoom
 
         public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
         public bool HideOutline => !showOutline;
-        public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
+        // F 안내 자리: 벽 한가운데(벽 속)로 잡으면 화면에서 그 자리까지의 시선이 벽 자신의 충돌체에 막혀 안내·게이지가 뜨지 않았다(2026-11-15).
+        // 보는 사람 쪽 벽면 바로 앞으로 잡는다.
+        public Vector3 PresentationPoint
+        {
+            get
+            {
+                var point = transform.position + Vector3.up * 1.6f;
+                var cam = Camera.main;
+                if (cam == null) return point;
+                float half = blocker is BoxCollider box ? box.size.z * Mathf.Abs(transform.lossyScale.z) * .5f : .25f;
+                return point + transform.forward * ((Vector3.Dot(cam.transform.position - point, transform.forward) >= 0f ? 1f : -1f) * (half + .12f));
+            }
+        }
         public bool IsAvailable => !Opened;
         public string ActionLabel
         {
@@ -76,7 +88,7 @@ namespace CurtainCall.WaitingRoom
                     return WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
                 var (n, total) = ExplorationTargets.StrikeCount(this, tool);
                 return tool ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", n), ("total", total))
-                    : WaitingRoomText.Format("wall.strike-bare", "맨몸으로 내려치기 ({n}/{total})", ("n", n), ("total", total)) + ShopReach.BareHoldSuffix(this);
+                    : Label + ShopReach.BareHoldSuffix(this); // 맨몸: 이름 · F키로 상호작용 하기(2026-11-14 사용자)
             }
         }
 
@@ -96,8 +108,7 @@ namespace CurtainCall.WaitingRoom
         Quaternion[] baseRot;
         int shownHits = -1, shownUnits = -1;
         bool shownOpen, inReach;
-        float shake, collapse = -1f, messageUntil;
-        string message = "";
+        float shake, collapse = -1f, reachedAt = -10f;
         AudioClip thud, crash;
 
         void Awake()
@@ -112,6 +123,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnEnable()
         {
+            useGUILayout = false; // OnGUI에서 GUILayout을 쓰지 않으므로 배치 단계 호출을 건너뛴다(2026-11-14 최적화)
             ExplorationTargets.Add(this);
             ShopReach.Add(this);
         }
@@ -120,10 +132,19 @@ namespace CurtainCall.WaitingRoom
         {
             ExplorationTargets.Remove(this);
             ShopReach.Remove(this);
-            if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Show;
+            if (listening != null) { listening.RequestAnswered -= Show; listening = null; }
         }
 
-        void Start() { if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered += Show; }
+        // 탐색 상태가 나중에 생겨도(접속 직후) 결과 문구를 받도록 Update에서 연결한다.
+        ExplorationState listening;
+        void Listen()
+        {
+            var state = ExplorationState.Instance;
+            if (state == listening) return;
+            if (listening != null) listening.RequestAnswered -= Show;
+            listening = state;
+            if (listening != null) listening.RequestAnswered += Show;
+        }
 
         public float Reach(Vector3 feet, Component actor = null)
         {
@@ -139,8 +160,9 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
-            ShopReach.Pump();
+            ShopReach.Pump(); Listen();
             inReach = ShopReach.Focused == (IShopTarget)this;
+            if (inReach) reachedAt = Time.unscaledTime;
             int hits = Hits; bool open = Opened;
             // 맨몸 타격은 금 단계가 오르지 않아도 칠 때마다 흔들림·타격음을 낸다.
             int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
@@ -233,8 +255,11 @@ namespace CurtainCall.WaitingRoom
 
         void Show(string text)
         {
-            if (!inReach || string.IsNullOrEmpty(text)) return;
-            message = text; messageUntil = Time.unscaledTime + 2f;
+            // 무너진 직후에는 F 대상에서 빠지므로, 방금까지 이 벽을 보고 있었으면 내 결과로 본다.
+            if (Time.unscaledTime - reachedAt > 1f || string.IsNullOrEmpty(text)) return;
+            // 화면 가운데 임시 상자 대신 왼쪽 가이드 패널에 띄운다(2026-11-14 사용자). 치는 중의 n/전체는 F 안내에 이미 나온다.
+            if (ExplorationState.Instance != null && ExplorationState.Instance.LastWasProgress) return;
+            WaitingRoomGuidePanel.ShowAs("", text, 6f, RoomNotice.Guide);
         }
 
         void Play(AudioClip clip) { if (sound != null && clip != null) sound.PlayOneShot(clip); }
@@ -253,8 +278,6 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (Time.unscaledTime < messageUntil)
-                GUI.Box(new Rect((Screen.width - 360) / 2f, Screen.height * .68f, 360, 28), message);
             if (inReach && !ShopReach.HasExternalPresentation && !InputGate.IsBlocked)
                 GUI.Box(new Rect((Screen.width - 360) / 2f, Screen.height * .62f, 360, 28), "[F] " + ActionLabel);
         }

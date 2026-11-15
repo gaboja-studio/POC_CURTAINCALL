@@ -107,10 +107,14 @@ namespace CurtainCall.WaitingRoom
             foreach (var (name, from, to) in LockdownOpenings)
                 lockdownGates.Add(RehearsalLockdownGate.Create(lockdownRoot, name, from, to, iron));
             // 실제 벽·천장에 붙인다(허공에 띄우지 않는다). 붙일 면을 못 찾으면 만들지 않는다.
-            var lobby = PlaceLobbyMonitor(bezel);
-            if (lobby != null) monitors.Add(lobby);
-            var corridor = PlaceCorridorMonitor(bezel);
-            if (corridor != null) monitors.Add(corridor);
+            // 모니터 연출을 맡는 물체가 씬에 있으면(최종본) 그쪽이 모니터를 만들고 켠다. 리허설 단계가 끝난 뒤에도 얼굴이 나와야 하기 때문이다(2026-11-14 사용자).
+            if (LobbyMonitorDirector.Instance == null)
+            {
+                var lobby = PlaceLobbyMonitor(bezel);
+                if (lobby != null) monitors.Add(lobby);
+                var corridor = PlaceCorridorMonitor(bezel);
+                if (corridor != null) monitors.Add(corridor);
+            }
             var area = GameObject.Find(PracticeAreaName);
             var collider = area != null ? area.GetComponent<Collider>() : null;
             practiceAreaFound = collider != null;

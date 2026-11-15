@@ -97,7 +97,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var local = NetworkPlayer.Local;
                 return local != null && local.State == PlayerState.Normal ? local.GetComponent<PlayerInputReader>() : null;
             }
-            if (offlineReader == null) offlineReader = FindFirstObjectByType<PlayerInputReader>();
+            if (offlineReader == null) offlineReader = CurtainCall.Player.OfflineLocalPlayer.Reader;
             return offlineReader;
         }
         void LateUpdate()

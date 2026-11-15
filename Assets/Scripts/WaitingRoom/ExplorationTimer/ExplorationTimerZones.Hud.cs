@@ -26,6 +26,14 @@ namespace CurtainCall.WaitingRoom
             {"Area_DomePassage_Workshop","작업실 연결 통로"},{"Area_DomePassage_HiddenPipeCrawl","배관 통로"},
             {"Area_N1_BackCorridor","뒤쪽 복도"},{"Area_N2_OldQuarters","이전 세대 생활 장소"},{"Area_N3_Storage","창고"},{"Area_N4_MachineEntry","기계실 입구"}
         };
+        // 잠긴 구역은 열리기 전까지 지역명을 띄우지 않는다(2026-11-14 사용자). 값은 "|"로 나눈 탐색 대상 중 하나만 열려도 해금.
+        // 위층 통로가 지하 구역 상자와 겹쳐 가 보지도 않은 관리실·탈출로 이름이 뜨던 문제를 막는다.
+        static readonly Dictionary<string,string> LockedUntil=new()
+        {
+            {"Area_B1_Office","final:management-open"},{"Area_B1_ChangingRoom","final:management-open"},
+            {"Area_B1_EscapeCorridor","final:escape-route"},{"Area_B1_EscapeEntrance","final:escape-route"}
+        };
+        static bool ZoneUnlocked(string zone)=>!LockedUntil.TryGetValue(zone,out var ids) || ExplorationGate.IsAnyOpen(ids);
         readonly List<BoxCollider> hudZones=new();
         float nextZoneCheck;
         HudRoleCard zoneCard;
@@ -41,12 +49,15 @@ namespace CurtainCall.WaitingRoom
             }
             Add(areas ? areas : transform);Add(transform.Find("WaitingRoomArea"));
         }
-        public string ZoneAt(Vector3 feet)
+        public string ZoneAt(Vector3 feet)=>ZoneAt(feet,false);
+        /// <summary>unlockedOnly: 아직 잠긴 구역은 건너뛰고 그다음으로 작은 구역을 고른다(지역명 표시용).</summary>
+        public string ZoneAt(Vector3 feet,bool unlockedOnly)
         {
             var sample=feet+Vector3.up*.35f;BoxCollider best=null;float smallest=float.PositiveInfinity;
             foreach(var box in hudZones)
             {
                 if(!box || !box.enabled || !box.gameObject.activeInHierarchy)continue;
+                if(unlockedOnly && !ZoneUnlocked(box.name))continue;
                 var local=box.transform.InverseTransformPoint(sample)-box.center;var half=box.size*.5f;
                 if(Mathf.Abs(local.x)>half.x || Mathf.Abs(local.y)>half.y || Mathf.Abs(local.z)>half.z)continue;
                 var size=Vector3.Scale(box.size,box.transform.lossyScale);
@@ -66,7 +77,7 @@ namespace CurtainCall.WaitingRoom
             if(!actor && (!NetworkManager.Singleton || !NetworkManager.Singleton.IsListening))
                 foreach(var mover in offlinePlayers)if(mover && mover.isActiveAndEnabled){actor=mover.transform;break;}
             if(!room || room.gameObject.scene!=gameObject.scene || !actor){HideZone();return;}
-            var key=ZoneAt(actor.position);
+            var key=ZoneAt(actor.position,true);
             if(key==zoneKey)return;
             zoneKey=key;
             string text=WaitingRoomText.Get("hud.zone."+key,Labels[key]);
