@@ -819,8 +819,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var shelf = layout.Find("S04_PropRoom/ShelfZone/HandoverShelf_4Tier/Shelf"); var material = PaperPicture("PostItRun");
             if (shelf == null || material == null) return "포스트잇: 선반 또는 그림을 찾지 못했습니다";
             var sb = Bounds(shelf);
-            // 선반 앞쪽 가장자리 바로 아래 바닥(선반 발치). 선반은 방 안쪽(+z)을 본다.
-            var at = new Vector3(sb.min.x + sb.size.x * .3f, sb.min.y + 1f, sb.max.z + .12f);
+            // 선반 앞쪽 바닥(선반 발치). 선반은 방 안쪽(+z)을 본다. 선반 충돌 상자가 겉모습보다 앞으로 나와 있어, 그 안에 묻히면 닿지 않는다(2026-11-15) → 상자 밖으로 뺀다.
+            var at = new Vector3(sb.min.x + sb.size.x * .3f, sb.min.y + 1f, sb.max.z + .45f);
             if (!Physics.Raycast(at, Vector3.down, out var floor, 2f, ~0, QueryTriggerInteraction.Ignore)) return "포스트잇: 바닥을 찾지 못했습니다";
             var holder = Child(root, "PostIt"); holder.SetPositionAndRotation(floor.point, Quaternion.Euler(0, -18f, 0));
             var quad = GameObject.CreatePrimitive(PrimitiveType.Quad); Object.DestroyImmediate(quad.GetComponent<Collider>()); quad.name = "Page";
