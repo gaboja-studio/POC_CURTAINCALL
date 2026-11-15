@@ -51,6 +51,7 @@ namespace CurtainCall.WaitingRoom
         Vector3 leafClosed, standPosition; Quaternion standRotation;
         float closedAmount, cutSeenAt = -1f;
         bool seen, wasJammed, playing, falling;
+        CurtainCall.EscapeRoute.EscapeCuttableCable[] wires;
 
         // 한 번만 나오는 이벤트: 세대가 바뀌어도 닫힘·배선 절단 기록은 남긴다(문은 열린 채, 절단기는 사라진 채).
         void OnEnable() => ExplorationState.KeepAcrossGenerations(jammedId, cableId);
@@ -58,7 +59,27 @@ namespace CurtainCall.WaitingRoom
         void Awake()
         {
             if (leaf != null) leafClosed = leaf.localPosition;
-            if (standingSaw != null) { standPosition = standingSaw.position; standRotation = standingSaw.rotation; }
+            if (standingSaw != null)
+            {
+                // 실제 절단기는 실행 중 공통 크기 설정(SawScale)만큼 줄어든다. 세워 둔 모형도 같은 배율로 맞춰, 넘어진 뒤 실제 절단기로 바뀔 때 크기가 튀지 않게 한다(2026-11-15 사용자).
+                if (saw != null)
+                {
+                    var real = saw.CarryRoot;
+                    var twin = real == saw.transform ? standingSaw : standingSaw.Find(real.name) ?? standingSaw;
+                    float before = Bottom(standingSaw);
+                    twin.localScale *= CurtainCall.Settings.GameSettings.Base.CarryDevices.SawScale;
+                    // 줄어든 만큼 뜨거나 묻히지 않게 바닥에 닿은 높이를 유지한다.
+                    standingSaw.position += Vector3.up * (before - Bottom(standingSaw));
+                }
+                standPosition = standingSaw.position; standRotation = standingSaw.rotation;
+            }
+        }
+
+        static float Bottom(Transform root)
+        {
+            float y = float.MaxValue;
+            foreach (var r in root.GetComponentsInChildren<Renderer>()) y = Mathf.Min(y, r.bounds.min.y);
+            return y == float.MaxValue ? root.position.y : y;
         }
 
         bool Open(string id) => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(id);
@@ -89,6 +110,12 @@ namespace CurtainCall.WaitingRoom
             if (!seen) closedAmount = sealedBefore || (jammed && !cut) ? 1f : 0f;
             seen = true; wasJammed = jammed;
 
+            // 장부에는 끊김으로 남았는데 배선 모습만 처음으로 돌아온 경우(씬을 다시 불러온 뒤)를 맞춘다.
+            if (cut)
+            {
+                wires ??= FindObjectsByType<CurtainCall.EscapeRoute.EscapeCuttableCable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var wire in wires) if (wire != null && wire.OpenTarget == cableId && !wire.IsCut) wire.SetCut(true);
+            }
             if (cut && cutSeenAt < 0f)
             {
                 bool witnessed = playing || closedAmount > .5f; // 들어왔을 때 이미 끊겨 있던 경우는 알리지 않는다

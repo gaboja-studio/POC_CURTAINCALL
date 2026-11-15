@@ -172639,7 +172639,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationGate
   targetId: structure-a:cargo-box-2
-  label: "\uD30C\uAD34 \uAC00\uB2A5\uD55C \uC0C1\uC790"
+  label: "\uB0A1\uC740 \uC0C1\uC790"
   kind: 4
   requiredTargets: []
   revealTarget: 
@@ -216907,7 +216907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationGate
   targetId: structure-a:cargo-box-1
-  label: "\uD30C\uAD34 \uAC00\uB2A5\uD55C \uC0C1\uC790"
+  label: "\uB0A1\uC740 \uC0C1\uC790"
   kind: 4
   requiredTargets: []
   revealTarget: 
@@ -232930,7 +232930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationGate
   targetId: structure-a:cargo-box-3
-  label: "\uD30C\uAD34 \uAC00\uB2A5\uD55C \uC0C1\uC790"
+  label: "\uB0A1\uC740 \uC0C1\uC790"
   kind: 4
   requiredTargets: []
   revealTarget: 

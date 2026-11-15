@@ -558,7 +558,10 @@ namespace CurtainCall.Settings
             float distance = 2.5f;
             [InspectorName("구조 대상 먼저 선택"), Tooltip("F를 처음 누를 때 구조할 동료를 일반 물건보다 먼저 선택한다. 끄면 구조 대상도 일반 물건과 함께 가까운 순서로 선택한다. 이미 잡거나 사용 중인 대상은 항상 우선하며 F 한 번에는 하나만 반응한다. 기본 켬.")]
             [SerializeField] bool prioritizeRescue = true;
+            [InspectorName("대기실 기물 거리 배율"), Tooltip("대기실 탐색 기물(벽·문·단서·상자·TV 등)에만 공통 거리에 곱하는 배율. 공연·로비·탈출로에는 적용하지 않는다. 기본 0.5(2.5m의 절반 1.25m, 2026-11-15).")]
+            [SerializeField, Range(.1f, 1f)] float waitingRoomScale = .5f;
             public float Distance => Mathf.Max(.1f, distance);
+            public float WaitingRoomScale => Mathf.Clamp(waitingRoomScale, .1f, 1f);
             public bool PrioritizeRescue => prioritizeRescue;
         }
 

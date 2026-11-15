@@ -29,17 +29,54 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
 
         // 전시물, 캐릭터, 없는 부위, 자세(동작 이름·시점 0~1), 널브러진 기울기(뒤로 기댄 각도·돌린 각도·옆으로 쓰러진 각도),
         // 색조 돌리기(0~1, 플레이어 캐릭터와 다른 색), 조사 대상 ID·이름(설명은 문구 파일).
-        // 누워 있지 않다: 모두 주저앉은 자세로 뒷벽에 기대 제각각 기울어져 있어 형태가 보인다(2026-11-13 사용자).
+        // 2026-11-15 사용자: 모두 같은 앉은 자세로 굳어 보였다 → 벌마다 다르게 벽에 기댄다(자세는 아래 CostumePoses에서 직접 만든다). 눕히지 않는다.
         static readonly (string exhibit, string model, BodyPart lost, string clip, float at, Vector3 slump, float hue, string id, string title)[] Costumes =
         {
+            // 2026-11-15 사용자: 곰이 (방 안에서 볼 때) 맨 왼쪽에 와야 한다 → 곰과 삐에로의 자리(옛 전시물 칸)를 맞바꿨다.
             // 곰: 설명에 없는 부위가 적혀 있지 않아 온전한 채로 둔다.
-            ("01_Bear_Seated_MissingLeftArm", "Bear", BodyPart.None, "Crouch", 0f, new Vector3(24, 25, -10), .55f, "final:old-costume", "낡은 곰인형 옷"),
+            ("04_Clown_Slumped_MissingLowerLeg", "Bear", BodyPart.None, "Idle", 0f, new Vector3(14, 18, -4), .55f, "final:old-costume", "낡은 곰인형 옷"),
             // 토끼: 팔이 잘려 있다(어느 팔인지는 적혀 있지 않아 인형과 겹치지 않게 오른팔).
-            ("02_Rabbit_Prone_MissingRightLeg", "Rabbit", BodyPart.RightArm, "Crouch", 0f, new Vector3(16, -35, 26), .5f, "final:old-costume-rabbit", "낡은 토끼 인형 옷"),
+            ("02_Rabbit_Prone_MissingRightLeg", "Rabbit", BodyPart.RightArm, "Idle", 0f, new Vector3(16, -25, 10), .5f, "final:old-costume-rabbit", "낡은 토끼 인형 옷"),
             // 인형: 왼팔이 없다.
-            ("03_Ringmaster_Side_MissingHead", "PinkGirl", BodyPart.LeftArm, "Crouch", 0f, new Vector3(30, 12, -20), .33f, "final:old-costume-doll", "낡은 인형 옷"),
+            ("03_Ringmaster_Side_MissingHead", "PinkGirl", BodyPart.LeftArm, "Idle", 0f, new Vector3(10, 28, -12), .33f, "final:old-costume-doll", "낡은 인형 옷"),
             // 삐에로: 두 다리가 없다 → 몸통째 벽에 기대 앉아 있다.
-            ("04_Clown_Slumped_MissingLowerLeg", "BluePierrot", BodyPart.LeftLeg | BodyPart.RightLeg, "Idle", 0f, new Vector3(20, -18, 14), .45f, "final:old-costume-pierrot", "낡은 삐에로 인형 옷"),
+            ("01_Bear_Seated_MissingLeftArm", "BluePierrot", BodyPart.LeftLeg | BodyPart.RightLeg, "Idle", 0f, new Vector3(22, -18, 10), .45f, "final:old-costume-pierrot", "낡은 삐에로 인형 옷"),
+        };
+
+        // 2026-11-15 사용자: 캐릭터에 있는 동작을 그대로 쓰지 않고 자세를 직접 만든다. 기준 동작(Idle)을 잡은 뒤 뼈를 차례로 돌린다(부모 → 자식 순서).
+        // 각도는 캐릭터가 +z를 보고 선 상태의 월드 축 기준: x 음수 = 다리·팔을 앞으로 들기, x 양수 = 허리·목을 앞으로 숙이기 / 무릎 굽히기, y = 좌우로 돌리기, z = 옆으로 기울이기.
+        static readonly Dictionary<string, (HumanBodyBones bone, Vector3 turn)[]> CostumePoses = new()
+        {
+            // 곰: 두 다리를 앞으로 뻗고 벽에 등을 대고 앉아 고개를 떨군다.
+            ["Bear"] = new[]
+            {
+                (HumanBodyBones.LeftUpperLeg, new Vector3(-85, -14, 0)), (HumanBodyBones.RightUpperLeg, new Vector3(-85, 14, 0)),
+                (HumanBodyBones.LeftLowerLeg, new Vector3(8, 0, 0)), (HumanBodyBones.RightLowerLeg, new Vector3(8, 0, 0)),
+                (HumanBodyBones.Spine, new Vector3(6, 0, 0)), (HumanBodyBones.Head, new Vector3(26, 0, 8)),
+                (HumanBodyBones.LeftUpperArm, new Vector3(-18, 0, 0)), (HumanBodyBones.RightUpperArm, new Vector3(-18, 0, 0)),
+            },
+            // 토끼: 한쪽 무릎을 세우고 앉아 어깨를 벽에 기대고 고개를 옆으로 기울인다.
+            ["Rabbit"] = new[]
+            {
+                (HumanBodyBones.LeftUpperLeg, new Vector3(-85, -10, 0)), (HumanBodyBones.RightUpperLeg, new Vector3(-125, 8, 0)),
+                (HumanBodyBones.RightLowerLeg, new Vector3(110, 0, 0)),
+                (HumanBodyBones.Spine, new Vector3(4, 0, -8)), (HumanBodyBones.Head, new Vector3(14, 0, -18)),
+                (HumanBodyBones.LeftUpperArm, new Vector3(-12, 0, 0)),
+            },
+            // 인형: 무릎을 꿇고 주저앉아 고개를 떨군다(2026-11-15 사용자: 다리를 앞으로 뻗으면 치마를 뚫고 나온다).
+            ["PinkGirl"] = new[]
+            {
+                (HumanBodyBones.LeftUpperLeg, new Vector3(-50, -8, 0)), (HumanBodyBones.RightUpperLeg, new Vector3(-50, 8, 0)),
+                (HumanBodyBones.LeftLowerLeg, new Vector3(140, 0, 0)), (HumanBodyBones.RightLowerLeg, new Vector3(140, 0, 0)),
+                (HumanBodyBones.Spine, new Vector3(10, 0, 6)), (HumanBodyBones.Head, new Vector3(22, -14, 0)),
+                (HumanBodyBones.RightUpperArm, new Vector3(-14, 0, 0)),
+            },
+            // 삐에로(두 다리 없음): 몸통째 벽에 기대 앞으로 처지고 고개를 떨군다.
+            ["BluePierrot"] = new[]
+            {
+                (HumanBodyBones.Spine, new Vector3(12, 0, 0)), (HumanBodyBones.Head, new Vector3(30, 0, -12)),
+                (HumanBodyBones.LeftUpperArm, new Vector3(-24, 0, 0)), (HumanBodyBones.RightUpperArm, new Vector3(-10, 0, 0)),
+            },
         };
 
         [MenuItem("CurtainCall/Waiting Room/Final Layout/13. Replace Display Costumes")]
@@ -90,13 +127,16 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                     try
                     {
                         AnimationMode.BeginSampling(); AnimationMode.SampleAnimationClip(model.Animator.gameObject, clip, clip.length * Mathf.Clamp01(entry.at)); AnimationMode.EndSampling();
+                        if (CostumePoses.TryGetValue(entry.model, out var pose))
+                            foreach (var (bone, turn) in pose)
+                                if (model.Animator.GetBoneTransform(bone) is Transform joint) joint.rotation = Quaternion.Euler(turn) * joint.rotation;
                         foreach (var (source, label) in CostumeParts(model, entry.lost))
                         {
                             var mesh = new Mesh { name = $"OldCostume_{entry.model}_{label}" };
                             source.BakeMesh(mesh, true);
                             string meshPath = $"{CostumeFolder}/{mesh.name}.asset";
                             var saved = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
-                            if (saved != null) { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); mesh = saved; EditorUtility.SetDirty(mesh); }
+                            if (saved != null) { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); mesh = saved; mesh.vertices = mesh.vertices; mesh.RecalculateBounds(); mesh.UploadMeshData(false); EditorUtility.SetDirty(mesh); } // 복사로 덮으면 화면용 메시가 옛 자세로 남는다 → 다시 올린다
                             else AssetDatabase.CreateAsset(mesh, meshPath);
                             var part = new GameObject(label, typeof(MeshFilter), typeof(MeshRenderer)).transform;
                             // 구운 메시는 그 렌더러 기준 좌표다. 캐릭터 원점(costume) 아래에 같은 자리로 둔다.
@@ -128,7 +168,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 // 살펴보기 대상.
                 var holder = Child(clueRoot, entry.id == "final:old-costume" ? "OldCostume" : "OldCostume_" + entry.model);
                 Undo.RegisterCreatedObjectUndo(holder.gameObject, "Costume clue"); holder.position = now.center;
-                Clue(holder, entry.id, entry.title, "", costume, null, .55f, 1.6f);
+                var clue = Clue(holder, entry.id, entry.title, "", costume, null, .55f, 1.6f);
+                // 옷의 원점이 받침대 속에 묻히면 손이 닿는 길이 받침대에 막혀 살펴볼 수 없다. 옷 한가운데를 닿는 점으로 쓴다(2026-11-15 사용자: 인형 옷 하나만 살펴봐짐).
+                var reach = new SerializedObject(clue); reach.FindProperty("reachPoint").objectReferenceValue = holder; reach.ApplyModifiedPropertiesWithoutUndo();
                 notes.Add($"{entry.title}({entry.model}, 없는 부위 {(entry.lost == BodyPart.None ? "없음" : entry.lost.ToString())}) 높이 {now.size.y:F2}m 조각 {parts}개");
             }
             AssetDatabase.SaveAssets();

@@ -2351,6 +2351,8 @@ MonoBehaviour:
   Guide: {fileID: 8202069689643345783}
   Tooltip: {fileID: 5582369269774118891}
   DeviceUi: {fileID: 2335777016398748358}
+  SafeGroundMaterial: {fileID: 2100000, guid: c04da3fe466afa14ca4efc2c565b0eb3, type: 2}
+  SafeGroundUv: {x: 0.5346981, y: 0.2871616}
 --- !u!114 &9078006648401788336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2453,16 +2455,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29cc5e41c44209e4bb8aad1bd370c8d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonGroundMarkers
+  markerMaterial: {fileID: 2100000, guid: 31afdf118c123ba4f94ce0cc60661227, type: 2}
+  radius: 0.65
+  maxDistance: 100
   showSafeLandingFeedback: 0
   feedbackRopes: []
-  markerMaterial: {fileID: 2100000, guid: 31afdf118c123ba4f94ce0cc60661227, type: 2}
   courseFloors:
   - {fileID: 3376585213998609611}
   - {fileID: 8046465611296653631}
   - {fileID: 4843707077749635827}
   - {fileID: 460165803162914497}
-  radius: 0.65
-  maxDistance: 100
 --- !u!1 &2320781130117964186
 GameObject:
   m_ObjectHideFlags: 0

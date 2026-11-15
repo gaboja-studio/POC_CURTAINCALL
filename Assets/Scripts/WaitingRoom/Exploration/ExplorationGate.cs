@@ -210,7 +210,12 @@ namespace CurtainCall.WaitingRoom
         // 맨몸 겸용 부수기 대상: 뽑개를 들었으면 친 수를, 맨몸이면 횟수 없이 게이지 하나만 보여 준다(2026-11-13 사용자).
         string StrikeLabel()
         {
-            if (!ExplorationTargets.LocalHolds(toolId)) return Label + ShopReach.BareHoldSuffix(this);
+            if (!ExplorationTargets.LocalHolds(toolId))
+            {
+                // 부수는 중(게이지가 보이는 동안)에는 문구 파일의 target.<ID>.striking이 있으면 이름 대신 그 문구를 쓴다(2026-11-15 사용자: "회로를 망가뜨리는 중...").
+                string gauge = ShopReach.BareHoldSuffix(this), striking = "target." + targetId + ".striking";
+                return (gauge.StartsWith(" ■") && WaitingRoomText.Has(striking) ? WaitingRoomText.Get(striking, Label) : Label) + gauge;
+            }
             if (ExplorationState.Instance == null || ExplorationState.Instance.Hits(targetId) == 0) return Label;
             var (n, total) = ExplorationTargets.StrikeCount(this, true);
             return WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", n), ("total", total));

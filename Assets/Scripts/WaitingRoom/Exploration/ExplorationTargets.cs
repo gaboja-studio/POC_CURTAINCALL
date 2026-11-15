@@ -45,7 +45,9 @@ namespace CurtainCall.WaitingRoom
     {
         public static bool ToolsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
             && (CurtainCall.Campaign.CampaignRun.Instance?.State.Phase == CurtainCall.Campaign.CampaignPhase.Performance
-                || CurtainCall.Tightrope.TightropeRun.Current is { PracticeMode: false, State: CurtainCall.Tightrope.TightropeRunState.Running }
+                // 대기실 연습실의 자유 연습 코스도 '진행 중인 외줄'로 잡혀 대기실 내내 도구가 막혔다(2026-11-15 사용자: 환풍구·녹슨 벽이 더 안 부서짐). 대기실 씬의 코스는 공연으로 보지 않는다.
+                || CurtainCall.Tightrope.TightropeRun.Current is { PracticeMode: false, State: CurtainCall.Tightrope.TightropeRunState.Running } rope
+                    && rope.gameObject.scene.name != CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomScene
                 || CurtainCall.HumanCannon.HumanCannonSystem.Current is { PracticeMode: false } cannon
                     && cannon.gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.HumanCannonScene);
         /// <summary>맨몸으로 칠 수 있는 대상인가.</summary>
