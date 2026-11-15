@@ -1081,7 +1081,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.IsTrue(WaitingRoomRehearsal.IsPreTutorialRestricted);
             state.Generation = 2; Set(run, "state", state);
             Assert.IsFalse(WaitingRoomRehearsal.IsPreTutorialRestricted);
+            // 최초 리허설을 거치는 세대(개발용 시작 지점은 세대 2부터)는 1세대와 같은 제한을 쓴다(2026-11-15).
             state.Phase = CampaignPhase.Rehearsal; Set(run, "state", state);
+            Assert.IsTrue(WaitingRoomRehearsal.IsPreTutorialRestricted);
+            state.Phase = CampaignPhase.Performance; Set(run, "state", state);
+            Assert.IsTrue(WaitingRoomRehearsal.IsPreTutorialRestricted);
+            state.Generation = 3; Set(run, "state", state);
             Assert.IsFalse(WaitingRoomRehearsal.IsPreTutorialRestricted);
         }
 

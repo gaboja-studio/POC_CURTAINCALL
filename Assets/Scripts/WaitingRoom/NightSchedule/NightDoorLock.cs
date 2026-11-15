@@ -98,6 +98,8 @@ namespace CurtainCall.WaitingRoom
             // 무대 입구 통로 철창은 정비 시간에만 닫는다(탐색 잠금·리허설 동선 제한과 무관, Task-129).
             if (name == StageCorridorClosure.GateName) return StageCorridorClosure.IsClosed(run.State);
             if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
+            // 첫 공연 뒤 대기실 튜토리얼이 끝날 때까지 연습실·작업실 철창은 닫아 둔다(2026-11-15 사용자).
+            if (WaitingRoomRehearsal.IsFirstTutorialPending && WaitingRoomRehearsal.IsHeldThroughTutorial(name)) return true;
             if (phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding) return true;
             // 밤(탐색 잠금 시간대)에는 무대 입구 통로로 가는 길만 닫는다.
             return name == StageEntranceName && GameSettings.Base.Run.IsExplorationLocked(run.State);
@@ -112,7 +114,7 @@ namespace CurtainCall.WaitingRoom
 
         bool UpdateTutorialBarrier()
         {
-            bool protect = IsLocked && name != RehearsalPassageName && WaitingRoomRehearsal.IsPreTutorialRestricted;
+            bool protect = IsLocked && name != RehearsalPassageName && WaitingRoomRehearsal.IsFirstTutorialPending;
             if (protect == tutorialProtected) return false;
             tutorialProtected = protect;
             if (protect && tutorialBarrier == null && shutter != null && shutter.GetComponentInChildren<BoxCollider>(true) is BoxCollider panel)

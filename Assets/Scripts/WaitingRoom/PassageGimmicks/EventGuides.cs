@@ -31,7 +31,7 @@ namespace CurtainCall.WaitingRoom
             if (run != null && run.State.Timer == RestTimerState.Running && run.State.TimeRemaining > 0f && run.State.TimeRemaining <= pursuerSeconds)
                 GimmickGuide.ShowOnce("pursuer", "추격자", "시간이 지나면 추격자가 나타납니다. 추격자를 피해 공연장까지 가야 합니다.");
 
-            if (WaitingRoomRehearsal.IsPreTutorialRestricted || ExplorationState.Instance == null || !(ExplorationState.Instance.LocalFeet is Vector3 feet)) return;
+            if (WaitingRoomRehearsal.IsFirstTutorialPending || ExplorationState.Instance == null || !(ExplorationState.Instance.LocalFeet is Vector3 feet)) return;
             var state = ExplorationState.Instance;
             // 방 구역에 있기만 하면 뜨던 것을, 열린 문을 직접 지나 들어온 순간으로 바꿨다(2026-11-15 사용자: 문을 열고 입장한 다음에 나와야 한다).
             if (!craftSearched)

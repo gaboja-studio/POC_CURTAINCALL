@@ -36,7 +36,7 @@ namespace CurtainCall.WaitingRoom
             var state = ExplorationState.Instance;
             if (state == null || !state.StateReady) return; // 판정 화면의 상태를 받은 뒤부터 본다
             bool found = state.IsOpen(seenId);
-            if (!found && !WaitingRoomRehearsal.IsPreTutorialRestricted)
+            if (!found && !WaitingRoomRehearsal.IsFirstTutorialPending)
             {
                 bool near = false; int players = 0;
                 foreach (var player in NetworkPlayer.All)

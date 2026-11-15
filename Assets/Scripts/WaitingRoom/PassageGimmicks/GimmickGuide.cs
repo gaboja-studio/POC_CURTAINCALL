@@ -43,6 +43,8 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             TrackRun();
+            // 첫 공연을 마치고 돌아와 대기실 튜토리얼이 끝나기 전에는 기믹 안내(잠긴 문 등)를 띄우지 않는다(2026-11-15 사용자).
+            if (WaitingRoomRehearsal.IsFirstTutorialPending) return;
             // 다른 알림이 떠 있거나 연출 중이면 덮어쓰지 않고, 끝난 뒤 아직 근처에 있을 때 띄운다.
             if (WaitingRoomGuidePanel.IsVisible || CurtainCall.Player.InputGate.IsBlocked) return;
             if (shown.Contains(guideId) || ExplorationState.Instance == null || !(ExplorationState.Instance.LocalFeet is Vector3 feet)) return;

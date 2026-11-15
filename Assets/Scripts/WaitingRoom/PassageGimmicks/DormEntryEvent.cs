@@ -89,11 +89,11 @@ namespace CurtainCall.WaitingRoom
             var state = ExplorationState.Instance;
             if (state == null || !state.StateReady) return; // 판정 화면의 상태를 받은 뒤부터 본다(늦게 들어온 화면에서 다시 재생되지 않게)
             bool jammed = Open(jammedId), cut = Open(cableId);
-            // 리허설 뒤 첫 공연을 마치기 전에는 문이 닫혀 있어 숙소에 들어갈 수 없다(2026-11-15 사용자). 이벤트는 그 뒤부터.
-            bool sealedBefore = WaitingRoomRehearsal.IsPreTutorialRestricted;
+            // 첫 공연을 마치고 돌아와 대기실 튜토리얼이 끝나기 전에는 문이 닫혀 있어 숙소에 들어갈 수 없다(2026-11-15 사용자). 이벤트는 그 뒤부터.
+            bool sealedBefore = WaitingRoomRehearsal.IsFirstTutorialPending;
 
-            // 판정 화면: 첫 공연 전 동선 제한이 풀린 뒤, 누군가 입구 통로에 들어서면 닫는다.
-            if (!jammed && !WaitingRoomRehearsal.IsPreTutorialRestricted)
+            // 판정 화면: 대기실 튜토리얼이 끝나 동선 제한이 풀린 뒤, 누군가 입구 통로에 들어서면 닫는다.
+            if (!jammed && !sealedBefore)
             {
                 bool entering = false; int players = 0;
                 foreach (var player in NetworkPlayer.All)
