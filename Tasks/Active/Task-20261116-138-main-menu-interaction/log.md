@@ -42,3 +42,5 @@
 - Play 종료 후 저장된 Start 씬 복귀. Editor 정상 종료로 생긴 기존 TMP 폰트 4개의 동적 아틀라스 변경만 .harness/local/version-font-backup에 보관 후 원래 내용 복구. 제출 전 origin/dev fetch 및 ff-only: 이미 최신. Editor 재실행. commit/push 없음.
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/394 (fix/main-menu/interaction-effect → dev)
