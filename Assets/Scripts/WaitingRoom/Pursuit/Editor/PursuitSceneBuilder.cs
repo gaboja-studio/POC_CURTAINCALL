@@ -13,7 +13,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
     public static class PursuitSceneBuilder
     {
         const string AssetsRoot = "Assets/_ThirdParty/curtaincall/Pursuit";
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity";
+        // 현재 사용하는 대기실은 InGame/WaitingRoom 하나뿐이다(2026-11-16 사용자). 옛 테스트 씬 경로는 사라졌다.
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
+        /// <summary>이 키보다 큰 단단한 충돌체는 굽기 때 속이 빈 껍데기로 처리돼 안쪽 바닥에 길이 생기므로 막는다(에이전트 키 1.7m).</summary>
+        const float SolidFillMinHeight = 1.7f;
         public static string LastReport;
         static string[] Models => Enumerable.Range(1, 4).Select(n => $"Pursuit_Male_{n:00}")
             .Concat(Enumerable.Range(1, 6).Select(n => $"Pursuit_Female_{n:00}")).ToArray();
@@ -87,23 +90,72 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 if (c.enabled && !c.isTrigger) bounds.Encapsulate(c.bounds);
             NavMeshBuilder.CollectSources(bounds, ~0, NavMeshCollectGeometry.PhysicsColliders, 0, new List<NavMeshBuildMarkup>(), sources);
             sources.RemoveAll(s => s.component is Collider collider && moving.Contains(collider));
+            int fills = AddSolidFills(sources, moving);
+            string path = surface.navMeshData != null ? AssetDatabase.GetAssetPath(surface.navMeshData) : "";
+            if (string.IsNullOrEmpty(path)) path = AssetsRoot + "/Navigation/WaitingRoomPursuit.asset";
             surface.RemoveData();
             surface.navMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
             if (surface.navMeshData == null) throw new InvalidOperationException("Navigation bake failed");
-            string path = AssetsRoot + "/Navigation/WaitingRoomPursuit.asset";
             var existing = AssetDatabase.LoadAssetAtPath<NavMeshData>(path);
             if (existing == null) AssetDatabase.CreateAsset(surface.navMeshData, path);
             else { EditorUtility.CopySerialized(surface.navMeshData, existing); surface.RemoveData(); surface.navMeshData = existing; surface.AddData(); EditorUtility.SetDirty(existing); }
             surface.AddData();
-            BuildTraversalLinks(root);
+            // 구조가 바뀌면 옛 연결도 낡으므로 매번 지우고 새로 만든다.
+            var oldLinks = root.transform.Find("TraversalLinks");
+            if (oldLinks != null) UnityEngine.Object.DestroyImmediate(oldLinks.gameObject);
+            int links = BuildTraversalLinks(root);
             AssetDatabase.SaveAssetIfDirty(surface.navMeshData);
+            EditorSceneManager.MarkSceneDirty(root.scene);
             EditorSceneManager.SaveScene(root.scene);
-            LastReport = "NavMesh vertices=" + NavMesh.CalculateTriangulation().vertices.Length;
+            LastReport = $"NavMesh vertices={NavMesh.CalculateTriangulation().vertices.Length}, moving excluded={moving.Count}, solid fills={fills}, links={links}, asset={path}";
             Debug.Log("[Pursuit] " + LastReport);
         }
-        static void BuildTraversalLinks(GameObject root)
+
+        /// <summary>
+        /// 굽기는 충돌체를 겉면으로만 처리해, 키가 에이전트보다 큰 상자·랙·기계 안쪽 바닥에도 작은 길 조각이 생긴다.
+        /// 그 조각은 연결 링크로 바깥과 이어져 추격자가 물체 속을 걷는 원인이 됐다(2026-11-16 측정: 링크 35개 중 28개).
+        /// 단단한 충돌체 부피를 '걸을 수 없음'으로 덮되, 윗면은 남겨 위로 오르는 길은 유지한다.
+        /// </summary>
+        static int AddSolidFills(List<NavMeshBuildSource> sources, HashSet<Collider> moving)
         {
-            if (root.transform.Find("TraversalLinks") != null) return;
+            const float topKeep = .15f, bottomReach = .1f, sideInset = .02f;
+            int count = 0;
+            foreach (var c in UnityEngine.Object.FindObjectsByType<Collider>(FindObjectsSortMode.None)) {
+                if (!c.enabled || c.isTrigger || moving.Contains(c) || c.bounds.size.y <= SolidFillMinHeight) continue;
+                if (c is MeshCollider mc && !mc.convex) continue; // 오목 메시는 속이 실제로 비어 있을 수 있다(돔·방 껍데기).
+                if (c is TerrainCollider || c is WheelCollider) continue;
+                var source = new NavMeshBuildSource { shape = NavMeshBuildSourceShape.ModifierBox, area = 1 };
+                // 상자·볼록 메시는 물체 방향에 맞춘 상자로 덮는다(길쭉한 기계가 비스듬해도 끝까지 덮이게).
+                Vector3? localCenter = null, localSize = null; float side = sideInset;
+                if (c is BoxCollider box) { localCenter = box.center; localSize = box.size; }
+                else if (c is MeshCollider convex && convex.sharedMesh != null) {
+                    localCenter = convex.sharedMesh.bounds.center; localSize = convex.sharedMesh.bounds.size;
+                    side = Mathf.Min(localSize.Value.x, localSize.Value.z) * .1f; // 볼록 껍질은 모서리가 비어 있어 조금 더 안쪽으로.
+                }
+                if (localCenter.HasValue && Mathf.Abs(Vector3.Dot(c.transform.up, Vector3.up)) > .99f) {
+                    var scale = c.transform.lossyScale;
+                    var size = Vector3.Scale(localSize.Value, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
+                    var center = new Vector3(0, -(bottomReach + topKeep) * .5f, 0);
+                    var yaw = Quaternion.LookRotation(Vector3.ProjectOnPlane(c.transform.forward, Vector3.up), Vector3.up);
+                    source.transform = Matrix4x4.TRS(c.transform.TransformPoint(localCenter.Value), yaw, Vector3.one) * Matrix4x4.Translate(center);
+                    source.size = new Vector3(size.x - side * 2, size.y + bottomReach - topKeep, size.z - side * 2);
+                } else if (localCenter.HasValue) {
+                    continue; // 기울어진 상자·메시(경사로 등)는 윗면이 비스듬해 덮으면 길이 지워진다.
+                } else {
+                    var b = c.bounds;
+                    float inset = Mathf.Min(b.size.x, b.size.z) * .15f;
+                    source.transform = Matrix4x4.Translate(new Vector3(b.center.x, b.center.y + -(bottomReach + topKeep) * .5f, b.center.z));
+                    source.size = new Vector3(b.size.x - inset * 2, b.size.y + bottomReach - topKeep, b.size.z - inset * 2);
+                }
+                if (source.size.x <= 0 || source.size.z <= 0) continue;
+                sources.Add(source);
+                count++;
+            }
+            return count;
+        }
+
+        static int BuildTraversalLinks(GameObject root)
+        {
             var mesh = NavMesh.CalculateTriangulation();
             int[] parent = Enumerable.Range(0, mesh.vertices.Length).ToArray();
             int Find(int x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
@@ -132,7 +184,9 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 var a=boundary[candidate.a]; var b=boundary[candidate.b];
                 if(Find(a.vertex)==Find(b.vertex)) continue;
                 bool Clear(float h) => !Physics.Linecast(a.point+Vector3.up*h,b.point+Vector3.up*h,~0,QueryTriggerInteraction.Ignore);
-                if(!Clear(.65f) || !Clear(1.3f)) continue;
+                // 선이 충돌체 안에서 시작하면 Linecast가 막힘을 못 잡으므로 양 끝 몸통 높이도 확인한다.
+                bool Open(Vector3 p) => !Physics.CheckCapsule(p+Vector3.up*.6f,p+Vector3.up*1.2f,.05f,~0,QueryTriggerInteraction.Ignore);
+                if(!Clear(.65f) || !Clear(1.3f) || !Open(a.point) || !Open(b.point)) continue;
                 var mid=(a.point+b.point)*.5f;
                 if(!Physics.Raycast(mid+Vector3.up,Vector3.down,out var floor,2,~0,QueryTriggerInteraction.Ignore) || Mathf.Abs(floor.point.y-mid.y)>.8f) continue;
                 var link=new GameObject($"StepLink_{links:00}").AddComponent<NavMeshLink>(); link.transform.SetParent(group.transform);
@@ -141,6 +195,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 if(links>=64) break;
             }
             Debug.Log($"[Pursuit] collision-checked traversal links={links}");
+            return links;
         }
         static HashSet<Collider> DynamicBlockers()
         {
