@@ -45,3 +45,4 @@
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
 - 2026-11-16 제출 전 재검사: origin/dev a2a9dc90 재동기화, 컴파일/공용 설정/안전성/문서 PASS. 최종 탈출로 581/581 PASS, 공용 회귀 752/754 PASS(네트워크 낙하 23/23 포함). 실패 2건의 이름·메시지는 이전 기록과 완전히 일치한다. 실제 PlayMode 미실행. 근거: .harness/local/escape-nov16-submit-*.txt/json.
+- 2026-11-16 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/400 (fix/escape-device-activation → dev). 코드 커밋 63f78c00, 제출 직전 DEV a2a9dc90 최신 확인. 지정 PM 팀 검토 대기, 미병합. new-pr 미리보기의 유일한 경고는 별도 작업의 미커밋 에셋 11개였으며 보존 후 필요한 18개 파일만 제출했다.
