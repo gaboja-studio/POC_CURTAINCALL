@@ -383,6 +383,18 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
+        void FinishStalledCapture(double now)
+        {
+            if (!HoldingRunner) return;
+            // Give positioning a second hold window. A broken path or route switch
+            // must not leave an already captured player pending at the ending.
+            double limit = attack.Phase == AttackPhase.Grab ? 2 * HoldTime : SwingTime + FlightTime + HoldTime;
+            if (now - attack.Started < limit) return;
+            ClearAttack();
+            nextAim = now + MissRecovery;
+            nextSend = 0;
+        }
+
         void ClearAttack()
         {
             if (victim && victim.IsSpawned && victim.IsServer && victim.State == PlayerState.EscapeCaptured)

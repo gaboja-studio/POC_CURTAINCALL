@@ -23,6 +23,7 @@ namespace CurtainCall.Cameras
             public CameraViewPreset Preset;
             public Vector3 Forward;
             public bool FollowHeading;
+            public bool FollowHeadingMotion;
         }
 
         [SerializeField] CameraViewSettings settings;
@@ -160,11 +161,12 @@ namespace CurtainCall.Cameras
             => RequestViewWithHeading(source, preset, priority, worldForward, false);
 
         internal void RequestViewWithHeading(Object source, CameraViewPreset preset, int priority, Vector3 worldForward,
-            bool followHeading)
+            bool followHeading, bool followHeadingMotion = false)
         {
             if (source == null) return;
             if (preset == null) { ReleaseView(source); return; }
-            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading }, priority);
+            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading,
+                FollowHeadingMotion = followHeadingMotion }, priority);
         }
 
         public void ReleaseView(Object source) => requests.Remove(source);
@@ -300,7 +302,7 @@ namespace CurtainCall.Cameras
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
             Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
-            UpdateFollowedHeading(heading);
+            UpdateFollowedHeading(heading, request.FollowHeadingMotion);
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
@@ -311,7 +313,7 @@ namespace CurtainCall.Cameras
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
         }
 
-        void UpdateFollowedHeading(Vector3 heading)
+        void UpdateFollowedHeading(Vector3 heading, bool followHeadingMotion)
         {
             if (heading == Vector3.zero)
             {
@@ -319,12 +321,18 @@ namespace CurtainCall.Cameras
                 headingTurnDelta = headingTurnApplied = 0f;
                 return;
             }
-            if (followedHeading == Vector3.zero || Vector3.Dot(heading, followedHeading) < .9999f)
+            if (followedHeading == Vector3.zero || !followHeadingMotion && Vector3.Dot(heading, followedHeading) < .9999f)
             {
                 followedHeading = heading;
                 headingTurnStart = Time.unscaledTime;
                 headingTurnApplied = 0f;
                 headingTurnDelta = Mathf.DeltaAngle(yaw, Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg);
+            }
+            else if (followHeadingMotion)
+            {
+                // Keep the player's mouse offset as the moving mount turns.
+                yaw += Vector3.SignedAngle(followedHeading, heading, Vector3.up);
+                followedHeading = heading;
             }
             float duration = Mathf.Max(.01f, CurtainCall.Settings.GameSettings.Tightrope.Camera.FramingSmoothTime);
             float progress = Mathf.Clamp01((Time.unscaledTime - headingTurnStart) / duration);

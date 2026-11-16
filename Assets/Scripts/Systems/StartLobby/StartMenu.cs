@@ -10,7 +10,7 @@ namespace CurtainCall.StartLobby
     /// <summary>시작 씬의 방 생성·참가와 페이지 표시를 담당한다.</summary>
     public sealed class StartMenu : MonoBehaviour
     {
-        public enum Page { Main, Join, Lan, Settings }
+        public enum Page { Main, Join, Lan, Settings, Credits }
 
         [Header("페이지")]
         public GameObject mainPage;
@@ -18,6 +18,9 @@ namespace CurtainCall.StartLobby
         public GameObject lanPage;
         public SettingsPanel settingsPage;
         public bool useCommonSettings;
+        [Header("개발 및 라이선스")]
+        public StartMenuCreditsSettings creditsSettings;
+        StartMenuCreditsPanel creditsPanel;
 
         [Header("메인")]
         public Button host;
@@ -66,8 +69,12 @@ namespace CurtainCall.StartLobby
             lanJoin.onClick.AddListener(() => Run(JoinLan, true));
             lanBack.onClick.AddListener(() => Show(Page.Main));
             if (settingsPage != null) settingsPage.Closed += () => Show(Page.Main);
+            creditsPanel = StartMenuCreditsPanel.Create(this, creditsSettings != null ? creditsSettings :
+                Resources.Load<StartMenuCreditsSettings>(StartMenuCreditsSettings.ResourcePath));
+            StartMenuHangingTitle.Attach(this);
             Show(Page.Main);
             SetStatus(flow.TakeMessage());
+            StartMenuBackdrop.Attach(this);
         }
 
         public void Show(Page page)
@@ -78,6 +85,7 @@ namespace CurtainCall.StartLobby
             joinPage.SetActive(page == Page.Join);
             lanPage.SetActive(page == Page.Lan);
             if (settingsPage != null) settingsPage.gameObject.SetActive(page == Page.Settings);
+            if (creditsPanel != null) creditsPanel.SetVisible(page == Page.Credits);
             if (page == Page.Settings && useCommonSettings) StartCoroutine(OpenCommonSettings());
             if (page == Page.Join) code.Select();
         }

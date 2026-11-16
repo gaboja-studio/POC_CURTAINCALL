@@ -101,7 +101,11 @@ namespace CurtainCall.EscapeRoute
                 PresentWallStrike();
                 return;
             }
-            if (breach.EntranceComplete) AdvanceHost();
+            if (breach.EntranceComplete)
+            {
+                FinishStalledCapture(timer.Clock);
+                AdvanceHost();
+            }
             if (bypass) bypass.SetShutter(usingBypass, transform.position, body);
             PresentAttack(attack, timer.Clock);
             PresentThreat(threat, timer.Clock);

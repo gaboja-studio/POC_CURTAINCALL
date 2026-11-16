@@ -23,6 +23,7 @@ namespace CurtainCall.HumanCannon
             public double GrabbedAt;
             public uint InputSequence;
             public uint JoinedRevision;
+            public bool ReverseFacing;
             public int Station;
             public uint Launch, Segment;
         }
@@ -162,6 +163,16 @@ namespace CurtainCall.HumanCannon
         float SwingAngle(int index) => states[index].Angle;
         float GrabAngle(int index) => session != null && session.IsHost ? SwingAngle(index) : DisplaySwingAngle(index);
 
+        static bool FacesAgainstPole(Vector3 axis, Vector3 view, Vector3 body, Vector3 approach)
+        {
+            float Along(Vector3 direction) => Vector3.Dot(Vector3.ProjectOnPlane(direction, Vector3.up).normalized, axis);
+            const float sideOn = .05f;
+            float facing = Along(view);
+            if (Mathf.Abs(facing) < sideOn) facing = Along(body);
+            if (Mathf.Abs(facing) < sideOn) facing = Along(approach);
+            return facing < -sideOn;
+        }
+
         public Quaternion RiderRotation(int index, ulong actor)
         {
             int seat = states[index].State.SeatOf(actor);
@@ -171,7 +182,8 @@ namespace CurtainCall.HumanCannon
         Quaternion SeatRotation(int index, int seat)
         {
             Quaternion grip = poles[index].Grip.rotation;
-            return grip;
+            return seat >= 0 && states[index].Riders[seat].ReverseFacing
+                ? grip * Quaternion.Euler(0f, 180f, 0f) : grip;
         }
 
         internal void RequestGrab(int index, int station, uint launch, uint segment) =>
@@ -237,18 +249,6 @@ namespace CurtainCall.HumanCannon
                 if (session != null && session.IsHost)
                 {
                     TickState(i);
-                    for (int seat = 0; seat < runtime.State.Capacity; seat++)
-                    {
-                        ulong actor = runtime.State.OccupantAt(seat);
-                        if (actor == CannonSeatState.Nobody) continue;
-                        var player = FindPlayer(actor);
-                        if (!pole.isActiveAndEnabled || !pole.InteractionAvailable || player == null || player.State != PlayerState.Normal)
-                        {
-                            ReleasePassengers(i, seat);
-                            if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, pole.WarningSeconds))
-                                Publish(i, PoleEvent.Abandoned, actor, seat);
-                        }
-                    }
                     float sharedDrive = RefreshSwingDrive(runtime);
                     pole.Step(ref runtime.Angle, ref runtime.Speed, sharedDrive,
                         Time.deltaTime, GameSettings.Base.Character.Gravity);
@@ -280,24 +280,27 @@ namespace CurtainCall.HumanCannon
         void TickState(int index)
         {
             var runtime = states[index];
+            var pole = poles[index];
             for (int supportingSeat = 0; supportingSeat < runtime.State.Capacity; supportingSeat++)
             {
                 ulong supportingActor = runtime.State.OccupantAt(supportingSeat);
                 if (supportingActor == CannonSeatState.Nobody) continue;
                 var rider = runtime.Riders[supportingSeat];
-                if (rider != null && FindPlayer(supportingActor) is { } player)
+                var player = FindPlayer(supportingActor);
+                bool abandoned = !pole.isActiveAndEnabled || !pole.InteractionAvailable || player == null || player.State != PlayerState.Normal;
+                if (!abandoned)
                 {
-                    float duration = HoldDuration(poles[index], player);
+                    float duration = HoldDuration(pole, player);
                     if (runtime.State.ShortenHold(supportingSeat, rider.GrabbedAt + duration))
                         Publish(index, PoleEvent.Sync, CannonSeatState.Nobody);
                 }
                 bool unsupported = supportingSeat > 0 && runtime.State.OccupantAt(supportingSeat - 1) == CannonSeatState.Nobody;
                 double deadline = runtime.State.DeadlineAt(supportingSeat);
-                if (!unsupported && (deadline <= 0 || Clock < deadline)) continue;
+                if (!abandoned && !unsupported && (deadline <= 0 || Clock < deadline)) continue;
                 // 아래부터 각각 다른 revision으로 놓아 원격에서도 모든 사람의 비행 승인을 받게 한다.
                 ReleasePassengers(index, supportingSeat);
-                if (runtime.State.TryRelease(supportingActor, runtime.State.Revision, Clock, poles[index].WarningSeconds))
-                    Publish(index, PoleEvent.Released, supportingActor, supportingSeat);
+                if (runtime.State.TryRelease(supportingActor, runtime.State.Revision, Clock, pole.WarningSeconds))
+                    Publish(index, abandoned ? PoleEvent.Abandoned : PoleEvent.Released, supportingActor, supportingSeat);
             }
             // Tick removes at most one timed rider per call, giving each release its own revision.
             for (int pass = 0; pass <= PoleGateState.MaxRiders; pass++)
@@ -320,8 +323,10 @@ namespace CurtainCall.HumanCannon
             for (int seat = state.Capacity - 1; seat > supportingSeat; seat--)
             {
                 ulong actor = state.OccupantAt(seat);
-                if (actor != CannonSeatState.Nobody && state.TryRelease(actor, state.Revision, Clock, poles[index].WarningSeconds))
-                    Publish(index, PoleEvent.Released, actor, seat, drop);
+                if (actor == CannonSeatState.Nobody || !state.TryRelease(actor, state.Revision, Clock, poles[index].WarningSeconds)) continue;
+                var player = FindPlayer(actor);
+                Publish(index, player != null && player.State == PlayerState.Normal ? PoleEvent.Released : PoleEvent.Abandoned,
+                    actor, seat, drop);
             }
         }
 
@@ -364,6 +369,7 @@ namespace CurtainCall.HumanCannon
             if (action == PoleAction.Grab || action == PoleAction.PlatformGrab)
             {
                 bool fromPlatform = action == PoleAction.PlatformGrab;
+                if (sequence > ReverseGrab) return;
                 if (runtime.LastDeparture.TryGetValue(actor, out uint departure) && revision < departure) return;
                 if (!poles[index].InteractionAvailable || !CanApproach(player) || (fromPlatform ? !CanEnterFromPlatform(player) || cannon.IsFlying(actor)
                     : !cannon.MatchesFlight(actor, station, launch, segment))) return;
@@ -384,7 +390,7 @@ namespace CurtainCall.HumanCannon
                     runtime.Speed = poles[index].AddCatchMomentum(runtime.Angle, runtime.Speed, input);
                 }
                 runtime.Riders[seat] = new Rider { LastInput = grabbedAt, GrabbedAt = grabbedAt, Station = station, Launch = launch, Segment = segment,
-                    JoinedRevision = runtime.State.Revision };
+                    JoinedRevision = runtime.State.Revision, ReverseFacing = sequence == ReverseGrab };
                 void CompleteCatch()
                 {
                     stack?.ConsumeTrapezeEntry(player);
@@ -427,7 +433,8 @@ namespace CurtainCall.HumanCannon
                 if (!GameSettings.Poles.CanDrive(seat) || runtime.State.OccupantAt(seat) == CannonSeatState.Nobody) continue;
                 drivers++;
                 var rider = runtime.Riders[seat];
-                if (Clock - rider.LastInput <= .3) sum += rider.Input;
+                // W/S is rider-relative. Combine the contributions in the shared pendulum's axis.
+                if (Clock - rider.LastInput <= .3) sum += rider.ReverseFacing ? -rider.Input : rider.Input;
             }
             float drive = SharedDrive(sum, drivers);
             runtime.ObserveDrive(drive);

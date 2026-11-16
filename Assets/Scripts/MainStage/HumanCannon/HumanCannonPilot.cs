@@ -222,13 +222,14 @@ namespace CurtainCall.HumanCannon
         {
             FinishBalloonPants();
             airControl.Clear();
+            bool captured = player != null && player.State == PlayerState.EscapeCaptured;
             if (mover != null && IsDriving)
             {
                 mover.ClearPendingInput();
-                mover.Simulated = previousSimulation;
+                if (!captured) mover.Simulated = previousSimulation;
             }
             stationIndex = -1;
-            if (IsHoldingPole && TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
+            if (IsHoldingPole && !captured && TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
             HeldPole = -1;
             onTransport = false;
             groundRequest.Cancel();
