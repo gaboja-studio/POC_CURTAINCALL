@@ -14,13 +14,12 @@ namespace CurtainCall.WaitingRoom
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField, Min(.05f)] float itemSize = .25f;
         [SerializeField] Color color = new(.55f, .85f, 1f);
+#pragma warning disable 0414 // 설치 도구(WaitingRoomWorldLabelInstaller)가 끄는 옛 값. 바닥 기물 이름표는 2026-11-16부터 그리지 않는다.
         [SerializeField] bool showLegacyLabels = true;
+#pragma warning restore 0414
 
-        public void CollectLabels(List<ShopWorldLabel> labels)
-        {
-            foreach (var item in shown.Values)
-                if (item.Shape != null) labels.Add(new ShopWorldLabel(item.Shape.transform, item.Prop.Item.Name, Vector3.up * (itemSize + .12f)));
-        }
+        /// <summary>바닥 기물은 이름표를 띄우지 않는다(2026-11-16 사용자: 상호작용 안내와 별도로 뜨는 작은 UI 제거). 이름은 F 안내에 나온다.</summary>
+        public void CollectLabels(List<ShopWorldLabel> labels) { }
 
         readonly Dictionary<int, Item> shown = new();
         readonly List<int> stale = new();
@@ -173,9 +172,6 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (carry == null) return;
-            if (showLegacyLabels)
-                foreach (var item in shown.Values)
-                    PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
             if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {

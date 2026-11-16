@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class WaitingRoomTutorialBook
     {
-        public const string InteractToken = "{interact}", UvToken = "{uv}";
+        public const string InteractToken = "{interact}", UvToken = "{uv}", DropToken = "{drop}";
 
         public static IReadOnlyList<TutorialEntry> Defaults { get; } = new[]
         {
@@ -33,7 +33,7 @@ namespace CurtainCall.WaitingRoom
             new TutorialEntry("G02", "깊이 들어가면 시간이 흐릅니다", "로비·숙소 같은 생활 구역에서는 시계가 멈춥니다. 배관·기계실·지하처럼 깊은 곳에 들어가면 시계가 흐릅니다."),
             new TutorialEntry("G03", "살펴보기", "외곽선이 빛나는 물건을 바라보고 [{interact}]를 누르면 조사하거나 집을 수 있습니다."),
             new TutorialEntry("G04", "자세히 보기", "왼쪽 끌기로 돌려 보고 휠로 확대합니다. [{interact}]·ESC로 내려놓습니다. 화면을 보는 동안에도 시간은 흐릅니다.", 0f, true),
-            new TutorialEntry("G05", "들고 다니기", "기물은 기본 2칸까지 들 수 있고, 배낭이 있으면 더 들 수 있습니다. [{interact}]를 길게 누르면 마지막에 든 기물을 내려놓습니다."),
+            new TutorialEntry("G05", "들고 다니기", "기물은 기본 2칸까지 들 수 있고, 배낭이 있으면 더 들 수 있습니다. [{drop}]를 누르면 고른 기물을 내려놓습니다."),
             new TutorialEntry("G06a", "머리핀", "잠긴 상자·캐비닛 앞에서 [{interact}]로 따 봅니다. 한 번에 안 열릴 수 있고, 열렸을 때만 닳습니다."),
             new TutorialEntry("G06b", "말뚝 뽑개", "나무 상자나 약해 보이는 벽을 [{interact}]로 내리칩니다. 여러 번 쳐야 부서지는 것도 있습니다."),
             new TutorialEntry("G06c", "UV 등", "[{uv}]을 누르고 있는 동안 켜집니다. 맨눈에 안 보이는 낙서를 비춰 보세요."),
@@ -53,7 +53,7 @@ namespace CurtainCall.WaitingRoom
             // 상황 안내
             new TutorialEntry("S01", "다시 깨어남", "공연에서 쓰러졌지만 팔 하나만 남은 채 돌아왔습니다. 신체 복구로 잃은 팔다리를 되찾을 수 있습니다."),
             new TutorialEntry("S02", "쓰러진 동료", "공연에서 쓰러진 동료는 다음 쉬는 시간에 팔 하나만 남은 채 돌아옵니다."),
-            new TutorialEntry("S03", "손이 가득 참", "더 들 수 없습니다. [{interact}]를 길게 눌러 내려놓거나 소품실에 보관하세요."),
+            new TutorialEntry("S03", "손이 가득 참", "더 들 수 없습니다. [{drop}]로 내려놓거나 소품실에 보관하세요."),
             new TutorialEntry("S04", "다 쓴 도구", "도구가 닳아 없어졌습니다. 밤 정비에 상점에서 새로 살 수 있습니다."),
         };
 
@@ -173,7 +173,7 @@ namespace CurtainCall.WaitingRoom
             return result;
         }
 
-        public static string Format(string text, string interactKey, string uvKey) =>
-            (text ?? "").Replace(InteractToken, interactKey).Replace(UvToken, uvKey);
+        public static string Format(string text, string interactKey, string uvKey, string dropKey = "T") =>
+            (text ?? "").Replace(InteractToken, interactKey).Replace(UvToken, uvKey).Replace(DropToken, dropKey);
     }
 }

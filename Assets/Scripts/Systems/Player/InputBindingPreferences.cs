@@ -123,7 +123,7 @@ namespace CurtainCall.Player
                                 break;
                             }
                     bool IsNewAction(BindingEntry b) =>
-                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary") &&
+                        (b.ActionName == "VotePrimary" || b.ActionName == "VoteSecondary" || b.ActionName == "DropItem") &&
                         !saved.bindings.Exists(s => s.bindingId == b.BindingId.ToString());
                     if (!TryValidateDraft(draft, out _)) draft.RemoveAllBindingOverrides();
                 }
