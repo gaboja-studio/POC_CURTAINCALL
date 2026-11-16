@@ -16,6 +16,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             for (int i = 0; i < actors; i++)
                 s.actors[i] = new PursuitDirector.ActorState { position = new Vector3(-36.123f + i, 5.5f, 105.987f), rotation = Quaternion.Euler(i * 7 - 40, i * 31, 0),
                     look = new Vector3(1, 2, 3), hasLook = i % 2 == 0, motion = i % 6, behaviour = i % 5, captures = i * 300,
+                    health = i % 6, hitRevision = i * 129, spawnRevision = i * 3, hitRemaining = i == 1 ? .4f : 0, respawnRemaining = i == 2 ? 9.5f : 0,
                     hasTarget = i % 3 == 0, target = i % 3 == 0 ? 2u : ulong.MaxValue, victim = i == 1 ? 9u : ulong.MaxValue, capture = i == 1 ? 1.75f : 0 };
             return s;
         }
@@ -45,6 +46,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 Assert.Less(Vector3.Distance(a.position, b.position), .006f, "1cm 이내");
                 Assert.Less(Quaternion.Angle(a.rotation, b.rotation), .1f, "회전 0.1도 이내");
                 Assert.AreEqual((a.motion, a.behaviour, a.captures, a.hasLook, a.hasTarget, a.victim), (b.motion, b.behaviour, b.captures, b.hasLook, b.hasTarget, b.victim));
+                Assert.AreEqual((a.health, a.hitRevision, a.spawnRevision, a.hitRemaining, a.respawnRemaining), (b.health, b.hitRevision, b.spawnRevision, b.hitRemaining, b.respawnRemaining));
                 if (a.hasLook) Assert.Less(Vector3.Distance(a.look, b.look), .006f);
                 if (a.hasTarget) Assert.AreEqual(a.target, b.target);
                 if (a.victim != ulong.MaxValue) Assert.AreEqual(a.capture, b.capture);

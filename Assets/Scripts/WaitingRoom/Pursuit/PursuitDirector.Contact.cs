@@ -40,7 +40,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         /// <summary>닿은 플레이어를 잡을 수 있는 추격자 상태. 쫓는 대상이 아니어도 추격 중 닿으면 잡는다(2026-11-12 결정).</summary>
         static bool ContactEligible(PursuitActor actor)
-            => actor != null && actor.IsActivated && actor.Behaviour == PursuitBehaviour.Chase && actor.Victim == null
+            => actor != null && actor.IsActivated && !actor.IsRecoveringFromHit && actor.Behaviour == PursuitBehaviour.Chase && actor.Victim == null
                 // 오르내리는 동안은 잡지 않는다(플레이어가 반응할 시간). 복제본도 동작 상태로 같은 판정을 한다.
                 && !PursuitActor.IsTraversalMotion(actor.State);
         /// <summary>호스트·오프라인 플레이어 포획. 쫓는 대상을 먼저 보고, 포획 범위에 든 다른 플레이어도 잡는다.

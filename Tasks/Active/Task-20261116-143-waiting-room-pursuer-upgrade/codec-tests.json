@@ -1,0 +1,38 @@
+{
+  "Summary": {
+    "Total": 3,
+    "Passed": 3,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.FarPositionsUseFullPrecisionAndBadVersionIsRejected",
+      "Status": "Passed",
+      "Duration": 0.0045918,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.RoundTripKeepsStateWithinPrecision",
+      "Status": "Passed",
+      "Duration": 0.0040352,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.TwentySixActorsFitOneUnreliablePacketAndShrinkVersusJson",
+      "Status": "Passed",
+      "Duration": 0.0006911,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 0.89,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitSnapshotCodecTests",
+  "success": true,
+  "result": null
+}

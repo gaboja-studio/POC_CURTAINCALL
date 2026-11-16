@@ -1,7 +1,7 @@
 ---
-summary: 대기실 추격 NavMesh(에이전트 반경 0.5m)는 폭 약 1.6m 미만 소품 윗면에 NavMesh를 만들지 않는다. NavMesh 링크만으로는 드럼통·상자·침대 위 플레이어에게 오를 수 없다.
+summary: 좁은 소품 윗면에는 NavMesh가 없을 수 있으므로 링크와 직접 오르기를 함께 쓴다. 현재 베이크는 반경 .24m·앉기 높이 1.08m이며 과거 .5m fixture도 유지한다.
 status: active
-updated: 2026-11-12
+updated: 2026-11-16
 source: Task-20261112-117 (실제 WaitingRoom.unity 측정, 씬 저장 없음)
 ---
 
@@ -21,4 +21,4 @@ source: Task-20261112-117 (실제 WaitingRoom.unity 측정, 씬 저장 없음)
 
 - 링크(`PursuitClimbLinks`)는 NavMesh 윗면용, NavMesh 없는 윗면은 `PursuitDirectClimb`(충돌체 윗면·가장자리·머리 공간 물리 검사) 직접 오르기를 함께 쓴다.
 - 검사 fixture는 실제 값(반경 0.5m)으로 굽는다. 반경 0.24m 테스트만으로는 좁은 윗면이 NavMesh로 덮여 이 문제가 드러나지 않는다.
-- 대기실 씬·NavMesh 에셋 재베이크로 해결하지 않는다(다른 작업자 배치 고도화 중, 2026-11-12 사용자 지시).
+- 2026-11-12의 재베이크 금지는 당시 작업 한정이었다. 2026-11-16 사용자 환풍구 추격 요청(Task-143)으로 반경 .24m·앉기 높이 1.08m로 재베이크했다. 좁은 윗면 직접 오르기는 계속 유지한다. [벽 지지와 환풍구 연결](Pursuit/wall-support-and-vent-links.md) 참고.

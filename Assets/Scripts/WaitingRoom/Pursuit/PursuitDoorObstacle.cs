@@ -28,7 +28,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if ((obstacle.center - center).sqrMagnitude > .0001f) { obstacle.center = center; changed = true; }
             if ((obstacle.size - size).sqrMagnitude > .0001f) { obstacle.size = size; changed = true; }
             // 문이 잠기거나 열린 때만 추격자들이 고정 목표 경로를 다시 계산한다.
-            if (changed) PursuitNavigation.Invalidate();
+            if (changed) { PursuitNavigation.Invalidate(); PursuitClimbLinks.Invalidate(); }
         }
+        void OnDisable() { PursuitNavigation.Invalidate(); PursuitClimbLinks.Invalidate(); }
     }
 }

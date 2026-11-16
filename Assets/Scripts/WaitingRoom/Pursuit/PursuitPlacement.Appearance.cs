@@ -6,6 +6,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
     public sealed partial class PursuitPlacement
     {
+        [Tooltip("비어 있으면 온전한 마네킹. 한 팔다리에는 하나의 봉합만 적용합니다.")]
+        public PursuitLimbGraft[] Grafts = System.Array.Empty<PursuitLimbGraft>();
         [Tooltip("개체별 다양화 또는 이 배치에 고정할 외관입니다.")]
         public PursuitAppearanceChoice Appearance;
         [Range(0, 15), Tooltip("같은 혈흔 정도에서 얼룩 위치와 모양을 바꿉니다.")]
@@ -79,6 +81,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             target.LayerBlood = ResolvedBloodAmount;
             target.WearSeed = ResolvedWearSeed;
             target.RefreshSurface(!Application.isPlaying || CurtainCall.Damage.InjuryBloodEffects.IsVisible);
+            var grafts = target.GetComponent<PursuitSuturedLimbs>();
+            if (grafts == null && Grafts != null && Grafts.Length > 0) grafts = target.gameObject.AddComponent<PursuitSuturedLimbs>();
+            if (grafts != null) grafts.Apply(Grafts);
         }
     }
 }

@@ -55,6 +55,13 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void SyncClimbClip()
         {
             if (!IsTraversalMotion(State) || !(climbing || remoteTraversal) || Motion == null) return;
+            if (climbUp && !PursuitDirectClimb.StandingRoom(climbTo, transform) && Motion["Crouch"] != null) {
+                // Fold into the player's crouch before the torso passes under a vent lintel.
+                float blend = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.35f, .75f, TraversalProgress));
+                Motion["Crouch"].enabled = true; Motion["Crouch"].weight = blend;
+                Motion[State.ToString()].weight = 1 - blend;
+                IsCrouched = true;
+            }
             if (climbUp ? PursuitClimbPath.WallFraction(climbTo.y - climbFrom.y) <= 0 : climbWalk <= 0) return;
             var state = Motion[State.ToString()];
             if (state == null) return;
@@ -118,6 +125,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var rules = GameSettings.WaitingRoom.Pursuit;
                 climbFrom = transform.position; climbTo = link.endPos;
                 climbUp = climbTo.y > climbFrom.y;
+                // Serialized links may predate the wall-support validation used by the baker.
+                if (climbUp && !PursuitClimbPath.HasWallSupport(climbFrom, climbTo, transform)) {
+                    agent.ResetPath(); replanRequested = true;
+                    return false;
+                }
                 BeginTraversal(rules);
                 SetMotion(climbUp ? PursuitMotion.Climb : PursuitMotion.Drop, true);
             }
@@ -174,7 +186,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             float rise = goal.y - transform.position.y;
             // 길로 대상 발밑까지 닿거나(링크 포함) 이미 잡을 수 있으면 직접 오르지 않는다.
             var gap = navGoal - goal; float gapY = gap.y; gap.y = 0;
-            bool pathReaches = routed && !navFailed && Mathf.Abs(gapY) < .5f && gap.magnitude < 1.2f;
+            float directDistance = Vector3.Distance(transform.position, goal);
+            bool pathReaches = routed && !navFailed && Mathf.Abs(gapY) < .5f && gap.magnitude < 1.2f
+                && navPathStore != null && PursuitNavigation.Length(navPathStore.corners) <= Mathf.Max(directDistance * 3, directDistance + 6);
             if (rise < .45f || pathReaches || WithinCaptureReach(goal)) { hasDirectApproach = false; return false; }
             if (Time.time < directPlanAt) return false;
             directPlanAt = Time.time + .15f;

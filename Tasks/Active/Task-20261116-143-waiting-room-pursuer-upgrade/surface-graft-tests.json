@@ -1,0 +1,52 @@
+{
+  "Summary": {
+    "Total": 5,
+    "Passed": 5,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitGraftSurfaceTests.AppearanceLayersAndBloodHidingPreserveGraftAndClearRestoresSurface",
+      "Status": "Passed",
+      "Duration": 0.5119448,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitGraftSurfaceTests.DonorSurfaceHasCoverageWithoutChangingGeometry(0,LeftArm,LeftArm,ShoulderOrHip)",
+      "Status": "Passed",
+      "Duration": 0.601477,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitGraftSurfaceTests.DonorSurfaceHasCoverageWithoutChangingGeometry(1,RightLeg,RightLeg,ElbowOrKnee)",
+      "Status": "Passed",
+      "Duration": 0.4211014,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitGraftSurfaceTests.DonorSurfaceHasCoverageWithoutChangingGeometry(2,RightArm,LeftLeg,ElbowOrKnee)",
+      "Status": "Passed",
+      "Duration": 0.5865312,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitGraftSurfaceTests.DonorSurfaceHasCoverageWithoutChangingGeometry(3,LeftLeg,RightArm,ShoulderOrHip)",
+      "Status": "Passed",
+      "Duration": 0.45134,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 7.93,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitGraftSurfaceTests",
+  "success": true,
+  "result": null
+}

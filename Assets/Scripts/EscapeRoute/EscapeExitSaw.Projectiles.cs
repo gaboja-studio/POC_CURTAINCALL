@@ -203,6 +203,9 @@ namespace CurtainCall.EscapeRoute
                 Vector3 normal = Quaternion.LookRotation(shot.Direction, Vector3.up) * Vector3.up;
                 if (host && finaleBoss && finaleBoss.TryHitSaw(from, to, normal, projectileRadius, projectileHalfThickness, out var bossContact))
                 { to = bossContact; blocked = true; }
+                if (host && CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current is { } pursuit
+                    && pursuit.TryHitSaw(from, to, shot.Direction, projectileRadius, projectileHalfThickness, out var pursuitContact))
+                { to = pursuitContact; blocked = true; }
                 // 막혀서 못 나아간 자리에서도 날에 닿은 배선은 끊는다(벽에 붙은 배선을 가까이서 쏜 경우).
                 if (host) CutAlong(from, to, normal, shot);
                 shot.Position = to; shot.Age += step;
@@ -231,6 +234,7 @@ namespace CurtainCall.EscapeRoute
             return blocked;
         }
         bool ShotObstacle(Collider collider) => collider != null && !collider.transform.IsChildOf(CarryRoot)
+            && collider.GetComponentInParent<CurtainCall.WaitingRoom.Pursuit.PursuitActor>() == null
             && !collider.GetComponent<EscapePursuerDebris>()
             && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null
             && (!finaleBoss || collider.GetComponentInParent<EscapePursuerBoss>() != finaleBoss);

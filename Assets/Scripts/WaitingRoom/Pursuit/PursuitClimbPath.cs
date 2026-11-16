@@ -111,6 +111,34 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         public static PursuitClimbPath Build(Vector3 from, Vector3 to, Transform self) => new(from, to, self);
 
+        /// <summary>Require a continuous, reachable vertical surface, not just a landing above empty air.</summary>
+        public static bool HasWallSupport(Vector3 from, Vector3 to, Transform self)
+        {
+            var flat = Vector3.ProjectOnPlane(to - from, Vector3.up);
+            float span = flat.magnitude, height = to.y - from.y;
+            if (height < PursuitClimbLinks.MinHeight || span < .05f) return false;
+            var direction = flat / span;
+            float previous = -1;
+            // Sample from foot contact up to the lip. Separate stacked colliders are allowed.
+            int steps = Mathf.Max(2, Mathf.CeilToInt(height / .25f));
+            for (int sample = 0; sample <= steps; sample++) {
+                float y = Mathf.Lerp(.25f, Mathf.Max(.25f, height - .12f), sample / (float)steps);
+                int count = Physics.RaycastNonAlloc(from + Vector3.up * y, direction, hits,
+                    span + .25f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                float nearest = float.PositiveInfinity;
+                for (int i = 0; i < count; i++) {
+                    var hit = hits[i];
+                    if (Skip(hit.collider, self) || Mathf.Abs(hit.normal.y) > .4f
+                        || Vector3.Dot(hit.normal, direction) > -.5f) continue;
+                    nearest = Mathf.Min(nearest, hit.distance);
+                }
+                if (!float.IsFinite(nearest) || nearest > 1.1f
+                    || previous >= 0 && Mathf.Abs(nearest - previous) > .3f) return false;
+                previous = nearest;
+            }
+            return true;
+        }
+
         // ---- 내려오기 ----
         /// <summary>내려오기 전에 윗면 가장자리까지 걷는 속도(m/s).</summary>
         public const float DropWalkSpeed = 3f;

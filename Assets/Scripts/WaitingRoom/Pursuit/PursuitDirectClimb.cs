@@ -52,7 +52,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             for (int k = 0; k < 8; k++) {
                 var direction = Quaternion.Euler(0, k * 45, 0) * Vector3.forward;
                 float edge = -1;
-                for (float d = .1f; d <= 2.5f; d += .1f)
+                for (float d = .1f; d <= SearchDistance; d += .1f)
                     if (!SurfaceAt(goal + direction * d, top, self, out _)) { edge = d; break; }
                 if (edge < 0) continue;
                 // 가장자리 바깥 바닥은 윗면이 아니라 추격자가 서 있는 바닥 높이에서 찾는다.
@@ -79,6 +79,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
             for (float d = .05f; d <= distance + .05f; d += .05f)
                 if (SurfaceAt(origin + direction * d, top, self, out _)) { edge = d; break; }
             if (edge < 0) return Plan.None;
+            var supportFeet = origin + direction * Mathf.Max(0, edge - StepOut);
+            var supportTop = origin + direction * (edge + .2f); supportTop.y = top;
+            if (!PursuitClimbPath.HasWallSupport(supportFeet, supportTop, self)) return Plan.None;
             if (edge > EdgeReach) {
                 // 가장자리 앞 바닥으로 다가간다. 단, 지금보다 0.3m 이상 가까워지는 바닥이 있을 때만(같은 자리로 다가가기를 반복하던 문제).
                 var stand = origin + direction * (edge - StepOut);
@@ -97,10 +100,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 && !(distance >= edge && SurfaceAt(origin + direction * distance, top, self, out land))
                 && !SurfaceAt(origin + direction * (edge + .05f), top, self, out land)) return Plan.None;
             point = land.point;
+            // A balcony top is not a wall. Search another edge instead of climbing its empty underside.
+            if (!PursuitClimbPath.HasWallSupport(origin, point, self)) return Plan.None;
             // 서서 뻗을 기둥(몸 두께), 가장자리를 넘는 공간, 윗면에 설 공간.
             var column = new Vector3(origin.x, top + LipClearance, origin.z);
             if (!BodyOpen(origin + Vector3.up * BodyLift, column, self) || !Open(column, point + Vector3.up * LipClearance, self)
-                || !StandingRoom(point, self)) return Plan.None;
+                || !LandingRoom(point, self)) return Plan.None;
             return Plan.Climb;
         }
 
@@ -203,9 +208,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         public static bool StandingRoom(Vector3 feet, Transform self)
+            => RoomAtHeight(feet, self, BodyHeight + BodyRadius);
+
+        public static bool LandingRoom(Vector3 feet, Transform self)
+            => RoomAtHeight(feet, self, PursuitActor.CrouchBodyHeight);
+
+        static bool RoomAtHeight(Vector3 feet, Transform self, float height)
         {
-            int count = Physics.OverlapCapsuleNonAlloc(feet + Vector3.up * (BodyRadius + .1f), feet + Vector3.up * BodyHeight, BodyRadius,
+            int count = Physics.OverlapCapsuleNonAlloc(feet + Vector3.up * (BodyRadius + .1f), feet + Vector3.up * (height - BodyRadius), BodyRadius,
                 overlaps, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (count == overlaps.Length) return false;
             for (int i = 0; i < count; i++) if (!Ignored(overlaps[i], self)) return false;
             return true;
         }

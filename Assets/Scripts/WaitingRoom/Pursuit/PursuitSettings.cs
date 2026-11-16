@@ -8,6 +8,12 @@ namespace CurtainCall.Settings
     {
         [Tooltip("켜면 쉬는 시간·정비 시간이 끝났을 때 대기실 추격자가 움직이기 시작한다.")]
         public bool Enabled;
+        [Header("절단기 피격 / 재스폰")]
+        [Min(1)] public int SmallHitsToDie = 3;
+        [Min(1)] public int MediumHitsToDie = 5;
+        [Min(0)] public float RespawnSeconds = 10;
+        [Min(.1f)] public float HitReactionSeconds = .55f;
+        [Min(0)] public float HitKnockback = .65f;
         [Tooltip("쉬는 시간이 이 초 이하로 남으면 추격자가 깨어날 조짐(경고 연출)을 보인다.")]
         [Min(0)] public float WarningSeconds = 15;
         [Tooltip("추격이 시작된 뒤 추격자가 깨어나 움직이기 전까지의 시간(초). 이 동안은 쫓지 않는다.")]

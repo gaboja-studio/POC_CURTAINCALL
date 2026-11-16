@@ -16,6 +16,9 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             EditorGUILayout.HelpBox("모든 방의 추격자가 공유합니다. 시작 시간은 추격 시작 후 누적 초입니다.", MessageType.None);
             Field("Enabled", "추격 시스템 사용");
             Field("LoseTargetSeconds", "공통 시야 상실 유예 (초)");
+            GUILayout.Label("절단기 피격 / 재스폰", EditorStyles.boldLabel);
+            Field("SmallHitsToDie", "소형 사망 피격 횟수"); Field("MediumHitsToDie", "중형 사망 피격 횟수");
+            Field("RespawnSeconds", "사망 후 재스폰 (초)"); Field("HitReactionSeconds", "피격 경직 (초)"); Field("HitKnockback", "피격 밀림 (m)");
             var stages = root.FindPropertyRelative("Stages");
             if (stages.arraySize == 0) {
                 if (GUILayout.Button("기본 단계 만들기")) { Undo.RecordObject(settings, "기본 추격 단계"); settings.Pursuit.Stages = new PursuitSettings().Stages; EditorUtility.SetDirty(settings); }

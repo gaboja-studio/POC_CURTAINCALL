@@ -39,6 +39,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 
             GUILayout.Space(6); GUILayout.Label("1 · 피부 / 봉제", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("마네킹 피부 + 관절 실밥 + 꿰맨 천 조각", EditorStyles.wordWrappedMiniLabel);
+            DrawGrafts(placementSO);
             EditorGUI.BeginChangeCheck();
             GUILayout.Space(6); GUILayout.Label("2 · 때 / 마모", EditorStyles.boldLabel);
             float dirt = EditorGUILayout.Slider("때 정도", selected.ResolvedDirtAmount, 0, 1);
@@ -65,6 +66,42 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         {
             if (selected != null && previews.TryGetValue(selected, out var visual) && visual != null)
                 selected.ApplyAppearance(visual.GetComponent<PursuitAppearance>());
+        }
+
+        static readonly string[] LimbLabels = { "왼팔", "오른팔", "왼다리", "오른다리" };
+        void DrawGrafts(SerializedObject so)
+        {
+            var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
+            if (catalog == null) return;
+            var grafts = so.FindProperty("Grafts");
+            EditorGUILayout.LabelField("플레이어 표면 봉합", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("마네킹의 형태를 유지하면서 선택 부위의 피부·의상과 봉합선을 입힙니다. 혈흔·때·마모는 그 위에 적용됩니다. 선택을 해제하면 원래 표면으로 돌아갑니다.", MessageType.None);
+            for (int target = 0; target < 4; target++) {
+                SerializedProperty graft = null; int index = -1;
+                for (int i = 0; i < grafts.arraySize; i++) if (grafts.GetArrayElementAtIndex(i).FindPropertyRelative("Target").enumValueIndex == target)
+                    { graft = grafts.GetArrayElementAtIndex(i); index = i; break; }
+                bool enabled = EditorGUILayout.ToggleLeft(LimbLabels[target] + " 봉합", graft != null);
+                if (enabled != (graft != null)) {
+                    if (enabled) {
+                        index = grafts.arraySize++; graft = grafts.GetArrayElementAtIndex(index);
+                        graft.FindPropertyRelative("Target").enumValueIndex = target;
+                        graft.FindPropertyRelative("Source").enumValueIndex = target;
+                        graft.FindPropertyRelative("Seam").enumValueIndex = 0;
+                        graft.FindPropertyRelative("DonorModel").intValue = 0; graft.FindPropertyRelative("DonorOutfit").intValue = 0;
+                    } else { grafts.DeleteArrayElementAtIndex(index); graft = null; }
+                    ApplyAppearanceChanges(so);
+                }
+                if (graft == null) continue;
+                EditorGUI.indentLevel++; EditorGUI.BeginChangeCheck();
+                var names = new string[catalog.models.Length]; for (int i = 0; i < names.Length; i++) names[i] = catalog.models[i].name;
+                var donor = graft.FindPropertyRelative("DonorModel"); donor.intValue = EditorGUILayout.Popup("누구의 팔다리", donor.intValue, names);
+                var outfit = graft.FindPropertyRelative("DonorOutfit"); outfit.intValue = EditorGUILayout.Popup("의상", outfit.intValue, catalog.outfits);
+                var source = graft.FindPropertyRelative("Source"); source.enumValueIndex = EditorGUILayout.Popup("가져올 부위", source.enumValueIndex, LimbLabels);
+                var seam = graft.FindPropertyRelative("Seam"); seam.enumValueIndex = EditorGUILayout.Popup("봉합 위치", seam.enumValueIndex,
+                    target < 2 ? new[] { "어깨부터 표면 봉합", "팔꿈치 아래 표면 봉합" } : new[] { "골반부터 표면 봉합", "무릎 아래 표면 봉합" });
+                if (EditorGUI.EndChangeCheck()) ApplyAppearanceChanges(so);
+                EditorGUI.indentLevel--;
+            }
         }
     }
 }

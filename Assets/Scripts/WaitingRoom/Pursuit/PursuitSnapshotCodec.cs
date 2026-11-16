@@ -10,14 +10,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// </summary>
     public static class PursuitSnapshotCodec
     {
-        public const byte Version = 6;
+        public const byte Version = 7;
         /// <summary>비신뢰성 순서 전송으로 보낼 최대 크기. 한 패킷(MTU)에 들어가도록 여유를 둔다.</summary>
         public const int UnreliableLimit = 1100;
         const float PositionScale = 100f, PositionLimit = 327f;
-        [Flags] enum ActorFlags : byte { None = 0, Look = 1, Target = 2, Victim = 4, Wide = 8 }
+        [Flags] enum ActorFlags : byte { None = 0, Look = 1, Target = 2, Victim = 4, Wide = 8, Hit = 16, Respawn = 32 }
 
         public static int MaxSize(PursuitDirector.Snapshot s)
-            => 48 + (s.actors?.Length ?? 0) * 96 + (s.victims?.Length ?? 0) * 64;
+            => 48 + (s.actors?.Length ?? 0) * 120 + (s.victims?.Length ?? 0) * 64;
 
         public static void Write(FastBufferWriter w, PursuitDirector.Snapshot s)
         {
@@ -35,9 +35,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 bool wide = !Fits(a.position) || (a.hasLook && !Fits(a.look)) || (traversal && (!Fits(a.climbFrom) || !Fits(a.climbTo)));
                 bool victim = a.victim != ulong.MaxValue;
                 var flags = (a.hasLook ? ActorFlags.Look : 0) | (a.hasTarget ? ActorFlags.Target : 0) | (victim ? ActorFlags.Victim : 0) | (wide ? ActorFlags.Wide : 0);
+                if (a.hitRemaining > 0) flags |= ActorFlags.Hit;
+                if (a.respawnRemaining > 0) flags |= ActorFlags.Respawn;
                 w.WriteValueSafe((byte)flags);
                 w.WriteValueSafe((byte)a.motion); w.WriteValueSafe((byte)a.behaviour);
                 w.WriteValueSafe(a.captures);
+                WriteCounter(w, a.health); WriteCounter(w, a.hitRevision); WriteCounter(w, a.spawnRevision);
+                if ((flags & ActorFlags.Hit) != 0) w.WriteValueSafe(a.hitRemaining);
+                if ((flags & ActorFlags.Respawn) != 0) w.WriteValueSafe(a.respawnRemaining);
                 WritePosition(w, a.position, wide);
                 WriteRotation(w, a.rotation);
                 if (a.hasLook) WritePosition(w, a.look, wide);
@@ -78,6 +83,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     bool wide = (flags & ActorFlags.Wide) != 0;
                     r.ReadValueSafe(out byte motion); r.ReadValueSafe(out byte behaviour); a.motion = motion; a.behaviour = behaviour;
                     r.ReadValueSafe(out a.captures);
+                    a.health = ReadCounter(r); a.hitRevision = ReadCounter(r); a.spawnRevision = ReadCounter(r);
+                    if ((flags & ActorFlags.Hit) != 0) r.ReadValueSafe(out a.hitRemaining);
+                    if ((flags & ActorFlags.Respawn) != 0) r.ReadValueSafe(out a.respawnRemaining);
                     a.position = ReadPosition(r, wide);
                     a.rotation = ReadRotation(r);
                     a.hasLook = (flags & ActorFlags.Look) != 0;
@@ -103,6 +111,22 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         static bool Fits(Vector3 p) => Mathf.Abs(p.x) < PositionLimit && Mathf.Abs(p.y) < PositionLimit && Mathf.Abs(p.z) < PositionLimit;
+        static void WriteCounter(FastBufferWriter w, int value)
+        {
+            uint n = (uint)Mathf.Max(0, value);
+            while (n >= 128) { w.WriteValueSafe((byte)((n & 127) | 128)); n >>= 7; }
+            w.WriteValueSafe((byte)n);
+        }
+        static int ReadCounter(FastBufferReader r)
+        {
+            uint n = 0;
+            for (int shift = 0; shift <= 28; shift += 7) {
+                r.ReadValueSafe(out byte b);
+                n |= (uint)(b & 127) << shift;
+                if ((b & 128) == 0 && n <= int.MaxValue) return (int)n;
+            }
+            throw new OverflowException("Invalid pursuit counter");
+        }
         static void WritePosition(FastBufferWriter w, Vector3 p, bool wide)
         {
             if (wide) { w.WriteValueSafe(p); return; }
