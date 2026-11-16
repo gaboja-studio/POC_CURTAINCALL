@@ -1,0 +1,171 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using CurtainCall.Campaign;
+using CurtainCall.EscapeRoute;
+using CurtainCall.HumanCannon;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
+using CurtainCall.Settings;
+using CurtainCall.UI.EscapeResultsKit;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
+
+namespace CurtainCall.EscapeRoute.EditorTools.Tests
+{
+    [Category("CommonProgressionRegression"), Category("EscapeRemainingAudit")]
+    public sealed class EscapeRemainingAuditTests
+    {
+        const BindingFlags F = BindingFlags.Instance | BindingFlags.NonPublic;
+        static object Get(object o, string field) => o.GetType().GetField(field, F).GetValue(o);
+        static void Set(object o, string field, object value) => o.GetType().GetField(field, F).SetValue(o, value);
+        static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
+
+        [Test]
+        public void SavedMovingRailsClearBothBodiesAndReleaseOverSupportedLanding()
+        {
+            const string path = "Assets/Scenes/Levels/escape_route.unity";
+            var scene = SceneManager.GetSceneByPath(path);
+            bool opened = !scene.IsValid() || !scene.isLoaded;
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            var loops = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonPoleLoop>())
+                .Where(l => l.isActiveAndEnabled).ToArray();
+            var saved = loops.Select(l => (l.Carriage.position, l.Carriage.rotation)).ToArray();
+            try
+            {
+                Assert.That(loops.Length, Is.EqualTo(6));
+                var poles = loops.Select(l => l.GetComponentInChildren<HumanCannonPole>()).ToArray();
+                double period = loops.Max(l => l.Length / (double)(float)Get(l, "metersPerSecond"));
+                var character = GameSettings.Base.Character;
+                var heights = new[] { character.CapsuleHeight, GameSettings.Base.BodyDamage.CrawlCapsuleHeight };
+                int samples = 0;
+                for (double time = 0; time < period; time += .1)
+                {
+                    foreach (var loop in loops)
+                    {
+                        loop.EvaluatePose(time, out var p, out var r, out _, out _);
+                        loop.Carriage.SetPositionAndRotation(p, r);
+                    }
+                    Physics.SyncTransforms();
+                    foreach (var pole in poles)
+                        for (int seat = 0; seat < pole.RiderCapacity; seat++)
+                            foreach (float height in heights)
+                                for (float angle = -GameSettings.Poles.MaxSwingAngle; angle <= GameSettings.Poles.MaxSwingAngle; angle += 15)
+                                {
+                                    samples++;
+                                    var feet = pole.HangingPosition(angle, seat);
+                                    float radius = Mathf.Min(character.CapsuleRadius, height * .5f);
+                                    var hit = Physics.OverlapCapsule(feet + Vector3.up * (radius + .01f),
+                                        feet + Vector3.up * (height - radius + .01f), radius, Physics.DefaultRaycastLayers,
+                                        QueryTriggerInteraction.Ignore).FirstOrDefault(c => c.gameObject.scene == scene && !c.transform.IsChildOf(pole.transform));
+                                    if (hit != null) Assert.Fail($"{pole.name}: time {time:F2}, seat {seat}, height {height}, angle {angle} clips {hit.name}");
+                                }
+                }
+                foreach (var pole in poles)
+                {
+                    Assert.That(pole.Loop.TryGetRecycleBoundary(0, period + 1, out var terminal), Is.True);
+                    pole.Loop.EvaluatePose(terminal, out var p, out var r, out _, out _);
+                    pole.Loop.Carriage.SetPositionAndRotation(p, r);
+                    Physics.SyncTransforms();
+                    for (int seat = 0; seat < pole.RiderCapacity; seat++)
+                        foreach (float angle in new[] { -GameSettings.Poles.MaxSwingAngle, 0, GameSettings.Poles.MaxSwingAngle })
+                        {
+                            var feet = pole.HangingPosition(angle, seat);
+                            var support = Physics.RaycastAll(feet + Vector3.up * .02f, Vector3.down,
+                                GameSettings.Base.BodyDamage.FallInjuryHeight, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                                .Where(h => h.collider.gameObject.scene == scene && !h.collider.transform.IsChildOf(pole.transform) && h.normal.y > .9f)
+                                .OrderBy(h => h.distance).ToArray();
+                            Assert.That(support, Is.Not.Empty, $"{pole.name}, seat {seat}, angle {angle}: no safe terminal landing");
+                        }
+                }
+                TestContext.WriteLine($"Moving passenger capsule samples: {samples}; terminal support samples: 36.");
+            }
+            finally
+            {
+                for (int i = 0; i < loops.Length; i++) loops[i].Carriage.SetPositionAndRotation(saved[i].position, saved[i].rotation);
+                Physics.SyncTransforms();
+                if (opened) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void SavedEndingReferencesSupportFourRowsAndLobbyReturn()
+        {
+            const string path = "Assets/Scenes/Levels/escape_route.unity";
+            var scene = SceneManager.GetSceneByPath(path);
+            bool opened = !scene.IsValid() || !scene.isLoaded;
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try
+            {
+                var owner = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EscapeEndingPresentation>(true)).Single();
+                foreach (string field in new[] { "content", "exitSaw", "arrivalArea", "endingCamera" })
+                    Assert.That((Object)Get(owner, field), Is.Not.Null, field);
+                var results = owner.GetComponent<EscapeEndingResults>();
+                Assert.That(results, Is.Not.Null);
+                var prefab = (GameObject)Get(results, "prefab");
+                Assert.That(prefab, Is.Not.Null);
+                var view = prefab.GetComponentInChildren<EscapeResultsView>(true);
+                Assert.That(view, Is.Not.Null);
+                foreach (Object reference in new Object[] { view.Group, view.PlayersContent, view.StatisticsContent,
+                    view.PlayersTab, view.StatisticsTab, view.ReturnButton, view.ReturnLabel, view.Summary })
+                    Assert.That(reference, Is.Not.Null);
+                Assert.That(view.PlayerRows.Length, Is.GreaterThanOrEqualTo(4));
+                foreach (var row in view.PlayerRows.Take(4))
+                    foreach (Object reference in new Object[] { row.Root, row.Name, row.Outcome, row.OutcomeLabel })
+                        Assert.That(reference, Is.Not.Null);
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [TestCase(3), TestCase(4)]
+        public void EndingRosterRetainsArrivalWhenTheActorDisconnectsBeforeTheResultsObserveIt(int crew)
+        {
+            var root = new GameObject("Ending disconnect ordering"); root.SetActive(false);
+            var previous = CampaignRun.Instance;
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var saved = all.ToArray(); all.Clear();
+            try
+            {
+                var host = new RunState(); host.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                host.EndEscape(true);
+                var run = root.AddComponent<CampaignRun>(); Set(run, "host", host); Set(run, "state", host.Snapshot);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                var content = root.AddComponent<EscapeCampaignContent>();
+                ((HashSet<ulong>)Get(content, "arrived")).Add(700);
+                var owner = root.AddComponent<EscapeEndingPresentation>(); Set(owner, "content", content);
+                var results = root.AddComponent<EscapeEndingResults>(); Call(results, "Awake");
+                var session = root.AddComponent<NetworkSessionManager>();
+                Get(results, "channel").GetType().GetProperty("Session").SetValue(Get(results, "channel"), session);
+                var observed = (Dictionary<ulong, EscapeEndingResults.Person>)Get(results, "observed");
+                for (int i = 0; i < crew; i++) observed[(ulong)(700 + i)] = new EscapeEndingResults.Person { client = (ulong)(700 + i), slot = i, escaped = false };
+                results.Freeze();
+                Assert.That(results.People.Count, Is.EqualTo(crew));
+                Assert.That(results.People.Single(p => p.client == 700).escaped, Is.True,
+                    "The authoritative exit-volume arrival must survive a disconnect before the result observer's next Update.");
+                Assert.That(results.Arrivals, Does.Contain(700UL));
+                var clientRoot = new GameObject("Independent ending receiver"); clientRoot.SetActive(false); clientRoot.transform.SetParent(root.transform);
+                var client = clientRoot.AddComponent<EscapeEndingResults>();
+                string packet = JsonUtility.ToJson(Get(results, "snapshot"));
+                string stale = packet.Replace("\"generation\":" + run.State.Generation, "\"generation\":" + (run.State.Generation + 1));
+                Call(client, "Receive", stale); Assert.That(client.HasSnapshot, Is.False);
+                Call(client, "Receive", packet);
+                Assert.That(client.Arrivals, Does.Contain(700UL));
+                Call(client, "Receive", packet.Replace("\"escaped\":true", "\"escaped\":false"));
+                Assert.That(client.Arrivals, Does.Contain(700UL), "Repeated sync cannot rewrite a frozen ending.");
+                Call(run, "HandleConnection", SessionConnectionState.Offline);
+                Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.None), "Host loss must clear the ending's campaign hold.");
+            }
+            finally
+            {
+                all.Clear(); all.AddRange(saved);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+    }
+}

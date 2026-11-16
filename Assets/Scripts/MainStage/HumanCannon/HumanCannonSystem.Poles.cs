@@ -44,10 +44,7 @@ namespace CurtainCall.HumanCannon
         HumanCannonPilot LocalPolePilot(ulong actor)
         {
             if (boundPlayer == null || actor != boundPlayer.OwnerClientId || pilot == null) return null;
-            if (boundPlayer.State == PlayerState.Normal) return pilot;
-            // A pole message can arrive after a capture or death has taken ownership of the body.
-            AbandonPole(actor);
-            return null;
+            return RejectUnavailableLocalMotion(actor) ? null : pilot;
         }
 
         internal void AbandonPole(ulong actor)

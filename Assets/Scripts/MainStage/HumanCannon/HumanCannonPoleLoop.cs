@@ -102,6 +102,22 @@ namespace CurtainCall.HumanCannon
             return (float)((distance % length + length) % length);
         }
 
+        // Open supply rails recycle discontinuously; a closed circulating rail has no such seam.
+        public bool TryGetRecycleBoundary(double previous, double current, out double beforeRecycle)
+        {
+            beforeRecycle = 0;
+            if (!wallFed || !IsConfigured || metersPerSecond <= 0 || !double.IsFinite(previous)
+                || !double.IsFinite(current) || previous < 0 || current <= previous) return false;
+            double length = Length, offset = Mathf.Repeat(phase01, 1f) * length;
+            double previousLap = Math.Floor((previous * metersPerSecond + offset) / length);
+            double currentLap = Math.Floor((current * metersPerSecond + offset) / length);
+            if (currentLap <= previousLap) return false;
+            double boundary = ((previousLap + 1) * length - offset) / metersPerSecond;
+            // Use the first terminal crossed even if a stalled frame spans several laps.
+            beforeRecycle = Math.Max(previous, boundary - Math.Min(.0001d, length / metersPerSecond * .000001d));
+            return true;
+        }
+
         public bool Contains(Transform target) => isActiveAndEnabled && IsConfigured
             && target != null && (target == carriage || target.IsChildOf(carriage));
 

@@ -220,14 +220,15 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(Get(rehearsal, "stage"), Is.EqualTo(-1));
             Assert.That((HashSet<ulong>)Get(rehearsal, "arrived"), Is.Empty);
             using var writer = new FastBufferWriter(128, Allocator.Temp);
-            writer.WriteValueSafe(1); writer.WriteValueSafe(0); writer.WriteValueSafe(1);
-            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(-1d);
-            for (int i = 0; i < 6; i++) writer.WriteValueSafe(0); // participants, placed, arrived, votes, lesson, voters
-            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(0); writer.WriteValueSafe(0);
+            var source = Make("New host snapshot").AddComponent<WaitingRoomRehearsal>();
+            Set(source, "version", 1); Set(source, "stage", 0); Set(source, "round", 1);
+            Call(source, "WriteState", writer);
             using var reader = new FastBufferReader(writer, Allocator.Temp);
             Call(rehearsal, "HandleState", NetworkManager.ServerClientId, reader);
             Assert.That(Get(rehearsal, "stage"), Is.Zero, "새 호스트의 첫 구간 상태 수신");
             Assert.That(Get(rehearsal, "round"), Is.EqualTo(1));
+            Assert.That(Get(rehearsal, "monitorStarted"), Is.EqualTo(-1d));
+            Assert.That(Get(rehearsal, "participantCount"), Is.Zero);
         }
 
         [Test]
@@ -251,11 +252,11 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Set(rehearsal, "active", false);
             Set(rehearsal, "stage", -1);
             using var writer = new FastBufferWriter(128, Allocator.Temp);
-            writer.WriteValueSafe(9); writer.WriteValueSafe(0); writer.WriteValueSafe(5);
-            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(-1d);
-            writer.WriteValueSafe(4); writer.WriteValueSafe(1); writer.WriteValueSafe(701UL);
-            for (int i = 0; i < 4; i++) writer.WriteValueSafe(0); // arrived, votes, lessons, voters
-            writer.WriteValueSafe(false); writer.WriteValueSafe(false); writer.WriteValueSafe(0); writer.WriteValueSafe(0);
+            var source = Make("Host before client room ready").AddComponent<WaitingRoomRehearsal>();
+            Set(source, "version", 9); Set(source, "stage", 0); Set(source, "round", 5);
+            Set(source, "participantCount", 4);
+            ((HashSet<ulong>)Get(source, "placed")).Add(701UL);
+            Call(source, "WriteState", writer);
             using var reader = new FastBufferReader(writer, Allocator.Temp);
             Call(rehearsal, "HandleState", NetworkManager.ServerClientId, reader);
 

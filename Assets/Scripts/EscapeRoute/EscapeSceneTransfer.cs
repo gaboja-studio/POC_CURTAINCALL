@@ -45,6 +45,7 @@ namespace CurtainCall.EscapeRoute
         public static bool HoldingForDeparture => Current != null && Current.holding;
         public string Failure => snapshot.failure;
         public IReadOnlyList<ulong> Participants => snapshot.participants;
+        internal bool IsParticipantConnected(ulong id) => channel != null && channel.IsConnected(id);
         public bool AllCaptured => AllConnectedAcknowledged(captured);
         public bool AllPlaced => AllConnectedAcknowledged(placed);
 

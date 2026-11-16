@@ -192,9 +192,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(Call(pole, "IsSeatInReach", player, angle, 1, -1d), Is.False);
         }
 
-        [Test]
-        public void CannonPracticeDoorUsesVisibleBarsWithoutAnInvisibleBarrier()
+        [TestCase(false), TestCase(true)]
+        public void CannonPracticeDoorUsesVisibleBarsWithoutAnInvisibleBarrier(bool tutorialCompleted)
         {
+            var campaign = (RunState)Get(run, "host");
+            if (tutorialCompleted)
+            {
+                campaign.SetTutorialDone(0);
+                campaign.RefreshGuideRest(new[] { 0UL });
+                Set(run, "state", campaign.Snapshot);
+            }
             var gate = Make(NightDoorLock.RehearsalPassageName).AddComponent<NightDoorLock>();
             var bars = Make("Practice gate bars").transform;
             bars.SetParent(gate.transform, false); bars.localPosition = Vector3.up * 3.4f;
@@ -214,7 +221,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Assert.That(bars.localPosition.y, Is.EqualTo(3.4f));
                 Shared("active", false);
                 Call(gate, "Update");
-                Assert.That(gate.IsLocked, Is.False);
+                Assert.That(gate.IsLocked, Is.EqualTo(!tutorialCompleted),
+                    "After cannon practice, only the existing unfinished tutorial may keep the door locked.");
             }
             finally { Set(tutorial, "sealCannonPracticeExit", seal); }
         }

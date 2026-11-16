@@ -90,6 +90,15 @@ namespace CurtainCall.EscapeRoute
                 if (actor.State == PlayerState.Arrived) arrivals.Add(actor.OwnerClientId);
                 Observe(actor);
             }
+            // The exit authority may observe arrival before this observer sees the avatar's final state.
+            // Keep that arrival even if the avatar disconnects before results are frozen.
+            if (!failureMode && owner != null)
+                foreach (var person in observed.Values)
+                    if (owner.HasArrived(person.client))
+                    {
+                        person.escaped = true;
+                        arrivals.Add(person.client);
+                    }
             observedGeneration = CampaignRun.Instance.State.Generation;
             snapshot = new Snapshot { generation = observedGeneration, day = CampaignRun.Instance.State.Day,
                 success = CampaignRun.Instance.State.LastEnd == RunEndReason.EscapeSucceeded,

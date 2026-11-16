@@ -34,6 +34,7 @@ namespace CurtainCall.EscapeRoute
         EscapeEndingCinematic cinematic;
         bool returnRequested;
         public bool IsPresenting => endingAt >= 0;
+        public bool HasArrived(ulong actor) => content != null && content.HasArrived(actor);
 
         public static bool IsSuccessfulEnding(CampaignSnapshot state) => state.Phase == CampaignPhase.Ending
             && state.LastEnd == RunEndReason.EscapeSucceeded;

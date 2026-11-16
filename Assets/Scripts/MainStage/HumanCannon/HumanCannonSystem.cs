@@ -94,6 +94,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool ApplyRebound(ulong actor, int index, uint revision, uint segment, Vector3 position, float upwardSpeed, bool fromTrampoline = false)
         {
+            if (RejectUnavailableLocalMotion(actor)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
             FindPlayer(actor)?.BeginFallAt(position);
@@ -109,6 +110,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool BeginGroundBounce(ulong actor, uint sequence, uint epoch, Vector3 contact, float speed, float controlSpeed)
         {
+            if (RejectUnavailableLocalMotion(actor)) return false;
             if (IsFlying(actor) || IsSeated(actor) || HumanCannonCarry.Held(actor) != null) return false;
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId)
             {
@@ -130,6 +132,17 @@ namespace CurtainCall.HumanCannon
             flying.Remove(actor);
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
                 pilot.StartCarrying();
+        }
+
+        // Player state and device acknowledgements travel independently. A late device packet
+        // still updates shared occupancy, but cannot reclaim a captured/dead/arrived owner's body.
+        bool RejectUnavailableLocalMotion(ulong actor)
+        {
+            if (boundPlayer == null || boundPlayer.OwnerClientId != actor
+                || boundPlayer.IsSpawned && boundPlayer.State == PlayerState.Normal) return false;
+            flying.Remove(actor);
+            pilot?.ReleaseMovement();
+            return true;
         }
 
         void OnEnable()
@@ -396,7 +409,7 @@ namespace CurtainCall.HumanCannon
             }
             if (action == CannonAction.Launch) flying.Begin(actor, index, seats[index].State.Revision);
             if (action == CannonAction.Release) flying.Remove(actor);
-            if (boundPlayer != null && pilot != null)
+            if (boundPlayer != null && !RejectUnavailableLocalMotion(boundPlayer.OwnerClientId) && pilot != null)
             {
                 if (seats[index].State.Occupant == boundPlayer.OwnerClientId && ValidIndex(index))
                     pilot.SeatAt(index);
@@ -417,6 +430,7 @@ namespace CurtainCall.HumanCannon
             boundPlayer = local;
             pilot = local.gameObject.AddComponent<HumanCannonPilot>();
             pilot.Initialize(this, local);
+            if (RejectUnavailableLocalMotion(local.OwnerClientId)) return;
             for (int i = 0; i < seats.Length; i++)
                 if (seats[i].State.Occupant == local.OwnerClientId) pilot.SeatAt(i);
         }

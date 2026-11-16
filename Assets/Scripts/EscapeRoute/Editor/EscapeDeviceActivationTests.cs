@@ -12,6 +12,8 @@ using CurtainCall.Survival;
 using CurtainCall.Tightrope;
 using CurtainCall.WaitingRoom;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -28,6 +30,271 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Set(object instance, string name, object value) => instance.GetType().GetField(name, Private).SetValue(instance, value);
         static void Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
+
+        [Test, Category("EscapeFullCombinationAudit")]
+        public void AuthoredStaticPolesClearBothPassengersAndRetainSupportedInjuredAccess()
+        {
+            const string path = "Assets/Scenes/Levels/escape_route.unity";
+            var scene = SceneManager.GetSceneByPath(path);
+            bool opened = !scene.IsValid() || !scene.isLoaded;
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try
+            {
+                var frame = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true))
+                    .Single(t => t.name == "EscapeCampaignFrame");
+                var poles = frame.GetComponentsInChildren<HumanCannonPole>(true).Where(p => p.isActiveAndEnabled && p.Loop == null).ToArray();
+                Assert.That(poles.Length, Is.GreaterThan(0), "An empty scene cannot pass the geometry audit.");
+                Physics.SyncTransforms();
+                var audit = typeof(EscapeLabyrinthAudit).GetMethod("AuditPoleBodyClearance", Static);
+                var report = new EscapeLabyrinthAudit.Report();
+                foreach (var pole in poles) audit.Invoke(null, new object[] { pole.transform, frame, report });
+                Assert.That(report.failures, Is.Empty, string.Join("\n", report.failures));
+                var supports = new Dictionary<string, string>
+                {
+                    ["A04A_01_CavernExit"] = "A03_CannonLandingWire",
+                    ["A04A_02_DeepTransfer"] = "A04A_UpperWire",
+                    ["A04A_03_PumpEntry"] = "A04A_LowerWire",
+                    ["A06_WireExitSwing"] = "A06_UpperReturnWire",
+                    ["A06_HelperAscentClutch"] = "유지봉 측면 정비턱",
+                    ["A07C_HelperBridgeClutch"] = "동료 역할 교대 정비대",
+                    ["A07C_ReturnBridgeClutch"] = "복귀 고정 후 마지막 질주면"
+                };
+                foreach (var entry in supports)
+                {
+                    var pole = poles.Single(p => p.name == entry.Key);
+                    foreach (bool injured in new[] { false, true })
+                        Assert.That(HasSupportedPoleAccess(pole, entry.Value, injured), Is.True,
+                            $"{entry.Key}: original support {entry.Value}, injured={injured}");
+                }
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        static bool HasSupportedPoleAccess(HumanCannonPole pole, string support, bool injured)
+        {
+            var settings = CurtainCall.Settings.GameSettings.Base;
+            float height = injured ? settings.BodyDamage.CrawlCapsuleHeight : settings.Character.CapsuleHeight;
+            float radius = Mathf.Min(settings.Character.CapsuleRadius, height * .5f);
+            float reach = CurtainCall.Settings.GameSettings.Poles.GrabRadius * (injured ? settings.BodyDamage.ReachMultiplier(1) : 1f);
+            var target = pole.BarPosition(0);
+            for (float x = -3; x <= 3; x += .5f)
+                for (float z = -3; z <= 3; z += .5f)
+                    foreach (var hit in Physics.RaycastAll(target + new Vector3(x, 1, z), Vector3.down, 7,
+                        Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                    {
+                        if (hit.collider.gameObject.scene != pole.gameObject.scene || hit.collider.name != support || hit.normal.y < .9f) continue;
+                        var feet = hit.point + Vector3.up * .03f; var center = feet + Vector3.up * height * .5f;
+                        if (Vector3.Distance(center, target) > reach) continue;
+                        if (Physics.OverlapCapsule(feet + Vector3.up * radius, feet + Vector3.up * (height - radius), radius,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore).Any(c => c.gameObject.scene == pole.gameObject.scene && !c.transform.IsChildOf(pole.transform))) continue;
+                        if (PlayerInteraction.ClearPathFrom(center, target, pole.transform, null, true)) return true;
+                    }
+            return false;
+        }
+
+        [TestCase(3), TestCase(4), Category("EscapeFullCombinationAudit")]
+        public void IndependentClientReplicasKeepTheExitOpenWhenSpareLauncherPacketsArriveLate(int crew)
+        {
+            var roots = new List<GameObject>();
+            var previous = EscapeExitSaw.Current;
+            GameObject Root(string name)
+            {
+                var go = new GameObject(name); go.SetActive(false); roots.Add(go); return go;
+            }
+            var devices = new EscapeExitSaw[crew + 1, 4];
+            try
+            {
+                for (int replica = 0; replica <= crew; replica++)
+                {
+                    // No cable, door, transform or ownership object is shared between clients.
+                    var cableRoot = Root("Replica cables " + replica);
+                    var cables = new EscapeCuttableCable[24];
+                    for (int i = 0; i < cables.Length; i++)
+                    {
+                        var child = new GameObject("Strand " + i); child.transform.SetParent(cableRoot.transform);
+                        cables[i] = child.AddComponent<EscapeCuttableCable>();
+                    }
+                    var session = Root("Replica session " + replica).AddComponent<NetworkSessionManager>();
+                    typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session,
+                        replica == 0 ? SessionConnectionState.Host : SessionConnectionState.Client);
+                    var door = Root("Replica door " + replica).transform;
+                    for (int device = 0; device < 4; device++)
+                    {
+                        var saw = Root($"Replica {replica} launcher {device}").AddComponent<EscapeExitSaw>();
+                        devices[replica, device] = saw;
+                        Set(saw, "cables", cables); Set(saw, "doorPanel", door);
+                        Set(saw, "session", session); Set(saw, "deviceId", device);
+                        Set(saw, "projectileLifetime", 0f);
+                        Call(saw, "InitializePose"); Call(saw, "OnEnable");
+                    }
+                }
+                byte[] Packet(EscapeExitSaw source, uint revision, uint mask)
+                {
+                    Set(source, "stateRevision", revision); Set(source, "cutMask", mask);
+                    using var writer = new FastBufferWriter(4096, Allocator.Temp);
+                    Call(source, "WriteState", writer, 0); return writer.ToArray();
+                }
+                void Receive(EscapeExitSaw target, byte[] packet)
+                {
+                    using var reader = new FastBufferReader(packet, Allocator.Temp);
+                    Call(target, "ReadState", NetworkManager.ServerClientId, reader);
+                }
+                var stale = new byte[4][]; var opened = new byte[4][];
+                for (int i = 0; i < 4; i++)
+                {
+                    stale[i] = Packet(devices[0, i], 1, 0);
+                    opened[i] = Packet(devices[0, i], 2, (1u << 24) - 1);
+                }
+                for (int replica = 1; replica <= crew; replica++)
+                {
+                    int first = (replica - 1) % 4;
+                    Receive(devices[replica, first], opened[first]);
+                    for (int other = 1; other <= crew; other++)
+                        Assert.That(devices[other, 0].DoorOpen, Is.EqualTo(other <= replica),
+                            "A host/client in the same editor must not supply another client's missing packet.");
+                    for (int step = 1; step < 4; step++)
+                    {
+                        int device = (first + step) % 4;
+                        Receive(devices[replica, device], stale[device]);
+                        Assert.That(devices[replica, device].DoorOpen, Is.True, "A late spare launcher cannot close the shared door.");
+                    }
+                    for (int device = 3; device >= 0; device--)
+                    {
+                        Receive(devices[replica, device], opened[device]);
+                        Receive(devices[replica, device], stale[device]);
+                        Assert.That(devices[replica, device].CutCableCount, Is.EqualTo(24));
+                        Assert.That(devices[replica, device].DoorOpen, Is.True);
+                    }
+                }
+            }
+            finally
+            {
+                foreach (var device in devices) if (device != null) Call(device, "OnDisable");
+                for (int i = roots.Count - 1; i >= 0; i--) Object.DestroyImmediate(roots[i]);
+                SetCurrent(previous);
+            }
+        }
+
+        [TestCase(3), TestCase(4), Category("EscapeFullCombinationAudit")]
+        public void EveryTeamVerdictCombinationWaitsForUnresolvedMembersAndEndsExactlyOnce(int crew)
+        {
+            // Eight distinct host observations per member, crossed with both door states.
+            // This is authoritative state coverage, not live network or traversal coverage.
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", Static).GetValue(null);
+            var savedPlayers = all.ToArray(); all.Clear();
+            var previousRun = CampaignRun.Instance;
+            var previousTransfer = EscapeSceneTransfer.Current;
+            var root = new GameObject("Escape verdict combinations"); root.SetActive(false);
+            var floor = new GameObject("Matrix arrival"); floor.transform.position = new Vector3(24000, 3000, 24000);
+            var area = floor.AddComponent<BoxCollider>(); area.isTrigger = true; area.size = Vector3.one * 4;
+            var spawned = typeof(NetworkBehaviour).GetProperty("IsSpawned");
+            var server = typeof(NetworkBehaviour).GetProperty("IsServer");
+            var actors = new List<NetworkPlayer>();
+            try
+            {
+                var run = root.AddComponent<CampaignRun>(); Set(run, "offlineRun", true);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                var transfer = root.AddComponent<EscapeSceneTransfer>(); SetCurrent(transfer);
+                var snap = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
+                var ids = Enumerable.Range(0, crew).Select(i => (ulong)(23000 + i)).ToArray();
+                snap.GetType().GetField("phase").SetValue(snap, 2);
+                snap.GetType().GetField("participants").SetValue(snap, ids);
+                var channel = CreateChannel(transfer);
+                var netRoot = new GameObject("Matrix roster"); netRoot.SetActive(false); netRoot.transform.SetParent(root.transform);
+                var session = netRoot.AddComponent<NetworkSessionManager>();
+                var manager = netRoot.GetComponent<NetworkManager>(); Set(session, "_networkManager", manager);
+                channel.GetType().GetProperty("Session").SetValue(channel, session);
+                var connected = (IDictionary<ulong, NetworkClient>)manager.ConnectedClients;
+                var content = root.AddComponent<EscapeCampaignContent>();
+                typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
+                Set(content, "content", floor); Set(content, "arrivalArea", area); Set(content, "run", run);
+                var saw = root.AddComponent<EscapeExitSaw>(); Set(content, "exitSaw", saw);
+                var arrived = (HashSet<ulong>)typeof(EscapeCampaignContent).GetField("arrived", Private).GetValue(content);
+                var states = new List<NetworkVariable<PlayerState>>();
+                for (int i = 0; i < crew; i++)
+                {
+                    var go = new GameObject("Matrix actor " + i); go.transform.SetParent(root.transform);
+                    var actor = go.AddComponent<NetworkPlayer>();
+                    server.SetValue(actor, true); typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(actor, ids[i]);
+                    actors.Add(actor); all.Add(actor);
+                    states.Add((NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", Private).GetValue(actor));
+                }
+                int combinations = 1 << (crew * 3);
+                for (int door = 0; door < 2; door++)
+                    for (int combination = 0; combination < combinations; combination++)
+                    {
+                        var host = new RunState(); host.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                        Set(run, "host", host); Set(run, "state", host.Snapshot);
+                        Set(content, "reported", false); arrived.Clear(); connected.Clear();
+                        Set(saw, "cutProgress", door == 1 ? 100f : 0f);
+                        bool pending = false, success = false;
+                        for (int i = 0; i < crew; i++)
+                        {
+                            int kind = (combination >> (i * 3)) & 7;
+                            // 0 outside, 1 inside, 2 arrived, 3 fallen, 4 retired,
+                            // 5 captured, 6 disconnected, 7 connected but avatar pending.
+                            spawned.SetValue(actors[i], kind < 6);
+                            if (kind != 6) connected.Add(ids[i], new NetworkClient());
+                            states[i].Value = kind == 2 ? PlayerState.Arrived : kind == 3 ? PlayerState.Fallen
+                                : kind == 4 ? PlayerState.Retired : kind == 5 ? PlayerState.EscapeCaptured : PlayerState.Normal;
+                            actors[i].transform.position = floor.transform.position + (kind == 1 ? Vector3.zero : Vector3.forward * 10);
+                            pending |= kind == 0 || kind == 1 && door == 0 || kind == 5 || kind == 7;
+                            success |= kind == 2 || kind == 1 && door == 1;
+                        }
+                        Call(content, "Update");
+                        string label = $"crew={crew}, door={door}, base8={System.Convert.ToString(combination, 8)}";
+                        Assert.That(run.State.Phase, Is.EqualTo(pending ? CampaignPhase.Escape : CampaignPhase.Ending), label);
+                        if (!pending) Assert.That(run.State.LastEnd, Is.EqualTo(success ? RunEndReason.EscapeSucceeded : RunEndReason.EscapeAllRetired), label);
+                        var phase = run.State.Phase; var end = run.State.LastEnd;
+                        Call(content, "Update");
+                        Assert.That(run.State.Phase, Is.EqualTo(phase), "Repeated verdict: " + label);
+                        Assert.That(run.State.LastEnd, Is.EqualTo(end), "Repeated verdict: " + label);
+                    }
+            }
+            finally
+            {
+                foreach (var actor in actors) { spawned.SetValue(actor, false); server.SetValue(actor, false); }
+                all.Clear(); all.AddRange(savedPlayers);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun); SetCurrent(previousTransfer);
+                Object.DestroyImmediate(root); Object.DestroyImmediate(floor);
+            }
+        }
+
+        [TestCase(0), TestCase(24), TestCase(64), Category("EscapeNovember16Followup")]
+        public void FullSawPacketsRoundTripAndRejectTruncationOrNonHostSenders(int count)
+        {
+            var sourceRoot = new GameObject("Saw packet source"); sourceRoot.SetActive(false);
+            var targetRoot = new GameObject("Saw packet target"); targetRoot.SetActive(false);
+            var netRoot = new GameObject("Saw packet client"); netRoot.SetActive(false);
+            try
+            {
+                var source = sourceRoot.AddComponent<EscapeExitSaw>();
+                var target = targetRoot.AddComponent<EscapeExitSaw>();
+                foreach (var saw in new[] { source, target })
+                { Set(saw, "fireWithoutCables", true); Set(saw, "projectileLifetime", 0f); }
+                var ownership = new CannonSeatState(); ownership.Receive(3, 42);
+                Set(source, "ownership", ownership); Set(source, "stateRevision", 7u);
+                for (int i = 0; i < count; i++) Call(source, "SpawnProjectile");
+                var client = netRoot.AddComponent<NetworkSessionManager>();
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(client, SessionConnectionState.Client);
+                Set(target, "session", client);
+                using var writer = new FastBufferWriter(4096, Allocator.Temp);
+                Call(source, "WriteState", writer, 0);
+                Assert.That(writer.Length, Is.EqualTo(66 + count * 36));
+                using (var unauthorized = new FastBufferReader(writer, Allocator.Temp))
+                    Call(target, "ReadState", 42UL, unauthorized);
+                Assert.That(target.Carrier, Is.EqualTo(ulong.MaxValue));
+                var bytes = writer.ToArray(); System.Array.Resize(ref bytes, bytes.Length - 1);
+                using (var truncated = new FastBufferReader(bytes, Allocator.Temp))
+                    Call(target, "ReadState", NetworkManager.ServerClientId, truncated);
+                Assert.That(target.Carrier, Is.EqualTo(ulong.MaxValue));
+                using (var valid = new FastBufferReader(writer, Allocator.Temp))
+                    Call(target, "ReadState", NetworkManager.ServerClientId, valid);
+                Assert.That(target.Carrier, Is.EqualTo(42UL));
+                Assert.That(target.ActiveProjectileCount, Is.EqualTo(count));
+            }
+            finally { Object.DestroyImmediate(sourceRoot); Object.DestroyImmediate(targetRoot); Object.DestroyImmediate(netRoot); }
+        }
 
         [Test, Category("EscapeNovember16Recovery")]
         public void AdditiveSawChannelsDoNotCollideWithTheDepartureScene()
@@ -83,8 +350,26 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             return channel;
         }
 
+        [TestCase(PlayerState.Fallen), TestCase(PlayerState.Retired), TestCase(PlayerState.Arrived)]
+        [Category("EscapeNovember16Followup")]
+        public void DisabledEscapeGuardDoesNotBlockTheNextScene(PlayerState next)
+        {
+            var root = new GameObject("Inactive outgoing escape"); root.SetActive(false);
+            var content = root.AddComponent<EscapeCampaignContent>();
+            try
+            {
+                var guard = typeof(EscapeCampaignContent).GetMethod("AllowState", Private);
+                Assert.That(guard.Invoke(content, new object[] { null, next }), Is.True,
+                    "A delegate retained by another scene must not apply an inactive escape scene's restrictions.");
+                Set(content, "previousStateRule", new System.Func<NetworkPlayer, PlayerState, bool>((_, _) => false));
+                Assert.That(guard.Invoke(content, new object[] { null, next }), Is.False,
+                    "The still-current shared guard must remain authoritative.");
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [TestCase(3)] [TestCase(4)]
-        [Category("EscapeNovember16Recovery")]
+        [Category("EscapeNovember16Recovery"), Category("EscapeNovember16Followup")]
         public void OneArrivalThenLastTeammateFallEndsEscapeDespiteDisconnectAndLostLocalArrivalCache(int count)
         {
             var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", Static).GetValue(null);
@@ -119,6 +404,15 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var ids = Enumerable.Range(0, count).Select(i => (ulong)(19000 + i)).ToArray();
                 snapshot.GetType().GetField("participants").SetValue(snapshot, ids);
                 SetCurrent(transfer);
+                var channel = CreateChannel(transfer);
+                var networkRoot = new GameObject("Connected escape roster"); networkRoot.SetActive(false);
+                networkRoot.transform.SetParent(root.transform, false);
+                var session = networkRoot.AddComponent<NetworkSessionManager>();
+                var manager = networkRoot.GetComponent<Unity.Netcode.NetworkManager>();
+                Set(session, "_networkManager", manager);
+                channel.GetType().GetProperty("Session").SetValue(channel, session);
+                var connected = (IDictionary<ulong, Unity.Netcode.NetworkClient>)manager.ConnectedClients;
+                foreach (ulong id in ids.Take(count - 1)) connected.Add(id, new Unity.Netcode.NetworkClient());
                 var content = root.AddComponent<EscapeCampaignContent>();
                 typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
                 Set(content, "content", room); Set(content, "arrivalArea", area); Set(content, "run", run);
@@ -135,6 +429,11 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Call(content, "Update");
                 Assert.That(players[0].State, Is.EqualTo(PlayerState.Arrived));
                 Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.Escape), "The remaining living teammate keeps playing.");
+                spawned.SetValue(players[1], false);
+                Call(content, "Update");
+                Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.Escape),
+                    "A connected participant whose avatar is temporarily unavailable has not disconnected or died.");
+                spawned.SetValue(players[1], true);
                 ((HashSet<ulong>)typeof(EscapeCampaignContent).GetField("arrived", Private).GetValue(content)).Clear();
                 var falling = players[1];
                 falling.transform.position = new Vector3(0, CurtainCall.Settings.GameSettings.Base.BodyDamage.WorldDeathY - 1, 0);
