@@ -73,7 +73,7 @@ namespace CurtainCall.HumanCannon
             cannonView.RequestViewWithHeading(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView
                 : IsFlying && airborneView != null ? airborneView : flightView,
                 stationIndex >= 0 || IsFlying ? 200 : carrying ? 100 : 50,
-                IsHoldingPole ? poleCameraForward : Vector3.zero, followHeading: IsHoldingPole);
+                IsHoldingPole ? poleCameraForward : Vector3.zero, followHeading: IsHoldingPole, followHeadingMotion: IsHoldingPole);
             HumanCannonViewInput.SetRequested(cannonView, this, true);
             requestedCannonView = true;
         }

@@ -19,6 +19,7 @@ namespace CurtainCall.HumanCannon
         const int StateSize = 164; // 52 byte header + four fixed 28 byte rider records.
         const int ReleaseStateSize = StateSize + 40;
         const byte GateOpenFlag = 1 << (PoleGateState.MaxRiders + 1);
+        const uint ReverseGrab = 1;
         CustomMessagingManager messaging;
         struct ReceivedFlight
         {
@@ -37,6 +38,12 @@ namespace CurtainCall.HumanCannon
             if (action is PoleAction.Grab or PoleAction.PlatformGrab)
             {
                 var pole = poles[index];
+                pole.RefreshMovingPose();
+                var camera = CameraViewDirector.Current;
+                Vector3 view = camera != null && camera.LocalPlayer == player ? camera.ViewForward : Vector3.zero;
+                // Grab packets use the sequence field for facing. Input still carries catch momentum.
+                sequence = FacesAgainstPole(pole.Forward, view, player.transform.forward,
+                    pole.Grip.position - player.transform.position) ? ReverseGrab : 0u;
                 CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player, pole, "POLE");
                 // The owner has the movement result before HoldPole clears it. This field carries m/s on grab packets.
                 if (player.TryGetComponent(out PlayerMover mover) && mover.Body is { enabled: true } body
@@ -110,9 +117,12 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(runtime.ReleaseDirection);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
-            // 비트 0: 지상 담당 통과, 비트 1~4: 예약(항상 0), 비트 5: 톱벽이 열려 있음(재시작 전까지 유지).
+            // 비트 0: 지상 담당 통과, 비트 1~4: 좌석별 역방향, 비트 5: 열린 톱벽.
             var gate = poles[index].LinkedGate;
             byte flags = (byte)(gate != null && gate.CarrierPassed ? 1 : 0);
+            for (int slot = 0; slot < runtime.State.Capacity; slot++)
+                if (runtime.State.OccupantAt(slot) != CannonSeatState.Nobody && runtime.Riders[slot].ReverseFacing)
+                    flags |= (byte)(2 << slot);
             if (gate != null && gate.IsOpen) flags |= GateOpenFlag;
             writer.WriteValueSafe(flags);
             for (int slot = 0; slot < PoleGateState.MaxRiders; slot++)
@@ -152,7 +162,6 @@ namespace CurtainCall.HumanCannon
             int reversedSeats = (flags >> 1) & ((1 << PoleGateState.MaxRiders) - 1);
             if (index < 0 || index >= states.Length || poles[index] == null
                 || (flags & ~(1 | GateOpenFlag | (((1 << PoleGateState.MaxRiders) - 1) << 1))) != 0
-                || reversedSeats != 0
                 || !float.IsFinite(angle) || !float.IsFinite(speed)
                 || !float.IsFinite(releaseDirection) || Mathf.Abs(releaseDirection) > 1f) return;
             var runtime = states[index];
@@ -190,6 +199,7 @@ namespace CurtainCall.HumanCannon
             for (int slot = 0; slot < receivedFlights.Length; slot++)
             {
                 var rider = runtime.Riders[slot];
+                rider.ReverseFacing = (reversedSeats & (1 << slot)) != 0;
                 rider.Station = receivedFlights[slot].Station;
                 rider.Launch = receivedFlights[slot].Launch;
                 rider.Segment = receivedFlights[slot].Segment;

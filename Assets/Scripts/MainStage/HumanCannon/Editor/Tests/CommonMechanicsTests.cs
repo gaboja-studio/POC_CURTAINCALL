@@ -203,15 +203,17 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
-        [TestCase(false, 0f)]
-        [TestCase(false, 4f)]
-        [TestCase(true, -4f)]
-        public void HostCatchStartsTheCommonSwingAndSecondRiderKeepsItsSpeed(bool fromFlight, float approach)
+        [TestCase(false, 0f, false)]
+        [TestCase(false, 4f, true)]
+        [TestCase(true, -4f, true)]
+        public void HostCatchAndCaptureKeepFacingAndReleaseAnInjuredPassenger(bool fromFlight, float approach, bool reverse)
         {
             var root = new GameObject("Host pole catch");
             root.transform.position = new Vector3(15000f, 50f, 15000f);
             var currentCannon = typeof(HumanCannonSystem).GetProperty("Current");
             var savedCannon = currentCannon.GetValue(null);
+            var currentPoles = typeof(HumanCannonPoleSystem).GetProperty("Current");
+            var savedPoles = currentPoles.GetValue(null);
             var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
             var crew = new System.Collections.Generic.List<NetworkPlayer>();
             var request = typeof(HumanCannonPoleSystem).GetNestedType("PoleAction", BindingFlags.NonPublic);
@@ -242,6 +244,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 currentCannon.SetValue(null, cannon);
                 var poles = Child("Pole system", false).AddComponent<HumanCannonPoleSystem>();
                 Set(poles, "session", session);
+                currentPoles.SetValue(null, poles);
                 var pole = Child("Pole").AddComponent<HumanCannonPole>();
                 pole.IsSwitch = fromFlight;
                 int index = poles.Register(pole);
@@ -250,7 +253,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 if (fromFlight) Call(cannon, "BeginPoleFlight", first.OwnerClientId, launch);
                 Physics.SyncTransforms();
                 Call(poles, "HandleRequest", first.OwnerClientId, System.Enum.Parse(request, fromFlight ? "Grab" : "PlatformGrab"),
-                    index, poles.State(index).Revision, CannonFlightState.PoleEntrySource, launch, 0u, approach, 0u, -1d);
+                    index, poles.State(index).Revision, CannonFlightState.PoleEntrySource, launch, 0u, approach, reverse ? 1u : 0u, -1d);
 
                 Assert.That(poles.State(index).SeatOf(first.OwnerClientId), Is.Zero);
                 float speed = poles.SpeedAt(index);
@@ -263,10 +266,40 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     index, poles.State(index).Revision, 0, 0u, 0u, 100f, 0u, -1d);
                 Assert.That(poles.State(index).SeatOf(second.OwnerClientId), Is.EqualTo(1));
                 Assert.AreEqual(speed, poles.SpeedAt(index));
+                Assert.That(Vector3.Dot(poles.RiderRotation(index, second.OwnerClientId) * Vector3.forward, pole.Forward), Is.GreaterThan(.999f));
+
+                var pilot = first.gameObject.AddComponent<HumanCannonPilot>();
+                Set(pilot, "player", first);
+                Set(pilot, "mover", first.GetComponent<PlayerMover>());
+                Call(pilot, "HoldPole", index, CannonFlightState.PoleEntrySource, launch, 1u);
+                float forward = reverse ? -1f : 1f;
+                Assert.That(Vector3.Dot(first.transform.forward, pole.Forward), Is.EqualTo(forward).Within(.001f));
+                var cameraHeading = typeof(HumanCannonPilot).GetField("poleCameraForward", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(Vector3.Dot((Vector3)cameraHeading.GetValue(pilot), pole.Forward), Is.EqualTo(forward).Within(.001f));
+                pole.transform.Rotate(0f, 45f, 0f);
+                Call(pilot, "UpdatePolePose", false);
+                Assert.That(Vector3.Dot((Vector3)cameraHeading.GetValue(pilot), pole.Forward), Is.EqualTo(forward).Within(.001f));
+
+                var condition = second.GetComponent<PlayerCondition>() ?? second.gameObject.AddComponent<PlayerCondition>();
+                double originalDeadline = poles.State(index).DeadlineAt(1);
+                condition.SetLostParts(BodyPart.LeftArm | BodyPart.LeftLeg);
+                Call(poles, "TickState", index);
+                Assert.That(poles.State(index).DeadlineAt(1), Is.LessThan(originalDeadline));
+
+                var launched = new System.Collections.Generic.List<ulong>();
+                poles.Released += (_, rider) => launched.Add(rider);
+                var firstState = typeof(NetworkPlayer).GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(first);
+                Set(firstState, "m_InternalValue", PlayerState.EscapeCaptured);
+                Call(poles, "TickState", index);
+                Assert.That(poles.State(index).Count, Is.Zero);
+                Assert.That(launched, Is.EqualTo(new[] { second.OwnerClientId }));
+                Assert.That(cannon.IsFlying(first.OwnerClientId), Is.False);
+                Assert.That(cannon.IsFlying(second.OwnerClientId), Is.True);
             }
             finally
             {
                 currentCannon.SetValue(null, savedCannon);
+                currentPoles.SetValue(null, savedPoles);
                 foreach (var player in crew)
                 {
                     typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
@@ -274,6 +307,50 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 }
                 Object.DestroyImmediate(root);
             }
+        }
+
+        [TestCase(PlayerState.EscapeCaptured, "Grab")]
+        [TestCase(PlayerState.EscapeCaptured, "Sync")]
+        [TestCase(PlayerState.EscapeCaptured, "Release")]
+        [TestCase(PlayerState.Retired, "Release")]
+        [TestCase(PlayerState.Fallen, "Release")]
+        public void LatePoleEventCannotTeleportACapturedOrDeadOwner(PlayerState state, string action)
+        {
+            var root = new GameObject("Pole message after capture");
+            root.SetActive(false);
+            root.transform.position = new Vector3(15050f, 50f, 15050f);
+            root.transform.rotation = Quaternion.Euler(0f, 120f, 0f);
+            try
+            {
+                var actor = root.AddComponent<NetworkPlayer>();
+                var mover = root.GetComponent<PlayerMover>();
+                var pilot = root.AddComponent<HumanCannonPilot>();
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                Set(pilot, "player", actor);
+                Set(pilot, "mover", mover);
+                Set(pilot, "previousSimulation", true);
+                Set(cannon, "boundPlayer", actor);
+                Set(cannon, "pilot", pilot);
+                typeof(HumanCannonPilot).GetProperty("HeldPole").SetValue(pilot, 0);
+                typeof(HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true);
+                var playerState = typeof(NetworkPlayer).GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(actor);
+                Set(playerState, "m_InternalValue", state);
+                mover.Simulated = false;
+                int source = CannonFlightState.PoleEntrySource;
+                ulong id = actor.OwnerClientId;
+                var position = actor.transform.position;
+                var rotation = actor.transform.rotation;
+                Call(cannon, "BeginPoleFlight", id, 1u);
+                if (action == "Grab") Call(cannon, "ApplyPoleGrab", id, source, 1u, 0u, 1);
+                else if (action == "Sync") Call(cannon, "SyncPoleHold", id, source, 1u, 0u, 1);
+                else Call(cannon, "ApplyPoleRelease", id, source, 1u, 0u, Vector3.zero, Quaternion.identity, Vector3.up, 1f);
+
+                Assert.That(actor.transform.position, Is.EqualTo(position));
+                Assert.That(actor.transform.rotation, Is.EqualTo(rotation));
+                Assert.That(cannon.IsFlying(id) || pilot.IsDriving, Is.False);
+                if (state == PlayerState.EscapeCaptured) Assert.That(mover.Simulated, Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
         }
 
         [TestCase("ordinary jump", true)]
