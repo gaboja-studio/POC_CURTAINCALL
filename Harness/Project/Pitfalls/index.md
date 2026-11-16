@@ -1,5 +1,9 @@
 # Project Pitfalls
 
+- [escape-remake-parent-scale.md](escape-remake-parent-scale.md) — 탈출로 복사 씬에 새 경로·바닥·추격자 출구를 만들 때 부모 스케일과 절단 잔여물을 검사한다
+
+- [pursuer-doll-unity-rig.md](pursuer-doll-unity-rig.md) — 추격자 소켓·신장 손 크기·숙임 통로·플레이어 목 시선을 연결할 때
+
 - [Player/](Player/index.md) — 가구 모서리 부양과 실제 발 지지 판정을 확인할 때
 - [Reward/](Reward/index.md) — 같은 방 재시작 후 기존 참가자의 자금·장부만 갱신되지 않을 때
 
@@ -34,6 +38,8 @@
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 - [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
 - [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
+- [escape-pursuer-route-boundary.md](escape-pursuer-route-boundary.md) — 첫 대포 근처에서 경로 인덱스 예외가 반복되며 추격자·조준선 갱신이 멈출 때
+- [escape-pursuer-hand-occlusion.md](escape-pursuer-hand-occlusion.md) — 문틀 근처에서 목표는 보이지만 실제 손이 막혀 공격 없이 멈출 때
 - [runtime-navmesh-shared-agent-type.md](runtime-navmesh-shared-agent-type.md) — 실행 중 NavMesh를 굽는 기능을 만들 때, 리허설 뒤 추격자가 막힌 길 끝에서 멈출 때
 - [pursuit-narrow-top-no-navmesh.md](pursuit-narrow-top-no-navmesh.md) — 추격자가 드럼통·상자·침대 위 플레이어에게 오르지 못할 때
 - [pursuit-stale-navmesh-inside-props.md](pursuit-stale-navmesh-inside-props.md) — 추격자가 콜라이더로 막힌 물체 안으로 들어가거나 물체 속에서 오를 때(배치 변경 뒤 NavMesh 미재굽기)
@@ -68,5 +74,5 @@
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
-- [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준
+- [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 재사용·URP17 조명·8×8 연기 flipbook·절단 설비 조립 기준
 - [arrived-state-after-performance.md](arrived-state-after-performance.md) — 외줄 완주자가 Arrived로 남아 대기실 안내·상호작용·첫날 진행이 멈춘다

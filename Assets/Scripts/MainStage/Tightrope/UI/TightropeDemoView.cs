@@ -89,7 +89,7 @@ namespace CurtainCall.Tightrope.UI
 
             var help = Box("조작 안내", transform, new Color(Navy.r, Navy.g, Navy.b, 0.85f));
             Anchor(help, Vector2.zero, new Vector2(1, 0), new Vector2(0.5f, 0), new Vector2(0, 130), new Vector2(-40, 60));
-            var helpText = Text("W/S 앞뒤  ·  A/D 균형  ·  Space 점프  ·  Q/E + Space 옆줄  ·  F 목마 연결 / F 길게 하차", help, 23);
+            var helpText = Text("W/S 앞뒤  ·  A/D 균형  ·  Space 점프  ·  좌클릭/우클릭 옆줄 · 휠 클릭 앞뒤 전환  ·  F 목마 연결 / F 길게 하차", help, 23);
             Stretch(helpText.rectTransform, 16);
 
             lobby = Modal("방 접속", out lobbyGroup, out var lobbyPanel);

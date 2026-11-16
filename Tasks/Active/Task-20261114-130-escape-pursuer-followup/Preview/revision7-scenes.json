@@ -1,0 +1,38 @@
+[
+  {
+    "scene": "Assets/Scenes/Tests/EscapeRoute/Pursuer/EscapeRoutePursuitRemodel.unity",
+    "revision": 7,
+    "skins": 9,
+    "bones": 207,
+    "clips": 25,
+    "folds": 145,
+    "sleeves": 6,
+    "hitboxes": 8,
+    "missingScripts": 0,
+    "dirty": false
+  },
+  {
+    "scene": "Assets/Scenes/Levels/escape_route.unity",
+    "revision": 7,
+    "skins": 9,
+    "bones": 207,
+    "clips": 25,
+    "folds": 145,
+    "sleeves": 6,
+    "hitboxes": 8,
+    "missingScripts": 0,
+    "dirty": false
+  },
+  {
+    "scene": "Assets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity",
+    "revision": 7,
+    "skins": 9,
+    "bones": 207,
+    "clips": 25,
+    "folds": 145,
+    "sleeves": 6,
+    "hitboxes": 8,
+    "missingScripts": 0,
+    "dirty": false
+  }
+]

@@ -59,6 +59,12 @@ namespace CurtainCall.EscapeRoute
         void AdvanceCartJump(float dt)
         {
             float before = jumpTime;
+            if (serviceJump && jumpTime >= ContactTime * .45f && jumpTime < ContactTime)
+            {
+                float authoredFlight = ContactTime * .55f;
+                float travelTime = Vector3.Distance(takeoff, touchdown) / Mathf.Max(1f, Tuning.routeJumpSpeed);
+                dt *= Mathf.Min(1f, authoredFlight / Mathf.Max(authoredFlight, travelTime));
+            }
             jumpTime = Mathf.Min(jumpTime + dt, JumpDuration);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, jumpFacing, 270f * dt);
             SampleJump(jumpTime, takeoff, touchdown);
@@ -68,7 +74,8 @@ namespace CurtainCall.EscapeRoute
                 PlayStep(.8f);
             }
             if (jumpTime < JumpDuration) return;
-            if (serviceJump) fullRoute.CompleteJump();
+            if (encounterJump) CompleteEncounterJump();
+            else if (serviceJump) fullRoute.CompleteJump();
             else agent.CompleteOffMeshLink();
             agent.updatePosition = agent.updateRotation = true;
             jumping = false;
@@ -79,8 +86,16 @@ namespace CurtainCall.EscapeRoute
         internal void SampleJump(float time, Vector3 start, Vector3 end)
         {
             float flight = Mathf.InverseLerp(ContactTime * .45f, ContactTime, time);
-            transform.position = Vector3.Lerp(start, end, flight) + Vector3.up * (4.4f * flight * (1f - flight));
+            float arc = serviceJump ? ServiceJumpArc(start, end) : 4.4f;
+            transform.position = Vector3.Lerp(start, end, flight) + Vector3.up * (arc * flight * (1f - flight));
             SampleJumpPose(time);
+        }
+
+        public static float ServiceJumpArc(Vector3 start, Vector3 end)
+        {
+            float horizontal = Vector3.ProjectOnPlane(end - start, Vector3.up).magnitude;
+            return Mathf.Max(Tuning.routeJumpHeight * 4f, horizontal * Tuning.routeJumpHeightPerMetre * 4f,
+                Mathf.Abs(end.y - start.y) * 4f + 4.4f);
         }
 
         internal void SampleJumpPose(float time)

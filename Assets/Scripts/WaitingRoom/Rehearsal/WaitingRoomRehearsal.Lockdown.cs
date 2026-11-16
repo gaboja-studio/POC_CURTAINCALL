@@ -3,6 +3,7 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -59,10 +60,43 @@ namespace CurtainCall.WaitingRoom
                 var run = CampaignRun.Instance;
                 if (run == null) return false;
                 var state = run.State;
-                return state.Generation == 1 && (state.Phase == CampaignPhase.Rehearsal
+                return IsEducationGeneration(state) && (state.Phase == CampaignPhase.Rehearsal
                     || (state.Phase == CampaignPhase.Performance && state.Day == 1 && state.PerformanceIndex == 0));
             }
         }
+
+        /// <summary>최초 리허설을 거친 세대 번호. 개발용 시작 지점은 세대 번호가 2부터라, 1세대만 보면 제한이 통째로 꺼진다(2026-11-15 사용자 제보).</summary>
+        static int educationGeneration;
+        /// <summary>첫 교육 제한을 쓰는 세대인가: 1세대, 또는 이 세대에서 최초 리허설 시간대를 거쳤다.</summary>
+        static bool IsEducationGeneration(CampaignSnapshot state)
+        {
+            if (state.Phase == CampaignPhase.Rehearsal) educationGeneration = state.Generation;
+            return state.Generation == 1 || state.Generation == educationGeneration;
+        }
+
+        /// <summary>
+        /// 첫 외줄 공연을 마치고 대기실로 돌아와 대기실 튜토리얼을 모두 마치기 전(2026-11-15 사용자).
+        /// <see cref="IsPreTutorialRestricted"/>에 더해, 돌아온 뒤 전원이 안내를 확인할 때까지(가이드 쉬는 시간의 대기 상태)를 포함한다.
+        /// 이 동안 숙소·작업실/소품실·연습실은 철창으로 막고 그 안의 연출은 나오지 않는다. 모두에게 같은 런 상태로만 정한다.
+        /// </summary>
+        public static bool IsFirstTutorialPending
+        {
+            get
+            {
+                if (IsPreTutorialRestricted) return true;
+                var run = CampaignRun.Instance;
+                if (run == null) return false;
+                var state = run.State;
+                return IsEducationGeneration(state) && state.Day == 1 && state.Phase == CampaignPhase.RestTime
+                    && state.Rest == RestKind.Guide && state.Timer == RestTimerState.WaitingForExit;
+            }
+        }
+
+        /// <summary>대기실 튜토리얼이 끝날 때까지 닫아 두는 기존 철창(<see cref="NightDoorLock"/>가 부른다): 연습실 통로, 작업실 갈림길.</summary>
+        public static bool IsHeldThroughTutorial(string gate) => gate == NightDoorLock.RehearsalPassageName || gate == WorkshopGateName;
+        const string WorkshopGateName = "WorkshopGate";
+        /// <summary>대기실 튜토리얼이 끝날 때까지 닫아 두는 입구(숙소, 작업실·소품실). 북동쪽 홀은 예전처럼 첫 공연까지만 닫는다.</summary>
+        static bool HeldThroughTutorial(string opening) => opening != "LockdownGate_ShopHall";
 
         /// <summary>리허설 단계에서 기존 철창이 닫혀야 하는가(<see cref="NightDoorLock"/>가 부른다).</summary>
         public static bool IsGateLocked(string gate)
@@ -85,6 +119,7 @@ namespace CurtainCall.WaitingRoom
         {
             bool restricted = IsPreTutorialRestricted;
             RehearsalLockdownGate.Restricted = restricted;
+            RehearsalLockdownGate.TutorialPending = IsFirstTutorialPending;
             ShopReach.Locked = restricted;
         }
 
@@ -105,12 +140,17 @@ namespace CurtainCall.WaitingRoom
             var screenBezel = GameObject.Find("MonitorBezel");
             if (screenBezel != null && screenBezel.TryGetComponent(out Renderer bezelRenderer)) bezel = bezelRenderer.sharedMaterial;
             foreach (var (name, from, to) in LockdownOpenings)
-                lockdownGates.Add(RehearsalLockdownGate.Create(lockdownRoot, name, from, to, iron));
+                lockdownGates.Add(RehearsalLockdownGate.Create(lockdownRoot, name, from, to, iron, HeldThroughTutorial(name), LobbyCenter));
+            FindSealedAreas(layout.transform);
             // 실제 벽·천장에 붙인다(허공에 띄우지 않는다). 붙일 면을 못 찾으면 만들지 않는다.
-            var lobby = PlaceLobbyMonitor(bezel);
-            if (lobby != null) monitors.Add(lobby);
-            var corridor = PlaceCorridorMonitor(bezel);
-            if (corridor != null) monitors.Add(corridor);
+            // 모니터 연출을 맡는 물체가 씬에 있으면(최종본) 그쪽이 모니터를 만들고 켠다. 리허설 단계가 끝난 뒤에도 얼굴이 나와야 하기 때문이다(2026-11-14 사용자).
+            if (LobbyMonitorDirector.Instance == null)
+            {
+                var lobby = PlaceLobbyMonitor(bezel);
+                if (lobby != null) monitors.Add(lobby);
+                var corridor = PlaceCorridorMonitor(bezel);
+                if (corridor != null) monitors.Add(corridor);
+            }
             var area = GameObject.Find(PracticeAreaName);
             var collider = area != null ? area.GetComponent<Collider>() : null;
             practiceAreaFound = collider != null;
@@ -121,6 +161,73 @@ namespace CurtainCall.WaitingRoom
                 ? passage.transform.Find("FloorCollider")?.GetComponent<BoxCollider>() : null;
             practicePassageRoof = practicePassage != null
                 ? passage.transform.Find("PassageRoof")?.GetComponent<Collider>() : null;
+        }
+
+        // ── 닫힌 구역에 남은 사람 내보내기(2026-11-15 사용자) ──
+        static readonly string[] DormZones = { "Area_S02_Dormitory", "F8_Dorm", "Area_Dormitory" },
+            PropZones = { "F8_PropRoom", "WorkshopBranch", "Area_S04_PropRoom", "Area_S10_Workshop" },
+            PracticeZones = { "F8_Practice", PracticeAreaName },
+            ShopHallZones = { "ServiceGallery", "Area_S03_Shop", "Area_S08_ElevatorHall" };
+        /// <summary>철창 하나가 막는 구역: 구역 상자들 + 철창 자리(그 너머만 구역 안으로 본다. 통로 상자가 로비와 겹치기 때문이다).</summary>
+        readonly List<(bool practice, bool held, Vector3 gate, Vector3 outward, List<BoxCollider> zones)> sealedAreas = new();
+
+        void FindSealedAreas(Transform layout)
+        {
+            sealedAreas.Clear();
+            var timer = FindFirstObjectByType<ExplorationTimerZones>();
+            if (timer == null) return;
+            var all = timer.Zones;
+            BoxCollider lobby = System.Array.Find(all, z => z.name == "Lobby");
+            if (lobby == null) return;
+            Vector3 lobbyCenter = lobby.bounds.center;
+            void Add(bool practice, bool held, Vector3 gate, Vector3 normal, string[] names)
+            {
+                var zones = new List<BoxCollider>();
+                foreach (var zone in all) if (System.Array.IndexOf(names, zone.name) >= 0) zones.Add(zone);
+                if (zones.Count == 0) return;
+                normal.y = 0f; normal.Normalize();
+                // 로비 반대쪽이 구역 안이다.
+                if (Vector3.Dot(lobbyCenter - gate, normal) > 0f) normal = -normal;
+                sealedAreas.Add((practice, held, gate, normal, zones));
+            }
+            foreach (var (name, from, to) in LockdownOpenings)
+            {
+                // 북동쪽 홀(서비스 통로·상점·승강기)은 첫 공연까지만 닫히지만, 목마로 넘어가 갇히는 일이 있어 닫힌 동안은 같이 내보낸다(2026-11-15 사용자).
+                Add(false, HeldThroughTutorial(name), (from + to) * .5f, Vector3.Cross(to - from, Vector3.up),
+                    name == "LockdownGate_Dormitory" ? DormZones : name == "LockdownGate_ShopHall" ? ShopHallZones : PropZones);
+            }
+            var practiceGate = layout.Find("NightMaintenance/" + NightDoorLock.RehearsalPassageName);
+            if (practiceGate != null) Add(true, true, practiceGate.position, practiceGate.forward, PracticeZones);
+        }
+
+        /// <summary>
+        /// 철창이 닫혀 있는 동안 그 안(숙소, 작업실·소품실, 연습실)에 남아 있거나 다시 들어간 내 캐릭터를 로비 출발 자리로 옮긴다.
+        /// 연습실은 리허설 시간대에는 건드리지 않는다(리허설 진행과 실내 점유 규칙이 맡는다). 이동은 소유자 화면에서 하고 위치 동기화가 알린다.
+        /// </summary>
+        void TickSealedAreas()
+        {
+            if (lockdownRoot == null || sealedAreas.Count == 0 || SceneCurtainTransition.IsActive) return;
+            var player = NetworkPlayer.Local;
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || player.Slot == NetworkPlayer.NoSlot
+                || !player.TryGetComponent(out PlayerMover mover)) return;
+            bool rehearsal = run != null && run.State.Phase == CampaignPhase.Rehearsal;
+            Vector3 feet = player.transform.position, point = feet + Vector3.up * .5f;
+            bool restricted = IsPreTutorialRestricted;
+            foreach (var (practice, held, gate, outward, zones) in sealedAreas)
+            {
+                if (practice && rehearsal || !held && !restricted) continue;
+                if (Vector3.Dot(feet - gate, outward) < .4f) continue;
+                foreach (var zone in zones)
+                {
+                    if (zone == null || !zone.enabled || !zone.gameObject.activeInHierarchy) continue;
+                    var local = zone.transform.InverseTransformPoint(point) - zone.center; var half = zone.size * .5f;
+                    if (Mathf.Abs(local.x) > half.x || Mathf.Abs(local.y) > half.y || Mathf.Abs(local.z) > half.z) continue;
+                    PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out Vector3 position, out Quaternion rotation);
+                    mover.SetStartPose(position, rotation, true);
+                    Debug.Log("[Rehearsal] 닫힌 구역(" + zone.name + ")에 있던 내 캐릭터를 로비로 옮김");
+                    return;
+                }
+            }
         }
 
         static readonly Vector2 LobbyMonitorSize = new(3.2f, 1.8f), CorridorMonitorSize = new(2.6f, 1.46f);

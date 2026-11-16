@@ -33,7 +33,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var outlines=(IEnumerable)T("CurtainCall.UI.SceneIntegration.SilhouetteOutline").GetField("active",BindingFlags.Static|BindingFlags.NonPublic).GetValue(null);
                 Assert.IsTrue(outlines.Cast<object>().Any(o=>(Transform)Get(o,"Target")==phone.transform));
                 Assert.IsTrue(outlines.Cast<object>().Any(o=>(Transform)Get(o,"Target")==player.transform));
-                Call(pulse,"EvaluateAt",(float)Get(pulse,"TravelSeconds")+.15f);
+                yield return new WaitForSecondsRealtime(.5f); // first appearance fades in
+                Call(pulse,"EvaluateAt",(float)Get(pulse,"PulseIntervalSeconds")*2+.15f);
                 Assert.Greater((float)Get(Get(pulse,"ArrivalEcho"),"Opacity"),0);
                 var camera=Camera.main;
                 foreach(Behaviour brain in Object.FindObjectsByType(T("Unity.Cinemachine.CinemachineBrain"),FindObjectsSortMode.None))brain.enabled=false;
@@ -73,6 +74,27 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var service = Find("CurtainCall.UI.Wayfinding.NavigationService");
             Assert.AreEqual(0, service.GetComponentsInChildren<LineRenderer>(true).Length);
             Assert.Greater(service.GetComponentsInChildren<SpriteRenderer>().Length, 3);
+            yield return new WaitForSecondsRealtime(.5f); // first appearance fades in
+            {
+                // Player start: the feet stay clear; visible arrows begin the configured gap ahead.
+                var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+                var common = Get(T("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null), "Navigation");
+                float gap = (float)Get(common, "PlayerStartGap");
+                var view = service.GetComponentsInChildren(T("CurtainCall.UI.Wayfinding.RehearsalNavigationView"))
+                    .First(v => ((Transform)Get(v, "Destination")).gameObject.activeSelf);
+                var arrows = ((System.Collections.Generic.IEnumerable<Transform>)Get(view, "MarkerInstances")).ToList();
+                float nearestVisible = float.PositiveInfinity;
+                for (int i = 0; i < arrows.Count; i++)
+                {
+                    if (!arrows[i].gameObject.activeSelf || (float)Call(view, "GetMarkerPresence", i) < .01f) continue;
+                    var offset = arrows[i].position - local.transform.position; offset.y = 0;
+                    nearestVisible = Mathf.Min(nearestVisible, offset.magnitude);
+                }
+                Debug.Log($"[NavigationGap] gap={gap} nearest visible arrow={nearestVisible:0.00}m");
+                Assert.Greater(gap, 0f);
+                Assert.GreaterOrEqual(nearestVisible, gap - .05f, "No visible arrow may sit inside the player start gap.");
+                Assert.Less(nearestVisible, float.PositiveInfinity, "Arrows must still be visible beyond the gap.");
+            }
             var reviewCamera = new GameObject("Navigation validation camera").AddComponent<Camera>();
             try
             {

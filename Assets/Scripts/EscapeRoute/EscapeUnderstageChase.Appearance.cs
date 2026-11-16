@@ -14,7 +14,7 @@ namespace CurtainCall.EscapeRoute
         internal struct AppearancePose
         {
             public int Action;
-            public float Time, Stride, Run, Duck;
+            public float Time, Stride, Run, Duck, WallContactWeight, CrouchBlend, WalkBlend, IdleBlend;
             public bool Resting, Look, Stretch;
             public Vector3 Aim, Hand;
         }

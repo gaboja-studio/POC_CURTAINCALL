@@ -15,7 +15,7 @@ namespace CurtainCall.HumanCannon.EditorTools
     public static class HumanCannonSawGateSplitBuilder
     {
         // 2026-11-03 담당자 요청으로 좌우 0.5m → 1m.
-        const float SideMargin = 1f;
+        const float SideMargin = 2f;
 
         [MenuItem("Tools/CurtainCall/인간 대포/톱벽 좌우 분리 적용")]
         public static void ApplyToOpenScene()

@@ -76,11 +76,11 @@ namespace CurtainCall.UI.Wayfinding.Editor
             var view=Object.Instantiate(prefab,root.transform).GetComponent<RehearsalNavigationView>();
             var pulse=view.GetComponent<NavigationPulseSequence>();pulse.AutomaticPlayback=false;
             view.SetPath(new[]{root.transform.position,root.transform.position+Vector3.forward*6});
-            pulse.SetEndpointPresentation(true,true,root.transform.position);pulse.EvaluateAt(pulse.TravelSeconds+.1f);
+            pulse.SetEndpointPresentation(true,true,root.transform.position);pulse.EvaluateAt(pulse.PulseIntervalSeconds*3+.1f);
             Assert.IsTrue(pulse.DestinationBeaconHidden);Assert.Greater(pulse.ArrivalEcho.Opacity,0);
             Assert.AreEqual(0,view.Destination.Find("Beacon core").GetComponent<NavigationPulseGlyph>().Opacity);
             Assert.IsTrue(pulse.DepartureEcho.gameObject.activeSelf);
-            pulse.EvaluateAt(.1f);Assert.Greater(pulse.DepartureEcho.Opacity,0);
+            pulse.EvaluateAt(pulse.DepartureLightSeconds+.1f);Assert.Greater(pulse.DepartureEcho.Opacity,0);
             var slope=GameObject.CreatePrimitive(PrimitiveType.Cube);
             slope.transform.SetParent(root.transform,false);slope.transform.localPosition=Vector3.down*.15f;
             slope.transform.localScale=new Vector3(4,.2f,4);slope.transform.localRotation=Quaternion.Euler(0,0,15);

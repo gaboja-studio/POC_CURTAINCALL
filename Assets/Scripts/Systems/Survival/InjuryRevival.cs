@@ -35,7 +35,9 @@ namespace CurtainCall.Survival
                 case CampaignPhase.Performance:
                     SurvivalRules.ServerPlace = SurvivalPlace.Performance;
                     // 런 실패는 도입/로비를 건너뛰므로 첫 공연에서 새 세대의 몸을 복구한다.
-                    if (step.Generation > 1 && step.Day == 1 && step.PerformanceIndex == 0 && step.LastEnd != RunEndReason.None)
+                    if (step.Generation > 1 && step.Day == 1 && step.PerformanceIndex == 0
+                        && step.LastEnd != RunEndReason.None
+                        && step.LastEnd is not (RunEndReason.Deadline or RunEndReason.EscapeAllRetired))
                         NetworkPlayer.ServerRestoreEveryone();
                     // 공연 사망자는 이미 쉬는 시간·밤 정비에 부활했으므로 여기 남은 사망자는 쉬는 시간에 잡혀 죽은 사람이다.
                     int caught = NetworkPlayer.ServerReviveAllDead();
@@ -44,6 +46,9 @@ namespace CurtainCall.Survival
                 case CampaignPhase.RestTime:
                 case CampaignPhase.Night:
                     SurvivalRules.ServerPlace = SurvivalPlace.Exploration;
+                    if (step.Phase == CampaignPhase.RestTime && step.Rest == RestKind.Morning && step.Day == 1
+                        && step.Generation > 1 && step.LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired)
+                        NetworkPlayer.ServerRestoreEveryone();
                     // 밤 추격으로 리타이어한 사람은 수면 연출이 끝난 다음 날 아침 대기실에서 복귀한다.
                     if (step.Phase == CampaignPhase.RestTime && step.Rest == RestKind.Morning)
                         foreach (var player in NetworkPlayer.All)

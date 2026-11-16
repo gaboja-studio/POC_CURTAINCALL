@@ -23,7 +23,7 @@ namespace CurtainCall.UI.SceneIntegration
         [Header("외줄타기 · 첫날 학습 가이드")]
         [InspectorName("외줄 · 출발대에서 자유 이동 중"), Tooltip("외줄 · 출발대에서 자유 이동 중")] public Cue approach = new("외줄에 올라가기", "줄 위로 걸어가면 자동으로 올라탑니다.", "{move}");
         [InspectorName("외줄 · 줄 위에 올라선 순간"), Tooltip("외줄 · 줄 위에 올라선 순간")] public Cue balance = new("외줄에서 균형 잡기", "{forward}로 이동하고 {balance}로 기울어지는 반대 방향을 누르세요.", "{balance}");
-        [InspectorName("외줄 · 첫 장애물 안내 이후"), Tooltip("외줄 · 첫 장애물 안내 이후")] public Cue lane = new("옆줄로 이동하기", "{side}를 누른 채 {jump}로 점프하세요.", "{side}");
+        [InspectorName("외줄 · 첫 장애물 안내 이후"), Tooltip("외줄 · 첫 장애물 안내 이후")] public Cue lane = new("옆줄로 이동하기", "{side}로 점프하세요. {turn}으로 앞뒤를 전환합니다.", "{side}");
         [InspectorName("외줄 · 세로 톱날 또는 닫힌 협동 게이트 접근"), Tooltip("외줄 · 세로 톱날 또는 닫힌 협동 게이트 접근")] public Cue sawGate = new("톱날 뒤 버튼 누르기", "목마를 이용하거나 옆줄로 이동해 톱날 뒤의 버튼을 누르세요.", "");
         [InspectorName("외줄 · 움직이는 가로 톱날 접근"), Tooltip("외줄 · 움직이는 가로 톱날 접근")] public Cue sawJump = new("톱날 뛰어넘기", "다가오는 톱날에 맞춰 {jump}로 점프하세요.", "{jump}");
         [InspectorName("외줄 · 중계봉에 매달림"), Tooltip("외줄 · 중계봉에 매달림")] public Cue relayHeld = new("동료가 건너도록 버티기", "최대 {seconds}초 동안 버틸 수 있습니다.", "");
@@ -50,7 +50,7 @@ namespace CurtainCall.UI.SceneIntegration
                 : text;
         }
 
-        internal static string FormatKeys(string template, PlayerInputReader input, string interact = "F", string jump = "Space")
+        public static string FormatKeys(string template, PlayerInputReader input, string interact = "F", string jump = "Space")
         {
             if (string.IsNullOrEmpty(template) || !template.Contains("{")) return template ?? "";
             string Action(string name,string fallback) => input ? input.BindingLabel(name,fallback) : fallback;
@@ -60,7 +60,8 @@ namespace CurtainCall.UI.SceneIntegration
             string action = Action("Action",jump);
             return template.Replace("{interact}",Action("Interact",interact)).Replace("{jump}",action).Replace("{action}",action)
                 .Replace("{forward}",ws).Replace("{balance}",ad).Replace("{move}",ws+" · "+ad)
-                .Replace("{side}",Action("DirectionLeft","Q")+"/"+Action("DirectionRight","E"));
+                .Replace("{side}",Action("DirectionLeft","좌클릭")+"/"+Action("DirectionRight","우클릭"))
+                .Replace("{turn}",Action("TurnAround","휠 클릭"));
         }
     }
 }

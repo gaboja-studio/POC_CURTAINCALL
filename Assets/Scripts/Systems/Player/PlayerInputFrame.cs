@@ -23,6 +23,7 @@ namespace CurtainCall.Player
 
         /// <summary>좌우 보조 방향. 누르고 있는 동안만 -1 왼쪽(기본 Q), +1 오른쪽(기본 E), 둘 다 또는 없음 0.</summary>
         public int AuxDirection;
+        public bool LaneChangePressed;
 
         /// <summary>상호작용(기본 F)을 짧게 눌렀다 뗐는지. 뗀 프레임에 한 번.</summary>
         public bool InteractTapped;

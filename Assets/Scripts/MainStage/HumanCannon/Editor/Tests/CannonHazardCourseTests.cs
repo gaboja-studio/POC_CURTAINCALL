@@ -46,6 +46,49 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 SceneManager.SetActiveScene(previous);
         }
 
+        [Test, Category("CannonTierConnection")]
+        public void ScheduledTierConnectsToTheStageTwoSwitchesInTheBuiltScene()
+        {
+            var preview = EditorSceneManager.OpenPreviewScene(HumanCannonTestSceneBuilder.ScenePath);
+            var previewRoots = preview.GetRootGameObjects();
+            T[] Preview<T>() where T : Component => previewRoots.SelectMany(r => r.GetComponentsInChildren<T>(true)).ToArray();
+            var course = Preview<HumanCannonHazardCourse>().Single();
+            var stage = Preview<HumanCannonGroundFireCycle>().Single();
+            var sessionObject = new GameObject("Cannon tier host");
+            sessionObject.SetActive(false);
+            var session = sessionObject.AddComponent<CurtainCall.Network.Session.NetworkSessionManager>();
+            typeof(CurtainCall.Network.Session.NetworkSessionManager).GetProperty("ConnectionState")
+                .SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var courseType = typeof(HumanCannonHazardCourse);
+            var oldCourse = HumanCannonHazardCourse.Current;
+            try
+            {
+                courseType.GetField("session", members).SetValue(course, session);
+                courseType.GetProperty("Current").SetValue(null, course);
+                var apply = courseType.GetMethod("ApplyScheduledDifficulty", members);
+                var update = typeof(HumanCannonGroundFireCycle).GetMethod("Update", members);
+                var onEnable = typeof(HumanCannonGroundFireCycle).GetMethod("OnEnable", members);
+                var poles = Preview<HumanCannonPole>().Where(p => p.name.StartsWith("FireSwitchPole")).ToArray();
+                Assert.That(poles, Has.Length.EqualTo(6));
+                onEnable.Invoke(stage, null);
+                foreach (int level in new[] { 1, 2, 3 })
+                {
+                    Assert.IsTrue((bool)apply.Invoke(course, new object[] { level }));
+                    update.Invoke(stage, null);
+                    Assert.IsTrue(poles.All(p => p.InteractionAvailable == (level == 2) && p.PresentationVisible == (level == 2)));
+                }
+            }
+            finally
+            {
+                typeof(HumanCannonGroundFireCycle).GetMethod("OnDisable", members).Invoke(stage, null);
+                courseType.GetProperty("Current").SetValue(null, oldCourse);
+                courseType.GetField("session", members).SetValue(course, null);
+                Object.DestroyImmediate(sessionObject);
+                EditorSceneManager.ClosePreviewScene(preview);
+            }
+        }
+
         [TestCase(1, 1f, 0.6f)]
         [TestCase(2, 1.25f, 0.8f)]
         [TestCase(3, 1.5f, 1f)]

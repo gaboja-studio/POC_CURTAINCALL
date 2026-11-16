@@ -17,10 +17,12 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] BoxCollider encounterArea;
         [SerializeField, Min(0)] float impactTime = 2.3f;
         [SerializeField, Min(0)] float fragmentsClearTime = 3.15f;
+        [SerializeField] AnimationCurve entranceTravel;
 
         // The first foot lands clear of the opening at 3.97 s in UnderstageEntrance.
-        const float FirstHallPlant = 3.97f;
+        internal const float FirstHallPlant = 3.97f;
         float lastSample = -1f, turnYaw;
+        Vector3 impactPoint;
         EscapeUnderstageChase chase;
         struct EntranceClock : INetworkSerializeByMemcpy { public double Round, Started; }
         const string EntranceMessage = "CurtainCall.Escape.CorridorEntrance.v1";
@@ -29,7 +31,12 @@ namespace CurtainCall.EscapeRoute
 
         public bool EntranceComplete => entrance && lastSample >= entrance.length;
         internal float ImpactTime => impactTime;
+        internal float SampleTime => Mathf.Max(0, lastSample);
         internal float Duration => entrance.length;
+        internal Vector3 ContactPoint => impactPoint;
+        internal float TravelAfterImpact(float time) => entranceTravel != null && entranceTravel.length > 1
+            ? Mathf.Max(0, entranceTravel.Evaluate(time) - entranceTravel.Evaluate(impactTime + EscapePursuerWalls.FollowThrough))
+            : Mathf.Max(0, time - impactTime - EscapePursuerWalls.FollowThrough) * 2.2f;
 
         void Awake() => chase = pursuer.GetComponent<EscapeUnderstageChase>();
 
@@ -72,7 +79,8 @@ namespace CurtainCall.EscapeRoute
         {
             foreach (var player in NetworkPlayer.All)
                 if (player && player.IsSpawned && player.State == PlayerState.Normal
-                    && EscapeEntrance.Contains(encounterArea, player.transform.position)) return true;
+                    && (EscapeEntrance.Contains(encounterArea, player.transform.position)
+                        || chase && chase.RunnerIsOnRoute(player))) return true;
             return false;
         }
 
@@ -107,16 +115,31 @@ namespace CurtainCall.EscapeRoute
                 concreteAndFootsteps.time = time;
                 concreteAndFootsteps.Play();
             }
+            entrance.SampleAnimation(gameObject, time);
+            if (time <= impactTime || lastSample < impactTime)
+            {
+                Vector3 fist = pursuer.transform.position + Vector3.up * 3.6f;
+                if (closedPanel)
+                {
+                    var panel = closedPanel.transform;
+                    var local = panel.InverseTransformPoint(fist) - closedPanel.center;
+                    Vector3 half = closedPanel.size * .5f;
+                    local.x = Mathf.Clamp(local.x, -half.x, half.x);
+                    local.y = Mathf.Clamp(local.y, -half.y, half.y);
+                    local.z = Mathf.Clamp(local.z, -half.z, half.z);
+                    fist = panel.TransformPoint(local + closedPanel.center);
+                }
+                else fist += pursuer.transform.forward * 2f;
+                impactPoint = fist;
+            }
             bool solid = time < impactTime;
             bool showFragments = time < fragmentsClearTime;
             if (closedPanel.enabled != solid) closedPanel.enabled = solid;
             if (fragments.activeSelf != showFragments) fragments.SetActive(showFragments);
             if (pursuer.activeSelf != (time > 0f)) pursuer.SetActive(time > 0f);
-            entrance.SampleAnimation(gameObject, time);
             TurnTowardPlayer(time);
             lastSample = time;
         }
-
         void TurnTowardPlayer(float time)
         {
             var host = NetworkPlayer.Local;

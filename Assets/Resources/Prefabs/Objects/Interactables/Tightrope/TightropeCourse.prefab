@@ -148,12 +148,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
   artProfile: {fileID: 0}
   showSectionSigns: 0
+  safeGroundMaterial: {fileID: 0}
+  safeGroundUv: {x: 0.5347, y: 0.2872}
   independentSceneRopes: 0
   spawnPoints:
   - {fileID: 5280814123298984889}
   - {fileID: 3804338068807545770}
   - {fileID: 2331872781909530610}
   - {fileID: 5202966602762029436}
+  startStage: 1
   useSceneGeometry: 0
   sceneShape:
     laneCount: 4

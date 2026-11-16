@@ -76,9 +76,12 @@ namespace CurtainCall.Player
         /// <summary>외곽선을 그릴 플레이어. 관전 중이면 관전 대상(없으면 아무도 없음), 아니면 내 캐릭터.</summary>
         protected static NetworkPlayer FocusPlayer => CameraSpectator.IsSpectating ? CameraSpectator.Target : NetworkPlayer.Local;
 
-        /// <summary>이 표시가 지금 그릴 수 있는지. 공간 설정이 꺼진 곳에서는 그리지 않는다.</summary>
-        protected virtual bool Ready => markerMaterial != null
-            && GameSettings.Base.LandingMarker.ShowIn(SpaceOf(isFallback ? SceneManager.GetActiveScene() : gameObject.scene));
+        /// <summary>이 표시가 지금 그릴 수 있는지. 그림자·번짐은 공간과 무관하게 그린다.</summary>
+        protected virtual bool Ready => markerMaterial != null;
+
+        /// <summary>지금 공간에서 외곽선(옷 색·안전/비안전)을 그리는지. 꺼진 공간은 그림자·번짐만 보인다.</summary>
+        protected bool OutlineShown => GameSettings.Base.LandingMarker.ShowIn(
+            CurrentSpace(isFallback ? SceneManager.GetActiveScene() : gameObject.scene));
 
         /// <summary>그림자를 표시할 공중 상태인지.</summary>
         protected virtual bool IsAirborne(NetworkPlayer player) => player.State == PlayerState.Normal && player.IsAirborne;
@@ -116,8 +119,9 @@ namespace CurtainCall.Player
         {
             if (!Ready || isFallback && AuthoredDrawing()) { HideAll(); return; }
             var settings = GameSettings.Base.LandingMarker;
-            var focus = FocusPlayer;
-            bool outlineAll = settings.OutlineAllForTrampolineCarrier && HumanCannonTrampoline.IsCarriedBy(focus);
+            bool outlined = OutlineShown;
+            var focus = outlined ? FocusPlayer : null;
+            bool outlineAll = outlined && settings.OutlineAllForTrampolineCarrier && HumanCannonTrampoline.IsCarriedBy(focus);
             bool targetShown = false;
             foreach (var player in NetworkPlayer.All)
             {
@@ -125,7 +129,8 @@ namespace CurtainCall.Player
                 var feet = player.transform.position;
                 Vector3 point = default, normal = Vector3.up;
                 Collider surface = null;
-                bool visible = IsAirborne(player) && TryProjectGround(feet, out point, out normal, out surface)
+                bool trampoline = false;
+                bool visible = IsAirborne(player) && TryProjectGround(feet, out point, out normal, out surface, out trampoline)
                     && feet.y - point.y > MinShownHeight;
                 float height = feet.y - point.y;
                 float blur = visible ? settings.BlurAt(height) : 1;
@@ -140,13 +145,13 @@ namespace CurtainCall.Player
                 if (!visible) continue;
                 marker.SetPositionAndRotation(point + normal * 0.025f, Quaternion.FromToRotation(Vector3.up, normal));
                 marker.localScale = Vector3.one * (radius * Mathf.Lerp(1, settings.BlurSpread, blur));
-                // 안전 판정은 내 캐릭터(관전 대상)만, 안전 체크 높이 안에서만 한다.
+                // 안전 판정은 외곽선을 그리는 공간에서 내 캐릭터(관전 대상)만, 안전 체크 높이 안에서만 한다.
                 var band = settings.BandAt(height);
-                bool check = player == focus && band == BaseGameSettings.LandingOutlineBand.SafetyCheck;
-                bool safe = check && player.TryGetComponent(out PlayerMover mover) && HasSafeLandingBelow(mover, feet, point, surface);
+                bool check = focus != null && player == focus && band == BaseGameSettings.LandingOutlineBand.SafetyCheck;
+                bool safe = check && IsSafeLanding(player, feet, point, surface, trampoline);
                 Color outline = Color.clear;
                 if (check) outline = safe ? settings.SafeColor : settings.UnsafeColor;
-                else if (band != BaseGameSettings.LandingOutlineBand.None && (outlineAll || player == focus))
+                else if (outlined && band != BaseGameSettings.LandingOutlineBand.None && (outlineAll || player == focus))
                     outline = settings.OutlineColor(player.OutfitColor);
                 Paint(marker, outline, settings.OutlineWidth / radius, blur, clipSurface: surface, clipNormal: normal);
                 if (check) targetShown |= ShowFocusTarget(safe, surface, point);
@@ -167,10 +172,15 @@ namespace CurtainCall.Player
             => TryProjectGround(feet, out point, out normal, out _);
 
         protected bool TryProjectGround(Vector3 feet, out Vector3 point, out Vector3 normal, out Collider surface)
+            => TryProjectGround(feet, out point, out normal, out surface, out _);
+
+        /// <param name="trampoline">착지 지점이 트램펄린 반동 면이면 true(이때 <paramref name="surface"/>는 null).</param>
+        protected bool TryProjectGround(Vector3 feet, out Vector3 point, out Vector3 normal, out Collider surface, out bool trampoline)
         {
             point = default;
             normal = Vector3.up;
             surface = null;
+            trampoline = false;
             Vector3 origin = feet + Vector3.up * 0.05f;
             int count = RaycastDown(origin, maxDistance);
             float nearest = float.PositiveInfinity;
@@ -184,20 +194,32 @@ namespace CurtainCall.Player
                 surface = hit.collider;
             }
             // 트램펄린은 물리 Collider 없이 별도 반동 면으로 동작한다. 천 아래로 표시가 가려지지 않게 그 면을 쓴다.
-            var trampoline = HumanCannonTrampoline.Current;
-            if (trampoline != null && trampoline.isActiveAndEnabled)
+            var pad = HumanCannonTrampoline.Current;
+            if (pad != null && pad.isActiveAndEnabled)
             {
-                var candidate = new Vector3(feet.x, trampoline.Surface.y, feet.z);
-                var local = trampoline.transform.InverseTransformPoint(candidate);
+                var candidate = new Vector3(feet.x, pad.Surface.y, feet.z);
+                var local = pad.transform.InverseTransformPoint(candidate);
                 float distance = origin.y - candidate.y;
                 if (!TrampolineBlocked(candidate) && distance >= 0 && distance < nearest && distance <= maxDistance
-                    && Mathf.Abs(local.x) <= trampoline.HalfSize.x && Mathf.Abs(local.z) <= trampoline.HalfSize.y)
-                { nearest = distance; point = candidate; normal = Vector3.up; surface = null; }
+                    && Mathf.Abs(local.x) <= pad.HalfSize.x && Mathf.Abs(local.z) <= pad.HalfSize.y)
+                { nearest = distance; point = candidate; normal = Vector3.up; surface = null; trampoline = true; }
             }
             return !float.IsPositiveInfinity(nearest);
         }
 
-        /// <summary>발밑 면이 실제 안전 착지면이고, 발과 그 면 사이를 다른 구조물이 가로막지 않는지.</summary>
+        /// <summary>
+        /// 이 착지가 안전한지(외곽선 안전 색). 반동하는 트램펄린 위이거나, 발밑 면이 실제 지지면이고 가로막히지 않았으며
+        /// 지금 낙하 높이로 내려서도 부상이 없을 때(<see cref="NetworkPlayer.PredictsSafeLanding"/>) 안전이다.
+        /// </summary>
+        protected bool IsSafeLanding(NetworkPlayer player, Vector3 feet, Vector3 point, Collider surface, bool trampoline)
+        {
+            if (trampoline)
+                return HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.BounceReady;
+            return player.TryGetComponent(out PlayerMover mover) && HasSafeLandingBelow(mover, feet, point, surface)
+                && player.PredictsSafeLanding(point);
+        }
+
+        /// <summary>발밑 면이 실제 지지면이고, 발과 그 면 사이를 다른 구조물이 가로막지 않는지(낙하 높이는 보지 않음).</summary>
         protected bool HasSafeLandingBelow(PlayerMover mover, Vector3 feet, Vector3 point, Collider surface)
         {
             if (mover == null || surface == null || !surface.enabled || !surface.gameObject.activeInHierarchy
@@ -322,6 +344,14 @@ namespace CurtainCall.Player
         /// 대기실 씬 안의 연습실도 대기실로 본다.
         /// </summary>
         public static LandingMarkerSpace SpaceOf(Scene scene) => SpaceOf(scene.name, scene.path);
+
+        /// <summary>지금의 공간. 대기실 씬에서 외줄·인간대포 리허설이 진행 중이면 리허설로 본다.</summary>
+        public static LandingMarkerSpace CurrentSpace(Scene scene) => RehearsalAware(SpaceOf(scene),
+            CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsActive);
+
+        /// <summary>대기실 공간을 리허설 진행 여부에 따라 리허설로 바꾼다.</summary>
+        public static LandingMarkerSpace RehearsalAware(LandingMarkerSpace space, bool rehearsalActive) =>
+            space == LandingMarkerSpace.WaitingRoom && rehearsalActive ? LandingMarkerSpace.Rehearsal : space;
 
         /// <inheritdoc cref="SpaceOf(Scene)"/>
         public static LandingMarkerSpace SpaceOf(string sceneName, string scenePath)

@@ -1,11 +1,24 @@
 ---
-summary: W3 공연 스케줄표 읽기 전용 표시 계약·일차별 스크롤과 독립 확인 씬
+summary: W3 티켓형 v2 실게임 프리팹·공연/난이도 입력·포커스 overlay와 보존된 v1 계약
 status: active
-updated: 2026-10-20
-source: Task-20261019-061
+updated: 2026-11-14
+source: Task-20261019-061, Task-20261114-132 사용자 승인·실제 포인터 PlayMode 2건·EditMode 5건
 ---
 
 # W3 공연 스케줄표 UI
+
+## 현행 실게임 v2 (2026-11-14)
+- `CommonWaitingRoomUI.unity`는 `Assets/Resources/Prefabs/UIs/Roles/Retained/ScheduleUi/SchedulePanelV2.prefab`을 사용한다. 기존 v1 프리팹/원본은 보존한다.
+- 사용자 확정: 공연명 최우선(62pt), 난이도 보조(30pt). 화살표만 난이도 변경, 나머지 슬롯은 공연 변경. 3일×2공연과 기존 권한/해금/1일차/보상 규칙 유지.
+- `ScheduleTicketCard`의 슬롯/이전/다음 Button이 입력을 분리한다. 1~3 경계/미해금은 비활성, 성공한 변경은 1.5초 적용 문구·체크·테두리로 표시한다.
+- `WaitingRoomScheduleUI.Board`는 비포커스 WorldSpace, 포커스 ScreenSpaceOverlay(110)로 같은 UI를 전환한다. 전체 화면 입력 차단 배경, 툴팁250, 닫기 때 판의 원래 위치/크기 복귀. 다른 플레이어 Renderer/Collider/네트워크는 변경하지 않는다.
+- `ScheduleScreenHold.Keep/Forget`으로 집중 표시 Canvas를 보존하고 해제한다. 음성 개발 IMGUI도 포커스 중 숨긴다.
+- GPT Image 5원본/15 Sprite subasset은 `Assets/_ThirdParty/curtaincall_schedule_v2/`에 있다. 승인 시안·제작 프롬프트·sprite-catalog.json을 보관한다. Unity 패키지는 Task의 `export-kit.cs`에서 로컬 재생성한다. 2개 비교/선택 장식은 런타임 미사용.
+- 조립기 `Assets/Scripts/UI/SceneIntegration/Editor/ScheduleTicketKitBuilder.cs`의 Build/Install. 전용 Static TMP 폰트로 기존 폰트 원본을 수정하지 않는다. 현재 프로젝트에 Sprite Editor 패키지가 없어 TextureImporter의 SpriteMetaData를 사용한다.
+- 검증: 입력·경계·재열기 PlayMode 검사 및 동일 PC의 독립 에디터 2개 LAN 연결로 공연·난이도 수신, 참가자 읽기 전용, 실제 접속 캐릭터의 판 앞 교차 중 호스트 화살표 입력을 확인했다. Task-20261114-132의 multiplayer-verification.md 참조. 별도 PC·Relay는 미검증이다.
+- 최신 회귀에서는 첫날 공연 뒤 `SetTutorialDone`/`RefreshGuideRest`를 보내야 집결 가능하다. 구 난이도 테스트의 준비 단계도 이 조건에 맞췄다. GameSettings와 RunState 규칙은 변경하지 않았다.
+
+## 보존된 v1 계약
 
 ## 언제 읽나
 - 공연 일정표 조립·표시 자료 주입·닫기/열별 스크롤 어댑터 연결 전에 읽는다.

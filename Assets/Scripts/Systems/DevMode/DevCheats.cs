@@ -91,6 +91,6 @@ namespace CurtainCall.Dev
 
         // 도메인 리로드 없이 Play에 들어가도 치트가 꺼진 상태로 시작한다. 공급자는 정적 등록이라 유지한다.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetState() { suppressFalls = false; holdCheckpointWipe = true; ResetCheckpointProgress(); }
+        static void ResetState() { suppressFalls = false; holdCheckpointWipe = false; excludedTargets.Clear(); ResetCheckpointProgress(); }
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 밤 정비 동안 대기실 문(로비 ↔ ⑥ 무대 입구 통로)을 잠근다. 기준: night-maintenance.md — 문이 잠기고 무대 입구 통로로 갈 수 없으며 탐색 제한 시간이 없다.
+    /// 밤 정비 동안 대기실 문(로비 ↔ ⑥ 무대 입구 통로)을 잠근다. 2026-11-13 사용자: 밤에는 무대 입구 통로 셔터만 닫고 다른 철창은 열어 둔다. 기준: night-maintenance.md — 문이 잠기고 무대 입구 통로로 갈 수 없으며 탐색 제한 시간이 없다.
     /// 문은 공장식 롤링 셔터다. 밤이 되면 위에서 내려와 닫히고(셔터 판의 충돌체가 통로를 막음), 아침 쉬는 시간이 되면 말려 올라가 열린다.
     /// 움직이는 동안 경고등이 깜박인다. 잠김 여부는 모두에게 공유되는 런 상태(<see cref="CampaignRun.State"/>)로만 정하므로 네 화면이 같다.
     /// 타이머는 밤에 공용 상태가 None이라 따로 멈추지 않고, 화면 위쪽에 밤 정비 안내만 띄운다.
@@ -83,6 +83,9 @@ namespace CurtainCall.WaitingRoom
         /// <summary>연습실 통로 철창 이름. 최초 리허설 동안 이 철창만 열어 둔다(Task-097, 기획서 2장: 리허설·공연 입구 이동에 필요한 공간 외에는 철창).</summary>
         public const string RehearsalPassageName = "PracticeGate";
 
+        /// <summary>무대 입구 통로 셔터 이름. 밤에는 이 문만 닫는다(2026-11-13 사용자). 나머지 철창은 첫 공연 전 동선 제한·새벽·데모 엔딩에만 닫힌다.</summary>
+        public const string StageEntranceName = "NightSchedule";
+
         bool CannonPracticeSeal => name == RehearsalPassageName && WaitingRoomCannonRehearsal.IsActive
             && GameSettings.WaitingRoom.Tutorial.SealCannonPracticeExit;
 
@@ -92,14 +95,26 @@ namespace CurtainCall.WaitingRoom
             if (run == null) return false;
             var phase = run.State.Phase;
             if (CannonPracticeSeal) return true;
+            // 무대 입구 통로 철창은 정비 시간에만 닫는다(탐색 잠금·리허설 동선 제한과 무관, Task-129).
+            if (name == StageCorridorClosure.GateName) return StageCorridorClosure.IsClosed(run.State);
             if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
-            return GameSettings.Base.Run.IsExplorationLocked(run.State)
-                || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
+            // 첫 공연 뒤 대기실 튜토리얼이 끝날 때까지 연습실·작업실 철창은 닫아 둔다(2026-11-15 사용자).
+            if (WaitingRoomRehearsal.IsFirstTutorialPending && WaitingRoomRehearsal.IsHeldThroughTutorial(name)) return true;
+            if (phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding) return true;
+            // 밤(탐색 잠금 시간대)에는 무대 입구 통로로 가는 길만 닫는다.
+            return name == StageEntranceName && GameSettings.Base.Run.IsExplorationLocked(run.State);
+        }
+
+        /// <summary>실행 중에 만든 철창(<see cref="StageCorridorClosure"/>)을 연결한다. 꺼진 오브젝트에 붙인 직후, 켜기 전에 부른다.</summary>
+        internal void Configure(Transform bars, bool legacyNotice)
+        {
+            shutter = bars;
+            showLegacyNotice = legacyNotice;
         }
 
         bool UpdateTutorialBarrier()
         {
-            bool protect = IsLocked && name != RehearsalPassageName && WaitingRoomRehearsal.IsPreTutorialRestricted;
+            bool protect = IsLocked && name != RehearsalPassageName && WaitingRoomRehearsal.IsFirstTutorialPending;
             if (protect == tutorialProtected) return false;
             tutorialProtected = protect;
             if (protect && tutorialBarrier == null && shutter != null && shutter.GetComponentInChildren<BoxCollider>(true) is BoxCollider panel)

@@ -1,7 +1,7 @@
 ---
 summary: 실제 이동 소유권과 애니메이션 상태를 함께 인계하고, 부활·새 점프가 이전 착지 모션에 가려지지 않게 한다.
 status: active
-updated: 2026-11-12
+updated: 2026-11-14
 source: Task-20261109-114, CommonMotionRegression, CommonMotionVisual, 11/11 오후 4인 보고 및 11/12 행동 조합 재검사
 ---
 
@@ -25,6 +25,7 @@ source: Task-20261109-114, CommonMotionRegression, CommonMotionVisual, 11/11 오
 - Restarted뿐 아니라 Revived에서도 모션·정렬·샘플을 초기화한다. 낮은 지연에서는 Fallen 프레임이 생략될 수 있다.
 - 운반 레이어 캐시와 실제 Animator 상태를 함께 확인한다. Rebind는 상태만 초기화한다.
 - 치료 승강기처럼 목마 소유자를 순간이동시키기 전에는 호스트 연결과 승객의 분리 순간 위치를 먼저 공유한다. 링크만 지우면 늦게 실행되는 Follow가 이미 옮겨진 운반자 앞으로 승객을 재배치할 수 있다. 서비스 상태가 먼저 와도 연결 해제까지 입장을 기다리고, 로컬 Follow를 정리한 뒤 이동한다.
+- 포획·사망·추락한 아래 사람의 링크가 해제될 때 생존 승객을 그 사람 옆으로 재배치하지 않는다. 포획 연출이 아래 사람을 이미 공중으로 옮겼을 수 있으므로 승객 자신의 위치에서 중력을 복구한다. 승객 자신이 EscapeCaptured라면 늦게 실행되는 Follow.Release가 포획의 Simulated=false를 덮지 않아야 한다. `PiggybackCaptureRegression`은 해제 메시지 전·후와 정상 F 하차를 함께 검사한다.
 - 두 다리 손실 시 정지 Crawl을 공중까지 재사용하지 않는다. 기존 Cut2/3 상승·낙하·착지 모션을 연결한다.
 - 외줄 구조에 서 있는 ItemPull을 쓰면 팔 길이 밖의 낮은 접점에 도달하지 못한다. 기존 RopePull/부상별 변형과 양손 보정을 사용한다. 구조 시간·거리는 GameSettings 그대로다.
 - 이동 속도는 BaseGameSettings의 표현용 기준 속도로 나누어 기본 레이어의 LocomotionRate에 전달한다. Animator 전체 속도를 바꾸면 상체 상호작용까지 느려진다.

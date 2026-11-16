@@ -173,10 +173,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 PursuitClimbLinks.Build(actors[0].AgentTypeID, GameSettings.WaitingRoom.Pursuit);
             CollectCandidates();
             if (!active && s.Timer == RestTimerState.Pursuit) { active = true; Elapsed = 0; }
-            if (active) Elapsed += Time.deltaTime;
+            // 연출 중에는 추격 시간도 추격자도 멈춘다.
+            if (active && !CutsceneHold) Elapsed += Time.deltaTime;
             if (active) SampleFootsteps();
             bool warning = s.Timer == RestTimerState.Running && s.TimeRemaining <= GameSettings.WaitingRoom.Pursuit.WarningSeconds;
-            foreach (var actor in actors) actor.ServerTick(Elapsed, warning);
+            if (!CutsceneHold) foreach (var actor in actors) actor.ServerTick(Elapsed, warning);
             if (active) {
                 foreach (var victim in victims.Values) {
                     victim.Elapsed += Time.deltaTime;

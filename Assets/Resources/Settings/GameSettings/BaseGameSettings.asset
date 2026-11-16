@@ -42,7 +42,7 @@ MonoBehaviour:
     nightMaintenance:
       unlimited: 0
       seconds: 300
-      explorationLocked: 0
+      explorationLocked: 1
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
@@ -55,6 +55,8 @@ MonoBehaviour:
     sawCarrySpeed: 3
     sawShotInterval: 1.15
     blockPiggybackOnSawCarrier: 1
+    blockRopeWithSaw: 1
+    blockExplorationToolsDuringPerformance: 1
     collisionSkin: 0.02
   character:
     freeMoveSpeed: 3
@@ -100,21 +102,29 @@ MonoBehaviour:
   landingMarker:
     showInPerformance: 1
     showInEscapeRoute: 1
-    showInWaitingRoom: 0
+    showInRehearsal: 1
+    showInWaitingRoom: 1
     showInLobby: 0
     showInOtherScenes: 1
-    clearHeight: 15
-    blurRange: 20
+    clearHeight: 10
+    blurRange: 15
     blurSpread: 1.6
-    safeCheckHeight: 10
+    safeCheckHeight: 5
     safeColor: {r: 0.08, g: 1, b: 0.3, a: 1}
     unsafeColor: {r: 1, g: 0.18, b: 0.12, a: 1}
-    outlineWidth: 0.1
-    outlineOpacity: 0.9
+    outlineWidth: 0.07
+    outlineOpacity: 0.6
     narrowSurfaceWidth: 0.5
     fadeOutsideOnWideSurface: 0
     outsideOpacity: 0.25
     outlineAllForTrampolineCarrier: 1
+  navigation:
+    color: {r: 1, g: 1, b: 1, a: 1}
+    brightness: 1
+    followSeconds: 0.12
+    pulseIntervalSeconds: 1.5
+    animationSpeed: 1
+    playerStartGap: 1.5
   presentation:
     walkAnimationSpeed: 3
     runAnimationSpeed: 6

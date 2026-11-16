@@ -42,7 +42,7 @@ namespace CurtainCall.UI.SceneIntegration
             if(hit!=null && title==null && schedule!=null && schedule.View.IsVisible)
             {
                 var button=hit.GetComponentInParent<Button>();
-                if(button!=null){description=schedule.HoverDescription(button);if(description!=null){title=string.Join(" · ",button.GetComponentsInChildren<TMP_Text>().Select(t=>t.text));hit=button.gameObject;}}
+                if(button!=null){description=schedule.HoverDescription(button);if(description!=null){title=schedule.HoverTitle(button);hit=button.gameObject;}}
             }
             if(string.IsNullOrWhiteSpace(title)||string.IsNullOrWhiteSpace(description)){Hide();return;}
             if(target!=hit){Hide();target=hit;since=Time.unscaledTime;}

@@ -128,7 +128,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 string id = entry.BindingId.ToString(); bindings[id] = entry;
                 controls.rows.Add(new SettingsRow { id = id, label = ActionLabel(entry.ActionName, entry.PartName), kind = SettingsRowKind.Rebind,
-                    value = new V2Value { rowId = id, bindingId = entry.Path, bindingDisplay = entry.DisplayName } });
+                    value = new V2Value { rowId = id, bindingId = MenuBinding(entry.ActionName, entry.Path), bindingDisplay = entry.DisplayName } });
             }
             if (inputDraft == null) controls.rows.Add(Paragraph("NoBindings", "입력 설정을 불러오지 못했습니다."));
             var voice = deviceVoice; var sound = catalog.pages[3];
@@ -180,8 +180,13 @@ namespace CurtainCall.UI.SceneIntegration
             if (name == InputBindingPreferences.DeviceUseAction) return "운반 장치 사용 / 톱날 한 발 발사";
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";
-            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", _ => name };
+            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "외줄 · 왼쪽 줄 이동", "DirectionRight" => "외줄 · 오른쪽 줄 이동", "TurnAround" => "외줄·봉 · 앞뒤 전환", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", _ => name };
         }
+        // The settings panel treats identical IDs as exclusive. These two defaults share a button across gameplay contexts.
+        const string GroundBindingPrefix = "ground:";
+        static string MenuBinding(string action, string path) =>
+            (action == InputBindingPreferences.DeviceUseAction && path == InputBindingPreferences.LeftClickPath
+                || action == "UvLight" && path == InputBindingPreferences.RightClickPath) ? GroundBindingPrefix + path : path;
         void DraftChanged(List<V2Value> values)
         {
             var mode = values.Find(v => v.rowId == "ScreenMode");
@@ -216,7 +221,9 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var value in values)
             {
                 if (!bindings.TryGetValue(value.rowId, out var binding)) continue;
-                if (!InputBindingPreferences.TryValidateKeyPath(value.bindingId, out string path, out error, binding.ActionName)) return false;
+                string candidate = value.bindingId != null && value.bindingId.StartsWith(GroundBindingPrefix, StringComparison.Ordinal)
+                    ? value.bindingId.Substring(GroundBindingPrefix.Length) : value.bindingId;
+                if (!InputBindingPreferences.TryValidateKeyPath(candidate, out string path, out error, binding.ActionName)) return false;
                 var action = inputDraft.FindAction(binding.ActionId);
                 action.ApplyBindingOverride(binding.BindingIndex, path);
             }
@@ -234,7 +241,7 @@ namespace CurtainCall.UI.SceneIntegration
                 }
             var mouse = Mouse.current;
             if (mouse == null) return;
-            if (bindings.TryGetValue(capture.rowId, out var binding) && binding.ActionName == InputBindingPreferences.DeviceUseAction
+            if (bindings.TryGetValue(capture.rowId, out var binding) && InputBindingPreferences.AllowsLeftClick(binding.ActionName)
                 && mouse.leftButton.wasPressedThisFrame)
             { Capture(InputBindingPreferences.LeftClickPath); return; }
             foreach (var button in new[] { mouse.rightButton, mouse.middleButton, mouse.forwardButton, mouse.backButton })
@@ -247,7 +254,7 @@ namespace CurtainCall.UI.SceneIntegration
             { view.RejectRebind(request.token, "키를 변경할 수 없습니다."); return; }
             if (!InputBindingPreferences.TryValidateKeyPath(candidate, out string path, out string error, binding.ActionName))
             { view.RejectRebind(request.token, error); return; }
-            view.CompleteRebind(request.token, path, InputBindingPreferences.KeyLabel(path), out _);
+            view.CompleteRebind(request.token, MenuBinding(binding.ActionName, path), InputBindingPreferences.KeyLabel(path), out _);
         }
         async void HandleAction(SettingsActionRequest request)
         {
@@ -312,7 +319,7 @@ namespace CurtainCall.UI.SceneIntegration
                 case "controls":
                     if (inputDraft == null) return;
                     inputDraft.RemoveAllBindingOverrides();
-                    values.AddRange(InputBindingPreferences.GetBindings(inputDraft).Select(b => new V2Value { rowId = b.BindingId.ToString(), bindingId = b.Path, bindingDisplay = b.DisplayName }));
+                    values.AddRange(InputBindingPreferences.GetBindings(inputDraft).Select(b => new V2Value { rowId = b.BindingId.ToString(), bindingId = MenuBinding(b.ActionName, b.Path), bindingDisplay = b.DisplayName }));
                     break;
                 case "audio":
                     values.Add(new V2Value { rowId = "volume", number = ClientSettings.DefaultVolume });

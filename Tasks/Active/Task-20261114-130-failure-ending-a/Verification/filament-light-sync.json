@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "Tasks/Active/Task-20261114-130-failure-ending-a/Tools/verify-ending-appearance.cs",
+      "entry": "EndingAppearanceVerification.VerifyLight"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 156,
+      "executeMs": 20009,
+      "assemblyName": "PipelineRunScript_verify-ending-appearance_788caa1a3e904cc485d7fc418aca92f1",
+      "success": true,
+      "result": {
+        "lightType": "Spot",
+        "direction": "(-0.001, -0.838, 0.545)",
+        "sourceDistance": 0.00286875153,
+        "otherLights": 0,
+        "samples": 605,
+        "minPower": 0.035,
+        "maxPower": 1,
+        "maxDifference": 2.29903634e-7
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\github\\POC_CURTAINCALL\\.harness\\local\\failure-ending-a"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

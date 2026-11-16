@@ -120,7 +120,8 @@ namespace CurtainCall.HumanCannon
         public bool CircularSurface => circularSurface;
         public bool UsePropOutline => CurtainCall.Settings.GameSettings.Trampoline.UsePropOutline;
         public bool RequireCarrierForBounce => CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce;
-        bool BounceReady => !dropping && (!CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce || Carrier != CannonSeatState.Nobody
+        /// <summary>지금 위에 떨어지면 반동하는지(운반자 필요 설정이면 운반 중일 때만).</summary>
+        public bool BounceReady => !dropping && (!CurtainCall.Settings.GameSettings.Trampoline.RequireCarrierForBounce || Carrier != CannonSeatState.Nobody
             && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal);
         public Vector2 LoadHalfSize => loadHalfSize.x > 0f && loadHalfSize.y > 0f ? loadHalfSize : halfSize;
         public float UpwardSpeed => CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed;

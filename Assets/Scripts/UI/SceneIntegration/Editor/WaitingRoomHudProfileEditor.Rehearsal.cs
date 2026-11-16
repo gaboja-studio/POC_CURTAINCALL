@@ -98,7 +98,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         int lessonGroup,lessonIndex;
         void DrawRehearsal()
         {
-            Section("리허설 HUD 편집","연습과 안내를 고르면 표시 조건과 역할을 확인할 수 있습니다. 제목과 내용에 {forward}, {balance}, {move}, {side}, {interact}, {jump}를 쓸 수 있습니다. 문구를 비우면 원문으로 돌아갑니다. 편집 후 저장하고 Play를 다시 시작하세요.");
+            Section("리허설 HUD 편집","연습과 안내를 고르면 표시 조건과 역할을 확인할 수 있습니다. 제목과 내용에 {forward}, {balance}, {move}, {side}, {turn}, {interact}, {jump}를 쓸 수 있습니다. 문구를 비우면 원문으로 돌아갑니다. 편집 후 저장하고 Play를 다시 시작하세요.");
             int group=GUILayout.Toolbar(lessonGroup,new[]{"외줄타기","인간대포"});
             if(group!=lessonGroup){lessonGroup=group;lessonIndex=0;}
             var choices=lessons.Where(x=>x.group==(group==0?"외줄타기":"인간대포")).ToArray();

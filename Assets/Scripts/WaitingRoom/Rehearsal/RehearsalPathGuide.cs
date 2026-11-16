@@ -3,12 +3,10 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
 {
-    /// <summary>Each player follows their own pulse route to the stage after rehearsal.</summary>
+    /// <summary>Each player follows their own pulse route to the stage after rehearsal.
+    /// Color, brightness, correction time and pulse interval follow GameSettings > Base > 네비게이션 안내 (live).</summary>
     public sealed class RehearsalPathGuide : MonoBehaviour
     {
-        [SerializeField] Color color = new(.12f, 1, .86f, 1);
-        [SerializeField, Range(0, 10)] float animationSpeed = 1;
-        [SerializeField, Range(0, 1)] float emphasis = 1;
         NavigationHandle navigation;
         Vector3? target;
         internal event System.Action<bool> VisibilityChanged;
@@ -22,10 +20,10 @@ namespace CurtainCall.WaitingRoom
             if (!destination.HasValue) { Release(); return; }
             if (navigation == null || navigation.IsDisposed)
             {
-                navigation = WorldNavigation.Show(destination.Value, animationSpeed: animationSpeed, emphasis: emphasis, color: color);
+                navigation = WorldNavigation.Show(destination.Value);
                 navigation.VisibilityChanged += OnVisibility;
             }
-            else navigation.Update(destination.Value, animationSpeed: animationSpeed, emphasis: emphasis, color: color);
+            else navigation.Update(destination.Value);
         }
 
         void OnVisibility(bool visible) => VisibilityChanged?.Invoke(visible);

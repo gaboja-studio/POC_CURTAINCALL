@@ -1,0 +1,317 @@
+{
+  "unusedAssets": {
+    "keptNewSounds": 2,
+    "bytes": 2459617698,
+    "archivedFiles": 3242
+  },
+  "liveConveyor": {
+    "capturedAfterSeconds": 10.1,
+    "samples": 101
+  },
+  "branch": "feat/exit-route/pursuer",
+  "target": {
+    "held": 0,
+    "colliderEnabled": false,
+    "hiddenAttack": false,
+    "outsideAttack": true,
+    "phase": "Warning",
+    "target": 0,
+    "playerProgress": 13.0,
+    "actorProgress": 2.0
+  },
+  "hostEncounters": [
+    {
+      "routePoint": 2,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.5981102,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 223,
+      "phase": 0
+    },
+    {
+      "routePoint": 5,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.56466675,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 202,
+      "phase": 0
+    },
+    {
+      "routePoint": 7,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.60877991,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 165,
+      "phase": 0
+    },
+    {
+      "routePoint": 8,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.60877991,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 165,
+      "phase": 0
+    },
+    {
+      "routePoint": 12,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.60877991,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 165,
+      "phase": 0
+    },
+    {
+      "routePoint": 14,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.59263611,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 172,
+      "phase": 0
+    },
+    {
+      "routePoint": 15,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.59263611,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 172,
+      "phase": 0
+    },
+    {
+      "routePoint": 22,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.62492371,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 172,
+      "phase": 0
+    },
+    {
+      "routePoint": 28,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.62492371,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 172,
+      "phase": 0
+    },
+    {
+      "routePoint": 32,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.60421753,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 194,
+      "phase": 0
+    },
+    {
+      "routePoint": 37,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.60421753,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 194,
+      "phase": 0
+    },
+    {
+      "routePoint": 47,
+      "noSpontaneous": true,
+      "farBlocked": true,
+      "contacted": true,
+      "contactDistance": 1.61103535,
+      "reached": true,
+      "landingError": 0.0,
+      "returned": true,
+      "ticks": 217,
+      "phase": 0
+    }
+  ],
+  "geometry": {
+    "encounters": [
+      {
+        "routePoint": 2,
+        "untilPoint": 4,
+        "landing": "(-248.0, 19.0, 46.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 5,
+        "untilPoint": 6,
+        "landing": "(-264.0, 15.0, 61.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 7,
+        "untilPoint": 7,
+        "landing": "(-264.0, 9.0, 84.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 8,
+        "untilPoint": 11,
+        "landing": "(-264.0, 3.0, 108.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 12,
+        "untilPoint": 13,
+        "landing": "(-235.0, 3.0, 158.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 14,
+        "untilPoint": 14,
+        "landing": "(-245.0, 6.5, 195.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 15,
+        "untilPoint": 21,
+        "landing": "(-280.0, 6.5, 195.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 22,
+        "untilPoint": 27,
+        "landing": "(-294.0, 20.0, 83.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 28,
+        "untilPoint": 31,
+        "landing": "(-300.0, 25.0, 83.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 32,
+        "untilPoint": 34,
+        "landing": "(-322.5, 17.0, 46.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 37,
+        "untilPoint": 46,
+        "landing": "(-332.0, 25.0, 9.3)",
+        "support": true,
+        "collisions": []
+      },
+      {
+        "routePoint": 47,
+        "untilPoint": 73,
+        "landing": "(-340.0, 25.0, 24.3)",
+        "support": true,
+        "collisions": []
+      }
+    ],
+    "final": []
+  },
+  "limits": [
+    "Controlled host probes, not a complete multi-PC run",
+    "Live conveyor fixture relocated the player with fall-tracking reset"
+  ],
+  "baseline": "origin/dev 3d597f70",
+  "camera": {
+    "heldAnchor": true,
+    "bobCameraDisplacement": 0.0,
+    "cameraDistance": 7.759171,
+    "throwArmExtensionActive": false,
+    "throwArmLengthRange": [
+      1.60463154,
+      1.60591865
+    ],
+    "released": true,
+    "spectatorAfterRelease": 888,
+    "anchorAfterRelease": false,
+    "fallbackWhenTargetDies": 777
+  },
+  "editTests": {
+    "passed": 281,
+    "total": 281,
+    "failed": 0
+  },
+  "checks": {
+    "commonSettings": "PASS",
+    "knowledge": "PASS",
+    "documents": "PASS",
+    "safety": "PASS",
+    "scene": "UnderstagePursuerPlaytest; stopped; dirty=false",
+    "aggregate": "FAILED at result recording: existing Task100/114 share branch",
+    "compile": "PASS",
+    "missingEncounterReferences": 0
+  },
+  "submission": {
+    "assets": "No new private assets or gitlink change",
+    "editTests": "281/281",
+    "commonSettings": "PASS",
+    "compile": "PASS",
+    "camera": {
+      "heldAnchor": true,
+      "bobCameraDisplacement": 0.0,
+      "cameraDistance": 7.757901,
+      "throwArmExtensionActive": false,
+      "throwArmLengthRange": [
+        1.604408,
+        1.60558069
+      ],
+      "released": true,
+      "spectatorAfterRelease": 888,
+      "anchorAfterRelease": false,
+      "fallbackWhenTargetDies": 777
+    },
+    "hostCombat": "PASS",
+    "base": "origin/dev 12c17d4f",
+    "scope": "PASS",
+    "documents": "PASS after upstream Task081 historical log archive",
+    "cameraPlayMode": "1/1 passed; no failures or skips",
+    "hostProbeBase": "bae74b76"
+  }
+}

@@ -83,6 +83,74 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void CopiedSceneWaitsForEntranceAcknowledgmentsBeforeStartingEncounterClock()
+        {
+            const BindingFlags statics=BindingFlags.Static|BindingFlags.Public|BindingFlags.NonPublic;
+            var development=T("CurtainCall.EscapeRoute.EscapeDevelopmentSession");
+            var entrance=development.GetField("entranceSession",statics);
+            var sessionType=T("CurtainCall.Network.Session.NetworkSessionManager");
+            var instance=sessionType.GetProperty("Instance",statics);
+            var curtain=T("CurtainCall.UI.SceneIntegration.SceneCurtainTransition").GetField("instance",statics);
+            var playerType=T("CurtainCall.Network.PlayerSync.NetworkPlayer");
+            var players=(System.Collections.IList)playerType.GetField("all",statics).GetValue(null);
+            var previousPlayers=players.Cast<object>().ToArray();
+            var previousEntrance=entrance.GetValue(null);
+            var previousSession=instance.GetValue(null);
+            var previousCurtain=curtain.GetValue(null);
+            var root=new GameObject("Offline copied-scene entrance fixture");root.SetActive(false);
+            var actor=new GameObject("Already placed entrance participant");actor.SetActive(false);
+            var volume=new GameObject("Active copied content and start area");
+            Component player=null;
+            try
+            {
+                // Keep fixture behaviours dormant: only the timer's Update is invoked, with no network session started.
+                instance.SetValue(null,null);curtain.SetValue(null,null);players.Clear();
+                root.transform.position=actor.transform.position=volume.transform.position=new Vector3(9300,40,9300);
+                var content=root.AddComponent(T("CurtainCall.EscapeRoute.EscapeCampaignContent"));
+                Set(content,"content",volume);Set(content,"IsCampaign",false);
+                var session=root.AddComponent(sessionType);
+                Set(session,"ConnectionState",Enum.Parse(T("CurtainCall.Network.Session.SessionConnectionState"),"Host"));
+                Set(session,"GameState",Enum.Parse(T("CurtainCall.Network.Session.GameSessionState"),"Playing"));
+                var waiting=root.AddComponent(development);entrance.SetValue(null,waiting);
+                var timer=root.AddComponent(Timer);Set(timer,"content",content);Set(timer,"session",session);
+                var area=volume.AddComponent<BoxCollider>();area.isTrigger=true;area.size=Vector3.one*4;
+                Set(timer,"startArea",area);
+                player=actor.AddComponent(playerType);Set(player,"IsSpawned",true);Set(player,"OwnerClientId",69UL);
+                Set(Get(player,"state"),"m_InternalValue",Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"),"Normal"));
+                players.Add(player);
+                Assert.That(Apply(timer,1,0,0,-1),Is.True);
+                Assert.That(Get(content,"IsActive"),Is.True);
+                Assert.That(Get(content,"IsCampaign"),Is.False);
+                Assert.That(Call(timer,"CanStart",player),Is.True,"The placed entrant already meets the ordinary start-area rules.");
+
+                Set(waiting,"Ready",false);
+                Assert.That(Get(timer,"RouteReady"),Is.False,"Playing alone must not release the copied scene's entrance barrier.");
+                Call(timer,"Update");
+                Assert.That(Get(timer,"StartedAt"),Is.EqualTo(-1d));
+                Assert.That(Get(timer,"HasStarted"),Is.False,"Loading must not consume the pursuer's opening.");
+
+                Set(waiting,"Ready",true);
+                Assert.That(Get(timer,"RouteReady"),Is.True,"The same scene is eligible once all entrance acknowledgments arrive.");
+                Call(timer,"Update");
+                Assert.That(Get(timer,"StartedAt"),Is.GreaterThanOrEqualTo(0d));
+                Assert.That(Get(timer,"HasStarted"),Is.True,"The ordinary entrant starts the clock after the barrier releases.");
+            }
+            finally
+            {
+                try
+                {
+                    if(player!=null)Set(player,"IsSpawned",false);
+                    Object.DestroyImmediate(actor);Object.DestroyImmediate(root);Object.DestroyImmediate(volume);
+                }
+                finally
+                {
+                    players.Clear();foreach(var previous in previousPlayers)players.Add(previous);
+                    entrance.SetValue(null,previousEntrance);instance.SetValue(null,previousSession);curtain.SetValue(null,previousCurtain);
+                }
+            }
+        }
+
+        [Test]
         public void RemoteInjuredPlayerCanEnterRotatedBarredHallWithoutJumpOrCrewRequirements()
         {
             var root=new GameObject("Rotated hall fixture");root.SetActive(false);

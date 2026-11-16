@@ -163,7 +163,7 @@ namespace CurtainCall.WaitingRoom.Editor
         }
         static void BoxGate(string room, string field, Vector3 at)
         {
-            var gate = Gate(room, field, "파괴 가능한 상자", at, ExplorationGateKind.Breakable, new Vector3(.85f, .75f, .75f));
+            var gate = Gate(room, field, "낡은 상자", at, ExplorationGateKind.Breakable, new Vector3(.85f, .75f, .75f));
             Set(gate, "toolId", ItemUses.StakePuller); Set(gate, "requiredHits", 1);
             var drops = Undo.AddComponent<ExplorationDrops>(gate.gameObject); drops.ConfigurePending();
             Shape(gate.transform.Find("Visual"), "Band", Vector3.zero, new Vector3(1.04f, .12f, 1.04f), metal);

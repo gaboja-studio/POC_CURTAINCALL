@@ -10,6 +10,8 @@ namespace CurtainCall.EscapeRoute
     {
         [SerializeField] HumanCannonSystem cannon;
         [SerializeField] HumanCannonStation firstCannon;
+        [Tooltip("Additional entrance cannons that land on the same first wire. The original firstCannon remains valid.")]
+        [SerializeField] HumanCannonStation[] additionalFirstCannons = System.Array.Empty<HumanCannonStation>();
         [SerializeField] HumanCannonLandingZone firstWire;
         [SerializeField] Transform serviceEntry, revealStart, walkEnd, trackEnd;
         [SerializeField] Transform shutter;
@@ -73,8 +75,8 @@ namespace CurtainCall.EscapeRoute
                 transferred.Add(actor);
                 return;
             }
-            if (station < 0 || station >= cannon.StationCount || cannon.Station(station) != firstCannon ||
-                !firstWire.SupportsLanding(position)) return;
+            if (!cannon || station < 0 || station >= cannon.StationCount || !IsFirstCannon(cannon.Station(station)) ||
+                !firstWire || !firstWire.SupportsLanding(position)) return;
             if (round != timer.StartedAt)
             {
                 round = timer.StartedAt;
@@ -86,13 +88,26 @@ namespace CurtainCall.EscapeRoute
             crossed.Add(actor);
         }
 
+        bool IsFirstCannon(HumanCannonStation station)
+        {
+            if (!station) return false;
+            if (station == firstCannon) return true;
+            if (additionalFirstCannons != null)
+                foreach (var entry in additionalFirstCannons) if (entry == station) return true;
+            return false;
+        }
+
         internal bool Active(double epoch) => isActiveAndEnabled && round >= 0 && round == epoch;
 
         internal bool HasCrossed(NetworkPlayer player) => crossed.Contains(player.OwnerClientId);
         internal bool InTransit(NetworkPlayer player) => cannon.IsFlying(player.OwnerClientId)
             && !(HumanCannonPoleSystem.Current && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0);
-        internal bool AtGun(NetworkPlayer player) => cannon.SeatedStation(player.OwnerClientId) == firstCannon;
-        internal Vector3 GunPosition(NetworkPlayer player) => AtGun(player) ? firstCannon.Seat.position : player.transform.position;
+        internal bool AtGun(NetworkPlayer player) => cannon && IsFirstCannon(cannon.SeatedStation(player.OwnerClientId));
+        internal Vector3 GunPosition(NetworkPlayer player)
+        {
+            var station = cannon ? cannon.SeatedStation(player.OwnerClientId) : null;
+            return IsFirstCannon(station) ? station.Seat.position : player.transform.position;
+        }
         internal Vector3 CannonRelease => cannonRelease.position;
         internal Vector3 CannonDrop => cannonDrop.position;
         internal Vector3 TrackAxis => (trackEnd.position - walkEnd.position).normalized;

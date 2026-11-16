@@ -25,6 +25,7 @@ namespace CurtainCall.Tightrope.Tests
         static readonly FieldInfo RestartCounter = typeof(NetworkPlayer).GetField("restartCount", BindingFlags.Instance | BindingFlags.NonPublic);
         string role, status = "starting", error = "";
         Keyboard keyboard, previousKeyboard;
+        Mouse probeMouse;
         InputSettings originalSettings, workingSettings;
         InputSettings.BackgroundBehavior previousBackground;
         InputSettings.EditorInputBehaviorInPlayMode previousEditorInput;
@@ -94,6 +95,7 @@ namespace CurtainCall.Tightrope.Tests
             workingSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             workingSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             keyboard = InputSystem.AddDevice<Keyboard>("Tightrope Multiplayer Probe Keyboard");
+            probeMouse = InputSystem.AddDevice<Mouse>("Tightrope Multiplayer Probe Mouse");
             keyboard.MakeCurrent();
             emptyFrames = 3;
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
@@ -288,6 +290,7 @@ namespace CurtainCall.Tightrope.Tests
             overridesApplied = false;
             RestoreJourneyDevices();
             if (keyboard != null && keyboard.added) InputSystem.RemoveDevice(keyboard);
+            if (probeMouse != null && probeMouse.added) InputSystem.RemoveDevice(probeMouse);
             keyboard = null;
             if (previousKeyboard != null && previousKeyboard.added) previousKeyboard.MakeCurrent();
             if (workingSettings != null)

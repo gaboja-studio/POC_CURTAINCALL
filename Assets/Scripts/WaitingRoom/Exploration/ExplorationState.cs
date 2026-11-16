@@ -37,6 +37,11 @@ namespace CurtainCall.WaitingRoom
         /// <summary>마지막 결과에서 다 써서 파괴된 기물 이름(없으면 "").</summary>
         public string LastUsedUpItem { get; private set; } = "";
         public static string WrongCode => WaitingRoomText.Get("explore.wrong-code", "비밀번호가 다릅니다.");
+        /// <summary>마지막 결과에 딸린 도구 상태 문구("남은 n회", 없으면 ""). 결과 문구와 따로 오른쪽 아래 패널에 띄운다(2026-11-14 사용자).</summary>
+        public string LastNote { get; private set; } = "";
+        /// <summary>마지막 결과가 치는 중의 진행 문구(n/전체)인지. F 안내에 이미 나오므로 가이드 패널에는 띄우지 않는다.</summary>
+        public bool LastWasProgress { get; private set; }
+        string answerNote = ""; bool answerProgress;
         bool answerUsedUp;
         string answerUsedUpItem = "";
 
@@ -188,6 +193,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool ok, string text, string reason) UseCore(ulong player, string targetId, string password, IExplorationTarget target)
         {
+            if (ExplorationTargets.ToolsBlocked && !string.IsNullOrEmpty(target?.ToolId))
+                return (false, "공연 중에는 탐색 도구를 사용할 수 없습니다.", "PERFORMANCE_TOOL_LOCK");
             if (!ExplorationKeys.Enabled && ExplorationGate.IsKeyTarget(targetId))
                 return (false, "열쇠를 사용할 수 없습니다.", "KEY_DISABLED");
             if (!PlayerInteraction.CanInteract(player))
@@ -196,6 +203,7 @@ namespace CurtainCall.WaitingRoom
             if (WaitingRoomRehearsal.IsPreTutorialRestricted)
                 return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."), "PRE_TUTORIAL_LOCK");
             if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."), "UNKNOWN_TARGET");
+            if (target is ExplorationGate powerSocket && powerSocket.IsSocket) return UseSocket(player, targetId, powerSocket);
             if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."), "ALREADY_OPEN");
             var body = FindBody(player);
             if (body == null || (target is UvMark ? target.Reach(body.position, body) : CurtainCall.Player.PlayerInteraction.RestrictReach(target.Reach(body.position, body), body)) < 0f)
@@ -244,7 +252,8 @@ namespace CurtainCall.WaitingRoom
                 int total = StrikeProgress.Total(bare.BareHits, bare.ToolHits);
                 refusal = book.Strike(targetId, StrikeProgress.Step(bare.BareHits, bare.ToolHits, needsTool), total, out count, out openedNow);
                 if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
-                text = bare.DescribeStrike(openedNow, StrikeProgress.Done(count, bare.BareHits, bare.ToolHits, needsTool),
+                // 맨몸은 게이지로만 진행을 보여 주므로(2026-11-13 사용자) 부서지기 전에는 횟수 문구를 보내지 않는다.
+                text = !needsTool && !openedNow ? "" : bare.DescribeStrike(openedNow, StrikeProgress.Done(count, bare.BareHits, bare.ToolHits, needsTool),
                     needsTool ? bare.ToolHits : bare.BareHits, needsTool);
             }
             else
@@ -268,15 +277,54 @@ namespace CurtainCall.WaitingRoom
                     var consumed = carry.UseItem(player, tool.Uid, out var after, out bool gone);
                     if (consumed == CarryRefusal.None) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(body.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>(), "EXPLORATION_TOOL", new(){["itemType"]=tool.ItemId,["uid"]=tool.Uid,["targetId"]=targetId,["state"]="USED",["usesBefore"]=tool.Uses,["usesAfter"]=gone?0:after.Uses,["objectPosition"]=target is Component component ? CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(component.transform.position) : null}, "HOST");
                     string item = ItemCatalog.DisplayName(after);
-                    text += " " + (gone ? WaitingRoomText.Format("explore.used-up", "{item:을} 다 썼습니다.", ("item", item))
-                        : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses)));
+                    // 남은 횟수는 결과 문구에 붙이지 않고 따로 보낸다(오른쪽 아래 패널). 다 쓴 경우는 기물 파괴 알림이 알린다.
+                    answerNote = gone ? "" : WaitingRoomText.Format("explore.uses-left", "{item} 남은 횟수 {n}회", ("item", item), ("n", after.Uses));
                     answerUsedUp = gone; answerUsedUpItem = gone ? item : "";
                 }
                 Debug.Log($"[Exploration] {targetId} 열림({count}번째) — {WaitingRoomShop.PlayerLabel(player)}");
             }
             DeliverRewards();
             Publish();
+            answerProgress = strike && !openedNow;
             return (true, text, openedNow ? "OPENED" : "HIT_REGISTERED");
+        }
+
+        // 동력 소켓(2026-11-13 사용자): 배터리를 꽂으면 열리고, 꽂힌 배터리를 빼면 닫힌다. 배터리는 닳지 않는다.
+        // 꽂을 때 손에서 사라지고(소켓 속으로), 뺄 때 같은 배터리가 손으로 돌아온다.
+        readonly Dictionary<string, int> socketBattery = new();
+        (bool ok, string text, string reason) UseSocket(ulong player, string targetId, ExplorationGate gate)
+        {
+            var body = FindBody(player);
+            if (body == null || CurtainCall.Player.PlayerInteraction.RestrictReach(gate.Reach(body.position, body), body) < 0f)
+                return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."), body == null ? "ACTOR_UNAVAILABLE" : "OUT_OF_REACH");
+            if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."), "PREREQUISITE_UNMET");
+            var carry = PropCarry.Instance;
+            if (carry == null) return (false, "기물 소지를 준비 중입니다.", "CARRY_UNAVAILABLE");
+            float now = Time.unscaledTime;
+            if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "", "RATE_LIMITED");
+            lastHit[player] = now;
+            string toolName = gate.ToolName;
+            if (!book.IsOpen(targetId))
+            {
+                var tool = carry.InHand(player);
+                if (tool.Uid == 0 || tool.ItemId != gate.ToolId) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(gate))), "REQUIRED_TOOL_MISSING");
+                if (carry.UseItem(player, tool.Uid, out _, out bool gone) != CarryRefusal.None || !gone) return (false, PropCarry.Explain(CarryRefusal.NotFound), "CARRY_REFUSED");
+                socketBattery[targetId] = tool.Uid;
+                book.Attempt(targetId, true, out _, out _);
+                Debug.Log($"[Exploration] {targetId} 배터리 꽂음 — {WaitingRoomShop.PlayerLabel(player)}");
+                DeliverRewards(); Publish();
+                return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".in") ? "target." + targetId + ".in" : "explore.socket-in", "{tool:을} 꽂았습니다.", ("tool", toolName)), "OPENED");
+            }
+            var refusal = carry.CanReceive(player);
+            if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "HANDS_FULL");
+            int uid = socketBattery.TryGetValue(targetId, out int kept) ? kept : 900000 + Mathf.Abs(targetId.GetHashCode() % 90000);
+            refusal = carry.Receive(player, ItemCatalog.NewProduct(uid, gate.ToolId, toolName));
+            if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "CARRY_REFUSED");
+            socketBattery.Remove(targetId);
+            book.Close(targetId);
+            Debug.Log($"[Exploration] {targetId} 배터리 뺌 — {WaitingRoomShop.PlayerLabel(player)}");
+            Publish();
+            return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".out") ? "target." + targetId + ".out" : "explore.socket-out", "{tool:을} 뺐습니다.", ("tool", toolName)), "CLOSED");
         }
 
         void WatchGeneration()
@@ -288,7 +336,10 @@ namespace CurtainCall.WaitingRoom
             {
                 if (seenGeneration > 0)
                 {
+                    var kept = new List<string>();
+                    foreach (var id in keptAcrossGenerations) if (book.IsOpen(id)) kept.Add(id);
                     book.Clear();
+                    foreach (var id in kept) book.Attempt(id, true, out _, out _);
                     cooperation.Clear();
                     Debug.Log($"[Exploration] 세대 교체 {seenGeneration} → {generation}: 탐색 진행을 비웠습니다.");
                     Publish();
@@ -404,22 +455,34 @@ namespace CurtainCall.WaitingRoom
             foreach (var player in NetworkPlayer.All)
                 if (player.IsSpawned && player.OwnerClientId == clientId) return player.transform;
             if (NetworkPlayer.All.Count > 0) return null;
-            var reader = FindFirstObjectByType<PlayerInputReader>(); // 접속하지 않은 씬 확인
+            var reader = CurtainCall.Player.OfflineLocalPlayer.Reader; // 접속하지 않은 씬 확인
             return reader != null ? reader.transform : null;
         }
 
         void Answer(ulong target, (bool ok, string text) result)
         {
             bool usedUp = answerUsedUp; string usedUpItem = answerUsedUpItem; answerUsedUp = false; answerUsedUpItem = "";
+            string note = answerNote; bool progress = answerProgress; answerNote = ""; answerProgress = false;
             if (string.IsNullOrEmpty(result.text)) return;
             if (target == channel.LocalClientId || !channel.IsHost)
             {
-                LastMessage = result.text; LastUsedUp = usedUp; LastUsedUpItem = usedUpItem;
+                LastMessage = result.text; LastUsedUp = usedUp; LastUsedUpItem = usedUpItem; LastNote = note; LastWasProgress = progress;
                 RequestAnswered?.Invoke(LastMessage);
                 return;
             }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, usedUp = usedUp, usedUpItem = usedUpItem }));
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, usedUp = usedUp, usedUpItem = usedUpItem, note = note, progress = progress }));
         }
+
+        /// <summary>
+        /// 참가자 화면이 판정 화면의 상태를 한 번이라도 받았는가(판정 화면은 늘 참). 연출처럼 "방금 바뀜"을 보고 재생하는 쪽은
+        /// 이 값이 참이 된 뒤의 변화만 본다. 그래야 늦게 들어온 사람에게 이미 끝난 연출이 다시 나오지 않는다(2026-11-14 사용자: 동기화).
+        /// </summary>
+        public bool StateReady => HasAuthority || receivedState;
+        bool receivedState;
+
+        /// <summary>세대가 바뀌어 탐색 진행을 비워도 남겨 둘 기록(한 번만 나오는 연출의 재생 여부 등). 새 게임(런 초기화) 때는 함께 지워진다.</summary>
+        static readonly HashSet<string> keptAcrossGenerations = new();
+        public static void KeepAcrossGenerations(params string[] ids) { foreach (var id in ids) if (!string.IsNullOrEmpty(id)) keptAcrossGenerations.Add(id); }
 
         void Publish()
         {
@@ -447,6 +510,7 @@ namespace CurtainCall.WaitingRoom
             var state = JsonUtility.FromJson<StateData>(json);
             if (state == null) return;
             book.Load(state.targets, state.hits, state.opened);
+            receivedState = true;
             Changed?.Invoke();
         }
 
@@ -454,7 +518,7 @@ namespace CurtainCall.WaitingRoom
         {
             var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
-            LastMessage = result.text; LastUsedUp = result.usedUp; LastUsedUpItem = result.usedUpItem ?? "";
+            LastMessage = result.text; LastUsedUp = result.usedUp; LastUsedUpItem = result.usedUpItem ?? ""; LastNote = result.note ?? ""; LastWasProgress = result.progress;
             RequestAnswered?.Invoke(LastMessage);
         }
 
@@ -465,13 +529,13 @@ namespace CurtainCall.WaitingRoom
             seeded.Clear();
             warnedDrops.Clear();
             lastHit.Clear();
-            seenGeneration = 0;
+            seenGeneration = 0; receivedState = false;
             LastMessage = "";
             Changed?.Invoke();
         }
 
         [Serializable] sealed class RequestData { public int kind; public string target; public string password; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; public bool usedUp; public string usedUpItem; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public bool usedUp; public string usedUpItem; public string note; public bool progress; }
 
         [Serializable]
         sealed class StateData

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,6 +12,61 @@ namespace CurtainCall.EscapeRoute
         double presentedRound = -1, landedAt = -1;
         MaterialPropertyBlock tint;
         GUIStyle statusStyle;
+        readonly List<GameObject> severedVisuals = new();
+
+        void ResetPresentation()
+        {
+            presentedMask = 0; presentedRound = landedAt = -1;
+            if (landingRing) landingRing.enabled = false;
+            if (blood) blood.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            if (landingDust) landingDust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            if (ignitionLever) ignitionLever.localRotation = Quaternion.identity;
+            if (rig) { rig.localPosition = rigRest; rig.localRotation = rigRotation; }
+            if (tint == null) tint = new MaterialPropertyBlock();
+            foreach (var part in parts)
+            {
+                if (part == null) continue;
+                if (part.hitbox) part.hitbox.enabled = true;
+                foreach (var mesh in part.meshes)
+                {
+                    if (!mesh) continue;
+                    mesh.enabled = true;
+                    var color = mesh is SkinnedMeshRenderer ? Color.white : new Color(.35f, .37f, .39f);
+                    tint.SetColor("_BaseColor", color); tint.SetColor("_Color", color); mesh.SetPropertyBlock(tint);
+                }
+            }
+            // Delayed destruction may otherwise leave last round's severed pieces
+            // beside a restored body. Only remove visuals created by this boss.
+            foreach (var visual in severedVisuals)
+                if (visual)
+                {
+                    visual.SetActive(false);
+                    if (Application.isPlaying) Destroy(visual); else DestroyImmediate(visual);
+                }
+            severedVisuals.Clear();
+        }
+
+        internal bool DollAction(double clock, out EscapePursuerDoll.Motion motion, out float normalized)
+        {
+            motion = EscapePursuerDoll.Motion.Idle;
+            float age = Mathf.Max(0, (float)(clock - state.Started));
+            normalized = 0;
+            if (!HasCurrentRoundState) return false;
+            switch (state.Phase)
+            {
+                case Phase.Ignition: motion = EscapePursuerDoll.Motion.Ignition; normalized = age / 1.4f; break;
+                case Phase.DashWarning: motion = EscapePursuerDoll.Motion.ChargeWarning; normalized = age / Tuning.bossDashWarning; break;
+                case Phase.Dashing: motion = EscapePursuerDoll.Motion.Dash; normalized = age / Tuning.bossDashSeconds; break;
+                case Phase.Hit:
+                    motion = transform.InverseTransformPoint(state.HitPoint).x >= 0 ? EscapePursuerDoll.Motion.HitLeft : EscapePursuerDoll.Motion.HitRight;
+                    normalized = age / Tuning.bossHitRecovery; break;
+                case Phase.Dying: motion = EscapePursuerDoll.Motion.Death; normalized = age / 2f; break;
+                case Phase.Dead: motion = EscapePursuerDoll.Motion.Death; normalized = 1; break;
+                default: return false;
+            }
+            normalized = Mathf.Clamp01(normalized);
+            return true;
+        }
 
         void Present(double clock)
         {
@@ -65,9 +121,9 @@ namespace CurtainCall.EscapeRoute
             // Do not sink the surviving opposite foot below the floor.
             float lower = (state.Mask & 48) == 48 ? 1.55f : (state.Mask & 3) == 3 ? .1f : 0;
             if (CombatStarted) chase.BossBody(!Defeated, lower);
-            rig.localPosition = rigRest - Vector3.up * lower;
+            rig.localPosition = rigRest - Vector3.up * (chase.AuthoredDoll && (state.Mask & 48) == 48 ? 0 : lower);
             rig.localRotation = rigRotation;
-            if (Defeated)
+            if (Defeated && !chase.AuthoredDoll)
             {
                 float t = state.Phase == Phase.Dead ? 1 : Mathf.SmoothStep(0, 1, age / 1.8f);
                 rig.localRotation = rigRotation * Quaternion.Euler(75f * t, 0, -12f * t);
@@ -91,6 +147,8 @@ namespace CurtainCall.EscapeRoute
                 else if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh) detached = filter.sharedMesh;
                 else continue;
                 var go = new GameObject("Severed " + part.label, typeof(MeshFilter), typeof(MeshRenderer), typeof(BoxCollider), typeof(Rigidbody));
+                severedVisuals.RemoveAll(visual => !visual);
+                severedVisuals.Add(go);
                 go.layer = 2;
                 go.AddComponent<EscapePursuerDebris>();
                 go.transform.SetPositionAndRotation(renderer.transform.position, renderer.transform.rotation);

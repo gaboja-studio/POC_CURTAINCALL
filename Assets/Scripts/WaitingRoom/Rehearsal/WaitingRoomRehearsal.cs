@@ -135,7 +135,7 @@ namespace CurtainCall.WaitingRoom
         RehearsalStage Stage => stage >= 0 && stage < RehearsalStage.All.Length ? RehearsalStage.All[stage] : null;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { instance = null; savedStage = 0; PiggybackSystem.Suppressed = false; }
+        static void ResetStatics() { instance = null; savedStage = 0; educationGeneration = 0; PiggybackSystem.Suppressed = false; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
@@ -169,6 +169,13 @@ namespace CurtainCall.WaitingRoom
             bool initialTutorial = run != null && run.State.Phase == CampaignPhase.Rehearsal;
             bool inWaitingRoom = (initialTutorial || !SceneCurtainTransition.IsActive) && SpaceLinkDirector.Instance != null
                 && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
+            // 첫 공연 뒤 대기실 튜토리얼이 끝날 때까지는 리허설 시간대가 아니어도 철창을 세워 두고, 닫힌 구역에 남은 사람을 내보낸다(2026-11-15 사용자).
+            if (IsFirstTutorialPending && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
+                && !SpaceLinkDirector.Instance.IsTransitioning)
+            {
+                EnsureLockdownProps();
+                if (inWaitingRoom && !WaitingForInitialPlacement) TickSealedAreas();
+            }
             HostTickVotes();
             bool wanted = run != null && run.State.Phase == CampaignPhase.Rehearsal && inWaitingRoom;
             TickVoteUi();

@@ -289,6 +289,8 @@ namespace CurtainCall.HumanCannon
             var runtime = seats[index];
             var station = stations[index];
             if (action == CannonAction.Launch && !station.ReadyToUse) return;
+            if (action == CannonAction.Launch && !PracticeMode && HumanCannonDestination.Current is { } destination
+                && destination.gameObject.scene == gameObject.scene && !destination.TryApplyScheduledDifficulty()) return;
             if (action == CannonAction.Board && FindBoardableStation(player) != index) return;
             if (action == CannonAction.Board && !interactionReady)
             {

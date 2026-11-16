@@ -240,7 +240,8 @@ namespace CurtainCall.StartLobby
             else if (s.Phase == CampaignPhase.Ending)
             {
                 title = "커튼 콜!";
-                sub = session.IsHost ? "탈출 성공  ·  커튼 레버를 올리면 다시 준비해요" : "탈출 성공  ·  방장이 다시 준비할 때까지 기다려요";
+                string outcome = s.LastEnd == RunEndReason.EscapeSucceeded ? "탈출 성공" : "탈출 실패";
+                sub = $"{s.Day}일차 {outcome}  ·  " + (session.IsHost ? "커튼 레버를 올리면 다시 준비해요" : "방장이 다시 준비할 때까지 기다려요");
             }
             else if (session.GameState == GameSessionState.Playing)
             {

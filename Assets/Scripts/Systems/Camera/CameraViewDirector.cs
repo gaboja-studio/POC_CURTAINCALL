@@ -22,6 +22,7 @@ namespace CurtainCall.Cameras
         {
             public CameraViewPreset Preset;
             public Vector3 Forward;
+            public bool FollowHeading;
         }
 
         [SerializeField] CameraViewSettings settings;
@@ -34,6 +35,8 @@ namespace CurtainCall.Cameras
         CameraViewPreset selected;
         CameraViewKind selectedKind;
         Vector3 selectedForward = Vector3.forward;
+        Vector3 followedHeading;
+        float headingTurnStart, headingTurnDelta, headingTurnApplied;
         NetworkPlayer local;
         PlayerMover mover;
         float yaw;
@@ -154,10 +157,14 @@ namespace CurtainCall.Cameras
 
         /// <summary>출처당 하나. 갱신은 등록 순서를 유지하고 해제 후 재등록만 최근 요청이 된다.</summary>
         public void RequestView(Object source, CameraViewPreset preset, int priority, Vector3 worldForward = default)
+            => RequestViewWithHeading(source, preset, priority, worldForward, false);
+
+        internal void RequestViewWithHeading(Object source, CameraViewPreset preset, int priority, Vector3 worldForward,
+            bool followHeading)
         {
             if (source == null) return;
             if (preset == null) { ReleaseView(source); return; }
-            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward) }, priority);
+            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading }, priority);
         }
 
         public void ReleaseView(Object source) => requests.Remove(source);
@@ -261,6 +268,8 @@ namespace CurtainCall.Cameras
                 // 마우스 시선 시점에 새로 들어올 때만 시선을 현재 화면 방향으로 맞춘다(1인칭↔비고정은 시선 이어짐)
                 bool enterFirst = (useFirst || useFree || useSpectator) && !MouseLook;
                 winner = source;
+                followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
@@ -290,6 +299,8 @@ namespace CurtainCall.Cameras
                 if (!MouseLook && !preserveCursorInFixedView) ReleaseCursor();
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
+            Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
+            UpdateFollowedHeading(heading);
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
@@ -298,6 +309,28 @@ namespace CurtainCall.Cameras
                 composer.TargetOffset = new Vector3(0f, framing.LookHeight - postureDrop, framing.LookAhead);
             }
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
+        }
+
+        void UpdateFollowedHeading(Vector3 heading)
+        {
+            if (heading == Vector3.zero)
+            {
+                followedHeading = Vector3.zero;
+                headingTurnDelta = headingTurnApplied = 0f;
+                return;
+            }
+            if (followedHeading == Vector3.zero || Vector3.Dot(heading, followedHeading) < .9999f)
+            {
+                followedHeading = heading;
+                headingTurnStart = Time.unscaledTime;
+                headingTurnApplied = 0f;
+                headingTurnDelta = Mathf.DeltaAngle(yaw, Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg);
+            }
+            float duration = Mathf.Max(.01f, CurtainCall.Settings.GameSettings.Tightrope.Camera.FramingSmoothTime);
+            float progress = Mathf.Clamp01((Time.unscaledTime - headingTurnStart) / duration);
+            float applied = headingTurnDelta * Mathf.SmoothStep(0f, 1f, progress);
+            yaw = Mathf.Repeat(yaw + applied - headingTurnApplied, 360f);
+            headingTurnApplied = applied;
         }
 
         internal void ApplyPose(ref CameraState state)

@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom
         const int SyncRequest = 0, DropRequest = 1, PickUpRequest = 2, ShelfRequest = 3, SelectRequest = 4, EquipmentRequest = 5;
 
         [Tooltip("바닥에 동시에 둘 수 있는 기물 수(메시지 크기 보호용 임시값).")]
-        [SerializeField, Min(1)] int floorCapacity = 32;
+        [SerializeField, Min(1)] int floorCapacity = 96;
 
         [Tooltip("내려놓을 때 캐릭터 앞쪽으로 떨어지는 거리(m).")]
         [SerializeField, Min(0f)] float dropAhead = .45f;
@@ -474,7 +474,7 @@ namespace CurtainCall.WaitingRoom
             var player = FindPlayer(clientId);
             if (player != null) return player.transform;
             if (NetworkPlayer.All.Count > 0) return null;
-            var reader = FindFirstObjectByType<PlayerInputReader>(); // 접속하지 않은 씬 확인
+            var reader = CurtainCall.Player.OfflineLocalPlayer.Reader; // 접속하지 않은 씬 확인
             return reader != null ? reader.transform : null;
         }
 

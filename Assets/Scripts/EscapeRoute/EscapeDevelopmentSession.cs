@@ -22,6 +22,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] bool suppressFallConsequences;
         [Tooltip("낙사 방지 중에도 외줄 균형 붕괴와 구조 시간 만료를 적용한다.")]
         [SerializeField] bool allowRopeBalanceFalls;
+        [Tooltip("운영 A를 복사한 실험 씬에서도 같은 시작 발판 배치·입장 확인 절차를 사용한다.")]
+        [SerializeField] bool useEntranceSequence;
         static readonly HashSet<EscapeDevelopmentSession> activeSessions = new();
 
         public bool SuppressFallConsequences
@@ -62,7 +64,7 @@ namespace CurtainCall.EscapeRoute
         void OnEnable()
         {
             activeSessions.Add(this);
-            if (gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.EscapeRouteScene)
+            if (useEntranceSequence || gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.EscapeRouteScene)
             {
                 entranceSession = this;
                 InputGate.SetBlocking(this, true);
@@ -116,6 +118,12 @@ namespace CurtainCall.EscapeRoute
 #endif
             if (multiplayer)
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                // Starting at the escape entrance keeps the real campaign verdict and
+                // presentation available in a local multiplayer review of a copied scene.
+                bool campaignReview = DevMode.Enabled && Array.IndexOf(args, "-escapeCampaignReview") >= 0;
+                var reviewRun = campaignReview ? CampaignRun.EnsureExists() : null;
+#endif
                 Application.runInBackground = true;
                 Application.targetFrameRate = 40;
                 QualitySettings.vSyncCount = 0;
@@ -131,6 +139,12 @@ namespace CurtainCall.EscapeRoute
                 while (NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned || (!client && session.PlayerCount < expectedPlayers))
                 { Status = $"개발 세션 {session.PlayerCount}/{expectedPlayers}명 · 참가자 대기"; yield return null; }
                 if (!client && !session.StartGame()) { Status = "개발 세션 시작 실패"; yield break; }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (!client && campaignReview && !reviewRun.DebugStartAt(new RunStartPoint(1, RunStartPhase.Escape, 0, "")))
+                { Status = "탈출 캠페인 검사 시작 실패"; yield break; }
+                if (campaignReview)
+                    while (reviewRun.State.Phase != CampaignPhase.Escape) yield return null;
+#endif
                 while (session.GameState != GameSessionState.Playing) yield return null;
                 if (entranceSession == this) yield return PrepareEntrance();
                 else Ready = true;
@@ -188,7 +202,7 @@ namespace CurtainCall.EscapeRoute
         {
             // Successful ending owns the actors until its explicit return button. A retired observer
             // must not restart the party while the surviving players are in the meadow cinematic.
-            if (CampaignRun.Instance != null && EscapeEndingPresentation.IsSuccessfulEnding(CampaignRun.Instance.State)) return;
+            if (CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Ending) return;
             if (Ready && multiplayer && session != null) Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
             if (!Ready || !OwnsRecovery) return;
             // Direct A/test execution has no campaign step to establish the shared escape rules.

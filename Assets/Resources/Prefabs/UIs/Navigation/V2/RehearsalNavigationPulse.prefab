@@ -3794,6 +3794,8 @@ MonoBehaviour:
   startClearance: 0.7
   destinationClearance: 1
   maximumMarkers: 128
+  fadeSeconds: 0.25
+  relocateDistance: 6
   visibleMarkerCount: 11
 --- !u!114 &8123611425857783277
 MonoBehaviour:
@@ -3810,8 +3812,7 @@ MonoBehaviour:
   view: {fileID: 7558627290714377541}
   destination: {fileID: 7008229792780599829}
   arrivalEcho: {fileID: 270729147822737321}
-  repeatSeconds: 4.2
-  travelSeconds: 2.35
+  waveSpeed: 6
   fadeInSeconds: 0.12
   holdSeconds: 0.16
   fadeOutSeconds: 0.48

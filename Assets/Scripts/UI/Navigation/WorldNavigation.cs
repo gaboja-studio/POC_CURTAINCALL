@@ -25,6 +25,10 @@ namespace CurtainCall.UI.Wayfinding
         /// <summary>Only explicit object/player endpoints are outlined; the implicit local start stays unobtrusive.</summary>
         internal bool UsesObjectOutline => kind is Kind.Object or Kind.Player;
         internal Transform OutlineTarget => UsesObjectOutline ? target : null;
+        /// <summary>True for the default local player and explicit players: their feet stay clear of arrows.</summary>
+        internal bool IsPlayer => kind is Kind.LocalPlayer or Kind.Player;
+        /// <summary>Live transform of a player endpoint, read every frame for distance fades.</summary>
+        internal Transform PlayerTransform => kind==Kind.LocalPlayer ? NetworkPlayer.Local?.transform : kind==Kind.Player ? target : null;
         public bool TryGetPosition(out Vector3 point)
         {
             if(kind==Kind.Position) {point=position;return Finite(point);}
@@ -42,8 +46,9 @@ namespace CurtainCall.UI.Wayfinding
         internal NavigationService Service;
         internal NavigationTarget Start, Destination;
         internal bool Synchronized;
-        internal Color Color;
-        internal float Speed, Emphasis;
+        // Per-guide overrides. null follows GameSettings > Base > 네비게이션 안내, read live on every refresh.
+        internal Color? Color;
+        internal float? Speed, Emphasis, Interval, Follow;
         internal int SceneHandle;
         internal string ScenePath;
         internal bool Disposed;
@@ -54,14 +59,30 @@ namespace CurtainCall.UI.Wayfinding
         public bool IsDisposed => Disposed;
         public Vector3[] Path => Service != null ? Service.GetPath(this) : Array.Empty<Vector3>();
 
+        /// <summary>Changes endpoints/mode. Omitted (null) style values follow the common navigation settings.</summary>
         public void Update(NavigationTarget destination, NavigationTarget start=default, bool synchronize=false,
-            float animationSpeed=1, float emphasis=1, Color? color=null)
+            float? animationSpeed=null, float? emphasis=null, Color? color=null)
         {
             if(Disposed) throw new ObjectDisposedException(nameof(NavigationHandle));
-            Service.Change(this,destination,start,synchronize,animationSpeed,emphasis,color??Color);
+            Service.Change(this,destination,start,synchronize,animationSpeed,emphasis,color);
         }
-        public void SetAppearance(Color color,float animationSpeed=1,float emphasis=1)
+        /// <summary>Overrides style for this guide only. null (or no arguments) returns to the common settings.</summary>
+        public void SetAppearance(Color? color=null,float? animationSpeed=null,float? emphasis=null)
             => Update(Destination,Start,Synchronized,animationSpeed,emphasis,color);
+        /// <summary>Seconds between arrow waves at 1x speed (0.2–10) for this guide. null or 0 or less follows the common setting.</summary>
+        public float? PulseInterval => Interval;
+        public void SetPulseInterval(float? seconds)
+        {
+            if(Disposed) throw new ObjectDisposedException(nameof(NavigationHandle));
+            Service.SetInterval(this,seconds);
+        }
+        /// <summary>Path correction time (0 = instant, up to 2s) for this guide. null or negative follows the common setting.</summary>
+        public float? FollowSeconds => Follow;
+        public void SetFollowSeconds(float? seconds)
+        {
+            if(Disposed) throw new ObjectDisposedException(nameof(NavigationHandle));
+            Service.SetFollow(this,seconds);
+        }
         internal void SetVisible(bool value)
         {
             if(visible==value)return;visible=value;VisibilityChanged?.Invoke(value);
@@ -77,13 +98,15 @@ namespace CurtainCall.UI.Wayfinding
 
     public static class WorldNavigation
     {
+        /// <summary>Fallback for invalid colors only. Normal guides use GameSettings > Base > 네비게이션 안내.</summary>
         public static readonly Color DefaultColor=new(.12f,1,.86f,1);
-        /// <summary>Local guides never send traffic. Shared guides wait for a session and use the caller's start on the host.</summary>
+        /// <summary>Local guides never send traffic. Shared guides wait for a session and use the caller's start on the host.
+        /// Omitted style values follow the common navigation settings (live); passed values override this guide only.</summary>
         public static NavigationHandle Show(NavigationTarget destination,NavigationTarget start=default,bool synchronize=false,
-            float animationSpeed=1,float emphasis=1,Color? color=null)
+            float? animationSpeed=null,float? emphasis=null,Color? color=null)
         {
             if(!Application.isPlaying)throw new InvalidOperationException("WorldNavigation.Show requires Play Mode.");
-            return NavigationService.EnsureExists().Show(destination,start,synchronize,animationSpeed,emphasis,color??DefaultColor);
+            return NavigationService.EnsureExists().Show(destination,start,synchronize,animationSpeed,emphasis,color);
         }
     }
 }

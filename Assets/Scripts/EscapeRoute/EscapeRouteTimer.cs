@@ -35,7 +35,9 @@ namespace CurtainCall.EscapeRoute
         NetworkSessionManager session;
         readonly Dictionary<ulong, Vector3> awaitingSpawn = new();
 
-        bool RouteReady => content != null && content.IsActive && session != null
+        // Copied development scenes still synchronize every player's entrance pose.
+        // Do not consume the encounter's opening while their movement is held for loading.
+        bool RouteReady => !EscapeDevelopmentSession.AwaitingEntrance && content != null && content.IsActive && session != null
             && session.GameState == GameSessionState.Playing && (!content.IsCampaign
                 || CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Escape
                     && EscapeSceneTransfer.Current != null && EscapeSceneTransfer.Current.Ready);

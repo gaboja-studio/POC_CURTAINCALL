@@ -294,13 +294,15 @@ namespace CurtainCall.Tightrope
             var input = reader.Current;
             // While carried, PlayerMover does not run its normal posture update.
             if (localMover.IsCrouched && !input.CrouchHeld) localMover.TryStand();
-            if (system.GetAbove(local) != null || localMover.IsCrouched || !input.ActionPressed
+            if (system.GetAbove(local) != null || localMover.IsCrouched || (!input.ActionPressed && !input.LaneChangePressed)
                 || local.TryGetComponent(out HumanoidPlayerPresentation presentation)
                 && presentation.InteractionMovementLocked) return;
             int viewSign = TightropeControlScheme.LocalViewSign(localMover);
             if (input.AuxDirection != 0)
             {
-                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * viewSign);
+                var carrier = system.GetCarrier(local);
+                int side = carrier != null && Vector3.Dot(carrier.transform.forward, localMover.CourseForward) < 0f ? -1 : 1;
+                if (localMover.LaneJumpAllowed) LaunchLane(input.AuxDirection * side);
                 return;
             }
 
@@ -495,7 +497,9 @@ namespace CurtainCall.Tightrope
             bool fell = local == null || local.State != PlayerState.Normal || system.WasDropped(local)
                         || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
             bool putDown = !fell && Time.time - restartedAt > RestartGrace
-                && !IsCrossing(local);
+                && !IsCrossing(local) && localBottom != null && localBottom.State == PlayerState.Normal;
+            // Capture/fall presentation can move the old carrier before this late unlink.
+            // A surviving passenger then keeps their own position and resumes normal gravity.
             var bottom = localBottom;
             var released = localMover;
             Release();
@@ -587,7 +591,8 @@ namespace CurtainCall.Tightrope
             if (localMover != null)
             {
                 localMover.ClearPendingInput();
-                if (!IsCrossing(NetworkPlayer.Local))
+                // Capture already owns movement when this late stack release runs.
+                if (!IsCrossing(NetworkPlayer.Local) && NetworkPlayer.Local?.State != PlayerState.EscapeCaptured)
                     localMover.Simulated = true;
             }
             localMover = null;

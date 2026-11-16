@@ -43,6 +43,13 @@ namespace CurtainCall.WaitingRoom
 
     public static class ExplorationTargets
     {
+        public static bool ToolsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
+            && (CurtainCall.Campaign.CampaignRun.Instance?.State.Phase == CurtainCall.Campaign.CampaignPhase.Performance
+                // 대기실 연습실의 자유 연습 코스도 '진행 중인 외줄'로 잡혀 대기실 내내 도구가 막혔다(2026-11-15 사용자: 환풍구·녹슨 벽이 더 안 부서짐). 대기실 씬의 코스는 공연으로 보지 않는다.
+                || CurtainCall.Tightrope.TightropeRun.Current is { PracticeMode: false, State: CurtainCall.Tightrope.TightropeRunState.Running } rope
+                    && rope.gameObject.scene.name != CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomScene
+                || CurtainCall.HumanCannon.HumanCannonSystem.Current is { PracticeMode: false } cannon
+                    && cannon.gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.HumanCannonScene);
         /// <summary>맨몸으로 칠 수 있는 대상인가.</summary>
         public static bool AllowsBareHands(IExplorationTarget t) => t is IBareHandTarget { AllowsBareHands: true };
 
@@ -51,6 +58,14 @@ namespace CurtainCall.WaitingRoom
         {
             int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(t.TargetId) : 0;
             return (StrikeProgress.Done(units, t.BareHits, t.ToolHits, withTool), withTool ? t.ToolHits : t.BareHits);
+        }
+
+        /// <summary>맨몸 부수기 전체 진행(0~1, F 안내 게이지용). <paramref name="partial"/>은 지금 채우는 한 대 분량의 비율.</summary>
+        public static float BareProgress(IBareHandTarget t, float partial)
+        {
+            int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(t.TargetId) : 0;
+            float step = StrikeProgress.Step(t.BareHits, t.ToolHits, false);
+            return UnityEngine.Mathf.Clamp01((units + UnityEngine.Mathf.Clamp01(partial) * step) / StrikeProgress.Total(t.BareHits, t.ToolHits));
         }
 
         static readonly List<IExplorationTarget> all = new();
@@ -83,6 +98,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>지금 내 손에 든 기물이 이 도구인가(F 안내용, 모든 화면).</summary>
         public static bool LocalHolds(string toolId)
         {
+            if (ToolsBlocked) return false;
             var carry = PropCarry.Instance;
             if (carry == null) return false;
             var item = carry.InHand(carry.LocalClientId);

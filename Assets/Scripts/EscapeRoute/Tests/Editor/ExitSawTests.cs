@@ -263,5 +263,101 @@ namespace CurtainCall.EscapeRoute.Tests
             wall.size = new Vector3(.2f, 2, 2); Physics.SyncTransforms();
             Assert.That(Call(saw, "PoseFits", device.position, device.rotation, player), Is.False);
         }
+
+        Component CarriedSawBeforeIntrusion(out BoxCollider load)
+        {
+            Fixture(true); var carrier = Player(41); Own(41);
+            Set(carrier, "IsOwner", false); // Keep the follow pose independent of a live local camera.
+            load = device.gameObject.AddComponent<BoxCollider>();
+            load.center = new Vector3(0, .8f, 0); load.size = new Vector3(1, 1.4f, 1);
+            Set(saw, "loadCollider", load); Physics.SyncTransforms();
+            Assert.That(Call(saw, "FollowCarrier", carrier, true), Is.True);
+            return carrier;
+        }
+
+        CapsuleCollider IntrudeIntoCarriedSaw()
+        {
+            var obstacle = Root("Moving body entering the carried saw", true).AddComponent<CapsuleCollider>();
+            obstacle.radius = .6f; obstacle.height = 2.8f;
+            obstacle.transform.position = device.position + new Vector3(.9f, .8f, 0);
+            Physics.SyncTransforms();
+            return obstacle;
+        }
+
+        static float CarryPenetration(Collider load, Collider obstacle)
+        {
+            Assert.That(Physics.ComputePenetration(load, load.transform.position, load.transform.rotation,
+                obstacle, obstacle.transform.position, obstacle.transform.rotation, out _, out float depth), Is.True);
+            return depth;
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void FollowingSawCanLeaveAnIntrudingBodyInTwoCentimetreSteps()
+        {
+            var carrier = CarriedSawBeforeIntrusion(out var load);
+            var obstacle = IntrudeIntoCarriedSaw();
+            float beforeDepth = CarryPenetration(load, obstacle);
+            Assert.That(beforeDepth, Is.GreaterThan(.1f));
+            for (int step = 0; step < 3; step++)
+            {
+                Vector3 before = device.position;
+                carrier.transform.position += Vector3.left * .02f; Physics.SyncTransforms();
+                Assert.That(Call(saw, "FollowCarrier", carrier, false), Is.True,
+                    "A partial exit must move before the load has fully cleared the intruding body.");
+                Assert.That(Get(saw, "carryBlocked"), Is.False);
+                Assert.That(Vector3.Distance(device.position, before + Vector3.left * .02f), Is.LessThan(.002f));
+                Assert.That(Get(saw, "lastSafeFeet"), Is.EqualTo(carrier.transform.position));
+                Physics.SyncTransforms();
+                float afterDepth = CarryPenetration(load, obstacle);
+                Assert.That(afterDepth, Is.LessThan(beforeDepth - .005f));
+                beforeDepth = afterDepth;
+            }
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void FollowingSawStillRejectsDeeperOverlapWithTheIntrudingBody()
+        {
+            var carrier = CarriedSawBeforeIntrusion(out var load);
+            var obstacle = IntrudeIntoCarriedSaw();
+            float beforeDepth = CarryPenetration(load, obstacle);
+            Vector3 before = device.position, safeFeet = carrier.transform.position;
+            carrier.transform.position += Vector3.right * .02f; Physics.SyncTransforms();
+            Assert.That(Call(saw, "FollowCarrier", carrier, false), Is.False);
+            Assert.That(Get(saw, "carryBlocked"), Is.True);
+            Assert.That(device.position, Is.EqualTo(before));
+            Assert.That(Get(saw, "lastSafeFeet"), Is.EqualTo(safeFeet));
+            Assert.That(CarryPenetration(load, obstacle), Is.EqualTo(beforeDepth).Within(.001f));
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void FollowingSawCannotCrossAnotherWallWhileLeavingAnExistingOverlap()
+        {
+            var carrier = CarriedSawBeforeIntrusion(out var load);
+            IntrudeIntoCarriedSaw();
+            var wall = Root("Separate wall along the escape path", true).AddComponent<BoxCollider>();
+            wall.transform.position = device.position + new Vector3(-1.3f, .8f, 0);
+            wall.size = new Vector3(.2f, 2, 3); Physics.SyncTransforms();
+            Assert.That(Physics.ComputePenetration(load, device.position, device.rotation,
+                wall, wall.transform.position, wall.transform.rotation, out _, out _), Is.False);
+            Vector3 before = device.position;
+            carrier.transform.position += Vector3.left * 2; Physics.SyncTransforms();
+            Assert.That(Call(saw, "PoseFits", before + Vector3.left * 2, device.rotation, carrier), Is.True,
+                "The clear endpoint must not hide the separate wall between the two poses.");
+            Assert.That(Call(saw, "FollowCarrier", carrier, false), Is.False);
+            Assert.That(Get(saw, "carryBlocked"), Is.True);
+            Assert.That(device.position, Is.EqualTo(before));
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void InitialSawAlignmentStillRejectsAnExistingOverlap()
+        {
+            var carrier = CarriedSawBeforeIntrusion(out _);
+            IntrudeIntoCarriedSaw();
+            Vector3 before = device.position;
+            Assert.That(Call(saw, "PoseFits", before, device.rotation, carrier), Is.False);
+            Assert.That(Call(saw, "FollowCarrier", carrier, true), Is.False);
+            Assert.That(Get(saw, "carryBlocked"), Is.True);
+            Assert.That(device.position, Is.EqualTo(before));
+        }
     }
 }

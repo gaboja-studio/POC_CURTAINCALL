@@ -60,7 +60,11 @@ namespace CurtainCall.EscapeRoute
         public Vector2 CarryHalfSize => loadCollider != null
             ? new Vector2(loadCollider.bounds.extents.x, loadCollider.bounds.extents.z) : new Vector2(.7f, .7f);
         public float CarryMoveSpeed => CurtainCall.Settings.GameSettings.Base.CarryDevices.SawCarrySpeed;
-        public string CarryName => "휴대 절단기";
+        [Tooltip("비우면 \"휴대 절단기\". 1회용 녹슨 휴대 절단기처럼 이름이 다른 장치에 적는다.")]
+        [SerializeField] string carryNameOverride = "";
+        public string CarryName => string.IsNullOrEmpty(carryNameOverride) ? "휴대 절단기" : carryNameOverride;
+        /// <summary>켜면 장치가 보이지 않고 잡을 수 없다(아직 등장하지 않았거나, 한 번 쓰고 부서진 1회용 절단기). 들고 있던 사람은 놓게 된다.</summary>
+        public bool Suppressed { get; set; }
         public float CutProgress01 => ProjectileMode ? RequiredCableCount > 0 ? CutCableCount / (float)RequiredCableCount : 0
             : Mathf.Clamp01(cutProgress / Mathf.Max(.1f, cutSeconds));
         public bool DoorOpen
@@ -169,6 +173,7 @@ namespace CurtainCall.EscapeRoute
             Attach();
             WatchObjectiveZone();
             if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
+            else if (!scaleWithCrew && carryRoot != null && carryRoot != transform && carryRoot.gameObject.activeSelf == Suppressed) carryRoot.gameObject.SetActive(!Suppressed);
             RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
             if (!Ready && CrewAvailable && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)
             { nextSync = Time.unscaledTimeAsDouble + .5; SendRequest(0, resetBarrier.Waiting ? resetBarrier.Token : 0); }
@@ -194,7 +199,11 @@ namespace CurtainCall.EscapeRoute
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (!Ready || ownership.IsOccupied || !Grounded(player) || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            if (Suppressed || !Ready || ownership.IsOccupied || !Grounded(player) || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            var course = TightropeCourse.Current;
+            if (CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockRopeWithSaw
+                && course != null && course.IsTraversalActive && player.TryGetComponent(out PlayerMover mover)
+                && course.TryGetSupportingRope(mover, out _)) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
@@ -237,7 +246,7 @@ namespace CurtainCall.EscapeRoute
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
-            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align);
+            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
             if (carryBlocked)
             {
                 // 원본 CharacterController 충돌로 운반자의 마지막 유효 위치까지 되돌린다.
@@ -257,7 +266,7 @@ namespace CurtainCall.EscapeRoute
         void HostStep(float deltaTime)
         {
             var carrier = FindPlayer(Carrier);
-            if (ownership.IsOccupied && (!Alive(carrier) || inspection != null && inspection.IsInspecting(Carrier)))
+            if (ownership.IsOccupied && (Suppressed || !Alive(carrier) || inspection != null && inspection.IsInspecting(Carrier)))
             {
                 ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
                 Recover(); Changed();

@@ -75,6 +75,7 @@ namespace CurtainCall.Player
             && (actor == null || !hit.transform.IsChildOf(actor.transform))
             && (!ignoreRope || !CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(hit))
             && !CurtainCall.Damage.DismemberedLimb.Contains(hit)
+            && !hit.TryGetComponent<InteractionPassThrough>(out _)
             && hit.GetComponentInParent<PlayerMover>() == null;
 
         /// <summary>상호작용 요청(외줄: 목마 연결 시도, F 짧게).</summary>

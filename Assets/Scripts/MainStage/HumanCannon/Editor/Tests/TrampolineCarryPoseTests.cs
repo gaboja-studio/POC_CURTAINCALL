@@ -8,6 +8,42 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
+        [Test, Category("TrampolineLayerRegression")]
+        public void MarkedLimbCannotObstructCarryOrBecomeDropSupportWithStaleLayer()
+        {
+            var root = new GameObject("Trampoline");
+            var limb = new GameObject("Detached limb");
+            var floor = new GameObject("Floor");
+            try
+            {
+                root.SetActive(false);
+                root.layer = LayerMask.NameToLayer(CurtainCall.Settings.GamePhysicsLayers.Trampoline);
+                root.transform.position = new Vector3(12000, 100, 12000);
+                var body = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                trampoline.enabled = false;
+                root.SetActive(true);
+                limb.AddComponent<DismemberedLimb>();
+                limb.layer = 0;
+                limb.transform.position = root.transform.position + Vector3.forward;
+                limb.AddComponent<BoxCollider>();
+                floor.transform.position = limb.transform.position + Vector3.down * 2f;
+                var support = floor.AddComponent<BoxCollider>();
+                Physics.SyncTransforms();
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, body, limb.transform.position, Quaternion.identity, null, sweep: true));
+                object[] args = { limb.transform.position + Vector3.up, Vector3.zero, false };
+                Assert.IsTrue((bool)typeof(HumanCannonTrampoline).GetMethod("TryFindGround",
+                    BindingFlags.Instance | BindingFlags.NonPublic).Invoke(trampoline, args));
+                Assert.That(((Vector3)args[1]).y, Is.EqualTo(support.bounds.max.y).Within(.001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(limb);
+                Object.DestroyImmediate(floor);
+            }
+        }
+
         [Test, Category("CommonProgressionRegression"), Category("TrampolineLayerRegression")]
         public void ProjectMatrixIgnoresOnlyTheTwoRequestedLayerPairs()
         {

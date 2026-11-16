@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
         public sealed class Checkpoint
         {
             public Transform shoulderControl;
+            public Transform lastRunnerControl;
             public HumanCannonPole helperPole;
             public HumanCannonPole returnHelperPole;
             public BoxCollider arrival;
@@ -52,10 +53,17 @@ namespace CurtainCall.EscapeRoute
         public static EscapeCooperativeLocks Current { get; private set; }
         public int Count => checkpoints.Length;
         public bool IsReady => Ready;
-        public Transform Control(int index) => Valid(index) ? checkpoints[index].shoulderControl : null;
+        public Transform Control(int index)
+        {
+            if (!Valid(index)) return null;
+            var checkpoint = checkpoints[index];
+            return checkpoint.lastRunnerControl && checkpoint.lastRunnerControl.gameObject.activeInHierarchy
+                ? checkpoint.lastRunnerControl : checkpoint.shoulderControl;
+        }
         public Vector3 ControlPoint(int index) => EscapeSwitchInteraction.Center(Control(index));
         public string Prompt(int index) => Valid(index) ? checkpoints[index].prompt : "";
-        public string Instruction(int index) => Valid(index) ? checkpoints[index].instruction : "";
+        public string Instruction(int index) => !Valid(index) ? "" : checkpoints[index].lastRunnerControl
+            && Control(index) == checkpoints[index].lastRunnerControl ? "마지막 주자 · 바닥 레버에 가까이 가서 F" : checkpoints[index].instruction;
         public string Status(int index) => !Valid(index) ? "" : checkpoints[index].effectName
             + (IsLatched(index) ? " · 가동 고정" : IsOpen(index) ? " · 가동 중" : " · 정지");
         public string Feedback(int index) => !Valid(index) ? "" : (IsLatched(index)
@@ -64,13 +72,15 @@ namespace CurtainCall.EscapeRoute
         public string StationInstruction(HumanCannonStation station)
         {
             for (int i = 0; i < checkpoints.Length; i++)
-                if (checkpoints[i] != null && checkpoints[i].lockedStation == station) return Status(i) + "\n" + checkpoints[i].instruction;
+                if (checkpoints[i] != null && checkpoints[i].lockedStation == station) return Status(i) + "\n" + Instruction(i);
             return "F로 탑승 · 다시 F로 발사 · F 길게 눌러 내리기";
         }
         public string HelperInstruction(HumanCannonPole pole)
         {
             for (int i = 0; i < checkpoints.Length; i++)
-                if (checkpoints[i] != null && (checkpoints[i].helperPole == pole || checkpoints[i].returnHelperPole == pole)) return Status(i) + "\n" + checkpoints[i].instruction;
+                if (checkpoints[i] != null && (checkpoints[i].helperPole == pole || checkpoints[i].returnHelperPole == pole))
+                    return Status(i) + "\n" + (CanLatchForLastRunner(i) && HasOneUnresolvedRunner() && !IsLatched(i)
+                        ? "마지막 주자 · 유지봉을 잡으면 놓은 뒤에도 가동됩니다" : checkpoints[i].instruction);
             return "동료가 건널 때까지 잡고 있습니다";
         }
         public bool IsHelperPole(HumanCannonPole pole) => pole != null && Array.Exists(checkpoints, c => c != null
@@ -82,8 +92,10 @@ namespace CurtainCall.EscapeRoute
             && ((complete | supported) & (1u << index)) != 0;
         bool UsesPole(int index) => Valid(index) && (checkpoints[index].helperPole != null || checkpoints[index].returnHelperPole != null);
         bool LatchesBridgeOnGrab(int index) => checkpoints[index].span != null && checkpoints[index].latchWhenCrewReady;
-        bool AllowsLatch(int index) => !UsesPole(index) || LatchesBridgeOnGrab(index)
-            || (checkpoints[index].lockedStation != null && checkpoints[index].shoulderControl != null);
+        bool HasUpperCannonControl(int index) => checkpoints[index].lockedStation != null && checkpoints[index].shoulderControl != null;
+        bool CanLatchForLastRunner(int index) => HasUpperCannonControl(index)
+            || checkpoints[index].span != null && checkpoints[index].returnHelperPole != null;
+        bool AllowsLatch(int index) => !UsesPole(index) || LatchesBridgeOnGrab(index) || CanLatchForLastRunner(index);
         public bool IsLatched(int index) => Valid(index) && AllowsLatch(index) && (latched & (1u << index)) != 0;
         public bool IsArmed(int index) => Valid(index) && (armed & (1u << index)) != 0;
         public bool IsOpen(int index) => Ready && Valid(index) && OpenAt(AllowsLatch(index) ? latched : 0u, held, index);
@@ -128,12 +140,21 @@ namespace CurtainCall.EscapeRoute
 
         public bool CanUseControl(NetworkPlayer player, int index)
         {
-            if (!Ready || !Valid(index) || checkpoints[index].shoulderControl == null
-                || (armed & (1u << index)) != 0 || !Alive(player)) return false;
-            return EscapeSwitchInteraction.InRange(player, checkpoints[index].shoulderControl);
+            if (!Ready || !Valid(index) || (armed & (1u << index)) != 0 || !Alive(player)) return false;
+            return EscapeSwitchInteraction.InRange(player, Control(index));
         }
 
         static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
+
+        static bool HasOneUnresolvedRunner()
+        {
+            int remaining = 0;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && (player.State == PlayerState.Normal || player.State == PlayerState.EscapeCaptured)
+                    && ++remaining > 1) return false;
+            return remaining == 1;
+        }
+
         int HelperIndex(int index, bool returning = false)
         {
             var poles = HumanCannonPoleSystem.Current;
@@ -182,6 +203,7 @@ namespace CurtainCall.EscapeRoute
         void HostStep()
         {
             uint beforeHeld = held, beforeLatched = latched;
+            bool lastRunner = HasOneUnresolvedRunner();
             held = 0;
             for (int i = 0; i < checkpoints.Length && i < 32; i++)
             {
@@ -194,7 +216,7 @@ namespace CurtainCall.EscapeRoute
                     // 직접 잡은 상단 사람이 스위치 봉을 작동시킨다. 지정된 대포 버튼과 권상교만 가동을 고정한다.
                     bool active = UpperHolderAlive(poleIndex) || UpperHolderAlive(returning);
                     if (active) held |= bit;
-                    if (active && LatchesBridgeOnGrab(i)) latched |= bit;
+                    if (active && (LatchesBridgeOnGrab(i) || lastRunner && CanLatchForLastRunner(i))) latched |= bit;
                     if (!AllowsLatch(i)) latched &= ~bit;
                     continue;
                 }
@@ -218,10 +240,16 @@ namespace CurtainCall.EscapeRoute
         void Present()
         {
             tint ??= new MaterialPropertyBlock();
+            bool showLastRunnerControls = Ready && HasOneUnresolvedRunner();
             for (int i = 0; i < checkpoints.Length && i < 32; i++)
             {
                 if (!Valid(i)) continue;
                 bool open = IsOpen(i);
+                var lastControl = checkpoints[i].lastRunnerControl;
+                if (lastControl)
+                {
+                    if (lastControl.gameObject.activeSelf != showLastRunnerControls) lastControl.gameObject.SetActive(showLastRunnerControls);
+                }
                 if (checkpoints[i].lockedStation != null) checkpoints[i].lockedStation.InteractionAvailable = open;
                 if (checkpoints[i].span != null) checkpoints[i].span.SetDeployed(open);
                 foreach (var shutter in checkpoints[i].shutters)

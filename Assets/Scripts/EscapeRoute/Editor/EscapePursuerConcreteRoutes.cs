@@ -16,6 +16,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
         static Transform frame, module, root;
         static Material concrete;
         static readonly List<EscapePursuerWalls.Gate> gates = new();
+        static bool physicalClearance;
 
         [MenuItem("Tools/CurtainCall/탈출로/추격자 콘크리트 벽 뒤 경로 적용")]
         public static void Apply()
@@ -224,13 +225,38 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Physics.SyncTransforms();
             return frame.GetComponentsInChildren<BoxCollider>(false).Where(c => !c.isTrigger &&
                 c.GetComponent<MeshRenderer>() && (c.name.Contains("벽") || c.name.Contains("잼") ||
-                c.name == "압축 출발부 북측 기초" || c.name == "전망을 나누는 시설 기둥" ||
+                c.name == "압축 출발부 북측 기초" || c.name == "전망을 나누는 시설 기둥" || c.name == "길을 가리는 길고 두꺼운 하중 코어" ||
+                c.name == "심부 수직 하중 기둥" || c.name == "외곽 수직 버트레스" ||
                 c.name.Contains("전망창") && c.name.Contains("프레임") || c.name.EndsWith("infill") ||
-                c.name.StartsWith("Concrete remainder"))).ToArray();
+                c.name.StartsWith("Concealed shell") || c.name.StartsWith("Concrete remainder") || physicalClearance && (c.name.StartsWith("Hidden concrete floor ") ||
+                c.name.StartsWith("Breach approach ") || c.name.StartsWith("Breach threshold ") ||
+                c.name.StartsWith("발사대 남측 난간") || c.name == "출발부 두꺼운 낮은 인방" || c.name == "측면 파쇄 반출기 기초"))).ToArray();
+        }
+
+        internal static void OpenPhysicalPassage(Transform campaign, Transform pursuer, Transform output, Vector3 from, Vector3 to)
+        {
+            frame = campaign; module = pursuer; root = output;
+            physicalClearance = true;
+            var previous = ConcreteWalls();
+            CutPassage(frame.InverseTransformPoint(from), frame.InverseTransformPoint(to), new Vector3(3.2f, 6.6f, 3.2f), Vector3.up * 3.35f);
+            foreach (var wall in previous)
+                if (wall && !wall.gameObject.activeSelf) Object.DestroyImmediate(wall.gameObject);
+            physicalClearance = false;
         }
 
         static Bounds LocalBounds(BoxCollider wall) =>
             new(frame.InverseTransformPoint(wall.bounds.center), wall.bounds.size);
+
+        internal static void OpenPhysicalVolume(Transform campaign, Transform pursuer, Transform output, Bounds opening)
+        {
+            frame = campaign; module = pursuer; root = output;
+            physicalClearance = true;
+            var previous = ConcreteWalls();
+            Cut(opening);
+            foreach (var wall in previous)
+                if (wall && !wall.gameObject.activeSelf) Object.DestroyImmediate(wall.gameObject);
+            physicalClearance = false;
+        }
 
         static void CutHiddenPassage(Vector3 a, Vector3 b)
             => CutPassage(a, b, new Vector3(4.6f, 8, 4.6f), Vector3.up * 2.5f);

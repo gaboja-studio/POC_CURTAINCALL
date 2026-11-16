@@ -1,0 +1,52 @@
+{
+  "fps": 60,
+  "clips": {
+    "Golem_Walk": {
+      "loop": true,
+      "frames": 73,
+      "duration_seconds": 1.2,
+      "speed_mps": 2.7,
+      "cycle_distance_m": 3.24,
+      "stance_fraction": 0.58,
+      "ik_clamps": 0,
+      "footfall_phases": [
+        0,
+        0.5
+      ],
+      "root_motion": "IN_PLACE_GAME_OWNED",
+      "authoring": {
+        "intervals": 72,
+        "speed": 2.7,
+        "stance": 0.58,
+        "hip": -0.33,
+        "lift": 0.22,
+        "lean": 7,
+        "arm": 0.38
+      }
+    },
+    "Golem_Run": {
+      "loop": true,
+      "frames": 69,
+      "duration_seconds": 1.1333333333333333,
+      "speed_mps": 6.6,
+      "cycle_distance_m": 7.4799999999999995,
+      "stance_fraction": 0.3,
+      "ik_clamps": 0,
+      "footfall_phases": [
+        0,
+        0.5
+      ],
+      "root_motion": "IN_PLACE_GAME_OWNED",
+      "authoring": {
+        "intervals": 68,
+        "speed": 6.6,
+        "stance": 0.3,
+        "hip": -0.48,
+        "lift": 0.5,
+        "lean": 14,
+        "arm": 0.72
+      }
+    }
+  },
+  "movement": "In-place; phase = actual travelled distance / selected gait cycle distance."
+}

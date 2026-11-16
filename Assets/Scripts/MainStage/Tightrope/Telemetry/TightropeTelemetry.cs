@@ -69,7 +69,7 @@ namespace CurtainCall.Tightrope.Telemetry
                 Record(GameplayActions.InputChanged, ObservationKind.LocalIntent, frame.Move, frame.Posture);
             if (frame.AuxDirection != previousInput.AuxDirection)
                 Record(GameplayActions.InputDirectionChanged, ObservationKind.LocalIntent, frame.AuxDirection);
-            if (frame.ActionPressed)
+            if (frame.ActionPressed || frame.LaneChangePressed)
                 Record(GameplayActions.Jump, ObservationKind.LocalIntent,
                     (float)(frame.AuxDirection == 0 ? JumpKind.InPlace : JumpKind.Lane), frame.AuxDirection);
             previousInput = frame;

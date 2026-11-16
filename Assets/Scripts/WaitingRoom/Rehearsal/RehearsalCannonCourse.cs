@@ -17,6 +17,11 @@ namespace CurtainCall.WaitingRoom
         public CurtainCall.UI.TooltipsV1.TooltipView Tooltip;
         public CurtainCall.UI.SceneIntegration.HumanCannonUiBinding DeviceUi;
         public const float Elevation = 2f;
+        [Tooltip("최종 도착대 윗면에 까는 초록(공연 안전지대 초록 지면과 같은 재질). 비우면 깔지 않는다.")]
+        public Material SafeGroundMaterial;
+        [Tooltip("재질 아틀라스에서 초록 칸의 UV(공연 초록 지면 메시와 같은 값).")]
+        public Vector2 SafeGroundUv = new(0.5347f, 0.2872f);
+        GameObject safeGround;
 
         public void Prepare(Vector3 origin)
         {
@@ -28,6 +33,7 @@ namespace CurtainCall.WaitingRoom
             PlaceDeck(LowerDeck, new Vector3(7, .5f, -8), new Vector2(12, 14));
             // Keep the native transport's boarding deck clear of the raised finish floor.
             PlaceDeck(FinishDeck, new Vector3(10, 3.8f, -2), new Vector2(8, 10));
+            AddSafeGround();
             for (int i = 0; i < Stations.Length; i++)
             {
                 bool second = i >= 2;
@@ -40,6 +46,26 @@ namespace CurtainCall.WaitingRoom
             Cannon.ConfigurePractice(Stations, origin.y + .15f);
             Route.ConfigurePractice(Transport, origin.y + .15f);
             DeviceUi.ConfigurePractice(Guide, Tooltip);
+        }
+
+        // 2026-11-15 사용자: 리허설의 마지막 도착 장소도 공연처럼 초록 안전지역으로 표시한다. 외형 전용(충돌 없음).
+        void AddSafeGround()
+        {
+            if (SafeGroundMaterial == null || FinishDeck == null || safeGround != null) return;
+            safeGround = new GameObject("FinishSafeGround");
+            safeGround.transform.SetParent(FinishDeck, false);
+            // 원본 발판은 4×4m, 윗면이 로컬 y=0이다. 발판 배율을 그대로 따라 윗면 전체를 덮는다.
+            safeGround.transform.localPosition = new Vector3(0f, .01f, 0f);
+            var mesh = new Mesh { name = "FinishSafeGround", hideFlags = HideFlags.DontSave };
+            mesh.SetVertices(new[] { new Vector3(-2f, 0f, -2f), new Vector3(-2f, 0f, 2f), new Vector3(2f, 0f, 2f), new Vector3(2f, 0f, -2f) });
+            mesh.SetTriangles(new[] { 0, 1, 2, 0, 2, 3 }, 0);
+            mesh.SetUVs(0, new[] { SafeGroundUv, SafeGroundUv, SafeGroundUv, SafeGroundUv });
+            mesh.SetNormals(new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up });
+            mesh.RecalculateBounds();
+            safeGround.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var view = safeGround.AddComponent<MeshRenderer>();
+            view.sharedMaterial = SafeGroundMaterial;
+            view.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
         static void PlaceDeck(Transform deck, Vector3 position, Vector2 size)
