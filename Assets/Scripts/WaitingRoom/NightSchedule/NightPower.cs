@@ -39,6 +39,22 @@ namespace CurtainCall.WaitingRoom
         static void ResetBlackout() => BlackoutUntilUnscaled = 0f;
         /// <summary>정비 시간이라 무대 입구 통로 조명을 꺼 두었는가.</summary>
         public bool IsStageCorridorDark { get; private set; }
+        // 회로 조명마다 지금 기준 밝기·색(낮이면 원래 값, 밤이면 푸르게 낮춘 값)을 다른 연출(추격 조명)에 알려 준다.
+        // 2026-11-16 버그 리포트: 밤 추격 조명이 밤의 푸른 값을 원래 값으로 기억해 아침에도 되돌려 놓아, 씬을 다시 불러와야 밝아졌다.
+        static readonly Dictionary<Light, (NightPower power, int index)> registry = new();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetRegistry() => registry.Clear();
+        /// <summary>회로 조명이면 지금 기준 밝기·색을 준다(밤: 푸르게 낮춘 값, 낮: 씬에 놓인 원래 값).</summary>
+        public static bool TryGetBase(Light light, out float intensity, out Color color)
+        {
+            intensity = 0f; color = Color.white;
+            if (light == null || !registry.TryGetValue(light, out var entry) || entry.power == null) return false;
+            var p = entry.power; int i = entry.index;
+            intensity = p.dimmed ? p.originalIntensity[i] * p.nightBrightness : p.originalIntensity[i];
+            color = p.dimmed ? p.nightColor : p.dayColor[i];
+            return true;
+        }
+
         void Awake()
         {
             original = new bool[circuit.Length];
@@ -47,7 +63,7 @@ namespace CurtainCall.WaitingRoom
             for (int i = 0; i < circuit.Length; i++)
             {
                 original[i] = circuit[i] != null && circuit[i].enabled;
-                if (circuit[i] != null) originalIntensity[i] = circuit[i].intensity;
+                if (circuit[i] != null) { originalIntensity[i] = circuit[i].intensity; dayColor[i] = circuit[i].color; registry[circuit[i]] = (this, i); }
             }
             wasCut = new bool[blackoutCables.Length];
             corridor.UnionWith(StageCorridorClosure.CorridorLights(transform.parent));
@@ -102,16 +118,14 @@ namespace CurtainCall.WaitingRoom
                 for (int i = 0; i < corridorExtra.Length; i++)
                     if (corridorExtra[i] != null) corridorExtra[i].enabled = !IsStageCorridorDark && corridorExtraOriginal[i];
         }
-        // 밤에 들어갈 때의 색을 기억했다가 아침에 돌려놓는다. 밝기는 처음 값으로 돌린다(깜박임 조명은 스스로 다시 정한다).
+        // 아침에는 씬에 놓인 원래 색·밝기로 돌린다(깜박임 조명은 스스로 다시 정한다).
+        // 밤에 들어가는 순간의 색을 다시 기억하지 않는다: 그때 다른 연출이 바꿔 둔 색이 낮 색으로 굳을 수 있다.
         void SetDimmed(bool on)
         {
             dimmed = on;
+            if (on) return;
             for (int i = 0; i < circuit.Length; i++)
-            {
-                if (circuit[i] == null) continue;
-                if (on) dayColor[i] = circuit[i].color;
-                else { circuit[i].color = dayColor[i]; circuit[i].intensity = originalIntensity[i]; }
-            }
+                if (circuit[i] != null) { circuit[i].color = dayColor[i]; circuit[i].intensity = originalIntensity[i]; }
         }
         [Tooltip("배선 정전·회로 깜빡임 동안 남기는 주변광 비율.")]
         [SerializeField, Range(0f, 1f)] float blackoutAmbient = .12f;
@@ -130,6 +144,12 @@ namespace CurtainCall.WaitingRoom
             float m = on ? blackoutAmbient : 1f;
             RenderSettings.ambientSkyColor = ambientSky * m; RenderSettings.ambientEquatorColor = ambientEquator * m; RenderSettings.ambientGroundColor = ambientGround * m;
             RenderSettings.ambientIntensity = ambientIntensity * m; RenderSettings.ambientProbe = ambientProbe * m; RenderSettings.reflectionIntensity = reflectionIntensity * m;
+        }
+        void OnDestroy()
+        {
+            if (circuit == null) return;
+            foreach (var light in circuit)
+                if (light != null && registry.TryGetValue(light, out var entry) && entry.power == this) registry.Remove(light);
         }
         void OnDisable()
         {

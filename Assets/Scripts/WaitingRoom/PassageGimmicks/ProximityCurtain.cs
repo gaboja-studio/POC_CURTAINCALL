@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 가까이 가면 한쪽으로 걷히는 커튼(2026-11-13 사용자: 숨겨진 방 2). 내 화면에서만 움직이는 연출이다.
+    /// 누군가 가까이 가면 한쪽으로 걷히는 커튼(2026-11-13 사용자: 숨겨진 방 2). 동기화된 플레이어 위치로 각 화면이 같게 판정한다.
     /// 커튼을 한쪽 끝(edge)에 붙인 채 폭 방향(axis)으로 줄여 걷힌 모습을 만든다.
     /// </summary>
     public sealed class ProximityCurtain : MonoBehaviour
@@ -22,8 +22,11 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             if (!ready) { closedScale = transform.localScale; closedPosition = transform.position; ready = true; }
-            bool near = ExplorationState.Instance != null && ExplorationState.Instance.LocalFeet is Vector3 feet
-                && Mathf.Abs(feet.y - closedPosition.y) < 6f && new Vector2(feet.x - closedPosition.x, feet.z - closedPosition.z).sqrMagnitude < radius * radius;
+            // 누구든 가까이 있으면 걷힌다(2026-11-16 버그 리포트: 다른 플레이어와 동기화 안 됨). 플레이어 위치는 모두에게 동기화되므로 네 화면이 같다.
+            bool near = false;
+            foreach (var player in CurtainCall.Network.PlayerSync.NetworkPlayer.All)
+                if (player != null && player.IsSpawned && Near(player.transform.position)) { near = true; break; }
+            if (!near) near = ExplorationState.Instance != null && ExplorationState.Instance.LocalFeet is Vector3 feet && Near(feet);
             if (wasNear != near) { wasNear = near; if (velvet != null) velvet.SendMessage(near ? "Open" : "Rest", SendMessageOptions.DontRequireReceiver); }
             float next = Mathf.MoveTowards(t, near ? 1f : 0f, Time.deltaTime / seconds);
             if (Mathf.Approximately(next, t)) return;
@@ -34,5 +37,8 @@ namespace CurtainCall.WaitingRoom
             float along = Vector3.Dot(closedPosition - edge, dir);
             transform.position = closedPosition - dir * (along * (1f - k));
         }
+
+        bool Near(Vector3 feet) => Mathf.Abs(feet.y - closedPosition.y) < 6f
+            && new Vector2(feet.x - closedPosition.x, feet.z - closedPosition.z).sqrMagnitude < radius * radius;
     }
 }

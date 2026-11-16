@@ -412,7 +412,7 @@ namespace CurtainCall.WaitingRoom
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }
             if (ExplorationState.Instance == null || !ExplorationState.Instance.CanReachLocal(this) || !ConditionsMet
                 || (NeedsPassword && Opened) || (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                || (Time.frameCount > openedFrame + 1 && CurtainCall.Network.PlayerSync.NetworkPlayer.Local != null
+                || (Time.frameCount > openedFrame + 1 && !(panelView != null && panelView.Typing) && CurtainCall.Network.PlayerSync.NetworkPlayer.Local != null
                     && CurtainCall.Network.PlayerSync.NetworkPlayer.Local.GetComponent<PlayerInputReader>()?.WasPressedThisFrame("Interact") == true)) ClosePanel();
         }
     }
