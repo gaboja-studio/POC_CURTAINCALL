@@ -28,6 +28,29 @@ namespace CurtainCall.HumanCannon
         uint revision;
         public static HumanCannonHazardCourse Current { get; private set; }
         public int Difficulty => difficulty;
+        internal uint GroundFireOffRows { get; private set; }
+        internal long GateGroundFireFirstCycle { get; private set; }
+        internal bool IsGroundFireAuthority => session != null && session.IsHost;
+
+        internal void DisableGroundFireRows(uint rows)
+        {
+            GroundFireOffRows |= rows;
+            revision++;
+            Publish();
+        }
+
+        internal void ScheduleGateGroundFire(long firstCycle)
+        {
+            GateGroundFireFirstCycle = firstCycle;
+            revision++;
+            Publish();
+        }
+
+        void ClearGroundFireState()
+        {
+            GroundFireOffRows = 0;
+            GateGroundFireFirstCycle = 0;
+        }
         /// <summary>판정 화면의 실제 절단 결과(플레이어·장애물·잘린 부위·검출 위치).</summary>
         public event Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> HitConfirmed;
         /// <summary>절단 판정을 호출하기 직전의 실제 접촉. 피해 성공과는 구분한다.</summary>
@@ -119,7 +142,7 @@ namespace CurtainCall.HumanCannon
         bool ApplyDifficulty(int level)
         {
             if (difficulty == level) return true;
-            difficulty = level; epoch = Clock; ClearContacts(); revision++; Publish();
+            difficulty = level; epoch = Clock; ClearGroundFireState(); ClearContacts(); revision++; Publish();
             return true;
         }
 
