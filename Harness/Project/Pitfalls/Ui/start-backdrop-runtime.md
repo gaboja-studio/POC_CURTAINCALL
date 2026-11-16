@@ -17,3 +17,4 @@ source: Task-20261116-138
 - `TitleRopeGraphic` 프리팹에는 CanvasRenderer가 필요하다. MaskableGraphic 상속만으로 자동 생성된다고 가정하지 않는다.
 - 개발/라이선스 데이터: `Resources/Settings/StartMenu/StartMenuCredits.asset`. Project Settings > Curtain Call > Development and Licenses 또는 Tools > CurtainCall > Start Menu > Credits Settings에서 편집한다.
 - 추가 한글은 전용 런타임 TMP 폰트에만 생성한다. 에셋 생성기는 SaveAssets 전체 저장 대신 해당 설정만 저장해 다른 동적 폰트의 자동 변경을 저장하지 않는다.
+- 라이선스 창의 전환에서는 해당 화면에 속한 EventSystem 선택을 해제한다. 닫을 때 여는 버튼을 다시 선택하면 창 밖에서도 버튼 강조가 남는다. 목록·전문을 교체할 때는 기존 컨트롤을 비활성화하기 전에 선택을 해제한다. (Task-20261116-142)
