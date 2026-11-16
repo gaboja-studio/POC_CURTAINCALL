@@ -90,7 +90,8 @@ namespace CurtainCall.HumanCannon
             {
                 var pole = poles[index];
                 pole.RefreshMovingPose();
-                runtime.ReleasePosition = pole.HangingPosition(runtime.Angle, seat);
+                runtime.ReleasePosition = TryRecyclePosition(index, seat, actor, out var terminal)
+                    ? terminal : pole.HangingPosition(runtime.Angle, seat);
                 // TryRelease has cleared the occupant, but this seat still holds its departure facing.
                 runtime.ReleaseRotation = SeatRotation(index, seat);
                 runtime.ReleaseVelocity = drop ? Vector3.zero : CannonAirControl.LimitPoleHorizontalSpeed(

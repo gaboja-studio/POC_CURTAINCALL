@@ -131,7 +131,7 @@ namespace CurtainCall.EscapeRoute
         bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null
             && session.GameState == GameSessionState.Playing;
         bool Ready => SessionReady && CarryRoot.gameObject.activeInHierarchy;
-        bool ProjectileSessionReady => SessionReady && (CarryRoot.gameObject.activeInHierarchy || scaleWithCrew);
+        bool ProjectileSessionReady => SessionReady && (CarryRoot.gameObject.activeInHierarchy || scaleWithCrew || shots.Count > 0);
         string UseKey => NetworkPlayer.Local != null && NetworkPlayer.Local.TryGetComponent(out PlayerInputReader input)
             ? input.BindingLabel(InputBindingPreferences.DeviceUseAction, InputBindingPreferences.LeftClickLabel)
             : InputBindingPreferences.LeftClickLabel;
@@ -179,6 +179,8 @@ namespace CurtainCall.EscapeRoute
         }
         void LateUpdate()
         {
+            // A suppressed/hidden body is not Ready, but its old bearer must still be released.
+            if (SessionReady && session.IsHost && resetFrame != Time.frameCount) ReleaseUnavailableCarrier();
             if (Ready)
             {
                 var carrier = FindPlayer(Carrier);
@@ -269,12 +271,8 @@ namespace CurtainCall.EscapeRoute
         }
         void HostStep(float deltaTime)
         {
+            ReleaseUnavailableCarrier();
             var carrier = FindPlayer(Carrier);
-            if (ownership.IsOccupied && (Suppressed || !Alive(carrier) || inspection != null && inspection.IsInspecting(Carrier)))
-            {
-                ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
-                Recover(); Changed();
-            }
             if (ProjectileMode) { HostProjectileStep(deltaTime, carrier); return; }
             bool contact = !carryBlocked && !DoorOpen && ownership.IsOccupied && Grounded(carrier)
                 && blade != null && blade.gameObject.activeInHierarchy && cableSocket != null && cableSocket.gameObject.activeInHierarchy
@@ -286,6 +284,13 @@ namespace CurtainCall.EscapeRoute
             if (before != cutProgress || wasCutting != cutting) stateRevision++;
             if (wasOpen != DoorOpen || wasCutting != cutting || Time.unscaledTimeAsDouble >= nextPublish)
             { nextPublish = Time.unscaledTimeAsDouble + .1; Publish(); }
+        }
+        void ReleaseUnavailableCarrier()
+        {
+            if (!ownership.IsOccupied || !Suppressed && Alive(FindPlayer(Carrier))
+                && !(inspection != null && inspection.IsInspecting(Carrier))) return;
+            ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
+            Recover(); Changed();
         }
         void TickCut(float deltaTime, bool contact)
         {

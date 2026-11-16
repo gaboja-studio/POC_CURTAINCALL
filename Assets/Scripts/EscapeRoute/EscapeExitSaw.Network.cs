@@ -138,6 +138,12 @@ namespace CurtainCall.EscapeRoute
         void SendState(ulong client, int token)
         {
             using var writer = new FastBufferWriter(StateSize + BitCount(cutMask) * 12 + shots.Count * ShotSize, Allocator.Temp);
+            WriteState(writer, token);
+            // Click firing can leave more than one MTU of in-flight saws. Keep the complete snapshot reliable.
+            messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableFragmentedSequenced);
+        }
+        void WriteState(FastBufferWriter writer, int token)
+        {
             writer.WriteValueSafe(stateRevision); writer.WriteValueSafe(ownership.Revision); writer.WriteValueSafe(Carrier);
             writer.WriteValueSafe(CarryRoot.position); writer.WriteValueSafe(CarryRoot.rotation); writer.WriteValueSafe(cutProgress);
             // Two independent flags in the existing state byte. Join/resync receives the same latch as a live update.
@@ -150,8 +156,6 @@ namespace CurtainCall.EscapeRoute
                 writer.WriteValueSafe(shot.Id); writer.WriteValueSafe(shot.Epoch); writer.WriteValueSafe(shot.Position);
                 writer.WriteValueSafe(shot.Direction); writer.WriteValueSafe(shot.Age);
             }
-            // Click firing can leave more than one MTU of in-flight saws. Keep the complete snapshot reliable.
-            messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableFragmentedSequenced);
         }
         void ReadState(ulong sender, FastBufferReader reader)
         {

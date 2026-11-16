@@ -564,6 +564,13 @@ namespace CurtainCall.WaitingRoom
         {
             if (messaging == null || session == null || !session.IsHost) return;
             using var writer = new FastBufferWriter(1024, Allocator.Temp);
+            WriteState(writer);
+            if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
+            else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
+        }
+
+        void WriteState(FastBufferWriter writer)
+        {
             writer.WriteValueSafe(version);
             writer.WriteValueSafe(stage);
             writer.WriteValueSafe(round);
@@ -579,8 +586,6 @@ namespace CurtainCall.WaitingRoom
             foreach (ulong id in votes) writer.WriteValueSafe(id);
             WriteLesson(writer);
             WriteVotes(writer);
-            if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
-            else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void Send(Operation operation)

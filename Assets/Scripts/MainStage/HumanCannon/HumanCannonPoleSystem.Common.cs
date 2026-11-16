@@ -11,6 +11,48 @@ namespace CurtainCall.HumanCannon
     {
         readonly Dictionary<ulong, int> flightOrigins = new();
         HumanCannonSystem observedFlightSystem;
+
+        bool TryRecyclePosition(int index, int seat, ulong actor, out Vector3 position)
+        {
+            var runtime = states[index];
+            position = default;
+            if (seat < 0 || seat >= runtime.Riders.Length || !runtime.Recycling || actor == CannonSeatState.Nobody
+                || runtime.RecycleActors[seat] != actor || runtime.RecycleLaunches[seat] != runtime.Riders[seat].Launch
+                || runtime.RecycleSegments[seat] != runtime.Riders[seat].Segment) return false;
+            position = runtime.RecyclePositions[seat];
+            return true;
+        }
+
+        void ObserveLoopRecycle(int index)
+        {
+            var runtime = states[index];
+            var pole = poles[index];
+            var loop = pole.Loop;
+            if (loop == null || !loop.IsSynchronized) { runtime.PreviousLoopElapsed = -1; return; }
+            double elapsed = loop.Elapsed, previous = runtime.PreviousLoopElapsed;
+            runtime.PreviousLoopElapsed = elapsed;
+            if (elapsed < previous) { runtime.Recycling = false; return; }
+            if (!loop.TryGetRecycleBoundary(previous, elapsed, out double terminalTime)) return;
+            runtime.Recycling = true;
+            for (int seat = 0; seat < runtime.Riders.Length; seat++)
+            {
+                runtime.RecyclePositions[seat] = loop.PointAt(pole.HangingPosition(runtime.Angle, seat), terminalTime);
+                runtime.RecycleActors[seat] = runtime.State.OccupantAt(seat);
+                runtime.RecycleLaunches[seat] = runtime.Riders[seat].Launch;
+                runtime.RecycleSegments[seat] = runtime.Riders[seat].Segment;
+            }
+            // Clients hold the last rail end until the authoritative release arrives.
+            // Actor and flight tokens identify this hold on both host and clients; JoinedRevision is host-only.
+            if (session == null || !session.IsHost) return;
+            for (int seat = runtime.State.Capacity - 1; seat >= 0; seat--)
+            {
+                ulong actor = runtime.State.OccupantAt(seat);
+                if (actor == CannonSeatState.Nobody || !runtime.State.TryRelease(actor, runtime.State.Revision, Clock, pole.WarningSeconds)) continue;
+                var player = FindPlayer(actor);
+                Publish(index, player != null && player.State == PlayerState.Normal ? PoleEvent.Released : PoleEvent.Abandoned,
+                    actor, seat, true);
+            }
+        }
         public event Action<int, ulong, bool> OccupancyChanged;
         public event Action<int, ulong> Released;
         public event Action<int, ulong, Vector3, bool> Landed;

@@ -43,6 +43,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, HideInInspector] Vector3 hazardPathScale = Vector3.one;
         public static EscapeCampaignContent Current { get; private set; }
         public bool IsActive => content != null && content.activeSelf;
+        public bool HasArrived(ulong actor) => arrived.Contains(actor);
         public bool ExitOpen => exitSaw != null && exitSaw.DoorOpen;
         public bool DevOpenExit(out string reason)
         {
@@ -291,7 +292,7 @@ namespace CurtainCall.EscapeRoute
 
         bool AllowState(NetworkPlayer player, PlayerState next)
         {
-            if (!destroyed)
+            if (!destroyed && isActiveAndEnabled && IsActive)
             {
                 // Arrival is an authoritative exit-volume decision, never a client request.
                 if (next == PlayerState.Arrived) return false;
@@ -340,8 +341,13 @@ namespace CurtainCall.EscapeRoute
                     if (IsCampaign || player == null || player.State != PlayerState.Normal) continue;
                     arrived.Remove(id); // A development restart returned this participant to the start.
                 }
-                // A disconnected participant cannot keep the remaining team waiting forever.
-                if (player == null || player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
+                // Avatar availability is not a disconnect verdict. Wait for a connected member's state.
+                if (player == null)
+                {
+                    if (IsCampaign && transfer.IsParticipantConnected(id)) pending++;
+                    continue;
+                }
+                if (player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
                 if (player.State == PlayerState.Arrived) { arrived.Add(id); continue; }
                 if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
                 {

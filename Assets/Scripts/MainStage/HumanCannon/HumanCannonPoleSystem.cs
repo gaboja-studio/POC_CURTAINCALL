@@ -41,6 +41,12 @@ namespace CurtainCall.HumanCannon
             public float MaxDisplayAngle = GameSettings.Poles.MaxSwingAngle;
             public Vector3 ReleasePosition, ReleaseVelocity;
             public Quaternion ReleaseRotation = Quaternion.identity;
+            public double PreviousLoopElapsed = -1;
+            public bool Recycling;
+            public readonly Vector3[] RecyclePositions = new Vector3[PoleGateState.MaxRiders];
+            public readonly ulong[] RecycleActors = new ulong[PoleGateState.MaxRiders];
+            public readonly uint[] RecycleLaunches = new uint[PoleGateState.MaxRiders];
+            public readonly uint[] RecycleSegments = new uint[PoleGateState.MaxRiders];
             public Runtime(int capacity)
             {
                 State = new PoleGateState(capacity);
@@ -205,6 +211,7 @@ namespace CurtainCall.HumanCannon
         public Vector3 HangingPosition(int index, ulong actor)
         {
             int seat = states[index].State.SeatOf(actor);
+            if (TryRecyclePosition(index, seat, actor, out var terminal)) return terminal;
             return seat >= 0 ? poles[index].HangingPosition(DisplaySwingAngle(index), seat) : HangingPosition(index);
         }
 
@@ -246,6 +253,7 @@ namespace CurtainCall.HumanCannon
             {
                 var runtime = states[i]; var pole = poles[i];
                 if (pole == null) continue;
+                ObserveLoopRecycle(i);
                 if (session != null && session.IsHost)
                 {
                     TickState(i);
@@ -279,6 +287,7 @@ namespace CurtainCall.HumanCannon
 
         void TickState(int index)
         {
+            ObserveLoopRecycle(index);
             var runtime = states[index];
             var pole = poles[index];
             for (int supportingSeat = 0; supportingSeat < runtime.State.Capacity; supportingSeat++)
@@ -345,7 +354,7 @@ namespace CurtainCall.HumanCannon
                 {
                     var player = FindPlayer(runtime.State.OccupantAt(seat));
                     if (player != null && player.State == PlayerState.Normal && !player.IsLocal)
-                        player.transform.SetPositionAndRotation(poles[i].HangingPosition(angle, seat), SeatRotation(i, seat));
+                        player.transform.SetPositionAndRotation(HangingPosition(i, player.OwnerClientId), SeatRotation(i, seat));
                 }
             }
         }
@@ -488,6 +497,7 @@ namespace CurtainCall.HumanCannon
                 var runtime = states[i];
                 runtime.State.Reset(); runtime.Angle = runtime.Speed = 0f;
                 runtime.ResetDrive();
+                runtime.PreviousLoopElapsed = -1; runtime.Recycling = false;
                 runtime.ResetRevision = runtime.State.Revision; runtime.LastDeparture.Clear();
                 for (int seat = 0; seat < runtime.Riders.Length; seat++) runtime.Riders[seat] = new Rider();
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);

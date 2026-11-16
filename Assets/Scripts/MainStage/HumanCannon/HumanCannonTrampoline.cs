@@ -406,7 +406,14 @@ namespace CurtainCall.HumanCannon
             if (session == null || !session.IsHost || Carrier != actor) return;
             var carrier = FindPlayer(actor);
             if (carrier == null || carrier.State != PlayerState.Normal) ReleaseCarrierToGround(carrier);
-            else HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+            else if (HasRopeSupport(carrier)) ServerDropForRope(actor);
+            else if (ownership.TryApply(CannonAction.Release, actor, ownership.Revision))
+            {
+                // Relocation detaches the load at the old pose before moving its carrier.
+                // It must not invoke manual-drop recovery toward a survivor or a new room.
+                ResetPreviousPose();
+                PublishOwnership();
+            }
         }
 
         internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
@@ -517,11 +524,15 @@ namespace CurtainCall.HumanCannon
                     ServerDropForRope(actor);
                     return;
                 }
-                if (!Finite(rotation) || !ownership.TryApply(CannonAction.Release, actor, revision)) return;
+                if (!Finite(rotation) || Carrier != actor || ownership.Revision != revision) return;
                 // 로컬 장치 위치를 사용하되 마지막 동기화 위치에서 비정상적으로 먼 요청은 무시한다.
                 float turnSpan = Mathf.Max(4f, 2f * Vector3.Distance(transform.position, Handle.position) + 1f);
                 if ((position - transform.position).sqrMagnitude <= turnSpan * turnSpan)
                     transform.SetPositionAndRotation(position, Quaternion.Euler(0f, rotation.eulerAngles.y, 0f));
+                // Dropping during a jump uses the same supported fall/recovery as a lost carrier.
+                // Publish its landing target so every client follows the same drop.
+                ReleaseCarrierToGround(player);
+                return;
             }
             else return;
             ResetPreviousPose();

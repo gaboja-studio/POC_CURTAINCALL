@@ -1,12 +1,14 @@
 ---
 summary: 추격 경로 경계·신뢰 진행도·압박 선정의 누락은 영구 정지나 후발 주자 방치를 만든다
 status: active
-updated: 2026-11-16
-source: Tasks/Active/Task-20261114-130-escape-pursuer-followup/log.md
+updated: 2026-11-17
+source: Tasks/Active/Task-20261114-130-escape-pursuer-followup/log.md; Tasks/Active/Task-20261116-136-escape-device-activation/log.md
 ---
 
 # 추격자 경로 경계와 후발 주자 방치
 
+- 마지막 복도는 경로 번호70 이전에도 시작한다. continueOutside를 번호만으로 인계하면 같은 바닥의 플레이어를 이전 구역으로 취급해 출현 후 벽 뒤로 돌아간다. 실제 플랫폼 안이면 공개 추격을 유지하고, 낮은 목표 번호 때문에 숨은 경로로 역점프하지 않도록 한다. 플랫폼을 실제로 떠난 주자를 향한 물리 복귀는 보존한다.
+- 이동 목표가 떠난 구역의 도약·대기·귀환을 모두 수행하면 추격이 뒤처진다. 다른 출현구가 유효할 때만 접근 경로를 역순으로 나간다. 근처 생존 팀원, 진행 중 타격/공격/도약, 최종 연속 추격 출현구는 보존한다. Task-136의 PursuerFinaleHandoffTests·저장 씬 복제 모의 근거이며, 개별 경로/정지 목표 검사를 연속 플레이 보장으로 해석하지 않는다. 실제 플레이는 사용자 확인 대상이다.
 ## 언제 읽나
 
 탈출로 첫 대포 근처에서 추격자가 정지하고 `EscapePursuerRoute.Position` 또는 `Exposed`에 IndexOutOfRangeException이 반복될 때. 예외는 없지만 먼 입구 참가자를 잘못 추적하거나, 반대로 입구 생존자를 오래 방치하고 선두만 계속 공격할 때도 읽는다.
