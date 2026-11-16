@@ -31,3 +31,18 @@
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
 
 - 2026-11-16 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/391 (fix/escape-device-activation → dev)
+- 2026-11-16 탈출로 버그 작업 재개 준비: Unity 종료 후 fix/escape-device-activation으로 전환하고 origin/dev a2a9dc90을 fast-forward 반영했다. 카메라 회귀 수정 PR #399 포함. 기존 폰트·머티리얼 변경 11개는 SHA256 대조로 보존 확인. Doctor의 기존 Task ID 중복은 남아 있으며 구체적인 신규 버그 재현과 수정은 아직 시작하지 않았다.
+- 11/16 새 제보 조사: 실제 대기실 PortableSaw/RustyPortableSaw와 탈출로 발사대 ID 0/1의 채널 중복 확인. 비활성 외줄 guard 잔류·주기 투사체 스냅샷 revision 누락까지 신규 EditMode 3건이 수정 전 모두 실패했다. 톱 수명은 실제 탈출로 4대 모두 0(무제한)이었다. 기존 Editor.log에는 플레이 재현 기록이 없어 네트워크 실플레이 재현은 주장하지 않는다.
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
+- 11/16 수정: 씬별 발사대 채널과 등록 이름 해제, 비활성 외줄 상태 제한 우회와 탈출로 규칙 설치 순서, 세로 지연이 큰 공용 낙사 보고 검증, 운반 충돌의 높이 복구 제거·소유자 안전 위치 초기화. 이미 Arrived인 참가자를 결과에 복구한다.
+- 공유 문: 실제 씬은 ID 0만 문/경첩을 참조한다. ID 0의 늦은 미절단 상태가 다른 발사대에서 확인한 절단을 무시하던 판정을 최신 회차 공유 배선 결과와 일치시켰다. 2/3/4대 순서 회귀는 수정 전 3/3 실패했다.
+- 사용자 후속 확인: 남은 팀원은 생존했고, 호스트 문만 열린 반면 팀원 문은 닫혔으며 추락해도 죽지 않았다. 생존 팀원을 기다리는 기존 엔딩 조건은 유지하고 막힘 원인을 수정했다.
+- 공용 발사 간격을 1.15초에서 0으로 저장했다. 클릭마다 한 발, 점프 중 발사, 누르고 있을 때 자동 연사 없음. 동시 처리 한도를 64발로 늘리고 큰 상태 패킷은 ReliableFragmentedSequenced로 전송한다. 기존 발사대 4대의 무제한 수명(0)은 유지한다.
+- 검증: 최종 컴파일·공용 설정 PASS. 탈출로 EditMode 581/581(클릭 변경 전), 클릭 변경 후 발사대 전체 57/57. 실제 배선 24/24에서 발 지지·운반 충돌 여유·막히지 않은 절단 궤적을 확인했다. 3/4인 도착 후 마지막 팀원 낙사·연결 종료와 도착 캐시 유실을 편집 모드로 확인했다.
+- 최종 check-work -CommonRegression: 안전성/문서/컴파일 PASS, 공용 754개 중 752 PASS, 2 FAIL. 실패는 이전 common-regression-final.json과 동일한 대기실 RehearsalArrivalTests.ClientActivationKeepsTheSnapshotReceivedBeforeRoomReadiness(버퍼 초과), RehearsalLifecycleTests.CannonPracticeDoorUsesVisibleBarsWithoutAnInvisibleBarrier(철창 전제)이며 이번 범위에서 수정하지 않았다. PlayMode/실제 Relay 다인 플레이는 실행하지 않았다.
+- 로컬 근거: .harness/local/escape-nov16-*.txt/json, escape-cable-reach-audit.json. 테스트 작성 중 누락 using과 NGO RPC를 편집 모드에서 직접 호출한 픽스처를 수정했다. Pipeline run_script의 일시 네트워크 오류 2회는 다음 명령에서 회복됐다. 최종 파일에서 재검사했다.
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
+- 2026-11-16 제출 전 재검사: origin/dev a2a9dc90 재동기화, 컴파일/공용 설정/안전성/문서 PASS. 최종 탈출로 581/581 PASS, 공용 회귀 752/754 PASS(네트워크 낙하 23/23 포함). 실패 2건의 이름·메시지는 이전 기록과 완전히 일치한다. 실제 PlayMode 미실행. 근거: .harness/local/escape-nov16-submit-*.txt/json.
+- 2026-11-16 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/400 (fix/escape-device-activation → dev). 코드 커밋 63f78c00, 제출 직전 DEV a2a9dc90 최신 확인. 지정 PM 팀 검토 대기, 미병합. new-pr 미리보기의 유일한 경고는 별도 작업의 미커밋 에셋 11개였으며 보존 후 필요한 18개 파일만 제출했다.

@@ -7,6 +7,18 @@ namespace CurtainCall.EscapeRoute.Tests
 {
     public sealed partial class ExitSawTests
     {
+        [Test, Category("EscapeNovember16Recovery")]
+        public void MovingShotSnapshotsAdvanceRevisionEvenWhenNoCableOrOwnerChanges()
+        {
+            Fixture(true); Own(41); Set(saw,"projectileLifetime",0f);
+            SetCables(Strand(ShotStart + Vector3.right*10));
+            ((IList)Get(saw,"shots")).Add(Shot(1,1,ShotStart,Vector3.forward));
+            uint before=(uint)Get(saw,"stateRevision");
+            Set(saw,"nextPublish",-1d);
+            Call(saw,"HostProjectileStep",.1f,null);
+            Assert.That((uint)Get(saw,"stateRevision"),Is.GreaterThan(before),
+                "Predicted client obstruction must be recoverable from a newer authoritative snapshot.");
+        }
         [Test] public void UnlimitedShotTravelsBeyondOldRangeAndStopsAtADistantThinWall()
         {
             Fixture(true);Own(41);Set(saw,"projectileLifetime",0f);Set(saw,"projectileSpeed",36f);

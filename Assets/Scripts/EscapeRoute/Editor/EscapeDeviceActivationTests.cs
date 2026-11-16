@@ -8,6 +8,7 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Survival;
 using CurtainCall.Tightrope;
 using CurtainCall.WaitingRoom;
 using NUnit.Framework;
@@ -28,12 +29,131 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
 
+        [Test, Category("EscapeNovember16Recovery")]
+        public void AdditiveSawChannelsDoNotCollideWithTheDepartureScene()
+        {
+            var departure = EditorSceneManager.NewPreviewScene();
+            var destination = EditorSceneManager.NewPreviewScene();
+            departure.name = "WaitingRoom"; destination.name = "escape_route";
+            try
+            {
+                var one = new GameObject("Departure saw"); one.SetActive(false);
+                var two = new GameObject("Escape saw"); two.SetActive(false);
+                SceneManager.MoveGameObjectToScene(one, departure);
+                SceneManager.MoveGameObjectToScene(two, destination);
+                var source = one.AddComponent<EscapeExitSaw>();
+                var target = two.AddComponent<EscapeExitSaw>();
+                foreach (string property in new[] { "RequestName", "StateName" })
+                {
+                    var p = typeof(EscapeExitSaw).GetProperty(property, Private);
+                    Assert.That(p.GetValue(source), Is.Not.EqualTo(p.GetValue(target)), property);
+                }
+            }
+            finally { EditorSceneManager.ClosePreviewScene(destination); EditorSceneManager.ClosePreviewScene(departure); }
+        }
+
+        [Test, Category("EscapeNovember16Recovery")]
+        public void DisabledDepartureRunCannotVetoEscapeFallDamageThroughACapturedDelegate()
+        {
+            var root = new GameObject("Departed externally managed rope"); root.SetActive(false);
+            var run = root.AddComponent<TightropeRun>();
+            var actorRoot = new GameObject("Escape fall actor"); actorRoot.SetActive(false);
+            var actor = actorRoot.AddComponent<NetworkPlayer>();
+            var previous = NetworkPlayer.ServerCanChangeState;
+            try
+            {
+                Set(run, "externallyManaged", true);
+                Set(run, "externalStarted", false);
+                var guard = (System.Func<NetworkPlayer, PlayerState, bool>)System.Delegate.CreateDelegate(
+                    typeof(System.Func<NetworkPlayer, PlayerState, bool>), run,
+                    typeof(TightropeRun).GetMethod("CanChangeState", Private));
+                // Escape/inspection can retain this delegate after the old course disables itself.
+                NetworkPlayer.ServerCanChangeState = (player, state) => guard(player, state);
+                Call(run, "OnDisable");
+                Assert.That(NetworkPlayer.ServerCanChangeState(actor, PlayerState.Fallen), Is.True);
+            }
+            finally { NetworkPlayer.ServerCanChangeState = previous; Object.DestroyImmediate(actorRoot); Object.DestroyImmediate(root); }
+        }
+
         static object CreateChannel(EscapeSceneTransfer transfer)
         {
             var field = typeof(EscapeSceneTransfer).GetField("channel", Private);
             var channel = System.Activator.CreateInstance(field.FieldType, "Escape.EditorTest", null, null, null, null, null);
             field.SetValue(transfer, channel);
             return channel;
+        }
+
+        [TestCase(3)] [TestCase(4)]
+        [Category("EscapeNovember16Recovery")]
+        public void OneArrivalThenLastTeammateFallEndsEscapeDespiteDisconnectAndLostLocalArrivalCache(int count)
+        {
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", Static).GetValue(null);
+            var previousRun = CampaignRun.Instance;
+            var previousTransfer = EscapeSceneTransfer.Current;
+            var previousGuard = NetworkPlayer.ServerCanChangeState;
+            var previousPlace = SurvivalRules.ServerPlace;
+            var root = new GameObject("Escape team verdict"); root.SetActive(false);
+            var room = new GameObject("Final arrival fixture");
+            room.transform.position = new Vector3(15500, 2300, 15500);
+            var area = room.AddComponent<BoxCollider>(); area.isTrigger = true; area.size = Vector3.one * 4;
+            var players = new List<NetworkPlayer>();
+            var spawned = typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsSpawned");
+            var server = typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsServer");
+            var owner = typeof(Unity.Netcode.NetworkBehaviour).GetProperty("OwnerClientId");
+            void State(NetworkPlayer player, PlayerState next)
+            {
+                var variable = typeof(NetworkPlayer).GetField("state", Private).GetValue(player);
+                variable.GetType().GetProperty("Value").SetValue(variable, next);
+            }
+            try
+            {
+                NetworkPlayer.ServerCanChangeState = null; SurvivalRules.ServerPlace = SurvivalPlace.EscapeRoute;
+                var host = new RunState();
+                host.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                var run = root.AddComponent<CampaignRun>();
+                Set(run, "host", host); Set(run, "state", host.Snapshot); Set(run, "offlineRun", true);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                var snapshot = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
+                snapshot.GetType().GetField("phase").SetValue(snapshot, 2);
+                var ids = Enumerable.Range(0, count).Select(i => (ulong)(19000 + i)).ToArray();
+                snapshot.GetType().GetField("participants").SetValue(snapshot, ids);
+                SetCurrent(transfer);
+                var content = root.AddComponent<EscapeCampaignContent>();
+                typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
+                Set(content, "content", room); Set(content, "arrivalArea", area); Set(content, "run", run);
+                var saw = root.AddComponent<EscapeExitSaw>(); Set(saw, "cutProgress", 100f); Set(content, "exitSaw", saw);
+                for (int i = 0; i < count - 1; i++) // last roster member disconnected
+                {
+                    var actor = new GameObject("Verdict actor " + i); actor.transform.SetParent(root.transform, false);
+                    actor.transform.position = room.transform.position + (i == 0 ? Vector3.zero : Vector3.forward * 10);
+                    var player = actor.AddComponent<NetworkPlayer>();
+                    spawned.SetValue(player, true); server.SetValue(player, true); owner.SetValue(player, ids[i]);
+                    State(player, i < 2 ? PlayerState.Normal : PlayerState.Retired);
+                    players.Add(player); all.Add(player);
+                }
+                Call(content, "Update");
+                Assert.That(players[0].State, Is.EqualTo(PlayerState.Arrived));
+                Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.Escape), "The remaining living teammate keeps playing.");
+                ((HashSet<ulong>)typeof(EscapeCampaignContent).GetField("arrived", Private).GetValue(content)).Clear();
+                var falling = players[1];
+                falling.transform.position = new Vector3(0, CurtainCall.Settings.GameSettings.Base.BodyDamage.WorldDeathY - 1, 0);
+                // Exercise the host verdict here; EditMode has no NGO transport to deliver an RPC.
+                Assert.That(CurtainCall.Damage.CommonDamageRules.IsBelowWorldDeathY(falling.transform.position.y), Is.True);
+                var accept = typeof(NetworkPlayer).GetMethod("AcceptWorldDeath", Private);
+                Assert.That(accept.Invoke(falling, new object[] { falling.transform.position, 0, 0 }), Is.True);
+                Assert.That(falling.State, Is.EqualTo(PlayerState.Retired));
+                Call(content, "Update");
+                Assert.That(run.State.LastEnd, Is.EqualTo(RunEndReason.EscapeSucceeded));
+                Assert.That(EscapeEndingPresentation.IsSuccessfulEnding(run.State), Is.True);
+            }
+            finally
+            {
+                NetworkPlayer.ServerCanChangeState = previousGuard; SurvivalRules.ServerPlace = previousPlace;
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun); SetCurrent(previousTransfer);
+                foreach (var p in players) { all.Remove(p); spawned.SetValue(p, false); server.SetValue(p, false); }
+                Object.DestroyImmediate(root); Object.DestroyImmediate(room);
+            }
         }
 
         [TestCase(false, false)]

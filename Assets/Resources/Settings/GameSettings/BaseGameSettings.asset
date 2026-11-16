@@ -53,7 +53,7 @@ MonoBehaviour:
   carryDevices:
     sawScale: 0.7
     sawCarrySpeed: 3
-    sawShotInterval: 1.15
+    sawShotInterval: 0
     blockPiggybackOnSawCarrier: 1
     blockRopeWithSaw: 1
     blockExplorationToolsDuringPerformance: 1

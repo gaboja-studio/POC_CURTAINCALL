@@ -111,6 +111,30 @@ namespace CurtainCall.Settings.EditorTools
             Assert.AreEqual(PlayerState.Normal, player.State);
         }
 
+        [TestCase(0f)] [TestCase(12f)] [TestCase(60f)]
+        [Category("EscapeNovember16Recovery")]
+        public void WorldDeathAcceptsVerticalNetworkLagBelowTheSharedPlane(float verticalLag)
+        {
+            CurtainCall.Survival.SurvivalRules.ServerPlace = CurtainCall.Survival.SurvivalPlace.EscapeRoute;
+            player.transform.position = new Vector3(feet.x, GameSettings.Base.BodyDamage.WorldDeathY - 1f, feet.z);
+            var reported = player.transform.position - Vector3.up * verticalLag;
+            Assert.IsTrue((bool)Call(player, "AcceptWorldDeath", reported, 0, 0));
+            Assert.That(player.State, Is.EqualTo(PlayerState.Retired));
+        }
+
+        [Test, Category("EscapeNovember16Recovery")]
+        public void WorldDeathRejectsOldEpochHorizontalTeleportAndRespawnAboveThePlane()
+        {
+            player.transform.position = new Vector3(feet.x, GameSettings.Base.BodyDamage.WorldDeathY - 1f, feet.z);
+            var reported = player.transform.position - Vector3.up * 20f;
+            Assert.IsFalse((bool)Call(player, "AcceptWorldDeath", reported, -1, 0));
+            Assert.IsFalse((bool)Call(player, "AcceptWorldDeath", reported, 0, -1));
+            Assert.IsFalse((bool)Call(player, "AcceptWorldDeath", reported + Vector3.right * 6, 0, 0));
+            player.transform.position = feet;
+            Assert.IsFalse((bool)Call(player, "AcceptWorldDeath", reported, 0, 0));
+            Assert.That(player.State, Is.EqualTo(PlayerState.Normal));
+        }
+
         [Test]
         public void OrdinaryLandingAlsoWaitsForDelayedServerPoseWithoutResamplingItsHeight()
         {

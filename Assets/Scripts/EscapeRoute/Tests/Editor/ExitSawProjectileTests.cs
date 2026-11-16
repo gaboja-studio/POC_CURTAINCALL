@@ -112,7 +112,7 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void HeldLauncherNeverFiresAutomaticallyAndManualShotsRespectCooldown()
+        public void HeldLauncherNeverFiresAutomaticallyAndFiresForEveryClickWithoutCooldown()
         {
             Fixture(true); var player = Player(41); Own(41);
             SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
@@ -120,13 +120,14 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
             Assert.That(Call(saw, "TryFire", player), Is.True);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
-            Assert.That(Call(saw, "TryFire", player), Is.False, "A repeated request cannot bypass the common cooldown.");
+            for(int click=0;click<23;click++) Assert.That(Call(saw, "TryFire", player), Is.True);
+            Assert.That(Get(saw,"ActiveProjectileCount"),Is.EqualTo(24));
             Call(saw, "HostStep", 30f);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0), "Waiting never queues another shot.");
             Assert.That(Call(saw, "TryFire", player), Is.True);
         }
         [Test]
-        public void ManualFireUsesActualRemoteSupportAndKeepsTheLastHeldPose()
+        public void ManualFireAllowsJumpingAndRejectsABlockedPoseOutsideTheCarriersHand()
         {
             Fixture(true); var player = Player(41); Own(41);
             SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
@@ -135,8 +136,11 @@ namespace CurtainCall.EscapeRoute.Tests
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             Set(mover, "IsAirborne", true);
             player.transform.position = Origin + Vector3.up;
+            device.position += Vector3.up;
             Physics.SyncTransforms();
-            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Assert.That(Call(saw, "TryFire", player), Is.True, "A normal jump must allow manual fire.");
+            Set(saw, "shotWait", 0f);
+            device.position -= Vector3.up;
             Set(saw, "carryBlocked", true);
             player.transform.position = Origin + Vector3.right;
             Physics.SyncTransforms();
@@ -144,6 +148,47 @@ namespace CurtainCall.EscapeRoute.Tests
             player.transform.position = Origin;
             Physics.SyncTransforms();
             Assert.That(Call(saw, "TryFire", player), Is.True, "The host can use the held pose after the owner has touched down.");
+        }
+
+        [TestCase(false, 0)] [TestCase(true, 0)] [TestCase(false, 3)] [TestCase(true, 3)]
+        [Category("EscapeNovember16Recovery")]
+        public void InjuredAndRemoteCarriersCanFireWhileAirborne(bool local, int lostCount)
+        {
+            Fixture(true); var player=Player(41); Own(41);
+            SetCables(Strand(ShotStart+Vector3.forward*3));
+            Set(player,"IsOwner",local);
+            var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover,"IsAirborne",true); Set(mover,"Simulated",local);
+            var parts=Get(player,"lostParts");
+            Set(parts,"Value",Enum.ToObject(T("CurtainCall.Player.BodyPart"),(1<<lostCount)-1));
+            player.transform.position+=Vector3.up; device.position+=Vector3.up;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw,"TryFire",player),Is.True);
+            Assert.That(Call(saw,"TryFire",player),Is.True,"A second click in the same jump also fires.");
+            Set(saw,"shotWait",0f);
+            Set(Get(player,"state"),"Value",Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"),"Retired"));
+            Assert.That(Call(saw,"TryFire",player),Is.False,"A dead carrier cannot fire.");
+        }
+
+        [Test, Category("EscapeNovember16Recovery")]
+        public void BlockedHeldSawDoesNotUndoTheCarriersFallHeight()
+        {
+            var carrier=CarriedSawBeforeIntrusion(out var load);
+            Set(carrier,"IsOwner",true);
+            var mover=carrier.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover,"Simulated",true);
+            Isolate("CurtainCall.Cameras.CameraViewDirector");
+            // The body falls below a ledge while the forward-held machine catches that ledge.
+            foreach(var item in roots) if(item.name=="Actual support") item.SetActive(false);
+            var edge=Root("Ledge blocking the carried saw",true).AddComponent<BoxCollider>();
+            edge.transform.position=device.position+Vector3.down*.1f;
+            edge.size=new Vector3(1.2f,.1f,1.2f);
+            carrier.transform.position-=Vector3.up*.7f;
+            float fallenY=carrier.transform.position.y;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw,"FollowCarrier",carrier,false),Is.False);
+            Assert.That(carrier.transform.position.y,Is.EqualTo(fallenY).Within(.02f),
+                "Load collision must never lift the falling player back to lastSafeFeet.");
         }
         [Test]
         public void ProjectileCutsMultipleStrandsAlongPathButStopsBeforeWall()
@@ -246,9 +291,12 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(Shot(1, 0, ShotStart, Vector3.forward))), Is.False);
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(Shot(1, 1, ShotStart, Vector3.forward), Shot(1, 1, ShotStart, Vector3.forward))), Is.False);
             Assert.That(ProjectileSnapshot(99, 1, 41, 2, points, ShotArray()), Is.False);
-            var tooMany = new object[17]; for (int i = 0; i < tooMany.Length; i++) tooMany[i] = Shot((uint)i + 1, 1, ShotStart, Vector3.forward);
+            var tooMany = new object[65]; for (int i = 0; i < tooMany.Length; i++) tooMany[i] = Shot((uint)i + 1, 1, ShotStart, Vector3.forward);
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(tooMany)), Is.False);
             Assert.That(Get(saw, "stateRevision"), Is.EqualTo(5U)); Assert.That(Get(strand, "IsCut"), Is.False);
+            var volley = new object[24]; for (int i = 0; i < volley.Length; i++) volley[i] = Shot((uint)i + 1, 1, ShotStart, Vector3.forward);
+            Assert.That(ProjectileSnapshot(6, 1, 41, 0, points, ShotArray(volley)), Is.True);
+            Assert.That(Get(saw,"ActiveProjectileCount"),Is.EqualTo(24));
         }
         [Test]
         public void ResetBarrierRejectsStaleProjectilesAndMalformedReplyDoesNotReleaseIt()

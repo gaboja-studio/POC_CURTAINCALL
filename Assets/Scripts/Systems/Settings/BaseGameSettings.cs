@@ -106,8 +106,8 @@ namespace CurtainCall.Settings
             [SerializeField, Range(.3f, 1.5f)] float sawScale = .7f;
             [Tooltip("휴대 톱날 발사기를 들고 움직이는 기본 속도(m/s). 부상 배율은 별도 적용됩니다.")]
             [SerializeField, Min(0)] float sawCarrySpeed = 3f;
-            [Tooltip("사용 키를 한 번 누르면 톱날 한 발을 발사합니다. 다음 발사까지 필요한 시간(초). 계속 누르고 있어도 연속 발사하지 않습니다.")]
-            [SerializeField, Min(.1f)] float sawShotInterval = 1.15f;
+            [Tooltip("사용 키를 한 번 누르면 톱날 한 발을 발사합니다. 0이면 클릭마다 발사합니다. 계속 누르고 있어도 자동 연사하지 않습니다.")]
+            [SerializeField, Min(0f)] float sawShotInterval = 0f;
             [Tooltip("켜면 톱날 발사대를 들고 있는 팀원 또는 그 팀원이 포함된 목마에 새로 올라탈 수 없습니다. 모든 씬의 목마 대상 선택과 호스트 승인에 공통 적용됩니다.")]
             [SerializeField] bool blockPiggybackOnSawCarrier = true;
             [Tooltip("톱날 발사대 운반 중에는 외줄에 탑승하거나 외줄 위에서 발사대를 잡을 수 없습니다.")]
@@ -118,7 +118,7 @@ namespace CurtainCall.Settings
             [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;
             public float SawScale => Mathf.Clamp(sawScale, .3f, 1.5f);
             public float SawCarrySpeed => Mathf.Max(0, sawCarrySpeed);
-            public float SawShotInterval => Mathf.Max(.1f, sawShotInterval);
+            public float SawShotInterval => Mathf.Max(0f, sawShotInterval);
             public bool BlockPiggybackOnSawCarrier => blockPiggybackOnSawCarrier;
             public bool BlockRopeWithSaw => blockRopeWithSaw;
             public bool BlockExplorationToolsDuringPerformance => blockExplorationToolsDuringPerformance;

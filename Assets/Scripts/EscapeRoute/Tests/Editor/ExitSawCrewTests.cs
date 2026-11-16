@@ -65,6 +65,7 @@ namespace CurtainCall.EscapeRoute.Tests
             {
                 Assert.IsTrue(Receive(peers[i], 1, 0, 0));
                 Assert.IsTrue((bool)Get(cable, "IsCut"), "다른 발사대의 늦은 미절단 상태가 절단된 배선을 되살리면 안 된다.");
+                Assert.IsTrue((bool)Get(peers[i], "DoorOpen"), "A late spare launcher must not close the shared exit door again.");
             }
             Assert.IsTrue(Receive(peers[0], 2, 0, 1));
             Assert.IsFalse((bool)Get(cable, "IsCut"), "새 코스에서는 배선을 복구한다.");
@@ -72,6 +73,7 @@ namespace CurtainCall.EscapeRoute.Tests
             {
                 Assert.IsTrue(Receive(peers[i], 2, 1, 0));
                 Assert.IsFalse((bool)Get(cable, "IsCut"), "이전 코스의 지연 절단은 새 코스에 적용하지 않는다.");
+                Assert.IsFalse((bool)Get(peers[i], "DoorOpen"), "An old cut must not reopen the new round's exit.");
                 Assert.IsTrue(Receive(peers[i], 3, 0, 1));
             }
             Assert.IsTrue(Receive(peers[0], 3, 1, 1));

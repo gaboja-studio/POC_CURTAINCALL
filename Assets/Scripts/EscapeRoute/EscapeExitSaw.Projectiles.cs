@@ -25,7 +25,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] ParticleSystem launchFlash;
         [SerializeField] Transform recoilVisual;
         [SerializeField, Min(0)] float recoilDistance = .08f;
-        const int MaxProjectiles = 16;
+        const int MaxProjectiles = 64;
         bool UnlimitedProjectiles => projectileLifetime <= 0;
         sealed class Shot
         {
@@ -47,7 +47,16 @@ namespace CurtainCall.EscapeRoute
         Vector3 recoilRest;
         public bool ProjectileMode => fireWithoutCables || cables != null && cables.Length > 0;
         public int RequiredCableCount => BitCount(RequiredMask);
-        public int CutCableCount => BitCount(cutMask & RequiredMask);
+        public int CutCableCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; cables != null && i < cables.Length && i < 32; i++)
+                    if (cables[i] != null && cables[i].RequiredForExit && SharedCableCut(i, out _)) count++;
+                return count;
+            }
+        }
         public int ActiveProjectileCount => shots.Count;
         public float SecondsUntilShot => Mathf.Max(0, shotWait);
         uint ValidCableMask
@@ -96,25 +105,30 @@ namespace CurtainCall.EscapeRoute
             for (int i = 0; cables != null && i < cables.Length && i < 32; i++)
                 if (cables[i] != null)
                 {
-                    bool cut = (cutMask & (1u << i)) != 0;
-                    uint newestCourse = courseEpoch;
-                    Vector3 point = cutPoints[i];
-                    // 발사대별 상태가 다른 순서로 도착해도 공유 배선의 절단을 되돌리지 않는다.
-                    // 새 코스의 복구는 이전 코스의 지연 절단보다 우선한다.
-                    foreach (var peer in devices)
-                    {
-                        if (peer == null || peer == this || peer.cables == null || peer.courseEpoch < newestCourse) continue;
-                        int index = Array.IndexOf(peer.cables, cables[i]);
-                        if (index < 0 || index >= 32) continue;
-                        if (peer.courseEpoch > newestCourse) { newestCourse = peer.courseEpoch; cut = false; }
-                        if (!cut && (peer.cutMask & (1u << index)) != 0)
-                        { cut = true; point = peer.cutPoints[index]; }
-                    }
+                    bool cut = SharedCableCut(i, out Vector3 point);
                     if (cut) cables[i].SetCut(true, point, feedback && !cables[i].IsCut);
                     // 대기실 장부에 이미 끊김으로 남은 배선은 씬을 다시 불러와도 끊긴 채로 둔다(2026-11-15 사용자: 씬 이동 뒤 숙소 배선이 다시 보임).
                     else if (!string.IsNullOrEmpty(cables[i].OpenTarget) && CurtainCall.WaitingRoom.ExplorationState.Instance is { } book && book.IsOpen(cables[i].OpenTarget)) cables[i].SetCut(true);
                     else if (cables[i].IsCut) cables[i].SetCut(false);
                 }
+        }
+        // The visible cable, objective count, and physical shared door use the same newest-round verdict.
+        // A lagging door-owning launcher must use cuts already received by its peers.
+        bool SharedCableCut(int i, out Vector3 point)
+        {
+            bool cut = (cutMask & (1u << i)) != 0;
+            uint newestCourse = courseEpoch;
+            point = cutPoints[i];
+            foreach (var peer in devices)
+            {
+                if (peer == null || peer == this || peer.cables == null || peer.courseEpoch < newestCourse) continue;
+                int index = Array.IndexOf(peer.cables, cables[i]);
+                if (index < 0 || index >= 32) continue;
+                if (peer.courseEpoch > newestCourse) { newestCourse = peer.courseEpoch; cut = false; }
+                if (!cut && (peer.cutMask & (1u << index)) != 0)
+                { cut = true; point = peer.cutPoints[index]; }
+            }
+            return cut;
         }
         void HostProjectileStep(float deltaTime, NetworkPlayer carrier)
         {
@@ -129,18 +143,29 @@ namespace CurtainCall.EscapeRoute
                 Publish(); nextPublish = Time.unscaledTimeAsDouble + .1;
             }
             else if (Time.unscaledTimeAsDouble >= nextPublish)
-            { nextPublish = Time.unscaledTimeAsDouble + .1; Publish(); }
+            { nextPublish = Time.unscaledTimeAsDouble + .1; stateRevision++; Publish(); }
         }
         bool TryFire(NetworkPlayer carrier)
         {
-            if (!ProjectileMode || carrier == null || Carrier != carrier.OwnerClientId || !Grounded(carrier, requireReportedGrounded: false)
+            if (!ProjectileMode || !CanOperate(carrier) || Carrier != carrier.OwnerClientId
                 || shotWait > 0 || shots.Count >= MaxProjectiles) return false;
             // A blocked turn can leave a valid held pose. Reject a shot only if that pose lost the carrier's hand.
             if (carryBlocked && Vector3.Distance(Handle.position, carrier.transform.position + Vector3.up * carryHandleHeight) >= .3f)
                 return false;
-            shotWait = Mathf.Max(.1f, shotInterval);
+            shotWait = shotInterval;
             SpawnProjectile();
             return true;
+        }
+        bool CanOperate(NetworkPlayer player)
+        {
+            if (!Alive(player) || inspection != null && inspection.IsInspecting(player.OwnerClientId)
+                || !player.TryGetComponent(out CurtainCall.Player.PlayerMover mover) || !mover.Body.enabled
+                || player.IsLocal && (!mover.Simulated || !mover.ControlEnabled)) return false;
+            var cannon = HumanCannonSystem.Current;
+            if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
+            return !(HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0)
+                && !(CurtainCall.Tightrope.TightropeHangSystem.Current != null && CurtainCall.Tightrope.TightropeHangSystem.Current.IsHanging(player))
+                && !(CurtainCall.Tightrope.PiggybackSystem.Current != null && CurtainCall.Tightrope.PiggybackSystem.Current.IsInStack(player));
         }
         void SpawnProjectile()
         {
@@ -303,7 +328,7 @@ namespace CurtainCall.EscapeRoute
         bool ValidProjectileSnapshot(uint epoch, ulong carrier, uint mask, Vector3[] points, Shot[] incoming, float wait)
         {
             if (points == null || points.Length != 32 || incoming == null || incoming.Length > MaxProjectiles
-                || (mask & ~ValidCableMask) != 0 || !float.IsFinite(wait) || wait < 0 || wait > Mathf.Max(.1f, shotInterval) + .001f
+                || (mask & ~ValidCableMask) != 0 || !float.IsFinite(wait) || wait < 0 || wait > shotInterval + .001f
                 || !ProjectileMode && (mask != 0 || incoming.Length != 0)
                 || !UnlimitedProjectiles && carrier == CannonSeatState.Nobody && incoming.Length != 0) return false;
             for (int i = 0; i < 32; i++) if ((mask & (1u << i)) != 0 && !Finite(points[i])) return false;
