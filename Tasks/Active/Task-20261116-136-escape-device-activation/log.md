@@ -98,3 +98,5 @@
 - 재검사 결과: 컴파일·공용 설정·안전성·문서/규칙 PASS, 공용856/856 및 탈출로924/924 PASS. 신규 실패 없음. 근거: submit-nov17-check-work.txt, submit-nov17-common.json, submit-nov17-escape.json. PlayMode/실제 네트워크 플레이 미실행.
 - 제출 포함 파일32개를 명시 경로로 선택한다. 별도 글꼴/머티리얼11개는 제외·보존. save-work/new-pr의 전체 dirty 검사 대신 선택 스테이징 및 GitHub PR 생성 경로를 사용한다. new-pr -DryRun으로 방향·본문을 확인했으며 미커밋/미push 안내는 실제 저장·push로 해결한다.
 - 제출 직전에도 Unity 종료 후 origin/dev fetch/merge: Already up to date(01abed27). 검증한 코드·씬·테스트 파일 SHA256 불변, 제외 에셋11개 원본 SHA256 보존 확인. 검토자 계정은 CODEOWNERS 지침에 따라 추측 배정하지 않고 저장소 보호 설정의 팀원 검토를 따른다.
+- 2026-11-17 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/403 (fix/escape-device-activation → dev). 구현 커밋42448feb 저장/push 완료. GitHub 연결 앱의 PR 쓰기403은 동일 로그인 계정 gh로 정상 제출했다.
+- 제출 후에도 Unity 종료 상태에서 origin/dev fetch/merge: Already up to date(01abed27), 검증한 구현/씬 해시 불변. PR 병합은 수행하지 않았으며 지정 팀원 검토 대기. 실제 플레이는 사용자 담당.
