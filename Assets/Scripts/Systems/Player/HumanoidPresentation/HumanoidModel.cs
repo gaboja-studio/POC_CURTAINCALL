@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Damage;
 using CurtainCall.Settings;
 using UnityEngine;
 
@@ -148,7 +149,7 @@ namespace CurtainCall.Player
                 source.BakeMesh(piece.Mesh, false);
                 piece.Object = new GameObject("Detached " + PlayerCondition.CutOrder[index]);
                 piece.Object.SetActive(false);
-                // 상호작용 ray 대상에서 제외하고, 아래에서 판정 trigger/동적 물체 충돌도 제외한다.
+                // 제작 중에는 ray에서 제외한다. 완성한 계층은 활성화할 때 공용 절단 사지 규칙을 적용한다.
                 piece.Object.layer = Physics.IgnoreRaycastLayer;
                 piece.Object.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
                 piece.Object.transform.localScale = source.transform.lossyScale;
@@ -187,6 +188,9 @@ namespace CurtainCall.Player
                 float radius = index < 2 ? RagdollLegRadius : RagdollArmRadius;
                 piece.Body = AddRagdollBone(upper, lower.position, null, PlayerCondition.CutOrder[index], 2f, radius, false);
                 AddRagdollBone(lower, end.position, piece.Body, PlayerCondition.CutOrder[index], 1f, radius * .8f, false);
+                // Register after both collider branches exist, before activation: carry sweeps, drop support,
+                // late-spawned players and the trampoline layer matrix must all recognize this actual cut.
+                piece.Object.AddComponent<DismemberedLimb>();
                 piece.CutLocal = upper.InverseTransformPoint(cut);
                 float lifetime = GameSettings.Base.BodyDamage.LimbLifetime;
                 piece.Expires = lifetime > 0 ? Time.time + lifetime : float.PositiveInfinity;
