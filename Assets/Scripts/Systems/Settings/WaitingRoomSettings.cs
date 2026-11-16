@@ -134,9 +134,9 @@ namespace CurtainCall.Settings
         float trampolineCarryCheckDiameter = 1f;
         public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
-        [SerializeField, InspectorName("맨몸 부수기 누르는 시간"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 한 대 분량을 채우는 데 F를 누르고 있어야 하는 시간(초). 게이지 하나가 끝까지 차야 부서지며, 전체 시간 = 이 값 × 대상의 맨몸 횟수(예: 1.5초 × 5 = 7.5초). 느린 타격 동작 한 번도 이 시간에 맞춘다. 도구를 들면 짧게 눌러 연타한다(2026-11-13 사용자). 0이면 맨몸도 짧게 눌러 친다. 초안 1.5초.")]
-        float bareHandHoldSeconds = 1.5f;
-        public float BareHandHoldSeconds => Mathf.Max(0f, bareHandHoldSeconds);
+        [SerializeField, InspectorName("맨몸 부수기 힘"), Min(0f), Tooltip("도구 없이 맨몸으로 부술 때 1초 동안 깎는 내구도(2026-11-16 사용자). F를 누르고 있어야 하는 시간 = 대상 내구도 ÷ 이 값(예: 내구도 7.5 ÷ 1 = 7.5초). 게이지가 끝까지 차야 부서지고, 손을 떼면 게이지는 멈춘다. 천막 말뚝 뽑개의 힘은 기물 목록(ItemCatalog)의 뽑개 효과 수치. 0이면 맨몸도 짧게 눌러 친다. 기본 1.")]
+        float bareHandPower = 1f;
+        public float BareHandPower => Mathf.Max(0f, bareHandPower);
 
         [Header("재연습 공통 규칙")]
         [Tooltip("대기실 재연습(외줄·인간대포 리허설)의 복귀·타이머 보정 규칙.")]

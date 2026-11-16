@@ -152,7 +152,7 @@ MonoBehaviour:
     foundUses: 1
     price: 75
     cooldown: 0
-    effect: 0
+    effect: 5
     effect2: 0
     summary: "\uD310\uC790\xB7\uB36E\uAC1C\xB7\uAC78\uB9B0 \uC11C\uB78D \uAC1C\uBC29,
       \uC228\uC740 \uAE38 \uBCBD \uD30C\uAD34(\uBE60\uB8E8). \uAC1C\uBC29\xB7\uD30C\uAD34

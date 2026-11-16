@@ -36,7 +36,7 @@ namespace CurtainCall.WaitingRoom
             public int price;
             [Tooltip("쿨타임(초, 초안). 0이면 없음.")]
             public float cooldown;
-            [Tooltip("핵심 효과 수치(초안): 구조 장갑 균형 손실 감소율, 끈끈이 장갑 버티기 배율, 벌룬 바지 하강 감속률, 머리핀 개방 확률 등.")]
+            [Tooltip("핵심 효과 수치(초안): 구조 장갑 균형 손실 감소율, 끈끈이 장갑 버티기 배율, 벌룬 바지 하강 감속률, 머리핀 개방 확률, 천막 말뚝 뽑개의 힘(1초 동안 깎는 내구도, F 누르는 시간 = 대상 내구도 ÷ 힘) 등.")]
             public float effect;
             [Tooltip("보조 수치(초안): 구조 장갑 적용 거리(m), 머리핀 보장 시도 번째 등. 0이면 미정.")]
             public float effect2;
@@ -139,7 +139,7 @@ namespace CurtainCall.WaitingRoom
                         newUses = 5, foundUses = 0, price = 50, cooldown = 0f, effect = .5f, effect2 = 3f,
                         summary = "좌물쇠: 시도마다 50% 개방, 같은 좌물쇠 세 번째 시도는 반드시 개방(시도 수 팀 공유·런 유지). 개방 성공 시 1 소모." },
                 new() { id = ItemUses.StakePuller, displayName = "천막 말뚝 뽑개", wornName = "낡은 천막 말뚝 뽑개", wornAtOrBelow = 1, use = ItemUse.Exploration, kind = ItemKind.Tool,
-                        newUses = 4, foundUses = 1, price = 75, cooldown = 0f,
+                        newUses = 4, foundUses = 1, price = 75, cooldown = 0f, effect = 5f, // 2026-11-16 사용자: 연타 → F 홀드, 힘 5(맨손 1의 5배)
                         summary = "판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴. 개방·파괴 성공 시 1 소모." },
                 // 2026-10-30 확정: 장비형, 내구도 없음. 슬롯에 있으면 우클릭을 누르는 동안 보라색 손전등이 켜진다.
                 new() { id = ItemUses.UvLamp, displayName = "서커스 UV 등", wornName = "", wornAtOrBelow = -1, use = ItemUse.Exploration, kind = ItemKind.Equipment,

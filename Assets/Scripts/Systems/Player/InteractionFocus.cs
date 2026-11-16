@@ -38,6 +38,13 @@ namespace CurtainCall.Player
             return camera == null ? 0f : ScreenDistance(camera, root, point);
         }
 
+        /// <summary>내 화면 기준점이 대상 영역에서 <paramref name="tolerance"/>(화면 높이 비율) 안에 있는가. 카메라가 없으면 false.</summary>
+        public static bool IsAimed(Component actor, Transform root, Vector3 point, float tolerance)
+        {
+            var camera = CameraFor(actor);
+            return camera != null && ScreenDistance(camera, root, point) <= Mathf.Max(0f, tolerance);
+        }
+
         /// <summary>화면 높이 대비 기준점-대상 거리. 화면 뒤면 무한대.</summary>
         public static float ScreenDistance(Camera camera, Transform root, Vector3 point)
         {

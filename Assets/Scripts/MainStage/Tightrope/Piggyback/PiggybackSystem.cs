@@ -720,9 +720,15 @@ namespace CurtainCall.Tightrope
                 var carrier = FindPlayer(BottomOf(riderId));
                 var course = TightropeCourse.Current;
                 var platform = GroundSupport(carrier);
-                if (platform != null)
-                    return ServerDismountOnPlatform(carrier, platform, FindPlayer(riderId)) ? "해제: 발판에 내려옴" : "거부: 발판에 내려설 자리가 없음";
-                if ((course == null || !course.PiggybackUsesRopeBalance(carrier, true)) && !FindPlayer(riderId).IsAirborne)
+                if (platform != null && ServerDismountOnPlatform(carrier, platform, FindPlayer(riderId))) return "해제: 발판에 내려옴";
+                // 대기실 바닥은 여러 조각·가구로 나뉘어 발판 하나 안에서 자리를 못 찾는 일이 많다(2026-11-16 사용자: F 홀드 하차가 잘 안 됨).
+                // 주변 아무 바닥에 내려 주고, 그래도 자리가 없으면 점프 하차처럼 그 자리에서 연결만 끊는다.
+                if (InWaitingRoom)
+                {
+                    if (ServerDismountNearby(carrier, FindPlayer(riderId))) return "해제: 근처 바닥에 내려옴";
+                }
+                else if (platform != null) return "거부: 발판에 내려설 자리가 없음";
+                else if ((course == null || !course.PiggybackUsesRopeBalance(carrier, true)) && !FindPlayer(riderId).IsAirborne)
                     return "거부: 안전한 발판에 착지한 뒤 내려올 수 있음";
             }
             RememberTrapezeEntry(FindPlayer(riderId));
@@ -779,6 +785,41 @@ namespace CurtainCall.Tightrope
             }
             ServerBroadcast(placements: placements);
             return true;
+        }
+
+        // 대기실 F 홀드 하차: 아래 사람 주변(8방향, 가까운 고리부터)에서 발 높이가 비슷한 빈 바닥을 찾아 내려 준다.
+        bool ServerDismountNearby(NetworkPlayer carrier, NetworkPlayer rider)
+        {
+            if (carrier == null || rider == null || rider.State != PlayerState.Normal || !rider.TryGetComponent(out PlayerMover mover)) return false;
+            float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
+            float height = Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);
+            float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
+            Vector3 origin = carrier.transform.position, back = -carrier.transform.forward;
+            back.y = 0f;
+            if (back.sqrMagnitude < .0001f) back = Vector3.back;
+            back.Normalize();
+            for (int ring = 0; ring < 3; ring++)
+                for (int i = 0; i < 8; i++)
+                {
+                    // 뒤쪽부터 좌우로 번갈아 본다(앞을 막지 않게).
+                    float angle = (i + 1) / 2 * 45f * (i % 2 == 0 ? 1f : -1f);
+                    Vector3 candidate = origin + Quaternion.Euler(0f, angle, 0f) * back * (separation + .01f + ring * radius * 1.5f);
+                    if (!Physics.Raycast(candidate + Vector3.up * 1.2f, Vector3.down, out var hit, 2.4f,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                        || hit.normal.y < .7f || Mathf.Abs(hit.point.y - origin.y) > .5f
+                        || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
+                    Vector3 feet = hit.point + Vector3.up * .035f;
+                    if (Physics.CheckCapsule(feet + Vector3.up * radius, feet + Vector3.up * Mathf.Max(radius, height - radius), radius,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                        || Physics.Linecast(origin + Vector3.up * .6f, feet + Vector3.up * .6f,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
+                    var placements = new Dictionary<ulong, Vector3> { [rider.OwnerClientId] = feet };
+                    belowOf.Remove(rider.OwnerClientId, out ulong lower);
+                    aboveOf.Remove(lower);
+                    ServerBroadcast(placements: placements);
+                    return true;
+                }
+            return false;
         }
 
         static bool TryFindPlatformSeat(Collider platform, Vector3 carrierFeet, float radius, float height,

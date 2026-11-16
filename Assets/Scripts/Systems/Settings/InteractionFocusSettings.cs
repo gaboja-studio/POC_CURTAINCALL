@@ -77,6 +77,10 @@ namespace CurtainCall.Settings
             public bool releaseOnWaitingRoomStateChange = true;
             [InspectorName("대기실 앉은 채 목마 허용"), Tooltip("대기실에서 앉은 단원도 목마 탑승·해제를 할 수 있다. 탑승하면 일어설 공간이 있어야 한다.")]
             public bool allowCrouchedInWaitingRoom = true;
+            [InspectorName("조준한 목마 우선"), Tooltip("화면 기준점이 동료 몸 위에 정확히 있으면 분류 순위와 상관없이 목마를 먼저 고른다(스케줄표 등 근처 대상보다 앞, 2026-11-16 사용자). 사용 중인 장치·목마 위 협동 버튼보다는 뒤. 목마에만 적용한다.")]
+            public bool aimedFirst = true;
+            [InspectorName("조준 허용 오차"), Range(0f, .1f), Tooltip("동료 몸 영역에서 기준점까지 이 거리(화면 높이 비율) 안이면 조준한 것으로 본다. 0이면 기준점이 몸 영역 안에 있어야 한다.")]
+            public float aimedTolerance = 0f;
         }
 
         [InspectorName("기준점"), SerializeField] CrosshairSettings crosshair = new();

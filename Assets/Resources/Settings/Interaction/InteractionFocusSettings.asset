@@ -31,3 +31,5 @@ MonoBehaviour:
   piggyback:
     releaseOnWaitingRoomStateChange: 1
     allowCrouchedInWaitingRoom: 1
+    aimedFirst: 1
+    aimedTolerance: 0
