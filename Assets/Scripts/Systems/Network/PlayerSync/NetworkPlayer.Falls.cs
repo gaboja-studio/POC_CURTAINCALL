@@ -185,11 +185,19 @@ namespace CurtainCall.Network.PlayerSync
 
         [Rpc(SendTo.Server, RequireOwnership = true)]
         void ReportWorldDeathRpc(Vector3 feet, int restart, int revive)
+            => AcceptWorldDeath(feet, restart, revive);
+
+        bool AcceptWorldDeath(Vector3 feet, int restart, int revive)
         {
-            if (!CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)
+            if (!IsServer || !CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)
                 || !CommonDamageRules.IsBelowWorldDeathY(feet.y)
-                || (feet - transform.position).sqrMagnitude > 25f) return;
-            ServerKill(DeathOrigin.MapExit);
+                || Vector3.ProjectOnPlane(feet - transform.position, Vector3.up).sqrMagnitude > 25f) return false;
+            // Fast downward movement can outrun the host's interpolated Y by more than five metres.
+            // Once both poses are below the common plane, vertical lag cannot make the fall safe.
+            // A respawn above the plane still rejects the distant old pose, in addition to epoch checks.
+            if ((feet - transform.position).sqrMagnitude > 25f
+                && !CommonDamageRules.IsBelowWorldDeathY(transform.position.y)) return false;
+            return ServerKill(DeathOrigin.MapExit);
         }
 
         bool TryTutorialFloorRecovery(Vector3 feet)

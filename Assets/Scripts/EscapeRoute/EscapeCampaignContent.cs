@@ -185,13 +185,14 @@ namespace CurtainCall.EscapeRoute
             bool active = state.Phase == CampaignPhase.Escape || EscapeEndingPresentation.IsSuccessfulEnding(state)
                 || FailureEndingPresentation.IsFailureEnding(state) && IsActive;
             if (active && generation != state.Generation) { generation = state.Generation; arrived.Clear(); reported = false; }
+            // Release departure rules and activate the traversal run before chaining its state guard.
+            SetActive(active);
             if (active && run.HasAuthority && !stateRuleInstalled)
             {
                 previousStateRule = NetworkPlayer.ServerCanChangeState;
                 NetworkPlayer.ServerCanChangeState = AllowState;
                 stateRuleInstalled = true;
             }
-            SetActive(active);
             foreach (var light in waitingLights) if (light != null) light.enabled = !active;
             if (sharedCamera != null) sharedCamera.useOcclusionCulling = active ? false : cameraOcclusion;
             if (active && gameObject.scene.isLoaded) SceneManager.SetActiveScene(gameObject.scene);
@@ -341,6 +342,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 // A disconnected participant cannot keep the remaining team waiting forever.
                 if (player == null || player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
+                if (player.State == PlayerState.Arrived) { arrived.Add(id); continue; }
                 if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
                 {
                     arrived.Add(id);

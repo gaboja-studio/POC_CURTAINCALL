@@ -43,6 +43,7 @@ namespace CurtainCall.EscapeRoute
         NetworkSessionManager session;
         EscapeInspectionSession inspection;
         Vector3 initialPosition, closedDoorPosition, lastSafeFeet;
+        ulong followedCarrier = CannonSeatState.Nobody;
         Quaternion initialRotation, initialBladeRotation;
         MaterialPropertyBlock tint;
         float cutProgress, bladeAngle;
@@ -72,9 +73,7 @@ namespace CurtainCall.EscapeRoute
             get
             {
                 if (!ProjectileMode) return cutProgress >= cutSeconds;
-                if (cutMask == 0) return false;
-                uint required = RequiredMask;
-                return required != 0 && (cutMask & required) == required;
+                return RequiredCableCount > 0 && CutCableCount == RequiredCableCount;
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
@@ -243,15 +242,20 @@ namespace CurtainCall.EscapeRoute
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
+            if (followedCarrier != carrier.OwnerClientId)
+            {
+                followedCarrier = carrier.OwnerClientId;
+                lastSafeFeet = carrier.transform.position;
+            }
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
             carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
             if (carryBlocked)
             {
-                // 원본 CharacterController 충돌로 운반자의 마지막 유효 위치까지 되돌린다.
+                // Undo horizontal penetration only. Restoring the old height suspends a falling carrier in midair.
                 if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body.enabled)
-                    mover.Body.Move(lastSafeFeet - carrier.transform.position);
+                    mover.Body.Move(Vector3.ProjectOnPlane(lastSafeFeet - carrier.transform.position, Vector3.up));
                 return false;
             }
             CarryRoot.SetPositionAndRotation(position, rotation);
@@ -303,6 +307,7 @@ namespace CurtainCall.EscapeRoute
         }
         void Recover()
         {
+            followedCarrier = CannonSeatState.Nobody;
             CarrierChanged();
             CarryRoot.SetPositionAndRotation(recoveryAnchor != null ? recoveryAnchor.position : initialPosition,
                 recoveryAnchor != null ? recoveryAnchor.rotation : initialRotation);

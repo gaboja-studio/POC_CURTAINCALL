@@ -10,8 +10,10 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeExitSaw
     {
-        string RequestName => "CurtainCall.Escape.ExitSaw.Request." + deviceId;
-        string StateName => "CurtainCall.Escape.ExitSaw.State." + deviceId;
+        // WaitingRoom and escape_route coexist during transfer and both author slots 0 and 1.
+        string RequestName => "CurtainCall.Escape.ExitSaw." + gameObject.scene.name + ".Request." + deviceId;
+        string StateName => "CurtainCall.Escape.ExitSaw." + gameObject.scene.name + ".State." + deviceId;
+        string attachedRequestName, attachedStateName;
         const int RequestSize = 9, StateSize = 66, ShotSize = 36;
         const int AimedRequestSize = RequestSize + 12;
         Vector3 pendingBossAim;
@@ -101,8 +103,9 @@ namespace CurtainCall.EscapeRoute
             if (manager == messaging) return;
             Detach(); session = next; messaging = manager;
             if (manager == null) return;
-            if (session.IsHost) { synchronized = true; manager.RegisterNamedMessageHandler(RequestName, ReadRequest); }
-            else { manager.RegisterNamedMessageHandler(StateName, ReadState); SendRequest(0, 0); }
+            attachedRequestName = RequestName; attachedStateName = StateName;
+            if (session.IsHost) { synchronized = true; manager.RegisterNamedMessageHandler(attachedRequestName, ReadRequest); }
+            else { manager.RegisterNamedMessageHandler(attachedStateName, ReadState); SendRequest(0, 0); }
         }
         void SendRequest(byte action, int token)
         {
@@ -147,7 +150,8 @@ namespace CurtainCall.EscapeRoute
                 writer.WriteValueSafe(shot.Id); writer.WriteValueSafe(shot.Epoch); writer.WriteValueSafe(shot.Position);
                 writer.WriteValueSafe(shot.Direction); writer.WriteValueSafe(shot.Age);
             }
-            messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
+            // Click firing can leave more than one MTU of in-flight saws. Keep the complete snapshot reliable.
+            messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableFragmentedSequenced);
         }
         void ReadState(ulong sender, FastBufferReader reader)
         {
@@ -172,7 +176,7 @@ namespace CurtainCall.EscapeRoute
             ApplySnapshot(incoming, ownedRevision, carrier, position, rotation, progress, active, token, mask, points, incomingShots, wait, epoch);
         }
         bool ApplyState(uint incoming, uint ownedRevision, ulong carrier, Vector3 position, Quaternion rotation, float progress, byte active, int token)
-            => ApplySnapshot(incoming, ownedRevision, carrier, position, rotation, progress, active, token, 0, new Vector3[32], System.Array.Empty<Shot>(), Mathf.Max(.1f, shotInterval), courseEpoch);
+            => ApplySnapshot(incoming, ownedRevision, carrier, position, rotation, progress, active, token, 0, new Vector3[32], System.Array.Empty<Shot>(), shotInterval, courseEpoch);
         bool ApplySnapshot(uint incoming, uint ownedRevision, ulong carrier, Vector3 position, Quaternion rotation, float progress,
             byte active, int token, uint mask, Vector3[] points, Shot[] incomingShots, float wait, uint epoch)
         {
@@ -240,7 +244,11 @@ namespace CurtainCall.EscapeRoute
         void Detach()
         {
             if (messaging != null)
-            { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
+            {
+                if (attachedRequestName != null) messaging.UnregisterNamedMessageHandler(attachedRequestName);
+                if (attachedStateName != null) messaging.UnregisterNamedMessageHandler(attachedStateName);
+            }
+            attachedRequestName = attachedStateName = null;
             messaging = null; session = null; synchronized = false;
             TeamReachedExitZone = false;
             ownership = new CannonSeatState(); stateRevision = courseEpoch = 0; cutProgress = 0; cutting = false;

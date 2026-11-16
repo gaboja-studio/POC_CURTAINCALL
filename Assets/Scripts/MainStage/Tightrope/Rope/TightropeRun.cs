@@ -471,6 +471,8 @@ namespace CurtainCall.Tightrope
         bool CanChangeState(NetworkPlayer player, PlayerState next)
         {
             if (previousStateRule != null && !previousStateRule(player, next)) return false;
+            // Additive scene guards can retain this delegate after OnDisable released the course.
+            if (!this || !isActiveAndEnabled) return true;
             if (TraversalOnly) return true;
             if ((next == PlayerState.Fallen || next == PlayerState.Arrived) && !IsParticipantReady(player)) return false;
             if (externallyManaged && !externalStarted
