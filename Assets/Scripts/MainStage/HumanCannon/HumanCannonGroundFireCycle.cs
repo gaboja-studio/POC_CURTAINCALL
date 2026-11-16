@@ -31,7 +31,7 @@ namespace CurtainCall.HumanCannon
             public HumanCannonPole[] poles = System.Array.Empty<HumanCannonPole>();
             [Tooltip("이 그네로 꺼지는 줄. 자식 이름의 z 번호.")]
             public int[] rows = System.Array.Empty<int>();
-            [System.NonSerialized] public bool off;
+            public HumanCannonPole tierThreePole;
         }
         [SerializeField] SwitchGroup[] switchGroups = System.Array.Empty<SwitchGroup>();
         [Tooltip("이 톱날벽이 열린 뒤(연결 그네를 잡은 뒤)에만 예고·분출하는 지면불. 열리기 전에는 외형도 숨긴다.")]
@@ -39,10 +39,14 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform[] gateFires = System.Array.Empty<Transform>();
         [Tooltip("이 단계 이상을 골랐을 때만 지면불·끄는 그네가 나온다(단계 = 대기실에서 고른 HumanCannonHazardCourse.Difficulty).")]
         [SerializeField, Range(1, 3)] int minimumStage = 2;
-        [Tooltip("이 단계 이하일 때만 나온다. 3단계는 아직 미구현이라 1단계 구성으로 나온다(2026-11-13 사용자 결정).")]
+        [Tooltip("이 단계 이하일 때만 나온다.")]
         [SerializeField, Range(1, 3)] int maximumStage = 2;
+        [SerializeField, Min(0f)] float tierThreeWarnSeconds = 2f;
+        [SerializeField, Min(0.1f)] float tierThreeFireSeconds = 3f;
+        [SerializeField, Min(0)] int tierThreeRandomCount = 5;
         [Tooltip("단계에 따라 함께 켜고 끄는 외형(끄는 그네 천장 등).")]
         [SerializeField] GameObject[] stageObjects = System.Array.Empty<GameObject>();
+        [SerializeField] GameObject[] tierThreeStageObjects = System.Array.Empty<GameObject>();
         int stageShown = -1;
 
         sealed class Fire
@@ -72,10 +76,8 @@ namespace CurtainCall.HumanCannon
             foreach (var group in switchGroups)
             {
                 if (group == null) continue;
-                group.off = false;
                 foreach (var pole in group.poles) if (pole != null) pole.IsSwitch = true;
             }
-            CurtainCall.Network.PlayerSync.NetworkPlayer.Restarted += OnRestarted;
             fires.Clear(); rows.Clear(); chosen.Clear(); chosenCycle = long.MinValue;
             foreach (Transform child in transform)
             {
@@ -102,27 +104,43 @@ namespace CurtainCall.HumanCannon
 
         void Update()
         {
-            double now = HumanCannonHazardCourse.Current != null ? HumanCannonHazardCourse.Current.Clock : Time.timeAsDouble;
-            double period = warnSeconds + fireSeconds;
+            var course = HumanCannonHazardCourse.Current;
+            int stage = course != null ? course.Difficulty : 1;
+            bool tierThree = stage == 3;
+            if (stageShown != stage)
+            {
+                ApplyStage(stage);
+                chosenCycle = long.MinValue;
+            }
+            double now = course != null ? course.Clock : Time.timeAsDouble;
+            float warning = tierThree ? tierThreeWarnSeconds : warnSeconds;
+            double period = warning + (tierThree ? tierThreeFireSeconds : fireSeconds);
             long cycle = (long)System.Math.Floor(now / period);
             float t = (float)(now - cycle * period);
-            bool firePhase = t >= warnSeconds;
+            bool firePhase = t >= warning;
             bool blink = !firePhase && t % blinkSeconds < blinkSeconds * 0.5f;
-            if (cycle != chosenCycle) Choose(cycle);
+            if (cycle != chosenCycle) Choose(cycle, tierThree ? tierThreeRandomCount : randomCount);
             WatchPoles();
-            int stage = HumanCannonHazardCourse.Current != null ? HumanCannonHazardCourse.Current.Difficulty : 1;
             bool stageOn = stage >= minimumStage && stage <= maximumStage;
-            ApplyStage(stageOn);
-            LatchHeldSwitches();
+            bool gateOpen = openingGate != null && openingGate.IsOpen;
+            if (stageOn && course != null && course.IsGroundFireAuthority)
+            {
+                LatchHeldSwitches();
+                // 톱날벽이 분출 중에 열려도 다음 주기부터 온전한 예고를 보여 준다.
+                if (tierThree && gateOpen && course.GateGroundFireFirstCycle == 0)
+                    course.ScheduleGateGroundFire(cycle + 1);
+            }
+            bool gateFiresActive = gateOpen && (!tierThree
+                || course.GateGroundFireFirstCycle > 0 && cycle >= course.GateGroundFireFirstCycle);
             foreach (var fire in fires)
             {
-                bool off = fire.row >= 0 && SwitchedOff(fire.row);
+                bool off = course != null && (course.GroundFireOffRows & RowBit(fire.row)) != 0;
                 bool active = stageOn && (fire.row < 0 || !off && chosen.Contains(fire))
-                    && (!fire.gated || openingGate != null && openingGate.IsOpen);
+                    && (!fire.gated || gateFiresActive);
                 // 이번 반복에 예고·분출하는 장치만 외형을 보인다.
                 SetShown(fire, active);
                 // 그네로 끈 불은 이미 예고·분출 중이어도 남은 불꽃까지 바로 지운다.
-                SetFiring(fire, firePhase && active, off);
+                SetFiring(fire, firePhase && active, off || !stageOn);
                 SetRed(fire, blink && active);
             }
             if (firePhase) InjureTouching();
@@ -161,15 +179,20 @@ namespace CurtainCall.HumanCannon
                 && feet.y + height > c.y && feet.y < c.y + damageSize.y;
         }
 
-        /// <summary>고른 단계가 minimumStage 미만이면 끄는 그네를 숨기고 잡을 수 없게 한다.</summary>
-        void ApplyStage(bool on)
+        void ApplyStage(int stage)
         {
-            if (stageShown == (on ? 1 : 0)) return;
-            stageShown = on ? 1 : 0;
+            stageShown = stage;
+            bool on = stage >= minimumStage && stage <= maximumStage;
             foreach (var group in switchGroups)
                 if (group != null) foreach (var pole in group.poles)
-                    if (pole != null) { pole.InteractionAvailable = on; pole.PresentationVisible = on; }
-            foreach (var item in stageObjects) if (item != null && item.activeSelf != on) item.SetActive(on);
+                    if (pole != null)
+                    {
+                        bool visible = on && (stage != 3 || pole == group.tierThreePole);
+                        pole.InteractionAvailable = visible;
+                        pole.PresentationVisible = visible;
+                    }
+            foreach (var item in stageObjects)
+                if (item != null) item.SetActive(on && (stage != 3 || System.Array.IndexOf(tierThreeStageObjects, item) >= 0));
         }
 
         void WatchPoles()
@@ -185,14 +208,7 @@ namespace CurtainCall.HumanCannon
         void OnOccupancy(int index, ulong actor, bool occupied)
         {
             if (!occupied || watchedPoles == null) return;
-            var pole = watchedPoles.Pole(index);
-            foreach (var group in switchGroups)
-                if (group != null && System.Array.IndexOf(group.poles, pole) >= 0) group.off = true;
-        }
-
-        void OnRestarted(CurtainCall.Network.PlayerSync.NetworkPlayer player)
-        {
-            foreach (var group in switchGroups) if (group != null) group.off = false;
+            LatchSwitch(watchedPoles.Pole(index));
         }
 
         void LatchHeldSwitches()
@@ -202,20 +218,42 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < system.PoleCount; i++)
             {
                 if (system.OccupantCount(i) <= 0) continue;
-                var pole = system.Pole(i);
-                foreach (var group in switchGroups)
-                    if (group != null && !group.off && System.Array.IndexOf(group.poles, pole) >= 0) group.off = true;
+                LatchSwitch(system.Pole(i));
             }
         }
 
-        bool SwitchedOff(int row)
+        void LatchSwitch(HumanCannonPole pole)
         {
+            var course = HumanCannonHazardCourse.Current;
+            if (pole == null || course == null || !course.IsGroundFireAuthority) return;
+            int stage = course.Difficulty;
+            if (stage < minimumStage || stage > maximumStage) return;
             foreach (var group in switchGroups)
-                if (group != null && group.off && System.Array.IndexOf(group.rows, row) >= 0) return true;
-            return false;
+            {
+                if (group == null || System.Array.IndexOf(group.poles, pole) < 0
+                    || stage == 3 && pole != group.tierThreePole) continue;
+                uint linkedRows = 0;
+                foreach (int row in group.rows)
+                    if (rows.ContainsKey(row)) linkedRows |= RowBit(row);
+                if (linkedRows == 0 || (course.GroundFireOffRows & linkedRows) != 0) continue;
+                if (stage == 3)
+                {
+                    int remaining = 0;
+                    uint picked = 0;
+                    foreach (int row in group.rows)
+                    {
+                        uint bit = RowBit(row);
+                        if ((linkedRows & bit) != 0 && Random.Range(0, ++remaining) == 0) picked = bit;
+                    }
+                    linkedRows = picked;
+                }
+                course.DisableGroundFireRows(linkedRows);
+            }
         }
 
-        void Choose(long cycle)
+        static uint RowBit(int row) => row >= 0 && row < 32 ? 1u << row : 0;
+
+        void Choose(long cycle, int maxActive)
         {
             chosenCycle = cycle; chosen.Clear();
             foreach (var pair in rows)
@@ -224,7 +262,7 @@ namespace CurtainCall.HumanCannon
                 // 반복 번호와 줄 번호로 정해진 난수: 호스트·클라이언트가 같은 개를 고른다.
                 var random = new System.Random(unchecked((int)(cycle * 7919 + pair.Key * 104729)));
                 var order = new List<Fire>(list);
-                int count = Mathf.Min(randomCount, order.Count);
+                int count = Mathf.Min(maxActive, order.Count);
                 for (int i = 0; i < count; i++)
                 {
                     int pick = random.Next(i, order.Count);
@@ -236,8 +274,13 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
-            foreach (var fire in fires) { SetRed(fire, false); SetShown(fire, true); fire.red = fire.firing = fire.shown = -1; }
-            CurtainCall.Network.PlayerSync.NetworkPlayer.Restarted -= OnRestarted;
+            foreach (var fire in fires)
+            {
+                SetFiring(fire, false, true);
+                SetRed(fire, false);
+                SetShown(fire, true);
+                fire.red = fire.firing = fire.shown = -1;
+            }
             if (watchedPoles != null) watchedPoles.OccupancyChanged -= OnOccupancy;
             watchedPoles = null;
         }

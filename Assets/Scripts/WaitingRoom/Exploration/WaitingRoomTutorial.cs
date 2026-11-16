@@ -53,7 +53,7 @@ namespace CurtainCall.WaitingRoom
         bool pendingRevived, pendingTeammateDown;
         PropCarry carry;
         ExplorationState exploration;
-        string interactKey = "F", uvKey = "우클릭";
+        string interactKey = "F", uvKey = "우클릭", dropKey = "T";
         WaitingRoomTutorialCamera closeUp;
         bool sequence;
         float stepEndsAt;
@@ -144,7 +144,7 @@ namespace CurtainCall.WaitingRoom
             {
                 if (lines.Length > 0) lines.Append("\n\n");
                 lines.Append(entry.title).Append('\n')
-                    .Append(WaitingRoomTutorialBook.Format(entry.body, instance != null ? instance.interactKey : "F", instance != null ? instance.uvKey : "우클릭"));
+                    .Append(WaitingRoomTutorialBook.Format(entry.body, instance != null ? instance.interactKey : "F", instance != null ? instance.uvKey : "우클릭", instance != null ? instance.dropKey : "T"));
             }
             return lines.Length > 0 ? lines.ToString() : "아직 본 안내가 없습니다.";
         }
@@ -305,7 +305,7 @@ namespace CurtainCall.WaitingRoom
             // 연계·클로즈업 안내(조작 잠금)를 일반 안내보다 먼저 꺼낸다(예: 확정 직후 잠자기가 상호작용 안내 뒤로 밀리지 않게).
             bool blocked = !sequence && InputGate.IsBlocked;
             if (!b.TryNext(blocked, IsLocked, out var entry) && (sequence || !b.TryNext(blocked, null, out entry))) return;
-            string body = WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey);
+            string body = WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey, dropKey);
             if (!IsLocked(entry.id))
             {
                 // 패널이 아직 사라지는 중이면 다음 프레임에 다시 시도한다.
@@ -321,19 +321,19 @@ namespace CurtainCall.WaitingRoom
             b.MarkDone(entry.id);
         }
 
-        string BadgeFor(string template) => template.Contains("{interact}") ? interactKey : template.Contains("{uv}") ? uvKey : null;
+        string BadgeFor(string template) => template.Contains("{interact}") ? interactKey : template.Contains("{uv}") ? uvKey : template.Contains("{drop}") ? dropKey : null;
         bool ShowEntry(TutorialEntry entry,string body,float seconds)
         {
             var cue=WaitingRoomHudProfile.Current.Cue(entry.id);
             return WaitingRoomTutorialPanel.ShowAs(cue?.role ?? RoomNotice.Guide,
-                WaitingRoomTutorialBook.Format(entry.title, interactKey, uvKey),body,seconds,BadgeFor(entry.body));
+                WaitingRoomTutorialBook.Format(entry.title, interactKey, uvKey, dropKey),body,seconds,BadgeFor(entry.body));
         }
         public static void RecallPresented(){if(Enabled && instance && instance.isActiveAndEnabled)Book.MarkDone("G11A");}
         bool TryContinueCloseUp(WaitingRoomTutorialBook b)
         {
             if (!b.TryNext(false, IsLocked, out var entry) || !HasShot(entry.id)
                 || !TryFocus(entry.id, out var pos, out var rot, out var focus)) return false;
-            if (!ShowEntry(entry, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey), WaitingRoomTutorialCamera.Total)) return false;
+            if (!ShowEntry(entry, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey, dropKey), WaitingRoomTutorialCamera.Total)) return false;
             if (!closeUp.Continue(pos, rot, focus)) return false;
             stepEndsAt = Time.unscaledTime + WaitingRoomTutorialCamera.Total;
             b.MarkDone(entry.id);
@@ -465,6 +465,7 @@ namespace CurtainCall.WaitingRoom
                 var map = draft != null ? draft.FindActionMap("Common", false) : null;
                 interactKey = Display(map?.FindAction("Interact", false), "F");
                 uvKey = Display(map?.FindAction("UvLight", false), "우클릭");
+                dropKey = Display(map?.FindAction("DropItem", false), "T");
             }
             catch (System.Exception e) { Debug.LogWarning("[Tutorial] 키 이름을 읽지 못해 기본값을 씁니다: " + e.Message); }
             finally { if (draft != null) Destroy(draft); }

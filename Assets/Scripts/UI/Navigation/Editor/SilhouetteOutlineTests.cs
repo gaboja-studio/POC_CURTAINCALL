@@ -90,6 +90,34 @@ namespace CurtainCall.UI.Wayfinding.Editor
             pulse.SetEndpointPresentation(false,false,root.transform.position);pulse.EvaluateAt(.1f);
             Assert.IsFalse(pulse.DestinationBeaconHidden);Assert.IsFalse(pulse.DepartureEcho.gameObject.activeSelf);
         }
+        [Test]
+        public void RenderOnlyForegroundRevealsJustTheOccludedPartOnTheAssignedCamera()
+        {
+            var target = Box(root.transform, Vector3.zero, new Vector3(2f, 2f, 1f));
+            outline = new SilhouetteOutline(target.transform, Color.green, occludedOnly: true) { Viewer = camera };
+            Texture2D clear = null, partlyBlocked = null, otherCamera = null;
+            try
+            {
+                clear = Render();
+                Assert.IsFalse(Array.Exists(clear.GetPixels(), Green), "Visible parts keep their normal material.");
+                var beam = Box(root.transform, new Vector3(-.5f, 0f, -2f), new Vector3(1f, 2.4f, .2f));
+                Object.DestroyImmediate(beam.GetComponent<Collider>());
+                partlyBlocked = Render();
+                Assert.IsTrue(Green(partlyBlocked.GetPixel(192, 256)), "A foreground mesh can hide the model without a collider.");
+                Assert.IsFalse(Green(partlyBlocked.GetPixel(320, 256)), "Do not paint over the visible half.");
+                Assert.IsFalse(Green(partlyBlocked.GetPixel(192, 390)), "Do not paint outside the model.");
+                outline.Viewer = null;
+                otherCamera = Render();
+                Assert.IsFalse(Array.Exists(otherCamera.GetPixels(), Green), "Only the assigned camera can see the fill.");
+            }
+            finally
+            {
+                if (clear != null) Object.DestroyImmediate(clear);
+                if (partlyBlocked != null) Object.DestroyImmediate(partlyBlocked);
+                if (otherCamera != null) Object.DestroyImmediate(otherCamera);
+            }
+        }
+
         [Test] public void SkinnedPoseUpdatesAndDisposalPreservesOriginalRenderer()
         {
             var primitive=GameObject.CreatePrimitive(PrimitiveType.Cube);

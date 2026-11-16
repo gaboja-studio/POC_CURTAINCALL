@@ -180,7 +180,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (name == InputBindingPreferences.DeviceUseAction) return "운반 장치 사용 / 톱날 한 발 발사";
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";
-            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "외줄 · 왼쪽 줄 이동", "DirectionRight" => "외줄 · 오른쪽 줄 이동", "TurnAround" => "외줄·봉 · 앞뒤 전환", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", _ => name };
+            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "외줄 · 왼쪽 줄 이동", "DirectionRight" => "외줄 · 오른쪽 줄 이동", "TurnAround" => "외줄·봉 · 앞뒤 전환", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", "VotePrimary" => "투표 · 첫 번째 선택 (수락)", "VoteSecondary" => "투표 · 두 번째 선택 (거절)", "DropItem" => "기물 내려놓기", _ => name };
         }
         // The settings panel treats identical IDs as exclusive. These two defaults share a button across gameplay contexts.
         const string GroundBindingPrefix = "ground:";

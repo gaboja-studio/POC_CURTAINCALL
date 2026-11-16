@@ -63,8 +63,31 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             if (EditorApplication.isPlaying) liveFollowPlayer = false;
             EndPan(); viewInitialized = false; centerHasRoom = true; zoom = 1;
         }
+        Rect lastTopArea;
+        // 선택 층의 모든 방이 들어오는 평면 범위(창 비율에 맞춤). 방이 없으면 현재 범위.
+        Bounds FloorFit(Rect area)
+        {
+            var visible = VisibleRooms();
+            if (visible.Length == 0) return viewBounds;
+            var all = PursuitAuthoring.Bounds(visible[0]);
+            foreach (var room in visible) all.Encapsulate(PursuitAuthoring.Bounds(room));
+            return Fit(all, area, 1.06f);
+        }
+        // 기본 축소 한계는 0.5×지만, 층 전체가 한 화면에 들어올 만큼은 항상 더 축소할 수 있다.
+        float MinZoom(Rect area) => lastTopArea.width > 1 ? Mathf.Min(.5f, viewSpan / Mathf.Max(.01f, FloorFit(area).size.z)) : .5f;
+        void FrameFloor()
+        {
+            if (EditorApplication.isPlaying) liveFollowPlayer = false;
+            if (!viewInitialized || lastTopArea.width <= 1) return;
+            EndPan();
+            var fit = FloorFit(lastTopArea);
+            viewCenter = new Vector3(fit.center.x, viewFloor, fit.center.z);
+            zoom = Mathf.Clamp(viewSpan / Mathf.Max(.01f, fit.size.z), MinZoom(lastTopArea), 4);
+            TargetCenterRoom(); Repaint();
+        }
         void EnsureView(Rect area)
         {
+            lastTopArea = area;
             if (!viewInitialized) {
                 var bounds = Fit(PursuitAuthoring.Bounds(Room), area, 1.12f);
                 viewCenter = bounds.center; viewFloor = FloorHeight(Room); viewSpan = bounds.size.z;
@@ -90,6 +113,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 }
                 GUILayout.Label($"선택 층 {VisibleRooms().Length}개 방 · {VisiblePlacements().Length}체 · 평면/측면/배치 공통", EditorStyles.miniLabel);
                 GUILayout.FlexibleSpace();
+                if (GUILayout.Button("층 전체 보기 (A)", EditorStyles.toolbarButton, GUILayout.Width(110))) FrameFloor();
                 if (GUILayout.Button("현재 방 맞춤 (F)", EditorStyles.toolbarButton, GUILayout.Width(110))) FrameRoom();
             }
         }
@@ -130,6 +154,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var e = Event.current;
             int id = panInputId = GUIUtility.GetControlID("PursuitPan".GetHashCode(), FocusType.Passive);
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.F && GUIUtility.keyboardControl == 0) { FrameRoom(); e.Use(); return true; }
+            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.A && GUIUtility.keyboardControl == 0) { FrameFloor(); e.Use(); return true; }
             if (e.type == EventType.MouseDown && rect.Contains(e.mousePosition) && (e.button == 2 || (EditorApplication.isPlaying && e.button == 0))) {
                 BeginPan(id); e.Use(); return true;
             }

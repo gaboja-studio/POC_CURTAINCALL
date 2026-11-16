@@ -74,7 +74,6 @@ namespace CurtainCall.HumanCannon
             steerPoleMomentum = false;
             latch.Reset();
             UpdatePolePose(true);
-            poleCameraForward = transform.forward;
         }
 
         internal void LeavePole(int station, uint launch, uint segment, Vector3 position,
@@ -105,6 +104,7 @@ namespace CurtainCall.HumanCannon
             // network teleports for discrete grab/release transitions.
             Vector3 position = poles.HangingPosition(HeldPole, player.OwnerClientId);
             Quaternion rotation = poles.RiderRotation(HeldPole, player.OwnerClientId);
+            poleCameraForward = rotation * Vector3.forward;
             if (teleport) Teleport(position, rotation);
             else transform.SetPositionAndRotation(position, rotation);
         }

@@ -31,6 +31,7 @@ namespace CurtainCall.Player
         InputAction sprint;
         InputAction crouch;
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
+        InputAction dropItem; // 옛 입력 에셋에는 없을 수 있다
         InputAction useDevice;
         PlayerController controller;
         double interactPressedAt = -1d;
@@ -101,6 +102,7 @@ namespace CurtainCall.Player
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
             uvLight = commonMap.FindAction("UvLight", false);
+            dropItem = commonMap.FindAction("DropItem", false);
             useDevice = commonMap.FindAction(InputBindingPreferences.DeviceUseAction, false);
         }
 
@@ -199,6 +201,7 @@ namespace CurtainCall.Player
                 UvLightHeld = uvLight != null && uvLight.IsPressed() && !CurtainCall.WaitingRoom.ExplorationTargets.ToolsBlocked
                     && (!onRope || !SharesRopeBinding(uvLight)),
                 UseDevicePressed = ReadDeviceUse() && (!onRope || !SharesRopeBinding(useDevice)),
+                DropItemPressed = dropItem != null && dropItem.WasPressedThisFrame(),
             };
             CommonInteractionSelection.Selected(this);
         }

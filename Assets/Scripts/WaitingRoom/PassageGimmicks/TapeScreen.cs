@@ -150,6 +150,8 @@ namespace CurtainCall.WaitingRoom
             if (Time.unscaledTime >= nextHide) HidePlayers();
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) { Close(); return; }
             if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame) { Close(); return; }
+            // 목마 위에서 보는 중 아래 단원이 데려가 상호작용 범위를 벗어나면 보기를 멈춘다(2026-11-16 상호작용 고도화 · 집중 상태 규칙).
+            if (viewGate != null && ExplorationState.Instance != null && !ExplorationState.Instance.CanReachLocal(viewGate)) { Close(); return; }
             var local = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
             var reader = local != null ? local.GetComponent<PlayerInputReader>() : OfflineLocalPlayer.Reader;
             if (reader == null) return;

@@ -6,8 +6,8 @@ using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.SpaceLink;
-using CurtainCall.Settings;
 using CurtainCall.WaitingRoom;
+using CurtainCall.WaitingRoom.Pursuit;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,7 +31,7 @@ namespace CurtainCall.EscapeRoute
         ShopChannel channel;
         Transform source;
         PlayerMover heldMover;
-        bool simulatedBefore, localCaptured, localPlaced, holding;
+        bool localCaptured, localPlaced, holding, capturedView;
         Vector3 localPosition;
         Quaternion localRotation, localLook, arrivalLook;
         Camera sourceCamera;
@@ -79,9 +79,9 @@ namespace CurtainCall.EscapeRoute
                     if (player != null && player.IsSpawned && player.OwnerClientId == ids[i]) { member = player; break; }
                 if (member == null || !channel.IsConnected(ids[i])) return false;
                 next.participants[i] = ids[i];
-                bool caught = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(member);
+                bool caught = PursuitDirector.IsCaptured(member);
                 next.positions[i] = caught
-                    ? CurtainCall.WaitingRoom.Pursuit.PursuitDirector.ArrivalLocal(source.GetComponent<BoxCollider>(), i, ids.Count)
+                    ? PursuitDirector.ArrivalLocal(source.GetComponent<BoxCollider>(), i, ids.Count)
                     : source.InverseTransformPoint(member.transform.position);
                 next.rotations[i] = caught ? Quaternion.identity : Quaternion.Inverse(source.rotation) * member.transform.rotation;
             }
@@ -99,8 +99,9 @@ namespace CurtainCall.EscapeRoute
             var run = CampaignRun.Instance;
             if (run == null || run.State.Generation != snapshot.generation || run.State.Phase != CampaignPhase.Escape)
             {
-                // A transfer state can arrive just before the campaign message on a client.
-                if (run != null && run.State.Generation == snapshot.generation && run.State.Phase == CampaignPhase.RestTime) return;
+                // The transfer can arrive before the campaign step in either departure phase.
+                if (Pending && run != null && run.State.Generation == snapshot.generation
+                    && PursuitDirector.IsPursuitPhase(run.State.Phase)) return;
                 Cancel(); return;
             }
             if (!localCaptured) CaptureLocal();
@@ -126,13 +127,14 @@ namespace CurtainCall.EscapeRoute
         {
             var player = NetworkPlayer.Local;
             if (localCaptured || source == null || player == null || !player.IsSpawned
-                || Array.IndexOf(snapshot.participants, player.OwnerClientId) < 0) return;
+                || !player.TryGetComponent(out PlayerMover mover)) return;
+            int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
+            if (index < 0) return;
             localPosition = source.InverseTransformPoint(player.transform.position);
             localRotation = Quaternion.Inverse(source.rotation) * player.transform.rotation;
             // A client can cross the rear doorway during network delay. Keep that player inside
             // using the host's already accepted assembly pose instead of spawning outside A.
             var area = source.GetComponent<BoxCollider>();
-            int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
             if (area != null && !EscapeEntrance.Contains(area, player.transform.position))
             {
                 localPosition = snapshot.positions[index];
@@ -140,11 +142,12 @@ namespace CurtainCall.EscapeRoute
             }
             sourceCamera = Camera.main;
             sourceDirector = CameraViewDirector.Current;
-            localLook = Quaternion.Inverse(source.rotation) * (sourceCamera != null ? sourceCamera.transform.rotation : player.transform.rotation);
-            heldMover = player.GetComponent<PlayerMover>();
-            simulatedBefore = heldMover.Simulated;
+            capturedView = sourceCamera != null;
+            if (capturedView) localLook = Quaternion.Inverse(source.rotation) * sourceCamera.transform.rotation;
+            // PlayerMover checks HoldingForDeparture. Its simulation flag belongs to the
+            // device or piggyback link currently controlling the player.
+            heldMover = mover;
             heldMover.ClearPendingInput();
-            heldMover.Simulated = false;
             holding = true;
             InputGate.SetBlocking(this, true);
             localCaptured = true;
@@ -154,28 +157,67 @@ namespace CurtainCall.EscapeRoute
         {
             if (!HasDeparture || destination == null) return false;
             if (localPlaced) return true;
-            if (!localCaptured || heldMover == null) return false;
+            var player = NetworkPlayer.Local;
+            if (!localCaptured || source == null || heldMover == null || player == null || !player.IsSpawned) return false;
             var content = EscapeCampaignContent.Current;
             if (content == null || !content.IsActive || !content.IsSceneryReady) return false;
-            MoveCamera(sourceCamera != null ? sourceCamera.transform : null, destination.gameObject.scene);
-            MoveCamera(sourceDirector != null ? sourceDirector.transform : null, destination.gameObject.scene);
-            if (sourceDirector == null || sourceCamera == null) return false;
-            var anchor = destination.AssemblyAnchor;
-            var position = anchor.TransformPoint(localPosition);
-            if (!EscapeDevelopmentSession.HasArrivalFloor(destination.gameObject.scene, position)) return false;
-            heldMover.SetStartPose(position, anchor.rotation * localRotation);
-            arrivalLook = anchor.rotation * localLook;
+            int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
+            if (index < 0 || !TryGetArrivalView()) return false;
+            var scene = destination.gameObject.scene;
+            var localPose = new Pose(localPosition, localRotation);
+            var hostPose = new Pose(snapshot.positions[index], snapshot.rotations[index]);
+            if (!TryResolveArrivalPose(scene, destination.AssemblyArea, localPose, hostPose, index, snapshot.participants.Length, out var pose)) return false;
+
+            MoveCamera(sourceCamera.transform, source.gameObject.scene, scene);
+            MoveCamera(sourceDirector.transform, source.gameObject.scene, scene);
+            heldMover.SetStartPose(pose.position, pose.rotation);
+            arrivalLook = destination.AssemblyAnchor.rotation * localLook;
             sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
-            RecordTransfer("TRANSFER_PLACED", position, false);
+            RecordTransfer("TRANSFER_PLACED", pose.position, false);
             Acknowledge("placed");
             return true;
         }
-        static void MoveCamera(Transform camera, Scene destination)
+
+        bool TryGetArrivalView()
+        {
+            if (sourceCamera == null || !sourceCamera.isActiveAndEnabled)
+            {
+                sourceCamera = Camera.main;
+                capturedView = false;
+            }
+            if (sourceDirector == null || !sourceDirector.isActiveAndEnabled) sourceDirector = CameraViewDirector.Current;
+            if (sourceCamera == null || sourceDirector == null || !sourceDirector.isActiveAndEnabled) return false;
+            if (!capturedView)
+            {
+                localLook = Quaternion.Inverse(source.rotation) * sourceCamera.transform.rotation;
+                capturedView = true;
+            }
+            return true;
+        }
+
+        static bool TryResolveArrivalPose(Scene scene, BoxCollider area, Pose localPose, Pose hostPose, int index, int count, out Pose pose)
+        {
+            pose = default;
+            if (!area || !scene.isLoaded) return false;
+            var anchor = area.transform;
+            var position = anchor.TransformPoint(localPose.position);
+            if (Supported(position)) { pose = new Pose(position, anchor.rotation * localPose.rotation); return true; }
+            position = anchor.TransformPoint(hostPose.position);
+            if (Supported(position)) { pose = new Pose(position, anchor.rotation * hostPose.rotation); return true; }
+            position = anchor.TransformPoint(PursuitDirector.ArrivalLocal(area, index, count));
+            if (!Supported(position)) return false;
+            pose = new Pose(position, anchor.rotation * hostPose.rotation);
+            return true;
+
+            bool Supported(Vector3 feet) => EscapeEntrance.Contains(area, feet)
+                && EscapeDevelopmentSession.HasArrivalFloor(scene, feet);
+        }
+
+        static void MoveCamera(Transform camera, Scene source, Scene destination)
         {
             // Global/Hub cameras already survive W unloading; do not steal their lifetime.
-            if (camera == null || camera.gameObject.scene == destination
-                || camera.gameObject.scene.name != GameSettings.Base.SpaceTransition.WaitingRoomScene) return;
+            if (source == destination || camera.gameObject.scene != source) return;
             camera.SetParent(null, true);
             SceneManager.MoveGameObjectToScene(camera.gameObject, destination);
         }
@@ -260,15 +302,13 @@ namespace CurtainCall.EscapeRoute
         public void Cancel()
         {
             Release(); snapshot = new(); captured.Clear(); placed.Clear();
-            localCaptured = localPlaced = false;
+            localCaptured = localPlaced = capturedView = false;
             heldMover = null; sourceCamera = null; sourceDirector = null;
         }
         void Release()
         {
             if (!holding) return;
             holding = false;
-            if (heldMover != null && NetworkPlayer.Local != null && NetworkPlayer.Local.State == PlayerState.Normal)
-                heldMover.Simulated = simulatedBefore;
             if (localPlaced && sourceDirector != null) sourceDirector.SetLookRotation(arrivalLook);
             InputGate.SetBlocking(this, false);
         }

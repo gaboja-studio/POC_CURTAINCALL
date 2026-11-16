@@ -16,13 +16,14 @@ namespace CurtainCall.Cameras
     [DefaultExecutionOrder(-75)]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CinemachineCamera), typeof(CinemachineFollow), typeof(CinemachineRotationComposer))]
-    public sealed class CameraViewDirector : MonoBehaviour
+    public sealed partial class CameraViewDirector : MonoBehaviour
     {
         struct Request
         {
             public CameraViewPreset Preset;
             public Vector3 Forward;
             public bool FollowHeading;
+            public bool FollowHeadingMotion;
         }
 
         [SerializeField] CameraViewSettings settings;
@@ -65,11 +66,18 @@ namespace CurtainCall.Cameras
         float transitionFov;
         CameraState lastOutput;
         bool hasOutput;
-        float collisionDistance = -1f;
+        float collisionPullIn;
+        float collisionElevation;
+        float collisionHold;
+        Vector3 lastCollisionPivot, lastCollisionDirection;
         int collisionFrame = -1;
         const float CollisionRadius = .25f;
         const float CollisionPadding = .05f;
-        const float CollisionReturnSpeed = 5f;
+        const float CollisionLookAhead = .28f;
+        const float CollisionPredictionTime = .09f;
+        const float CollisionEnterDamping = .20f;
+        const float CollisionExitDamping = .55f;
+        const float CollisionHoldTime = .08f;
         const float MinimumHangCameraDistance = 1.65f;
         RaycastHit[] wallHits = new RaycastHit[32];
         Collider[] pivotOverlaps = new Collider[8];
@@ -105,7 +113,7 @@ namespace CurtainCall.Cameras
         Transform SpectatorAnchor => CameraSpectator.EscapeCaptureAnchor != null ? CameraSpectator.EscapeCaptureAnchor
             : CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
         public bool IsSpectatorOrbit => spectatorOrbit;
-        internal void SpectatorTargetChanged() { collisionDistance = -1; transitionDuration = 0; }
+        internal void SpectatorTargetChanged() { ResetWallCollision(); transitionDuration = 0; }
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
         internal bool CanHideNearbyModel => CanUseLocalView && !IsFirstPerson && !CameraSpectator.IsSpectating && !deathView;
 
@@ -130,7 +138,7 @@ namespace CurtainCall.Cameras
 
         void OnActiveSceneChanged(Scene previous, Scene next)
         {
-            collisionDistance = -1f;
+            ResetWallCollision();
             ResetDeathView();
             hasOutput = false;
             transitionDuration = 0f;
@@ -139,6 +147,7 @@ namespace CurtainCall.Cameras
         void OnDisable()
         {
             SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            ResetWallCollision();
             ResetDeathView();
             ReleaseCursor();
             requests.Clear();
@@ -160,11 +169,12 @@ namespace CurtainCall.Cameras
             => RequestViewWithHeading(source, preset, priority, worldForward, false);
 
         internal void RequestViewWithHeading(Object source, CameraViewPreset preset, int priority, Vector3 worldForward,
-            bool followHeading)
+            bool followHeading, bool followHeadingMotion = false)
         {
             if (source == null) return;
             if (preset == null) { ReleaseView(source); return; }
-            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading }, priority);
+            requests.Set(source, new Request { Preset = preset, Forward = Horizontal(worldForward), FollowHeading = followHeading,
+                FollowHeadingMotion = followHeadingMotion }, priority);
         }
 
         public void ReleaseView(Object source) => requests.Remove(source);
@@ -187,7 +197,7 @@ namespace CurtainCall.Cameras
         public void SetLocalPlayer(NetworkPlayer player)
         {
             if (local == player) return;
-            collisionDistance = -1f;
+            ResetWallCollision();
             ResetDeathView();
             ReleaseCursor();
             requests.Clear();
@@ -300,7 +310,7 @@ namespace CurtainCall.Cameras
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
             Vector3 heading = useFree && found && request.FollowHeading ? request.Forward : Vector3.zero;
-            UpdateFollowedHeading(heading);
+            UpdateFollowedHeading(heading, request.FollowHeadingMotion);
             var framing = useFirst ? DefaultView : preset;
             if (framing != null)
             {
@@ -311,7 +321,7 @@ namespace CurtainCall.Cameras
             virtualCamera.Lens.FieldOfView = Mathf.Clamp(preset.FieldOfView, 1f, 179f);
         }
 
-        void UpdateFollowedHeading(Vector3 heading)
+        void UpdateFollowedHeading(Vector3 heading, bool followHeadingMotion)
         {
             if (heading == Vector3.zero)
             {
@@ -319,12 +329,18 @@ namespace CurtainCall.Cameras
                 headingTurnDelta = headingTurnApplied = 0f;
                 return;
             }
-            if (followedHeading == Vector3.zero || Vector3.Dot(heading, followedHeading) < .9999f)
+            if (followedHeading == Vector3.zero || !followHeadingMotion && Vector3.Dot(heading, followedHeading) < .9999f)
             {
                 followedHeading = heading;
                 headingTurnStart = Time.unscaledTime;
                 headingTurnApplied = 0f;
                 headingTurnDelta = Mathf.DeltaAngle(yaw, Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg);
+            }
+            else if (followHeadingMotion)
+            {
+                // Keep the player's mouse offset as the moving mount turns.
+                yaw += Vector3.SignedAngle(followedHeading, heading, Vector3.up);
+                followedHeading = heading;
             }
             float duration = Mathf.Max(.01f, CurtainCall.Settings.GameSettings.Tightrope.Camera.FramingSmoothTime);
             float progress = Mathf.Clamp01((Time.unscaledTime - headingTurnStart) / duration);
@@ -333,7 +349,7 @@ namespace CurtainCall.Cameras
             headingTurnApplied = applied;
         }
 
-        internal void ApplyPose(ref CameraState state)
+        internal void ApplyPose(ref CameraState state, float deltaTime)
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || selected == null) return;
             if (spectatorOrbit && SpectatorAnchor != null)
@@ -406,9 +422,9 @@ namespace CurtainCall.Cameras
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
             else if ((spectatorOrbit || UsesWallCollision(SceneManager.GetActiveScene())) && (CanUseLocalView || (spectatorOrbit && CameraSpectator.Target != null)) && !IsFirstPerson)
-                ApplyWallCollision(ref state);
+                ApplyWallCollision(ref state, deltaTime);
             else
-                collisionDistance = -1f;
+                ResetWallCollision();
             lastOutput = state;
             hasOutput = true;
         }
@@ -427,7 +443,15 @@ namespace CurtainCall.Cameras
                 || !scene.name.StartsWith("escape_route", StringComparison.Ordinal);
         }
 
-        void ApplyWallCollision(ref CameraState state)
+        void ResetWallCollision()
+        {
+            collisionFrame = -1;
+            collisionPullIn = collisionElevation = collisionHold = 0f;
+            reframing = false;
+            lastFramingArm = Vector3.zero;
+        }
+
+        void ApplyWallCollision(ref CameraState state, float deltaTime)
         {
             var anchor = spectatorOrbit ? SpectatorAnchor : local != null ? local.transform : null;
             if (anchor == null) return;
@@ -435,37 +459,134 @@ namespace CurtainCall.Cameras
             var anchorMover = spectatorOrbit ? null : anchor.GetComponent<PlayerMover>();
             float lookHeight = Mathf.Max(.1f, selected.LookHeight) * (anchorMover != null ? anchorMover.PostureHeightScale : 1f);
             if (CameraSpectator.EscapeCaptureAnchor != null) lookHeight = 2.5f;
-            Vector3 pivot = KeepPivotUnderCeiling(anchor.position, anchor.position + Vector3.up * lookHeight);
-            Vector3 originalPivot = pivot;
+            Vector3 focus = KeepPivotUnderCeiling(anchor.position, anchor.position + Vector3.up * lookHeight);
             var subject = anchor.GetComponent<NetworkPlayer>();
             var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
             bool hanging = hangs != null && hangs.IsHanging(subject);
             // Cannon seats and low beams can also contain the pivot. Clear the query
             // origin for every third-person view before casting the camera arm.
-            pivot = HangingCameraPivot(pivot);
-            Vector3 offset = state.GetFinalPosition() - pivot;
+            Vector3 pivot = HangingCameraPivot(focus);
+            Vector3 originalPosition = state.GetFinalPosition();
+            Vector3 offset = originalPosition - pivot;
             float desired = offset.magnitude;
-            if (desired < .001f) { collisionDistance = -1f; return; }
+            if (desired < .001f) { ResetWallCollision(); return; }
+            if (deltaTime < 0f) ResetWallCollision();
+            bool reset = collisionFrame < 0;
+            float step = collisionFrame == Time.frameCount ? 0f : Mathf.Max(0f, deltaTime);
             Vector3 direction = offset / desired;
             float safe = WallDistance(pivot, direction, desired);
             Vector3 originalDirection = direction;
-            if (hanging) direction = HangingCameraDirection(pivot, direction, desired, ref safe);
-            // Contract along the requested camera arm. Orbit angles also drive locomotion.
-            if (collisionDistance < 0f) collisionDistance = safe;
-            else if (collisionFrame != Time.frameCount)
-                collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
-            collisionDistance = Mathf.Min(collisionDistance, safe);
-            if (hanging) collisionDistance = Mathf.Max(collisionDistance, Mathf.Min(safe, MinimumHangCameraDistance));
-            collisionFrame = Time.frameCount;
-            state.PositionCorrection += pivot + direction * collisionDistance - state.GetFinalPosition();
-            if ((direction - originalDirection).sqrMagnitude > .0001f || (pivot - originalPivot).sqrMagnitude > .0001f)
+            if (hanging || collisionElevation != 0f)
+                direction = DampCollisionElevation(pivot, direction, desired, hanging, reset, step, ref safe);
+
+            // The wider cast starts tightening the arm before the physical near-plane limit.
+            // Cap the extra pull-in so a buffer touching a nearby side wall cannot collapse the arm.
+            float cushioned = SweepWallDistance(pivot, direction, safe, CollisionRadius + CollisionLookAhead, false);
+            cushioned = Mathf.Clamp(cushioned, Mathf.Max(0f, safe - CollisionLookAhead), safe);
+            if (!reset && step > 0f && collisionElevation == 0f)
+                cushioned = Mathf.Min(cushioned, PredictCollisionDistance(pivot, direction, desired, safe, step));
+            if (reset || step > 0f)
             {
-                // Reframe around the hanging body beside an overhead landing. Preserve mouse yaw/pitch
-                // and the horizontal look direction used by movement; never cross a solid surface.
-                Vector3 look = pivot + Horizontal(state.GetFinalOrientation() * Vector3.forward) * selected.LookAhead;
-                state.RawOrientation = Quaternion.LookRotation(look - state.GetFinalPosition(), Vector3.up);
-                state.OrientationCorrection = Quaternion.identity;
+                lastCollisionPivot = pivot;
+                lastCollisionDirection = direction;
             }
+            float distance = DampCollisionDistance(desired, safe, cushioned, reset, step);
+            if (hanging) distance = Mathf.Max(distance, Mathf.Min(safe, MinimumHangCameraDistance));
+            Vector3 position = pivot + direction * distance;
+            if (!hanging && (!spectatorOrbit || !watchingCapture && CameraSpectator.EscapeCaptureAnchor == null))
+            {
+                float bodyHeight = anchorMover != null && anchorMover.Body != null ? anchorMover.BodyHeight : lookHeight * 1.25f;
+                position = KeepSubjectVisible(anchor.position, bodyHeight, pivot, originalPosition, position, safe, reset, step);
+            }
+            else reframing = false;
+            if (reset || step > 0f)
+            {
+                lastFramingArm = position - pivot;
+                lastFramingPosition = position;
+            }
+            collisionFrame = Time.frameCount;
+            state.PositionCorrection += position - originalPosition;
+            if ((Vector3.Cross(position - focus, originalDirection)).sqrMagnitude > .0001f
+                || (pivot - focus).sqrMagnitude > .0001f)
+            {
+                // Preserve the subject's screen framing when the arm has to slide around a beam.
+                Vector3 before = focus - originalPosition;
+                Vector3 after = focus - position;
+                if (before.sqrMagnitude > .0001f && after.sqrMagnitude > .0001f)
+                {
+                    Quaternion aim = Quaternion.LookRotation(after, Vector3.up) * Quaternion.Inverse(Quaternion.LookRotation(before, Vector3.up));
+                    state.RawOrientation = aim * state.GetCorrectedOrientation();
+                    state.OrientationCorrection = Quaternion.identity;
+                }
+            }
+        }
+
+        float PredictCollisionDistance(Vector3 pivot, Vector3 direction, float desired, float safe, float step)
+        {
+            Vector3 motion = pivot - lastCollisionPivot;
+            float angle = Vector3.Angle(lastCollisionDirection, direction);
+            if (motion.sqrMagnitude > 1f || angle > 50f) return safe; // cuts and teleports
+
+            // A thin post can cut across the arm in a single frame while orbiting. Ease in
+            // toward the collision limit a few frames ahead in the current direction of travel.
+            float lead = CollisionPredictionTime / step;
+            Vector3 advance = Vector3.ClampMagnitude(motion * lead, .55f);
+            float turn = Mathf.Min(18f, angle * lead);
+            if (advance.sqrMagnitude < .0004f && turn < 1f) return safe;
+            Vector3 futureDirection = turn < 1f ? direction
+                : Quaternion.AngleAxis(turn, Vector3.Cross(lastCollisionDirection, direction).normalized) * direction;
+            return Mathf.Lerp(safe, WallDistance(pivot + advance, futureDirection, desired), .8f);
+        }
+
+        float DampCollisionDistance(float desired, float safe, float cushioned, bool reset, float step)
+        {
+            float requested = desired - cushioned;
+            if (reset) collisionPullIn = requested;
+            else if (requested >= collisionPullIn || collisionHold <= 0f)
+            {
+                float damping = requested > collisionPullIn ? CollisionEnterDamping : CollisionExitDamping;
+                collisionPullIn += Damper.Damp(requested - collisionPullIn, damping, step);
+            }
+
+            collisionHold = Mathf.Max(0f, collisionHold - step);
+            float required = desired - safe;
+            if (required > collisionPullIn)
+            {
+                collisionPullIn = required;
+                collisionHold = CollisionHoldTime;
+            }
+            collisionPullIn = Mathf.Min(desired, collisionPullIn);
+            return desired - collisionPullIn;
+        }
+
+        Vector3 DampCollisionElevation(Vector3 pivot, Vector3 direction, float desired,
+            bool hanging, bool reset, float step, ref float safe)
+        {
+            float preferredSafe = safe;
+            Vector3 preferred = hanging ? HangingCameraDirection(pivot, direction, desired, ref preferredSafe) : direction;
+            float elevation = Mathf.Asin(Mathf.Clamp(direction.y, -1f, 1f)) * Mathf.Rad2Deg;
+            float bend = Mathf.Asin(Mathf.Clamp(preferred.y, -1f, 1f)) * Mathf.Rad2Deg - elevation;
+            collisionElevation = reset ? bend : collisionElevation + Damper.Damp(bend - collisionElevation, CollisionExitDamping, step);
+            if (Mathf.Abs(collisionElevation) < .01f) { collisionElevation = 0f; return direction; }
+            Vector3 horizontal = Horizontal(direction);
+            if (horizontal == Vector3.zero) return direction;
+            Vector3 damped = ArmAtElevation(horizontal, elevation + collisionElevation);
+            float dampedSafe = WallDistance(pivot, damped, desired);
+            // A low landing can leave the intermediate angle inside the subject's body.
+            if (hanging && dampedSafe < .9f && preferredSafe > dampedSafe)
+            {
+                collisionElevation = bend;
+                safe = preferredSafe;
+                return preferred;
+            }
+            safe = dampedSafe;
+            return damped;
+        }
+
+        static Vector3 ArmAtElevation(Vector3 horizontal, float angle)
+        {
+            float radians = Mathf.Clamp(angle, -89f, 89f) * Mathf.Deg2Rad;
+            return horizontal * Mathf.Cos(radians) + Vector3.up * Mathf.Sin(radians);
         }
 
         // 발에서 기준점까지 위쪽이 막혀 있으면 기준점을 천장 아래(카메라 구 반지름만큼)로 내린다.
@@ -540,9 +661,7 @@ namespace CurtainCall.Cameras
                 {
                     float angle = elevation + sign * delta;
                     if (angle < -104f || angle > 104f) continue;
-                    angle = Mathf.Clamp(angle, -89f, 89f);
-                    float radians = angle * Mathf.Deg2Rad;
-                    Vector3 candidate = horizontal * Mathf.Cos(radians) + Vector3.up * Mathf.Sin(radians);
+                    Vector3 candidate = ArmAtElevation(horizontal, angle);
                     float distance = WallDistance(pivot, candidate, desired);
                     if (distance <= safe) continue;
                     best = candidate;
@@ -571,13 +690,17 @@ namespace CurtainCall.Cameras
         }
 
         float WallDistance(Vector3 pivot, Vector3 direction, float desired)
+            => SweepWallDistance(pivot, direction, desired, CollisionRadius, true);
+
+        float SweepWallDistance(Vector3 pivot, Vector3 direction, float desired, float radius, bool centerRay)
         {
+            if (desired <= 0f) return 0f;
             float safe = desired;
             // 벽·고정 지형만 막는다. 트리거, 플레이어와 이동 가능한 물체는 가림 처리에 맡긴다.
             int count;
             do
             {
-                count = Physics.SphereCastNonAlloc(pivot, CollisionRadius, direction, wallHits, desired,
+                count = Physics.SphereCastNonAlloc(pivot, radius, direction, wallHits, desired,
                     Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                 if (count < wallHits.Length) break;
                 Array.Resize(ref wallHits, wallHits.Length * 2);
@@ -589,21 +712,21 @@ namespace CurtainCall.Cameras
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionPadding));
             }
             // 구가 벽에 이미 겹친 상태에서 시작하면 SphereCast가 놓칠 수 있다.
-            do
+            while (centerRay)
             {
                 count = Physics.RaycastNonAlloc(pivot, direction, wallHits, desired,
                     Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                 if (count < wallHits.Length) break;
                 Array.Resize(ref wallHits, wallHits.Length * 2);
-            } while (true);
-            for (int i = 0; i < count; i++)
+            }
+            for (int i = 0; centerRay && i < count; i++)
             {
                 var hit = wallHits[i];
                 if (!BlocksCamera(hit.collider)) continue;
-                safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
+                safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - radius - CollisionPadding));
             }
             return CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,
-                CollisionRadius + CollisionPadding, safe);
+                radius + CollisionPadding, safe);
         }
 
         void RefreshDeathView()

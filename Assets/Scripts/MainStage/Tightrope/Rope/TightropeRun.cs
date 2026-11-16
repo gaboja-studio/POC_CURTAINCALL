@@ -74,7 +74,7 @@ namespace CurtainCall.Tightrope
         int lastRestartFrame = -1;
         bool externallyManaged;
         bool externalStarted;
-        bool TraversalOnly => course != null && course.UsesSceneGeometry;
+        internal bool TraversalOnly => course != null && course.UsesSceneGeometry;
 
         /// <summary>공용 진행 연결부가 시작·종료를 맡는다. 직접 실행의 기본값은 false.</summary>
         public bool ExternallyManaged => externallyManaged;

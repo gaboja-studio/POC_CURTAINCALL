@@ -438953,6 +438953,8 @@ MonoBehaviour:
   appearStartScale: 0.1
   warningSeconds: 25
   speed: 0.7
+  tierTwoSpeedIncrease: 0.2
+  tierThreeSpeedIncrease: 0.5
   halfWidth: 25
   height: 24
   available: 1
@@ -505402,20 +505404,26 @@ MonoBehaviour:
     - {fileID: 966758767}
     - {fileID: 1202479780}
     rows: 010000000300000004000000
+    tierThreePole: {fileID: 966758767}
   - poles:
     - {fileID: 1969865612}
     - {fileID: 742503315}
     rows: 07000000090000000b000000
+    tierThreePole: {fileID: 742503315}
   - poles:
     - {fileID: 1335531483}
     - {fileID: 1663385464}
     rows: 150000001600000017000000
+    tierThreePole: {fileID: 1335531483}
   openingGate: {fileID: 180301946}
   gateFires:
   - {fileID: 1816112427}
   - {fileID: 1825657174}
   minimumStage: 2
-  maximumStage: 2
+  maximumStage: 3
+  tierThreeWarnSeconds: 2
+  tierThreeFireSeconds: 3
+  tierThreeRandomCount: 5
   stageObjects:
   - {fileID: 1426628214}
   - {fileID: 388508148}
@@ -505423,6 +505431,10 @@ MonoBehaviour:
   - {fileID: 677662037}
   - {fileID: 1747244026}
   - {fileID: 816305593}
+  tierThreeStageObjects:
+  - {fileID: 1426628214}
+  - {fileID: 677662037}
+  - {fileID: 1747244026}
 --- !u!1 &927902773
 GameObject:
   m_ObjectHideFlags: 0

@@ -184,15 +184,48 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void LegacyReverseFacingSnapshotsCannotChangeTheSharedPoleDirection()
+        public void OppositeRidersKeepIndependentFacingAndRejectFlagsForEmptySeats()
         {
-            Assert.IsNull(typeof(HumanCannonPoleSystem).GetField("useGrabFacing", Instance));
             root.transform.rotation = Quaternion.Euler(0f, 37f, 0f);
-            Deliver(Two, 8);
+            Deliver(Two, 8, reversedSeats: 4);
             Assert.That(Vector3.Dot(receiver.RiderRotation(0, 7) * Vector3.forward, root.transform.forward), Is.GreaterThan(.999f));
-            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 8) * Vector3.forward, root.transform.forward), Is.GreaterThan(.999f));
-            Deliver(Two, 9, reversedSeats: 4);
-            Assert.That(receiver.State(0).Revision, Is.EqualTo(8), "옛 시점 반전 플래그는 거부한다.");
+            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 8) * Vector3.forward, root.transform.forward), Is.LessThan(-.999f));
+            Deliver(Two, 9, reversedSeats: 2);
+            Assert.That(receiver.State(0).Revision, Is.EqualTo(8));
+            Assert.That(Field<bool>(2, "ReverseFacing"), Is.True);
+        }
+
+        [Test]
+        public void GrabFacingUsesViewThenBodyThenApproachForSideOnCatches()
+        {
+            var choose = typeof(HumanCannonPoleSystem).GetMethod("FacesAgainstPole", BindingFlags.Static | BindingFlags.NonPublic);
+            bool Reverse(Vector3 view, Vector3 body, Vector3 approach) => (bool)choose.Invoke(null,
+                new object[] { Vector3.forward, view, body, approach });
+            Assert.IsTrue(Reverse(Vector3.back + Vector3.up, Vector3.forward, Vector3.forward));
+            Assert.IsFalse(Reverse(Vector3.forward, Vector3.back, Vector3.back));
+            Assert.IsTrue(Reverse(Vector3.right, Vector3.back, Vector3.forward));
+            Assert.IsTrue(Reverse(Vector3.up, Vector3.right, Vector3.back));
+        }
+
+        [TestCase(1f, -1f)]
+        [TestCase(-1f, 1f)]
+        public void ReverseRidersPumpAndLaunchRelativeToTheirGrabDirection(float input, float direction)
+        {
+            Deliver(Two, 8, reversedSeats: 1, speed: 30);
+            var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
+            var rider = riders.GetValue(0);
+            rider.GetType().GetField("Input").SetValue(rider, input);
+            rider.GetType().GetField("LastInput").SetValue(rider, receiver.Clock);
+            var system = typeof(HumanCannonPoleSystem);
+            float drive = (float)system.GetMethod("RefreshSwingDrive", Instance).Invoke(receiver, new[] { runtime });
+            Assert.That(Mathf.Sign(drive), Is.EqualTo(direction));
+            Assert.That(receiver.State(0).TryRelease(7, 8, receiver.Clock, 1), Is.True);
+            var released = Enum.Parse(system.GetNestedType("PoleEvent", BindingFlags.NonPublic), "Released");
+            system.GetMethod("Publish", Instance).Invoke(receiver, new object[] { 0, released, 7UL, 0, false });
+            var rotation = (Quaternion)runtime.GetType().GetField("ReleaseRotation").GetValue(runtime);
+            var velocity = (Vector3)runtime.GetType().GetField("ReleaseVelocity").GetValue(runtime);
+            Assert.That(Vector3.Dot(rotation * Vector3.forward, root.transform.forward), Is.LessThan(-.999f));
+            Assert.That(Mathf.Sign(Vector3.Dot(velocity, root.transform.forward)), Is.EqualTo(direction));
         }
 
         [Test]

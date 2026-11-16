@@ -13,12 +13,20 @@ namespace CurtainCall.UI.SceneIntegration
             public readonly Renderer Renderer;
             public readonly Material Material;
             public readonly int Submesh;
-            public Draw(Renderer renderer, Material material, int submesh) { Renderer=renderer;Material=material;Submesh=submesh; }
+            public readonly bool OccludedOnly;
+            public Draw(Renderer renderer, Material material, int submesh, bool occludedOnly)
+            {
+                Renderer = renderer;
+                Material = material;
+                Submesh = submesh;
+                OccludedOnly = occludedOnly;
+            }
         }
         static readonly List<SilhouetteOutline> active = new();
         readonly List<Renderer> sources = new();
         readonly List<Material> materials = new();
         readonly Material mask;
+        readonly bool occludedOnly;
         float nextRefresh;
         bool disposed;
         public Transform Target { get; }
@@ -28,9 +36,10 @@ namespace CurtainCall.UI.SceneIntegration
         public int Priority { get; }
         public static int ActiveCount => active.Count;
 
-        public SilhouetteOutline(Transform target, Color color, float pixels=3, int priority=0)
+        public SilhouetteOutline(Transform target, Color color, float pixels=3, int priority=0, bool occludedOnly=false)
         {
             Target=target;Color=color;Pixels=pixels;Priority=priority;
+            this.occludedOnly = occludedOnly;
             var shader=Resources.Load<Shader>("SilhouetteOutline");
             if(shader!=null)mask=new Material(shader){hideFlags=HideFlags.HideAndDontSave};
             Refresh();active.Add(this);
@@ -56,6 +65,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if(Time.unscaledTime>=entry.nextRefresh)entry.Refresh();
                 entry.mask.SetColor("_SilhouetteColor",entry.Color);
                 entry.mask.SetFloat("_SilhouettePixels",Mathf.Clamp(entry.Pixels,0,8));
+                entry.mask.SetFloat("_SilhouetteOccludedOnly", entry.occludedOnly ? 1f : 0f);
                 foreach(var source in entry.sources)
                 {
                     if(source==null||source.name.StartsWith("__")||!source.enabled||source.forceRenderingOff||!source.gameObject.activeInHierarchy
@@ -70,7 +80,7 @@ namespace CurtainCall.UI.SceneIntegration
                         if(material==null||material.renderQueue>=(int)RenderQueue.Transparent
                             ||material.HasProperty("_Surface")&&material.GetFloat("_Surface")>.5f
                             ||material.HasProperty("_ZWrite")&&material.GetFloat("_ZWrite")<.5f)continue;
-                        draws.Add(new Draw(source,entry.mask,i));
+                        draws.Add(new Draw(source,entry.mask,i,entry.occludedOnly));
                     }
                 }
             }

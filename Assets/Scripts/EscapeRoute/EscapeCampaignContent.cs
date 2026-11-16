@@ -7,6 +7,8 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using CurtainCall.HumanCannon;
 using CurtainCall.UI.SceneIntegration;
+using CurtainCall.WaitingRoom;
+using CurtainCall.Tightrope;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Profiling;
@@ -68,6 +70,9 @@ namespace CurtainCall.EscapeRoute
         readonly EscapeSceneryActivation scenery = new();
         Coroutine revealing;
         bool activationRequested;
+        Scene departureScene;
+        readonly List<GameObject> suspendedDepartureDevices = new();
+        UvFlashlight routeLight, departureLight;
         public bool IsSceneryReady => scenery.Ready;
         static readonly int ShaftFadeId = Shader.PropertyToID("_ShaftFade");
         Renderer[] shaftRenderers;
@@ -78,10 +83,12 @@ namespace CurtainCall.EscapeRoute
         {
             Current = this;
             IsCampaign = EscapeSceneTransfer.Current != null && EscapeSceneTransfer.Current.HasDeparture;
-            if (!IsCampaign) { RefreshShaftFade(true); return; }
+            if (!IsCampaign) { SetEquipmentLight(true); RefreshShaftFade(true); return; }
             SetActive(false);
             PlaceCampaign();
-            var waiting = SceneManager.GetSceneByName(GameSettings.Base.SpaceTransition.WaitingRoomScene);
+            departureScene = EscapeEntrance.Current != null ? EscapeEntrance.Current.gameObject.scene
+                : SceneManager.GetSceneByName(GameSettings.Base.SpaceTransition.WaitingRoomScene);
+            var waiting = departureScene;
             foreach (var root in waiting.isLoaded ? waiting.GetRootGameObjects() : Array.Empty<GameObject>())
                 foreach (var light in root.GetComponentsInChildren<Light>(true))
                     if (light.type == LightType.Directional && light.enabled) waitingLights.Add(light);
@@ -193,7 +200,12 @@ namespace CurtainCall.EscapeRoute
         void SetActive(bool active)
         {
             using var sample = ActivationMarker.Auto();
-            if (active && !activationRequested) scenery.Suspend();
+            if (active && !activationRequested)
+            {
+                SuspendDepartureDevices();
+                SetEquipmentLight(true);
+                scenery.Suspend();
+            }
             if (!active && revealing != null) { StopCoroutine(revealing); revealing = null; }
             if (content != null && content.activeSelf != active) content.SetActive(active);
             foreach (var root in activeRoots)
@@ -204,11 +216,69 @@ namespace CurtainCall.EscapeRoute
             }
             if (!active)
             {
-                if (activationRequested) scenery.Restore();
+                if (activationRequested)
+                {
+                    scenery.Restore();
+                    SetEquipmentLight(false);
+                    ResumeDepartureDevices();
+                }
                 scenery.Suspend();
             }
             if (active && !activationRequested && !scenery.Ready) revealing = StartCoroutine(RevealScenery());
             activationRequested = active;
+        }
+
+        void SetEquipmentLight(bool active)
+        {
+            if (!active)
+            {
+                if (routeLight != null) routeLight.enabled = false;
+                if (departureLight != null) departureLight.enabled = true;
+                departureLight = null;
+                return;
+            }
+
+            // One component draws the local and the replicated UV spot. The source
+            // scene stays loaded briefly, so release its light before enabling ours.
+            if (departureScene.isLoaded)
+                foreach (var root in departureScene.GetRootGameObjects())
+                {
+                    var light = root.GetComponentInChildren<UvFlashlight>();
+                    if (light == null || !light.isActiveAndEnabled) continue;
+                    departureLight = light;
+                    departureLight.enabled = false;
+                    break;
+                }
+            if (routeLight == null) routeLight = GetComponent<UvFlashlight>();
+            if (routeLight == null) routeLight = gameObject.AddComponent<UvFlashlight>();
+            else routeLight.enabled = true;
+        }
+
+        void SuspendDepartureDevices()
+        {
+            if (!departureScene.isLoaded) return;
+            // Keep the departure floor and camera alive while releasing shared device channels.
+            Suspend(PracticeRoomFreePlay.Current);
+            Suspend(TightropeCourse.Current);
+            Suspend(HumanCannonPoleSystem.Current);
+            Suspend(HumanCannonTrampoline.Current);
+            Suspend(HumanCannonSystem.Current);
+
+            void Suspend(Component device)
+            {
+                if (device == null || device.gameObject.scene != departureScene || !device.gameObject.activeInHierarchy) return;
+                var root = device.gameObject;
+                suspendedDepartureDevices.Add(root);
+                root.SetActive(false);
+            }
+        }
+
+        void ResumeDepartureDevices()
+        {
+            if (departureScene.isLoaded)
+                foreach (var device in suspendedDepartureDevices)
+                    if (device != null) device.SetActive(true);
+            suspendedDepartureDevices.Clear();
         }
 
         IEnumerator RevealScenery()
@@ -315,6 +385,7 @@ namespace CurtainCall.EscapeRoute
         void OnDestroy()
         {
             destroyed = true;
+            if (activationRequested) SetActive(false);
             if (stateRuleInstalled && NetworkPlayer.ServerCanChangeState == AllowState) NetworkPlayer.ServerCanChangeState = previousStateRule;
             foreach (var light in waitingLights) if (light != null) light.enabled = true;
             if (sharedCamera != null) sharedCamera.useOcclusionCulling = cameraOcclusion;

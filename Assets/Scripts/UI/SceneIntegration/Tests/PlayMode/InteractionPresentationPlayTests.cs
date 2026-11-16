@@ -64,16 +64,18 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Settle();
         }
         [UnityTest]
-        public IEnumerator AllNearby_ReevaluateMotionViewOcclusionAndDestruction()
+        public IEnumerator InReachOutlined_CrosshairPicksFocus_ReevaluateMotionViewOcclusionAndDestruction()
         {
-            // All three must be inside the current 2.5m waiting-room highlight range.
-            var a = Phone("Near", new Vector3(-.8f, 101, 1));
-            var b = Phone("Middle", new Vector3(0, 101, 1.5f));
-            var c = Phone("Far", new Vector3(.9f, 101, 1.8f));
+            // 2026-11-16 상호작용 고도화: 셋 다 상호작용 거리 안이라 모두 외곽선을 그리고, F 대상은 화면 기준점에 가장 가까운 a다(기준점은 범위를 거르지 않음).
+            var a = Phone("Center", new Vector3(0, 101, 1.1f));
+            var b = Phone("Beside", new Vector3(.3f, 101, .9f));
+            var c = Phone("OffCenter", new Vector3(-.9f, 101, .6f));
             var originalMaterial = a.GetComponent<Renderer>().sharedMaterial;
             yield return Settle();
             CollectionAssert.AreEquivalent(new[] { a.transform, b.transform, c.transform }, Highlighted);
             Assert.AreEqual(3, Get(ui, "HighlightCount"));
+            Assert.AreSame(a, T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null),
+                "The target under the screen center wins over a nearby target beside it.");
             Assert.AreSame(originalMaterial, a.GetComponent<Renderer>().sharedMaterial);
             Assert.IsNull(a.transform.Find("__InteractionOutline"), "Screen-space outlines must not add shells to the object.");
             a.transform.position += Vector3.right * 20;
@@ -91,6 +93,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Object.Destroy(b.gameObject);
             yield return Settle();
             CollectionAssert.AreEquivalent(new[] { c.transform }, Highlighted);
+            Assert.AreSame(c, T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null),
+                "An off-center target in reach is still selectable when it is the only one.");
             Place(new Vector3(0, 100, -10));
             yield return Settle();
             Assert.IsEmpty(Highlighted, "Camera visibility alone must not bypass player range.");
@@ -104,7 +108,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(phone.GetComponentsInChildren<Renderer>().Any(r => r.enabled && r.bounds.size.y > .3f));
             Place(phone.transform.position + new Vector3(-1.2f, -1.4f, 0));
             camera.transform.position = phone.transform.position + new Vector3(-2.2f, .35f, .4f);
-            camera.transform.LookAt(phone.transform);
+            // 2026-11-16: 화면 기준점으로 보이는 수화기 메시를 겨눈다(피벗은 메시에서 떨어져 있다).
+            var handset = phone.GetComponentsInChildren<Renderer>().Where(r => r.enabled).Select(r => r.bounds).Aggregate((a, b) => { a.Encapsulate(b); return a; });
+            camera.transform.LookAt(handset.center);
             yield return Settle();
             Assert.Contains(phone.transform, Highlighted,
                 $"available={Get(phone, "IsAvailable")}, actor={actor.transform.position}, camera={camera.transform.position}, " +
@@ -127,7 +133,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreSame(phone, T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null));
             Key("F"); yield return new WaitForSecondsRealtime(.05f);
             Key(null); yield return Settle();
-            Assert.IsTrue((bool)phone.GetType().GetField("open", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(phone));
+            Assert.IsTrue((bool)phone.GetType().GetField("open", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(phone),
+                $"shop={T("CurtainCall.WaitingRoom.WaitingRoomShop").GetProperty("Instance").GetValue(null)}, offline={T("CurtainCall.Player.OfflineLocalPlayer").GetProperty("Reader").GetValue(null)}, selected={T("CurtainCall.Player.CommonInteractionSelection").GetMethod("Selected").Invoke(null, new object[] { actor })}, focused={T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null)}");
             Assert.IsTrue((bool)T("CurtainCall.Player.InputGate").GetProperty("IsBlocked").GetValue(null));
             Assert.IsEmpty(Highlighted, "An open shop window suppresses world hints.");
             Key("Escape"); yield return new WaitForSecondsRealtime(.05f);
@@ -191,8 +198,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             // Stay inside: the production exit watcher intentionally rejects re-entry after leaving a rest period.
             Place(new Vector3(-5, .1f, 67));
             Call(carry, "RequestDrop"); yield return Settle();
-            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
-            Assert.IsTrue(binding.transform.Find("Items").Cast<Transform>().Any(t => t.name.Contains("FloorProp")));
+            // 2026-11-16 사용자: 바닥에 떨어진 기물은 이름표를 띄우지 않는다(이름은 F 안내에 나온다).
+            Assert.AreEqual(0, Get(binding, "ItemLabelCount"));
+            Assert.IsFalse(binding.transform.Find("Items").Cast<Transform>().Any(t => t.name.Contains("FloorProp")));
             var floorItem = ((IEnumerable)Get(carry, "Floor")).Cast<object>().Single();
             int uid = (int)Member(Member(floorItem, "Item"), "Uid");
             Call(carry, "RequestPickUp", uid); yield return new WaitForSecondsRealtime(.6f);

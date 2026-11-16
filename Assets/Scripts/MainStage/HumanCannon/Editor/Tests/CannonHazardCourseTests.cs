@@ -47,7 +47,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test, Category("CannonTierConnection")]
-        public void ScheduledTierConnectsToTheStageTwoSwitchesInTheBuiltScene()
+        public void ScheduledTierConnectsToTheGroundFireSwitchesInTheBuiltScene()
         {
             var preview = EditorSceneManager.OpenPreviewScene(HumanCannonTestSceneBuilder.ScenePath);
             var previewRoots = preview.GetRootGameObjects();
@@ -61,6 +61,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 .SetValue(session, CurtainCall.Network.Session.SessionConnectionState.Host);
             const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
             var courseType = typeof(HumanCannonHazardCourse);
+            uint OffRows() => (uint)courseType.GetProperty("GroundFireOffRows", members).GetValue(course);
             var oldCourse = HumanCannonHazardCourse.Current;
             try
             {
@@ -69,15 +70,58 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var apply = courseType.GetMethod("ApplyScheduledDifficulty", members);
                 var update = typeof(HumanCannonGroundFireCycle).GetMethod("Update", members);
                 var onEnable = typeof(HumanCannonGroundFireCycle).GetMethod("OnEnable", members);
+                var latch = typeof(HumanCannonGroundFireCycle).GetMethod("LatchSwitch", members);
                 var poles = Preview<HumanCannonPole>().Where(p => p.name.StartsWith("FireSwitchPole")).ToArray();
+                var groups = Field<HumanCannonGroundFireCycle.SwitchGroup[]>(stage, "switchGroups");
+                var wall = Preview<HumanCannonFireWall>().Single(f => f.Available);
+                var gate = Field<HumanCannonSawGate>(stage, "openingGate");
                 Assert.That(poles, Has.Length.EqualTo(6));
                 onEnable.Invoke(stage, null);
                 foreach (int level in new[] { 1, 2, 3 })
                 {
                     Assert.IsTrue((bool)apply.Invoke(course, new object[] { level }));
                     update.Invoke(stage, null);
-                    Assert.IsTrue(poles.All(p => p.InteractionAvailable == (level == 2) && p.PresentationVisible == (level == 2)));
+                    var expected = level == 3 ? groups.Select(g => g.tierThreePole).ToArray()
+                        : level == 2 ? poles : System.Array.Empty<HumanCannonPole>();
+                    CollectionAssert.AreEquivalent(expected, poles.Where(p => p.InteractionAvailable));
+                    CollectionAssert.AreEquivalent(expected, poles.Where(p => p.PresentationVisible));
+                    Assert.That(wall.SpeedAt(0), Is.EqualTo(new[] { 0.7f, 0.9f, 1.2f }[level - 1]).Within(0.00001f));
+                    if (level == 1) continue;
+                    foreach (var group in groups)
+                    {
+                        uint before = OffRows();
+                        if (level == 3)
+                        {
+                            latch.Invoke(stage, new object[] { group.poles.Single(p => p != group.tierThreePole) });
+                            Assert.That(OffRows(), Is.EqualTo(before));
+                        }
+                        var pole = level == 3 ? group.tierThreePole : group.poles[1];
+                        latch.Invoke(stage, new object[] { pole });
+                        uint after = OffRows();
+                        uint linked = group.rows.Aggregate(0u, (mask, row) => mask | (1u << row));
+                        uint added = after ^ before;
+                        Assert.That(added & ~linked, Is.Zero);
+                        Assert.That(group.rows.Count(row => (added & (1u << row)) != 0), Is.EqualTo(level == 3 ? 1 : group.rows.Length));
+                        latch.Invoke(stage, new object[] { pole });
+                        Assert.That(OffRows(), Is.EqualTo(after));
+                    }
                 }
+                typeof(HumanCannonSawGate).GetProperty(nameof(HumanCannonSawGate.IsOpen)).SetValue(gate, true);
+                update.Invoke(stage, null);
+                var firstCycle = courseType.GetProperty("GateGroundFireFirstCycle", members);
+                Assert.That(firstCycle.GetValue(course), Is.EqualTo((long)System.Math.Floor(course.Clock / 5) + 1));
+
+                Assert.IsTrue(wall.Arm(100));
+                Assert.IsTrue(wall.Boost(0, 110));
+                Assert.IsTrue(wall.Boost(1, 120));
+                Assert.That(wall.SpeedAt(110), Is.EqualTo(1.41f).Within(0.00001f));
+                Assert.That(wall.SpeedAt(120), Is.EqualTo(1.62f).Within(0.00001f));
+                Assert.That(wall.Travelled(125), Is.EqualTo(10 * 1.41 + 5 * 1.62).Within(0.0001));
+                Assert.That(wall.Front(wall.EndTime), Is.EqualTo(Field<Transform>(wall, "boundary").position));
+
+                Assert.IsTrue((bool)apply.Invoke(course, new object[] { 2 }));
+                Assert.That(OffRows(), Is.Zero);
+                Assert.That(firstCycle.GetValue(course), Is.EqualTo(0L));
             }
             finally
             {

@@ -228,8 +228,11 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 ((IDictionary)typeof(UiRuntimeFontFallback).GetField("copies", flags).GetValue(fonts)).Clear();
                 ((IDictionary)typeof(UiRuntimeFontFallback).GetField("generated", flags).GetValue(fonts)).Clear();
                 var interaction = owner.GetComponent<CommonInteractionUI>();
-                var materialField = typeof(CommonInteractionUI).GetField("material", flags);
-                if (materialField.GetValue(interaction) is Material material) { Object.DestroyImmediate(material); materialField.SetValue(interaction, null); }
+                foreach (var name in new[] { "selectedMaterial", "inRangeMaterial" })
+                {
+                    var materialField = typeof(CommonInteractionUI).GetField(name, flags);
+                    if (materialField.GetValue(interaction) is Material material) { Object.DestroyImmediate(material); materialField.SetValue(interaction, null); }
+                }
                 Object.DestroyImmediate(owner);
             }
         }

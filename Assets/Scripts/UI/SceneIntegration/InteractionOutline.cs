@@ -6,7 +6,9 @@ namespace CurtainCall.UI.SceneIntegration
     /// <summary>Camera-space union contour of the selected hierarchy; original meshes/materials/LODs stay untouched.</summary>
     public sealed class InteractionOutline : System.IDisposable
     {
-        readonly Material style;
+        Material style;
+        /// <summary>외곽선 두께·색을 읽는 재질. 범위 안 대상(얇게)과 선택 대상(강조)을 바꿔 끼운다.</summary>
+        public Material Style { get => style; set { if (style == value) return; style = value; Update(); } }
         readonly SilhouetteOutline silhouette;
         public Transform Target { get; }
         public InteractionOutline(Transform target, Material material)
