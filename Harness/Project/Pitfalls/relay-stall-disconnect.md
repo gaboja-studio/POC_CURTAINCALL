@@ -1,8 +1,8 @@
 ---
 summary: 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕기면 메인 스레드 10초 정지로 인한 Relay 할당 만료를 의심한다.
 status: active
-updated: 2026-11-05
-source: human, Task-20261102-093, Task-20261105-108
+updated: 2026-11-16
+source: human, Task-20261102-093, Task-20261105-108, Task-20261116-140
 ---
 
 # 씬 전환 중 Relay 할당 만료로 튕김
@@ -45,3 +45,11 @@ source: human, Task-20261102-093, Task-20261105-108
   - 매 프레임·전환 직후에 읽는 설정은 시작할 때 한 번 로드해 캐시한다.
 - **에디터 전용:** 대기실→탈출로 7.9초 정지는 Hierarchy 창이 아이콘을 동기 로드하다(`SceneHierarchyWindow.Paint > EditorResources.Load`) 같은 잠금에 걸린 것이었다. 빌드에는 없다. 에디터로 다인 테스트할 때는 Hierarchy 창을 닫거나 다른 탭 뒤에 둔다.
 - 남은 전환 비용(에디터 기준): 대기실 진입 때 `CameraViewZone.OnTriggerEnter` 2584회 약 2초, Telemetry Outbox 원자 쓰기 0.3~0.8초.
+
+## 첫 공연 배경과 접속 준비 (2026-11-16)
+
+- 실제 2인 Relay 재현: 첫 배경 역직렬화 중 Hierarchy 동기 에셋 조회가 방장 25.381초/참가자 24.254초 잠겼고 양쪽 TransportFailure. Hierarchy를 닫아도 SceneView가 같은 잠금을 만들었다. M2 원격 PC의 첫 실패 원인이 이 호출인지까지는 미확인이다.
+- `NetworkSessionManager`는 방장·참가자 모두 Relay 커넥터를 시작하기 전에 `PerformanceBackgroundLoader.PrepareForConnectionAsync`를 기다린다. 준비 시간은 실제 참가 제한시간 밖이며, 취소된 요청은 나중에 연결하지 않는다.
+- 준비한 배경 내용은 영속 관리자 아래 한 벌로 보관한다. 원본의 빈 additive 씬은 접속 전에 해제하고, 첫 공연부터 위치·활성만 바꾼다. 비공연에서는 렌더러·조명·움직임을 끄고, 앱 종료까지 에셋 참조를 유지하므로 메모리가 상주한다.
+- 배경 존재 여부는 원본 씬의 `isLoaded`가 아니라 `PerformanceBackgroundLoader.BackgroundRoot`와 활성 상태로 확인한다. 피날레 조명도 이 루트를 사용한다. LAN/직접 공연 편집 검사의 기존 로드·해제 경로는 유지한다.
+- 회귀: `PreparedBackgroundSurvivesSingleLoadAndFirstPerformanceDoesNotReloadScene`, `CancellingRelayPreparationDoesNotStartTransport`. 실제 Relay 검증 조건·결과는 Task-20261116-140 log를 확인한다.

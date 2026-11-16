@@ -25,7 +25,7 @@ namespace CurtainCall.Presentation
         HumanCannonDestination cannonFinish;
         MeshFilter beamTemplate;
         Scene performance;
-        Scene venue;
+        Transform venue;
         float cue;
 
         void Awake() => beamProperties = new MaterialPropertyBlock();
@@ -70,8 +70,8 @@ namespace CurtainCall.Presentation
             foreach (var player in NetworkPlayer.All)
                 if (IsPerformer(player)) progress = Mathf.Max(progress, Progress(player.transform.position));
 
-            var loadedVenue = SceneManager.GetSceneByPath(PerformanceBackgroundLayout.ScenePath);
-            if (!loadedVenue.isLoaded)
+            var loadedVenue = PerformanceBackgroundLoader.BackgroundRoot;
+            if (loadedVenue == null || !loadedVenue.gameObject.activeInHierarchy)
             {
                 if (cue > 0f) RestoreLights();
                 return;
@@ -118,11 +118,11 @@ namespace CurtainCall.Presentation
             return axis.sqrMagnitude > .001f ? Vector3.Dot(position - start, axis) / axis.sqrMagnitude : 0f;
         }
 
-        void CacheLights(Scene loadedVenue)
+        void CacheLights(Transform loadedVenue)
         {
             RestoreLights();
             venue = loadedVenue;
-            foreach (var root in venue.GetRootGameObjects())
+            foreach (Transform root in venue)
             {
                 foreach (var filter in root.GetComponentsInChildren<MeshFilter>())
                     if (filter.name == "VisibleShowBeam")

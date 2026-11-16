@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,9 +18,29 @@ namespace CurtainCall.PerformanceBackground
         Coroutine reconcile;
         Scene ownedScene;
         Transform backgroundRoot;
+        bool retainForConnection;
         bool quitting;
 
         public bool IsTransitioning => reconcile != null;
+        public static Transform BackgroundRoot => instance != null ? instance.backgroundRoot : null;
+
+        /// <summary>Relay 할당 전에 첫 배경 로드를 끝낸다. 이후 Single 전환에도 같은 시각 오브젝트를 재사용한다.</summary>
+        public static async Task PrepareForConnectionAsync(CancellationToken cancellation = default)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            CreateOnLoad();
+            var loader = instance;
+            loader.retainForConnection = true;
+            loader.QueueReconcile();
+            while (loader != null && loader.IsTransitioning)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                await Task.Yield();
+            }
+            cancellation.ThrowIfCancellationRequested();
+            if (loader == null || loader.backgroundRoot == null)
+                throw new InvalidOperationException("공연 배경을 준비하지 못했습니다.");
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => instance = null;
@@ -71,7 +93,7 @@ namespace CurtainCall.PerformanceBackground
         void OnSceneUnloaded(Scene scene) => QueueReconcile();
         void OnActiveSceneChanged(Scene previous, Scene current) => QueueReconcile();
         void OnApplicationQuit() => quitting = true;
-        void LateUpdate() => environment.Update(ownedScene.IsValid() && ownedScene.isLoaded);
+        void LateUpdate() => environment.Update(backgroundRoot != null && backgroundRoot.gameObject.activeInHierarchy);
 
         void QueueReconcile()
         {
@@ -99,7 +121,7 @@ namespace CurtainCall.PerformanceBackground
             {
                 bool needed = TryFindPerformance(out var position);
                 var background = SceneManager.GetSceneByPath(PerformanceBackgroundLayout.ScenePath);
-                if (needed && !background.isLoaded)
+                if ((needed || retainForConnection) && backgroundRoot == null && !background.isLoaded)
                 {
                     AsyncOperation operation = null;
                     try { operation = SceneManager.LoadSceneAsync(PerformanceBackgroundLayout.ScenePath, LoadSceneMode.Additive); }
@@ -110,6 +132,22 @@ namespace CurtainCall.PerformanceBackground
                     if (!ownedScene.isLoaded) { yield return null; continue; }
                     ApplyLayout(ownedScene, position);
                     continue;
+                }
+                if (retainForConnection && backgroundRoot != null)
+                {
+                    // 로비의 NGO Single 전환은 로컬 additive 씬도 해제한다. 내용만 영속 루트로 옮기고
+                    // 빈 씬은 접속 전에 해제해, 첫 공연에서 디스크 로드나 NGO 재동기화를 하지 않는다.
+                    backgroundRoot.SetParent(transform, true);
+                    backgroundRoot.position = position;
+                    backgroundRoot.gameObject.SetActive(needed);
+                    if (ownedScene.IsValid() && ownedScene.isLoaded)
+                    {
+                        var operation = SceneManager.UnloadSceneAsync(ownedScene);
+                        if (operation != null) yield return operation;
+                        ownedScene = default;
+                        continue;
+                    }
+                    break;
                 }
                 if (!needed && ownedScene.IsValid() && ownedScene.isLoaded)
                 {
