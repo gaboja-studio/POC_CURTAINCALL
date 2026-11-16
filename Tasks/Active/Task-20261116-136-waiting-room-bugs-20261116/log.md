@@ -26,3 +26,6 @@
 - 기계실 배선 재정정(사용자: 녹슨 벽 안 배선까지 모두 끊어야 문이 열려야 하는데 밖 배선만 끊어도 열림): 탈출로 길(final:escape-route) ExplorationAllOf 조건이 관리실 컴퓨터 + 밖 배선 4가닥뿐이었음. 녹슨 벽 안 배선(final:management-cable)을 조건에 추가 — WaitingRoom 씬(에디터에서 SerializedObject로 수정·저장, YAML 1줄)과 FinalLayoutBuilder.Route(재생성 시에도 유지). 톱날 다중 절단 동작은 그대로. 플레이 확인 전.
 - 저장(2026-11-16): dev에 같은 번호 Task-20261116-134(escape-wall-backs)가 있어 이 Task를 136으로 바꿈. 비공개 저장소 main 4111377d(전시 인형 옷 OldCostumes, 경고 줄무늬 문 FBX Read/Write). 공개 저장소에는 이번 작업 파일과 서브모듈 포인터만 커밋 — Unity가 다시 저장한 폰트·머티리얼 13개, Task-107 log·guides, _ThirdParty 안 기존 셰이더·폰트 변경은 제외. origin/dev 새 커밋 8개는 이번 파일과 겹치지 않으며, Unity 에디터가 열려 있어 아직 반영하지 않음(PR 전 반영 필요).
 - dev 반영(2026-11-16): origin/dev 28개 커밋 병합 6424dfe8, 충돌 없음(WaitingRoom.unity 자동 병합, 중복 fileID 0). 병합 후 컴파일·플레이 확인 미실행.
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/397 (fix/waiting-room-bugs-20261116 → dev)
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/397 (dev 대상, 지정 팀원 검토 대기)
