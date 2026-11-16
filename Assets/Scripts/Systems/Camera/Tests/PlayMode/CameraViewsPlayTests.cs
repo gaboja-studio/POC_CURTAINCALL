@@ -58,7 +58,7 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
-        public IEnumerator EscapeWallKeepsTheSubjectVisibleWithoutTurningMovementHeading()
+        public IEnumerator EscapeWallRetractsArmWithoutTurningTheViewOrMovementHeading()
         {
             var previous = SceneManager.GetActiveScene();
             var scene = SceneManager.CreateScene("escape_route_camera_regression");
@@ -88,16 +88,13 @@ namespace CurtainCall.Cameras.Tests
                 var state = CameraState.Default;
                 state.RawPosition = pivot + arm * 5f;
                 state.RawOrientation = rotation;
-                object[] args = { state, -1f };
+                object[] args = { state };
                 camera.GetType().GetMethod("ApplyWallCollision", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(camera, args);
                 state = (CameraState)args[0];
-                var corrected = state.GetFinalPosition();
-                var box = wall.GetComponent<Collider>();
-                Assert.That(Vector3.Distance(corrected, pivot), Is.GreaterThan(1.55f));
-                Assert.That(Vector3.Distance(corrected, box.ClosestPoint(corrected)), Is.GreaterThanOrEqualTo(.249f));
-                Assert.IsFalse(box.Raycast(new Ray(corrected, pivot - corrected), out _, Vector3.Distance(corrected, pivot)));
-                Assert.That(Vector3.Dot(state.GetFinalOrientation() * Vector3.forward, (pivot - corrected).normalized),
-                    Is.GreaterThan(.98f));
+                var corrected = state.GetFinalPosition() - pivot;
+                Assert.That(corrected.magnitude, Is.InRange(.3f, 1f));
+                Assert.That((corrected - arm * corrected.magnitude).magnitude, Is.LessThan(.01f));
+                Assert.That(Quaternion.Angle(state.GetFinalOrientation(), rotation), Is.LessThan(.02f));
                 Assert.That(GetPrivate(camera, "yaw"), Is.EqualTo(210f));
                 Assert.That(GetPrivate(camera, "pitch"), Is.EqualTo(12f));
             }

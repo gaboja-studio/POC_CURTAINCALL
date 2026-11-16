@@ -1,0 +1,10 @@
+# Log
+
+- DEV `71574fc2`에서 작업했다. #396에서 추가한 일반 시점의 우회 후보와 회전 예측을 제거했다. 탈출로의 시야 전용 표면도 함께 제거했다.
+- 벽에 닿으면 안전 거리로 제한한다. 코너에서 차단이 잠깐 풀릴 때 거리가 바로 늘어나는 동작은 70ms 유예하고 점진 복귀한다. 마우스 방향은 거리 유예 중에도 매 프레임 적용한다. 가림 렌더와 동적 가림 페이드는 사용한다.
+- 낮은 구조물에서 카메라 기준점을 밖으로 옮긴 뒤 자유 3인칭 회전을 덮어쓰던 처리를 제외했다. 가까운 시점 프리셋은 자유 3인칭으로 설정돼 있음을 확인했다.
+- 최종 Unity 컴파일·공용 설정 통과. 카메라 EditMode 15/15에서 박힌 기준점의 상하·좌우 회전과 벽에서 돌아 나올 때 거리 유예 중 회전을 검증했다. 마지막 회전 수정 전 매달림 11/11과 가림 렌더 1/1도 통과했다.
+- Doctor의 기존 Task ID 중복은 남아 있다. DEV의 외부 에셋 참조를 동기화하고 초기 Unity 파일 캐시 오류를 재시작으로 해소했다. 실제 플레이는 사용자가 확인한다.
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/399. origin/dev 71574fc2 synchronized before submission. Excluded 11 unrelated font/material edits. Manual play verification remains with the user.

@@ -119,7 +119,7 @@ namespace CurtainCall.EscapeRoute.Tests
                 Quaternion before = Quaternion.LookRotation(pivot - position, Vector3.up);
                 Set(state, "RawPosition", position);
                 Set(state, "RawOrientation", before);
-                object[] args = { state, -1f };
+                object[] args = { state };
                 Call("ApplyWallCollision", args);
                 state = args[0];
                 var extensions = T("Unity.Cinemachine.CameraStateExtensions");
