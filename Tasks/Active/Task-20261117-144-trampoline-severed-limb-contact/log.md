@@ -20,3 +20,5 @@
 - 사용자 요청에 따라 필요한8개 파일만 저장·제출한다. Unity 종료 후 origin/dev fetch/merge: Already up to date(01abed27). 검증된 코드·테스트 SHA256 불변으로 직전 공용880/880 PASS 결과를 재사용한다. 플레이 미실행.
 - 별도 에셋11개는 종료 직전 백업/해시와 동일하게 보존. 종료 과정에서 변경된 escape-labels.asset만 종료 직전 사본으로 되돌렸다. ThirdParty 변경은 그대로 보존하고 제출하지 않는다.
 - 선행 PR #403이 OPEN이므로 fix/escape-device-activation을 대상으로 후속 PR을 제출한다. DEV 최신화는 현재 브랜치에 반영했고 선행 수정도 유지한다. #403 검토/DEV 반영 이후 후속 PR의 DEV 전환을 검토한다. 자동 병합은 하지 않는다.
+
+- 제출 완료: 구현6607ae2f 저장/push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/404 (fix/trampoline-severed-limb-contact → fix/escape-device-activation). 선행 #403 검토 대기 후속 PR이며8개 파일만 포함. 제출 후 Unity 종료 상태 origin/dev fetch/merge: Already up to date(01abed27); 검증 코드/테스트 및 제외 에셋11개 해시 동일. 플레이/자동 병합 미실행.
