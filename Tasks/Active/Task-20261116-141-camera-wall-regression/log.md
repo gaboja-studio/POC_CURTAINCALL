@@ -7,3 +7,4 @@
 - Doctor의 기존 Task ID 중복은 남아 있다. DEV의 외부 에셋 참조를 동기화하고 초기 Unity 파일 캐시 오류를 재시작으로 해소했다. 실제 플레이는 사용자가 확인한다.
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/399. origin/dev 71574fc2 synchronized before submission. Excluded 11 unrelated font/material edits. Manual play verification remains with the user.
