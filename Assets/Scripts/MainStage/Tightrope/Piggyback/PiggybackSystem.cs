@@ -270,6 +270,7 @@ namespace CurtainCall.Tightrope
 
             if (session != null && session.IsHost)
             {
+                ServerReleaseWaitingRoomStates();
                 ServerResolveFalls();
                 ServerPruneMissing();
                 ServerResolvePlatformDismounts();
@@ -539,14 +540,14 @@ namespace CurtainCall.Tightrope
             if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding
                 || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
-                || !CanStand(climber)) return null;
+                || !CanStand(climber) || InWaitingRoom && LeavesStackInWaitingRoom(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)
                     || CurtainCall.WaitingRoom.ExpertService.IsTreating(other.OwnerClientId)) continue;
-                if (!CanStand(other)) continue;
+                if (!CanStand(other) || InWaitingRoom && LeavesStackInWaitingRoom(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 if (BlocksNewPassenger(other)) continue;
@@ -575,9 +576,15 @@ namespace CurtainCall.Tightrope
 
         static bool CanStand(NetworkPlayer player) => player != null && !player.IsAirborne && !player.IsDroppingFromSupport
             && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)
-            && (!player.TryGetComponent(out PlayerMover posture) || !posture.IsCrouched)
+            // 대기실은 앉은 채로도 탑승·해제할 수 있다(2026-11-16). 탑승 뒤 일어설 공간이 없으면 PiggybackFollow가 바로 내린다.
+            && (!player.TryGetComponent(out PlayerMover posture) || !posture.IsCrouched || CrouchedPiggybackAllowed)
             && (TightropeCourse.Current != null && player.TryGetComponent(out PlayerMover mover)
                 && TightropeCourse.Current.TryGetSupportingRope(mover, out _) || GroundSupport(player) != null);
+
+        // 대기실 바닥 목마만 해당한다. 리허설·연습실 외줄 코스가 진행 중이면 공연과 같은 줄 위 규칙(연쇄 추락)을 유지한다.
+        static bool InWaitingRoom => WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene())
+            && (TightropeCourse.Current == null || !TightropeCourse.Current.IsGameplayActive);
+        static bool CrouchedPiggybackAllowed => InteractionFocusSettings.Current.Piggyback.allowCrouchedInWaitingRoom && InWaitingRoom;
 
         internal static Collider GroundSupport(NetworkPlayer player)
         {
@@ -916,6 +923,27 @@ namespace CurtainCall.Tightrope
             }
             ServerBroadcast(dropped, shocked);
         }
+
+        /// <summary>
+        /// 호스트(대기실 전용, 2026-11-16 상호작용 고도화): 침대에 눕기·사망·포획으로 목마를 할 수 없게 된 단원은
+        /// 그 단원과 위 단원 전원을 목마에서 안전하게 내린다(추락 아님). 아래 단원은 목마를 유지한다.
+        /// 최상단이면 자신만, 중간이면 자신과 위, 최하단이면 전원이 풀린다. 공연·탈출로는 기존 추락 처리를 따른다.
+        /// </summary>
+        void ServerReleaseWaitingRoomStates()
+        {
+            if (belowOf.Count == 0 || !InteractionFocusSettings.Current.Piggyback.releaseOnWaitingRoomStateChange
+                || !InWaitingRoom) return;
+            List<NetworkPlayer> leaving = null;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && IsInStack(player.OwnerClientId) && LeavesStackInWaitingRoom(player)) (leaving ??= new List<NetworkPlayer>()).Add(player);
+            if (leaving == null) return;
+            // 아래층부터 풀면 위층은 이미 함께 풀려 한 번만 처리된다.
+            leaving.Sort((a, b) => GetFloor(a).CompareTo(GetFloor(b)));
+            foreach (var player in leaving) ServerReleaseForRelocation(player.OwnerClientId);
+        }
+
+        internal static bool LeavesStackInWaitingRoom(NetworkPlayer player) => player.State != PlayerState.Normal
+            || player.RestingBed >= 0 || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player);
 
         /// <summary>성공 집결 전에 각 화면의 목마·손잡기 연결을 해제한다.</summary>
         public void ReleaseForSuccess()

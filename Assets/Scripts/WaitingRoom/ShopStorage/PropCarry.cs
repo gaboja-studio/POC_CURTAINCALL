@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 기물 소지의 공개 진입점: 손에 든 기물·바닥 기물. 판정은 상점과 같은 화면(호스트 또는 오프라인 런)이 한다.
     /// - 한도: 공용 <see cref="SurvivalRules.ItemSlots"/>(공통 세팅 · 기물 소지: 팔 개수와 무관하게 기본 2칸).
-    /// - F 길게: 선택한 기물을 발밑에 내려놓는다. 바닥 기물은 누구나 F로 줍는다(<see cref="FloorPropsView"/>).
+    /// - T(기물 내려놓기 키): 선택한 기물을 발밑에 내려놓는다(2026-11-16 F 길게에서 분리). 바닥 기물은 누구나 F로 줍는다(<see cref="FloorPropsView"/>).
     /// - 신체 손상으로 소지 한도가 줄거나 기물이 떨어지지 않는다. 공통 세팅의 한도 자체가 줄면 초과분을 내려놓는다. 사망 중·공연 중에는 떨어뜨리지 않는다(공연 사망·잡힘에도 기물 유지).
     /// - ④ 소품실: 바닥 기물은 런 동안 개수 제한 없이 남는다. 물려줄 선반 4칸(<see cref="HandoverShelfView"/>)에 올린 기물만 세대 교체 뒤에도 남는다.
     /// - 세대 교체(런 실패) 때 선반만 남기고 손·바닥 기물을 비운다(게임 흐름 기획 5-5·6-2). 방이 바뀌면 선반까지 비운다.
@@ -125,7 +125,7 @@ namespace CurtainCall.WaitingRoom
         public int Slots(ulong player) => SurvivalRules.ItemSlots();
 
         /// <summary>
-        /// 1·2로 고른 칸(도구 또는 장비). 고르지 않았거나 집어넣었으면 빈 값. F 길게(버리기)·가판대 대상이다.
+        /// 1·2로 고른 칸(도구 또는 장비). 고르지 않았거나 집어넣었으면 빈 값. T(버리기)·가판대 대상이다.
         /// 선택은 UID로 저장해 목록이 밀려도 유지되고 소지 상태와 함께 공유된다.
         /// 2026-11-01 사용자: 아무것도 고르지 않았을 때 마지막 기물을 고른 것으로 보던 처리는 없앤다.
         /// </summary>
@@ -229,9 +229,9 @@ namespace CurtainCall.WaitingRoom
                 () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
         }
 
-        void OnEnable() => ShopReach.LongPressed += RequestDrop;
+        void OnEnable() => ShopReach.DropPressed += RequestDrop;
 
-        void OnDisable() => ShopReach.LongPressed -= RequestDrop;
+        void OnDisable() => ShopReach.DropPressed -= RequestDrop;
 
         void OnDestroy()
         {
@@ -277,7 +277,7 @@ namespace CurtainCall.WaitingRoom
                 Answer(LocalClientId, (false, WaitingRoomText.Get("carry.offline-shelf", "접속 중이 아니라 선반을 쓸 수 없습니다.")));
         }
 
-        /// <summary>선택한 기물을 발밑에 내려놓는다(F 길게).</summary>
+        /// <summary>선택한 기물을 발밑에 내려놓는다(T).</summary>
         public void RequestDrop()
         {
             if (HasAuthority) Answer(LocalClientId, Drop(LocalClientId));
@@ -304,7 +304,7 @@ namespace CurtainCall.WaitingRoom
 
         public static string Explain(CarryRefusal refusal) => refusal switch
         {
-            CarryRefusal.HandsFull => WaitingRoomText.Get("carry.hands-full", "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요."),
+            CarryRefusal.HandsFull => WaitingRoomText.Get("carry.hands-full", "손이 가득 찼습니다. T로 내려놓은 뒤 받으세요."),
             CarryRefusal.NothingHeld => WaitingRoomText.Get("carry.nothing-held", "고른 기물이 없습니다. 1·2로 칸을 고르세요."),
             CarryRefusal.NotCarryable => WaitingRoomText.Get("carry.not-carryable", "오브제는 슬롯에 넣을 수 없습니다."),
             CarryRefusal.FloorFull => WaitingRoomText.Get("carry.floor-full", "바닥에 더 놓을 수 없습니다."),
@@ -633,7 +633,7 @@ namespace CurtainCall.WaitingRoom
             var mine = Held(me);
             var lines = new List<string>
             {
-                $"소지 {mine.Count}/{Slots(me)}  [F 길게] 내려놓기",
+                $"소지 {mine.Count}/{Slots(me)}  [T] 내려놓기",
             };
             for (int i = 0; i < mine.Count; i++) lines.Add($"  {i + 1}. {mine[i].Name} #{mine[i].Uid}");
             if (NetworkPlayer.All.Count > 1)

@@ -81,8 +81,8 @@ namespace CurtainCall.WaitingRoom
             return " " + new string('■', filled) + new string('□', BareGaugeCells - filled);
         }
 
-        /// <summary>F를 길게 눌렀다(대상과 상관없이, 기물 내려놓기).</summary>
-        public static event System.Action LongPressed;
+        /// <summary>기물 내려놓기 키(기본 T)를 눌렀다(대상과 상관없이). 2026-11-16 상호작용 고도화: F 길게(부수기)와 겹치지 않게 분리.</summary>
+        public static event System.Action DropPressed;
         internal static event System.Action<ClueInspectable> ClueFocused;
 
         public static void Add(IShopTarget target)
@@ -108,20 +108,13 @@ namespace CurtainCall.WaitingRoom
             var reader = LocalReader();
             if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked || !PlayerInteraction.CanInteract(reader)) return;
 
-            Vector3 feet = reader.transform.position;
-            float best = float.MaxValue;
-            foreach (var target in targets)
-            {
-                float distance = PlayerInteraction.RestrictReach(target.Reach(feet, reader), reader);
-                if (distance < 0f || distance >= best) continue;
-                best = distance;
-                Focused = target;
-            }
+            // 2026-11-16 상호작용 고도화: 가장 가까운 대상이 아니라 공통 선택(우선순위·화면 기준점)이 고른 대상 하나만 안내·F를 받는다.
+            if (CommonInteractionSelection.Selected(reader) is IShopTarget chosen && targets.Contains(chosen)) Focused = chosen;
             if (!ReferenceEquals(previous, Focused) && Focused is ClueInspectable clue) ClueFocused?.Invoke(clue);
             var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
+            if (reader.Current.DropItemPressed && (actorForGate == null || !actorForGate.InteractionActionLocked)) DropPressed?.Invoke();
             // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
             if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
-            if (CommonInteractionSelection.Selected(reader) is IShopTarget selected && targets.Contains(selected)) Focused = selected;
             // 맨몸 부수기(2026-11-13 사용자): 도구 없이 부술 때는 F를 길게 누르고 있어야 한다. 게이지 하나가 천천히 차고, 다 차면 부서진다.
             // 누르는 동안 타격 동작을 느리게 보여 준다. 손을 떼면 게이지는 그대로 멈춘다. 연타는 도구를 들었을 때만 된다.
             // 전체 시간 = 설정 "맨몸 부수기 누르는 시간" × 대상의 맨몸 횟수. 진행은 한 대 분량이 찰 때마다 판정 화면에 기록한다.
@@ -138,12 +131,15 @@ namespace CurtainCall.WaitingRoom
                 if (bareHeld >= bareNeed) { bareHeld -= bareNeed; Focused.Interact(); }
                 // 기록이 돌아오기 전에 게이지가 잠깐 줄어 보이지 않게, 같은 대상에서는 줄이지 않는다.
                 BareHoldProgress = Mathf.Max(BareHoldProgress, ExplorationTargets.BareProgress(bareTarget, bareHeld / bareNeed));
-                // 짧게 누르기·길게 누르기(기물 내려놓기) 신호는 맨몸 부수기 대상 앞에서는 쓰지 않는다.
+                // 짧게 누르기·길게 누르기 신호는 맨몸 부수기 대상 앞에서는 쓰지 않는다(기물 내려놓기는 T로 분리).
                 return;
             }
             BareHoldTarget = null; bareHeld = 0f; BareHoldProgress = 0f;
             if (Focused != null && reader.Current.InteractTapped && CommonInteractionSelection.Consume(reader, Focused))
             {
+                // 해금 불가능(조건·열쇠·도구 부족) 탐색 대상은 안내 문구만 보여 주고 요청을 보내지 않는다(2026-11-16 우선순위 7순위).
+                if (Focused is ExplorationGate or ToolTarget or BreakableWall
+                    && CommonInteractionSelection.Category(Focused) == CurtainCall.Settings.InteractionCategory.Locked) return;
                 if (Focused is IShopPresentation presentation && presentation.IsAvailable)
                 {
                     bool allowed = Focused is not IExplorationTarget tool || string.IsNullOrEmpty(tool.ToolId) || ExplorationTargets.LocalHolds(tool.ToolId)
@@ -161,14 +157,9 @@ namespace CurtainCall.WaitingRoom
                 }
                 Focused.Interact();
             }
-            // 길게 눌러 쓰는 대상(숙소 TV의 테이프 꺼내기) 앞에서는 길게 누르기가 기물 내려놓기 대신 그 대상으로 간다.
-            if (reader.Current.InteractLongPressed && Focused is IShopHoldTarget hold && hold.WantsHold)
-            {
-                if (CommonInteractionSelection.Consume(reader, CommonInteractionSelection.Selected(reader) is IShopTarget ? Focused : CommonInteractionSelection.Idle)) hold.HoldInteract();
-                return;
-            }
-            if (reader.Current.InteractLongPressed
-                && CommonInteractionSelection.Consume(reader, CommonInteractionSelection.Selected(reader) is IShopTarget ? Focused : CommonInteractionSelection.Idle)) LongPressed?.Invoke();
+            // 길게 눌러 쓰는 대상(숙소 TV의 테이프 꺼내기)만 F 길게를 받는다. 기물 내려놓기는 T(DropPressed)로 분리했다.
+            if (reader.Current.InteractLongPressed && Focused is IShopHoldTarget hold && hold.WantsHold
+                && CommonInteractionSelection.Consume(reader, Focused)) hold.HoldInteract();
         }
 
         /// <summary>
@@ -208,7 +199,7 @@ namespace CurtainCall.WaitingRoom
             offlineReader = null;
             pumpedFrame = -1;
             Focused = null;
-            LongPressed = null; ClueFocused = null;
+            DropPressed = null; ClueFocused = null;
         }
     }
 }

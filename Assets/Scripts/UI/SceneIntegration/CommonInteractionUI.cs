@@ -22,13 +22,9 @@ namespace CurtainCall.UI.SceneIntegration
         public const string ScenePath = "Assets/Scenes/UI/CommonInteractionUI.unity";
         [SerializeField] InteractionPromptView prompt;
         [SerializeField] RectTransform promptAnchor;
+        [Tooltip("안내 후보를 모으는 시야 거리(m). 외곽선은 플레이어 상호작용 거리와 화면 기준점 범위 안의 대상에만 그린다.")]
         [SerializeField, Min(.1f)] float highlightDistance = 4f;
-        [SerializeField, Range(0, 6)] float outlinePixels = 6f;
-        [Tooltip("대기실 상호작용 대상 외곽선 두께(픽셀). 2026-11-02 사용자: 대기실 외곽선이 너무 넓다.")]
-        [SerializeField, Range(0, 6)] float waitingRoomOutlinePixels = 2.5f;
-        [Tooltip("대기실 상호작용 대상에 외곽선을 띄우는 거리(m). 2026-11-02 사용자: 너무 먼 대상까지 표시된다.")]
-        [SerializeField, Min(.1f)] float waitingRoomHighlightDistance = 2.5f;
-        [SerializeField, ColorUsage(false, true)] Color outlineColor = new Color(3f, 2.8f, 2.2f, 1f);
+        // 2026-11-16 상호작용 고도화: 외곽선 두께·색·기준점 범위는 Resources/Settings/Interaction/InteractionFocusSettings에서 조정한다.
         readonly List<Candidate> candidates = new();
         readonly List<Candidate> selected = new();
         readonly List<InteractionOutline> outlines = new();
@@ -36,7 +32,8 @@ namespace CurtainCall.UI.SceneIntegration
         LobbyInteractable[] lobby = System.Array.Empty<LobbyInteractable>();
         LobbyRoom lobbyRoom;
         PlayerInputReader offlineReader;
-        Material material, waitingRoomMaterial;
+        Material inRangeMaterial, selectedMaterial;
+        InteractionCrosshair crosshair;
         readonly List<RectTransform> rescueRings = new();
         Sprite rescueTrack;
         string warmedDeviceText;
@@ -52,6 +49,10 @@ namespace CurtainCall.UI.SceneIntegration
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
             public bool Hold, ScreenGuide, NoOutline, Device;
+            /// <summary>플레이어 상호작용 거리 안(InFocus는 이번 프레임 외곽선 대상 여부).</summary>
+            public bool Reachable = true, InFocus;
+            /// <summary>외줄 전용 장치(그네·릴레이·공중그네)처럼 자기 시스템이 대상을 정하는 후보. LowGuide는 목마 해제 같은 후순위 화면 안내.</summary>
+            public bool Legacy, LowGuide;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -59,13 +60,19 @@ namespace CurtainCall.UI.SceneIntegration
             var shader = Resources.Load<Shader>("TightropeOutline");
             if (shader != null)
             {
-                material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, name = "Interaction highlight (runtime)" };
-                material.SetColor("_OutlineColor", outlineColor); material.SetFloat("_OutlinePixels", outlinePixels);
+                selectedMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, name = "Interaction highlight selected (runtime)" };
                 // 기존 검정 외곽선 다음에 그려 상호작용 강조가 덮이지 않게 한다.
-                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 2;
-                waitingRoomMaterial = new Material(material) { hideFlags = HideFlags.HideAndDontSave, name = "Waiting room interaction highlight (runtime)" };
-                waitingRoomMaterial.SetFloat("_OutlinePixels", waitingRoomOutlinePixels);
+                selectedMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 2;
+                inRangeMaterial = new Material(selectedMaterial) { hideFlags = HideFlags.HideAndDontSave, name = "Interaction highlight in range (runtime)" };
+                SyncOutlineMaterials();
             }
+        }
+        /// <summary>설정 에셋의 외곽선 두께·색을 재질에 옮긴다(플레이 중 수정 즉시 반영).</summary>
+        void SyncOutlineMaterials()
+        {
+            var look = InteractionFocusSettings.Current.Outline;
+            if (selectedMaterial != null) { selectedMaterial.SetColor("_OutlineColor", look.selectedColor); selectedMaterial.SetFloat("_OutlinePixels", look.selectedPixels); }
+            if (inRangeMaterial != null) { inRangeMaterial.SetColor("_OutlineColor", look.inRangeColor); inRangeMaterial.SetFloat("_OutlinePixels", look.inRangePixels); }
         }
         void OnEnable()
         {
@@ -119,6 +126,7 @@ namespace CurtainCall.UI.SceneIntegration
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
                 candidates[candidates.Count - 1].NoOutline = target is IShopOutlineOptional { HideOutline: true };
+                candidates[candidates.Count - 1].Reachable = PlayerInteraction.RestrictReach(target.Reach(feet, reader), reader) >= 0f;
             }
             foreach (var item in lobby)
             {
@@ -127,20 +135,46 @@ namespace CurtainCall.UI.SceneIntegration
                 if (action.StartsWith("[F] ")) action = action.Substring(4);
                 Add(item.transform, Center(item.transform), action, usable, lobbyRoom != null && lobbyRoom.FocusedInteraction == item, feet);
                 candidates[candidates.Count - 1].Lobby = true;
+                candidates[candidates.Count - 1].Reachable = PlayerInteraction.InRange(reader, item.transform.position, GameSettings.Base.Interaction.Distance, item.transform);
             }
+            int legacyFrom = candidates.Count;
             AddTightropeDevices(feet);
+            for (int i = legacyFrom; i < candidates.Count; i++) candidates[i].Legacy = true;
             AddEscapeCooperativeButton(feet);
             AddCannon(feet);
             AddPiggyback(feet);
+            // 2026-11-16 상호작용 고도화: 플레이어 상호작용 거리 안 대상은 얇게, F 대상(공통 선택)은 강조한다. 기준점은 선택 순서만 정한다.
+            SyncOutlineMaterials();
+            var selectedRoot = CommonInteractionSelection.SelectedRoot(reader);
+            Candidate chosen = null;
             foreach (var candidate in candidates)
             {
-                if (candidate.ScreenGuide || !candidate.Available || !IsVisible(candidate, camera, reader.transform)
-                    || !candidate.Pole && candidate.Distance > (candidate.WaitingRoom ? waitingRoomHighlightDistance : highlightDistance)) continue;
-                int index = 0;
-                while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
-                    (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
-                selected.Insert(index, candidate);
-                // Every nearby visible interactive object is identifiable, even in a cluster.
+                if (candidate.ScreenGuide) continue;
+                candidate.InFocus = candidate.Legacy || candidate.Reachable;
+                if (chosen == null && selectedRoot != null && candidate.Root == selectedRoot) chosen = candidate;
+            }
+            // 안내 순서: 사용 중 장치 안내 → 공통 선택 대상 → 외줄 전용 장치 → 거리 안의 쓸 수 없는 대상 → 목마 해제 안내.
+            Candidate focused = null;
+            foreach (var candidate in candidates) if (candidate.ScreenGuide && candidate.Focused && !candidate.LowGuide) { focused = candidate; break; }
+            if (focused == null && chosen != null) { focused = chosen; focused.Focused = true; }
+            if (focused == null)
+                foreach (var candidate in candidates)
+                    if (candidate.Legacy && !candidate.ScreenGuide && candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
+            if (focused == null)
+                foreach (var candidate in candidates)
+                    if (!candidate.ScreenGuide && !candidate.Available && candidate.InFocus && IsVisible(candidate, camera, reader.transform))
+                    { focused = candidate; focused.Focused = true; break; }
+            if (focused == null)
+                foreach (var candidate in candidates) if (candidate.ScreenGuide && candidate.LowGuide) { focused = candidate; break; }
+            var outlineLook = InteractionFocusSettings.Current.Outline;
+            bool thin = outlineLook.showInRange && outlineLook.inRangePixels > 0f && outlineLook.inRangeColor.a > 0f;
+            foreach (var candidate in candidates)
+            {
+                if (candidate.ScreenGuide || candidate.NoOutline || !candidate.InFocus) continue;
+                bool isFocused = candidate == focused;
+                if (!isFocused && (!thin || !candidate.Available)) continue;
+                if (!IsVisible(candidate, camera, reader.transform)) continue;
+                if (isFocused) selected.Insert(0, candidate); else selected.Add(candidate);
             }
             for (int i = outlines.Count - 1; i >= 0; i--)
             {
@@ -148,20 +182,17 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (var candidate in selected) if (candidate.Root == outlines[i].Target) keep = true;
                 if (!keep) { outlines[i].Dispose(); outlines.RemoveAt(i); }
             }
-            if (material != null)
+            if (selectedMaterial != null)
                 foreach (var candidate in selected)
                 {
-                    if (candidate.NoOutline) continue;
-                    bool exists = false;
-                    foreach (var outline in outlines) if (outline.Target == candidate.Root) exists = true;
-                    if (!exists) outlines.Add(new InteractionOutline(candidate.Root, candidate.WaitingRoom && waitingRoomMaterial != null ? waitingRoomMaterial : material));
+                    // 같은 루트가 여러 후보에 있으면 선택 대상의 강조를 유지한다.
+                    var style = focused != null && candidate.Root == focused.Root ? selectedMaterial : inRangeMaterial;
+                    InteractionOutline existing = null;
+                    foreach (var outline in outlines) if (outline.Target == candidate.Root) { existing = outline; break; }
+                    if (existing == null) outlines.Add(new InteractionOutline(candidate.Root, style));
+                    else existing.Style = style;
                 }
-            // F still goes to the game's focused target, never to a second highlighted object.
-            Candidate focused = null;
-            foreach (var candidate in candidates)
-                if (candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
-            if (focused == null)
-                foreach (var candidate in selected) if (candidate.Lobby) { focused = candidate; break; }
+            UpdateCrosshair(focused != null && !focused.ScreenGuide && focused.Available);
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
             // Selection, line of sight, and input still use the original gameplay target.
             Vector3 displayPoint=focused.Point;
@@ -400,6 +431,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if (other == null || !other.IsSpawned || other.OwnerClientId != teammate || other == NetworkPlayer.Local) continue;
                 Add(other.transform, PlayerInteraction.Center(other), "매달린 동료 잡기", true, false, feet);
                 candidates[candidates.Count - 1].Pole = true;
+                candidates[candidates.Count - 1].Legacy = true;
                 return;
             }
         }
@@ -421,18 +453,18 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 bool canRelease = system.GetAbove(player) == null;
                 candidates.Add(new Candidate { Root = player.transform, Point = feet, Action = "목마 해제",
-                    Available = canRelease, Focused = true, ScreenGuide = true, Hold = true,
+                    Available = canRelease, Focused = true, ScreenGuide = true, Hold = true, LowGuide = true,
                     Helper = canRelease ? "F를 길게 누르세요" : "위 단원이 내려온 뒤 해제할 수 있습니다" });
                 return;
             }
             if (player.IsAirborne || system.IsInStack(player)) return;
             var catcher = TightropeCatchSystem.Current;
             if (catcher != null && catcher.IsReady(player)) return;
-            if (candidates.Exists(candidate => candidate.Focused && candidate.Available)) return;
+            // 2026-11-16: 다른 대상과 겹치면 공통 선택(우선순위·기준점)이 고른 쪽만 안내한다.
             var target = system.FindMountTarget(player);
             if (target != null)
             {
-                Add(target.transform, PlayerInteraction.Center(target), "목마 타기", true, true, feet);
+                Add(target.transform, PlayerInteraction.Center(target), "목마 타기", true, false, feet);
                 candidates[candidates.Count - 1].Pole = true;
             }
         }
@@ -474,6 +506,7 @@ namespace CurtainCall.UI.SceneIntegration
                         exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
                     candidates[candidates.Count - 1].Pole = true;
                     candidates[candidates.Count - 1].Device = true;
+                    candidates[candidates.Count - 1].Legacy = true; // 외줄에서 봉으로 넘어가기는 외줄 입력이 대상을 정한다.
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
                     if (locks != null && locks.IsHelperPole(pole))
                         candidates[candidates.Count - 1].Helper = locks.HelperInstruction(pole);
@@ -495,20 +528,19 @@ namespace CurtainCall.UI.SceneIntegration
             bool canCarry = carryTarget != null;
             var poles = HumanCannonPoleSystem.Current;
             int focused = poles != null ? poles.FindGrabbable(player) : -1;
-            if (focused >= 0) canCarry = false;
-            // 원본 입력은 봉 → 트램폴린 → 대포 순서다. 지상 봉을 잡을 때 대포 안내가 앞서지 않게 한다.
-            int boardable = canCarry || focused >= 0 ? -1 : system.FindBoardableStation(player);
+            // 2026-11-16: 봉·운반물·대포가 함께 닿으면 공통 선택(우선순위·기준점)이 고른 쪽만 안내한다. 후보는 모두 올린다.
+            int boardable = system.FindBoardableStation(player);
             if (boardable >= 0)
             {
                 var station = system.Station(boardable);
-                Add(station.transform, station.Seat.position, "대포 타기", true, true, feet);
+                Add(station.transform, station.Seat.position, "대포 타기", true, false, feet);
                 candidates[candidates.Count - 1].Pole = true;
                 var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
                 if (locks != null) candidates[candidates.Count - 1].Helper = locks.StationInstruction(station);
             }
             if (canCarry)
             {
-                Add(carryTarget.CarryRoot, carryTarget.Handle.position, carryTarget.CarryName + " 잡기", true, true, feet);
+                Add(carryTarget.CarryRoot, carryTarget.Handle.position, carryTarget.CarryName + " 잡기", true, false, feet);
                 candidates[candidates.Count - 1].Pole = true;
                 if (carryTarget is CurtainCall.EscapeRoute.EscapeExitSaw saw) candidates[candidates.Count - 1].Helper = saw.Guidance;
             }
@@ -518,6 +550,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 Add(exitSaw.CableSocket, exitSaw.CableSocket.position, exitSaw.DoorOpen ? "출구 잠금 해제" : "출구 잠금 배선", false, true, feet);
                 candidates[candidates.Count - 1].Pole = true;
+                candidates[candidates.Count - 1].Reachable = InCommonReach(exitSaw.CableSocket.position, exitSaw.CableSocket);
                 candidates[candidates.Count - 1].Helper = exitSaw.DoorOpen || exitSaw.ProjectileMode ? exitSaw.Guidance : "휴대 절단기를 가져와 회전 날로 배선을 자르세요";
             }
             if (boardable < 0 && focused < 0 && !canCarry)
@@ -549,7 +582,7 @@ namespace CurtainCall.UI.SceneIntegration
                         string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
                             ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
                         Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
-                            poles.InteractionPoint(i, player), label, true, i == focused, feet);
+                            poles.InteractionPoint(i, player), label, true, false, feet);
                         candidates[candidates.Count - 1].Pole = true;
                         candidates[candidates.Count - 1].Device = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
@@ -571,6 +604,7 @@ namespace CurtainCall.UI.SceneIntegration
                     bool usable = locks.CanUseControl(NetworkPlayer.Local, i);
                     Add(control, locks.ControlPoint(i), locks.IsArmed(i) ? locks.Status(i) : locks.Prompt(i), usable, usable, feet);
                     candidates[candidates.Count - 1].Pole = true;
+                    candidates[candidates.Count - 1].Reachable = usable || InCommonReach(locks.ControlPoint(i), control);
                     candidates[candidates.Count - 1].Helper = locks.IsArmed(i) ? locks.Status(i)
                         : usable ? locks.Instruction(i) : "버튼 가까이에서 F를 누르세요";
                 }
@@ -580,9 +614,13 @@ namespace CurtainCall.UI.SceneIntegration
             bool canUse = course.CanUseButton(NetworkPlayer.Local);
             Add(course.Button, course.ButtonPoint, course.ReturnOpen ? "복귀 계단 · 열림" : "복귀 계단 열기", canUse, canUse, feet);
             candidates[candidates.Count - 1].Pole = true;
+            candidates[candidates.Count - 1].Reachable = canUse || InCommonReach(course.ButtonPoint, course.Button);
             candidates[candidates.Count - 1].Helper = course.ReturnOpen ? "아래 단원도 계단으로 합류할 수 있습니다"
                 : "가까이에서 F → 복귀 계단 문 열림";
         }
+        /// <summary>안내는 멀리서도 띄우던 대상의 외곽선은 공통 상호작용 거리 안에서만 그린다(2026-11-16).</summary>
+        static bool InCommonReach(Vector3 point, Transform root) => NetworkPlayer.Local != null
+            && PlayerInteraction.InRange(NetworkPlayer.Local, point, GameSettings.Base.Interaction.Distance, root);
         static Vector3 Center(Transform root)
         {
             foreach (var source in root.GetComponentsInChildren<Renderer>())
@@ -624,8 +662,21 @@ namespace CurtainCall.UI.SceneIntegration
             promptAnchor.anchoredPosition = new Vector2(Mathf.Clamp(local.x, parent.rect.xMin + half, parent.rect.xMax - half),
                 Mathf.Clamp(local.y - 70, parent.rect.yMin + Mathf.Max(100, size.y + 16), parent.rect.yMax - 100));
         }
+        /// <summary>화면 정중앙 기준점. 안내 문구와 같은 캔버스에 둔다.</summary>
+        void UpdateCrosshair(bool targeted)
+        {
+            if (crosshair == null && prompt != null)
+            {
+                var canvas = prompt.GetComponentInParent<Canvas>();
+                crosshair = InteractionCrosshair.Ensure(canvas != null ? canvas.rootCanvas : null);
+            }
+            if (crosshair == null) return;
+            crosshair.SetVisible(true);
+            crosshair.SetTargeted(targeted);
+        }
         void Hide()
         {
+            if (crosshair != null) crosshair.SetVisible(false);
             foreach (var ring in rescueRings) if (ring != null) ring.gameObject.SetActive(false);
             foreach (var outline in outlines) outline.Dispose(); outlines.Clear();
             if (prompt != null) prompt.HideImmediate();
@@ -639,6 +690,6 @@ namespace CurtainCall.UI.SceneIntegration
             if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
             Hide();
         }
-        void OnDestroy() { foreach (var ring in rescueRings) if (ring != null) Destroy(ring.gameObject); if (material != null) Destroy(material); if (waitingRoomMaterial != null) Destroy(waitingRoomMaterial); }
+        void OnDestroy() { foreach (var ring in rescueRings) if (ring != null) Destroy(ring.gameObject); if (selectedMaterial != null) Destroy(selectedMaterial); if (inRangeMaterial != null) Destroy(inRangeMaterial); }
     }
 }

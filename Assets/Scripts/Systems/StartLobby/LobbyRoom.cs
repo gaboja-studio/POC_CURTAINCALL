@@ -173,6 +173,13 @@ namespace CurtainCall.StartLobby
                 }
             }
 
+            // 2026-11-16 상호작용 고도화: 쓸 수 있는 대상은 공통 선택(우선순위·화면 기준점 순서)이 고른 것만 안내한다.
+            if (local != null && CommonInteractionSelection.Selected(local) is LobbyInteractable chosen && nearest != null) nearest = chosen;
+            else if (nearest != null)
+            {
+                nearest.Prompt(out bool nearUsable);
+                if (nearUsable) nearest = null;
+            }
             FocusedInteraction = nearest;
             if (nearest == null)
             {

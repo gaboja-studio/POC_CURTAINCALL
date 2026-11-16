@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 189f04e86bbb5de9ebab9ec2055e8387, type: 3}
+  m_Name: InteractionFocusSettings
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.InteractionFocusSettings
+  crosshair:
+    visible: 1
+    shape: 0
+    size: 6
+    thickness: 2
+    idleColor: {r: 1, g: 1, b: 1, a: 0.65}
+    targetColor: {r: 1, g: 0.86, b: 0.45, a: 1}
+    shadow: 1
+  outline:
+    showInRange: 1
+    inRangePixels: 0.5
+    inRangeColor: {r: 1.4, g: 1.3, b: 1.1, a: 0.39215687}
+    selectedPixels: 3
+    selectedColor: {r: 3, g: 2.8, b: 2.2, a: 1}
+  waitingRoomOrder: 000000000800000001000000020000000300000004000000050000000600000007000000
+  performanceOrder: 080000000500000003000000020000000000000001000000040000000600000007000000
+  piggyback:
+    releaseOnWaitingRoomStateChange: 1
+    allowCrouchedInWaitingRoom: 1
