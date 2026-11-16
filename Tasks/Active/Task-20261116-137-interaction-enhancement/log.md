@@ -21,3 +21,4 @@
   1) 기준점으로 동료를 정확히 조준하면 목마 우선(설정 aimedFirst/aimedTolerance). 2) 대기실 F 홀드 하차 실패: 서버가 발판 한 조각 안에서 자리를 못 찾아 거부하던 것으로 판단 → 주변 바닥 하차·최후 제자리 해제. 3) 뽑개 연타 → F 홀드, 힘(한 대 분량 시간)·내구도(횟수)를 각 에셋/컴포넌트 속성으로.
   검사: dotnet 컴파일(Assembly-CSharp) 오류 0. Unity 에디터 꺼져 있어 테스트 미실행(사용자 요청으로 검증 최소화, 플레이 확인은 사용자).
 - 사용자 보정(2026-11-16): 부수기 시간 = 대상 내구도 ÷ 손·뽑개의 힘. 대상에 durability 추가(0이면 옛 맨몸 횟수×1.5 환산, 씬 값 보존), 맨몸 힘 설정 bareHandPower=1(옛 bareHandHoldSeconds 대체, 에셋에 저장된 값 없었음), 뽑개 힘 ItemCatalog effect=5. 검사: dotnet 컴파일(런타임·에디터) 오류 0.
+- 후속 제출: 커밋 78f229a5, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/401 (new-pr.ps1는 제외 대상 미커밋 Unity 재직렬화 파일로 중단되어 gh로 같은 양식 등록).
