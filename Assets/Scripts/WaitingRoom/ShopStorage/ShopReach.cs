@@ -66,16 +66,17 @@ namespace CurtainCall.WaitingRoom
         public static IShopTarget BareHoldTarget { get; private set; }
         public static float BareHoldProgress { get; private set; }
         static float bareHeld;
+        static bool holdWithTool;
         const int BareGaugeCells = 10;
         /// <summary>
-        /// 맨몸 부수기 안내 꼬리말(2026-11-13 사용자): 횟수 없이 게이지 하나만 보여 준다. 게이지는 부수기 전체 진행이고 다 차면 부서진다.
-        /// 아직 손대지 않았으면 "꾹 누르기".
+        /// 부수기 안내 꼬리말(맨몸 2026-11-13, 뽑개 2026-11-16 사용자): 횟수 없이 게이지 하나만 보여 준다. 게이지는 부수기 전체 진행이고 다 차면 부서진다.
+        /// 아직 손대지 않았으면 "꾹 누르기". <paramref name="withTool"/>이면 뽑개 기준으로 센다.
         /// </summary>
-        public static string BareHoldSuffix(IShopTarget target)
+        public static string BareHoldSuffix(IShopTarget target, bool withTool = false)
         {
-            if (CurtainCall.Settings.GameSettings.WaitingRoom.BareHandHoldSeconds <= 0f) return "";
+            if (ExplorationTargets.StrikePower(withTool) <= 0f) return "";
             float progress = ReferenceEquals(BareHoldTarget, target) ? BareHoldProgress
-                : target is IBareHandTarget hand ? ExplorationTargets.BareProgress(hand, 0f) : 0f;
+                : target is IBareHandTarget hand ? ExplorationTargets.StrikeHoldProgress(hand, 0f, withTool) : 0f;
             if (progress <= 0f) return " · " + WaitingRoomText.Get("prompt.bare-hold", "F키로 상호작용 하기");
             int filled = Mathf.Clamp(Mathf.CeilToInt(progress * BareGaugeCells), 0, BareGaugeCells);
             return " " + new string('■', filled) + new string('□', BareGaugeCells - filled);
@@ -115,23 +116,28 @@ namespace CurtainCall.WaitingRoom
             if (reader.Current.DropItemPressed && (actorForGate == null || !actorForGate.InteractionActionLocked)) DropPressed?.Invoke();
             // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
             if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
-            // 맨몸 부수기(2026-11-13 사용자): 도구 없이 부술 때는 F를 길게 누르고 있어야 한다. 게이지 하나가 천천히 차고, 다 차면 부서진다.
-            // 누르는 동안 타격 동작을 느리게 보여 준다. 손을 떼면 게이지는 그대로 멈춘다. 연타는 도구를 들었을 때만 된다.
-            // 전체 시간 = 설정 "맨몸 부수기 누르는 시간" × 대상의 맨몸 횟수. 진행은 한 대 분량이 찰 때마다 판정 화면에 기록한다.
-            float bareNeed = CurtainCall.Settings.GameSettings.WaitingRoom.BareHandHoldSeconds;
-            bool bare = bareNeed > 0f && Focused is IBareHandTarget hand && hand.AllowsBareHands && !ExplorationTargets.LocalHolds(hand.ToolId)
+            // 부수기 홀드(맨몸 2026-11-13, 말뚝 뽑개 2026-11-16 사용자): F를 길게 누르고 있어야 한다. 게이지 하나가 천천히 차고, 다 차면 부서진다.
+            // 누르는 동안 타격 동작을 느리게 보여 준다. 손을 떼면 게이지는 그대로 멈춘다. 연타로는 부수지 않는다.
+            // 전체 시간 = 대상 내구도 ÷ 힘(맨몸: 설정 "맨몸 부수기 힘", 뽑개: 기물 목록 뽑개 효과 수치). ExplorationTargets.StrikeHoldTotalSeconds.
+            // 진행은 한 단계(전체 ÷ 횟수)가 찰 때마다 판정 화면에 기록하고, 뽑개 내구도는 부서질 때만 1 줄어든다.
+            bool withTool = ExplorationTargets.UsesToolHold(Focused) && ExplorationTargets.LocalHolds(((IExplorationTarget)Focused).ToolId);
+            // 한 단계가 너무 짧으면 판정 화면의 연속 요청 제한(0.08초)에 걸리므로 0.1초 아래로 내리지 않는다.
+            float holdNeed = Focused is IBareHandTarget sized && ExplorationTargets.StrikeHoldSeconds(sized, withTool) is var step && step > 0f
+                ? Mathf.Max(.1f, step) : 0f;
+            bool strikeHold = holdNeed > 0f && Focused is IBareHandTarget hand && (withTool || hand.AllowsBareHands && !ExplorationTargets.LocalHolds(hand.ToolId))
                 && Focused is IShopPresentation shown && shown.IsAvailable && (Focused is not ExplorationGate bareGate || bareGate.ConditionsMet);
-            if (bare)
+            if (strikeHold)
             {
-                var bareTarget = (IBareHandTarget)Focused;
-                if (!ReferenceEquals(BareHoldTarget, Focused)) { BareHoldTarget = Focused; bareHeld = 0f; BareHoldProgress = 0f; }
+                var holdTarget = (IBareHandTarget)Focused;
+                if (!ReferenceEquals(BareHoldTarget, Focused) || holdWithTool != withTool)
+                { BareHoldTarget = Focused; holdWithTool = withTool; bareHeld = 0f; BareHoldProgress = 0f; }
                 bool swinging = reader.Current.InteractHeld && (actorForGate == null
-                    || actorForGate.HoldSlowStrike(MotionKind(Focused), ((IShopPresentation)Focused).PresentationPoint, bareHeld / bareNeed));
+                    || actorForGate.HoldSlowStrike(MotionKind(Focused), ((IShopPresentation)Focused).PresentationPoint, bareHeld / holdNeed));
                 if (swinging) bareHeld += Time.deltaTime;
-                if (bareHeld >= bareNeed) { bareHeld -= bareNeed; Focused.Interact(); }
+                if (bareHeld >= holdNeed) { bareHeld -= holdNeed; Focused.Interact(); }
                 // 기록이 돌아오기 전에 게이지가 잠깐 줄어 보이지 않게, 같은 대상에서는 줄이지 않는다.
-                BareHoldProgress = Mathf.Max(BareHoldProgress, ExplorationTargets.BareProgress(bareTarget, bareHeld / bareNeed));
-                // 짧게 누르기·길게 누르기 신호는 맨몸 부수기 대상 앞에서는 쓰지 않는다(기물 내려놓기는 T로 분리).
+                BareHoldProgress = Mathf.Max(BareHoldProgress, ExplorationTargets.StrikeHoldProgress(holdTarget, bareHeld / holdNeed, withTool));
+                // 짧게 누르기·길게 누르기 신호는 부수기 대상 앞에서는 쓰지 않는다(기물 내려놓기는 T로 분리).
                 return;
             }
             BareHoldTarget = null; bareHeld = 0f; BareHoldProgress = 0f;

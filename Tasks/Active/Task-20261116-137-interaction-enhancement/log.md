@@ -17,3 +17,7 @@
   검사: 컴파일 PASS, EditMode InteractionFocusRulesTests 3/3·CommonRulesFollowupTests 21/21·CommonMechanicsTests 28/28, PlayMode InteractionPresentationPlayTests 2/4(InReach…·ActualPhone PASS, 캠페인 단계 테스트 2건은 기존 실패).
 - 아웃라인 설정 보강: `showInRange`(거리 안 다른 대상 표시 on/off) 추가, 거리 안/선택 대상 색에 알파(투명도) 편집 허용(ColorUsage showAlpha). 합성 셰이더가 SrcAlpha 블렌드라 알파가 투명도로 적용된다. 검사: 컴파일 PASS(사용자 요청으로 검증 최소화, 플레이 확인은 사용자).
 - 제출: origin/dev 병합(충돌 없음, 컴파일 PASS) 후 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/395 . Unity 재직렬화 파일(머티리얼·WaitingRoom.unity·Vivox 설정)은 제외, 씬 변경은 stash "task137-unity-reserialized-waitingroom-scene"에 보관.
+- 후속(2026-11-16, PR #395 병합 후 origin/dev 반영): 사용자 요청 3건.
+  1) 기준점으로 동료를 정확히 조준하면 목마 우선(설정 aimedFirst/aimedTolerance). 2) 대기실 F 홀드 하차 실패: 서버가 발판 한 조각 안에서 자리를 못 찾아 거부하던 것으로 판단 → 주변 바닥 하차·최후 제자리 해제. 3) 뽑개 연타 → F 홀드, 힘(한 대 분량 시간)·내구도(횟수)를 각 에셋/컴포넌트 속성으로.
+  검사: dotnet 컴파일(Assembly-CSharp) 오류 0. Unity 에디터 꺼져 있어 테스트 미실행(사용자 요청으로 검증 최소화, 플레이 확인은 사용자).
+- 사용자 보정(2026-11-16): 부수기 시간 = 대상 내구도 ÷ 손·뽑개의 힘. 대상에 durability 추가(0이면 옛 맨몸 횟수×1.5 환산, 씬 값 보존), 맨몸 힘 설정 bareHandPower=1(옛 bareHandHoldSeconds 대체, 에셋에 저장된 값 없었음), 뽑개 힘 ItemCatalog effect=5. 검사: dotnet 컴파일(런타임·에디터) 오류 0.

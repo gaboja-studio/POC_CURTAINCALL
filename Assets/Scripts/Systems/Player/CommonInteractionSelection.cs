@@ -47,7 +47,9 @@ namespace CurtainCall.Player
         public static readonly object Inventory = new();
 
         // 분류 순위보다 앞서는 특수 순위. 이미 사용 중인 장치는 가장 앞, 목마 위 협동 버튼은 그다음.
-        const float ActivePriority = -100f, MountedButtonPriority = -50f, IdlePriority = 10000f, ReleasePriority = IdlePriority - 1f;
+        // 기준점으로 정확히 겨눈 목마는 모든 분류 순위(0 이상)보다 앞선다.
+        const float ActivePriority = -100f, MountedButtonPriority = -50f, AimedPiggybackPriority = -1f,
+            IdlePriority = 10000f, ReleasePriority = IdlePriority - 1f;
 
         public static bool Better(Candidate next, Candidate current) => next.Target != null
             && float.IsFinite(next.Distance) && next.Distance >= 0
@@ -222,8 +224,14 @@ namespace CurtainCall.Player
                     Add(cannon.Station(boardable), cannon.Station(boardable).transform, cannon.Station(boardable).BoardingPoint.position,
                         device, "cannon:" + boardable);
                 if (stack != null && stack.FindMountTarget(player) is { } partner)
-                    Add(stack, partner.transform, PlayerInteraction.Center(partner), Rank(InteractionCategory.Piggyback),
+                {
+                    // 동료 몸을 기준점으로 정확히 겨눴으면 분류 순위보다 먼저 고른다(2026-11-16 사용자: 스케줄표 근처 목마).
+                    var aim = settings.Piggyback;
+                    Vector3 partnerPoint = PlayerInteraction.Center(partner);
+                    bool aimed = aim.aimedFirst && InteractionFocus.IsAimed(actor, partner.transform, partnerPoint, aim.aimedTolerance);
+                    Add(stack, partner.transform, partnerPoint, aimed ? AimedPiggybackPriority : Rank(InteractionCategory.Piggyback),
                         "piggyback:" + partner.OwnerClientId);
+                }
                 var locks = EscapeCooperativeLocks.Current;
                 if (locks != null) for (int i = 0; i < locks.Count; i++)
                     if (locks.CanUseControl(player, i))

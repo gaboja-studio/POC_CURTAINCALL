@@ -41,6 +41,13 @@ namespace CurtainCall.WaitingRoom
         string DescribeStrike(bool opened, int done, int total, bool withTool);
     }
 
+    /// <summary>내구도를 가진 부수기 대상(2026-11-16 사용자: 누르는 시간 = 내구도 ÷ 손·도구의 힘).</summary>
+    public interface IStrikeDurability
+    {
+        /// <summary>대상 내구도. 0 이하면 옛 횟수에서 환산(<see cref="ExplorationTargets.Durability"/>).</summary>
+        float Durability { get; }
+    }
+
     public static class ExplorationTargets
     {
         public static bool ToolsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
@@ -61,11 +68,61 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>맨몸 부수기 전체 진행(0~1, F 안내 게이지용). <paramref name="partial"/>은 지금 채우는 한 대 분량의 비율.</summary>
-        public static float BareProgress(IBareHandTarget t, float partial)
+        public static float BareProgress(IBareHandTarget t, float partial) => StrikeHoldProgress(t, partial, false);
+
+        /// <summary>부수기 전체 진행(0~1). <paramref name="withTool"/>이면 말뚝 뽑개 한 대 분량으로 센다.</summary>
+        public static float StrikeHoldProgress(IBareHandTarget t, float partial, bool withTool)
         {
             int units = ExplorationState.Instance != null ? ExplorationState.Instance.Hits(t.TargetId) : 0;
-            float step = StrikeProgress.Step(t.BareHits, t.ToolHits, false);
-            return UnityEngine.Mathf.Clamp01((units + UnityEngine.Mathf.Clamp01(partial) * step) / StrikeProgress.Total(t.BareHits, t.ToolHits));
+            // 맨몸 불가 대상은 판정 화면이 시도 수(=뽑개 타격 수)를 그대로 센다.
+            int bare = t.AllowsBareHands ? t.BareHits : 0;
+            float step = StrikeProgress.Step(bare, t.ToolHits, withTool);
+            return UnityEngine.Mathf.Clamp01((units + UnityEngine.Mathf.Clamp01(partial) * step) / StrikeProgress.Total(bare, t.ToolHits));
+        }
+
+        /// <summary>
+        /// 말뚝 뽑개로 F를 꾹 눌러 부수는 대상인가(2026-11-16 사용자: 벽·상자 연타 → F 홀드). 부서질 때 뽑개 내구도 1 감소는 그대로.
+        /// 판자·상자(뜯기)·금 간 벽·부술 수 있는 문이 해당한다. 머리핀 자물쇠·열쇠 문은 그대로 짧게 누른다.
+        /// </summary>
+        public static bool UsesToolHold(IShopTarget t) => t is IBareHandTarget hand && hand.ToolId == ItemUses.StakePuller
+            && (t is not ExplorationGate gate || gate.IsBreakable);
+
+        /// <summary>내구도를 따로 정하지 않은 옛 대상: 맨몸 횟수(없으면 도구 횟수) × 이 값(옛 "맨몸 한 대 1.5초"와 같은 시간).</summary>
+        public const float LegacyDurabilityPerHit = 1.5f;
+
+        /// <summary>
+        /// 부수기 대상의 내구도(2026-11-16 사용자). 누르는 시간 = 내구도 ÷ 힘(손 또는 뽑개).
+        /// 대상 컴포넌트의 "내구도" 값이 0이면 옛 횟수에서 환산한다.
+        /// </summary>
+        public static float Durability(IBareHandTarget t)
+        {
+            if (t is IStrikeDurability { Durability: > 0f } own) return own.Durability;
+            return UnityEngine.Mathf.Max(1, t.AllowsBareHands ? t.BareHits : t.ToolHits) * LegacyDurabilityPerHit;
+        }
+
+        /// <summary>
+        /// 1초 동안 깎는 내구도(힘). 맨몸: 설정 "맨몸 부수기 힘". 뽑개: 기물 목록(ItemCatalog) 천막 말뚝 뽑개의 효과 수치(effect).
+        /// 0이면 그 방식은 누르기로 부수지 않는다(짧게 눌러 친다).
+        /// </summary>
+        public static float StrikePower(bool withTool) => withTool
+            ? ItemCatalog.Get(ItemUses.StakePuller) is { effect: > 0f } stake ? stake.effect : 0f
+            : CurtainCall.Settings.GameSettings.WaitingRoom.BareHandPower;
+
+        /// <summary>대상을 다 부수는 데 F를 누르고 있어야 하는 전체 시간(초) = 내구도 ÷ 힘. 힘이 0이면 0(누르기 부수기 없음).</summary>
+        public static float StrikeHoldTotalSeconds(IBareHandTarget t, bool withTool)
+        {
+            float power = StrikePower(withTool);
+            return power > 0f ? Durability(t) / power : 0f;
+        }
+
+        /// <summary>
+        /// 진행 한 단계(판정 화면에 한 번 기록하는 한 대)를 채우는 시간 = 전체 시간 ÷ 그 방식의 단계 수(맨몸/도구 횟수).
+        /// 단계 수는 금이 늘어나는 모습·섞어 치기 비율에만 쓰고, 전체 시간은 내구도와 힘으로만 정해진다.
+        /// </summary>
+        public static float StrikeHoldSeconds(IBareHandTarget t, bool withTool)
+        {
+            int steps = UnityEngine.Mathf.Max(1, withTool ? t.ToolHits : t.BareHits);
+            return StrikeHoldTotalSeconds(t, withTool) / steps;
         }
 
         static readonly List<IExplorationTarget> all = new();

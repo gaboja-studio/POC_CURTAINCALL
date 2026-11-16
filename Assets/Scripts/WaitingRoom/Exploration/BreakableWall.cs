@@ -5,17 +5,21 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 숨은 길의 부술 수 있는 벽(Task-079 3단계). 천막 말뚝 뽑개를 손에 들고 F를 연타하면 한 번에 한 번 내려친다.
+    /// 숨은 길의 부술 수 있는 벽(Task-079 3단계). 천막 말뚝 뽑개를 들거나 맨몸으로 F를 누르고 있으면 부서진다(2026-11-16 연타 → 홀드).
+    /// 누르는 시간 = 내구도(durability) ÷ 힘(맨몸·뽑개). 횟수(requiredHits·bareHandHits)는 금이 늘어나는 단계 수로만 쓴다.
     /// 결정(2026-10-29 사용자): 모든 탐색은 F, 6번이면 무너지고 칠 때마다 금이 늘고 낡아 보인다, 손을 떼도 진행은 남는다.
     /// 판정·공유는 <see cref="ExplorationState"/>, 이 컴포넌트는 받은 진행을 모든 화면에 똑같이 그린다(늦게 들어와도 같은 모습).
     /// </summary>
-    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IBareHandTarget, IShopOutlineOptional
+    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IBareHandTarget, IShopOutlineOptional, IStrikeDurability
     {
+        [Tooltip("벽 내구도(2026-11-16 사용자). F를 누르고 있어야 하는 시간 = 내구도 ÷ 힘(맨몸: 대기실 설정 \"맨몸 부수기 힘\", 뽑개: 기물 목록 뽑개 효과 수치). 0이면 맨몸 횟수 × 1.5로 환산(옛 값).")]
+        [SerializeField, Min(0f)] float durability;
+        public float Durability => durability;
         [SerializeField] string targetId = "restroom-breach";
         [SerializeField] string label = "금 간 벽";
         [SerializeField] string toolId = ItemUses.StakePuller;
         [SerializeField] string toolName = "천막 말뚝 뽑개";
-        [Tooltip("천막 말뚝 뽑개로 칠 때 필요한 타격 수.")]
+        [Tooltip("천막 말뚝 뽑개로 부술 때의 진행 단계 수(금이 늘어나는 단계). 누르는 시간은 내구도 ÷ 뽑개 힘.")]
         [SerializeField, Min(1)] int requiredHits = 6;
         [Tooltip("맨몸으로 칠 때 필요한 타격 수(통로 기믹 CC-255, 2026-11-10 사용자: 벽 맨몸 15·뽑개 6). 0이면 맨몸으로 칠 수 없다. 섞어 치면 비율로 합산.")]
         [SerializeField, Min(0)] int bareHandHits = 15;
@@ -86,8 +90,8 @@ namespace CurtainCall.WaitingRoom
                 bool tool = HoldsTool();
                 if (!tool && !AllowsBareHands)
                     return WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
-                var (n, total) = ExplorationTargets.StrikeCount(this, tool);
-                return tool ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", n), ("total", total))
+                // 뽑개도 F 홀드(2026-11-16 사용자): 횟수 대신 부수기 게이지를 보여 준다.
+                return tool ? WaitingRoomText.Format("wall.strike-hold", "{tool:으로} 내려치기", ("tool", ToolName)) + ShopReach.BareHoldSuffix(this, true)
                     : Label + ShopReach.BareHoldSuffix(this); // 맨몸: 이름 · F키로 상호작용 하기(2026-11-14 사용자)
             }
         }
