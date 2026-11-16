@@ -178,6 +178,28 @@ namespace CurtainCall.Cameras.Tests
             finally { Object.DestroyImmediate(root); Physics.SyncTransforms(); }
         }
 
+        [TestCase(30f)] [TestCase(-40f)] [TestCase(179f)]
+        public void RotatingMountPreservesThePlayersMouseLookOffset(float turn)
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Moving pole camera");
+            root.SetActive(false);
+            try
+            {
+                var type = GameType("CurtainCall.Cameras.CameraViewDirector");
+                var director = root.AddComponent(type);
+                var yaw = type.GetField("yaw", fields);
+                type.GetField("followedHeading", fields).SetValue(director, Vector3.forward);
+                yaw.SetValue(director, 40f);
+                var heading = Quaternion.Euler(0f, turn, 0f) * Vector3.forward;
+                var follow = type.GetMethod("UpdateFollowedHeading", fields);
+                follow.Invoke(director, new object[] { heading, true });
+                follow.Invoke(director, new object[] { heading, true });
+                Assert.That(Mathf.DeltaAngle(turn, (float)yaw.GetValue(director)), Is.EqualTo(40f).Within(.001f));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         // Assembly-CSharp는 asmdef에서 직접 참조할 수 없으므로 기존 카메라 PlayMode 테스트와 같은 공개 API 호출 방식을 쓴다.
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies()
             .Select(assembly => assembly.GetType(name, false)).First(type => type != null);
