@@ -6,7 +6,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace CurtainCall.UI.SceneIntegration
 {
-    /// <summary>Union mask -> screen-space exterior only. No normal/depth edges inside the selected shape.</summary>
+    /// <summary>Depth-aware exterior outlines and a fill for geometry hiding the local player.</summary>
     public sealed class SilhouetteOutlineFeature : ScriptableRendererFeature
     {
         Material composite;
@@ -30,7 +30,13 @@ namespace CurtainCall.UI.SceneIntegration
             readonly Material material;
             public OutlinePass(Material material){this.material=material;}
             sealed class MaskData { public SilhouetteOutline.Draw[] draws; }
-            sealed class CompositeData { public Material material;public TextureHandle mask,info,sceneDepth;public Vector4 texel,bounds; }
+            sealed class CompositeData
+            {
+                public Material material;
+                public TextureHandle mask, info, sceneDepth;
+                public Vector4 texel, bounds;
+                public bool hasExterior;
+            }
             static Vector4 ScreenBounds(SilhouetteOutline.Draw[] draws,Camera camera)
             {
                 var min=Vector2.one;var max=Vector2.zero;
@@ -80,6 +86,7 @@ namespace CurtainCall.UI.SceneIntegration
                     data.material=material;data.mask=mask;data.info=info;data.sceneDepth=resources.cameraDepthTexture;
                     data.texel=new Vector4(1f/camera.cameraTargetDescriptor.width,1f/camera.cameraTargetDescriptor.height,0,0);
                     data.bounds=ScreenBounds(draws,camera.camera);
+                    data.hasExterior = System.Array.Exists(draws, draw => !draw.OccludedOnly);
                     builder.UseTexture(mask,AccessFlags.Read);builder.UseTexture(info,AccessFlags.Read);builder.UseTexture(data.sceneDepth,AccessFlags.Read);
                     // Blending preserves the scene; no color-target sampling or read/write feedback loop.
                     builder.SetRenderAttachment(resources.activeColorTexture,0,AccessFlags.ReadWrite);
@@ -91,6 +98,7 @@ namespace CurtainCall.UI.SceneIntegration
                         properties.SetTexture("_SilhouetteSceneDepth",d.sceneDepth);
                         properties.SetVector("_SilhouetteTexel",d.texel);
                         properties.SetVector("_SilhouetteBounds",d.bounds);
+                        properties.SetFloat("_SilhouetteHasExterior", d.hasExterior ? 1f : 0f);
                         context.cmd.DrawProcedural(Matrix4x4.identity,d.material,1,MeshTopology.Triangles,3,1,properties);
                     });
                 }

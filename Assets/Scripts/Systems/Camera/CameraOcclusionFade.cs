@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using CurtainCall.Cameras.Requests;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
+using CurtainCall.UI.SceneIntegration;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -32,6 +34,7 @@ namespace CurtainCall.Cameras
         readonly Dictionary<UnityEngine.Object, Func<Transform, bool>> exclusions = new();
         readonly List<UnityEngine.Object> expired = new();
         CameraViewDirector director;
+        SilhouetteOutline occludedSubject;
         int steppedFrame = -1;
 
         [Tooltip("URP Lit 투명 머티리얼. 빌드에서 투명 셰이더 변형이 빠지지 않게 참조만 둔다(값은 쓰지 않음).")]
@@ -44,6 +47,7 @@ namespace CurtainCall.Cameras
             public Color[] BaseColors;
             public bool[] PropertyColors;
             public float[] PropertyAlphas;
+            public MaterialPropertyBlock PropertyBlock;
             public Renderer Renderer;
             public float Alpha = 1f;
             public bool Occluding;
@@ -51,8 +55,10 @@ namespace CurtainCall.Cameras
 
         readonly Dictionary<Renderer, Faded> faded = new();
         readonly List<Renderer> finished = new();
-        readonly RaycastHit[] hits = new RaycastHit[32];
+        RaycastHit[] hits = new RaycastHit[32];
+        Collider[] nearCamera = new Collider[8];
         readonly List<Renderer> renderers = new();
+        readonly HashSet<Transform> markedRoots = new();
 
         void Awake() => director = GetComponent<CameraViewDirector>();
 
@@ -61,6 +67,8 @@ namespace CurtainCall.Cameras
         void OnDisable()
         {
             CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
+            occludedSubject?.Dispose();
+            occludedSubject = null;
             RestoreAll();
             ruleRequests.Clear();
             exclusions.Clear();
@@ -85,6 +93,7 @@ namespace CurtainCall.Cameras
 
         void OnCameraUpdated(CinemachineBrain brain)
         {
+            if (!Application.IsPlaying(gameObject)) return;
             var view = brain != null ? brain.OutputCamera : null;
             if (view == null || view != Camera.main) return;
             PruneSources();
@@ -92,9 +101,15 @@ namespace CurtainCall.Cameras
                 : director != null && director.Settings != null ? director.Settings.Occlusion : fallback;
             foreach (var entry in faded.Values) entry.Occluding = false;
 
-            var local = NetworkPlayer.Local;
+            var local = director != null ? director.LocalPlayer : NetworkPlayer.Local;
+            bool trackLocal = local != null && !CameraSpectator.IsSpectating;
+            RefreshOccludedSubject(view, trackLocal ? local : null);
             // 관전 중에는 새 가림을 만들지 않고 기존 것만 점진적으로 복구한다.
-            if (local != null && !CameraSpectator.IsSpectating) MarkOccluders(view.transform.position, local.transform, rules);
+            if (trackLocal)
+            {
+                float posture = local.TryGetComponent(out PlayerMover mover) ? mover.PostureHeightScale : 1f;
+                MarkOccluders(view.transform.position, local.transform, posture, rules);
+            }
 
             float step = steppedFrame == Time.frameCount ? 0f : Mathf.Max(0f, rules.FadeSpeed) * Time.deltaTime;
             steppedFrame = Time.frameCount;
@@ -111,31 +126,64 @@ namespace CurtainCall.Cameras
             finished.Clear();
         }
 
-        void MarkOccluders(Vector3 origin, Transform target, CameraOcclusionRules rules)
+        void RefreshOccludedSubject(Camera view, NetworkPlayer player)
+        {
+            Transform model = null;
+            if (player != null && player.State == PlayerState.Normal && director != null && !director.IsFirstPerson
+                && player.TryGetComponent(out PlayerModelSlot slot) && slot.CurrentModel != null)
+                model = slot.CurrentModel.transform;
+            if (occludedSubject != null && (model == null || occludedSubject.Target != model))
+            {
+                occludedSubject.Dispose();
+                occludedSubject = null;
+            }
+            // Depth sees render-only ceilings and pipework too. The outline pass draws just the obscured pixels.
+            if (model != null)
+            {
+                occludedSubject ??= new SilhouetteOutline(model, new Color(.65f, .75f, .77f, .42f), occludedOnly: true);
+                occludedSubject.Viewer = view;
+            }
+        }
+
+        void MarkOccluders(Vector3 origin, Transform target, float posture, CameraOcclusionRules rules)
         {
             float radius = Mathf.Max(0.001f, rules.Radius);
+            bool solidWalls = CameraViewDirector.UsesWallCollision(SceneManager.GetActiveScene());
+            markedRoots.Clear();
             for (int h = 0; h < 2; h++)
             {
-                float height = h == 0 ? rules.TargetHeights.x : rules.TargetHeights.y;
+                float height = (h == 0 ? rules.TargetHeights.x : rules.TargetHeights.y) * posture;
                 Vector3 to = target.position + Vector3.up * height - origin;
                 float distance = to.magnitude - radius; // 내 캐릭터 바로 앞에서 멈춘다
                 if (distance <= 0f) continue;
 
-                int count = Physics.SphereCastNonAlloc(origin, radius, to.normalized, hits, distance, ~0, QueryTriggerInteraction.Collide);
+                int count;
+                while ((count = Physics.SphereCastNonAlloc(origin, radius, to.normalized, hits,
+                    distance, ~0, QueryTriggerInteraction.Ignore)) == hits.Length)
+                    Array.Resize(ref hits, hits.Length * 2);
                 for (int i = 0; i < count; i++)
-                {
-                    var collider = hits[i].collider;
-                    // 벽 충돌 공간(대기실·탈출로)의 공간 구조물은 절대 반투명하게 만들지 않는다. 다른 플레이어와
-                    // 물리적으로 움직이는 기물만 가림 처리한다.
-                    if (CameraViewDirector.UsesWallCollision(SceneManager.GetActiveScene()) &&
-                        collider.GetComponentInParent<NetworkPlayer>() == null &&
-                        (collider.attachedRigidbody == null || collider.attachedRigidbody.isKinematic)) continue;
-                    var hit = collider.transform;
-                    if (hit.IsChildOf(target) || IsExcluded(hit)) continue;
-                    hit.GetComponentsInChildren(renderers);
-                    foreach (var renderer in renderers) Mark(renderer);
-                }
+                    MarkOccluder(hits[i].collider, target, solidWalls);
             }
+
+            // A sweep skips colliders it starts inside, including a teammate at the near plane.
+            int overlaps;
+            while ((overlaps = Physics.OverlapSphereNonAlloc(origin, Mathf.Min(radius, .15f),
+                nearCamera, ~0, QueryTriggerInteraction.Ignore)) == nearCamera.Length)
+                Array.Resize(ref nearCamera, nearCamera.Length * 2);
+            for (int i = 0; i < overlaps; i++) MarkOccluder(nearCamera[i], target, solidWalls);
+        }
+
+        void MarkOccluder(Collider collider, Transform target, bool solidWalls)
+        {
+            if (collider == null || collider.transform.IsChildOf(target) || IsExcluded(collider.transform)) return;
+            var player = collider.GetComponentInParent<NetworkPlayer>();
+            var body = collider.attachedRigidbody;
+            if (solidWalls && player == null && (body == null || body.isKinematic)) return;
+            Transform root = player != null ? player.transform : body != null ? body.transform : collider.transform;
+            if (root.IsChildOf(target) || IsExcluded(root) || !markedRoots.Add(root)) return;
+            root.GetComponentsInChildren(renderers);
+            foreach (var renderer in renderers)
+                if (!renderer.transform.IsChildOf(target) && !IsExcluded(renderer.transform)) Mark(renderer);
             renderers.Clear();
         }
 
@@ -204,7 +252,7 @@ namespace CurtainCall.Cameras
                 block.Clear();
             }
             return new Faded { Originals = originals, Copies = copies, BaseColors = colors,
-                PropertyColors = propertyColors, PropertyAlphas = propertyAlphas, Renderer = renderer };
+                PropertyColors = propertyColors, PropertyAlphas = propertyAlphas, PropertyBlock = block, Renderer = renderer };
         }
 
         /// <summary>URP Lit 계열 머티리얼의 투명 복사본. 지원하지 않으면 null.</summary>
@@ -236,7 +284,7 @@ namespace CurtainCall.Cameras
                 entry.Copies[i].SetColor(BaseColorId, color);
                 if (entry.PropertyColors[i] && entry.Renderer != null)
                 {
-                    var block = new MaterialPropertyBlock();
+                    var block = entry.PropertyBlock;
                     entry.Renderer.GetPropertyBlock(block, i);
                     Color propertyColor = block.GetColor(BaseColorId);
                     propertyColor.a = entry.PropertyAlphas[i] * entry.Alpha;
@@ -256,7 +304,7 @@ namespace CurtainCall.Cameras
                 renderer.sharedMaterials = entry.Originals;
             }
             foreach (var copy in entry.Copies)
-                if (copy != null) Destroy(copy);
+                CoreUtils.Destroy(copy);
         }
 
         void RestoreAll()
