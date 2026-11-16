@@ -21,6 +21,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var scene = SceneManager.GetActiveScene();
             if (Application.isPlaying || scene.path != ScenePath)
                 throw new InvalidOperationException("Open A in Edit Mode.");
+            if (scene.GetRootGameObjects().Any(root => root.transform.Find("EscapeBackground/70_LabyrinthRemake")))
+                throw new InvalidOperationException("The legacy static geometry record belongs to the previous escape layout.");
             return scene;
         }
 

@@ -1,0 +1,58 @@
+{
+  "model": "Assets/Resources/Models/Characters/Enemies/CircusGolemRevision7/circus-golem-look.fbx",
+  "skins": 9,
+  "bones": 207,
+  "clips": [
+    "PursuerDollRig|Golem_CaptureTear",
+    "PursuerDollRig|Golem_CarryWalk",
+    "PursuerDollRig|Golem_ChargeWarning",
+    "PursuerDollRig|Golem_CrouchWalk",
+    "PursuerDollRig|Golem_Dash",
+    "PursuerDollRig|Golem_Death",
+    "PursuerDollRig|Golem_Duck",
+    "PursuerDollRig|Golem_GrabHold",
+    "PursuerDollRig|Golem_GrabMiss",
+    "PursuerDollRig|Golem_GrabStretch",
+    "PursuerDollRig|Golem_HandFlex",
+    "PursuerDollRig|Golem_HitLeft",
+    "PursuerDollRig|Golem_HitRight",
+    "PursuerDollRig|Golem_Idle",
+    "PursuerDollRig|Golem_Ignition",
+    "PursuerDollRig|Golem_JumpLand",
+    "PursuerDollRig|Golem_MaimedCrawl",
+    "PursuerDollRig|Golem_ReachFullRange",
+    "PursuerDollRig|Golem_ReachLong",
+    "PursuerDollRig|Golem_Run",
+    "PursuerDollRig|Golem_Throw",
+    "PursuerDollRig|Golem_TurnLeft",
+    "PursuerDollRig|Golem_TurnRight",
+    "PursuerDollRig|Golem_Walk",
+    "PursuerDollRig|Golem_WallStrike"
+  ],
+  "transforms": [
+    {
+      "name": "Hand.R",
+      "parent": "circus-golem-look",
+      "position": "(0.00, 0.00, 0.00)",
+      "rotation": "(-0.70711, 0.00000, 0.00000, 0.70711)"
+    },
+    {
+      "name": "Forearm.R",
+      "parent": "UpperArm.R",
+      "position": "(1.53, 2.96, 0.03)",
+      "rotation": "(-0.97742, -0.14910, -0.14910, 0.01402)"
+    },
+    {
+      "name": "Fold00.R",
+      "parent": "Forearm.R",
+      "position": "(1.53, 2.96, -0.11)",
+      "rotation": "(-0.97742, -0.14910, -0.14910, 0.01402)"
+    },
+    {
+      "name": "Hand.R",
+      "parent": "Forearm.R",
+      "position": "(1.79, 2.12, 0.04)",
+      "rotation": "(-0.97786, -0.14685, -0.14685, -0.02561)"
+    }
+  ]
+}

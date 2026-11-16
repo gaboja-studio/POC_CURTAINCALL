@@ -6,7 +6,7 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeUnderstageChase
     {
-        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v7";
+        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v8";
         const double SendInterval = .1;
         enum Stage : byte { Entrance, Idle, Pursuit, CartJump, ServiceRoute }
 
@@ -20,6 +20,7 @@ namespace CurtainCall.EscapeRoute
             public Stage Stage;
             public AttackCue Attack;
             public ThreatCue Threat;
+            public ulong LookActor;
         }
 
         CustomMessagingManager receiver;
@@ -29,6 +30,7 @@ namespace CurtainCall.EscapeRoute
         uint heardStep, heardLanding;
         AttackCue lastSentAttack;
         ThreatCue lastSentThreat;
+        ulong lastSentLookActor = ulong.MaxValue;
 
         void Listen(CustomMessagingManager next)
         {
@@ -42,15 +44,17 @@ namespace CurtainCall.EscapeRoute
         void Publish(NetworkManager net, EscapeRouteTimer timer)
         {
             double now = timer.Clock;
+            ulong lookActor = HostLookActor;
             bool transition = attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started || attack.Stopped != lastSentAttack.Stopped || attack.Release != lastSentAttack.Release
-                || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started;
+                || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started || lookActor != lastSentLookActor;
             if (net.ConnectedClientsIds.Count < 2 || now < nextSend && !transition) return;
             lastSentAttack = attack;
             lastSentThreat = threat;
+            lastSentLookActor = lookActor;
             nextSend = now + SendInterval;
             var state = new Snapshot
             {
-                Round = timer.StartedAt, Time = now, Attack = attack, Threat = threat,
+                Round = timer.StartedAt, Time = now, Attack = attack, Threat = threat, LookActor = lookActor,
                 Position = transform.position, Rotation = transform.rotation,
                 Stride = stride, Duck = duckWeight, Run = runWeight, Step = stepNumber,
                 JumpTime = jumping ? jumpTime : 0f, Landing = landingNumber,
@@ -128,7 +132,8 @@ namespace CurtainCall.EscapeRoute
                     float duck = Mathf.Lerp(previous.Duck, latest.Duck, t);
                     SetBodyHeight(duck);
                     float phase = Mathf.LerpAngle(previous.Stride * 360f, latest.Stride * 360f, t) / 360f;
-                    SampleGait(Mathf.Repeat(phase, 1f), duck, Mathf.Lerp(previous.Run, latest.Run, t));
+                    float displayedRun = AuthoredDoll ? (t < .5f ? previous.Run : latest.Run) : Mathf.Lerp(previous.Run, latest.Run, t);
+                    SampleGait(Mathf.Repeat(phase, 1f), duck, displayedRun);
                 }
             }
             if (bypass) bypass.SetShutter(latest.Stage == Stage.ServiceRoute, transform.position, body);

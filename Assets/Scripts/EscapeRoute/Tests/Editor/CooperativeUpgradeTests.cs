@@ -488,6 +488,60 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(station, "InteractionAvailable"), Is.True);
         }
 
+        [TestCase("Normal", false)]
+        [TestCase("EscapeCaptured", false)]
+        [TestCase("Retired", true)]
+        [TestCase("Arrived", true)]
+        public void LastSurvivorCanLeaveTheLowerPoleAndLaunchTheAscentCannon(string teammateState, bool staysOpen)
+        {
+            var locks = Locks(out var checkpoint, true);
+            var button = Root("Upper ascent power button", true).transform;
+            var station = Root("Ascent cannon", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonStation"));
+            var pole = Root("Ascent power pole", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+            Set(checkpoint, "shoulderControl", button);
+            Set(checkpoint, "lockedStation", station);
+            Set(checkpoint, "helperPole", pole);
+            poleSystem = Root("Ascent pole registry").AddComponent(T(PoleType));
+            var poles = Array.CreateInstance(pole.GetType(), 1);
+            poles.SetValue(pole, 0); Set(poleSystem, "poles", poles);
+            Call(poleSystem, "OnEnable");
+            Player(94);
+            var teammate = Player(95);
+            Set(Get(teammate, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), teammateState));
+            var occupancy = Call(poleSystem, "State", 0);
+            Call(locks, "HostStep");
+            Assert.That(Get(station, "InteractionAvailable"), Is.False, "Power still requires a living player's interaction.");
+            Assert.That(Call(occupancy, "TryGrab", 94UL, 0U, 0d, 0f, false, 0), Is.True);
+            Call(locks, "HostStep");
+            Assert.That(Get(station, "InteractionAvailable"), Is.True);
+            Assert.That(Call(occupancy, "TryRelease", 94UL, 1U, 0d, 2f), Is.True);
+            Call(locks, "HostStep");
+            Assert.That(Get(station, "InteractionAvailable"), Is.EqualTo(staysOpen));
+        }
+
+        [TestCase("Normal", false)]
+        [TestCase("EscapeCaptured", false)]
+        [TestCase("Retired", true)]
+        public void GroundControlEnablesOnlyForTheFinalRunner(string teammateState, bool fallback)
+        {
+            var locks = Locks(out var checkpoint, true);
+            var runner = Player(94);
+            var teammate = Player(95);
+            Set(Get(teammate, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), teammateState));
+            var upper = Root("Upper lever", true).transform;
+            upper.position = runner.transform.position + Vector3.up * 4.4f;
+            var lower = Root("Ground lever", true).transform;
+            lower.position = runner.transform.position + Vector3.up;
+            Set(checkpoint, "shoulderControl", upper);
+            Set(checkpoint, "lastRunnerControl", lower);
+            Call(locks, "Present");
+            Assert.That(lower.gameObject.activeSelf, Is.EqualTo(fallback));
+            Assert.That(Call(locks, "Control", 0), Is.SameAs(fallback ? lower : upper));
+            Assert.That(Call(locks, "CanUseControl", runner, 0), Is.EqualTo(fallback));
+            Call(locks, "Arm", 94UL, 0, 0U, 1U);
+            Assert.That(Call(locks, "IsOpen", 0), Is.EqualTo(fallback));
+        }
+
         [Test]
         public void AuthoredHoistBridgeStaysDeployedAfterTheLastHolderReleases()
         {
@@ -554,17 +608,21 @@ namespace CurtainCall.EscapeRoute.Tests
             finally { SetStatic(playerType, "Local", oldLocal); }
         }
 
-        [TestCase(0)] [TestCase(1)]
-        public void EitherSideHelperControlsTheSameBridge(int side)
+        [TestCase(0, false)] [TestCase(1, false)]
+        [TestCase(0, true)] [TestCase(1, true)]
+        public void EitherSideHelperControlsTheSameBridge(int side, bool lastRunner)
         {
             var locks = Locks(out var checkpoint);
             var first = Root("Near side bridge clutch", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
             var second = Root("Far side bridge clutch", true).AddComponent(first.GetType());
             Set(checkpoint, "helperPole", first); Set(checkpoint, "returnHelperPole", second);
+            var bridge = Root("Two-sided return bridge", true).AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Set(checkpoint, "span", bridge);
             poleSystem = Root("Bidirectional pole registry").AddComponent(T(PoleType));
             var poles = Array.CreateInstance(first.GetType(), 2); poles.SetValue(first, 0); poles.SetValue(second, 1);
             Set(poleSystem, "poles", poles); Call(poleSystem, "OnEnable");
             var player = Player(95);
+            if (!lastRunner) Player(96);
             Call(Call(poleSystem, "State", side), "TryGrab", 95UL, 0U, 0d, 0f, false, 0);
             Call(locks, "HostStep");
             Assert.That(Get(locks, "held"), Is.EqualTo(1U));
@@ -572,6 +630,7 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(locks, "IsHelperPole", second), Is.True);
             Set(player, "IsSpawned", false); Call(locks, "HostStep");
             Assert.That(Get(locks, "held"), Is.EqualTo(0U));
+            Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(lastRunner));
         }
     }
 }

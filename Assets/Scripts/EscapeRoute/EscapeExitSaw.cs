@@ -246,7 +246,7 @@ namespace CurtainCall.EscapeRoute
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
-            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align);
+            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
             if (carryBlocked)
             {
                 // 원본 CharacterController 충돌로 운반자의 마지막 유효 위치까지 되돌린다.

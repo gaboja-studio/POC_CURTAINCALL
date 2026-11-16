@@ -62,7 +62,12 @@ namespace CurtainCall.EscapeRoute
         float previousExtension, previousTorsoFlight;
         double nextAim;
         double attackRound = -1;
-        Vector3 Hand => grabTip.position - grabArm.up * .45f;
+        NetworkPlayer hallApproachTarget;
+        Vector3 hallApproachFeet, hallApproachGoal;
+        float nextHallSearch;
+        bool hasHallApproach;
+        Vector3 Hand => doll ? doll.HandPosition : grabTip.position - grabArm.up * .45f;
+        bool CanUseAttackHand => !boss || !boss.CombatStarted || !boss.IsCut(3) && !boss.IsCut(7) && !boss.Defeated;
         float Warning(Reach reach) => Mathf.Max(.2f, boss && boss.InBattle ? Tuning.bossAttackWarning
             : reach == Reach.Hall ? Tuning.hallWarning : reach == Reach.Boarding ? Tuning.stationWarning : Tuning.wireWarning);
         bool InTransit(NetworkPlayer player) => fullRoute ? fullRoute.InTransit(player) : bypass && bypass.InTransit(player);
@@ -71,6 +76,7 @@ namespace CurtainCall.EscapeRoute
         // Complete a committed strike, then reconsider the team's movement.
         bool UpdateAttack(bool divert, bool boarding, ref Vector3 goal, ref Vector3 watch, NetworkPlayer forcedRunner = null)
         {
+            if (!CanUseAttackHand) { ClearAttack(); return false; }
             double now = EscapeRouteTimer.Current.Clock;
             if (attackRound != EscapeRouteTimer.Current.StartedAt)
             {
@@ -140,8 +146,9 @@ namespace CurtainCall.EscapeRoute
             if (now < nextAim) return false;
             if (!CanAttackFromRoute && !(boss && boss.InBattle)) return false;
             var runner = forcedRunner ? forcedRunner : divert ? fullRoute ? fullRoute.SelectTarget() : bypass.RearmostRunner() : target;
-            var reach = fullRoute && fullRoute.Following ? Reach.Wire : forcedRunner ? Reach.Hall
+            var fallbackReach = fullRoute && fullRoute.Following ? Reach.Wire : forcedRunner ? Reach.Hall
                 : boarding ? Reach.Boarding : divert ? Reach.Wire : Reach.Hall;
+            var reach = AttackReach(runner, fallbackReach);
             // The nearest visible survivor remains attackable on poles, seats, piggyback and
             // flight, even if a different player currently owns the route's progress target.
             if (!AttackCandidate(runner, reach))
@@ -149,10 +156,10 @@ namespace CurtainCall.EscapeRoute
                 runner = null;
                 float best = float.PositiveInfinity;
                 foreach (var candidate in NetworkPlayer.All)
-                    if (AttackCandidate(candidate, reach))
+                    if (AttackCandidate(candidate, AttackReach(candidate, fallbackReach)))
                     {
                         float d = (PlayerFeet(candidate) - transform.position).sqrMagnitude;
-                        if (d < best) { best = d; runner = candidate; }
+                        if (d < best) { best = d; runner = candidate; reach = AttackReach(candidate, fallbackReach); }
                     }
             }
             if (!runner) return false;
@@ -166,9 +173,9 @@ namespace CurtainCall.EscapeRoute
                 aim += Vector3.ClampMagnitude(mover.GroundVelocity * Tuning.aimLeadSeconds, 1.2f);
             Vector3 markedFeet = aim;
             aim += Vector3.up * (mover.BodyHeight * .68f);
-            var raised = grabArm.rotation * Quaternion.Euler(-60f, 0f, 0f) * Quaternion.Inverse(grabArm.rotation);
-            var origin = grabArm.position + raised * (Hand - grabArm.position);
+            Vector3 origin = GrabWindupOrigin();
             if (!ClearReach(origin, aim, runner)) return false;
+            if (TryPressureWarning(runner)) return true;
             victim = runner;
             if (fullRoute) fullRoute.MarkPressured(runner);
             previousExtension = 0f;
@@ -177,11 +184,81 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
+        Vector3 GrabWindupOrigin()
+        {
+            if (doll) return doll.SocketAt(EscapePursuerDoll.Motion.GrabStretch, doll.graspTime * .6f, false);
+            var raised = grabArm.rotation * Quaternion.Euler(-60f, 0f, 0f) * Quaternion.Inverse(grabArm.rotation);
+            return grabArm.position + raised * (Hand - grabArm.position);
+        }
+
+        System.Func<Vector3, bool> StrikePositionFilter(NetworkPlayer runner, Vector3 feet)
+        {
+            Vector3 aim = feet + Vector3.up * (runner && runner.TryGetComponent(out PlayerMover mover)
+                ? mover.BodyHeight * .68f : 1f);
+            // Sample the authored hand once per search, then rotate its offset toward the
+            // target at each candidate. A clear chest ray can leave the windup hand inside
+            // a concrete fin and keep selecting the same unusable attack position.
+            Vector3 handOffset = Quaternion.Inverse(transform.rotation) * (GrabWindupOrigin() - transform.position);
+            return at =>
+            {
+                Vector3 forward = Vector3.ProjectOnPlane(feet - at, Vector3.up);
+                if (forward.sqrMagnitude < .09f) return false;
+                Vector3 hand = at + Quaternion.LookRotation(forward) * handOffset;
+                return ClearReach(at + Vector3.up * 3, aim, runner) && ClearReach(hand, aim, runner);
+            };
+        }
+
+        bool TryHallStrikeApproach(NetworkPlayer runner, Vector3 feet, bool close, out Vector3 approach)
+        {
+            if (hallApproachTarget != runner || (feet - hallApproachFeet).sqrMagnitude > .36f)
+            {
+                hallApproachTarget = runner;
+                hallApproachFeet = feet;
+                hasHallApproach = false;
+                nextHallSearch = 0;
+            }
+            if (hasHallApproach && (hallApproachGoal - transform.position).sqrMagnitude < .16f)
+                hasHallApproach = false;
+            if (!hasHallApproach && close && Time.time >= nextHallSearch && runner.TryGetComponent<PlayerMover>(out _))
+            {
+                nextHallSearch = Time.time + .6f;
+                var clearStrike = StrikePositionFilter(runner, feet);
+                hasHallApproach = EscapePursuerNavigation.TryNavStrikePosition(agent, feet, Tuning.contactRange, at =>
+                    clearStrike(at), out hallApproachGoal);
+            }
+            approach = hallApproachGoal;
+            return hasHallApproach;
+        }
+
+        void ResetHallStrikeApproach()
+        {
+            hallApproachTarget = null;
+            hasHallApproach = false;
+            nextHallSearch = 0;
+        }
+
+        Reach AttackReach(NetworkPlayer player, Reach fallback)
+        {
+            if (!player) return fallback;
+            ulong actor = player.OwnerClientId;
+            if (HumanCannonPoleSystem.Current && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0
+                || TightropeHangSystem.Current && TightropeHangSystem.Current.IsHanging(player)) return Reach.Wire;
+            if (HumanCannonSystem.Current && HumanCannonSystem.Current.IsSeated(actor)) return Reach.Boarding;
+            return fallback;
+        }
+
+        // The first hanging pole is deliberately across the chasm, outside the ordinary
+        // exposed-floor reach. Keep its full authored arm reach when the director takes over.
+        float AttackRange(NetworkPlayer player) => player && HumanCannonPoleSystem.Current
+            && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0 ? Tuning.armRange
+            : fullRoute && fullRoute.Following ? Tuning.exposedGrabRange : Tuning.armRange;
+
         bool AttackCandidate(NetworkPlayer player, Reach reach)
         {
-            if (!player || !player.IsSpawned || player.State != PlayerState.Normal || !player.TryGetComponent(out PlayerMover mover)) return false;
+            if (!player || !player.IsSpawned || player.State != PlayerState.Normal || WaitingForConveyor(player.OwnerClientId)
+                || !player.TryGetComponent(out PlayerMover mover)) return false;
             Vector3 feet = PlayerFeet(player), delta = feet - transform.position;
-            float range = fullRoute && fullRoute.Following ? Tuning.exposedGrabRange : Tuning.armRange;
+            float range = AttackRange(player);
             bool close = reach == Reach.Hall ? Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude < Tuning.contactRange * Tuning.contactRange
                 && Mathf.Abs(delta.y) < range : delta.sqrMagnitude < range * range;
             return close && ClearReach(transform.position + Vector3.up * 3f, feet + Vector3.up * (mover.BodyHeight * .68f), player);
@@ -193,6 +270,13 @@ namespace CurtainCall.EscapeRoute
             float elapsed = (float)(now - attack.Started);
             if (attack.Phase == AttackPhase.Warning)
             {
+                if (WaitingForConveyor(attack.Actor))
+                {
+                    attack.Phase = AttackPhase.Retract;
+                    attack.Started = now;
+                    attack.Release = attack.Origin;
+                    return true;
+                }
                 if (elapsed < Warning(attack.Reach)) return true;
                 attack.Phase = AttackPhase.Strike;
                 attack.Started = now;
@@ -214,7 +298,7 @@ namespace CurtainCall.EscapeRoute
                 float nearest = float.PositiveInfinity;
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (!player || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                    if (!player || !player.IsSpawned || player.State != PlayerState.Normal || WaitingForConveyor(player.OwnerClientId)) continue;
                     var mover = player.GetComponent<PlayerMover>();
                     Vector3 feet = PlayerFeet(player);
                     float distance = (feet - from).sqrMagnitude;
@@ -327,6 +411,7 @@ namespace CurtainCall.EscapeRoute
 
         Vector3 ThrowHandPosition(float time)
         {
+            if (doll) return doll.SocketAt(EscapePursuerDoll.Motion.Throw, doll.releaseTime * Mathf.Clamp01(time), true);
             var rotation = grabArm.rotation * Quaternion.Euler(ThrowPitch(time), 0, 0) * Quaternion.Inverse(grabArm.rotation);
             return grabArm.position + rotation * (Hand - grabArm.position);
         }
@@ -337,7 +422,8 @@ namespace CurtainCall.EscapeRoute
         {
             float warning = Warning(Reach.Wire), impact = warning + StrikeTime;
             var raised = grabArm.rotation * Quaternion.Euler(-60f, 0, 0) * Quaternion.Inverse(grabArm.rotation);
-            var origin = grabArm.position + raised * (Hand - grabArm.position);
+            var origin = doll ? doll.SocketAt(EscapePursuerDoll.Motion.GrabStretch, doll.graspTime * .6f, false)
+                : grabArm.position + raised * (Hand - grabArm.position);
             var cue = new AttackCue { Actor = ulong.MaxValue, Reach = Reach.Wire, Origin = origin,
                 MarkedFeet = marked, Aim = marked + Vector3.up, Release = marked + Vector3.up };
             cue.Phase = time < warning ? AttackPhase.Warning : time < impact ? AttackPhase.Strike :
@@ -367,18 +453,18 @@ namespace CurtainCall.EscapeRoute
 
         void PresentAttack(AttackCue cue, double clock)
         {
-            if (!captureCable || !grabArm || !grabTip || !aimRing || !extendedForearm || !graspingHand) return;
             bool aiming = cue.Phase == AttackPhase.Warning || cue.Phase == AttackPhase.Strike;
             bool stretching = cue.Phase == AttackPhase.Strike || cue.Phase == AttackPhase.Retract || cue.Phase == AttackPhase.Grab;
-            captureCable.enabled = aimRing.enabled = aiming;
-            extendedForearm.gameObject.SetActive(stretching);
-            graspingHand.gameObject.SetActive(stretching);
+            if (captureCable) captureCable.enabled = aiming;
+            if (aimRing) aimRing.enabled = aiming;
+            if (extendedForearm) extendedForearm.gameObject.SetActive(stretching);
+            if (graspingHand) graspingHand.gameObject.SetActive(stretching);
+            if (!captureCable || !grabArm || !grabTip || !aimRing || !extendedForearm || !graspingHand) return;
             if (cue.Phase == AttackPhase.None) return;
             if (cue.Phase == AttackPhase.Throw && clock - cue.Started < SwingTime)
             {
                 aimRing.enabled = true;
                 aimRing.transform.SetPositionAndRotation(cue.Drop + Vector3.up * .07f, Quaternion.Euler(90, 0, 0));
-                captureCable.enabled = true; captureCable.SetPosition(0, Hand); captureCable.SetPosition(1, cue.Drop);
             }
             float elapsed = Mathf.Max(0f, (float)(clock - cue.Started));
             if (cue.Phase == AttackPhase.Throw)

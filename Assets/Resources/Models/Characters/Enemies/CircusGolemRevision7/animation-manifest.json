@@ -1,0 +1,175 @@
+{
+  "fps": 30,
+  "clips": {
+    "Golem_Idle": {
+      "loop": true,
+      "frames": 121,
+      "duration_seconds": 4.0,
+      "ik_clamps": 0
+    },
+    "Golem_Walk": {
+      "loop": true,
+      "speed_mps": 2.7,
+      "cycle_distance_m": 3.24,
+      "stance_fraction": 0.58,
+      "frames": 37,
+      "duration_seconds": 1.2,
+      "ik_clamps": 0
+    },
+    "Golem_Run": {
+      "loop": true,
+      "speed_mps": 6.6,
+      "cycle_distance_m": 5.94,
+      "stance_fraction": 0.36,
+      "frames": 28,
+      "duration_seconds": 0.9,
+      "ik_clamps": 0
+    },
+    "Golem_CrouchWalk": {
+      "loop": true,
+      "speed_mps": 3,
+      "cycle_distance_m": 3.6,
+      "stance_fraction": 0.6,
+      "frames": 37,
+      "duration_seconds": 1.2,
+      "ik_clamps": 0
+    },
+    "Golem_GrabStretch": {
+      "grasp_frame": 31,
+      "hold_frames": [
+        31,
+        38
+      ],
+      "reach_demo_m": 7,
+      "frames": 61,
+      "duration_seconds": 2.0,
+      "ik_clamps": 0
+    },
+    "Golem_Throw": {
+      "release_frame": 34,
+      "frames": 55,
+      "duration_seconds": 1.8,
+      "ik_clamps": 0
+    },
+    "Golem_WallStrike": {
+      "impact_frame": 21,
+      "frames": 40,
+      "duration_seconds": 1.3,
+      "ik_clamps": 0
+    },
+    "Golem_JumpLand": {
+      "takeoff_frame": 20,
+      "landing_frame": 45,
+      "root_arc": "GAME_OWNED",
+      "frames": 61,
+      "duration_seconds": 2.0,
+      "ik_clamps": 0
+    },
+    "Golem_Duck": {
+      "frames": 49,
+      "duration_seconds": 1.6,
+      "ik_clamps": 0
+    },
+    "Golem_HandFlex": {
+      "frames": 61,
+      "duration_seconds": 2.0,
+      "ik_clamps": 0
+    },
+    "Golem_GrabHold": {
+      "loop": true,
+      "frames": 61,
+      "duration_seconds": 2.0,
+      "ik_clamps": 0
+    },
+    "Golem_CaptureTear": {
+      "loop": true,
+      "frames": 49,
+      "duration_seconds": 1.6,
+      "ik_clamps": 0
+    },
+    "Golem_CarryWalk": {
+      "loop": true,
+      "speed_mps": 2.7,
+      "cycle_distance_m": 3.24,
+      "frames": 37,
+      "duration_seconds": 1.2,
+      "ik_clamps": 0
+    },
+    "Golem_GrabMiss": {
+      "frames": 40,
+      "duration_seconds": 1.3,
+      "ik_clamps": 0
+    },
+    "Golem_ReachLong": {
+      "reach_demo_m": 12,
+      "frames": 76,
+      "duration_seconds": 2.5,
+      "ik_clamps": 0
+    },
+    "Golem_ReachFullRange": {
+      "reach_demo_m": 36,
+      "frames": 91,
+      "duration_seconds": 3.0,
+      "ik_clamps": 0
+    },
+    "Golem_ChargeWarning": {
+      "frames": 36,
+      "duration_seconds": 1.1666666666666667,
+      "ik_clamps": 0
+    },
+    "Golem_Dash": {
+      "root_distance_m": 3.2,
+      "root_motion": "GAME_OWNED",
+      "frames": 10,
+      "duration_seconds": 0.3,
+      "ik_clamps": 0
+    },
+    "Golem_HitLeft": {
+      "frames": 21,
+      "duration_seconds": 0.6666666666666666,
+      "ik_clamps": 0
+    },
+    "Golem_HitRight": {
+      "frames": 21,
+      "duration_seconds": 0.6666666666666666,
+      "ik_clamps": 0
+    },
+    "Golem_TurnLeft": {
+      "root_yaw_deg": 90,
+      "frames": 31,
+      "duration_seconds": 1.0,
+      "ik_clamps": 0
+    },
+    "Golem_TurnRight": {
+      "root_yaw_deg": -90,
+      "frames": 31,
+      "duration_seconds": 1.0,
+      "ik_clamps": 0
+    },
+    "Golem_Ignition": {
+      "frames": 43,
+      "duration_seconds": 1.4,
+      "ik_clamps": 0
+    },
+    "Golem_Death": {
+      "frames": 61,
+      "duration_seconds": 2.0,
+      "ik_clamps": 0
+    },
+    "Golem_MaimedCrawl": {
+      "loop": true,
+      "hide_parts": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "frames": 49,
+      "duration_seconds": 1.6,
+      "ik_clamps": 0
+    }
+  },
+  "ik_clamps": [],
+  "movement": "In-place locomotion. Runtime phase = travelled distance / cycle_distance_m.",
+  "stretch": "Original R5 shells slide at fixed size; internal folded canvas unfolds. All bones scale 1."
+}
