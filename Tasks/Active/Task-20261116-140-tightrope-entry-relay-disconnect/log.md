@@ -66,3 +66,5 @@
 - 제출 직전 origin/dev 89421ccd를 추가 반영했다(카메라/상호작용 변경, 이 수정 파일과 충돌 없음). 새 dev Task 139와 번호가 겹쳐 이번 Task는 140으로 정리했다. 사용자의 즉시 제출 지시에 따라 추가 플레이 재검증은 하지 않는다. 위 실제 2인 Relay 결과의 기반은 0f65367a이며 최신 병합 후 상태와 구분한다.
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/398 (fix/tightrope-entry-relay-disconnect → dev)
