@@ -1,0 +1,66 @@
+{
+  "Summary": {
+    "Total": 7,
+    "Passed": 7,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.BalconySlabAboveEmptyAirCannotBeClimbed",
+      "Status": "Passed",
+      "Duration": 0.009405,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.ContinuousWallCanBeClimbed",
+      "Status": "Passed",
+      "Duration": 0.0012223,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.CrouchPoseFitsVentAndDoesNotKeepStandingHitBounds",
+      "Status": "Passed",
+      "Duration": 0.1374196,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.GraftAndRemovalPreserveOriginalSharedMeshes",
+      "Status": "Passed",
+      "Duration": 0.418475,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.ImportedMotionHasCrouchAndDeathCurves",
+      "Status": "Passed",
+      "Duration": 0.0150672,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.LowVentLandingAllowsCrouchingButNotStanding",
+      "Status": "Passed",
+      "Duration": 0.000863,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitUpgradeTests.VerticalGapInWallRejectsAirClimbing",
+      "Status": "Passed",
+      "Duration": 0.0004148,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 9.15,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitUpgradeTests",
+  "success": true,
+  "result": null
+}

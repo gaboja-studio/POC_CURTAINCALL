@@ -68,6 +68,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         /// <summary>출발점에서 찾은 가장자리까지 수평 거리. 못 찾았으면 음수(기존 경로 사용).</summary>
         public float LipDistance { get; }
         public bool Shaped => points != null;
+        public Vector3 WallDirection { get; }
 
         PursuitClimbPath(Vector3 from, Vector3 to, Transform self)
         {
@@ -75,6 +76,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var flat = Vector3.ProjectOnPlane(to - from, Vector3.up);
             float span = flat.magnitude;
             forward = span > .001f ? flat / span : Vector3.forward;
+            WallDirection = TryWallSupport(from, to, self, out var wallDirection) ? wallDirection : forward;
             LipDistance = span > .05f ? FindLip(from, to, forward, span, self) : -1;
             if (LipDistance < 0) return;
             float lip = LipDistance, height = to.y - from.y;
@@ -110,6 +112,58 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         public static PursuitClimbPath Build(Vector3 from, Vector3 to, Transform self) => new(from, to, self);
+
+        /// <summary>Require a continuous, reachable vertical surface, not just a landing above empty air.</summary>
+        public static bool HasWallSupport(Vector3 from, Vector3 to, Transform self)
+            => TryWallSupport(from, to, self, out _);
+
+        /// <summary>The supporting wall can run beside a platform entrance. Its direction is independent of the landing direction.</summary>
+        public static bool TryWallSupport(Vector3 from, Vector3 to, Transform self, out Vector3 direction)
+        {
+            var flat = Vector3.ProjectOnPlane(to - from, Vector3.up);
+            float span = flat.magnitude, height = to.y - from.y;
+            direction = span > .05f ? flat / span : Vector3.forward;
+            if (height < PursuitClimbLinks.MinHeight || span < .05f) return false;
+            if (WallColumn(from, height, direction, span + .25f, self)) return true;
+            // Side walls are useful only if they also continue beside the lip. A nearby
+            // wall that ends before the landing must not turn an unsupported slab into a route.
+            var side = Vector3.Cross(Vector3.up, direction);
+            for (int sideIndex = 0; sideIndex < 2; sideIndex++) {
+                var towardWall = side * (sideIndex == 0 ? 1 : -1);
+                if (!WallColumn(from, height, towardWall, 1.1f, self)
+                    || !WallColumn(new Vector3(to.x, from.y, to.z), height, towardWall, 1.1f, self)) continue;
+                bool continuous = true;
+                for (float along = .25f; along < span; along += .25f)
+                    if (!WallColumn(from + flat * (along / span), height, towardWall, 1.1f, self)) { continuous = false; break; }
+                if (!continuous) continue;
+                direction = towardWall;
+                return true;
+            }
+            return false;
+        }
+
+        static bool WallColumn(Vector3 from, float height, Vector3 direction, float reach, Transform self)
+        {
+            float previous = -1;
+            // Sample from foot contact up to the lip. Separate stacked colliders are allowed.
+            int steps = Mathf.Max(2, Mathf.CeilToInt(height / .25f));
+            for (int sample = 0; sample <= steps; sample++) {
+                float y = Mathf.Lerp(.25f, Mathf.Max(.25f, height - .12f), sample / (float)steps);
+                int count = Physics.RaycastNonAlloc(from + Vector3.up * y, direction, hits,
+                    reach, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                float nearest = float.PositiveInfinity;
+                for (int i = 0; i < count; i++) {
+                    var hit = hits[i];
+                    if (Skip(hit.collider, self) || Mathf.Abs(hit.normal.y) > .4f
+                        || Vector3.Dot(hit.normal, direction) > -.5f) continue;
+                    nearest = Mathf.Min(nearest, hit.distance);
+                }
+                if (!float.IsFinite(nearest) || nearest > 1.1f
+                    || previous >= 0 && Mathf.Abs(nearest - previous) > .3f) return false;
+                previous = nearest;
+            }
+            return true;
+        }
 
         // ---- 내려오기 ----
         /// <summary>내려오기 전에 윗면 가장자리까지 걷는 속도(m/s).</summary>

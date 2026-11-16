@@ -30,6 +30,7 @@ namespace CurtainCall.WaitingRoom
         RenderTexture feed;
         bool playing, glitching;
         float nextNoise;
+        float nextPursuitNoise;
 
         void Awake()
         {
@@ -177,6 +178,11 @@ namespace CurtainCall.WaitingRoom
             TickGlitch();
             bool glitch = !on && Time.unscaledTime < glitchUntil;
             if (on != playing || glitch != glitching) Apply(on, glitch);
+            if ((on || glitch) && Time.time >= nextPursuitNoise) {
+                nextPursuitNoise = Time.time + Mathf.Max(.2f, CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.TvNoiseInterval);
+                Pursuit.PursuitStimuli.Emit(Pursuit.PursuitNoiseKind.Television, screen != null ? screen.bounds.center : transform.position, transform);
+            }
+            if (!on && !glitch) nextPursuitNoise = 0;
             if (Viewing) TickView();
             if (!(glitching || (playing && clip == null)) || playMaterial == null || Time.unscaledTime < nextNoise) return;
             // 노이즈: 무늬를 매번 다른 자리로 옮겨 지직거리게 한다.

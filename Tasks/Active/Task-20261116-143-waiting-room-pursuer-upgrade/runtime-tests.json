@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 17.42,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.MediumPursuerCrouchesThroughLowTunnelAndStandsOutside",
+      "Status": "Passed",
+      "Duration": 4.4222012,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.SawHitsInterruptClimbAndRespawnBothSizesAfterTenSeconds",
+      "Status": "Passed",
+      "Duration": 12.8799728,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

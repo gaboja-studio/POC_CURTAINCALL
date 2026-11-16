@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "duration": 0.46,
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitTraversalSafetyTests.BlockedApproachFindsAnotherRouteToTheTarget",
+      "Status": "Passed",
+      "Duration": 0.0126568,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitTraversalSafetyTests.ClimbColumnUsesBodyWidthNotAThinLine",
+      "Status": "Passed",
+      "Duration": 0.0111352,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitTraversalSafetyTests.DropFromATopFindsFloorBelowWithClearSpace",
+      "Status": "Passed",
+      "Duration": 0.0072619,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitTraversalSafetyTests.DropWalksToTheEdgeThenFallsOutsideInsteadOfThroughTheBody",
+      "Status": "Passed",
+      "Duration": 0.0140671,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitTraversalSafetyTests.NarrowRailTopIsClimbable",
+      "Status": "Passed",
+      "Duration": 0.0104674,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -15,6 +15,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool visible, sensingLook, investigating, searching, restartBrain;
         Vector3 sensingPoint, scanLook;
         float prepareUntil, noiseUntil, searchUntil, nextNoiseAt, scanStarted;
+        int noisePriority;
+        GameObject uvTarget;
+        float uvTargetUntil, nextUvAt;
         Vector3 captureStart;
         Quaternion captureRotation;
 
@@ -35,13 +38,20 @@ namespace CurtainCall.WaitingRoom.Pursuit
             sensingLook = investigating = searching = false;
             returningToPatrol = false;
             noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
+            uvTarget = null; uvTargetUntil = nextUvAt = 0; noisePriority = 0;
             ClearNavigation();
             Behaviour = PursuitBehaviour.Patrol;
+        }
+        GameObject PerceivedTarget(PursuitStage stage)
+        {
+            bool uvFocus = GameSettings.WaitingRoom.Pursuit.UvDistraction && uvTarget != null && Time.time < uvTargetUntil && director.IsAvailable(uvTarget)
+                && (Room.RoamAcrossRooms || Room.Contains(uvTarget.transform.position));
+            return uvFocus ? uvTarget : director.NearestVisible(this, stage);
         }
         void TickBrain(PursuitStage stage)
         {
             rule = stage;
-            var next = director.NearestVisible(this, rule);
+            var next = PerceivedTarget(rule);
             bool hasVisualContact = next != null && (!rule.AlwaysNearest || director.HasVisualContact(this, next, rule));
             TickPatrolBoundary(hasVisualContact);
             // AlwaysNearest can supply a distant remembered target. It must not
@@ -67,9 +77,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 brain.Update();
             }
         }
-        public void Hear(Vector3 position, float normalizedDistance)
+        public void Hear(Vector3 position, float normalizedDistance) => HearStimulus(position, normalizedDistance, 0);
+        internal void HearStimulus(Vector3 position, float normalizedDistance, int priority)
         {
-            if (!IsActivated || IsAwakening || !director.PlayerRecognitionEnabled || Victim != null || target != null || returningToPatrol || Time.time < nextNoiseAt) return;
+            if (!IsActivated || IsAwakening || !director.PlayerRecognitionEnabled || Victim != null || target != null || returningToPatrol
+                || Time.time < nextNoiseAt && priority <= noisePriority) return;
             var stage = director.CurrentStageRules;
             if (!WithinPatrolLeash(position, stage)) return;
             if (!Room.RoamAcrossRooms && !Room.Contains(position)) return;
@@ -77,7 +89,21 @@ namespace CurtainCall.WaitingRoom.Pursuit
             sensingPoint = scanLook = position; investigating = normalizedDistance <= stage.InvestigateFraction;
             noiseUntil = Time.time + Mathf.Max(.1f, investigating ? stage.InvestigateSeconds : stage.ListenSeconds);
             nextNoiseAt = Time.time + .8f; searching = false; scanStarted = Time.time;
+            noisePriority = priority;
             sensingLook = true; repathAt = 0;
+        }
+        internal bool DistractWithUv(GameObject source)
+        {
+            if (!IsActivated || IsAwakening || Victim != null || returningToPatrol || Time.time < nextUvAt
+                || !director.IsAvailable(source) || !WithinPatrolLeash(source.transform.position, director.CurrentStageRules)
+                || !Room.RoamAcrossRooms && !Room.Contains(source.transform.position)) return false;
+            var settings = GameSettings.WaitingRoom.Pursuit;
+            uvTarget = source; uvTargetUntil = Time.time + Mathf.Max(.1f, settings.UvDistractionSeconds);
+            nextUvAt = Time.time + Mathf.Max(settings.UvDistractionSeconds, settings.UvDistractionCooldown);
+            target = source.transform; lastSeen = target.position; unseen = 0;
+            searching = investigating = false; noiseUntil = 0; prepareUntil = Time.time;
+            repathAt = 0; replanRequested = true;
+            return true;
         }
         internal void ForgetPlayers()
         {
@@ -85,6 +111,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (Victim != null) return;
             if (climbing) FinishClimb();
             target = null;
+            uvTarget = null; uvTargetUntil = nextUvAt = 0;
             visible = sensingLook = investigating = searching = false;
             unseen = noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
             brain?.End(); restartBrain = true;

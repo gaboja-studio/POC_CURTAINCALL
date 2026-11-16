@@ -77,11 +77,27 @@ MonoBehaviour:
       \uD0C8\uCD9C\uB85C\uB85C \uC9C4\uC785\uD574 \uD0C8\uCD9C \uC2DC\uB3C4"
     sleepObjective: "- \uC0DD\uC874\uD55C \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00
       \uC219\uC18C \uCE68\uB300\uC5D0\uC11C \uC218\uBA74"
+  closeStageCorridorDuringMaintenance: 1
   bodyRestoreBasePrice: 50
   bodyRestorePriceStep: 25
   bodyRestoreMaxParts: 3
   pursuit:
     Enabled: 1
+    SawCanKill: 0
+    SawKnockback: 0
+    SmallHitsToDie: 3
+    MediumHitsToDie: 5
+    RespawnSeconds: 10
+    HitReactionSeconds: 0.55
+    HitKnockback: 0.65
+    LoudNoiseRadius: 24
+    MaximumNoiseRadius: 40
+    TvNoiseInterval: 2
+    UvDistraction: 1
+    UvDistractionSeconds: 2
+    UvDistractionCooldown: 4
+    ObstructionSeparation: 1
+    SeparationDistance: 3
     WarningSeconds: 15
     AwakeningSeconds: 2
     KnockdownSeconds: 1.2
@@ -225,7 +241,7 @@ MonoBehaviour:
       FieldOfView: 100
       PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 6.5
+      ChaseSpeed: 7
       SeeThroughWalls: 0
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -244,7 +260,7 @@ MonoBehaviour:
       FieldOfView: 140
       PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 7
+      ChaseSpeed: 8
       SeeThroughWalls: 0
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -264,7 +280,7 @@ MonoBehaviour:
       FieldOfView: 180
       PatrolSpeed: 3
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 7.5
+      ChaseSpeed: 8.5
       SeeThroughWalls: 1
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -284,7 +300,7 @@ MonoBehaviour:
       FieldOfView: 180
       PatrolSpeed: 3
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 8
+      ChaseSpeed: 10
       SeeThroughWalls: 1
       AlwaysNearest: 1
       WalkHearingRadius: 6
@@ -311,6 +327,14 @@ MonoBehaviour:
     keepFinishBarrier: 0
     firstTrapezeLowering: 0.5
   enableKeyInteractions: 0
+  explorationTokenFunds: 50
+  explorationTokenFundsSmall: 20
+  explorationTokenFundsLarge: 100
+  explorationTokenFundsCoin: 10
+  trampolineCarryCheckDiameter: 1
+  bareHandPower: 1
   rehearsal:
     recoverAfterDeath: 1
     recoverSeconds: 1.5
+    returnMinimumSeconds: 60
+    returnBonusSeconds: 60

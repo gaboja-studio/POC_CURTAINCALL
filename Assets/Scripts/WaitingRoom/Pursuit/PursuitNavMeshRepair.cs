@@ -46,7 +46,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 Vector3 a = vertices[indices[i]], b = vertices[indices[i + 1]], c = vertices[indices[i + 2]];
                 foreach (var w in weights) {
                     var p = a * w.x + b * w.y + c * w.z;
-                    int n = Physics.OverlapCapsuleNonAlloc(p + Vector3.up * .6f, p + Vector3.up * 1.2f, .05f, buffer, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    // Low ceilings are traversable while crouched; only carve solid interiors below crouch height.
+                    int n = Physics.OverlapCapsuleNonAlloc(p + Vector3.up * .3f, p + Vector3.up * (PursuitActor.CrouchBodyHeight - .1f), .05f, buffer, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                     for (int k = 0; k < n; k++) inside[buffer[k]] = inside.TryGetValue(buffer[k], out int count) ? count + 1 : 1;
                 }
             }

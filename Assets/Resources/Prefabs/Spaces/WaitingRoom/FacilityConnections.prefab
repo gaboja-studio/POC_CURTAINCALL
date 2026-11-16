@@ -1,5 +1,70 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5982788546521981
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1915158529836279866}
+  - component: {fileID: 1821337460482572179}
+  m_Layer: 0
+  m_Name: Mannequin_Female_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1915158529836279866
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5982788546521981}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
+  m_LocalPosition: {x: -19.012297, y: 0.015, z: -36.41605}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 207435074229719729}
+  m_Father: {fileID: 8843019457021789821}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1821337460482572179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5982788546521981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Grafts:
+  - Target: 1
+    Seam: 1
+    DonorModel: 2
+    DonorOutfit: 1
+    Source: 1
+  Appearance: 0
+  AppearancePattern: 4
+  CustomSurfaceLayers: 1
+  DirtAmount: 1
+  WearAmount: 0.61
+  BloodAmount: 0.55
+  WearPattern: 9
+  Prefab: {fileID: 3237286211341054669, guid: e83410f1ac350cf4b9862dac4e4ba916, type: 3}
+  Size: 0
+  ActivationStage: 1
+  PatrolPoints:
+  - {fileID: 207435074229719729}
+  UseRoomPatrol: 0
+  RouteDetachDistance: 10
 --- !u!1 &22282650321337110
 GameObject:
   m_ObjectHideFlags: 0
@@ -472,6 +537,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 7.6000004, y: 5.2, z: 0.5}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &474622704063658117
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 207435074229719729}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &207435074229719729
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474622704063658117}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.13890459, y: 0, z: 0.10631178}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1915158529836279866}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &474756818543983834
 GameObject:
   m_ObjectHideFlags: 0
@@ -784,6 +880,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &639504713074556488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2273046204571848670}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2273046204571848670
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639504713074556488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 20.072145, y: 0, z: 1.8661003}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4065465623202990402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &651522287194057624
 GameObject:
   m_ObjectHideFlags: 0
@@ -1092,6 +1219,9 @@ Transform:
   m_Children:
   - {fileID: 6650670464319180118}
   - {fileID: 1550501800381686274}
+  - {fileID: 4065465623202990402}
+  - {fileID: 1335793589727825855}
+  - {fileID: 1915158529836279866}
   m_Father: {fileID: 1909985735169517119}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &734838915318616933
@@ -1457,6 +1587,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &779450538291419568
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8076212889447527693}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8076212889447527693
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779450538291419568}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.83774114, y: 0, z: 1.124016}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1335793589727825855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &780262227867982849
 GameObject:
   m_ObjectHideFlags: 0
@@ -6510,6 +6671,80 @@ LODGroup:
     renderers:
     - renderer: {fileID: 1884412059236408235}
   m_Enabled: 1
+--- !u!1 &2898828231072382206
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4065465623202990402}
+  - component: {fileID: 3491391416931673474}
+  m_Layer: 0
+  m_Name: Mannequin_Female_06
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4065465623202990402
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2898828231072382206}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.89, y: 0.015, z: -23.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5181363163662493779}
+  - {fileID: 967321930820524261}
+  - {fileID: 2273046204571848670}
+  m_Father: {fileID: 8843019457021789821}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3491391416931673474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2898828231072382206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Grafts:
+  - Target: 2
+    Seam: 0
+    DonorModel: 0
+    DonorOutfit: 2
+    Source: 2
+  - Target: 0
+    Seam: 1
+    DonorModel: 0
+    DonorOutfit: 2
+    Source: 0
+  Appearance: 2
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
+  Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
+  Size: 1
+  ActivationStage: 2
+  PatrolPoints:
+  - {fileID: 5181363163662493779}
+  - {fileID: 967321930820524261}
+  - {fileID: 2273046204571848670}
+  UseRoomPatrol: 0
+  RouteDetachDistance: 10
 --- !u!1 &2946804435769408078
 GameObject:
   m_ObjectHideFlags: 0
@@ -7381,6 +7616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Grafts: []
   Appearance: 0
   AppearancePattern: 0
   CustomSurfaceLayers: 0
@@ -9537,6 +9773,37 @@ MonoBehaviour:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0.5, y: 0.5, z: 0.5}
   UseMeshGeometry: 0
+--- !u!1 &4142336759347601057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5181363163662493779}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5181363163662493779
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4142336759347601057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.71017456, y: 0, z: 2.2077026}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4065465623202990402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4155705962435169488
 GameObject:
   m_ObjectHideFlags: 0
@@ -9689,6 +9956,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4255536521777603581
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 967321930820524261}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &967321930820524261
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4255536521777603581}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.946928, y: 0, z: 3.8790169}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4065465623202990402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4283469714727835018
 GameObject:
   m_ObjectHideFlags: 0
@@ -9818,6 +10116,75 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &4293928721721681118
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1335793589727825855}
+  - component: {fileID: 5451505875314149771}
+  m_Layer: 0
+  m_Name: Mannequin_Male_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1335793589727825855
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4293928721721681118}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.9659258, z: -0, w: 0.25881907}
+  m_LocalPosition: {x: -8.27, y: 0.015, z: -29.69}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8076212889447527693}
+  - {fileID: 4982251454710537721}
+  - {fileID: 27044277435195200}
+  m_Father: {fileID: 8843019457021789821}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5451505875314149771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4293928721721681118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Grafts:
+  - Target: 1
+    Seam: 0
+    DonorModel: 1
+    DonorOutfit: 3
+    Source: 2
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 1
+  DirtAmount: 0.4
+  WearAmount: 0.4
+  BloodAmount: 0.49
+  WearPattern: 0
+  Prefab: {fileID: 1601495830266799282, guid: b133eed4ba5e2ad46abac5303cb9f1d2, type: 3}
+  Size: 0
+  ActivationStage: 2
+  PatrolPoints:
+  - {fileID: 8076212889447527693}
+  - {fileID: 4982251454710537721}
+  - {fileID: 27044277435195200}
+  UseRoomPatrol: 0
+  RouteDetachDistance: 10
 --- !u!1 &4296578580792910830
 GameObject:
   m_ObjectHideFlags: 0
@@ -14593,6 +14960,37 @@ MonoBehaviour:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0.5, y: 0.5, z: 0.5}
   UseMeshGeometry: 0
+--- !u!1 &6264724422429873052
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4982251454710537721}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4982251454710537721
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6264724422429873052}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.399045, y: 0, z: 7.149146}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1335793589727825855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6357393594820148742
 GameObject:
   m_ObjectHideFlags: 0
@@ -15042,6 +15440,37 @@ LODGroup:
     renderers:
     - renderer: {fileID: 1266981453997287069}
   m_Enabled: 1
+--- !u!1 &6574301878224411953
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 27044277435195200}
+  m_Layer: 0
+  m_Name: WatchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &27044277435195200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6574301878224411953}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.463078, y: 0, z: 8.277826}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1335793589727825855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6614005160183069098
 GameObject:
   m_ObjectHideFlags: 0
@@ -17123,6 +17552,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Grafts: []
   Appearance: 0
   AppearancePattern: 0
   CustomSurfaceLayers: 0

@@ -100,6 +100,7 @@ namespace CurtainCall.WaitingRoom
             if (player != null) player.SetUvLight(true, origin, forward);
 
             if (!check) return;
+            Pursuit.PursuitDirector.Current?.IlluminatePursuers(body.gameObject, origin, forward, range, spotAngle);
             float half = spotAngle * .5f;
             foreach (var mark in UvMark.All)
             {
@@ -133,6 +134,7 @@ namespace CurtainCall.WaitingRoom
                 var origin = p.UvOrigin; var forward = p.UvForward.sqrMagnitude > .01f ? p.UvForward.normalized : Vector3.forward;
                 light.transform.SetPositionAndRotation(origin, Quaternion.LookRotation(forward));
                 if (!check) continue;
+                Pursuit.PursuitDirector.Current?.IlluminatePursuers(p.gameObject, origin, forward, range, spotAngle);
                 float half = spotAngle * .5f;
                 foreach (var mark in UvMark.All)
                 {

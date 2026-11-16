@@ -29,6 +29,9 @@ namespace CurtainCall.Dev
         }
 
         public bool IsBusy { get; private set; }
+        // Hosting creates the player before a destination floor exists. Input blocking
+        // alone does not stop gravity; hold simulation until placement and reveal finish.
+        public static bool HoldingPlayerMovement => Instance != null && Instance.IsBusy;
         public bool IsOpen { get; private set; }
         public bool LastLaunchSucceeded { get; private set; }
         public string Status { get; private set; } = "일차와 시작 시점을 선택하세요.";

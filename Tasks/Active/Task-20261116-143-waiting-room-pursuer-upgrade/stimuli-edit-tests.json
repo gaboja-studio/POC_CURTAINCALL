@@ -1,0 +1,101 @@
+{
+  "Summary": {
+    "Total": 12,
+    "Passed": 12,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.DoorNearWallUsesFreeSideWithoutChangingFloor",
+      "Status": "Passed",
+      "Duration": 0.014727,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EnclosedPursuerCannotTeleportAcrossSeparateWall",
+      "Status": "Passed",
+      "Duration": 0.0025622,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(SawFire,40)",
+      "Status": "Passed",
+      "Duration": 0.0007773,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(CannonFire,40)",
+      "Status": "Passed",
+      "Duration": 0.0001583,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(Door,40)",
+      "Status": "Passed",
+      "Duration": 0.000114,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(SawGrab,24)",
+      "Status": "Passed",
+      "Duration": 0.0001119,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(TrampolineBounce,24)",
+      "Status": "Passed",
+      "Duration": 0.0001077,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(VentOpen,24)",
+      "Status": "Passed",
+      "Duration": 0.0001504,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(Television,24)",
+      "Status": "Passed",
+      "Duration": 0.0001405,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EventsUseConfiguredNoiseTier(None,0)",
+      "Status": "Passed",
+      "Duration": 0.0001965,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.GroundedPursuerCannotBePushedOffUnsupportedPlatform",
+      "Status": "Passed",
+      "Duration": 0.0008219,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.WideTrampolineWithVerticalPenetrationUsesHorizontalExit",
+      "Status": "Passed",
+      "Duration": 0.0007293,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 8.19,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitStimuliSafetyTests",
+  "success": true,
+  "result": null
+}

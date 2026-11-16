@@ -31,6 +31,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public static int Count => links.Count;
         public static double BuildMs { get; private set; }
         public static bool Built { get; private set; }
+        static bool rebuildPending;
+        static float rebuildAt;
+        public static bool NeedsRebuild => !Built || rebuildPending && Time.time >= rebuildAt;
+        public static void Invalidate()
+        {
+            if (!Built) return;
+            rebuildPending = true; rebuildAt = Time.time + .25f; // Let obstacle carving settle first.
+        }
         static readonly RaycastHit[] hits = new RaycastHit[16];
 
         public static void Clear()
@@ -38,6 +46,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             foreach (var link in links) NavMesh.RemoveLink(link);
             links.Clear();
             Built = false;
+            rebuildPending = false;
         }
 
         /// <summary>현재 NavMesh로 오르기 링크를 만든다. 오르기 단계가 꺼져 있으면 만들지 않는다.</summary>
@@ -161,10 +170,13 @@ namespace CurtainCall.WaitingRoom.Pursuit
         // 바닥에서 위로 서서 손을 뻗을 공간, 그리고 가장자리 위로 몸이 넘어갈 공간이 비어 있는지.
         static bool Clear(Vector3 bottom, Vector3 top, Vector3 outward)
         {
-            var column = new Vector3(bottom.x, top.y + LipClearance, bottom.z);
+            if (!PursuitClimbPath.HasWallSupport(bottom, top, null)) return false;
+            float clearance = Mathf.Min(LipClearance, PursuitActor.CrouchBodyHeight - .15f);
+            var column = new Vector3(bottom.x, top.y + clearance, bottom.z);
             // 서서 뻗는 기둥은 몸 두께로 검사한다(통로 바닥 밑·난간 옆에서 몸이 겹친 채 오르지 않게).
             return PursuitDirectClimb.BodyOpen(bottom + Vector3.up * PursuitDirectClimb.BodyLift, column, null)
-                && Open(column, top - outward * .3f + Vector3.up * LipClearance);
+                && Open(column, top - outward * .3f + Vector3.up * clearance)
+                && PursuitDirectClimb.LandingRoom(top, null);
         }
 
         static bool Open(Vector3 from, Vector3 to)

@@ -344,7 +344,10 @@ namespace CurtainCall.HumanCannon
 
         void Publish(int index, CannonAction action, ulong actor, Vector3 position, Quaternion rotation, Vector3 velocity)
         {
-            if (action == CannonAction.Launch) stations[index].FireBarrel();
+            if (action == CannonAction.Launch) {
+                stations[index].FireBarrel();
+                CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.CannonFire, position, stations[index].transform);
+            }
             Apply(index, action, actor, position, rotation, velocity);
             foreach (ulong id in session.NetworkManager.ConnectedClientsIds)
                 if (id != NetworkManager.ServerClientId) SendState(id, index, action, actor, position, rotation, velocity);

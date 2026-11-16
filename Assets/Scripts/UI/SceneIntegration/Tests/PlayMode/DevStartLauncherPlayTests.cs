@@ -90,6 +90,19 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }
         [UnityTest]
+        public IEnumerator DevLaunchFromStartDoesNotFallBeforeDestinationPlacement()
+        {
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
+                "Assets/Scenes/InGame/Start.unity", new UnityEngine.SceneManagement.LoadSceneParameters(UnityEngine.SceneManagement.LoadSceneMode.Single));
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            Assert.AreEqual("Normal", Get(player, "State").ToString(), "The player must enter alive, without a MapExit death during hosting/loading.");
+            yield return new WaitForSecondsRealtime(.5f);
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.IsFalse((bool)Static("CurtainCall.Dev.DevStartLauncher", "HoldingPlayerMovement"));
+        }
+
+        [UnityTest]
         public IEnumerator DevLaunchPreservesSelectedStateAndCanResetItLater()
         {
             var session = T("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);

@@ -35,7 +35,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         readonly Limb[] limbs = new Limb[4];
         readonly RaycastHit[] hits = new RaycastHit[32];
         PhysicsScene physics;
-        Vector3 forward, right;
+        Vector3 forward, right, wallForward, wallRight;
         float height, dropWalk;
         bool up, applied;
         public int LimbCount { get; private set; }
@@ -97,6 +97,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             right = Vector3.Cross(Vector3.up, forward).normalized;
             var high = up ? to : from; var low = up ? from : to;
             height = high.y - low.y;
+            wallForward = ascending && PursuitClimbPath.TryWallSupport(from, to, root, out var wallDirection) ? wallDirection : forward;
+            wallRight = Vector3.Cross(Vector3.up, wallForward).normalized;
             var inward = up ? forward : -forward;
             foreach (var limb in limbs)
             {
@@ -151,8 +153,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool ProbeWall(Limb limb, PursuitSettings rules, out RaycastHit nearest)
         {
             nearest = default;
-            var origin = root.position + Vector3.up * PursuitClimbPath.ContactHandHeight + right * limb.lateral - forward * .2f;
-            int count = physics.Raycast(origin, forward, hits, 1.4f, rules.ClimbIkSurfaceMask, QueryTriggerInteraction.Ignore);
+            var origin = root.position + Vector3.up * PursuitClimbPath.ContactHandHeight + wallRight * limb.lateral - wallForward * .2f;
+            int count = physics.Raycast(origin, wallForward, hits, 1.4f, rules.ClimbIkSurfaceMask, QueryTriggerInteraction.Ignore);
             if (count == hits.Length) return false;
             float distance = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
@@ -223,7 +225,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (w <= 0 || !anchor.Valid) continue;
                 Vector3 normal = anchor.Normal;
                 // 윗면은 손가락이 앞, 벽면은 손가락이 위를 향한다.
-                var tangent = Vector3.ProjectOnPlane(forward, normal);
+                var tangent = Vector3.ProjectOnPlane(clock.OnWall ? wallForward : forward, normal);
                 if (tangent.sqrMagnitude < .1f) tangent = Vector3.ProjectOnPlane(Vector3.up, normal);
                 tangent = tangent.normalized;
                 if (tangent.sqrMagnitude < .1f) continue;

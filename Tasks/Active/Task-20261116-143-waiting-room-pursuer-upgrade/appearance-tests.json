@@ -1,0 +1,52 @@
+{
+  "Summary": {
+    "Total": 5,
+    "Passed": 5,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAppearanceAuthoringTests.AutomaticVariationIsDeterministicAcrossReplicaRootsAndMovement",
+      "Status": "Passed",
+      "Duration": 0.2028761,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAppearanceAuthoringTests.ChoiceAndPatternUndoRedoAndSceneReloadPreservePlacement",
+      "Status": "Passed",
+      "Duration": 1.1794742,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAppearanceAuthoringTests.DesignerPreviewMatchesSelectionWithoutCloningMeshOrMaterial",
+      "Status": "Passed",
+      "Duration": 0.1349773,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAppearanceAuthoringTests.IndependentLayersPersistAndUndoWithoutChangingLegacyChoices",
+      "Status": "Passed",
+      "Duration": 0.9501983,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAppearanceAuthoringTests.LayerCombinationAndBloodHidePreserveSkinWearAndSharedAssets",
+      "Status": "Passed",
+      "Duration": 0.1162214,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 7.52,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitAppearanceAuthoringTests",
+  "success": true,
+  "result": null
+}

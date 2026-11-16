@@ -1,0 +1,73 @@
+{
+  "Summary": {
+    "Total": 8,
+    "Passed": 8,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.BlockedSideGoesAroundToAnOpenEdge",
+      "Status": "Passed",
+      "Duration": 0.0187447,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.ClimbsOntoNarrowTopFromBesideTheEdge",
+      "Status": "Passed",
+      "Duration": 0.0038837,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.DefaultsClimbInEveryStageWithoutHeightLimit",
+      "Status": "Passed",
+      "Duration": 0.0041018,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.DropsBackToFloorNavMesh",
+      "Status": "Passed",
+      "Duration": 0.0040188,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.FarFromEdgeWalksToTheEdgeFirst",
+      "Status": "Passed",
+      "Duration": 0.0034624,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.NarrowTopHasNoNavMeshLikeTheWaitingRoom",
+      "Status": "Passed",
+      "Duration": 0.0035867,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.RejectsTooHighCoveredOrHeightRuleExceeded",
+      "Status": "Passed",
+      "Duration": 0.0037663,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDirectClimbTests.UnlimitedHeightClimbsTheTallShelfAndSettingCanCapIt",
+      "Status": "Passed",
+      "Duration": 0.0033813,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 1.64,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PursuitDirectClimbTests",
+  "success": true,
+  "result": null
+}

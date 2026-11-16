@@ -77,6 +77,7 @@ namespace CurtainCall.EscapeRoute
                 HumanCannonSystem.Current.StartCarrying(actor);
                 lastSafeFeet = player.transform.position;
                 FollowCarrier(player, true);
+                CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawGrab, Handle.position, CarryRoot);
             }
             else if (action == 2)
             {

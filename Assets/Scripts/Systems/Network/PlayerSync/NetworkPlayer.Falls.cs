@@ -131,7 +131,8 @@ namespace CurtainCall.Network.PlayerSync
                 || fallRestart != restartCount.Value || fallRevive != reviveCount.Value
                 || State != PlayerState.Normal)
             { ResetFallTracking(); return; }
-            if (CurtainCall.UI.SceneIntegration.SceneCurtainTransition.HoldingEscapeMovement
+            if (CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
+                || CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement
                 || EscapeSceneTransfer.HoldingForDeparture || EscapeDevelopmentSession.AwaitingEntrance)
             { ResetFallTracking(); return; }
             if (CheckWorldDeath()) return;
@@ -189,6 +190,9 @@ namespace CurtainCall.Network.PlayerSync
 
         bool AcceptWorldDeath(Vector3 feet, int restart, int revive)
         {
+            // A report from a scene being replaced is not a playable-world fall.
+            if (CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement
+                || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive) return false;
             if (!IsServer || !CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)
                 || !CommonDamageRules.IsBelowWorldDeathY(feet.y)
                 || Vector3.ProjectOnPlane(feet - transform.position, Vector3.up).sqrMagnitude > 25f) return false;

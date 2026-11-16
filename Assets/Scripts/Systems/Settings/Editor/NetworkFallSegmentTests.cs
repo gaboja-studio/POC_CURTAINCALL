@@ -136,6 +136,29 @@ namespace CurtainCall.Settings.EditorTools
         }
 
         [Test]
+        public void DevLaunchHoldsGravityAndWorldDeathOnlyUntilPlacementCompletes()
+        {
+            var launcher = Make("Dev launch in progress").AddComponent<CurtainCall.Dev.DevStartLauncher>();
+            Call(launcher, "Awake");
+            var busy = launcher.GetType().GetField("<IsBusy>k__BackingField", Private);
+            try
+            {
+                busy.SetValue(launcher, true);
+                player.transform.position = new Vector3(feet.x, GameSettings.Base.BodyDamage.WorldDeathY - 1, feet.z);
+                var position = player.transform.position;
+                Set(mover, "verticalSpeed", -30f);
+                Call(mover, "Update");
+                Assert.AreEqual(position, player.transform.position, "An unplaced player must not fall through the loading scene.");
+                Assert.AreEqual(0f, Get(mover, "verticalSpeed"));
+                Assert.IsFalse((bool)Call(player, "AcceptWorldDeath", position, 0, 0));
+                Assert.AreEqual(PlayerState.Normal, player.State);
+                busy.SetValue(launcher, false);
+                Assert.IsTrue((bool)Call(player, "AcceptWorldDeath", position, 0, 0), "Normal world-death rules resume immediately after launch.");
+            }
+            finally { busy.SetValue(launcher, false); Object.DestroyImmediate(launcher.gameObject); }
+        }
+
+        [Test]
         public void OrdinaryLandingAlsoWaitsForDelayedServerPoseWithoutResamplingItsHeight()
         {
             player.transform.position = feet + Vector3.up * 4.5f;

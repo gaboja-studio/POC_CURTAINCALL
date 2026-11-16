@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 14.79,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitClimbRuntimePlayTests.DirectClimb_NarrowTopWithoutNavMesh_ClimbsFollowsAndDrops",
+      "Status": "Passed",
+      "Duration": 6.1075949,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitClimbRuntimePlayTests.RuntimeClimb_StageGateTraversalDropAndReplicaContacts",
+      "Status": "Passed",
+      "Duration": 8.5616872,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

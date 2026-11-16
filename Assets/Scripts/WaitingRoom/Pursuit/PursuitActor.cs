@@ -6,7 +6,7 @@ using UnityEngine.AI;
 namespace CurtainCall.WaitingRoom.Pursuit
 {
     // 새 값은 끝에 붙인다(스냅샷이 숫자로 보내고 Clips 배열이 순서로 대응한다).
-    public enum PursuitMotion : byte { Display, Twitch, Awaken, Walk, Run, Grab, Tear, Climb, Drop }
+    public enum PursuitMotion : byte { Display, Twitch, Awaken, Walk, Run, Grab, Tear, Climb, Drop, Crouch, CrouchWalk, Death }
 
     [DefaultExecutionOrder(1100)]
     public sealed partial class PursuitActor : MonoBehaviour
@@ -21,7 +21,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public bool CaptureFinished { get; private set; }
         public PursuitPlacement Placement { get; private set; }
         public int ActivationStage => Placement != null ? Placement.ResolvedActivationStage : 1;
-        public bool IsActivated => director != null && director.Elapsed >= 0
+        public bool IsActivated => !IsDead && director != null && director.Elapsed >= 0
             && (director.CurrentStageIndex + 1 >= ActivationStage || Victim != null);
         float activatedAt = -1;
         bool IsAwakening => activatedAt < 0 || Time.time - activatedAt < GameSettings.WaitingRoom.Pursuit.AwakeningSeconds;
@@ -65,6 +65,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             // 오르기 통로는 직접 움직인다(PursuitActor.Climb). 낮은 계단 통로도 같은 경로로 걸어서 지난다.
             agent.autoTraverseOffMeshLink = false;
             agent.enabled = false;
+            // Adding an enabled agent may snap a few centimetres to the navmesh before we disable it.
+            transform.SetPositionAndRotation(initialPosition, initialRotation);
             if (Motion == null) Motion = GetComponentInChildren<Animation>();
             if (Motion != null && Clips != null)
                 for (int i = 0; i < Clips.Length; i++) if (Clips[i] != null) Motion.AddClip(Clips[i], ((PursuitMotion)i).ToString());
@@ -73,11 +75,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (appearance.AdvancedRun != null) Motion.AddClip(appearance.AdvancedRun, "AdvancedRun");
             }
             climbIk = new PursuitClimbIk(transform, GetComponentInChildren<SkinnedMeshRenderer>());
+            InitializeCombat();
+            InitializeExtraMotion();
             SetMotion(PursuitMotion.Display, true);
             InitializeBrain();
         }
         public void ResetActor()
         {
+            ResetCombat();
             if (agent != null) agent.enabled = false;
             transform.SetPositionAndRotation(initialPosition, initialRotation);
             remote = false; remoteLookValid = false; remoteTarget = null; waypoint = 0;
@@ -111,12 +116,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
                         state.speed = state.length / Mathf.Max(.1f, duration);
                         state.time = 0;
                     }
+                    else if (next == PursuitMotion.Death) {
+                        var state = Motion[clip]; state.time = 0; state.speed = 1; state.wrapMode = WrapMode.ClampForever;
+                    }
                     Motion.CrossFade(clip, IsTraversalMotion(next) ? .06f : .12f);
                 }
             }
         }
         public void ServerTick(float elapsed, bool warning)
         {
+            if (TickCombat()) return;
             if (elapsed < 0 || !IsActivated) {
                 if (activatedAt >= 0) {
                     ForgetPlayers();
@@ -142,6 +151,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             ApplyClimbArea();
             if (TickClimb()) return;
             TickBrain(director.CurrentStageRules);
+            UpdateCrouch();
             TickStuck();
         }
         public void Capture(GameObject victim, float elapsed)
@@ -164,6 +174,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void Receive(Vector3 p, Quaternion r, PursuitMotion motion, GameObject victim, float capture, Vector3 look, bool hasLook, GameObject chasedPlayer = null)
         {
+            if (State == PursuitMotion.Death && motion != PursuitMotion.Death) {
+                poseBuffer.Clear(); transform.SetPositionAndRotation(p, r);
+            }
             if (agent != null) agent.enabled = false;
             if (!remote) transform.SetPositionAndRotation(p, r);
             remote = true; remotePosition = p; remoteRotation = r; remoteLook = look; remoteLookValid = hasLook;
@@ -178,6 +191,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void Update()
         {
+            RestoreHitPose();
             // 다음 Legacy Animation 평가에 전 프레임 IK가 누적되지 않도록 되돌린다.
             climbIk?.Restore();
             SyncClimbClip();
@@ -197,6 +211,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void LateUpdate()
         {
+            ResolveObstruction();
+            if (IsDead) return;
+            ApplyHitPose();
+            if (IsStaggered) return;
             if (remote && Victim == null) director?.ReportLocalContact(this);
             if (Victim != null) { AlignCapture(); return; }
             if (IsTraversalMotion(State)) {

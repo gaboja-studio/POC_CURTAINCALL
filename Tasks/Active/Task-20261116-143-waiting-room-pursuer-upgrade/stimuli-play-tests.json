@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "duration": 17.89,
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.ClosingDoorAndMovedPropPushPursuerOutWithoutSawKnockback",
+      "Status": "Passed",
+      "Duration": 0.2969154,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.DisabledSawDeathAndKnockbackKeepClimbingAlive",
+      "Status": "Passed",
+      "Duration": 0.0565152,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.EnvironmentalNoisePriorityAndUvRedirectRespectOcclusion",
+      "Status": "Passed",
+      "Duration": 0.2732478,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.MediumPursuerCrouchesThroughLowTunnelAndStandsOutside",
+      "Status": "Passed",
+      "Duration": 4.2721278,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.PursuitUpgradeRuntimeTests.SawHitsInterruptClimbAndRespawnBothSizesAfterTenSeconds",
+      "Status": "Passed",
+      "Duration": 12.874554,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

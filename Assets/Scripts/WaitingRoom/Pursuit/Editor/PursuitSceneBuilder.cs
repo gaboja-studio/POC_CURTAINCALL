@@ -81,7 +81,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
             surface.overrideVoxelSize = true; surface.voxelSize = .12f;
             var settings = surface.GetBuildSettings();
-            settings.agentRadius = .24f; settings.agentHeight = 1.7f; settings.agentClimb = .55f; settings.agentSlope = 55;
+            settings.agentRadius = .24f; settings.agentHeight = PursuitActor.CrouchBodyHeight; settings.agentClimb = .55f; settings.agentSlope = 55;
             settings.overrideVoxelSize = true; settings.voxelSize = .08f;
             var sources = new List<NavMeshBuildSource>();
             var moving = DynamicBlockers();
@@ -185,8 +185,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 if(Find(a.vertex)==Find(b.vertex)) continue;
                 bool Clear(float h) => !Physics.Linecast(a.point+Vector3.up*h,b.point+Vector3.up*h,~0,QueryTriggerInteraction.Ignore);
                 // 선이 충돌체 안에서 시작하면 Linecast가 막힘을 못 잡으므로 양 끝 몸통 높이도 확인한다.
-                bool Open(Vector3 p) => !Physics.CheckCapsule(p+Vector3.up*.6f,p+Vector3.up*1.2f,.05f,~0,QueryTriggerInteraction.Ignore);
-                if(!Clear(.65f) || !Clear(1.3f) || !Open(a.point) || !Open(b.point)) continue;
+                bool Open(Vector3 p) => !Physics.CheckCapsule(p+Vector3.up*.3f,p+Vector3.up*(PursuitActor.CrouchBodyHeight-.1f),.05f,~0,QueryTriggerInteraction.Ignore);
+                if(!Clear(.3f) || !Clear(PursuitActor.CrouchBodyHeight-.1f) || !Open(a.point) || !Open(b.point)) continue;
                 var mid=(a.point+b.point)*.5f;
                 if(!Physics.Raycast(mid+Vector3.up,Vector3.down,out var floor,2,~0,QueryTriggerInteraction.Ignore) || Mathf.Abs(floor.point.y-mid.y)>.8f) continue;
                 var link=new GameObject($"StepLink_{links:00}").AddComponent<NavMeshLink>(); link.transform.SetParent(group.transform);
@@ -221,7 +221,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             }
             foreach (var collider in colliders) {
                 var existing = collider.GetComponent<PursuitDoorObstacle>();
-                if (existing == null) existing = collider.gameObject.AddComponent<PursuitDoorObstacle>();
+                if (existing == null) {
+                    existing = collider.gameObject.AddComponent<PursuitDoorObstacle>();
+                    existing.Noise = PursuitDoorObstacle.SuggestedNoise(collider);
+                }
                 existing.Source = collider;
             }
             return colliders;
