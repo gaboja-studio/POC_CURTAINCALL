@@ -34,7 +34,7 @@ namespace CurtainCall.Cameras
 
         protected override void PostPipelineStageCallback(CinemachineVirtualCameraBase vcam, CinemachineCore.Stage stage, ref CameraState state, float deltaTime)
         {
-            if (stage == CinemachineCore.Stage.Finalize && director != null) director.ApplyPose(ref state, deltaTime);
+            if (stage == CinemachineCore.Stage.Finalize && director != null) director.ApplyPose(ref state);
         }
     }
 }

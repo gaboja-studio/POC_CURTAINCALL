@@ -160,6 +160,7 @@ namespace CurtainCall.Cameras.Tests
                 var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
                 director.GetType().GetField("local", fields).SetValue(director, player);
                 director.GetType().GetField("selected", fields).SetValue(director, preset);
+                director.GetType().GetField("freeThirdPerson", fields).SetValue(director, true);
                 float height = (float)preset.GetType().GetField("LookHeight").GetValue(preset);
                 var obstacle = new GameObject("Muzzle or low beam"); obstacle.transform.SetParent(root.transform, false);
                 obstacle.transform.localPosition = Vector3.up * height;
@@ -167,168 +168,80 @@ namespace CurtainCall.Cameras.Tests
                 Physics.SyncTransforms();
                 var state = CameraState.Default;
                 state.RawPosition = root.transform.TransformPoint(new Vector3(3f, height + 1f, -4f));
-                state.RawOrientation = Quaternion.LookRotation(actor.transform.position + Vector3.up * height - state.RawPosition);
+                state.RawOrientation = Quaternion.Euler(27f, yaw + 42f, 0f);
                 var playerPosition = actor.transform.position;
-                object[] args = { state, -1f };
+                object[] args = { state };
                 director.GetType().GetMethod("ApplyWallCollision", fields).Invoke(director, args);
-                var finalPosition = ((CameraState)args[0]).GetFinalPosition();
+                var final = (CameraState)args[0];
+                var finalPosition = final.GetFinalPosition();
                 Assert.That(Vector3.Distance(finalPosition, box.ClosestPoint(finalPosition)), Is.GreaterThanOrEqualTo(.249f));
+                Assert.That(Quaternion.Angle(final.GetFinalOrientation(), state.RawOrientation), Is.LessThan(.02f));
                 Assert.That(actor.transform.position, Is.EqualTo(playerPosition));
             }
             finally { Object.DestroyImmediate(root); Physics.SyncTransforms(); }
         }
 
         [Test]
-        public void WallBufferMovesBeforeContactAndRestoresOverMultipleFrames()
+        public void CorridorWallKeepsTheCameraOnTheRequestedSideDuringRepeatedTurns()
         {
             const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
-            var root = new GameObject("Wall approach camera");
-            root.transform.position = new Vector3(13000, 13000, 13000);
-            try
-            {
-                var actor = new GameObject("Inactive player"); actor.SetActive(false); actor.transform.SetParent(root.transform, false);
-                var player = actor.AddComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
-                var rig = new GameObject("Inactive rig"); rig.SetActive(false); rig.transform.SetParent(root.transform, false);
-                var director = rig.AddComponent(GameType("CurtainCall.Cameras.CameraViewDirector"));
-                var type = director.GetType();
-                var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
-                type.GetField("local", fields).SetValue(director, player);
-                type.GetField("selected", fields).SetValue(director, preset);
-                float height = (float)preset.GetType().GetField("LookHeight").GetValue(preset);
-                Vector3 pivot = actor.transform.position + Vector3.up * height;
-                var wall = new GameObject("Camera wall"); wall.transform.SetParent(root.transform, false);
-                var box = wall.AddComponent<BoxCollider>(); box.size = new Vector3(6f, 6f, .1f);
-                var state = CameraState.Default;
-                state.RawPosition = pivot + Vector3.back * 4f;
-                state.RawOrientation = Quaternion.identity;
-                float DistanceAt(float? wallDistance, bool nextFrame = true)
-                {
-                    if (wallDistance is float distance) wall.transform.position = pivot + Vector3.back * distance;
-                    Physics.SyncTransforms();
-                    if (nextFrame) type.GetField("collisionFrame", fields).SetValue(director, Time.frameCount + 1);
-                    object[] args = { state, 1f / 60f };
-                    type.GetMethod("ApplyWallCollision", fields).Invoke(director, args);
-                    var final = (CameraState)args[0];
-                    Assert.That(Quaternion.Angle(final.GetFinalOrientation(), state.RawOrientation), Is.LessThan(.01f));
-                    Assert.That(Vector3.Distance(final.GetFinalPosition(), box.ClosestPoint(final.GetFinalPosition())),
-                        Is.GreaterThanOrEqualTo(.249f));
-                    return Vector3.Distance(final.GetFinalPosition(), pivot);
-                }
-
-                Assert.That(DistanceAt(5f), Is.EqualTo(4f).Within(.002f));
-                float approaching = DistanceAt(4.46f);
-                Assert.That(approaching, Is.InRange(3.90f, 3.99f), "Move gradually before entering the hard wall radius.");
-                Assert.That(DistanceAt(4.46f, false), Is.EqualTo(approaching).Within(.002f), "The Brain must not advance damping twice on one frame.");
-                float near = DistanceAt(3.8f);
-                Assert.That(near, Is.LessThan(3.46f), "An actual contact applies the safe limit in the same frame.");
-                Assert.That(DistanceAt(5f), Is.EqualTo(near).Within(.002f), "Brief contact loss cannot immediately fling the camera outward.");
-                float recovering = near;
-                for (int i = 0; i < 12; i++) recovering = DistanceAt(5f);
-                Assert.That(recovering, Is.InRange(near + .1f, 3.99f));
-                for (int i = 0; i < 60; i++) recovering = DistanceAt(5f);
-                Assert.That(recovering, Is.EqualTo(4f).Within(.005f));
-
-                Vector3 ArmAt(float angle) => Quaternion.Euler(0f, angle, 0f) * Vector3.back;
-                box.size = new Vector3(.14f, 6f, .14f);
-                wall.transform.position = pivot + ArmAt(34f) * 2f;
-                type.GetMethod("ResetWallCollision", fields).Invoke(director, null);
-                state.RawPosition = pivot + ArmAt(13f) * 4f;
-                Assert.That(DistanceAt(null, false), Is.EqualTo(4f).Within(.002f));
-                Vector3 turning = ArmAt(17f);
-                state.RawPosition = pivot + turning * 4f;
-                Assert.That((float)type.GetMethod("WallDistance", fields).Invoke(director, new object[] { pivot, turning, 4f }),
-                    Is.EqualTo(4f).Within(.002f), "The post is still outside the real arm.");
-                Assert.That(DistanceAt(null), Is.LessThan(3.65f), "Anticipate the post before the orbit reaches it.");
-            }
-            finally { Object.DestroyImmediate(root); Physics.SyncTransforms(); }
-        }
-
-        [TestCase(false)]
-        [TestCase(true)]
-        public void CameraSlidesAlongTheCorridorOrUnderARenderOnlyBeam(bool renderOnlyBeam)
-        {
-            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
-            var root = new GameObject("Corridor sight fixture");
+            var root = new GameObject("Corridor camera fixture");
             root.transform.position = new Vector3(14500, 14500, 14500);
-            Component sightSurface = null;
             try
             {
-                var actor = new GameObject("Inactive player"); actor.SetActive(false); actor.transform.SetParent(root.transform, false);
+                var actor = new GameObject("Inactive player");
+                actor.SetActive(false);
+                actor.transform.SetParent(root.transform, false);
                 var player = actor.AddComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
-                var rig = new GameObject("Inactive rig"); rig.SetActive(false); rig.transform.SetParent(root.transform, false);
+                var rig = new GameObject("Inactive rig");
+                rig.SetActive(false);
+                rig.transform.SetParent(root.transform, false);
                 var director = rig.AddComponent(GameType("CurtainCall.Cameras.CameraViewDirector"));
                 var type = director.GetType();
-                type.GetField("local", fields).SetValue(director, player);
-                type.GetField("yaw", fields).SetValue(director, 45f);
                 var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
+                type.GetField("local", fields).SetValue(director, player);
                 type.GetField("selected", fields).SetValue(director, preset);
+                type.GetField("yaw", fields).SetValue(director, 90f);
                 float height = (float)preset.GetType().GetField("LookHeight").GetValue(preset);
                 Vector3 pivot = root.transform.position + Vector3.up * height;
-                var state = CameraState.Default;
-                Vector3 Sample(Vector3 offset, bool cut = false)
-                {
-                    state.RawPosition = pivot + offset;
-                    state.RawOrientation = Quaternion.LookRotation(-offset, Vector3.up);
-                    if (!cut) type.GetField("collisionFrame", fields).SetValue(director, Time.frameCount + 1);
-                    object[] args = { state, cut ? -1f : 1f / 60f };
-                    type.GetMethod("ApplyWallCollision", fields).Invoke(director, args);
-                    return ((CameraState)args[0]).GetFinalPosition();
-                }
-                GameObject Block(Vector3 center, Vector3 size, bool visualOnly)
-                {
-                    var block = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    block.transform.SetParent(root.transform, false);
-                    block.transform.localPosition = center;
-                    block.transform.localScale = size;
-                    if (visualOnly)
-                    {
-                        Object.DestroyImmediate(block.GetComponent<Collider>());
-                        sightSurface = block.AddComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
-                        sightSurface.GetType().GetField("VisibilityOnly").SetValue(sightSurface, true);
-                        sightSurface.GetType().GetMethod("OnEnable", fields).Invoke(sightSurface, null);
-                    }
-                    Physics.SyncTransforms();
-                    return block;
-                }
-                if (renderOnlyBeam)
-                {
-                    Vector3 intended = new Vector3(0f, 1.85f, -4f);
-                    var previous = Sample(intended, true);
-                    var beam = Block(new Vector3(0f, 2.10f, -2f), new Vector3(8f, .55f, .55f), true);
-                    var corrected = Sample(intended);
-                    Assert.That(Vector3.Distance(corrected, previous), Is.InRange(.03f, .55f));
-                    for (int frame = 0; frame < 35; frame++) corrected = Sample(intended);
-                    Assert.That(corrected.y, Is.LessThan(previous.y - .4f));
-                    Assert.That(Vector3.Distance(corrected, pivot), Is.GreaterThan(3f));
-                    var line = type.GetMethod("HasSight", fields);
-                    Assert.That(line.Invoke(director, new object[] { corrected, root.transform.position + Vector3.up * 1.4f }), Is.True);
-                    Assert.That(line.Invoke(director, new object[] { corrected, root.transform.position + Vector3.up * .87f }), Is.True);
-                    Assert.That(beam.GetComponent<Collider>(), Is.Null);
-                }
-                else
-                {
-                    Block(new Vector3(-1.35f, 2f, 0f), new Vector3(.2f, 4f, 16f), false);
-                    Block(new Vector3(1.35f, 2f, 0f), new Vector3(.2f, 4f, 16f), false);
-                    var previous = Sample(Vector3.back * 4f, true);
-                    for (int turn = 3; turn <= 87; turn += 3)
-                    {
-                        actor.transform.localPosition = new Vector3(.004f * turn, 0f, .013f * turn);
-                        pivot = actor.transform.position + Vector3.up * height;
-                        var corrected = Sample(Quaternion.Euler(0f, turn, 0f) * Vector3.back * 4f);
-                        Assert.That(Vector3.Distance(corrected, previous), Is.LessThan(.6f), $"frame at {turn} degrees");
-                        Assert.That(Vector3.Distance(corrected, pivot), Is.GreaterThan(2.6f), $"distance at {turn} degrees");
-                        Assert.That(Mathf.Abs(corrected.x - root.transform.position.x), Is.LessThan(1.01f), "Keep the camera out of the corridor wall.");
-                        previous = corrected;
-                    }
-                }
-                Assert.That(type.GetField("yaw", fields).GetValue(director), Is.EqualTo(45f));
-            }
-            finally
-            {
-                if (sightSurface != null) sightSurface.GetType().GetMethod("OnDisable", fields).Invoke(sightSurface, null);
-                Object.DestroyImmediate(root);
+                var wall = new GameObject("Wall");
+                wall.transform.SetParent(root.transform, false);
+                wall.transform.localPosition = new Vector3(-1.35f, 2f, 0f);
+                var box = wall.AddComponent<BoxCollider>();
+                box.size = new Vector3(.2f, 4f, 16f);
                 Physics.SyncTransforms();
+
+                var apply = type.GetMethod("ApplyWallCollision", fields);
+                foreach (float turn in new[] { 35f, 70f, 90f, 72f, 90f })
+                {
+                    var arm = Quaternion.Euler(0f, turn, 0f) * Vector3.back;
+                    var state = CameraState.Default;
+                    state.RawPosition = pivot + arm * 4f;
+                    state.RawOrientation = Quaternion.LookRotation(-arm);
+                    object[] args = { state };
+                    apply.Invoke(director, args);
+                    var output = (CameraState)args[0];
+                    Vector3 position = output.GetFinalPosition();
+                    Vector3 offset = position - pivot;
+                    Assert.That(offset.magnitude, Is.InRange(.8f, 2f));
+                    Assert.That(Vector3.Dot(offset.normalized, arm), Is.GreaterThan(.999f));
+                    Assert.That(Quaternion.Angle(output.GetFinalOrientation(), state.RawOrientation), Is.LessThan(.02f));
+                    Assert.That(Vector3.Distance(position, box.ClosestPoint(position)), Is.GreaterThanOrEqualTo(.249f));
+                }
+                float clippedDistance = (float)type.GetField("collisionDistance", fields).GetValue(director);
+                type.GetField("collisionReturnAfter", fields).SetValue(director, Time.unscaledTime + 1f);
+                type.GetField("collisionFrame", fields).SetValue(director, Time.frameCount + 1);
+                var clearView = CameraState.Default;
+                clearView.RawPosition = pivot + Vector3.right * 4f;
+                clearView.RawOrientation = Quaternion.LookRotation(Vector3.left);
+                object[] clearArgs = { clearView };
+                apply.Invoke(director, clearArgs);
+                var clearOffset = ((CameraState)clearArgs[0]).GetFinalPosition() - pivot;
+                Assert.That(clearOffset.x, Is.EqualTo(clippedDistance).Within(.002f));
+                Assert.That(clearOffset.z, Is.EqualTo(0f).Within(.002f));
+                Assert.That(type.GetField("yaw", fields).GetValue(director), Is.EqualTo(90f));
             }
+            finally { Object.DestroyImmediate(root); Physics.SyncTransforms(); }
         }
 
         [TestCase(false)]
