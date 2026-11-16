@@ -300,11 +300,13 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             }
             pso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(computer);
 
-            // 컴퓨터 + 탈출로 배선 → 숨겨진 문·탈출로 문이 함께 열린다.
+            // 컴퓨터 + 탈출로 배선 + 녹슨 벽 안 배선 → 숨겨진 문·탈출로 문이 함께 열린다.
+            // 2026-11-16 버그 리포트: 기계실 배선은 녹슨 벽 안의 것까지 모두 끊어야 문이 열린다(밖 배선만 끊어도 열리던 문제).
             var both = root.gameObject.AddComponent<ExplorationAllOf>(); var bso = new SerializedObject(both);
-            var required = bso.FindProperty("required"); required.arraySize = 1 + cableIds.Length;
+            var required = bso.FindProperty("required"); required.arraySize = 2 + cableIds.Length;
             required.GetArrayElementAtIndex(0).stringValue = ComputerId;
             for (int n = 0; n < cableIds.Length; n++) required.GetArrayElementAtIndex(n + 1).stringValue = cableIds[n];
+            required.GetArrayElementAtIndex(1 + cableIds.Length).stringValue = ManagementCableId;
             bso.FindProperty("openTarget").stringValue = EscapeRouteId; bso.ApplyModifiedPropertiesWithoutUndo();
             // 탈출로 진입 판정(EscapeEntrance)은 탈출로 문 대상(structure-a:escape-door)이 장부에서 열렸는지를 본다.
             // 문은 이제 EscapeRouteId로 함께 열리므로, 길이 열리면 문 대상도 같이 기록해 탈출로로 넘어갈 수 있게 한다.

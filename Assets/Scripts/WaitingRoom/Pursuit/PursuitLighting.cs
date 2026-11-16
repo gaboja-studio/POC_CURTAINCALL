@@ -212,8 +212,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     if (PursuitLightSettings.Hash(e.Seed, Mathf.FloorToInt(local * 30), slot) < .6f) level *= rule.CrackleDip;
                     if (slot != e.SparkSlot) { e.SparkSlot = slot; if (rule.Sparks > 0) EmitSparks(e.Light.transform.position, rule.Sparks, view, settings); }
                 }
-                float intensity = e.Intensity * level;
-                var color = Color.Lerp(e.Color, target, tintAmount);
+                // 밤 조명 회로의 조명은 그쪽이 정한 지금 기준값(밤 푸른 빛·아침 원래 빛)을 쓴다. 추격을 시작할 때 기억한 값에 묶이지 않는다.
+                float baseIntensity = e.Intensity; var baseColor = e.Color;
+                if (CurtainCall.WaitingRoom.NightPower.TryGetBase(e.Light, out var nightIntensity, out var nightColor)) { baseIntensity = nightIntensity; baseColor = nightColor; }
+                float intensity = baseIntensity * level;
+                var color = Color.Lerp(baseColor, target, tintAmount);
                 if (e.Light.intensity != intensity) e.Light.intensity = intensity;
                 if (e.Light.color != color) e.Light.color = color;
                 entries[i] = e;
@@ -263,7 +266,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (screen != null) { screen.enabled = false; ScreenDarkness = 0; }
             if (!engaged) return;
             engaged = false; AmbientMultiplier = 1;
-            foreach (var e in entries) if (e.Light != null) { e.Light.intensity = e.Intensity; e.Light.color = e.Color; }
+            foreach (var e in entries) if (e.Light != null)
+            {
+                if (CurtainCall.WaitingRoom.NightPower.TryGetBase(e.Light, out var baseIntensity, out var baseColor)) { e.Light.intensity = baseIntensity; e.Light.color = baseColor; }
+                else { e.Light.intensity = e.Intensity; e.Light.color = e.Color; }
+            }
             RenderSettings.ambientSkyColor = ambientSky; RenderSettings.ambientEquatorColor = ambientEquator;
             RenderSettings.ambientGroundColor = ambientGround; RenderSettings.ambientIntensity = ambientIntensity;
             RenderSettings.ambientProbe = ambientProbe; RenderSettings.reflectionIntensity = reflectionIntensity;

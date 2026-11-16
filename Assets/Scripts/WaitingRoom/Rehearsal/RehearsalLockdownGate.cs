@@ -42,7 +42,9 @@ namespace CurtainCall.WaitingRoom
 
         void Build(float width, Material iron, float inward)
         {
-            barHeight = GameSettings.WaitingRoom.Tutorial.LockdownGateHeight;
+            // 천장·문틀보다 높게 세우면 철창이 지형을 뚫고 위층으로 솟는다(2026-11-16 버그 리포트). 바로 위 천장 아래까지만 세운다.
+            barHeight = Mathf.Min(GameSettings.WaitingRoom.Tutorial.LockdownGateHeight,
+                CeilingAbove(transform.position + Vector3.up * .3f, transform, GameSettings.WaitingRoom.Tutorial.LockdownGateHeight) + .3f);
             bars = new GameObject("Bars").transform;
             bars.SetParent(transform, false);
             int count = Mathf.Max(2, Mathf.CeilToInt(width / BarSpacing) + 1);
@@ -60,6 +62,16 @@ namespace CurtainCall.WaitingRoom
             block.enabled = Shut;
         }
 
+        /// <summary>point에서 위로 가장 가까운 천장·문틀까지의 거리(없으면 max). ignore 아래 충돌체와 트리거는 건너뛴다. 2cm 여유를 둔다.</summary>
+        internal static float CeilingAbove(Vector3 point, Transform ignore, float max)
+        {
+            float best = max;
+            foreach (var hit in Physics.RaycastAll(point, Vector3.up, max, ~0, QueryTriggerInteraction.Ignore))
+                if ((ignore == null || !hit.transform.IsChildOf(ignore)) && hit.collider.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>() == null)
+                    best = Mathf.Min(best, Mathf.Max(0f, hit.distance - .02f));
+            return best;
+        }
+
         internal static BoxCollider CreateBarrier(Transform gate, float centerX, float centerZ, float width)
         {
             float height = GameSettings.WaitingRoom.Tutorial.LockdownBarrierHeight;
@@ -69,6 +81,9 @@ namespace CurtainCall.WaitingRoom
             return collider;
         }
 
+        // 세로 창살(위아래로 잘라 보이는 길이를 줄인다)과 가로대(천장 위로 넘어가면 숨긴다).
+        readonly System.Collections.Generic.List<(Transform part, bool vertical, float baseY)> parts = new();
+
         void Part(PrimitiveType type, Vector3 position, Vector3 scale, Material material)
         {
             var part = GameObject.CreatePrimitive(type);
@@ -76,6 +91,7 @@ namespace CurtainCall.WaitingRoom
             part.transform.SetParent(bars, false);
             part.transform.localPosition = position; part.transform.localScale = scale;
             if (material != null) part.GetComponent<Renderer>().sharedMaterial = material;
+            parts.Add((part.transform, type == PrimitiveType.Cylinder, position.y));
         }
 
         void Update()
@@ -86,8 +102,34 @@ namespace CurtainCall.WaitingRoom
             closed = Mathf.MoveTowards(closed, target, Time.deltaTime / MoveSeconds);
             float eased = Mathf.SmoothStep(0f, 1f, closed);
             bars.gameObject.SetActive(closed > 0f);
-            bars.localPosition = new Vector3(0f, (1f - eased) * barHeight, 0f);
+            Lift((1f - eased) * barHeight);
             block.enabled = Shut;
+        }
+
+        // 철창은 위로 올라가며 열리고 내려오며 닫힌다. 천장(barHeight) 위로 넘어간 부분은 그리지 않는다
+        // (2026-11-16 버그 리포트: 올라가는 철창이 천장·위층 바닥을 뚫고 보임). 닫힐 때는 천장 속에서 내려오는 모습이 보인다.
+        float lifted = -1f;
+        void Lift(float offset)
+        {
+            if (Mathf.Approximately(offset, lifted)) return;
+            lifted = offset;
+            foreach (var (part, vertical, baseY) in parts)
+            {
+                if (part == null) continue;
+                if (vertical)
+                {
+                    float visible = barHeight - offset;
+                    part.gameObject.SetActive(visible > .02f);
+                    var scale = part.localScale; scale.y = Mathf.Max(.01f, visible * .5f); part.localScale = scale;
+                    var p = part.localPosition; p.y = offset + visible * .5f; part.localPosition = p;
+                }
+                else
+                {
+                    float y = baseY + offset;
+                    part.gameObject.SetActive(y + .04f <= barHeight);
+                    var p = part.localPosition; p.y = y; part.localPosition = p;
+                }
+            }
         }
     }
 }

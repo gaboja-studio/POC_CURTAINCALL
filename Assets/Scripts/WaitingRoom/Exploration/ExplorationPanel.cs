@@ -22,6 +22,9 @@ namespace CurtainCall.WaitingRoom
         static readonly Color32 TerminalGreen = new(120, 255, 140, 255), TerminalRed = new(255, 70, 60, 255);
         public string Word => word;
         public bool IsVisible => canvasRoot != null && canvasRoot.activeSelf;
+        /// <summary>단말기 자판 화면이 떠 있어 실제 키보드 글자를 입력으로 받는 중(F 등 글자 키가 상호작용으로 쓰이지 않게).</summary>
+        public bool Typing => terminal && codeLabel != null && IsVisible;
+        int typingFrom;
         public string Entered => entered;
 
         public void Open(string heading, string text, bool keypad, Action<string> onSubmit, Action onClose, bool overview = false, Texture image = null, bool reading = false, int reserveLines = 0)
@@ -122,8 +125,32 @@ namespace CurtainCall.WaitingRoom
             Key(screen, "Submit", WaitingRoomText.Get("gate.terminal-submit", "ENTER"), font, 28, -h + 76, 300, 56, SubmitCode);
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
             RefreshCode();
+            // 실제 키보드로도 친다(2026-11-16 버그 리포트). 창을 연 키 입력은 다음 프레임부터 무시한다.
+            typingFrom = Time.frameCount + 1; ListenKeyboard(true);
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
             if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);
+        }
+        bool listening;
+        void ListenKeyboard(bool on)
+        {
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard == null || listening == on) return;
+            listening = on;
+            if (on) keyboard.onTextInput += OnTextInput; else keyboard.onTextInput -= OnTextInput;
+        }
+        void OnTextInput(char c)
+        {
+            if (!Typing || Time.frameCount < typingFrom) return;
+            if (c >= '0' && c <= '9') PressDigit(c.ToString());
+            else if (char.IsLetter(c) && c < 128) PressKey(char.ToUpperInvariant(c).ToString());
+        }
+        void Update()
+        {
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (!Typing || keyboard == null || Time.frameCount < typingFrom) return;
+            if (keyboard.backspaceKey.wasPressedThisFrame) Backspace();
+            else if (keyboard.deleteKey.wasPressedThisFrame) ClearCode();
+            else if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame) SubmitCode();
         }
         /// <summary>
         /// 단말기 화면에 감시 카메라 영상을 띄운다(2026-11-13 사용자: 암호가 맞으면 탈출로 문이 열리는 화면을 보여 준다).
@@ -201,11 +228,11 @@ namespace CurtainCall.WaitingRoom
             if (message == null) return;
             message.text = terminal && text == ExplorationState.WrongCode ? WaitingRoomText.Get("gate.terminal-error", "Error") : text;
         }
-        public void Hide() { if (canvasRoot != null) canvasRoot.SetActive(false); submit = null; close = null; }
+        public void Hide() { ListenKeyboard(false); if (canvasRoot != null) canvasRoot.SetActive(false); submit = null; close = null; }
         /// <summary>창을 닫지 않고 잠시 가리거나 다시 보인다(연출이 화면을 쓰는 동안).</summary>
         public void SetVisible(bool visible) { if (canvasRoot != null && canvasRoot.activeSelf != visible) canvasRoot.SetActive(visible); }
         void OnDisable() => Hide();
-        void OnDestroy() { if (canvasRoot != null) Destroy(canvasRoot); }
+        void OnDestroy() { ListenKeyboard(false); if (canvasRoot != null) Destroy(canvasRoot); }
         static TMP_Text Text(Transform parent, string name, string value, TMP_FontAsset font, float size, float x, float y, float w, float h)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)); go.transform.SetParent(parent, false);

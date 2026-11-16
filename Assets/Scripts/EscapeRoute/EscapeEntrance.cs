@@ -135,8 +135,21 @@ namespace CurtainCall.EscapeRoute
                 : $"탈출 준비 {snapshot.eligible}/{snapshot.required}\n플레이 중인 전원이 모이면 출발";
             if (worldLabel != null) worldLabel.text = message;
             if (hudLabel != null) hudLabel.text = message;
-            if (hudRoot != null) hudRoot.SetActive(CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(run.State.Phase) && snapshot.occupants > 0);
+            // 화면 표시는 대기실의 다른 시스템 안내와 같은 시스템 알림 카드로 띄운다(2026-11-16 버그 리포트: 탈출 준비 UI 통일). 예전 전용 판은 끈다.
+            if (hudRoot != null) hudRoot.SetActive(false);
+            bool show = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(run.State.Phase) && snapshot.occupants > 0
+                && CurtainCall.UI.SceneIntegration.HudUIManager.Current != null;
+            string title = escaping ? "탈출" : $"탈출 준비 {snapshot.eligible}/{snapshot.required}";
+            string body = escaping ? message.Replace("\n", " · ") : "플레이 중인 전원이 모이면 출발합니다.";
+            if (!show) { if (readyCard != null) { readyCard.Close(); readyCard = null; } return; }
+            if (readyCard == null || readyCard.Closing)
+                readyCard = CurtainCall.WaitingRoom.WaitingRoomHudProfile.Emit(CurtainCall.WaitingRoom.RoomNotice.Notice, transform, title, body, 5f);
+            else if (readyText != title + "\n" + body) readyCard.SetText(body, title);
+            readyText = title + "\n" + body;
+            if (readyCard != null) readyCard.Extend(5f);
         }
+        CurtainCall.UI.SceneIntegration.HudRoleCard readyCard;
+        string readyText;
         public static bool Contains(BoxCollider area, Vector3 feet)
         {
             if (area == null || !area.gameObject.activeInHierarchy) return false;
@@ -147,6 +160,7 @@ namespace CurtainCall.EscapeRoute
         }
         void OnDestroy()
         {
+            if (readyCard != null) readyCard.Close(true);
             channel?.Dispose();
             if (run != null) run.StepChanged -= OnStep;
             if (Current == this) Current = null;

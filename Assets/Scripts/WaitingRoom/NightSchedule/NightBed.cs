@@ -26,10 +26,23 @@ namespace CurtainCall.WaitingRoom
         public static string UnscheduledTitle => WaitingRoomText.Get("night.bed-title", "잠자기");
         public static string UnscheduledNotice => WaitingRoomText.Get("night.bed-unavailable", "리허설이나 포획 중에는 잠들 수 없습니다.");
 
-        public bool IsAvailable => LocalCanInteract && IsNight(out var run) && (run.IsLocalReady || CanSleep);
+        public static string OccupiedNotice => WaitingRoomText.Get("night.bed-occupied", "다른 단원이 누운 침대입니다. 빈 침대를 쓰세요.");
+        public bool IsAvailable => LocalCanInteract && IsNight(out var run) && (run.IsLocalReady || CanSleep && !OccupiedByOther);
+        /// <summary>다른 플레이어가 이미 누운 침대(2026-11-16 버그 리포트: 침대에 겹쳐서 잠). 침대 수 = 최대 인원이라 빈 침대가 항상 있다.</summary>
+        public bool OccupiedByOther
+        {
+            get
+            {
+                int index = BedIndex; var local = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+                foreach (var player in CurtainCall.Network.PlayerSync.NetworkPlayer.All)
+                    if (player != null && player != local && player.IsSpawned && player.RestingBed == index) return true;
+                return false;
+            }
+        }
         static bool LocalCanInteract => CurtainCall.Network.PlayerSync.NetworkPlayer.Local == null
             || PlayerInteraction.CanInteract(CurtainCall.Network.PlayerSync.NetworkPlayer.Local);
         public string ActionLabel => !IsNight(out var run) ? WaitingRoomText.Get("night.bed-not-night", "밤 정비 때 쓸 수 있습니다")
+            : !run.IsLocalReady && OccupiedByOther ? WaitingRoomText.Get("night.bed-occupied-label", "다른 단원이 사용 중")
             : run.IsLocalReady ? WaitingRoomText.Format("night.bed-get-up", "일어나기 (준비 취소 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount))
             : WaitingRoomText.Format("night.bed-lie-down", "침대에 눕기 (준비 완료 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount));
 
@@ -63,7 +76,7 @@ namespace CurtainCall.WaitingRoom
             bool wasInReach = inReach;
             inReach = ShopReach.Focused == (IShopTarget)this;
             // 침대에 다가갔을 때 아직 잘 수 없으면 바로 안내한다.
-            if (inReach && !wasInReach && !IsAvailable && IsNight(out _)) WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice,transform);
+            if (inReach && !wasInReach && !IsAvailable && IsNight(out _)) WaitingRoomTutorial.ShowNotice(UnscheduledTitle, BlockedNotice, transform);
         }
 
         /// <summary>밤 정비 때만 닿는다. 낮에는 다른 대상의 F를 가로채지 않는다.</summary>
@@ -76,7 +89,7 @@ namespace CurtainCall.WaitingRoom
         public void Interact()
         {
             if (!LocalCanInteract || !IsNight(out var run)) return;
-            if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice,transform); return; }
+            if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, BlockedNotice, transform); return; }
             bool sleeping = !run.IsLocalReady;
             bool accepted = run.SetReady(sleeping);
             // A request rejected by the common eligibility check must not create a bed camera/pose.
@@ -90,6 +103,9 @@ namespace CurtainCall.WaitingRoom
                 rest.Begin(footprint, Body.rotation);
             }
         }
+
+        // 다른 단원이 누운 침대면 그 안내를, 아니면 리허설·포획 중 안내를 띄운다.
+        string BlockedNotice => CanSleep && OccupiedByOther ? OccupiedNotice : UnscheduledNotice;
 
         static bool IsNight(out CampaignRun run)
         {

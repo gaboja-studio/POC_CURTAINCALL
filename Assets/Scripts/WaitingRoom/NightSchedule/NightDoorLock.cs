@@ -54,6 +54,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (!shutterPositionSaved && shutter != null)
             { originalShutterPosition = shutter.localPosition; shutterPositionSaved = true; }
+            // 튜토리얼 보호용 투명 벽(이 오브젝트에 붙는 충돌체)이 생기기 전에 위 공간을 잰다.
+            if (shutter != null) RoomAboveShutter();
             // 씬이 열릴 때는 움직이지 않고 지금 상태로 바로 둔다(밤에 대기실로 돌아오면 이미 닫혀 있다).
             Apply(ShouldLock(), true);
             closed = IsLocked ? 1f : 0f;
@@ -143,11 +145,23 @@ namespace CurtainCall.WaitingRoom
             float eased = Mathf.SmoothStep(0f, 1f, closed);
             float authoredHeight = originalShutterPosition.y;
             float raised = tutorialProtected && authoredHeight > .01f
-                ? Mathf.Max(0f, GameSettings.WaitingRoom.Tutorial.LockdownGateHeight - authoredHeight) : 0f;
+                ? Mathf.Min(Mathf.Max(0f, GameSettings.WaitingRoom.Tutorial.LockdownGateHeight - authoredHeight), RoomAboveShutter()) : 0f;
             shutter.localPosition = originalShutterPosition + Vector3.up * raised;
             var scale = shutter.localScale;
             scale.y = Mathf.Lerp(openScale, 1f, eased) * (raised > 0f ? 1f + raised / authoredHeight : 1f);
             shutter.localScale = scale;
+        }
+
+        // 셔터 위 문틀·천장까지 남은 높이(2026-11-16 버그 리포트: 튜토리얼 동안 높인 셔터가 문틀·지붕을 뚫고 위로 솟음). 처음 한 번 잰다.
+        float roomAbove = -1f;
+        float RoomAboveShutter()
+        {
+            if (roomAbove >= 0f) return roomAbove;
+            var top = shutter.parent != null ? shutter.parent.TransformPoint(originalShutterPosition) : originalShutterPosition;
+            // 셔터 판 자신은 위로 쏜 광선에 걸리지 않게 건너뛴다(윗변 바로 아래에서 쏜다).
+            float max = GameSettings.WaitingRoom.Tutorial.LockdownGateHeight;
+            roomAbove = Mathf.Max(0f, RehearsalLockdownGate.CeilingAbove(top + Vector3.down * .05f, shutter, max + .05f) - .05f);
+            return roomAbove;
         }
 
         void OnGUI()
