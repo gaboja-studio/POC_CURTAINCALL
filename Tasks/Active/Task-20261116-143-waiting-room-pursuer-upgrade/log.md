@@ -96,3 +96,4 @@
 - 사용자 배치·봉합·단계 값은 씬/설정과 기존 커밋에 포함한다. 동적 폰트 캐시, 재질의 소수점 직렬화 차이, 임시 프로브/캡처는 로컬에 유지한다. save-work의 전체 add 대신 명시 경로만 stage한다.
 - new-pr -DryRun으로 dev 대상과 본문을 확인했다. 남겨 둘 로컬 캐시/프로브 때문에 전체 작업 트리 clean 검사는 충족되지 않으므로, 검사한 커밋을 push한 뒤 gh로 PR을 생성한다. 병합은 하지 않는다.
 - 저장 직전 안전성 OK(191 변경 경로), 문서/규칙 Fast OK 확인. 실제 커밋 대상은 관련 코드·씬·설정·기록 47개 파일이며 Unity 검사/회귀 결과는 위 확정 결과를 재사용한다.
+- 사용자 설정 포함 수정 커밋 f652a8e3를 feat/waiting-room-pursuer-upgrade에 push 완료. PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/406 (feat/waiting-room-pursuer-upgrade → dev). 병합하지 않고 검토 대기.
