@@ -1,0 +1,14 @@
+# Log
+
+- 2026-11-16: Unity 종료 상태에서 origin/dev를 fetch하고 a2a9dc90을 기준으로 분기. doctor의 기존 Task 중복·에디터 설치·third-party 감지 경고 확인. 실제 Unity 실행 파일과 서브모듈을 별도 확인했다.
+- 원인은 창을 열 때 닫기 버튼, 닫을 때 이전 선택 또는 개발 및 라이선스 버튼을 강제로 선택하던 동작이었다. 페이지 전환에서 해당 메뉴에 속한 선택만 해제하도록 변경했다.
+- Start 씬 Play Mode에서 uGUI 포인터 down/up/click으로 열기, 전문, 목록, 닫기, 반복 열기와 닫기를 실행했다. 클릭 직전 버튼 선택과 전환 직후 선택 해제를 확인했다.
+- dev의 외부 에셋 포인터가 로컬 서브모듈 체크아웃과 다르다. 업데이트 명령은 자동 승인 검토에서 로컬 작업 보존 사유로 거절되어 실행하지 않았다. 기존 서브모듈로 Start 씬 확인을 진행했다.
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/402 (fix/main-menu-license-focus → dev)

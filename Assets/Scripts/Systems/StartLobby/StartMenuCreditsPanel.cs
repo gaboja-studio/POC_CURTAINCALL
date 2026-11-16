@@ -20,8 +20,7 @@ namespace CurtainCall.StartLobby
         RectTransform panel, content;
         ScrollRect scroll;
         TMP_Text heading;
-        UnityEngine.UI.Button menuButton, close, back;
-        GameObject previousSelection;
+        UnityEngine.UI.Button back;
         bool showingLicense;
 
         public static StartMenuCreditsPanel Create(StartMenu owner, StartMenuCreditsSettings data)
@@ -48,7 +47,7 @@ namespace CurtainCall.StartLobby
             // Reuse the authored main button's skin, animation and font.
             var copy = Instantiate(owner.quit.gameObject, owner.mainPage.transform);
             copy.name = "Button_DevelopmentAndLicenses";
-            menuButton = copy.GetComponent<UnityEngine.UI.Button>();
+            var menuButton = copy.GetComponent<UnityEngine.UI.Button>();
             menuButton.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
             menuButton.onClick.AddListener(() => owner.Show(StartMenu.Page.Credits));
             var menuLabel = copy.GetComponentInChildren<TMP_Text>(true);
@@ -121,7 +120,7 @@ namespace CurtainCall.StartLobby
             scroll.verticalScrollbar = bar;
             scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
 
-            close = Button("Close", panel, "닫기", () => owner.Show(StartMenu.Page.Main));
+            var close = Button("Close", panel, "닫기", () => owner.Show(StartMenu.Page.Main));
             close.GetComponent<RectTransform>().anchoredPosition = new Vector2(280, -374);
             back = Button("Back", panel, "목록으로", BuildOverview);
             back.GetComponent<RectTransform>().anchoredPosition = new Vector2(-280, -374);
@@ -129,23 +128,28 @@ namespace CurtainCall.StartLobby
 
         public void SetVisible(bool visible)
         {
+            if (gameObject.activeSelf == visible) return;
             if (visible)
             {
-                if (gameObject.activeSelf) return;
-                previousSelection = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+                ClearSelectionIn(owner.mainPage.transform);
                 gameObject.SetActive(true);
                 transform.SetAsLastSibling();
                 BuildOverview();
-                close.Select();
             }
             else
             {
-                bool wasOpen = gameObject.activeSelf;
+                ClearSelectionIn(transform);
                 gameObject.SetActive(false);
-                if (wasOpen && EventSystem.current != null)
-                    EventSystem.current.SetSelectedGameObject(previousSelection != null && previousSelection.activeInHierarchy ? previousSelection :
-                        menuButton != null && menuButton.gameObject.activeInHierarchy ? menuButton.gameObject : null);
             }
+        }
+
+        static void ClearSelectionIn(Transform root)
+        {
+            var events = EventSystem.current;
+            if (events == null) return;
+            var selected = events.currentSelectedGameObject;
+            if (selected != null && selected.transform.IsChildOf(root))
+                events.SetSelectedGameObject(null);
         }
 
         void Update()
@@ -157,13 +161,14 @@ namespace CurtainCall.StartLobby
             if ((Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) ||
                 (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame))
             {
-                if (showingLicense) { BuildOverview(); close.Select(); }
+                if (showingLicense) BuildOverview();
                 else owner.Show(StartMenu.Page.Main);
             }
         }
 
         void Clear()
         {
+            ClearSelectionIn(transform);
             foreach (Transform child in content)
             {
                 child.gameObject.SetActive(false);
@@ -220,7 +225,6 @@ namespace CurtainCall.StartLobby
             Body(card, item.license, 24, Gold);
             Body(card, item.fullLicense != null ? item.fullLicense.text : item.notice, 20, Paper);
             ResetScroll();
-            back.Select();
         }
 
         void ResetScroll()
