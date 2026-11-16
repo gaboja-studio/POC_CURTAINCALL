@@ -497,7 +497,9 @@ namespace CurtainCall.Tightrope
             bool fell = local == null || local.State != PlayerState.Normal || system.WasDropped(local)
                         || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
             bool putDown = !fell && Time.time - restartedAt > RestartGrace
-                && !IsCrossing(local);
+                && !IsCrossing(local) && localBottom != null && localBottom.State == PlayerState.Normal;
+            // Capture/fall presentation can move the old carrier before this late unlink.
+            // A surviving passenger then keeps their own position and resumes normal gravity.
             var bottom = localBottom;
             var released = localMover;
             Release();
@@ -589,7 +591,8 @@ namespace CurtainCall.Tightrope
             if (localMover != null)
             {
                 localMover.ClearPendingInput();
-                if (!IsCrossing(NetworkPlayer.Local))
+                // Capture already owns movement when this late stack release runs.
+                if (!IsCrossing(NetworkPlayer.Local) && NetworkPlayer.Local?.State != PlayerState.EscapeCaptured)
                     localMover.Simulated = true;
             }
             localMover = null;

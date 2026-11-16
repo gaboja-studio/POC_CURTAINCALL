@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.EscapeRoute.EditorTools
 {
-    public static class EscapePursuerPhysicalLayout
+    public static partial class EscapePursuerPhysicalLayout
     {
         const string RootName = "Physical pursuit platforms";
         const string Prefab = "Assets/Resources/Prefabs/Characters/Enemies/UnderstagePursuer/EscapeAPursuer.prefab";
@@ -161,7 +161,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             wallsData.ApplyModifiedPropertiesWithoutUndo();
             RefineGeometry(route, encounters.ToArray());
-            Save(scene);
+            RestoreFallClearance();
+            RepairTraversalClearance();
         }
         public static void Refine()
         {
@@ -172,7 +173,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var chase = module.GetComponentInChildren<EscapeUnderstageChase>(true);
             var field = typeof(EscapeUnderstageChase).GetField("encounters", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             RefineGeometry(route, (EscapeUnderstageChase.PhysicalEncounter[])field.GetValue(chase));
-            Save(SceneManager.GetActiveScene());
+            RestoreFallClearance();
+            RepairTraversalClearance();
         }
         static void RefineGeometry(EscapePursuerRoute route, EscapeUnderstageChase.PhysicalEncounter[] encounters)
         {

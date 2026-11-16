@@ -23,7 +23,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] AudioSource threatAudio;
         [SerializeField] AudioClip chargeVoice, throwVoice;
         ThreatCue threat;
-        double threatRound = -1, nextDebris, voicedAt = -1;
+        double threatRound = -1, nextDebris, voicedAt = -1, pressureRoarRound = -1;
         float previousFlight;
 
         void ResetThreat()
@@ -33,6 +33,8 @@ namespace CurtainCall.EscapeRoute
             previousFlight = 0;
             voicedAt = -1;
             if (thrownDebris) thrownDebris.gameObject.SetActive(false);
+            if (captureCable) captureCable.enabled = false;
+            if (aimRing) aimRing.enabled = false;
             if (threatAudio) threatAudio.Stop();
         }
 
@@ -46,6 +48,11 @@ namespace CurtainCall.EscapeRoute
                 nextDebris = timer.Clock + Tuning.debrisCooldown;
             }
             if (threat.Phase == ThreatPhase.None) return false;
+            if (threat.Phase == ThreatPhase.DebrisWarning && (!CanUseAttackHand || WaitingForConveyor(threat.Actor)))
+            {
+                ResetThreat(); nextDebris = timer.Clock + Tuning.debrisCooldown; nextSend = 0;
+                return false;
+            }
             if (agent.enabled && agent.isOnNavMesh) agent.ResetPath();
             float age = Mathf.Max(0, (float)(timer.Clock - threat.Started));
             Vector3 facing = Vector3.ProjectOnPlane(threat.To - transform.position, Vector3.up);
@@ -60,9 +67,12 @@ namespace CurtainCall.EscapeRoute
             {
                 if (age >= Tuning.debrisWarning)
                 {
+                    // Launch from the release pose, after turning toward the locked target.
+                    threat.From = ThrowHandPosition(1f);
                     threat.Phase = ThreatPhase.DebrisFlight;
                     threat.Started = timer.Clock;
                     previousFlight = 0;
+                    nextSend = 0;
                 }
             }
             else if (threat.Phase == ThreatPhase.DebrisFlight)
@@ -84,27 +94,46 @@ namespace CurtainCall.EscapeRoute
 
         bool BeginChargeWarning(NetworkPlayer runner)
         {
-            if (!runner || InShowcase || charging) return false;
-            threat = new ThreatCue { Phase = ThreatPhase.ChargeWarning, Actor = runner.OwnerClientId,
-                Started = EscapeRouteTimer.Current.Clock, Duration = Tuning.chargeWarning,
-                From = transform.position, To = PlayerFeet(runner) + Vector3.up };
+            if (InShowcase || charging) return false;
+            ShowChargeWarning(runner, Tuning.entranceRoarDuration);
+            return true;
+        }
+
+        bool TryPressureWarning(NetworkPlayer runner)
+        {
+            var timer = EscapeRouteTimer.Current;
+            if (pressureRoarRound == timer.StartedAt || Pressure(runner) < .5f) return false;
+            pressureRoarRound = timer.StartedAt;
+            ShowChargeWarning(runner, Tuning.chargeWarning);
+            return true;
+        }
+
+        void ShowChargeWarning(NetworkPlayer runner, float duration)
+        {
+            Vector3 point = runner ? PlayerFeet(runner) : transform.position + transform.forward * 3f;
+            threat = new ThreatCue { Phase = ThreatPhase.ChargeWarning, Actor = ulong.MaxValue,
+                Started = EscapeRouteTimer.Current.Clock, Duration = duration,
+                From = transform.position, To = point };
             if (agent.enabled && agent.isOnNavMesh) agent.ResetPath();
             nextSend = 0;
-            return true;
         }
 
         bool TryDebrisAttack(NetworkPlayer runner)
         {
             double now = EscapeRouteTimer.Current.Clock;
-            if (InShowcase || !runner || attack.Phase != AttackPhase.None || threat.Phase != ThreatPhase.None || now < nextDebris)
+            if (InShowcase || !CanUseAttackHand || !runner || WaitingForConveyor(runner.OwnerClientId)
+                || attack.Phase != AttackPhase.None || threat.Phase != ThreatPhase.None || now < nextDebris)
                 return false;
             Vector3 aim = PlayerFeet(runner) + Vector3.up;
-            float distance = Vector3.Distance(Hand, aim);
-            if (distance < Tuning.debrisMinimumRange || distance > Tuning.armRange || !ClearReach(Hand, aim, runner)) return false;
+            Vector3 hand = Hand;
+            float distance = Vector3.Distance(hand, aim);
+            if (distance < Tuning.debrisMinimumRange || distance > Tuning.armRange || !ClearReach(hand, aim, runner)) return false;
             if (fullRoute && fullRoute.Following && !fullRoute.CanAim(runner, transform.position)) return false;
+            if (TryPressureWarning(runner)) return true;
             threat = new ThreatCue { Phase = ThreatPhase.DebrisWarning, Actor = runner.OwnerClientId,
-                Started = now, Duration = Mathf.Clamp(distance / Tuning.debrisSpeed, .25f, 2f), From = Hand, To = aim };
-            nextDebris = now + Tuning.debrisCooldown + Random.Range(0f, 2f);
+                Started = now, Duration = Mathf.Clamp(distance / Tuning.debrisSpeed, .25f, 2f), From = hand, To = aim };
+            float cooldown = Tuning.debrisCooldown * Mathf.Lerp(1f, Tuning.pressureDebrisCooldownScale, Pressure(runner));
+            nextDebris = now + cooldown + Random.Range(0f, 2f);
             if (fullRoute) fullRoute.MarkPressured(runner);
             nextSend = 0;
             return true;
@@ -148,7 +177,8 @@ namespace CurtainCall.EscapeRoute
             if (contact)
             {
                 impact = PlayerFeet(contact) + Vector3.up;
-                if (contact.ServerCut(1, "EscapePursuerProjectile", NetworkPlayer.DeathOrigin.Pursuit) != BodyPart.None)
+                if (!WaitingForConveyor(contact.OwnerClientId)
+                    && contact.ServerCut(1, "EscapePursuerProjectile", NetworkPlayer.DeathOrigin.Pursuit) != BodyPart.None)
                     ReleaseDevices(contact.OwnerClientId);
                 return true;
             }
@@ -168,14 +198,15 @@ namespace CurtainCall.EscapeRoute
         bool FindTorsoTarget(Vector3 release, out Vector3 aim, out ulong actor)
         {
             aim = default; actor = ulong.MaxValue;
-            float nearest = Tuning.torsoThrowRange;
+            float farthest = 0;
             foreach (var player in NetworkPlayer.All)
             {
-                if (!player || !player.IsSpawned || player == victim || player.State != PlayerState.Normal) continue;
+                if (!player || !player.IsSpawned || player == victim || player.State != PlayerState.Normal
+                    || WaitingForConveyor(player.OwnerClientId)) continue;
                 var candidate = PlayerFeet(player);
                 float distance = Vector3.Distance(release, candidate);
-                if (distance >= nearest || !ClearReach(release + Vector3.up * .7f, candidate + Vector3.up * .7f, player)) continue;
-                nearest = distance; aim = candidate; actor = player.OwnerClientId;
+                if (distance <= farthest || !ClearThrowArc(release, candidate)) continue;
+                farthest = distance; aim = candidate; actor = player.OwnerClientId;
             }
             return actor != ulong.MaxValue;
         }
@@ -184,8 +215,26 @@ namespace CurtainCall.EscapeRoute
         {
             bool warning = cue.Phase == ThreatPhase.ChargeWarning || cue.Phase == ThreatPhase.DebrisWarning;
             if (thrownDebris) thrownDebris.gameObject.SetActive(cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight);
+            // The opening roar belongs to the creature, without a selected player or marker.
+            // A thrown object retains its separate, time-limited impact warning.
+            // Do not overwrite the separate capture attack's indicators when no threat is active.
+            if (cue.Phase != ThreatPhase.None)
+            {
+                if (captureCable) captureCable.enabled = false;
+                if (aimRing) aimRing.enabled = cue.Phase == ThreatPhase.DebrisWarning;
+            }
             if (cue.Phase == ThreatPhase.None) return;
             float age = Mathf.Max(0, (float)(now - cue.Started));
+            if (cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight)
+            {
+                // Reuse the torso throw's overhand wind-up, release and recovery on the grey rig.
+                SampleGait(0, 0);
+                float pitch = cue.Phase == ThreatPhase.DebrisWarning
+                    ? ThrowPitch(Mathf.Clamp01(age / Tuning.debrisWarning))
+                    : Mathf.Lerp(ThrowPitch(1f + .2f * Mathf.Clamp01(age / Tuning.throwSwingSeconds)), 0,
+                        Mathf.SmoothStep(0, 1, age / Mathf.Max(.05f, Tuning.throwSwingSeconds)));
+                if (grabArm) grabArm.localRotation *= Quaternion.Euler(pitch, 0, 0);
+            }
             if (warning)
             {
                 if (voicedAt != cue.Started && age < .3f)
@@ -193,11 +242,10 @@ namespace CurtainCall.EscapeRoute
                     voicedAt = cue.Started;
                     if (threatAudio) threatAudio.PlayOneShot(cue.Phase == ThreatPhase.ChargeWarning ? chargeVoice : throwVoice);
                 }
-                if (captureCable) { captureCable.enabled = true; captureCable.SetPosition(0, Hand); captureCable.SetPosition(1, cue.To); }
-                if (aimRing) { aimRing.enabled = true; aimRing.transform.SetPositionAndRotation(cue.To - Vector3.up * .9f, Quaternion.Euler(90, 0, 0)); }
-                grabArm.localRotation *= Quaternion.Euler(-35f * Mathf.Sin(Mathf.Clamp01(age / Mathf.Max(.1f, cue.Duration)) * Mathf.PI * .5f), 0, 0);
+                if (cue.Phase == ThreatPhase.DebrisWarning && aimRing)
+                { aimRing.enabled = true; aimRing.transform.SetPositionAndRotation(cue.To - Vector3.up * .9f, Quaternion.Euler(90, 0, 0)); }
             }
-            if (thrownDebris)
+            if (thrownDebris && thrownDebris.gameObject.activeSelf)
             {
                 thrownDebris.position = cue.Phase == ThreatPhase.DebrisFlight ? DebrisPosition(cue.From, cue.To, age / cue.Duration) : Hand;
                 thrownDebris.rotation = Quaternion.Euler(age * 270f, age * 190f, age * 130f);

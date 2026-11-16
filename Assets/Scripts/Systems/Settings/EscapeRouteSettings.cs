@@ -107,7 +107,7 @@ namespace CurtainCall.Settings
             [Tooltip("추격자가 평소 걷는 속도(m/s).")]
             [Min(.1f)] public float walkSpeed = 2.7f;
             [Tooltip("낮은 통로에서 몸을 숙이고 이동하는 속도(m/s).")]
-            [Min(.1f)] public float crouchSpeed = 1.7f;
+            [Min(.1f)] public float crouchSpeed = 3f;
             [Tooltip("추격자가 달려들 때의 속도(m/s).")]
             [Min(.1f)] public float runSpeed = 6.6f;
             [Tooltip("벽 뒤 전용 동선에서 이동하는 속도(m/s).")]
@@ -118,6 +118,21 @@ namespace CurtainCall.Settings
             [Min(.1f)] public float targetRefreshSeconds = 1.2f;
             [Tooltip("최근 공격 대상을 기억하는 시간(초).")]
             [Min(.1f)] public float targetMemorySeconds = 6f;
+            [Header("장기 추격 압박")]
+            [Tooltip("한 주자가 전진하지 않을 때 추격자가 가속하기까지 주는 시간(초).")]
+            [Min(1)] public float pressureIdleGrace = 45f;
+            [Tooltip("탈출 시작 뒤 전체 추격이 가속되기까지 주는 시간(초).")]
+            [Min(1)] public float pressureRunGrace = 420f;
+            [Tooltip("압박이 시작된 뒤 최대치까지 늘어나는 시간(초).")]
+            [Min(1)] public float pressureRiseSeconds = 45f;
+            [Tooltip("새로 앞으로 이동해야 정체 시간이 초기화되는 거리(m).")]
+            [Min(.5f)] public float pressureProgressMetres = 4f;
+            [Tooltip("최대 압박에서 추격자의 지상 이동 속도 배율.")]
+            [Range(1, 2)] public float pressureMaxSpeed = 1.45f;
+            [Min(0)] public float conveyorApproachSeconds = 16f;
+            [Min(0)] public float conveyorFirstSeatSeconds = 13f;
+            [Tooltip("최대 압박에서 파편 재사용 대기 시간의 배율.")]
+            [Range(.3f, 1)] public float pressureDebrisCooldownScale = .55f;
             [Tooltip("움직이는 대상의 진행 방향을 앞서 조준할 시간(초).")]
             [Min(0)] public float aimLeadSeconds = .18f;
             [Tooltip("콘크리트 벽을 부수는 연출 시간(초).")]
@@ -126,8 +141,18 @@ namespace CurtainCall.Settings
             [Min(3f)] public float exposedGrabRange = 12f;
             [Tooltip("벽 밖에서 플레이어를 압박한 뒤 다음 구간으로 이동하기까지 최소 시간(초).")]
             [Min(1f)] public float encounterMinimumSeconds = 3f;
+            [Tooltip("공개 구간에서 접근·공격 진전이 없을 때 다른 등장 지점을 찾기까지 시간(초).")]
+            [Min(1f)] public float encounterRepositionSeconds = 4f;
+            [Tooltip("한 등장 지점에서 압박한 뒤 새로운 각도로 이동하는 시간(초). 포획 중에는 완료를 기다립니다.")]
+            [Min(4f)] public float encounterMaximumSeconds = 12f;
+            [Tooltip("경로 도약의 최소 최고점 높이(m). 낭떠러지 위 이동에 적용한다.")]
+            [Min(1f)] public float routeJumpHeight = 3f;
+            [Tooltip("긴 경로 도약에서 수평 거리 1m당 추가로 확보할 최고점 높이(m).")]
+            [Min(0)] public float routeJumpHeightPerMetre = .2f;
+            [Tooltip("긴 경로 도약의 수평 비행 속도 상한(m/s).")]
+            [Min(1f)] public float routeJumpSpeed = 18f;
             [Tooltip("달려들기 전에 대상을 노려보며 준비하는 시간(초).")]
-            [Min(.2f)] public float chargeWarning = 1.15f;
+            [Min(.2f)] public float chargeWarning = 1.5f;
             [Tooltip("콘크리트 파편을 던지기 전 예고 시간(초).")]
             [Min(.2f)] public float debrisWarning = 1.1f;
             [Tooltip("파편 공격 사이 최소 대기 시간(초).")]
@@ -141,13 +166,14 @@ namespace CurtainCall.Settings
             [Tooltip("몸통을 다른 플레이어에게 던지기 전 추가 준비 시간(초).")]
             [Min(.2f)] public float torsoThrowWarning = .85f;
             [Tooltip("몸통 투척 대상을 찾는 최대 거리(m).")]
-            [Min(1f)] public float torsoThrowRange = 28f;
+            [Min(1f)] public float torsoThrowRange = 40f;
             [Tooltip("벽 뒤에서 다시 나타나기까지 기다리는 최소 시간(초).")]
             [Min(.1f)] public float revealCooldownMin = 1.2f;
             [Tooltip("벽 뒤에서 다시 나타나기까지 기다리는 최대 시간(초).")]
             [Min(.1f)] public float revealCooldownMax = 3.5f;
             [Tooltip("등장 뒤 처음 이만큼(m) 걸은 다음부터 달리기를 시작할 수 있다.")]
-            [Min(0)] public float firstWalkMetres = 6f;
+            [Min(0)] public float entranceRoarDelay = 1.8f;
+            [Range(.2f, 3f)] public float entranceRoarDuration = .95f;
             [Tooltip("탈출로 마지막 질주 구간에서 추격자가 달리는 속도(m/s).")]
             [Min(.1f)] public float finaleRunSpeed = 6.6f;
             [Tooltip("마지막 질주가 시작된 뒤 추격자가 뒤쫓기 시작할 때까지 주는 먼저 출발 시간(초).")]
@@ -177,7 +203,7 @@ namespace CurtainCall.Settings
             [Tooltip("잡은 플레이어를 던지기 위해 휘두르는 시간(초).")]
             [Min(.05f)] public float throwSwingSeconds = .48f;
             [Tooltip("던져진 플레이어가 날아가는 시간(초).")]
-            [Min(.05f)] public float throwFlightSeconds = 1.2f;
+            [Min(.05f)] public float throwFlightSeconds = 1.6f;
             [Header("마지막 추격자 전투")]
             [Tooltip("마지막 추격자 전투에서 추격자가 움직이는 기본 속도(m/s).")]
             [Min(.1f)] public float bossMoveSpeed = 6.6f;

@@ -19,7 +19,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
         public static void Bake()
         {
             var scene = SceneManager.GetActiveScene();
-            if (Application.isPlaying || (scene.path != Folder + "/UnderstagePursuerPlaytest.unity" && scene.path != EscapePursuerLayoutReview.SourceScene))
+            if (Application.isPlaying || (scene.path != Folder + "/UnderstagePursuerPlaytest.unity" && scene.path != EscapePursuerLayoutReview.SourceScene
+                && scene.path != EscapePursuitRemodel.ScenePath && scene.path != EscapeBackgroundBuilder.LabyrinthCopyPath))
                 throw new InvalidOperationException("탈출로 A 또는 추격자 테스트 씬의 편집 모드에서 실행하세요.");
             var frame = scene.GetRootGameObjects();
             var module = frame.SelectMany(r => r.GetComponentsInChildren<EscapePursuerRoute>(true)).SingleOrDefault();
@@ -56,7 +57,14 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 module.transform.root.position, module.transform.root.rotation);
             if (!data) throw new InvalidOperationException("추격자 이동면 생성 실패");
             data.name = "EscapeAChaseNavigation";
-            const string path = "Assets/Resources/Prefabs/Characters/Enemies/UnderstagePursuer/EscapeAChaseNavigation.asset";
+            // A copied scene may still reference the source data. Bake into its own asset before rebinding it.
+            string path = scene.path switch
+            {
+                EscapeBackgroundBuilder.LabyrinthScenePath => Folder + "/EscapeRouteLabyrinthPrototypeNavigation.asset",
+                EscapeBackgroundBuilder.LabyrinthCopyPath => Folder + "/EscapeRouteLabyrinthCopyNavigation.asset",
+                EscapePursuitRemodel.ScenePath => Folder + "/EscapeRoutePursuitRemodelNavigation.asset",
+                _ => "Assets/Resources/Prefabs/Characters/Enemies/UnderstagePursuer/EscapeAChaseNavigation.asset"
+            };
             var saved = AssetDatabase.LoadAssetAtPath<NavMeshData>(path);
             surface.RemoveData();
             if (saved)

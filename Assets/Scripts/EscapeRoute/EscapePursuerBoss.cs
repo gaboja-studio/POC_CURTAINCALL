@@ -23,19 +23,31 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Font labelFont;
         static CurtainCall.Settings.EscapeRouteSettings.PursuerTuning Tuning => CurtainCall.Settings.GameSettings.EscapeRoute.Pursuer;
         public static EscapePursuerBoss Current { get; private set; }
-        public Phase State => state.Phase;
-        public int Cuts => CutCount(state.Mask);
-        public bool Defeated => state.Phase == Phase.Dying || state.Phase == Phase.Dead;
-        public bool InBattle => state.Phase >= Phase.LeapWarning && !Defeated;
-        public bool CombatStarted => state.Phase >= Phase.LeapWarning;
+        // Chase and boss snapshots travel in separate messages. Until this round's
+        // boss state arrives, old cuts/death must not affect the new body's pose or aim.
+        internal bool HasCurrentRoundState
+        {
+            get
+            {
+                var timer = EscapeRouteTimer.Current;
+                return !timer || timer.HasStarted && state.Round == timer.StartedAt;
+            }
+        }
+        byte CurrentMask => HasCurrentRoundState ? state.Mask : (byte)0;
+        public Phase State => HasCurrentRoundState ? state.Phase : Phase.Waiting;
+        public int Cuts => CutCount(CurrentMask);
+        public bool Defeated => State == Phase.Dying || State == Phase.Dead;
+        public bool InBattle => State >= Phase.LeapWarning && !Defeated;
+        public bool CombatStarted => State >= Phase.LeapWarning;
         public bool LimitsFinalFire => arena != null;
         public Transform ArenaFrame => arena ? arena.transform : transform;
-        public float SpeedScale => MovementScale(state.Mask, Tuning.bossSlowPerCut);
+        public float SpeedScale => MovementScale(CurrentMask, Tuning.bossSlowPerCut);
         bool fireRequested;
         double nextDash;
         uint observedShots;
         Vector3 rigRest;
         Quaternion rigRotation;
+        readonly EscapePursuerNavigation navigation = new();
 
         void Awake() { if (rig) { rigRest = rig.localPosition; rigRotation = rig.localRotation; } }
         void OnEnable()
@@ -51,7 +63,13 @@ namespace CurtainCall.EscapeRoute
             Detach();
             if (Current == this) Current = null;
         }
-        void Restart(NetworkPlayer _) { state = default; state.Round = -1; fireRequested = false; nextDash = 0; observedShots = 0; }
+        void Restart(NetworkPlayer _)
+        {
+            state = default; state.Round = -1; fireRequested = false; nextDash = 0; observedShots = 0; navigation.Reset();
+            // The new encounter clock is not accepted until after the entrance. Restore
+            // the body now, while LateUpdate/Present are intentionally waiting for it.
+            ResetPresentation();
+        }
         public static int CutCount(byte mask) { int count = 0; for (; mask != 0; mask &= (byte)(mask - 1)) count++; return count; }
         public static float MovementScale(byte mask, float loss) => Mathf.Max(.4f, 1f - CutCount(mask) * Mathf.Clamp(loss, 0, .12f));
         public bool InsideArena(Vector3 feet) => arena && arena.bounds.Contains(feet + Vector3.up);
@@ -91,6 +109,21 @@ namespace CurtainCall.EscapeRoute
             }
             return false;
         }
+
+        // The leap commits this actor to arena navigation. Keep the service route
+        // available while a living runner still needs to reach the final stretch.
+        internal bool HasRunnerBehindFinale => State == Phase.Chasing && FindRunnerBehindFinale();
+
+        bool FindRunnerBehindFinale()
+        {
+            if (!arena || !route) return false;
+            foreach (var player in NetworkPlayer.All)
+                if (player && player.IsSpawned && player.State == PlayerState.Normal
+                    && !BeyondFireBoundary(route.PlayerFeet(player))
+                    && route.Project(route.PlayerFeet(player), out _) < ignitionRoutePoint - 1f)
+                    return true;
+            return false;
+        }
         bool LauncherTaken()
         {
             foreach (var saw in EscapeExitSaw.Devices)
@@ -116,12 +149,13 @@ namespace CurtainCall.EscapeRoute
             }
             if (state.Phase == Phase.Chasing)
             {
-                if (!LauncherTaken() || route.Progress < leapRoutePoint
+                if (FindRunnerBehindFinale() || !(LauncherTaken() || Nearest()) || route.Progress < leapRoutePoint
                     || Vector3.Distance(transform.position, landing.position) > 65) return false;
                 chase.CancelBossAttack(); Enter(Phase.LeapWarning, now, landing.position); age = 0;
             }
             chase.BossBody(!Defeated);
             var before = transform.position;
+            var travelPhase = state.Phase;
             switch (state.Phase)
             {
                 case Phase.Ignition:
@@ -164,17 +198,23 @@ namespace CurtainCall.EscapeRoute
                             Face(toward);
                             if (toward.magnitude > 2.8f)
                             {
-                                Vector3 to = ClampArena(transform.position + toward.normalized * (Tuning.bossMoveSpeed * SpeedScale * Time.deltaTime));
-                                if (ClearMovement(transform.position, to)) transform.position = to;
-                                else SteerAround(toward);
+                                transform.position = navigation.Step(transform, arena, target.transform.position,
+                                    Tuning.bossMoveSpeed * SpeedScale * chase.PressureSpeed(target) * Time.deltaTime);
                             }
                         }
                     }
                     break;
             }
-            float moved = Vector3.Distance(before, transform.position);
-            chase.AdvanceGait(moved, 0, state.Phase == Phase.Battle || state.Phase == Phase.Dashing ? 1 : 0, moved < .001f, Time.deltaTime);
+            AdvanceGroundedGait(travelPhase, before, Time.deltaTime);
             return true;
+        }
+        void AdvanceGroundedGait(Phase travelPhase, Vector3 before, float dt)
+        {
+            // Test the phase that moved, including a leap's final landing frame.
+            // Airborne distance is not walking distance; landing has its own impact cue.
+            bool grounded = travelPhase == Phase.Battle || travelPhase == Phase.Dashing;
+            float moved = grounded ? Vector3.Distance(before, transform.position) : 0f;
+            chase.AdvanceGait(moved, 0, grounded ? 1 : 0, moved < .001f, dt);
         }
         void Face(Vector3 direction)
         {
@@ -182,22 +222,9 @@ namespace CurtainCall.EscapeRoute
             if (direction.sqrMagnitude > .01f) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), 300 * Time.deltaTime);
         }
 
-        void SteerAround(Vector3 toward)
-        {
-            Vector3 before = transform.position;
-            float step = Tuning.bossMoveSpeed * SpeedScale * Time.deltaTime;
-            for (int angle = 35; angle <= 105; angle += 35)
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    Vector3 direction = Quaternion.AngleAxis(angle * side, Vector3.up) * toward.normalized;
-                    Vector3 candidate = ClampArena(before + direction * step);
-                    if ((candidate - before).sqrMagnitude < step * step * .25f || !ClearMovement(before, candidate)) continue;
-                    transform.position = candidate; Face(direction); return;
-                }
-        }
         void ObserveShot(EscapeExitSaw saw, ulong actor, string key, string kind, Vector3 origin, Vector3 direction, string result)
         {
-            if (kind != "FIRED" || saw.FinaleBoss != this || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return;
+            if (!HasCurrentRoundState || kind != "FIRED" || saw.FinaleBoss != this || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return;
             observedShots++;
             double now = EscapeRouteTimer.Current.Clock;
             if (state.Phase != Phase.Battle || chase.Capturing || now < nextDash || observedShots % 3 != 0) return;
@@ -210,10 +237,21 @@ namespace CurtainCall.EscapeRoute
         }
         bool ClearMovement(Vector3 from, Vector3 to)
         {
+            bool Obstacle(Collider collider) => !collider.transform.IsChildOf(transform)
+                && !collider.GetComponentInParent<NetworkPlayer>();
+            foreach (var feet in new[] { from, to })
+                foreach (var collider in Physics.OverlapCapsule(feet + Vector3.up * 1.6f, feet + Vector3.up * 3.6f, 1.4f,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                    if (Obstacle(collider)) return false;
             Vector3 delta = to - from;
             foreach (var hit in Physics.CapsuleCastAll(from + Vector3.up * 1.6f, from + Vector3.up * 3.6f, 1.4f,
                 delta.normalized, delta.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                if (!hit.transform.IsChildOf(transform) && !hit.transform.GetComponentInParent<NetworkPlayer>()) return false;
+                if (Obstacle(hit.collider)) return false;
+            // Arena bounds select targets; they need not be filled by a continuous floor.
+            // A grounded dodge follows the same support contract as ordinary pursuit walking.
+            int steps = Mathf.Max(1, Mathf.CeilToInt(delta.magnitude / .75f));
+            for (int i = 0; i <= steps; i++)
+                if (!EscapePursuerNavigation.Supported(Vector3.Lerp(from, to, i / (float)steps))) return false;
             return true;
         }
         void LateUpdate()
@@ -221,7 +259,11 @@ namespace CurtainCall.EscapeRoute
             Attach();
             if (chase.InShowcase) return;
             var timer = EscapeRouteTimer.Current;
-            if (!timer || !timer.HasStarted || state.Round != timer.StartedAt) return;
+            if (!timer || !timer.HasStarted || state.Round != timer.StartedAt)
+            {
+                if (presentedRound >= 0 || presentedMask != 0) ResetPresentation();
+                return;
+            }
             if (NetworkManager.Singleton && NetworkManager.Singleton.IsServer) Publish(timer.Clock);
             Present(timer.Clock);
         }
