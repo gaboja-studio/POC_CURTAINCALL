@@ -20,27 +20,52 @@ namespace CurtainCall.EscapeRoute
                 Vector3 down = transform.InverseTransformVector(Vector3.down).normalized;
                 Vector3 side = Vector3.Cross(tangent, down).normalized;
                 if (side.sqrMagnitude < .1f) side = Vector3.right;
-                Vector3 leftOffset = -tangent * (.035f + breakGap * .5f * ease) + down * (droopDistance * ease) + side * wobble;
-                Vector3 rightOffset = tangent * (.035f + breakGap * .5f * ease) + down * (droopDistance * ease) - side * wobble;
-                float leftBend = Mathf.Max(.001f, Mathf.Min(1.8f, cutDistance));
-                float rightBend = Mathf.Max(.001f, Mathf.Min(1.8f, lengths[lengths.Length - 1] - cutDistance));
-                for (int i = 0; i <= cutSegment; i++)
+                float total = lengths[lengths.Length - 1];
+                // Remove an actual arc interval. Merely displacing the cut vertex left overlapping faces
+                // on the first frame and folded short tails back through their terminal boxes.
+                float halfGap = radius + .025f + Mathf.Max(0, breakGap) * .5f * ease;
+                float leftEnd = cutDistance - Mathf.Min(halfGap, cutDistance * .75f);
+                float rightStart = cutDistance + Mathf.Min(halfGap, (total - cutDistance) * .75f);
+                float remaining = Mathf.Max(0, Mathf.Min(leftEnd, total - rightStart));
+                float drop = Mathf.Min(Mathf.Max(0, droopDistance) * ease, remaining * .25f);
+                float sway = Mathf.Clamp(.12f * ease + wobble, -remaining * .2f, remaining * .2f);
+                Vector3 leftOffset = down * drop + side * sway;
+                Vector3 rightOffset = down * drop - side * sway;
+                float leftBend = Mathf.Max(.001f, Mathf.Min(1.8f, leftEnd));
+                float rightBend = Mathf.Max(.001f, Mathf.Min(1.8f, total - rightStart));
+                if (leftEnd > .0001f)
                 {
-                    float weight = Mathf.Pow(Mathf.Clamp01(1 - (cutDistance - lengths[i]) / leftBend), 2);
-                    AddPoint(left, path[i] + leftOffset * (i == 0 ? 0 : weight));
+                    for (int i = 0; i < path.Length && lengths[i] < leftEnd; i++)
+                    {
+                        float weight = Mathf.Pow(Mathf.Clamp01(1 - (leftEnd - lengths[i]) / leftBend), 2);
+                        AddPoint(left, path[i] + leftOffset * (i == 0 ? 0 : weight));
+                    }
+                    AddPoint(left, PointAtDistance(leftEnd) + leftOffset);
                 }
-                AddPoint(left, cutLocal + leftOffset);
-                right.Add(cutLocal + rightOffset);
-                for (int i = cutSegment + 1; i < path.Length; i++)
+                if (total - rightStart > .0001f)
                 {
-                    float weight = Mathf.Pow(Mathf.Clamp01(1 - (lengths[i] - cutDistance) / rightBend), 2);
-                    AddPoint(right, path[i] + rightOffset * (i == path.Length - 1 ? 0 : weight));
+                    right.Add(PointAtDistance(rightStart) + rightOffset);
+                    for (int i = 0; i < path.Length; i++)
+                    {
+                        if (lengths[i] <= rightStart) continue;
+                        float weight = Mathf.Pow(Mathf.Clamp01(1 - (lengths[i] - rightStart) / rightBend), 2);
+                        AddPoint(right, path[i] + rightOffset * (i == path.Length - 1 ? 0 : weight));
+                    }
                 }
                 Tube(left, vertices, normals, uv, shell, copper);
                 Tube(right, vertices, normals, uv, shell, copper);
             }
             mesh.Clear(); mesh.SetVertices(vertices); mesh.SetNormals(normals); mesh.SetUVs(0, uv);
             mesh.subMeshCount = 2; mesh.SetTriangles(shell, 0); mesh.SetTriangles(copper, 1); mesh.RecalculateBounds();
+        }
+
+        Vector3 PointAtDistance(float distance)
+        {
+            for (int i = 1; i < path.Length; i++)
+                if (distance <= lengths[i])
+                    return Vector3.Lerp(path[i - 1], path[i],
+                        Mathf.InverseLerp(lengths[i - 1], lengths[i], distance));
+            return path[path.Length - 1];
         }
 
         static void AddPoint(List<Vector3> points, Vector3 value)

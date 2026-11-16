@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
         public string OpenTarget => openTarget;
         [SerializeField] ParticleSystem cutSparks;
         [SerializeField] AudioSource cutAudio;
+        [SerializeField] Light cutFlash;
         [SerializeField, Min(.1f)] float snapSeconds = .9f;
         [SerializeField, Min(.1f)] float breakGap = .55f;
         [SerializeField, Min(0)] float droopDistance = .7f;
@@ -44,10 +45,16 @@ namespace CurtainCall.EscapeRoute
         void Update()
         {
             if (pendingRebuild) Rebuild();
-            if (!Application.isPlaying || !cut || settled) return;
-            float elapsed = (float)(Time.unscaledTimeAsDouble - cutAt);
+            if (!Application.isPlaying || !cut) return;
+            AdvanceCutPresentation((float)(Time.unscaledTimeAsDouble - cutAt));
+        }
+
+        void AdvanceCutPresentation(float elapsed)
+        {
+            if (cutFlash != null && elapsed >= .12f) cutFlash.enabled = false;
             if (elapsed > .2f && cutSparks != null && cutSparks.isEmitting)
                 cutSparks.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            if (settled) return;
             settled = elapsed >= Mathf.Max(.1f, snapSeconds);
             BuildMesh(Mathf.Clamp01(elapsed / Mathf.Max(.1f, snapSeconds)));
         }
@@ -117,8 +124,10 @@ namespace CurtainCall.EscapeRoute
             if (newlyCut)
             {
                 settled = !playFeedback || !Application.isPlaying; cutAt = Time.unscaledTimeAsDouble;
+                if (!playFeedback && cutFlash != null) cutFlash.enabled = false;
                 if (playFeedback)
                 {
+                    if (cutFlash != null) { cutFlash.transform.position = CutPoint; cutFlash.enabled = true; }
                     if (cutSparks != null)
                     {
                         cutSparks.transform.position = CutPoint;
@@ -133,6 +142,7 @@ namespace CurtainCall.EscapeRoute
             else if (!value)
             {
                 settled = true;
+                if (cutFlash != null) cutFlash.enabled = false;
                 if (cutSparks != null) cutSparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 if (cutAudio != null) cutAudio.Stop();
             }
@@ -160,6 +170,7 @@ namespace CurtainCall.EscapeRoute
 
         void OnDisable()
         {
+            if (cutFlash != null) cutFlash.enabled = false;
             if (cutSparks != null) cutSparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             if (cutAudio != null) cutAudio.Stop();
             ReleaseMesh();

@@ -169,5 +169,56 @@ namespace CurtainCall.EscapeRoute.Tests
         {
             Vector3 sum = Vector3.zero; for (int i = 0; i < count; i++) sum += vertices[offset + i]; return sum / count;
         }
+
+        [TestCase(0f), TestCase(.15f), TestCase(1f)]
+        public void SeveredFacesHaveAVisibleGapFromTheFirstFrame(float progress)
+        {
+            var cable = Cable(Vector3.up * 8, Vector3.up * .35f);
+            Call(cable, "ApplyCut", Vector3.up * 1.45f, false);
+            Call(cable, "BuildMesh", progress);
+            var mesh = cable.GetComponent<MeshFilter>().sharedMesh;
+            var caps = mesh.GetTriangles(1); var vertices = mesh.vertices;
+            Vector3 left = vertices[caps[24]], right = vertices[caps[48]];
+            Assert.That(Vector3.Distance(left, right), Is.GreaterThan(.17f),
+                "Two disconnected triangle islands still look joined if their insulated end faces overlap.");
+        }
+
+        [TestCase(.5f), TestCase(.7f), TestCase(7.8f)]
+        public void CuttingNearAnAnchorDoesNotFoldTheTailThroughItsTerminal(float height)
+        {
+            var cable = Cable(Vector3.up * 8, Vector3.up * .35f);
+            Call(cable, "ApplyCut", Vector3.up * height, false);
+            var mesh = cable.GetComponent<MeshFilter>().sharedMesh;
+            var caps = mesh.GetTriangles(1); var vertices = mesh.vertices;
+            Assert.That(vertices[caps[24]].y, Is.InRange(.35f, 8f));
+            Assert.That(vertices[caps[48]].y, Is.InRange(.35f, 8f));
+            Assert.That(vertices[caps[0]].y, Is.EqualTo(8).Within(.0001f));
+            Assert.That(vertices[caps[72]].y, Is.EqualTo(.35f).Within(.0001f));
+        }
+
+        [Test]
+        public void CutFeedbackIsAtContactIsBriefAndDoesNotReplayForSnapshots()
+        {
+            var cable = Cable();
+            var flashObject = new GameObject("Cut flash"); flashObject.transform.SetParent(cable.transform);
+            var flash = flashObject.AddComponent<Light>(); flash.enabled = false; Set(cable, "cutFlash", flash);
+            var sparksObject = new GameObject("Cut sparks"); sparksObject.transform.SetParent(cable.transform);
+            var sparks = sparksObject.AddComponent<ParticleSystem>();
+            sparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = sparks.main; main.playOnAwake = false; main.loop = false; Set(cable, "cutSparks", sparks);
+            cable.gameObject.SetActive(true);
+            var hit = Vector3.up * .25f;
+            Call(cable, "SetCut", true, hit, true);
+            Assert.IsTrue(flash.enabled); Assert.IsTrue(sparks.isPlaying);
+            Assert.That(Vector3.Distance(flash.transform.position, hit), Is.LessThan(.001f));
+            Assert.That(Vector3.Distance(sparks.transform.position, hit), Is.LessThan(.001f));
+            Call(cable, "AdvanceCutPresentation", .25f);
+            Assert.IsFalse(flash.enabled); Assert.IsFalse(sparks.isEmitting);
+            Call(cable, "SetCut", true, hit, true);
+            Assert.IsFalse(flash.enabled); Assert.IsFalse(sparks.isEmitting);
+            Call(cable, "SetCut", false, Vector3.zero, false);
+            Call(cable, "SetCut", true, hit, false);
+            Assert.IsFalse(flash.enabled); Assert.IsFalse(sparks.isPlaying);
+        }
     }
 }
