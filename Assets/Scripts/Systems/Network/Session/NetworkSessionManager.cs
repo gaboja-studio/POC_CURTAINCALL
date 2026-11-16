@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CurtainCall.Dev;
 using CurtainCall.Settings;
@@ -186,6 +187,8 @@ namespace CurtainCall.Network.Session
 
         void OnDestroy()
         {
+            _preparationCancellation?.Cancel();
+            _preparationCancellation?.Dispose();
             _minimumStartPlayerRequests.Clear();
             if (Instance != this)
                 return;
@@ -259,10 +262,12 @@ namespace CurtainCall.Network.Session
         public const int JoinTimeoutMilliseconds = 30000;
         bool _cancellingConnect;
         DateTime _connectStartedUtc;
+        CancellationTokenSource _preparationCancellation;
 
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
             if (!BeginConnect(connector)) return false;
+            if (!await PrepareConnectionAsync(connector)) return false;
             try
             {
                 if (await connector.HostAsync() && ReferenceEquals(_connector, connector) && !_cancellingConnect)
@@ -281,6 +286,7 @@ namespace CurtainCall.Network.Session
         public async Task<bool> JoinAsync(ISessionConnector connector, string joinKey)
         {
             if (!BeginConnect(connector)) return false;
+            if (!await PrepareConnectionAsync(connector)) return false;
             var completion = WaitForClientAsync(connector, joinKey);
             // 커넥터의 true는 연결 시작일 수 있다. NGO의 실제 Client 상태까지 같은 제한시간을 쓴다.
             await Task.WhenAny(completion, Task.Delay(JoinTimeoutMilliseconds));
@@ -292,6 +298,30 @@ namespace CurtainCall.Network.Session
             else
                 await CancelConnectAsync(connector, JoinFailureMessage, "Timeout");
             return false;
+        }
+
+        async Task<bool> PrepareConnectionAsync(ISessionConnector connector)
+        {
+            // 첫 로드가 Relay의 무응답 만료보다 길 수 있다. 방장/참가자 모두 할당 전에 준비하며,
+            // 로컬 디스크 준비 시간은 실제 방 참가 제한시간에 포함하지 않는다.
+            if (connector is ServicesSessionConnector)
+            {
+                try
+                {
+                    await PerformanceBackground.PerformanceBackgroundLoader.PrepareForConnectionAsync(_preparationCancellation.Token);
+                }
+                catch (OperationCanceledException) { return false; }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"[Session] 공연 배경 준비 실패: {e.Message}");
+                    await CancelConnectAsync(connector, "공연 배경을 준비하지 못했습니다.", "PreparationFailed");
+                    return false;
+                }
+            }
+            if (this == null || !ReferenceEquals(_connector, connector) || _cancellingConnect
+                || ConnectionState != SessionConnectionState.Connecting) return false;
+            _connectStartedUtc = DateTime.UtcNow;
+            return true;
         }
 
         async Task<bool> WaitForClientAsync(ISessionConnector connector, string joinKey)
@@ -334,6 +364,7 @@ namespace CurtainCall.Network.Session
         {
             if (this == null || !ReferenceEquals(_connector, connector) || _cancellingConnect) return;
             _cancellingConnect = true;
+            _preparationCancellation?.Cancel();
             string detail = !string.IsNullOrEmpty(_pendingDisconnectReason)
                 ? _pendingDisconnectReason : _networkManager.DisconnectReason;
             Debug.Log($"[Session] 접속 취소 [{cause}] mode={ConnectionMode(connector)} elapsedMs={(DateTime.UtcNow - _connectStartedUtc).TotalMilliseconds:F0} timeoutMs={JoinTimeoutMilliseconds} disconnectReason={detail}");
@@ -365,6 +396,8 @@ namespace CurtainCall.Network.Session
                 return false;
 
             _connector = connector;
+            _preparationCancellation?.Dispose();
+            _preparationCancellation = new CancellationTokenSource();
             _connectStartedUtc = DateTime.UtcNow;
             _pendingDisconnectReason = null;
             _leaveRequested = false;

@@ -34,6 +34,16 @@ namespace CurtainCall.PerformanceBackground.Tests
             if (performance.IsValid() && performance.isLoaded) yield return SceneManager.UnloadSceneAsync(performance);
             if (next.IsValid() && next.isLoaded) yield return SceneManager.UnloadSceneAsync(next);
             yield return WaitFor(() => !Background.isLoaded && !LoaderBusy());
+            // 접속용 캐시는 프로세스 수명이다. 테스트 사이에는 관리자와 함께 정리한다.
+            if (PerformanceBackgroundLoader.BackgroundRoot != null)
+            {
+                UnityEngine.Object.Destroy(UnityEngine.Object.FindFirstObjectByType<PerformanceBackgroundLoader>().gameObject);
+                yield return null;
+                var replacement = new GameObject(nameof(PerformanceBackgroundLoader));
+                UnityEngine.Object.DontDestroyOnLoad(replacement);
+                replacement.AddComponent<PerformanceBackgroundLoader>();
+                yield return null;
+            }
         }
 
         [TestCase("Tightrope", 55.833333f)]
@@ -152,6 +162,50 @@ namespace CurtainCall.PerformanceBackground.Tests
             Assert.IsNotNull(manager.SceneManager.VerifySceneBeforeLoading);
             Assert.IsFalse(manager.SceneManager.VerifySceneBeforeLoading(0, PerformanceBackgroundLayout.SceneName, LoadSceneMode.Additive));
             Assert.IsTrue(manager.SceneManager.VerifySceneBeforeLoading(0, "HumanCannon", LoadSceneMode.Single));
+        }
+
+        [UnityTest]
+        public IEnumerator PreparedBackgroundSurvivesSingleLoadAndFirstPerformanceDoesNotReloadScene()
+        {
+            int loads = 0;
+            void Loaded(Scene scene, LoadSceneMode mode)
+            { if (scene.path == PerformanceBackgroundLayout.ScenePath) loads++; }
+            SceneManager.sceneLoaded += Loaded;
+            try
+            {
+                var preparation = PerformanceBackgroundLoader.PrepareForConnectionAsync();
+                yield return WaitFor(() => preparation.IsCompleted);
+                Assert.IsTrue(preparation.IsCompletedSuccessfully, preparation.Exception?.ToString());
+                var cached = PerformanceBackgroundLoader.BackgroundRoot;
+                Assert.NotNull(cached);
+                Assert.IsFalse(cached.gameObject.activeSelf, "접속 준비 중에는 공연 배경이 보이면 안 된다.");
+                Assert.IsFalse(Background.isLoaded, "빈 배경 씬은 Relay 접속 전에 해제한다.");
+                Assert.AreEqual(1, loads);
+
+                yield return SceneManager.LoadSceneAsync("Start", LoadSceneMode.Single);
+                original = SceneManager.GetActiveScene();
+                yield return WaitFor(() => !LoaderBusy());
+                Assert.AreSame(cached, PerformanceBackgroundLoader.BackgroundRoot);
+                Assert.IsFalse(cached.gameObject.activeSelf);
+                // Unity가 미사용 에셋을 정리해도 실제 배경 오브젝트의 참조는 유지된다.
+                yield return Resources.UnloadUnusedAssets();
+                performance = SceneManager.CreateScene("Tightrope");
+                SceneManager.SetActiveScene(performance);
+                yield return WaitFor(() => !LoaderBusy() && cached.gameObject.activeSelf);
+                Assert.That(cached.position.z, Is.EqualTo(55.833333f).Within(.001f));
+                Assert.AreEqual(1, loads, "첫 외줄 진입에서 배경을 다시 읽으면 안 된다.");
+                Assert.IsFalse(Background.isLoaded);
+
+                SceneManager.SetActiveScene(original);
+                yield return SceneManager.UnloadSceneAsync(performance);
+                yield return WaitFor(() => !LoaderBusy() && !cached.gameObject.activeSelf);
+                var again = PerformanceBackgroundLoader.PrepareForConnectionAsync();
+                yield return WaitFor(() => again.IsCompleted);
+                Assert.IsTrue(again.IsCompletedSuccessfully);
+                Assert.AreSame(cached, PerformanceBackgroundLoader.BackgroundRoot);
+                Assert.AreEqual(1, loads);
+            }
+            finally { SceneManager.sceneLoaded -= Loaded; }
         }
 
         static bool LoaderBusy()

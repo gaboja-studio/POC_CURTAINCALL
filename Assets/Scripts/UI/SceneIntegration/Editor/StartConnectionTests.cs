@@ -127,6 +127,29 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [UnityTest]
+        public IEnumerator CancellingRelayPreparationDoesNotStartTransport()
+        {
+            var host = session.HostSessionAsync();
+            Assert.AreEqual(SessionConnectionState.Connecting, session.ConnectionState);
+            Assert.IsFalse(session.NetworkManager.IsListening, "첫 배경 로드 전에 Relay를 시작하면 안 된다.");
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 접속 취소 \[UserCancelled\] mode=Relay"));
+            var leave = session.LeaveAsync();
+            float until = Time.realtimeSinceStartup + 45f;
+            while ((!leave.IsCompleted || !host.IsCompleted) && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue(leave.IsCompleted);
+            Assert.IsTrue(host.IsCompletedSuccessfully);
+            Assert.IsFalse(host.Result);
+            Assert.AreEqual(SessionConnectionState.Offline, session.ConnectionState);
+            Assert.IsFalse(session.NetworkManager.IsListening);
+            // 준비 작업 자체는 취소 후 완료될 수 있어도 오래된 접속을 다시 시작하지 않아야 한다.
+            var prepared = PerformanceBackground.PerformanceBackgroundLoader.PrepareForConnectionAsync();
+            while (!prepared.IsCompleted && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue(prepared.IsCompletedSuccessfully);
+            Assert.IsFalse(session.NetworkManager.IsListening);
+        }
+
+        [UnityTest]
         public IEnumerator LateFailureCannotCancelNewHostAndCancelledServicesCannotStart()
         {
             var old = new DelayedConnector();
