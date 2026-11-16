@@ -11,6 +11,8 @@ namespace CurtainCall.Cameras
         public Bounds LocalBounds = new(Vector3.zero, Vector3.one);
         [Tooltip("돔/곡면/출입구가 있는 메시의 실제 면을 양면 검사합니다. 같은 오브젝트의 읽기 가능한 MeshFilter가 필요합니다.")]
         public bool UseMeshGeometry;
+        [Tooltip("배관과 철골 같은 장식의 캐릭터 가림만 검사합니다.")]
+        public bool VisibilityOnly;
         CameraMeshCollision meshCollision;
         MeshFilter meshFilter;
         Renderer surfaceRenderer;
@@ -20,14 +22,42 @@ namespace CurtainCall.Cameras
 
         public static float LimitDistance(Scene scene, Vector3 origin, Vector3 direction, float radius, float distance)
         {
-            foreach (var surface in surfaces) {
-                if (surface == null || !surface.isActiveAndEnabled || surface.gameObject.scene != scene) continue;
-                // Opened/hidden architectural panels must not leave invisible camera blockers.
-                if (surface.surfaceRenderer != null && !surface.surfaceRenderer.enabled) continue;
+            foreach (var surface in surfaces)
+            {
+                if (surface == null || surface.VisibilityOnly || !surface.IsVisibleIn(scene)) continue;
                 if (surface.IntersectWithin(origin, direction, radius, distance, out float hit)) distance = Mathf.Min(distance, hit);
             }
             return distance;
         }
+
+        internal static void CollectSightSurfaces(Scene scene, Bounds region, List<CameraCollisionSurface> nearby)
+        {
+            nearby.Clear();
+            foreach (var surface in surfaces)
+            {
+                if (surface == null || !surface.IsVisibleIn(scene)) continue;
+                if (surface.surfaceRenderer == null || surface.surfaceRenderer.bounds.Intersects(region))
+                    nearby.Add(surface);
+            }
+        }
+
+        internal static bool HasSight(List<CameraCollisionSurface> nearby, Vector3 origin, Vector3 direction, float distance)
+        {
+            var ray = new Ray(origin, direction);
+            foreach (var surface in nearby)
+            {
+                if (surface.surfaceRenderer != null)
+                {
+                    Bounds bounds = surface.surfaceRenderer.bounds;
+                    if (!bounds.Contains(origin) && (!bounds.IntersectRay(ray, out float near) || near >= distance)) continue;
+                }
+                if (surface.IntersectWithin(origin, direction, 0f, distance, out float hit) && hit < distance) return false;
+            }
+            return true;
+        }
+
+        bool IsVisibleIn(Scene scene) => isActiveAndEnabled && gameObject.scene == scene
+            && (surfaceRenderer == null || surfaceRenderer.enabled && !surfaceRenderer.forceRenderingOff);
 
         public bool Intersect(Vector3 origin, Vector3 direction, float radius, out float distance)
             => IntersectWithin(origin, direction, radius, float.PositiveInfinity, out distance);

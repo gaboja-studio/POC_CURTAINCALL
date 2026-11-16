@@ -4,6 +4,7 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
     {
         _SilhouetteColor ("Color", Color) = (0,1,1,1)
         _SilhouettePixels ("Width", Float) = 3
+        _SilhouetteOccludedOnly ("Occluded only", Float) = 0
     }
     SubShader
     {
@@ -20,6 +21,7 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
             CBUFFER_START(UnityPerMaterial)
                 float4 _SilhouetteColor;
                 float _SilhouettePixels;
+                float _SilhouetteOccludedOnly;
             CBUFFER_END
             struct Attributes { float4 positionOS:POSITION; UNITY_VERTEX_INPUT_INSTANCE_ID };
             struct Varyings { float4 positionCS:SV_POSITION; float eye:TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
@@ -30,12 +32,12 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
                 o.positionCS=TransformWorldToHClip(world);o.eye=-TransformWorldToView(world).z;return o;
             }
             struct Output { float4 color:SV_Target0;float4 info:SV_Target1; };
-            Output Frag(Varyings i){Output o;o.color=_SilhouetteColor;o.info=float4(_SilhouettePixels,i.eye,0,1);return o;}
+            Output Frag(Varyings i){Output o;o.color=_SilhouetteColor;o.info=float4(_SilhouettePixels,i.eye,_SilhouetteOccludedOnly,1);return o;}
             ENDHLSL
         }
         Pass
         {
-            Name "Exterior only"
+            Name "Depth-aware composite"
             Cull Off ZWrite Off ZTest Always
             Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
@@ -47,6 +49,7 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
             TEXTURE2D_X_FLOAT(_SilhouetteSceneDepth);
             float4 _SilhouetteTexel;
             float4 _SilhouetteBounds;
+            float _SilhouetteHasExterior;
             struct Varyings { float4 positionCS:SV_POSITION;float2 uv:TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
             Varyings Vert(uint id:SV_VertexID)
             {
@@ -69,8 +72,14 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 if(any(i.uv<_SilhouetteBounds.xy-9*_SilhouetteTexel.xy)||any(i.uv>_SilhouetteBounds.zw+9*_SilhouetteTexel.xy))return 0;
-                // The complete projected union excludes every internal seam, including overlapping parts.
-                if(SAMPLE_TEXTURE2D_X(_SilhouetteInfo,sampler_PointClamp,i.uv).a>.5)return 0;
+                float4 center = SAMPLE_TEXTURE2D_X(_SilhouetteInfo,sampler_PointClamp,i.uv);
+                if(center.a>.5)
+                {
+                    // The frontmost model surface prevents drawing its own hidden backs or seams.
+                    if(center.z<.5 || center.y<=EyeDepth(i.uv)+max(.04,center.y*.002))return 0;
+                    return SAMPLE_TEXTURE2D_X(_SilhouetteMask,sampler_PointClamp,i.uv);
+                }
+                if(_SilhouetteHasExterior<.5)return 0;
                 float4 best=0;float bestDistance=100;
                 float sceneAtPixel=EyeDepth(i.uv);
                 [loop] for(int radius=1;radius<=8;radius++)
@@ -81,7 +90,7 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
                         float2 uv=i.uv+float2(cos(angle),sin(angle))*radius*_SilhouetteTexel.xy;
                         if(any(uv<0)||any(uv>1))continue;
                         float4 info=SAMPLE_TEXTURE2D_X(_SilhouetteInfo,sampler_PointClamp,uv);
-                        if(info.a<.5||radius>info.x+.5||radius>=bestDistance)continue;
+                        if(info.a<.5||info.z>.5||radius>info.x+.5||radius>=bestDistance)continue;
                         float tolerance=max(.025,info.y*.001);
                         if(info.y>EyeDepth(uv)+tolerance||info.y>sceneAtPixel+tolerance)continue;
                         best=SAMPLE_TEXTURE2D_X(_SilhouetteMask,sampler_PointClamp,uv);
