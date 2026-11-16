@@ -11,3 +11,6 @@
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/387 (fix/escape-facade-polish → fix/escape-pursuer-followup)
+- 2026-11-16 PR 제출 후 `dev`와 `origin/dev`를 최신화하고 작업 브랜치 포함 여부를 확인했다.
