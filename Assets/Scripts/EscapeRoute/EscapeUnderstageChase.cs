@@ -178,7 +178,7 @@ namespace CurtainCall.EscapeRoute
                 ChooseTarget();
                 usingBypass = !InShowcase && !target && (fullRoute ? fullRoute.SelectTarget() != null && !fullRoute.TargetInHall : bypass && bypass.Active(round));
             }
-            if (!InShowcase && fullRoute && fullRoute.Following) { AdvanceServiceRoute(); return; }
+            if (!InShowcase && fullRoute && fullRoute.Following) { AdvanceServiceRoute(Time.deltaTime); return; }
             bool divert = usingBypass;
             if (!divert && !target && !committed) { StopChase(); return; }
             if (!agent.enabled)
@@ -282,8 +282,9 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
-        void AdvanceServiceRoute()
+        void AdvanceServiceRoute(float dt)
         {
+            routeDeltaTime = dt;
             agent.enabled = false;
             body.enabled = true;
             SetBodyHeight(0);
@@ -297,7 +298,7 @@ namespace CurtainCall.EscapeRoute
             if ((attack.Phase == AttackPhase.None || attack.Phase == AttackPhase.Grab) && fullRoute.TryJump(out var jumpFrom, out var jumpTo))
             {
                 if (walls && !walls.PrepareJump(jumpFrom, jumpTo, EscapeRouteTimer.Current.Clock))
-                { AdvanceGait(0, 0, 0, true, Time.deltaTime); return; }
+                { AdvanceGait(0, 0, 0, true, dt); return; }
                 BeginServiceJump(jumpFrom, jumpTo);
                 return;
             }
@@ -309,7 +310,7 @@ namespace CurtainCall.EscapeRoute
             if (!acting && attack.Phase == AttackPhase.Grab)
             {
                 fullRoute.CarryToNextBay(before, walkSpeed, 0, EscapeRouteTimer.Current.Clock);
-                transform.position = AdvanceGroundRoute(before, walkSpeed, Time.deltaTime, EscapeRouteTimer.Current.Clock, out run);
+                transform.position = AdvanceGroundRoute(before, walkSpeed, dt, EscapeRouteTimer.Current.Clock, out run);
             }
             else if (!acting && (runner || returning))
             {
@@ -317,13 +318,13 @@ namespace CurtainCall.EscapeRoute
                 float speed = concealed ? Mathf.Max(runSpeed, Tuning.concealedRunSpeed)
                     : fullRoute.FinalSprint ? Mathf.Max(runSpeed, Tuning.finaleRunSpeed) : runSpeed;
                 transform.position = AdvanceGroundRoute(before, speed * (concealed ? 1f : PressureSpeed(runner)),
-                    Time.deltaTime, EscapeRouteTimer.Current.Clock, out run);
+                    dt, EscapeRouteTimer.Current.Clock, out run);
             }
             Vector3 forward = acting ? watch : Vector3.ProjectOnPlane(transform.position - before, Vector3.up);
             if (forward.sqrMagnitude > .0001f)
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(forward), 140f * Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(forward), 140f * dt);
             float distance = Vector3.Distance(before, transform.position);
-            AdvanceGait(distance, 0, run, distance < .001f, Time.deltaTime);
+            AdvanceGait(distance, 0, run, distance < .001f, dt);
             previousPosition = transform.position;
         }
 

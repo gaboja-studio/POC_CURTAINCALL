@@ -26,6 +26,7 @@ namespace CurtainCall.EscapeRoute
         float pressureTargetProgress;
         double encounterRound = -1, exposedAt, pressureProgressAt, nextAttackPosition;
         float nextEscapeCheck;
+        float routeDeltaTime;
         Vector3 encounterReturn, attackPosition, pressureProgressPosition;
         bool encounterJump, returningJump;
         bool EncounterVisible => encounterIndex >= 0 && encounterPhase == 6;
@@ -54,8 +55,14 @@ namespace CurtainCall.EscapeRoute
             if (encounterIndex < 0 && outsideEncounter >= 0 && (runner || returningToHall) && attack.Phase == AttackPhase.None)
             {
                 var outside = encounters[outsideEncounter];
+                // The final deck starts before its service-route landing index.
+                // Keep a runner on that deck in the outdoor chase instead of reversing
+                // the hidden jump solely to match their lower projected progress.
+                bool onPlatform = runner && OnEncounterPlatform(outside, PlayerFeet(runner));
+                if (!returningToHall && onPlatform && fullRoute.PlayerProgress(runner, out _) < outside.routePoint)
+                    fullRoute.ApproachEncounter(outside.routePoint);
                 if (fullRoute.Progress <= outside.routePoint + .01f &&
-                    (returningToHall || fullRoute.PlayerProgress(runner, out _) < outside.routePoint - .5f))
+                    (returningToHall || !onPlatform && fullRoute.PlayerProgress(runner, out _) < outside.routePoint - .5f))
                 {
                     // Re-enter through the same broken bay, not a reverse jump through its opaque baffle.
                     encounterIndex = outsideEncounter; outsideEncounter = -1;
@@ -89,6 +96,7 @@ namespace CurtainCall.EscapeRoute
             if (encounterIndex < 0 && !runner) pressureEncounter = -1;
             if (encounterIndex < 0) return false;
             var e = encounters[encounterIndex];
+            ReturnFromStaleApproach(e, runner, timer.Clock);
             Vector3 before = transform.position;
             bool moving = false;
             switch (encounterPhase)
@@ -125,7 +133,8 @@ namespace CurtainCall.EscapeRoute
                 case 6:
                     if (returningToHall)
                     { encounterPhase = 7; encounterNavigation.Reset(); break; }
-                    if (e.continueOutside && runner && fullRoute.PlayerProgress(runner, out _) >= e.routePoint - 1f)
+                    if (e.continueOutside && runner && (OnEncounterPlatform(e, PlayerFeet(runner))
+                        || fullRoute.PlayerProgress(runner, out _) >= e.routePoint - 1f))
                     {
                         fullRoute.ResumeAt(e.routePoint);
                         if (e.ingress) outsideEncounter = encounterIndex;
@@ -211,7 +220,7 @@ namespace CurtainCall.EscapeRoute
                     break;
             }
             float distance = Vector3.Distance(before, transform.position);
-            if (!jumping) AdvanceGait(distance, 0, moving ? 1 : 0, distance < .001f, Time.deltaTime);
+            if (!jumping) AdvanceGait(distance, 0, moving ? 1 : 0, distance < .001f, routeDeltaTime);
             previousPosition = transform.position;
             return true;
         }
@@ -235,6 +244,28 @@ namespace CurtainCall.EscapeRoute
             visitedEncounters[encounterIndex] = EscapeRouteTimer.Current.Clock + Tuning.revealCooldownMax;
             encounterNavigation.Reset();
             encounterIndex = -1; encounterPhase = 0;
+        }
+
+        // The runner can cross a whole deck while we approach its breach. Do not
+        // complete an obsolete outward jump, wait on the empty deck, and jump back
+        // before pursuing them again. Retrace only the approach legs already walked.
+        bool ReturnFromStaleApproach(PhysicalEncounter encounter, NetworkPlayer runner, double now)
+        {
+            if (encounterPhase < 0 || encounterPhase > 4 || encounter.continueOutside || !runner
+                || attack.Phase != AttackPhase.None || threat.Phase != ThreatPhase.None
+                || fullRoute.PlayerProgress(runner, out _) <= encounter.routePoint
+                || walls && walls.FinishingStrike(encounter.gate, now)) return false;
+            foreach (var player in NetworkPlayer.All)
+                if (player && player.IsSpawned && player.State == PlayerState.Normal
+                    && WithinEncounterReach(encounter, PlayerFeet(player), AttackRange(player))) return false;
+            if (now < nextAttackPosition) return false;
+            nextAttackPosition = now + .75;
+            int next = SelectPressureEncounter(PlayerFeet(runner), fullRoute.PlayerProgress(runner, out _), now);
+            if (next < 0 || encounters[next] == encounter) return false;
+            encounterPhase = encounterPhase == 0 ? 12 : encounterPhase == 1 ? 11
+                : encounterPhase == 2 ? 10 : 9;
+            encounterNavigation.Reset();
+            return true;
         }
 
         bool ShouldReposition(double now, bool targetOutside)
@@ -261,6 +292,10 @@ namespace CurtainCall.EscapeRoute
             Vector3 near = EscapePursuerNavigation.Clamp(e.platform, targetFeet);
             return Vector3.Distance(near + Vector3.up * 3, targetFeet + Vector3.up) <= range;
         }
+
+        static bool OnEncounterPlatform(PhysicalEncounter encounter, Vector3 feet)
+            => encounter.platform && new Bounds(encounter.platform.center, encounter.platform.size)
+                .Contains(encounter.platform.transform.InverseTransformPoint(feet + Vector3.up));
 
         void ChoosePressureEncounter(ulong actor, Vector3 targetFeet, float targetProgress, double now)
         {
@@ -315,13 +350,13 @@ namespace CurtainCall.EscapeRoute
         {
             direction.y = 0;
             if (direction.sqrMagnitude > .001f)
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), 240 * Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), 240 * routeDeltaTime);
         }
         bool MoveEncounter(Vector3 goal, bool avoidScenery)
         {
             Vector3 delta = goal - transform.position;
             if (delta.magnitude < .08f) return false;
-            float step = runSpeed * PressureSpeed(target) * Time.deltaTime;
+            float step = runSpeed * PressureSpeed(target) * routeDeltaTime;
             Vector3 next = Vector3.MoveTowards(transform.position, goal, step);
             if (avoidScenery)
             {
