@@ -20,3 +20,5 @@
 - 최신 DEV에서 안전성·문서 규칙·Unity 컴파일·공용 설정 통과. EditMode 카메라 17/17, 대기실 카메라 2/2, 가림 렌더 1/1, 탈출로 573/573. 에디터 재로드 또는 통신 시간 초과가 있었던 검사는 안정화 후 재실행해 통과했다. 실제 PlayMode는 사용자 확인으로 남겼다.
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=FAIL; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/396 (fix/camera-obstacle-transition → dev).
