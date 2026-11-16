@@ -8,14 +8,14 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonHazardCourse
     {
         const string RequestName = "CurtainCall.HumanCannon.Hazards.Request.v2";
-        const string StateName = "CurtainCall.HumanCannon.Hazards.State.v2";
-        const int StateBytes = 36;
+        const string StateName = "CurtainCall.HumanCannon.Hazards.State.v3";
+        const int StateBytes = 48;
         readonly RouteResetBarrier resetBarrier = new();
         CustomMessagingManager messaging;
 
         void Connection(SessionConnectionState state)
         {
-            Unregister(); ClearContacts(); restartPositions.Clear(); synchronized = false;
+            Unregister(); ClearContacts(); restartPositions.Clear(); synchronized = false; ClearGroundFireState();
             if (state == SessionConnectionState.Offline) { runStart = runEnd = -1; revision = 0; resetBarrier.Clear(); return; }
             if (state != SessionConnectionState.Host && state != SessionConnectionState.Client) return;
             messaging = session.NetworkManager.CustomMessagingManager;
@@ -59,6 +59,8 @@ namespace CurtainCall.HumanCannon
             using var writer = new FastBufferWriter(StateBytes, Allocator.Temp);
             writer.WriteValueSafe(revision); writer.WriteValueSafe(token); writer.WriteValueSafe(difficulty);
             writer.WriteValueSafe(epoch); writer.WriteValueSafe(runStart); writer.WriteValueSafe(runEnd);
+            writer.WriteValueSafe(GroundFireOffRows);
+            writer.WriteValueSafe(GateGroundFireFirstCycle);
             messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -67,10 +69,14 @@ namespace CurtainCall.HumanCannon
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != StateBytes) return;
             reader.ReadValueSafe(out uint incoming); reader.ReadValueSafe(out int token); reader.ReadValueSafe(out int level);
             reader.ReadValueSafe(out double start); reader.ReadValueSafe(out double run); reader.ReadValueSafe(out double end);
+            reader.ReadValueSafe(out uint groundFireOffRows);
+            reader.ReadValueSafe(out long gateGroundFireFirstCycle);
             if (incoming < revision || !CannonDifficulty.Valid(level) || !double.IsFinite(start) || start < 0
-                || !double.IsFinite(run) || run < -1 || !double.IsFinite(end) || end < -1 || !resetBarrier.Accept(token)) return;
+                || !double.IsFinite(run) || run < -1 || !double.IsFinite(end) || end < -1
+                || gateGroundFireFirstCycle < 0 || !resetBarrier.Accept(token)) return;
             if (epoch != start || difficulty != level) ClearContacts();
-            revision = incoming; difficulty = level; epoch = start; runStart = run; runEnd = end; synchronized = true;
+            revision = incoming; difficulty = level; epoch = start; runStart = run; runEnd = end;
+            GroundFireOffRows = groundFireOffRows; GateGroundFireFirstCycle = gateGroundFireFirstCycle; synchronized = true;
         }
 
         void Restart(NetworkPlayer player)
@@ -88,7 +94,7 @@ namespace CurtainCall.HumanCannon
                 }
                 return;
             }
-            ClearContacts(); runStart = runEnd = -1;
+            ClearContacts(); runStart = runEnd = -1; ClearGroundFireState();
             if (session != null && session.IsHost) { epoch = Clock; revision++; Publish(); }
             else { synchronized = false; RequestSnapshot(resetBarrier.Begin()); }
         }

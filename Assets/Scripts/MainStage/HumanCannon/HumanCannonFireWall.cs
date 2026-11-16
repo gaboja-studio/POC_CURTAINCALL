@@ -28,6 +28,8 @@ namespace CurtainCall.HumanCannon
         [Min(0.1f), SerializeField] float warningSeconds = 30f;
         [Tooltip("시험용 전진 속도(m/s). 최종 밸런스가 아니다.")]
         [Min(0.01f), SerializeField] float speed = 0.7f;
+        [Min(0f), SerializeField] float tierTwoSpeedIncrease;
+        [Min(0f), SerializeField] float tierThreeSpeedIncrease;
         [Tooltip("공중/지상 압박 범위의 좌우 반폭(m).")]
         [Min(1f), SerializeField] float halfWidth = 18f;
         [Tooltip("바닥 위 불꽃 판정 높이(m).")]
@@ -51,7 +53,13 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < StageCount; i++) if (StageAt(i) >= 0 && StageAt(i) <= now) stage = i + 1;
             return stage;
         }
-        public float SpeedAt(double now) { int stage = CurrentStage(now); return speed * (stage > 0 ? stageSpeedMultipliers[stage - 1] : 1f); }
+        float SpeedForStage(int stage)
+        {
+            int difficulty = HumanCannonHazardCourse.Current != null ? HumanCannonHazardCourse.Current.Difficulty : 1;
+            float increase = difficulty == 3 ? tierThreeSpeedIncrease : difficulty == 2 ? tierTwoSpeedIncrease : 0f;
+            return speed * (stage > 0 ? stageSpeedMultipliers[stage - 1] : 1f) + increase;
+        }
+        public float SpeedAt(double now) => SpeedForStage(CurrentStage(now));
         public CurtainCall.Damage.HazardDamageKind DamageKind => CurtainCall.Damage.HazardDamageKind.FatalFire;
         public bool KillOnContact => CurtainCall.Damage.CommonDamageRules.IsFatal(DamageKind);
         public double ArmedAt { get; private set; } = -1;
@@ -64,15 +72,15 @@ namespace CurtainCall.HumanCannon
             {
                 double from = AdvanceAt;
                 if (!IsConfigured) return from;
-                double left = Vector3.Distance(start.position, boundary.position), rate = speed;
+                double left = Vector3.Distance(start.position, boundary.position), rate = SpeedForStage(0);
                 // 시작선을 지난 단계 시각마다 남은 거리를 그때 속도로 나눈다.
                 for (int i = 0; i < StageCount; i++)
                 {
                     double at = StageAt(i);
                     if (at < 0) break;
-                    if (at <= from) { rate = speed * stageSpeedMultipliers[i]; continue; }
+                    if (at <= from) { rate = SpeedForStage(i + 1); continue; }
                     if (left <= (at - from) * rate) break;
-                    left -= (at - from) * rate; from = at; rate = speed * stageSpeedMultipliers[i];
+                    left -= (at - from) * rate; from = at; rate = SpeedForStage(i + 1);
                 }
                 return from + left / rate;
             }
@@ -81,14 +89,14 @@ namespace CurtainCall.HumanCannon
         public double Travelled(double now)
         {
             if (!double.IsFinite(now) || !Armed) return 0;
-            double from = AdvanceAt, distance = 0, rate = speed;
+            double from = AdvanceAt, distance = 0, rate = SpeedForStage(0);
             if (now <= from) return 0;
             for (int i = 0; i < StageCount; i++)
             {
                 double at = StageAt(i);
                 if (at < 0 || at >= now) break;
                 if (at > from) { distance += (at - from) * rate; from = at; }
-                rate = speed * stageSpeedMultipliers[i];
+                rate = SpeedForStage(i + 1);
             }
             return distance + (now - from) * rate;
         }

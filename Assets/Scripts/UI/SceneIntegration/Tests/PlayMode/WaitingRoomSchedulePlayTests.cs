@@ -217,6 +217,46 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual("Tightrope", Field(State, "TrickId"));
         }
         [UnityTest]
+        public IEnumerator HumanCannonTierThreeUnlocksAndReachesThePerformanceScene()
+        {
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
+            var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            var rehearsal = Find("CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal");
+            var shared = Private(rehearsal, "shared");
+            shared.GetType().GetField("mastered").SetValue(shared, true);
+            Assert.IsTrue((bool)Call(run, "DiscoverTrick", "HumanCannon"));
+            Assert.IsTrue((bool)Call(run, "RecordClear", "HumanCannon", 1));
+            var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
+            Assert.AreEqual("BadTier", Call(schedule, "Set", 2, 0, "HumanCannon", 3).ToString());
+            Assert.AreEqual("None", Call(schedule, "Set", 2, 0, "HumanCannon", 2).ToString());
+            Assert.AreEqual("HumanCannon", Field(State, "TrickId"));
+            Assert.AreEqual(2, Field(State, "Difficulty"));
+
+            yield return OpenSchedule();
+            var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            var increase = ((UnityEngine.UI.Button[,])Private(ui, "tierButtons"))[2, 1];
+            Assert.IsFalse(increase.interactable, "Human Cannon tier 3 stays locked after only clearing tier 1.");
+            Assert.IsTrue((bool)Call(run, "RecordClear", "HumanCannon", 2));
+            yield return CannonWait(() => increase.interactable, 5, "Cannon tier 3 unlocks on the schedule");
+            increase.onClick.Invoke();
+            Assert.AreEqual(3, Call(Get(schedule, "Book"), "Difficulty", 2, 0));
+            Assert.AreEqual(3, Field(State, "Difficulty"));
+            Call(Get(ui, "View"), "Close");
+
+            Assert.IsTrue((bool)Call(run, "NotifyAllAtStageEntrance"));
+            yield return CannonWait(() =>
+            {
+                var destination = Find("CurtainCall.HumanCannon.HumanCannonDestination");
+                return destination != null && (bool)Get(destination, "PerformanceOpen");
+            }, 45, "Human Cannon performance scene opens the reward session");
+            var hazards = Find("CurtainCall.HumanCannon.HumanCannonHazardCourse");
+            Assert.AreEqual("HumanCannon", hazards.gameObject.scene.name);
+            Assert.AreEqual(3, Get(hazards, "Difficulty"));
+            Assert.AreEqual("Performance", Field(State, "Phase").ToString());
+        }
+
+        [UnityTest]
         [Category("BreakFlow")] public IEnumerator W3_InstantSchedulesAndSleep_ThreeNightsAndFinalMorning()
         {
             for (int day = 1; day <= 3; day++)
