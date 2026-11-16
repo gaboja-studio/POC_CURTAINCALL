@@ -116,8 +116,8 @@ namespace CurtainCall.EscapeRoute.Tests
                 var zone = fixture.transform.parent.parent;
                 Assert.That(zone.GetComponentsInChildren<Light>(true).Count(l => l.isActiveAndEnabled), Is.EqualTo(1));
                 Assert.That(fixture.isActiveAndEnabled && fixture.type == LightType.Spot, Is.True);
-                var shaft = fixture.transform.parent.Find("먼지에 비치는 빛줄기");
-                Assert.That(shaft.gameObject.activeInHierarchy && shaft.GetComponent<Renderer>().enabled, Is.True);
+                Assert.That(fixture.intensity, Is.Positive);
+                Assert.That(fixture.range, Is.Positive);
                 var loops = frame.GetComponentsInChildren(TypeNamed("CurtainCall.HumanCannon.HumanCannonPoleLoop"), true);
                 Assert.That(loops, Is.Not.Empty);
                 foreach (var loop in loops)

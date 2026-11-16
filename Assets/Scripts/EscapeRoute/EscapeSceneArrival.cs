@@ -20,7 +20,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] GameObject forwardBarrier, returnBarrier;
         [SerializeField] CameraViewPreset approachView;
         public static EscapeSceneArrival Current { get; private set; }
-        public Transform AssemblyAnchor => assemblyArea.transform;
+        internal BoxCollider AssemblyArea => assemblyArea;
+        public Transform AssemblyAnchor => assemblyArea != null ? assemblyArea.transform : null;
         public BoxCollider FirstPersonArea => firstPersonArea;
         CameraViewDirector cameraRequest;
         bool reachedStairEnd;
