@@ -16,3 +16,4 @@
   → 사용자 결정: 기준점은 범위를 거르지 않고 순서만(분류 순위 → 기준점 거리 → 플레이어 거리), 아웃라인은 상호작용 거리 안 전부 얇게+선택 강조. 설정의 기준점 범위·공중 예외·범위 표시 항목 삭제. FloorPropsView 이름표 제거. Confluence v5 갱신.
   검사: 컴파일 PASS, EditMode InteractionFocusRulesTests 3/3·CommonRulesFollowupTests 21/21·CommonMechanicsTests 28/28, PlayMode InteractionPresentationPlayTests 2/4(InReach…·ActualPhone PASS, 캠페인 단계 테스트 2건은 기존 실패).
 - 아웃라인 설정 보강: `showInRange`(거리 안 다른 대상 표시 on/off) 추가, 거리 안/선택 대상 색에 알파(투명도) 편집 허용(ColorUsage showAlpha). 합성 셰이더가 SrcAlpha 블렌드라 알파가 투명도로 적용된다. 검사: 컴파일 PASS(사용자 요청으로 검증 최소화, 플레이 확인은 사용자).
+- 제출: origin/dev 병합(충돌 없음, 컴파일 PASS) 후 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/395 . Unity 재직렬화 파일(머티리얼·WaitingRoom.unity·Vivox 설정)은 제외, 씬 변경은 stash "task137-unity-reserialized-waitingroom-scene"에 보관.
