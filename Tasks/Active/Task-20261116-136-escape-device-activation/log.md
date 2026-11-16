@@ -29,3 +29,5 @@
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
+
+- 2026-11-16 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/391 (fix/escape-device-activation → dev)
