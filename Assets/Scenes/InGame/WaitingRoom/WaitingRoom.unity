@@ -757800,7 +757800,7 @@ MonoBehaviour:
   - Area_N3_Storage
   - Area_N4_MachineEntry
   areas: {fileID: 1872234013}
-  outsideIsSafe: 1
+  outsideIsSafe: 0
 --- !u!1001 &2101032557
 PrefabInstance:
   m_ObjectHideFlags: 0
