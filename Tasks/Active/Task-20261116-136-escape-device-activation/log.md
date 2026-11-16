@@ -123,3 +123,6 @@
 - 최종 확인: 컴파일/공용 설정 PASS, 탈출로 EditMode 951/951 PASS(신규27건 포함). 첫 확대 검사949/950의1실패는 신규 테스트가 실제 사망 enum Fallen 대신 Dead를 사용한 준비 오류였으며 Fallen/Retired 각각 검사하도록 수정 후 전부 재실행했다.
 - check-work의 안전성·문서는 PASS. 첫 Unity 공용 설정 run_script 연결 오류는 별도 verify-unity 재실행에서 정상 통과했고, verify-fast/verify-knowledge도 통과했다. 지식 문서 길이 초과는 내용 보존 압축으로 해결했다.
 - 최종 저장 씬 모의도64.20초에 외부 최종 추격으로 인계(finale-driver-final.json). PlayMode 미실행, escape_route 씬 로드/미변경/정지 확인. 사용자 추가 지시로 이 수정부터 저장·PR 갱신하고, 다음 별도 Task/브랜치에서 인간대포 씬 트램펄린과 잘린 사지 충돌을 다룬다.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
+- 추격 인계 구현 eea56212 저장/push 및 PR #403 제목·본문 갱신 완료. 제출 후 Unity 종료 상태에서 origin/dev fetch/merge: Already up to date(01abed27). 플레이 미실행; 별도 에셋11개와 ThirdParty 변경은 제출 제외·보존.
