@@ -13,3 +13,5 @@
 - 최종 탈출로 EditMode962/962, 공용 회귀880/880, 컴파일·공용 설정·안전성·문서/규칙 PASS. Knowledge20폴더 통과. 기존 문서 길이77건 경고와 ThirdParty 미저장1건은 기존 상태로 제외. 실제 PlayMode/다중 플레이 미실행.
 - EditMode 카메라로 절단0.1초/완료1초 렌더 확인. 월드 공간 스파크42개/최대64개 및0.12초 섬광, 새로운 재질 없음. 씬 변경127개 기존 컴포넌트는 배선/효과/그룹 연결에 한정. 종료 전 탈출로 씬 saved, stopped 확인.
 - 제출 직전 Unity 정상 종료 후 origin/dev fetch/merge: 01abed27 Already up to date. 검사한 에셋/코드8개 SHA256 일치. 기존 변경11개 해시 보존(종료 시 자동 갱신된 escape-labels는 종료 직전 사본으로 복원).
+- 저장35e2d12b, PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/405 (fix/escape-cable-break-feedback → fix/trampoline-severed-limb-contact). 선행PR404/403 아직 OPEN, 이번12파일만 포함. new-pr DryRun은 보존한 다른 변경11개 때문에 dirty 경고; 변경 목록/해시 확인 후 gh body-file로 제출. 자동 병합하지 않음.
+- 제출 후 Unity 종료 상태에서 origin/dev 재fetch/merge: 01abed27 Already up to date. 사용자 플레이 검증은 남아 있으며 탈출로 씬을 EditMode로 재개한다.
