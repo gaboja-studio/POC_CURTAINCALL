@@ -26,11 +26,13 @@
 
 ## 3. 길찾기 다시 굽기
 
-1. `WaitingRoom` 씬을 엽니다.
+1. `Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity` 씬을 엽니다(지금 쓰는 대기실은 이 씬 하나뿐).
 2. 메뉴 **Tools → Curtain Call → Pursuit → 2 Bake navigation** 을 누릅니다.
-3. 씬은 자동 저장됩니다. 바뀐 길찾기 파일(`_ThirdParty/curtaincall/Pursuit/Navigation/WaitingRoomPursuit.asset`)은 [에셋 도우미](asset-helper.md)에서 **변경 확인하고 공유**로 올립니다.
+3. 씬은 자동 저장됩니다. 바뀌는 파일은 씬과 `WaitingRoom/PursuitNavMesh.asset`이며 둘 다 일반 저장소에 커밋합니다.
+4. 이어서 **Tools → CurtainCall → 대기실 → 오클루전 굽기** 를 누르고, 끝나면 씬을 저장합니다(`WaitingRoom/OcclusionCullingData.asset`이 바뀜).
 
 안 굽으면: 추격자가 **옛 길**로 다녀서 새 물건 앞에서 멈추거나 새 바닥으로 못 갑니다.
+굽기는 매번 바닥 사이 건넘 연결(`PursuitSystem/TraversalLinks`)을 지우고 새로 만들고, 키 1.7m보다 큰 단단한 물체 안쪽을 '못 걷는 곳'으로 막습니다(물체 윗면 길은 그대로).
 오르기 통로는 따로 만들지 않습니다. 추격이 시작될 때 자동으로 생깁니다.
 
 ## 4. 플레이로 확인

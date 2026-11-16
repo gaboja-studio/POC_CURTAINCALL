@@ -152,7 +152,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         {
             var e = Event.current;
             if (HandlePan(rect)) return;
-            if (rect.Contains(e.mousePosition) && e.type == EventType.ScrollWheel) { zoom = Mathf.Clamp(zoom * (e.delta.y > 0 ? .9f : 1.1f), .5f, 4); e.Use(); }
+            if (rect.Contains(e.mousePosition) && e.type == EventType.ScrollWheel) { zoom = Mathf.Clamp(zoom * (e.delta.y > 0 ? .9f : 1.1f), MinZoom(rect), 4); e.Use(); }
             if (EditorApplication.isPlaying) return;
             if (rect.Contains(e.mousePosition) && (e.type == EventType.DragUpdated || e.type == EventType.DragPerform)) {
                 var prefab = DragAndDrop.objectReferences.OfType<GameObject>().FirstOrDefault(p => director.Mannequins.Contains(p));
