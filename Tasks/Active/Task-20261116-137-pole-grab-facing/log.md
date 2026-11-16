@@ -16,3 +16,5 @@
 - 탈출로 EditMode 573/573. 목마의 각 역할에서 봉으로 전환, 포획과 투척 상태 정리, 남은 플레이어로 추격 대상 전환, 다른 플레이어 탈락 후 생존자의 다음 대포 이용을 포함한다. 실제 3~4인 플레이는 미실행이다.
 
 - 2026-11-16 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=FAIL
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/392 (fix/pole-grab-facing → dev). 제출 직후 DEV c42dbb48 동기화를 확인했다.
