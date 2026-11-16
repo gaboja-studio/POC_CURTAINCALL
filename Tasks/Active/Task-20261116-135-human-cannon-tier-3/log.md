@@ -26,3 +26,5 @@
 - 첫 배치 실행은 커튼 렌더링 확인 실패로 전환이 취소됐다. 일반 에디터에서 같은 검사를 재실행해 모두 통과했다. 테스트 초기화 중 별도로 대기실 NavMesh 에이전트 초기화 경고가 있었으며 위 두 경로는 정상 완료했다.
 - 이번 확인은 기존 테스트 파일에 진입 회귀 검사만 추가했다. 자동 검사에서 생긴 폰트·머티리얼 12개를 별도 stash에 보관했다.
 - 제출 직전 Unity 종료 후 origin/dev 573f23d1과 일치 확인. 같은 코드·씬의 컴파일, EditMode 60건 및 진입 PlayMode 2건 결과를 재사용했다. Unity 종료 생성 에셋 6개는 별도 stash에 보관했다.
+
+- 2026-11-16 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/389 (fix/human-cannon-tier-3 → dev)
