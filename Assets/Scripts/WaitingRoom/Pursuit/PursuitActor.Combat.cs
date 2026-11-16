@@ -35,13 +35,16 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (remote || IsDead || director == null || !director.HasCombatAuthority) return false;
             var rules = GameSettings.WaitingRoom.Pursuit;
             director.ReleaseCombatVictim(this);
-            Health--; HitRevision++;
-            combatRecovering = true;
+            Health = rules.SawCanKill ? Health - 1 : Mathf.Max(1, Health - 1); HitRevision++;
             hitUntil = Time.time + Mathf.Max(.1f, rules.HitReactionSeconds);
-            recoilVelocity = Vector3.ProjectOnPlane(direction, Vector3.up).normalized
-                * (2 * rules.HitKnockback / Mathf.Max(.1f, rules.HitReactionSeconds));
+            // Non-knockback impacts keep traversal and navigation intact. The additive
+            // hit pose still works while walking, crouching or climbing.
+            if (!rules.SawKnockback && !IsDead) { director.ActorStateChanged(); return true; }
+            combatRecovering = true;
+            recoilVelocity = rules.SawKnockback ? Vector3.ProjectOnPlane(direction, Vector3.up).normalized
+                * (2 * rules.HitKnockback / Mathf.Max(.1f, rules.HitReactionSeconds)) : Vector3.zero;
             combatFalling = climbing || perched;
-            if (agent != null) { if (agent.enabled && agent.isOnNavMesh) agent.ResetPath(); agent.enabled = false; }
+            if (agent != null) { if (agent.enabled && agent.isOnNavMesh && !agent.isOnOffMeshLink) agent.ResetPath(); agent.enabled = false; }
             // Do not FinishClimb: it teleports to the landing. A hit interrupts at the current wall position.
             ResetClimb(); target = null; ClearNavigation();
             if (IsDead) {

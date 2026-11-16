@@ -31,6 +31,35 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Box(new Vector3(0, 3.5f, 0), new Vector3(5, 1, 2));
             Assert.IsFalse(PursuitClimbPath.HasWallSupport(Origin + new Vector3(0, 0, -1.5f), Origin + new Vector3(0, 4, -.6f), null));
         }
+        [Test] public void WallBesideBalconyEntranceSupportsClimbFacingThatWall()
+        {
+            Box(new Vector3(-.8f, 3, 0), new Vector3(.3f, 6, 5));
+            Box(new Vector3(.5f, 3.95f, 1.5f), new Vector3(2, .1f, 2));
+            var from = Origin; var to = Origin + new Vector3(0, 4, .8f);
+            Assert.IsTrue(PursuitClimbPath.TryWallSupport(from, to, null, out var direction));
+            Assert.Greater(Vector3.Dot(direction, Vector3.left), .99f);
+            var path = PursuitClimbPath.Build(from, to, null);
+            Assert.Greater(Vector3.Dot(path.WallDirection, Vector3.left), .99f);
+            for (int i = 0; i <= 40; i++) {
+                var p = path.Pose(i / 40f) - Origin;
+                Assert.That(p.x, Is.EqualTo(0).Within(.01f));
+                var feet = Origin + p;
+                Assert.IsEmpty(Physics.OverlapCapsule(feet + Vector3.up * (PursuitClimbPath.BodyBottom + PursuitClimbPath.BodyRadius),
+                    feet + Vector3.up * (PursuitClimbPath.BodyTop - PursuitClimbPath.BodyRadius), PursuitClimbPath.BodyRadius), "Body clearance at " + i);
+            }
+        }
+        [Test] public void SideWallThatEndsBeforeBalconyCannotSupportTheTransfer()
+        {
+            Box(new Vector3(-.8f, 3, -.6f), new Vector3(.3f, 6, 1.6f));
+            Box(new Vector3(.5f, 3.95f, 1.5f), new Vector3(2, .1f, 2));
+            Assert.IsFalse(PursuitClimbPath.HasWallSupport(Origin, Origin + new Vector3(0, 4, .8f), null));
+        }
+        [Test] public void SideWallWithVerticalGapCannotSupportClimb()
+        {
+            Box(new Vector3(-.8f, .5f, 0), new Vector3(.3f, 1, 5));
+            Box(new Vector3(-.8f, 3.5f, 0), new Vector3(.3f, 1, 5));
+            Assert.IsFalse(PursuitClimbPath.HasWallSupport(Origin, Origin + new Vector3(0, 4, .8f), null));
+        }
         [Test] public void GraftAndRemovalPreserveOriginalSharedMeshes()
         {
             var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_ThirdParty/curtaincall/Pursuit/Prefabs/Pursuit_Male_01.prefab");

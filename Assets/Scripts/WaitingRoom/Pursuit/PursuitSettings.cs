@@ -9,11 +9,30 @@ namespace CurtainCall.Settings
         [Tooltip("켜면 쉬는 시간·정비 시간이 끝났을 때 대기실 추격자가 움직이기 시작한다.")]
         public bool Enabled;
         [Header("절단기 피격 / 재스폰")]
+        [Tooltip("절단기로 추격자를 처치할 수 있습니다. 끄면 체력은 최소 1을 유지합니다.")]
+        public bool SawCanKill;
+        [Tooltip("절단기 피격으로 추격자를 밀어내고 오르기를 중단합니다. 끄면 현재 이동을 유지하며 피격 표현만 재생합니다.")]
+        public bool SawKnockback;
         [Min(1)] public int SmallHitsToDie = 3;
         [Min(1)] public int MediumHitsToDie = 5;
         [Min(0)] public float RespawnSeconds = 10;
         [Min(.1f)] public float HitReactionSeconds = .55f;
         [Min(0)] public float HitKnockback = .65f;
+        [Header("환경 소음 / UV 유인")]
+        [Tooltip("절단기 잡기·트램펄린 반동·환풍구 개방·TV 소음 거리(m). 벽 뒤 감쇠는 단계별 청각 설정을 따릅니다.")]
+        [Min(0)] public float LoudNoiseRadius = 24;
+        [Tooltip("절단기 발사·대포 작동·문 개폐 소음 거리(m). 큰 소음 거리 이상으로 적용됩니다.")]
+        [Min(0)] public float MaximumNoiseRadius = 40;
+        [Min(.2f)] public float TvNoiseInterval = 2;
+        public bool UvDistraction = true;
+        [Tooltip("빛에 직접 닿은 추격자가 비춘 플레이어를 우선 추격하는 시간(초).")]
+        [Min(.1f)] public float UvDistractionSeconds = 2;
+        [Tooltip("동일 추격자를 UV로 다시 유인하기까지 간격(초).")]
+        [Min(.1f)] public float UvDistractionCooldown = 4;
+        [Header("문 / 이동 소품 끼임 보정")]
+        public bool ObstructionSeparation = true;
+        [Tooltip("겹친 추격자를 같은 높이의 안전한 공간으로 밀어낼 최대 거리(m). 절단기 밀림 설정과 별개입니다.")]
+        [Range(.5f, 5)] public float SeparationDistance = 3;
         [Tooltip("쉬는 시간이 이 초 이하로 남으면 추격자가 깨어날 조짐(경고 연출)을 보인다.")]
         [Min(0)] public float WarningSeconds = 15;
         [Tooltip("추격이 시작된 뒤 추격자가 깨어나 움직이기 전까지의 시간(초). 이 동안은 쫓지 않는다.")]

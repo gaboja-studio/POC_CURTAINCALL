@@ -594,13 +594,16 @@ namespace CurtainCall.Player
             // 부상 높이·배율은 부상 기능이 따로 넣고(자세와 독립), 여기서 자세를 정한 뒤 둘을 합쳐 몸통 크기를 맞추고 이동한다.
             UpdatePosture();
             ApplyBodySize(!Simulated);
-            if (!Simulated || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.HoldingEscapeMovement
+            if (!Simulated || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
+                || CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement
                 || CurtainCall.EscapeRoute.EscapeSceneTransfer.HoldingForDeparture
                 || CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
             {
                 IsMoving = false;
                 ClearPendingInput();
                 unsupportedSlideVelocity = Vector3.zero;
+                if (CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive)
+                    ResetExternalMotion(true);
                 return;
             }
 

@@ -211,6 +211,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void LateUpdate()
         {
+            ResolveObstruction();
             if (IsDead) return;
             ApplyHitPose();
             if (IsStaggered) return;

@@ -17,8 +17,14 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Field("Enabled", "추격 시스템 사용");
             Field("LoseTargetSeconds", "공통 시야 상실 유예 (초)");
             GUILayout.Label("절단기 피격 / 재스폰", EditorStyles.boldLabel);
+            Field("SawCanKill", "절단기로 처치 가능"); Field("SawKnockback", "절단기 피격 밀림");
             Field("SmallHitsToDie", "소형 사망 피격 횟수"); Field("MediumHitsToDie", "중형 사망 피격 횟수");
             Field("RespawnSeconds", "사망 후 재스폰 (초)"); Field("HitReactionSeconds", "피격 경직 (초)"); Field("HitKnockback", "피격 밀림 (m)");
+            GUILayout.Label("환경 소음 / UV 유인", EditorStyles.boldLabel);
+            Field("LoudNoiseRadius", "큰 소음 거리 (m)"); Field("MaximumNoiseRadius", "최고 소음 거리 (m)"); Field("TvNoiseInterval", "TV 소음 간격 (초)");
+            EditorGUILayout.HelpBox("최고: 절단기 발사·대포·문 개폐 / 큼: 절단기 잡기·트램펄린 반동·환풍구 개방·TV. 벽 뒤 청각 감쇠는 현재 단계 설정을 따릅니다.", MessageType.None);
+            Field("UvDistraction", "UV로 어그로 분산"); Field("UvDistractionSeconds", "UV 대상 우선 시간 (초)"); Field("UvDistractionCooldown", "UV 재유인 간격 (초)");
+            Field("ObstructionSeparation", "문·이동 소품 끼임 보정"); Field("SeparationDistance", "끼임 보정 최대 거리 (m)");
             var stages = root.FindPropertyRelative("Stages");
             if (stages.arraySize == 0) {
                 if (GUILayout.Button("기본 단계 만들기")) { Undo.RecordObject(settings, "기본 추격 단계"); settings.Pursuit.Stages = new PursuitSettings().Stages; EditorUtility.SetDirty(settings); }

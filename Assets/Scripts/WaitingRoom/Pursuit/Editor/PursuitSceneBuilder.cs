@@ -221,7 +221,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             }
             foreach (var collider in colliders) {
                 var existing = collider.GetComponent<PursuitDoorObstacle>();
-                if (existing == null) existing = collider.gameObject.AddComponent<PursuitDoorObstacle>();
+                if (existing == null) {
+                    existing = collider.gameObject.AddComponent<PursuitDoorObstacle>();
+                    existing.Noise = PursuitDoorObstacle.SuggestedNoise(collider);
+                }
                 existing.Source = collider;
             }
             return colliders;

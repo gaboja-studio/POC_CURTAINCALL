@@ -25,7 +25,10 @@ namespace CurtainCall.HumanCannon
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)
                 && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, CurtainCall.Settings.GameSettings.Trampoline.AirControlSpeed);
-            if (accepted) ServerBounced?.Invoke(player.OwnerClientId);
+            if (accepted) {
+                ServerBounced?.Invoke(player.OwnerClientId);
+                CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.TrampolineBounce, contact, transform);
+            }
             if (player.IsLocal)
             {
                 if (accepted) LocalBounceCount++;

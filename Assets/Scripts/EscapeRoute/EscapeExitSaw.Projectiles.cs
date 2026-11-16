@@ -182,6 +182,7 @@ namespace CurtainCall.EscapeRoute
                 start = origin.position - direction * (back * (step + 1) / 6f);
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
+            CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawFire, start, CarryRoot);
             ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
             lastPresentedShot = shotSerial;
             EmitLaunch();

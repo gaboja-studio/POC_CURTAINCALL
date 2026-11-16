@@ -70,6 +70,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         bool climbing, climbUp;
+        bool ownsClimbRotation, previousAgentRotation;
         float climbStarted, climbDuration;
         Vector3 climbFrom, climbTo;
         int climbMask = NavMesh.AllAreas;
@@ -123,11 +124,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     WalkLink(link); return false;
                 }
                 var rules = GameSettings.WaitingRoom.Pursuit;
-                climbFrom = transform.position; climbTo = link.endPos;
+                // The agent enters within its radius of the endpoint. Use the validated
+                // link axis; the small arrival offset can rotate a side-wall probe away.
+                climbFrom = link.startPos; climbTo = link.endPos;
                 climbUp = climbTo.y > climbFrom.y;
                 // Serialized links may predate the wall-support validation used by the baker.
                 if (climbUp && !PursuitClimbPath.HasWallSupport(climbFrom, climbTo, transform)) {
-                    agent.ResetPath(); replanRequested = true;
+                    // ResetPath on an active link completes it immediately. Return to
+                    // its start before clearing, so rejection cannot teleport upstairs.
+                    agent.Warp(climbFrom); agent.ResetPath(); replanRequested = true;
                     return false;
                 }
                 BeginTraversal(rules);
@@ -135,7 +140,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             float t = Mathf.Clamp01((Time.time - climbStarted) / climbDuration);
             transform.position = TraversalPose(t);
-            Face(climbTo);
+            FaceTraversal(t);
             if (t < 1) return true;
             FinishClimb();
             return false;
@@ -143,9 +148,23 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         Vector3 TraversalPose(float t) => climbPath != null ? climbPath.Pose(t) : ClimbPose(climbFrom, climbTo, climbUp, t);
 
+        void FaceTraversal(float t)
+        {
+            if (!climbUp || climbPath == null) { Face(climbTo); return; }
+            var forward = Vector3.ProjectOnPlane(climbTo - climbFrom, Vector3.up).normalized;
+            var clock = PursuitClimbPath.ClockAt(t, climbTo.y - climbFrom.y);
+            float turn = clock.OnWall ? 0 : Mathf.SmoothStep(0, 1, Mathf.InverseLerp(PursuitClimbPath.ContactClip, PursuitClimbPath.KneeOver, clock.Clip));
+            Face(transform.position + Vector3.Slerp(climbPath.WallDirection, forward, turn));
+        }
+
         // climbFrom/To/Up을 정한 뒤 경로·시간·손발 접점을 준비한다. 내려오기는 가장자리까지 걷는 시간이 더해진다.
         void BeginTraversal(PursuitSettings rules)
         {
+            if (agent != null && !ownsClimbRotation) {
+                previousAgentRotation = agent.updateRotation;
+                agent.updateRotation = false;
+                ownsClimbRotation = true;
+            }
             float seconds = TraversalSeconds(rules, climbUp, climbTo.y - climbFrom.y);
             climbPath = climbUp ? PursuitClimbPath.Build(climbFrom, climbTo, transform) : PursuitClimbPath.BuildDrop(climbFrom, climbTo, transform, seconds);
             climbDuration = climbUp ? seconds : climbPath.Seconds;
@@ -155,6 +174,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         void FinishClimb()
         {
+            RestoreClimbRotation();
             climbing = false; climbPath = null;
             climbIk?.Clear();
             transform.position = climbTo;
@@ -165,12 +185,19 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         void ResetClimb()
         {
+            RestoreClimbRotation();
             climbing = false; remoteTraversal = false; climbPath = null;
             directTraversal = perched = hasDirectApproach = hasDropLanding = false;
             perchIdleFor = noDropFor = dropPlanAt = 0; climbWalk = 0;
             ResetDetour();
             climbIk?.Clear();
             climbMask = NavMesh.AllAreas;
+        }
+
+        void RestoreClimbRotation()
+        {
+            if (ownsClimbRotation && agent != null) agent.updateRotation = previousAgentRotation;
+            ownsClimbRotation = false;
         }
 
         // ---- 직접 오르기(NavMesh 밖 소품 윗면) ----
@@ -230,7 +257,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (climbing && directTraversal) {
                 float t = Mathf.Clamp01((Time.time - climbStarted) / climbDuration);
                 transform.position = TraversalPose(t);
-                Face(climbTo);
+                FaceTraversal(t);
                 if (t >= 1) FinishClimb();
                 return true;
             }
@@ -243,7 +270,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void TickPerch()
         {
             rule = director.CurrentStageRules;
-            var next = director.NearestVisible(this, rule);
+            var next = PerceivedTarget(rule);
             visible = next != null;
             if (visible) { target = next.transform; lastSeen = target.position; unseen = 0; } else unseen += Time.deltaTime;
             bool keep = target != null && director.IsAvailable(target.gameObject)

@@ -83,11 +83,21 @@ MonoBehaviour:
   bodyRestoreMaxParts: 3
   pursuit:
     Enabled: 1
+    SawCanKill: 0
+    SawKnockback: 0
     SmallHitsToDie: 3
     MediumHitsToDie: 5
     RespawnSeconds: 10
     HitReactionSeconds: 0.55
     HitKnockback: 0.65
+    LoudNoiseRadius: 24
+    MaximumNoiseRadius: 40
+    TvNoiseInterval: 2
+    UvDistraction: 1
+    UvDistractionSeconds: 2
+    UvDistractionCooldown: 4
+    ObstructionSeparation: 1
+    SeparationDistance: 3
     WarningSeconds: 15
     AwakeningSeconds: 2
     KnockdownSeconds: 1.2

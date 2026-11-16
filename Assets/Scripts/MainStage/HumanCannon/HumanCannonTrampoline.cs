@@ -538,6 +538,7 @@ namespace CurtainCall.HumanCannon
             if (accepted)
             {
                 ServerBounced?.Invoke(player.OwnerClientId);
+                CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.TrampolineBounce, contact, transform);
                 if (player.IsLocal) LocalBounceCount++;
                 foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
                     if (client != NetworkManager.ServerClientId)

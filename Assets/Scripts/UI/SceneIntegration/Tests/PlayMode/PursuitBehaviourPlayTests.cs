@@ -13,6 +13,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         static object PursuitPrivate(object obj, string name) => obj.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(obj);
+        object behaviourRules;
+        string behaviourRulesBefore;
+        [TearDown] public void RestorePursuitBehaviourRules()
+        {
+            // Unity's failed coroutine can be abandoned without executing its finally.
+            if (behaviourRules != null && behaviourRulesBefore != null) JsonUtility.FromJsonOverwrite(behaviourRulesBefore, behaviourRules);
+            behaviourRules = null; behaviourRulesBefore = null;
+        }
         [UnityTest]
         public IEnumerator PursuitNavigation_PatrolRestoresPathAfterListeningStop()
         {
@@ -62,11 +70,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             do { Call(actor, "ServerTick", 4f, false); yield return null; }
             while ((Get(actor, "Behaviour").ToString() != state || !actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled) && Time.time < until);
             Assert.AreEqual(state, Get(actor, "Behaviour").ToString());
-            Assert.IsTrue(actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled, "Wait for this mannequin's awakening before testing its behaviour.");
+            Assert.IsTrue(actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled,
+                $"Expected a navigating mannequin: {actor.name}, position={actor.transform.position}, active={Get(actor, "IsActivated")}, motion={Get(actor, "State")}, navVertices={UnityEngine.AI.NavMesh.CalculateTriangulation().vertices.Length}, sampled={UnityEngine.AI.NavMesh.SamplePosition(actor.transform.position, out _, 4, UnityEngine.AI.NavMesh.AllAreas)}, scene={actor.gameObject.scene.name}");
         }
         [UnityTest]
         public IEnumerator PursuitBehaviour_GraphHearingChaseSearchAndCulling()
         {
+            // The legacy Pursuit test scene no longer has a baked NavMesh. Exercise
+            // the integrated scene used by the game, preserving the user's settings.
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
+            behaviourRules = Get(Static("CurtainCall.Settings.GameSettings", "WaitingRoom"), "Pursuit");
+            behaviourRulesBefore = JsonUtility.ToJson(behaviourRules);
             yield return PursuitHost();
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance"); Call(run, "DebugSetRemaining", .01f);
             var director = Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");

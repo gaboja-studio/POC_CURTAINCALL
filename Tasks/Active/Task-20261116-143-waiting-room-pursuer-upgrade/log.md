@@ -54,3 +54,45 @@
 - 제출 전 대상 Unity 정상 종료, origin/dev 기준 0/0 동기화. 비공개 에셋 main에 `dc76d169`를 먼저 올리고 작업 브랜치에서 그 포인터를 참조한다.
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-17 난간 재현 및 치트 이동 핫픽스
+- 사용자 Play 상태에서 화물 추격자 (-57.558,.052,75.195), 목표 (-57.558,5.680,75.195)를 반복 확인. 단계 제한은 허용이며 경로 Partial. 전방 벽 검사만으로 난간 입구 옆의 연속 벽을 제외한 코드 결함.
+- 옆 벽의 수직/착지 구간 연속 지지를 검사하고 벽 방향과 착지 방향을 분리. 벽 타기 구간은 벽을 향하고 마지막에 착지 방향으로 회전, 손 IK도 실제 벽 방향 사용.
+- 첫 실제 이동 검증에서 추가 결함 발견: 에이전트의 링크 진입 오차로 벽 검증 탈락, ResetPath가 링크를 즉시 완료하여 순간이동. link.startPos 기준으로 검증하고 거부 시 시작점 Warp 후 경로 해제.
+- 실제 Play 기록: 4.11~8.11초 Climb 26개 샘플, 최대 손발 접점 3개, 이후 y=5.64 난간에서 목표까지 추격. 화물과 소품실 난간 경로 모두 PathComplete, 런타임 링크 281개.
+- 추가 사용자 요청 치트 즉사 재현: 최초 호스팅 Start 씬에서 3.58초 y=-15.562로 떨어져 MapExit, 로딩 후에도 Fallen 유지. 같은 씬 재시작에서는 재현되지 않아 오래된 낙하 이력 가설을 제외.
+- Dev 시작 준비/커튼 공간 전환 중 중력 이동·외부 속도 진행을 보류하고 이전 공간의 낙하 이력/WorldDeath 보고를 제외. 배치/커튼 해제 즉시 정상 판정 재개. 공통 사망 높이·낙하 피해 수치 변경 없음.
+- 검사: PursuitUpgradeTests 10/10, PursuitDirectClimbTests 8/8, PursuitClimbIkTests 26/26, NetworkFallSegmentTests 24/24, 최초 Start→대기실 PlayMode 1/1. 새 경로 테스트의 초기 1실패는 실제 캡슐과 다른 구형 검사 볼륨 탓으로 판정하고 실제 BodyBottom/Top/Radius 캡슐 검증으로 교정.
+- 사용자 씬/배치/봉합 설정과 기존 폰트 캐시·재질 미커밋 변경 보존. 이번 후속 수정은 아직 커밋/푸시하지 않음.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 제출 전 Unity 정상 종료(미저장 0) 후 origin/dev fetch/ff-only: Already up to date. check-work 안전성·문서/규칙·컴파일 PASS; 자동 테스트는 위 별도 실행 결과 69/69. 기존 문서 길이 WARN 76건(hard 0)은 유지.
+- 마지막 측면 촬영에서 NavMeshAgent 자동 회전과 벽 바라보기 충돌 추가 발견. 오르기 중 updateRotation을 보류하고 착지/중단 시 원래 값을 복원하도록 보정.
+- 회전 보정 후 실제 측면 3장 재촬영: 상승 진행률 .22/.48에서 정면 (-1,0,0)으로 벽을 향함, .82에서 (0,0,1) 착지 방향 전환. y=5.64 도착, updateRotation=true 복원, 플레이어 Normal. 추가 최초 치트 시작도 즉사 없이 확인.
+
+## 2026-11-17 전투 옵션·환경 소음·UV·끼임 보정
+- 작업 재개 시 대상 Unity만 정상 종료, origin/dev fetch/ff-only Already up to date 후 재시작. Unity MCP 미노출로 Unity Pipeline CLI 사용. 기존 사용자 설정·폰트/재질 및 앞선 미커밋 수정 보존.
+- GameSettings의 SawCanKill/SawKnockback 분리, 모두 OFF로 저장. 체력 최소 1, 피격 표현 유지, 밀림 OFF 시 오르기/이동을 중단하지 않는다. 처치만 ON일 때 밀림은 켜지지 않으며 사망/10초 재스폰은 기존 규칙 유지.
+- 최고 소음(40m): 절단기 발사·대포 발사·문 개폐. 큰 소음(24m): 절단기 잡기·트램펄린 반동·환풍구 개방·TV. 반경/TV 반복 간격은 공통 설정, 벽 감쇠는 현재 단계 설정. 승인된 동작에 연결, 호스트만 소비하며 기존 직접 시야 추격은 소리로 덮어쓰지 않는다.
+- UV 직접 조명 시 비춘 플레이어 우선 2초, 재유인 4초. 원뿔·거리·벽 가림·방/순찰 제한 적용, 지상과 소품 위 공통 대상 선택. 접촉 포획은 계속 우선. 멀티플레이 복제 빛도 호스트에서 판정하도록 연결했으나 별도 다중 인스턴스 실험은 이번에 수행하지 않음.
+- NavMesh carving만으로 기존 겹침이 풀리지 않는 문제를 실제 문에서 재현. 25Hz 캡슐 겹침 검사와 수평 출구 탐색, 같은 층 지지/다른 벽 통과 금지, 출구 없는 공간 순간이동 금지. 오르기 중 정적 지지 벽은 제외하고 동적 침입만 보정. 절단기 밀림 옵션과 독립.
+- 실제 저장된 장애물 41개: Door 18, VentOpen 2, None 21. 사용자 배치 29개 유지. Unity 저장 시 끊어진 m_CorrespondingSourceObject 참조가 0으로 정리됐고 나머지 씬 차이는 Noise 직렬화/프리팹 오버라이드뿐임을 diff로 확인.
+- 검사: 새 EditMode 12/12, 프리팹 PlayMode 5/5. 초기 물리 2실패는 비활성 Collider의 ComputePenetration false 문제로 검사 동안만 활성화/finally 복원. 초기 UV 1실패는 다른 플레이어가 포획 반경 안에 있었던 fixture 오류로 위치를 바르게 분리. 기존 Hear 2인자 반사 호출 호환도 유지.
+- 실제 씬: 화장실/숙소 덮개 개방 VentOpen 2건, 문 개방 Door 1건, 숙소 입장 후 TV 주기 소음 확인. 계단 출입문 내부 추격자는 (4.51,.03,101.97)→(4.51,.04,102.56), SeparationCount 0→1, Clear=true, SawKnockback=false.
+- 실제 화물 난간 회귀: 벽 방향 유지 후 (-57.74,5.64,75.45) 도착, 오르기 중 SeparationCount=0, 플레이어 Normal. 시작 치트 이동도 생존. 검증 중 게임 종료 Vivox 취소 스택은 기존 서비스 로그이며 변경된 추격 코드 예외는 관찰하지 못함.
+- 기존 회귀 파일명 필터는 partial 클래스 이름과 달라 0건이었으며 PASS로 계산하지 않았다. 메서드명 실행의 초기 실패는 활성 단계 가설과 달리 WaitingRoomPursuit 구형 테스트 씬 NavMesh 정점 0/표본 없음 때문이었다(Integrated 씬은 편집 상태 9009정점). 해당 행동 검사만 현재 통합 씬을 사용하도록 수정. 실패 코루틴 finally가 복원하지 못한 설정은 디스크 에셋을 LoadSerializedFileAndForget/CopySerialized로 읽어 되돌렸고 TearDown 복원도 추가했다. 사용자 1단계 속도 7·시야 5 및 처치/밀림 OFF 복원 확인. 커밋/푸시는 이번 후속 요청에서 수행하지 않음.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 개별 회귀: PursuitStimuliSafetyTests 12/12 + PursuitUpgradeRuntimeTests 5/5 + 기존 GraphHearingChaseSearchAndCulling 1/1, 총 18/18. 마지막 테스트 이후 설정 복원 확인. 실제 씬 검증도 완료.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 check-work 안전성·문서/규칙·Unity 컴파일·공통 설정 PASS. 선택 자동 테스트는 SKIPPED이며 위 별도 실행 18/18로 검증. 기존 길이 경고 76개, hard 0. 대상 Unity PID 53300 정상 종료(unsaved 0) 확인 후 origin/dev fetch/ff-only Already up to date, HEAD...origin/dev=1/0. 다른 작업 트리 Unity는 유지.
+- Unity 6000.3.25f1 재시작 ready(PID 46008), WaitingRoom 편집 모드로 복귀. 플레이 검증용 문 개방/순간이동 상태는 저장하지 않았다.
+
+## 2026-11-17 사용자 설정 포함 커밋·dev PR 요청
+- 열린 씬과 로드된 게임 설정의 저장 상태 확인: 미저장 0, Prefab Stage 없음. WaitingRoom 씬·공통 설정·앞선 난간 및 치트 이동 수정·이번 소음/UV/끼임 수정을 함께 저장한다.
+- Unity 정상 종료 요청이 지연됐으나 강제 종료 없이 PID 46008 소멸 확인 후 origin/dev fetch/ff-only Already up to date(HEAD...origin/dev 1/0). 다른 작업 트리의 Unity는 조작하지 않았다.
+- 검증된 코드·씬·게임 설정은 최종 check-work(02:41) 이후 수정되지 않았다. 컴파일/공통 설정 PASS 및 기능 회귀 18/18·이전 난간/낙하 69/69 결과를 재사용하고 안전성/문서 검사를 다시 수행한다.
+- 사용자 배치·봉합·단계 값은 씬/설정과 기존 커밋에 포함한다. 동적 폰트 캐시, 재질의 소수점 직렬화 차이, 임시 프로브/캡처는 로컬에 유지한다. save-work의 전체 add 대신 명시 경로만 stage한다.
+- new-pr -DryRun으로 dev 대상과 본문을 확인했다. 남겨 둘 로컬 캐시/프로브 때문에 전체 작업 트리 clean 검사는 충족되지 않으므로, 검사한 커밋을 push한 뒤 gh로 PR을 생성한다. 병합은 하지 않는다.
+- 저장 직전 안전성 OK(191 변경 경로), 문서/규칙 Fast OK 확인. 실제 커밋 대상은 관련 코드·씬·설정·기록 47개 파일이며 Unity 검사/회귀 결과는 위 확정 결과를 재사용한다.
