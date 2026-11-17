@@ -1,8 +1,10 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Damage;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
+using CurtainCall.WaitingRoom.Pursuit;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -47,25 +49,21 @@ namespace CurtainCall.HumanCannon
             Vector3 position = survivor.transform.position;
             var cannon = HumanCannonSystem.Current;
             bool seated = cannon != null && cannon.IsSeated(survivor.OwnerClientId);
-            if (!seated && TryFindDropPlacement(position, survivor, initialRotation, out ground)) return true;
+            if (!seated && TryFindPlacement(position, initialRotation, survivor, out ground)) return true;
             Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up);
             if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
-            // Try the existing recovery offsets before returning to the authored rest pose.
+            // 생존자의 2m, 4m 뒤에서 트램펄린을 놓을 수 있는 지면을 찾는다.
             Vector3 behind = position;
             for (int step = 0; step < SurvivorBehindSteps; step++)
             {
                 behind -= forward.normalized * SurvivorBehindDistance;
-                if (TryFindDropPlacement(behind, survivor, initialRotation, out ground)) return true;
+                if (TryFindPlacement(behind, initialRotation, survivor, out ground)) return true;
             }
             return false;
         }
 
-        bool TryFindDropPlacement(Vector3 from, NetworkPlayer carrier, Quaternion rotation, out Vector3 ground) =>
-            TryFindGround(from, out ground) && HumanCannonCarry.CanMove(transform, carryBody, ground, rotation, carrier, false);
-
-        bool TryDropHere(NetworkPlayer carrier, out Vector3 ground) =>
-            TryFindDropPlacement(transform.position, carrier, transform.rotation, out ground)
-            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, true, 0f, null, allowExistingOverlap: true);
+        internal static bool IsPursuerCollider(Collider collider) => collider.GetComponentInParent<PursuitActor>() != null
+            || collider.GetComponentInParent<EscapeUnderstageChase>() != null;
 
         /// <summary>주어진 위치 바로 아래 가장 가까운 지면. 플레이어·자기 자신·트리거·벽면은 제외한다.</summary>
         bool TryFindGround(Vector3 from, out Vector3 ground, bool avoidRope = false)
@@ -85,7 +83,7 @@ namespace CurtainCall.HumanCannon
                 var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f || hit.transform.IsChildOf(transform)
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null
-                    || DismemberedLimb.Contains(hit.collider)) continue;
+                    || DismemberedLimb.Contains(hit.collider) || IsPursuerCollider(hit.collider)) continue;
                 if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
                 if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
                 nearest = hit.distance;
@@ -94,48 +92,87 @@ namespace CurtainCall.HumanCannon
             return !float.IsPositiveInfinity(nearest);
         }
 
-        void PlaceAfterRopeDrop(NetworkPlayer carrier)
-        {
-            RefreshCarryBody(null);
-            Vector3 position = transform.position;
-            float reach = GameSettings.Trampoline.GrabDistance;
-            if (TryParkBelow(position, carrier, reach, out var ground))
-            {
-                StartDrop(ground);
-                return;
-            }
+        bool TryFindPlacement(Vector3 from, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope = false)
+            => TryFindGround(from, out ground, avoidRope) && CanSettleAt(ground, rotation, carrier);
 
+        bool TryFindDropPath(Vector3 from, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope = false)
+            => TryFindPlacement(from, rotation, carrier, out ground, avoidRope)
+                && HumanCannonCarry.CanMoveFromPose(transform, carryBody, from, ground, rotation, carrier);
+
+        bool TryDropHere(NetworkPlayer carrier, out Vector3 ground)
+            => TryFindDropPath(transform.position, transform.rotation, carrier, out ground);
+
+        bool CanSettleAt(Vector3 ground, Quaternion rotation, NetworkPlayer carrier)
+        {
+            if (!HumanCannonCarry.CanMove(transform, carryBody, ground, rotation, carrier, sweep: false)) return false;
+            // Waiting-room actors use navigation and temporary probes, so a physical overlap alone can miss them.
+            var pursuit = PursuitDirector.Current;
+            if (pursuit == null) return true;
+            foreach (var actor in pursuit.Actors)
+            {
+                if (actor == null || !actor.isActiveAndEnabled || actor.IsDead) continue;
+                if (OverlapsPursuer(actor, ground, rotation)) return false;
+            }
+            return true;
+        }
+
+        bool OverlapsPursuer(PursuitActor actor, Vector3 ground, Quaternion rotation)
+        {
+            var feet = actor.transform.position;
+            const float bodyRadius = .28f; // PursuitActor.Initialize uses this navigation radius.
+            float height = actor.IsCrouched ? PursuitActor.CrouchBodyHeight : 1.8f * (actor.Placement?.SizeScale ?? 1f);
+            float centerY = ground.y + surfaceHeight * Mathf.Abs(transform.lossyScale.y) * .5f;
+            feet.y = Mathf.Clamp(centerY, feet.y + bodyRadius, feet.y + Mathf.Max(bodyRadius, height - bodyRadius));
+            var nearest = Physics.ClosestPoint(feet, carryBody, ground, rotation);
+            return (nearest - feet).sqrMagnitude < bodyRadius * bodyRadius;
+        }
+
+        bool TryFindNearbyPlacement(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope = false)
+            => TryFindPlacement(position, rotation, carrier, out ground, avoidRope)
+                || TryFindNearbySidePlacement(position, rotation, carrier, out ground, avoidRope);
+
+        bool TryRestoreInitialPlacement(NetworkPlayer carrier, out Vector3 ground, bool avoidRope = false)
+        {
+            ground = initialPosition;
+            return CanSettleAt(initialPosition, initialRotation, carrier)
+                || TryFindNearbyPlacement(initialPosition, initialRotation, carrier, out ground, avoidRope);
+        }
+
+        bool TryFindNearbySidePlacement(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope)
+        {
+            float reach = GameSettings.Trampoline.GrabDistance;
             for (int step = 1; step <= 2; step++)
             {
                 float offset = reach * step / 2f;
-                Vector3 right = transform.right * offset;
-                Vector3 forward = transform.forward * offset;
-                if (TryParkBelow(position - forward, carrier, reach, out ground)
-                    || TryParkBelow(position + right, carrier, reach, out ground)
-                    || TryParkBelow(position - right, carrier, reach, out ground)
-                    || TryParkBelow(position + forward, carrier, reach, out ground))
-                {
-                    StopDrop();
-                    transform.position = ground;
-                    return;
-                }
+                Vector3 right = rotation * Vector3.right * offset;
+                Vector3 forward = rotation * Vector3.forward * offset;
+                if (TryFindReachablePlacement(position, position - forward, rotation, carrier, out ground, avoidRope)
+                    || TryFindReachablePlacement(position, position + right, rotation, carrier, out ground, avoidRope)
+                    || TryFindReachablePlacement(position, position - right, rotation, carrier, out ground, avoidRope)
+                    || TryFindReachablePlacement(position, position + forward, rotation, carrier, out ground, avoidRope)) return true;
             }
-
-            if (TryParkBelow(position, carrier, DropProbeDistance, out ground))
-            {
-                StartDrop(ground);
-                return;
-            }
-
-            // A rope can span a void. Use the existing recovery origin when no nearby floor can fit the prop.
-            StopDrop();
-            transform.SetPositionAndRotation(initialPosition, initialRotation);
+            ground = default;
+            return false;
         }
 
+        bool TryFindReachablePlacement(Vector3 from, Vector3 candidate, Quaternion rotation, NetworkPlayer carrier,
+            out Vector3 ground, bool avoidRope)
+            => TryFindDropPath(candidate, rotation, carrier, out ground, avoidRope)
+                && (!avoidRope || candidate.y - ground.y <= GameSettings.Trampoline.GrabDistance)
+                && HumanCannonCarry.CanMoveFromPose(transform, MoveCheckBody, from, candidate, rotation, carrier);
+
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
-            TryFindGround(from, out ground, avoidRope: true) && from.y - ground.y <= reach
-            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, false)
-            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, true, 0f, null, allowExistingOverlap: true);
+            TryFindDropPath(from, transform.rotation, carrier, out ground, avoidRope: true) && from.y - ground.y <= reach;
+
+        void ReleaseAt(ulong actor, uint revision, Vector3 from, Quaternion rotation, Vector3 ground)
+        {
+            if (!ownership.TryApply(CannonAction.Release, actor, revision)) return;
+            transform.SetPositionAndRotation(from, rotation);
+            StartDrop(ground);
+            RefreshCarryBody(null);
+            ResetPreviousPose();
+            PublishOwnership();
+        }
 
         void StartDrop(Vector3 target)
         {
@@ -173,7 +210,21 @@ namespace CurtainCall.HumanCannon
             Vector3 position = transform.position;
             position.y = Mathf.Max(dropTarget.y, position.y - dropSpeed * Time.deltaTime);
             transform.position = position;
-            if (position.y <= dropTarget.y) dropping = false;
+            if (position.y <= dropTarget.y)
+            {
+                // A player or pursuer may have entered the landing space after the host approved the drop.
+                var rotation = transform.rotation;
+                if (CanSettleAt(dropTarget, rotation, null))
+                    dropping = false;
+                else if (session != null && session.IsHost && TryFindNearbyPlacement(dropTarget, rotation, null, out var ground))
+                {
+                    transform.position = ground;
+                    StopDrop();
+                    ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+                    PublishOwnership();
+                }
+                if (!dropping) RefreshCarryBody(null);
+            }
             // 떨어지는 이동을 반동 sweep으로 판정하지 않는다.
             ResetPreviousPose();
         }

@@ -18,9 +18,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         static bool Solid(Collider c, Transform self) => c != null && c.enabled && !c.isTrigger && c.gameObject.activeInHierarchy
             && !c.transform.IsChildOf(self) && c.GetComponentInParent<PursuitActor>() == null
+            && c.GetComponentInParent<CurtainCall.HumanCannon.HumanCannonTrampoline>() == null
             && c.GetComponentInParent<PlayerMover>() == null && !CurtainCall.Damage.DismemberedLimb.Contains(c);
         static bool Moving(Collider c) => c.attachedRigidbody != null || c.GetComponentInParent<PursuitDoorObstacle>() != null
-            || c.GetComponentInParent<ExplorationSlide>() != null || c.GetComponentInParent<CurtainCall.HumanCannon.HumanCannonTrampoline>() != null
+            || c.GetComponentInParent<ExplorationSlide>() != null
             || c.GetComponentInParent<CurtainCall.EscapeRoute.EscapeExitSaw>() != null;
 
         static void Ends(CapsuleCollider body, Vector3 feet, out Vector3 a, out Vector3 b)

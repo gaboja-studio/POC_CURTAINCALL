@@ -43,6 +43,7 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock heldHandleTint;
         bool? handleShownHeld;
         Collider carryBody;
+        bool originalCarryBodyTrigger;
         CharacterController ignoredCarrierBody;
         bool previousCarrierIgnored;
         Vector3 lastSafeCarrierFeet;
@@ -66,6 +67,7 @@ namespace CurtainCall.HumanCannon
                     }
                     else carryBody = gameObject.AddComponent<BoxCollider>();
                 }
+                originalCarryBodyTrigger = carryBody.isTrigger;
             }
             if (carryBody is MeshCollider commonMesh && CurtainCall.Settings.GameSettings.Trampoline.CarryCollisionMesh is { } sharedShape
                 && commonMesh.sharedMesh != sharedShape)
@@ -78,7 +80,11 @@ namespace CurtainCall.HumanCannon
                 box.center = new Vector3(0, surfaceHeight * .5f, 0);
                 box.size = new Vector3(LoadHalfSize.x * 2f, surfaceHeight, LoadHalfSize.y * 2f);
             }
-            var next = carrier != null && carrier.TryGetComponent(out PlayerMover mover) ? mover.Body : null;
+            // The core is checked explicitly; the rim must not physically push other bodies while carried.
+            bool trigger = originalCarryBodyTrigger || CarryCheckDiameter > 0f && (ownership.IsOccupied || dropping);
+            if (carryBody.isTrigger != trigger) carryBody.isTrigger = trigger;
+            var next = gameObject.scene.IsValid() && carrier != null && carrier.gameObject.scene.IsValid()
+                && carrier.TryGetComponent(out PlayerMover mover) ? mover.Body : null;
             if (next != ignoredCarrierBody)
             {
                 if (ignoredCarrierBody != null) Physics.IgnoreCollision(ignoredCarrierBody, carryBody, previousCarrierIgnored);
@@ -87,27 +93,33 @@ namespace CurtainCall.HumanCannon
             }
             if (next != null && next.enabled && next.gameObject.activeInHierarchy) Physics.IgnoreCollision(next, carryBody, true);
         }
-        // 대기실 전용 운반 판정(2026-11-13 사용자: 공통 설정은 그대로 두고 대기실만 줄인다).
-        // 실제 몸통 충돌체는 건드리지 않고, 들고 갈 때 "걸리는지"만 보는 작은 상자를 따로 둔다. 공연 씬에서는 쓰지 않는다.
-        BoxCollider waitingRoomCheckBody;
+        float CarryCheckDiameter => UsesTraversalCarryClearance(gameObject.scene.name)
+            ? CurtainCall.Settings.GameSettings.WaitingRoom.TrampolineCarryCheckDiameter : 0f;
+
+        static bool UsesTraversalCarryClearance(string sceneName) =>
+            sceneName != null && (sceneName.StartsWith("WaitingRoom", System.StringComparison.Ordinal)
+                || sceneName.StartsWith("escape_route", System.StringComparison.OrdinalIgnoreCase));
+
+        BoxCollider carryCheckBody;
+        internal bool IsCarryCheckBody(Collider body) => carryCheckBody != null && body == carryCheckBody;
+
         Collider MoveCheckBody
         {
             get
             {
-                float diameter = gameObject.scene.name.StartsWith("WaitingRoom", System.StringComparison.Ordinal)
-                    ? CurtainCall.Settings.GameSettings.WaitingRoom.TrampolineCarryCheckDiameter : 0f;
+                float diameter = CarryCheckDiameter;
                 if (diameter <= 0f || carryBody == null) return carryBody;
-                if (waitingRoomCheckBody == null)
+                if (carryCheckBody == null)
                 {
-                    var holder = new GameObject("WaitingRoomCarryCheck") { layer = gameObject.layer };
+                    var holder = new GameObject("TrampolineCarryCheck") { layer = gameObject.layer, hideFlags = HideFlags.DontSave };
                     holder.transform.SetParent(transform, false);
-                    waitingRoomCheckBody = holder.AddComponent<BoxCollider>();
-                    waitingRoomCheckBody.isTrigger = true;
+                    carryCheckBody = holder.AddComponent<BoxCollider>();
+                    carryCheckBody.isTrigger = true;
                 }
                 var scale = transform.lossyScale;
-                waitingRoomCheckBody.center = new Vector3(0, surfaceHeight * .5f, 0);
-                waitingRoomCheckBody.size = new Vector3(diameter / Mathf.Max(.0001f, Mathf.Abs(scale.x)), surfaceHeight, diameter / Mathf.Max(.0001f, Mathf.Abs(scale.z)));
-                return waitingRoomCheckBody;
+                carryCheckBody.center = new Vector3(0, surfaceHeight * .5f, 0);
+                carryCheckBody.size = new Vector3(diameter / Mathf.Max(.0001f, Mathf.Abs(scale.x)), surfaceHeight, diameter / Mathf.Max(.0001f, Mathf.Abs(scale.z)));
+                return carryCheckBody;
             }
         }
         public static HumanCannonTrampoline Current { get; private set; }
@@ -180,7 +192,7 @@ namespace CurtainCall.HumanCannon
 
         static bool HasRopeSupport(NetworkPlayer player)
         {
-            if (!player.TryGetComponent(out PlayerMover mover) || (player.IsLocal
+            if (player == null || !player.TryGetComponent(out PlayerMover mover) || (player.IsLocal
                 ? !mover.Simulated || mover.IsAirborne : player.IsAirborne)) return false;
             var course = TightropeCourse.Current;
             return course != null && course.IsTraversalActive && course.TryGetSupportingRope(mover, out _);
@@ -202,20 +214,18 @@ namespace CurtainCall.HumanCannon
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
                 && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
-            ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
-            // 아래에 지면이 없으면 낙사와 같이 처리한다.
-            if (fellOff || !TryDropHere(carrier, out var ground))
+            Vector3 dropOrigin = transform.position;
+            Quaternion rotation = transform.rotation;
+            Vector3 ground = default;
+            bool nearby = !fellOff && (TryDropHere(carrier, out ground)
+                || TryFindNearbySidePlacement(dropOrigin, rotation, carrier, out ground, avoidRope: false));
+            if (!nearby)
             {
-                StopDrop();
-                // 지면에 선 생존자를 찾지 못하면(전멸 등) 시작 지점 원래 위치로 돌린다.
-                if (!TryFindSurvivorGround(out var survivorGround))
-                    transform.SetPositionAndRotation(initialPosition, initialRotation);
-                else transform.SetPositionAndRotation(survivorGround, initialRotation);
+                rotation = initialRotation;
+                if (!TryFindSurvivorGround(out ground)
+                    && !TryRestoreInitialPlacement(carrier, out ground)) return;
             }
-            else StartDrop(ground);
-            // 순간이동 전후를 반동 sweep으로 연결하지 않고, 모든 화면에 같은 위치를 공유한다.
-            ResetPreviousPose();
-            PublishOwnership();
+            ReleaseAt(Carrier, ownership.Revision, nearby ? dropOrigin : ground, rotation, ground);
         }
 
         void LateUpdate()
@@ -414,15 +424,19 @@ namespace CurtainCall.HumanCannon
         {
             if (session == null || !session.IsHost || Carrier != actor) return;
             var carrier = FindPlayer(actor);
-            if (carrier == null || carrier.State != PlayerState.Normal) ReleaseCarrierToGround(carrier);
-            else if (HasRopeSupport(carrier)) ServerDropForRope(actor);
-            else if (ownership.TryApply(CannonAction.Release, actor, ownership.Revision))
+            if (HasRopeSupport(carrier))
             {
-                // Relocation detaches the load at the old pose before moving its carrier.
-                // It must not invoke manual-drop recovery toward a survivor or a new room.
-                ResetPreviousPose();
-                PublishOwnership();
+                ServerDropForRope(actor);
+                return;
             }
+            RefreshCarryBody(carrier);
+            var position = transform.position;
+            var rotation = transform.rotation;
+            // Relocation detaches at the old pose before its carrier teleports.
+            if (CanSettleAt(position, rotation, carrier))
+                ReleaseAt(actor, ownership.Revision, position, rotation, position);
+            else
+                ReleaseCarrierToGround(carrier);
         }
 
         internal bool ServerRestoreRehearsalCarrier(NetworkPlayer player)
@@ -442,10 +456,19 @@ namespace CurtainCall.HumanCannon
 
         internal void ServerDropForRope(ulong actor)
         {
-            if (session == null || !session.IsHost || !ownership.TryApply(CannonAction.Release, actor, ownership.Revision)) return;
-            PlaceAfterRopeDrop(FindPlayer(actor));
-            ResetPreviousPose();
-            PublishOwnership();
+            if (session == null || !session.IsHost || Carrier != actor) return;
+            var carrier = FindPlayer(actor);
+            RefreshCarryBody(carrier);
+            var position = transform.position;
+            var rotation = transform.rotation;
+            if (TryParkBelow(position, carrier, CurtainCall.Settings.GameSettings.Trampoline.GrabDistance, out var ground))
+                ReleaseAt(actor, ownership.Revision, position, rotation, ground);
+            else if (TryFindNearbySidePlacement(position, rotation, carrier, out ground, avoidRope: true))
+                ReleaseAt(actor, ownership.Revision, ground, rotation, ground);
+            else if (TryParkBelow(position, carrier, DropProbeDistance, out ground))
+                ReleaseAt(actor, ownership.Revision, position, rotation, ground);
+            else if (TryRestoreInitialPlacement(carrier, out ground, avoidRope: true))
+                ReleaseAt(actor, ownership.Revision, ground, initialRotation, ground);
         }
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact)
@@ -534,15 +557,21 @@ namespace CurtainCall.HumanCannon
                     return;
                 }
                 if (!Finite(rotation) || Carrier != actor || ownership.Revision != revision) return;
+                RefreshCarryBody(player);
                 // 로컬 장치 위치를 사용하되 마지막 동기화 위치에서 비정상적으로 먼 요청은 무시한다.
                 float turnSpan = Mathf.Max(4f, 2f * Vector3.Distance(transform.position, Handle.position) + 1f);
-                var dropRotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
-                if ((position - transform.position).sqrMagnitude <= turnSpan * turnSpan
-                    && HumanCannonCarry.CanMove(transform, MoveCheckBody, position, dropRotation, player, false))
-                    transform.SetPositionAndRotation(position, dropRotation);
-                // Dropping during a jump uses the same supported fall/recovery as a lost carrier.
-                // Publish its landing target so every client follows the same drop.
-                ReleaseCarrierToGround(player);
+                rotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
+                if ((position - transform.position).sqrMagnitude > turnSpan * turnSpan
+                    || !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, player,
+                        player.IsLocal, 0f, null, allowExistingOverlap: player.IsLocal))
+                {
+                    position = transform.position;
+                    rotation = transform.rotation;
+                }
+                if (TryFindDropPath(position, rotation, player, out var ground))
+                    ReleaseAt(actor, revision, position, rotation, ground);
+                else if (!UsesTraversalCarryClearance(gameObject.scene.name))
+                    ReleaseCarrierToGround(player);
                 return;
             }
             else return;
@@ -608,6 +637,7 @@ namespace CurtainCall.HumanCannon
         void OnDisable()
         {
             if (carryBody != null && ignoredCarrierBody != null) Physics.IgnoreCollision(ignoredCarrierBody, carryBody, previousCarrierIgnored);
+            if (carryBody != null) carryBody.isTrigger = originalCarryBodyTrigger;
             ignoredCarrierBody = null;
             collisionCarrier = CannonSeatState.Nobody;
             HumanCannonCarry.Unregister(this);

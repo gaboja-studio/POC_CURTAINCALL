@@ -130,7 +130,7 @@ namespace CurtainCall.Settings
         int explorationTokenFundsCoin = 10;
         public int ExplorationTokenFundsCoin => explorationTokenFundsCoin;
 
-        [SerializeField, InspectorName("대기실 트램펄린 운반 판정 지름"), Min(0f), Tooltip("대기실에서 트램펄린을 들고 갈 때 벽·설비에 걸리는지 보는 판정의 지름(m). 공연 공통 판정(지름 약 4.95m)은 좁은 대기실에서 옮길 수 없어 대기실에서만 줄인다(2026-11-13 사용자). 0이면 공연과 같은 판정.")]
+        [SerializeField, InspectorName("대기실·탈출로 트램펄린 운반 판정 지름"), Min(0f), Tooltip("대기실·탈출로에서 들고 갈 때 벽과 기둥을 검사하는 중심부의 지름(m). 0이면 공연처럼 전체 크기를 검사한다. 내려놓기는 전체 크기로 검사한다.")]
         float trampolineCarryCheckDiameter = 1f;
         public float TrampolineCarryCheckDiameter => Mathf.Max(0f, trampolineCarryCheckDiameter);
 
