@@ -1,4 +1,5 @@
 using System;
+using CurtainCall.Damage;
 using UnityEngine;
 
 namespace CurtainCall.Player.Validation
@@ -89,6 +90,7 @@ namespace CurtainCall.Player.Validation
             rigidbody.useGravity = true;
             rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            piece.AddComponent<DismemberedLimb>();
             var cap = pieceMesh.GetTriangles(pieceMesh.subMeshCount - 1);
             Vector3 center = Vector3.zero;
             float area = 0f;
