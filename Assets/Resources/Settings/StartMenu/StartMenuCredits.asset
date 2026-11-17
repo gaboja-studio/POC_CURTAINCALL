@@ -57,3 +57,36 @@ MonoBehaviour:
     notice: "Synty Studios\uC758 \uD658\uACBD \uBC0F \uC18C\uD488 \uC5D0\uC14B."
     url: https://syntystore.com/pages/licences-overview
     fullLicense: {fileID: 0}
+  - asset: Stylized Abandoned Factory - Workshop URP
+    author: Dzendor
+    license: Standard Unity Asset Store EULA
+    notice: "Dzendor\uC758 \uACF5\uC7A5 \uC791\uC5C5\uC7A5 \uD658\uACBD \uC5D0\uC14B."
+    url: https://unity.com/legal/as-terms
+    fullLicense: {fileID: 0}
+  - asset: 'Stylized Particles: Smoke, Sparks, Steam with Heat Distortion'
+    author: Solodream
+    license: Standard Unity Asset Store EULA
+    notice: "Solodream\uC758 \uC5F0\uAE30\xB7\uBD88\uAF43\xB7\uC99D\uAE30 \uC774\uD399\uD2B8
+      \uC5D0\uC14B."
+    url: https://unity.com/legal/as-terms
+    fullLicense: {fileID: 0}
+  - asset: The Ultimate Dissolve and Burn Shader Toolkit
+    author: Deadleaf Games
+    license: Standard Unity Asset Store EULA
+    notice: "Deadleaf Games\uC758 \uB514\uC878\uBE0C\xB7\uC5F0\uC18C \uC170\uC774\uB354
+      \uC5D0\uC14B."
+    url: https://unity.com/legal/as-terms
+    fullLicense: {fileID: 0}
+  - asset: Conveyor Works - Low Poly Factory Asset Pack
+    author: Nebula Forms
+    license: Standard Unity Asset Store EULA
+    notice: "Nebula Forms\uC758 \uACF5\uC7A5\xB7\uCEE8\uBCA0\uC774\uC5B4 \uC5D0\uC14B."
+    url: https://unity.com/legal/as-terms
+    fullLicense: {fileID: 0}
+  - asset: POLYGON Horror Carnival Pack
+    author: Synty Studios
+    license: "Synty / \uAD6C\uB9E4\uCC98 EULA"
+    notice: "Synty Studios\uC758 \uD638\uB7EC \uCE74\uB2C8\uBC1C \uD658\uACBD \uBC0F
+      \uC18C\uD488 \uC5D0\uC14B."
+    url: https://syntystore.com/pages/licences-overview
+    fullLicense: {fileID: 0}
