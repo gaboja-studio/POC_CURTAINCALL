@@ -9,3 +9,4 @@
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
 - 공용 EditMode 970/970 통과(이번 사지·장치 회귀113건 포함). 안전성·문서/규칙·컴파일·공용 설정 PASS. 기존 문서 길이 경고77건 및 private 저장소 변경1건은 작업과 무관하다. PlayMode 미실행.
 - 제출 직전 Unity 종료 상태에서 origin/dev e7564308 fetch/merge, Already up to date. 검사한 에셋·코드 해시 동일.
+- 구현 커밋 1c364a7c, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/407 (dev 직접 대상). 제출 후 Unity 종료 상태에서 DEV e7564308 재동기화. 기존 사용자 에셋 변경을 보존해 새 PR에는 지정한 변경 10개만 포함했다.
