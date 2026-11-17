@@ -15,6 +15,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         [Tooltip("전용 배치 창에서 편집한 마네킹을 사용. 기존 Count/SpawnPoints는 보존됩니다.")]
         public bool UsePlacements;
         public PursuitPlacement[] Placements = System.Array.Empty<PursuitPlacement>();
+        [Tooltip("계단·환풍구 출구처럼 여러 층에 걸친 방을 배치 창의 이 층들(m)에서도 표시·배치합니다. 기본 층은 순찰 지점 높이입니다.")]
+        public float[] ExtraFloors = System.Array.Empty<float>();
 
         /// <summary>포획 암전이 유지되는 시각(Time.time). 포획 연출 중 매 갱신마다 연장된다.</summary>
         public float CaptureFlickerUntil { get; private set; } = float.NegativeInfinity;

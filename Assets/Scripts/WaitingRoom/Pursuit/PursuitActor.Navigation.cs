@@ -94,7 +94,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         bool EnsureOnNavMesh()
         {
-            if (agent.enabled) return agent.isOnNavMesh;
+            if (agent.enabled) {
+                if (agent.isOnNavMesh) { offNavMeshFor = 0; return true; }
+                // 놓인 소품·닫힌 문이 발밑 NavMesh를 깎으면 켜진 agent가 길 밖에 남아 영원히 움직이지 못했다(2026-11-17).
+                // 켠 직후의 한두 프레임은 기다리고, 계속 길 밖이면 안전한 가까운 지점으로 옮긴다.
+                offNavMeshFor += Time.deltaTime;
+                if (offNavMeshFor < OffNavMeshGraceSeconds) return false;
+                offNavMeshFor = 0;
+                if (!SafeNavMeshPoint(transform.position, out var nearest)) { agent.enabled = false; ClearNavigation(); return false; }
+                agent.Warp(nearest); ClearNavigation();
+                return agent.isOnNavMesh;
+            }
             if (!SafeNavMeshPoint(transform.position, out var point)) {
                 // 가까이 안전한 NavMesh가 없으면(높은 윗면 위) 내려갈 바닥을 찾아 뛰어내린다.
                 if (Time.time >= dropPlanAt) {
@@ -108,6 +118,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         static readonly float[] SafeSampleRadii = { .6f, 2f, 4f };
+        const float OffNavMeshGraceSeconds = .3f;
+        float offNavMeshFor;
 
         /// <summary>
         /// 몸이 지나갈 수 있는 가까운 NavMesh 지점. 위로 0.6m 넘게 올라가거나(위층·천장 너머) 벽을 사이에 둔 지점으로는 옮기지 않는다.

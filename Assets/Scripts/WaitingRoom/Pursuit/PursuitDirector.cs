@@ -147,6 +147,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var actor = go.GetComponent<PursuitActor>() ?? go.AddComponent<PursuitActor>();
             actor.Initialize(this, room, placement); actors.Add(actor);
         }
+        float nextPropScan;
         void Update()
         {
             if (!IsInitialized) { InitializeNext(); return; }
@@ -169,9 +170,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (s.Generation != generation || s.Day != day || s.PerformanceIndex != performance) ResetStep(s);
             // 길찾기를 하는 호스트에서만 한 번: 물체 안을 지나는 낡은 길을 먼저 깎고(실행 중만), 깎기가 반영된 다음 프레임에 오르기 통로를 만든다.
             if (actors.Count > 0 && !PursuitNavMeshRepair.Applied) PursuitNavMeshRepair.Apply();
-            else if (PursuitClimbLinks.NeedsRebuild && actors.Count > 0 && !actors.Any(a => a.IsClimbing)
+            else if (PursuitClimbLinks.NeedsRebuild && actors.Count > 0 && !actors.Any(a => a.IsClimbing || a.IsVaulting)
                 && Time.frameCount > PursuitNavMeshRepair.AppliedFrame + 1)
                 PursuitClimbLinks.Build(actors[0].AgentTypeID, GameSettings.WaitingRoom.Pursuit);
+            // 연습실 등에서 새로 생긴 운반 소품도 길찾기 장애물로 등록한다(호스트만, 1초 간격).
+            if (actors.Count > 0 && Time.unscaledTime >= nextPropScan) { nextPropScan = Time.unscaledTime + 1; PursuitPropObstacle.Track(); }
             CollectCandidates();
             if (!active && s.Timer == RestTimerState.Pursuit) { active = true; Elapsed = 0; }
             // 연출 중에는 추격 시간도 추격자도 멈춘다.

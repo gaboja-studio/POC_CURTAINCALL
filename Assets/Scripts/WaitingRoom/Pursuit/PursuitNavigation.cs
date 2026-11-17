@@ -45,8 +45,18 @@ namespace CurtainCall.WaitingRoom.Pursuit
         // 고정 목표·추격 재계산·대상 선택은 예산이 없으면 다음 프레임으로 미루고 이전 경로를 유지한다.
         public const int FrameBudget = 8;
         /// <summary>NavMesh가 바뀌면(문 잠김/열림 깎기) 증가한다. 고정 목표 경로는 이 값이 바뀔 때만 다시 계산한다.</summary>
-        public static int Version { get; private set; }
-        public static void Invalidate() => Version++;
+        public static int Version {
+            get {
+                // 깎기(NavMeshObstacle carving)는 다음 NavMesh 갱신에 반영된다. 바로 다시 찾은 경로가 옛 NavMesh를 쓰지 않게
+                // 바뀐 직후 한 번 더 버전을 올려 문·소품이 열리고 닫힌 뒤 경로를 다시 찾는다.
+                if (settleAt > 0 && Time.time >= settleAt) { settleAt = 0; version++; }
+                return version;
+            }
+        }
+        static int version;
+        static float settleAt;
+        const float SettleSeconds = .25f;
+        public static void Invalidate() { version++; settleAt = Time.time + SettleSeconds; }
         static int frame = -1, frameCalls;
         static double frameMs;
         /// <summary>이번 프레임에 미룰 필요 없이 계산할 수 있는지.</summary>

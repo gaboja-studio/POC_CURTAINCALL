@@ -59328,6 +59328,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 2740256411699401229}
+  ExtraFloors: []
 --- !u!4 &162769788
 Transform:
   m_ObjectHideFlags: 0
@@ -92792,6 +92793,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &246701611
 Transform:
   m_ObjectHideFlags: 0
@@ -121833,6 +121835,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &337391783
 Transform:
   m_ObjectHideFlags: 0
@@ -203878,6 +203881,7 @@ MonoBehaviour:
   - {fileID: 2862592947671751542}
   - {fileID: 2862592947671751541}
   - {fileID: 2862592947671751540}
+  ExtraFloors: []
 --- !u!4 &583650480
 Transform:
   m_ObjectHideFlags: 0
@@ -212270,6 +212274,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &610007733
 Transform:
   m_ObjectHideFlags: 0
@@ -224781,6 +224786,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &645576038
 Transform:
   m_ObjectHideFlags: 0
@@ -239720,6 +239726,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &688852165
 Transform:
   m_ObjectHideFlags: 0
@@ -267708,6 +267715,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 1757905331276578602}
+  ExtraFloors: []
 --- !u!4 &765491493
 Transform:
   m_ObjectHideFlags: 0
@@ -349580,6 +349588,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &990772009
 Transform:
   m_ObjectHideFlags: 0
@@ -354298,6 +354307,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 2740256411699401228}
+  ExtraFloors: []
 --- !u!4 &1004019880
 Transform:
   m_ObjectHideFlags: 0
@@ -358456,6 +358466,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1017360513
 Transform:
   m_ObjectHideFlags: 0
@@ -417219,6 +417230,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1187422023
 Transform:
   m_ObjectHideFlags: 0
@@ -458904,6 +458916,7 @@ MonoBehaviour:
   Placements:
   - {fileID: 2740256411699401232}
   - {fileID: 1971500254}
+  ExtraFloors: []
 --- !u!4 &1296038494
 Transform:
   m_ObjectHideFlags: 0
@@ -470366,6 +470379,8 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors:
+  - 0
 --- !u!4 &1325436381
 Transform:
   m_ObjectHideFlags: 0
@@ -501505,6 +501520,7 @@ MonoBehaviour:
   Placements:
   - {fileID: 7533581969010820685}
   - {fileID: 7533581969010820684}
+  ExtraFloors: []
 --- !u!4 &1412084847
 Transform:
   m_ObjectHideFlags: 0
@@ -506986,6 +507002,7 @@ MonoBehaviour:
   - {fileID: 9129254653971257802}
   - {fileID: 9129254653971257801}
   - {fileID: 9129254653971257800}
+  ExtraFloors: []
 --- !u!4 &1428151943
 Transform:
   m_ObjectHideFlags: 0
@@ -519867,6 +519884,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 7213065531268755359}
+  ExtraFloors: []
 --- !u!4 &1464638379
 Transform:
   m_ObjectHideFlags: 0
@@ -542567,6 +542585,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 6015730847431461085}
+  ExtraFloors: []
 --- !u!4 &1508109238
 Transform:
   m_ObjectHideFlags: 0
@@ -542930,6 +542949,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 9003293532266500178}
+  ExtraFloors: []
 --- !u!4 &1509046542
 Transform:
   m_ObjectHideFlags: 0
@@ -544228,6 +544248,7 @@ MonoBehaviour:
   Placements:
   - {fileID: 1289158798033012912}
   - {fileID: 1289158798033012911}
+  ExtraFloors: []
 --- !u!4 &1511991296
 Transform:
   m_ObjectHideFlags: 0
@@ -547691,6 +547712,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1524786390
 Transform:
   m_ObjectHideFlags: 0
@@ -570679,6 +570701,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1581042837
 Transform:
   m_ObjectHideFlags: 0
@@ -574691,6 +574714,7 @@ MonoBehaviour:
   - {fileID: 4124073019245015062}
   - {fileID: 4124073019245015061}
   - {fileID: 4124073019245015060}
+  ExtraFloors: []
 --- !u!4 &1593194126
 Transform:
   m_ObjectHideFlags: 0
@@ -607556,6 +607580,7 @@ MonoBehaviour:
   Placements:
   - {fileID: 2756006586426005180}
   - {fileID: 2756006586426005179}
+  ExtraFloors: []
 --- !u!4 &1688270841
 Transform:
   m_ObjectHideFlags: 0
@@ -615658,6 +615683,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 7153603083420204063}
+  ExtraFloors: []
 --- !u!4 &1717176342
 Transform:
   m_ObjectHideFlags: 0
@@ -644250,6 +644276,7 @@ MonoBehaviour:
   UsePlacements: 1
   Placements:
   - {fileID: 1168763024741173335}
+  ExtraFloors: []
 --- !u!4 &1795261329
 Transform:
   m_ObjectHideFlags: 0
@@ -649227,6 +649254,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1813971093
 Transform:
   m_ObjectHideFlags: 0
@@ -649699,6 +649727,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &1817120089
 Transform:
   m_ObjectHideFlags: 0
@@ -756568,6 +756597,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &2050110069
 Transform:
   m_ObjectHideFlags: 0
@@ -760597,6 +760627,7 @@ MonoBehaviour:
   - {fileID: 7051139941012929710}
   - {fileID: 7051139941012929709}
   - {fileID: 7051139941012929708}
+  ExtraFloors: []
 --- !u!4 &2059541390
 Transform:
   m_ObjectHideFlags: 0
@@ -761724,6 +761755,7 @@ MonoBehaviour:
   RoamAcrossRooms: 1
   UsePlacements: 1
   Placements: []
+  ExtraFloors: []
 --- !u!4 &2062561716
 Transform:
   m_ObjectHideFlags: 0
@@ -779077,6 +779109,7 @@ MonoBehaviour:
   - Area_S03_Shop
   - Area_S04_PropRoom
   - Area_S05_JunkStorage
+  - Area_S06_StageCorridor
   - Area_S08_ElevatorHall
   - Area_S09_PracticeRoom
   - Area_S10_Workshop
