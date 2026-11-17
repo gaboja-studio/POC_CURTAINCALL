@@ -13,6 +13,7 @@ namespace CurtainCall.EscapeRoute
         Vector3 takeoff, touchdown;
         Quaternion jumpFacing;
         uint landingNumber;
+        uint jumpRevision;
         int routeAreas;
 
         internal float ContactTime => jumpClip.length;
@@ -45,6 +46,8 @@ namespace CurtainCall.EscapeRoute
             body.enabled = true;
             jumpTime = 0f;
             jumping = true;
+            jumpRevision++;
+            PresentRouteLandingWorldUi(jumpTime, takeoff, touchdown);
         }
 
         void BeginServiceJump(Vector3 start, Vector3 end)
@@ -54,6 +57,8 @@ namespace CurtainCall.EscapeRoute
             jumpFacing = Quaternion.LookRotation(Vector3.ProjectOnPlane(end-start, Vector3.up));
             RestPose(); SetBodyHeight(0); body.enabled = true;
             jumpTime = 0; jumping = true;
+            jumpRevision++;
+            PresentRouteLandingWorldUi(jumpTime, takeoff, touchdown);
         }
 
         void AdvanceCartJump(float dt)
@@ -79,6 +84,7 @@ namespace CurtainCall.EscapeRoute
             else agent.CompleteOffMeshLink();
             agent.updatePosition = agent.updateRotation = true;
             jumping = false;
+            HideRouteLandingWorldUi();
             previousPosition = transform.position;
             nextRepath = 0f;
         }
@@ -89,6 +95,7 @@ namespace CurtainCall.EscapeRoute
             float arc = serviceJump ? ServiceJumpArc(start, end) : 4.4f;
             transform.position = Vector3.Lerp(start, end, flight) + Vector3.up * (arc * flight * (1f - flight));
             SampleJumpPose(time);
+            if (jumping) PresentRouteLandingWorldUi(time, start, end);
         }
 
         public static float ServiceJumpArc(Vector3 start, Vector3 end)

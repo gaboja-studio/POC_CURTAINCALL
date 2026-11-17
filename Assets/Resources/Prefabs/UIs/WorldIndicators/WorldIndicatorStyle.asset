@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e323ad925c101fa4390a38a9ef954e9a, type: 3}
+  m_Name: WorldIndicatorStyle
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WorldIndicators.WorldIndicatorStyle
+  layers:
+  - {fileID: 21300000, guid: a0fdd30a0934fa946b629cb607f29808, type: 3}
+  - {fileID: 21300000, guid: 414912df00b97db469591e74a4a09a05, type: 3}
+  - {fileID: 21300000, guid: 67c7fa4a7594a82409ba4e23a35b7bac, type: 3}
+  - {fileID: 21300000, guid: ddf082df8cc6b324bb913d49fe5db166, type: 3}
+  - {fileID: 21300000, guid: 90d5d664840dc0e4c82c95b26be1ff7c, type: 3}
+  - {fileID: 21300000, guid: afa2128b36947384b82a23892e3af3c8, type: 3}
+  - {fileID: 21300000, guid: c3994a90ec9de464284112d7df02dd33, type: 3}
+  - {fileID: 21300000, guid: 56b35e9f7930ba245b55a70c007bee07, type: 3}
+  - {fileID: 21300000, guid: d5b1b26dd91c20047b26df07344eb135, type: 3}
+  stroke: {fileID: 2100000, guid: 7ed36154c4ad66045a5e69d9761fa7d4, type: 2}
+  circleFill: {fileID: 2100000, guid: e13c56d7dc40faa4e8050e813b7392e6, type: 2}
+  rectangleFill: {fileID: 2100000, guid: a3e738edee762ab43a48d309eadbd75f, type: 2}
+  arrow: {fileID: 2100000, guid: f811b64e3b1aeea4d9aa84913be206a6, type: 2}
+  target: {fileID: 2100000, guid: ca888cd260c03a349aa9c8a1cc26a299, type: 2}

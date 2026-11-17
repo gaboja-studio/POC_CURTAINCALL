@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 0.4,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.DetachRestoresImmediatelyAndReattachmentReusesOriginalCastingSnapshot",
+      "Status": "Passed",
+      "Duration": 0.0040543,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.DisableAndDestructionRestoreCastingWhileLeavingBodiesAlive",
+      "Status": "Passed",
+      "Duration": 0.0008907,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.PursuerBlobIsOptInRestoresCastingAndDisposesOnlyItsOwnedObjects",
+      "Status": "Passed",
+      "Duration": 0.0006259,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.SettingsToggleRestoresExactModesWithoutCapturingLaterProps",
+      "Status": "Passed",
+      "Duration": 0.0009285,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.SlotHookupSuppressesInactiveInjuryBodiesButPreservesPropsAndLimbTemplates(False)",
+      "Status": "Passed",
+      "Duration": 0.0016884,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.SlotHookupSuppressesInactiveInjuryBodiesButPreservesPropsAndLimbTemplates(True)",
+      "Status": "Passed",
+      "Duration": 0.0014131,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

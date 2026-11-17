@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d753d41f23bd7647b63604498539606, type: 3}
+  m_Name: WorldUiSettings
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.WorldUiSettings
+  enabled: 1
+  style: {fileID: 11400000, guid: 63646c87ef290a744ba3122acd17a0d6, type: 2}
+  circlePrefab: {fileID: 8156213109923429177, guid: 26a4f41cba326d44ebd46350772e90e5, type: 3}
+  rectanglePrefab: {fileID: 4971088207504357754, guid: 69ad82a026755e546941fb31175f3327, type: 3}
+  volumePrefab: {fileID: 6716812423989012982, guid: 5c90a3f7a4d44284ca62016f466c199e, type: 3}
+  pathPrefab: {fileID: 8095126275191594792, guid: bce46b5a721ea934da1bf474f7fcd111, type: 3}
+  trajectoryPrefab: {fileID: 4071932707548675764, guid: a000be7f4e7be62409704f098664e907, type: 3}
+  targetPrefab: {fileID: 9214447000303022930, guid: 915fae8d34c15954388a58d72a17ab88, type: 3}
+  maxDistance: 80
+  lineWidth: 0.045
+  fillOpacity: 0.1
+  surfaceOffset: 0.035
+  surfaceRefreshSeconds: 0.1
+  hatchSpacing: 0.36
+  hatchDepth: 0.15
+  circleSegments: 64
+  danger: {r: 0.878, g: 0.424, b: 0.471, a: 0.95}
+  ivory: {r: 0.941, g: 0.933, b: 0.863, a: 0.95}
+  progressColor: {r: 0.949, g: 0.706, b: 0.357, a: 1}
+  progressWidth: 0.055
+  progressOffset: 0.11
+  dashLength: 0.4
+  dashGap: 0.25
+  arrowSize: 0.28
+  showGrabPath: 0
+  grabTargetSize: 0.65
+  escapeThreatEnabled: 1
+  escapeThreatDistance: 18
+  cannonArcLength: 8
+  cannonStepSeconds: 0.035
+  cannonMaxSamples: 256
+  cannonForSpectator: 1
+  disablePlayerRealtimeShadows: 1
+  pursuerBlobShadows: 0
+  waitingPursuerShadowRadius: 0.8
+  escapePursuerShadowRadius: 1.8
+  shadowOpacity: 0.38
+  shadowRefreshSeconds: 0.1
