@@ -296,6 +296,107 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             finally { Object.DestroyImmediate(sourceRoot); Object.DestroyImmediate(targetRoot); Object.DestroyImmediate(netRoot); }
         }
 
+        [TestCase(1UL), TestCase(2UL), TestCase(3UL)]
+        public void GuestPickupSurvivesFacingDisagreementAndRequestBeforeReplicatedPosition(ulong guestId)
+        {
+            var roots = new List<GameObject>();
+            var origin = new Vector3(14800, 60, 14800);
+            var previousCannon = HumanCannonSystem.Current;
+            var previousSaw = EscapeExitSaw.Current;
+            var roster = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", Static).GetValue(null);
+            var previousRoster = roster.ToArray();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var owner = typeof(NetworkPlayer).GetProperty("IsOwner");
+            GameObject Root(string name, Vector3 point)
+            {
+                var go = new GameObject(name); go.SetActive(false);
+                go.transform.position = point; roots.Add(go); return go;
+            }
+            NetworkSessionManager Session(SessionConnectionState role)
+            {
+                var result = Root(role.ToString(), origin).AddComponent<NetworkSessionManager>();
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(result, role);
+                typeof(NetworkSessionManager).GetProperty("GameState").SetValue(result, GameSessionState.Playing);
+                return result;
+            }
+            EscapeExitSaw Launcher(NetworkSessionManager session)
+            {
+                var go = Root("Launcher replica", origin + Vector3.forward * 1.1f);
+                var result = go.AddComponent<EscapeExitSaw>();
+                var handle = new GameObject("Handle").transform;
+                handle.SetParent(go.transform, false); handle.localPosition = new Vector3(0, 1.05f, -1.1f);
+                var load = go.AddComponent<BoxCollider>(); load.center = Vector3.up * .75f; load.size = Vector3.one * .75f;
+                Set(result, "handle", handle); Set(result, "loadCollider", load); Set(result, "fireWithoutCables", true);
+                go.SetActive(true); Set(result, "session", session); HumanCannonCarry.Register(result); return result;
+            }
+            void Snapshot(EscapeExitSaw source, EscapeExitSaw target)
+            {
+                using var writer = new FastBufferWriter(256, Allocator.Temp);
+                Call(source, "WriteState", writer, 0);
+                using var reader = new FastBufferReader(writer, Allocator.Temp);
+                Call(target, "ReadState", NetworkManager.ServerClientId, reader);
+            }
+            NetworkPlayer guest = null;
+            try
+            {
+                roster.Clear();
+                var floor = Root("Floor", origin + Vector3.down * .25f);
+                floor.AddComponent<BoxCollider>().size = new Vector3(20, .5f, 20); floor.SetActive(true);
+                var wall = Root("Wall behind pickup", origin + new Vector3(0, .8f, -1.1f));
+                wall.AddComponent<BoxCollider>().size = new Vector3(2, 1.6f, .5f); wall.SetActive(true);
+                var cannon = Root("Cannon carry controls", origin).AddComponent<HumanCannonSystem>();
+                Call(cannon, "ResetSeats"); SetCurrent(cannon);
+                var host = Launcher(Session(SessionConnectionState.Host)); Set(host, "synchronized", true);
+                var client = Launcher(Session(SessionConnectionState.Client));
+                // The replicas in this test share a scene. Each role only sees its own load collider.
+                host.GetComponent<BoxCollider>().enabled = false;
+                host.Suppressed = true;
+                var actor = Root("Participant", origin); guest = actor.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(guest, guestId);
+                var mover = actor.GetComponent<PlayerMover>();
+                Call(mover, "Awake"); Set(guest, "mover", mover);
+                mover.FreeMovement = true;
+                spawned.SetValue(guest, true); owner.SetValue(guest, true); actor.SetActive(true); roster.Add(guest);
+                actor.transform.rotation = Quaternion.Euler(0, 180, 0);
+                Physics.SyncTransforms();
+                Assert.That(client.CanGrab(guest), Is.False, "Client cannot take a launcher before receiving host state.");
+                Snapshot(host, client);
+                Assert.That(HumanCannonCarry.TryFollowPose(guest, client.CarryRoot, client.Handle, 1.05f, true,
+                    out var oldPosition, out var oldRotation, out _), Is.True);
+                Assert.That(HumanCannonCarry.CanMove(client.CarryRoot, client.GetComponent<BoxCollider>(), oldPosition,
+                    oldRotation, guest, false), Is.False, "The prior camera/avatar-facing pose overlaps the wall.");
+                Assert.That(client.CanGrab(guest), Is.True, "The handle-aligned pose fits at the same pickup point.");
+                Assert.That(HumanCannonCarry.FindGrabbable(guest), Is.SameAs(client), "F can now select the synchronized launcher.");
+
+                owner.SetValue(guest, false);
+                actor.transform.position = origin + Vector3.right * 7f;
+                host.Suppressed = false;
+                client.GetComponent<BoxCollider>().enabled = false; host.GetComponent<BoxCollider>().enabled = true;
+                Physics.SyncTransforms();
+                using var request = new FastBufferWriter(9, Allocator.Temp);
+                request.WriteValueSafe((byte)1); request.WriteValueSafe(0u); request.WriteValueSafe(0);
+                using var input = new FastBufferReader(request, Allocator.Temp);
+                Call(host, "ReadRequest", guestId, input);
+                Assert.That(host.Carrier, Is.EqualTo(CannonSeatState.Nobody));
+                actor.transform.position = origin; Physics.SyncTransforms();
+                Call(host, "TickPendingGrabs", Time.unscaledTimeAsDouble);
+                Assert.That(host.Carrier, Is.EqualTo(guestId));
+                Snapshot(host, client);
+                Assert.That(client.Carrier, Is.EqualTo(guestId));
+            }
+            finally
+            {
+                if (guest != null) spawned.SetValue(guest, false);
+                roster.Clear(); roster.AddRange(previousRoster);
+                foreach (var go in roots)
+                {
+                    if (go.TryGetComponent(out EscapeExitSaw launcher)) HumanCannonCarry.Unregister(launcher);
+                    Object.DestroyImmediate(go);
+                }
+                SetCurrent(previousCannon); SetCurrent(previousSaw); Physics.SyncTransforms();
+            }
+        }
+
         [Test, Category("EscapeNovember16Recovery")]
         public void AdditiveSawChannelsDoNotCollideWithTheDepartureScene()
         {
@@ -533,6 +634,16 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 // EditMode does not run ordinary MonoBehaviour scene hooks. Reflect the registrations
                 // their OnEnable/OnDisable callbacks complete synchronously inside SetActive in play.
                 Call(practice, "OnDisable");
+                // The scenery coroutine has not reached the escape trampoline yet, and this peer has no cached prop.
+                SetCurrent<HumanCannonSystem>(null);
+                SetCurrent<HumanCannonTrampoline>(null);
+                Set(devices, "systemRoot", null);
+                Set(devices, "trampoline", null);
+                Call(devices, "Update");
+                Assert.That(departure.GetRootGameObjects().Count(go => go.name == "WaitingRoomCannonDevices"), Is.EqualTo(1),
+                    "A delayed destination registration must not reopen the departure device factory.");
+                Set(devices, "systemRoot", waitingCannon);
+                Set(devices, "trampoline", trampoline);
                 SetCurrent(targetCannon);
                 SetCurrent(targetTrampoline);
                 Call(devices, "Update");
