@@ -16,3 +16,5 @@
 - 초기 전수 점검에서 탈출로 비활성 추격자 스킨 메시 7개를 놓쳤다. 스킨 메시의 실제 월드 범위를 사용하도록 고친 뒤 두 씬 교차 누락 0건을 확인했다. 최종 EditMode 17/17, 두 카메라 렌더 PlayMode 3/3 PASS. 캐릭터 색상 복원 자동 검사 1/1도 이번 제출 준비에서 별도로 PASS. 수동 플레이는 사용자가 확인한다.
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-17 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/409 (fix/camera-foreground-occlusion → dev)
