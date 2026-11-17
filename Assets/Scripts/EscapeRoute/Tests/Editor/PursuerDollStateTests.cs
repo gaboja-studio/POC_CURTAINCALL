@@ -72,7 +72,7 @@ namespace CurtainCall.EscapeRoute.Tests
             foreach (var name in new[] { "captureCable", "aimRing" }) Assert.That(Line(name).enabled, Is.False, name);
         }
 
-        [TestCase("Warning", "None")][TestCase("Strike", "None")][TestCase("Grab", "None")]
+        [TestCase("Preparing", "None")][TestCase("Warning", "None")][TestCase("Strike", "None")][TestCase("Grab", "None")]
         [TestCase("Throw", "None")][TestCase("None", "DebrisWarning")][TestCase("None", "DebrisFlight")]
         public void NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(string attackPhase, string threatPhase)
         {
@@ -118,8 +118,10 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(chase, "PresentRemoteCues", timer);
             Assert.That(Prop("graspingHand").gameObject.activeSelf, Is.True);
             Assert.That(Prop("extendedForearm").gameObject.activeSelf, Is.True);
-            Assert.That(Line("captureCable").enabled, Is.True);
-            Assert.That(Line("aimRing").enabled, Is.True);
+            // This fixture deliberately keeps the owner inactive. Its pose may be sampled,
+            // but neither the legacy warnings nor the new world UI should render.
+            Assert.That(Line("captureCable").enabled, Is.False);
+            Assert.That(Line("aimRing").enabled, Is.False);
             Assert.That(Prop("thrownDebris").gameObject.activeSelf, Is.False);
             Assert.That(Vector3.Distance(Prop("graspingHand").position, (Vector3)Get(Get(current, "Attack"), "Aim")), Is.LessThan(.001f));
         }

@@ -1,0 +1,88 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": [
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/Arrowhead.png",
+      "width": 512,
+      "height": 512,
+      "clear": 135640,
+      "partial": 1004,
+      "opaque": 125500,
+      "white": 126504
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/CircleFill.png",
+      "width": 512,
+      "height": 512,
+      "clear": 57568,
+      "partial": 1544,
+      "opaque": 203032,
+      "white": 204576
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/CircleFrame.png",
+      "width": 512,
+      "height": 512,
+      "clear": 240212,
+      "partial": 3040,
+      "opaque": 18892,
+      "white": 21932
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/Dash.png",
+      "width": 128,
+      "height": 32,
+      "clear": 0,
+      "partial": 64,
+      "opaque": 4032,
+      "white": 4096
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/Hatch.png",
+      "width": 512,
+      "height": 512,
+      "clear": 200704,
+      "partial": 8192,
+      "opaque": 53248,
+      "white": 61440
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/ProgressTrack.png",
+      "width": 512,
+      "height": 64,
+      "clear": 25228,
+      "partial": 1144,
+      "opaque": 6396,
+      "white": 7540
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/RectangleFill.png",
+      "width": 512,
+      "height": 512,
+      "clear": 2044,
+      "partial": 2036,
+      "opaque": 258064,
+      "white": 260100
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/RectangleFrame.png",
+      "width": 512,
+      "height": 512,
+      "clear": 238240,
+      "partial": 3984,
+      "opaque": 19920,
+      "white": 23904
+    },
+    {
+      "path": "Assets/_ThirdParty/curtaincall_world_ui_v1/Sprites/TargetReticle.png",
+      "width": 512,
+      "height": 512,
+      "clear": 230604,
+      "partial": 3320,
+      "opaque": 28220,
+      "white": 31540
+    }
+  ]
+}

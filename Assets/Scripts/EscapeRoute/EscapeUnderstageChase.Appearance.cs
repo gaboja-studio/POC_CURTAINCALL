@@ -37,10 +37,10 @@ namespace CurtainCall.EscapeRoute
                     pose.Time = Mathf.Lerp(.05f, .4f, Mathf.Clamp01((float)(now - intent.Started) / (intent.Phase == ThreatPhase.ChargeWarning ? intent.Duration : Tuning.debrisWarning)));
                     pose.Look = true; pose.Aim = intent.To;
                 }
-                else if (cue.Phase == AttackPhase.Warning || cue.Phase == AttackPhase.Strike || cue.Phase == AttackPhase.Retract)
+                else if (cue.Phase == AttackPhase.Preparing || cue.Phase == AttackPhase.Warning || cue.Phase == AttackPhase.Strike || cue.Phase == AttackPhase.Retract)
                 {
                     pose.Action = 5;
-                    pose.Time = cue.Phase == AttackPhase.Warning ? Mathf.Lerp(0, .3f, age / Warning(cue.Reach)) : Mathf.Lerp(.3f, .7f, age / StrikeTime);
+                    pose.Time = cue.Phase == AttackPhase.Preparing ? 0 : cue.Phase == AttackPhase.Warning ? Mathf.Lerp(0, .3f, age / Warning(cue.Reach)) : Mathf.Lerp(.3f, .7f, age / StrikeTime);
                 }
                 else if (cue.Phase == AttackPhase.Throw)
                 {

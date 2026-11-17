@@ -58,6 +58,7 @@ namespace CurtainCall.EscapeRoute
         }
         void OnDisable()
         {
+            HideBossWorldUi();
             NetworkPlayer.Restarted -= Restart;
             EscapeExitSaw.ShotObserved -= ObserveShot;
             Detach();
@@ -257,10 +258,12 @@ namespace CurtainCall.EscapeRoute
         void LateUpdate()
         {
             Attach();
-            if (chase.InShowcase) return;
+            if (!chase || chase.InShowcase)
+            { HideBossWorldUi(); return; }
             var timer = EscapeRouteTimer.Current;
             if (!timer || !timer.HasStarted || state.Round != timer.StartedAt)
             {
+                HideBossWorldUi();
                 if (presentedRound >= 0 || presentedMask != 0) ResetPresentation();
                 return;
             }

@@ -1,4 +1,5 @@
 using CurtainCall.Settings;
+using CurtainCall.WorldIndicators;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -58,6 +59,7 @@ namespace CurtainCall.Player
             {
                 // 앉은 채 떼어 내도 줄어든 크기가 떨어진 모델(래그돌)에 남지 않게 원래 크기로 돌린 뒤 뗀다
                 SetPostureScale(1f);
+                model.GetComponent<ActorShadowPresenter>()?.ReleasePlayer();
                 model.transform.SetParent(null, true);
             }
             CurrentModel = null;
@@ -69,6 +71,7 @@ namespace CurtainCall.Player
         public void SetModel(GameObject prefab)
         {
             EnsureSlot();
+            if (CurrentModel != null) CurrentModel.GetComponent<ActorShadowPresenter>()?.ReleasePlayer();
             for (int i = slot.childCount - 1; i >= 0; i--)
                 Destroy(slot.GetChild(i).gameObject);
 
@@ -78,6 +81,7 @@ namespace CurtainCall.Player
 
             CurrentModel = Instantiate(prefab, slot, false);
             CurrentModel.name = prefab.name;
+            ActorShadowPresenter.AttachPlayer(this, CurrentModel);
 
             // 충돌은 CharacterController가 맡는다. 모델의 콜라이더는 끄고 물리는 멈춰 둔다(추락 래그돌 때 켠다)
             foreach (var c in CurrentModel.GetComponentsInChildren<Collider>())
@@ -105,7 +109,10 @@ namespace CurtainCall.Player
             if (modelPrefab != null)
                 SetModel(modelPrefab);
             else if (slot.childCount > 0)
+            {
                 CurrentModel = slot.GetChild(0).gameObject;
+                ActorShadowPresenter.AttachPlayer(this, CurrentModel);
+            }
         }
 
         void EnsureSlot()

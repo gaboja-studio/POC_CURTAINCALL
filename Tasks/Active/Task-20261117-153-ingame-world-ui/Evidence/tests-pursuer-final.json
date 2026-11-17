@@ -1,0 +1,2449 @@
+{
+  "status": "completed",
+  "duration": 9.22,
+  "summary": {
+    "total": 348,
+    "passed": 348,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ActualAttackUpdateCapturesBehindModelBeforeFacingAndCooldownChecks(\"None\")",
+      "Status": "Passed",
+      "Duration": 2.1072532,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ActualAttackUpdateCapturesBehindModelBeforeFacingAndCooldownChecks(\"Warning\")",
+      "Status": "Passed",
+      "Duration": 0.013881,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ActualAttackUpdateCapturesBehindModelBeforeFacingAndCooldownChecks(\"Strike\")",
+      "Status": "Passed",
+      "Duration": 0.0138358,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ActualAttackUpdateCapturesBehindModelBeforeFacingAndCooldownChecks(\"Retract\")",
+      "Status": "Passed",
+      "Duration": 0.0130048,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.015197,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(45.0f)",
+      "Status": "Passed",
+      "Duration": 0.0146328,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(90.0f)",
+      "Status": "Passed",
+      "Duration": 0.0133989,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(135.0f)",
+      "Status": "Passed",
+      "Duration": 0.012226,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(180.0f)",
+      "Status": "Passed",
+      "Duration": 0.0101987,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(225.0f)",
+      "Status": "Passed",
+      "Duration": 0.01237,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(270.0f)",
+      "Status": "Passed",
+      "Duration": 0.0128594,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.AuthoredTorsoCapturesFromEverySideDuringMissRecovery(315.0f)",
+      "Status": "Passed",
+      "Duration": 0.0131881,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ModelScaleAndRotationDriveTheEnvelopeAndOtherLimbsDoNotExpandIt",
+      "Status": "Passed",
+      "Duration": 0.011497,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"dead\")",
+      "Status": "Passed",
+      "Duration": 0.0117674,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"arrived\")",
+      "Status": "Passed",
+      "Duration": 0.0107628,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"waiting\")",
+      "Status": "Passed",
+      "Duration": 0.0126236,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"refuge\")",
+      "Status": "Passed",
+      "Duration": 0.0121046,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"jumping\")",
+      "Status": "Passed",
+      "Duration": 0.012681,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"client\")",
+      "Status": "Passed",
+      "Duration": 0.0111665,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"damageGuard\")",
+      "Status": "Passed",
+      "Duration": 0.0104438,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.NearCapturePreservesStateProtectionAndHostAuthority(\"hiddenBody\")",
+      "Status": "Passed",
+      "Duration": 0.0094138,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0110562,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(45.0f)",
+      "Status": "Passed",
+      "Duration": 0.0100265,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(90.0f)",
+      "Status": "Passed",
+      "Duration": 0.0095787,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(135.0f)",
+      "Status": "Passed",
+      "Duration": 0.0086295,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(180.0f)",
+      "Status": "Passed",
+      "Duration": 0.0091284,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(225.0f)",
+      "Status": "Passed",
+      "Duration": 0.0088491,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(270.0f)",
+      "Status": "Passed",
+      "Duration": 0.0104952,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.OutsideModelMarginRemainsDodgeable(315.0f)",
+      "Status": "Passed",
+      "Duration": 0.010628,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.RealBarriersStillPreventNearCapture(\"wall\")",
+      "Status": "Passed",
+      "Duration": 0.0104063,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.RealBarriersStillPreventNearCapture(\"floor\")",
+      "Status": "Passed",
+      "Duration": 0.0086758,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.RealBarriersStillPreventNearCapture(\"origin\")",
+      "Status": "Passed",
+      "Duration": 0.0102103,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ShortInjuredCrouchedJumpingAndCarriedBodiesStillHaveContact(0.35f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0149502,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ShortInjuredCrouchedJumpingAndCarriedBodiesStillHaveContact(0.9f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0104276,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ShortInjuredCrouchedJumpingAndCarriedBodiesStillHaveContact(1.8f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.0118447,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Editor.EscapePursuerCloseCaptureTests.ShortInjuredCrouchedJumpingAndCarriedBodiesStillHaveContact(1.8f,2.0f)",
+      "Status": "Passed",
+      "Duration": 0.0165091,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.EnclosedPursuerCannotTeleportAcrossSeparateWall",
+      "Status": "Passed",
+      "Duration": 0.0066013,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitStimuliSafetyTests.GroundedPursuerCannotBePushedOffUnsupportedPlatform",
+      "Status": "Passed",
+      "Duration": 0.0008606,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.ActorShadowPresenterTests.PursuerBlobIsOptInRestoresCastingAndDisposesOnlyItsOwnedObjects",
+      "Status": "Passed",
+      "Duration": 0.0090619,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.ExitSawTests.CosmeticPursuerChunksDoNotAbsorbShotsButWallsDo",
+      "Status": "Passed",
+      "Duration": 0.0075525,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossDashSupportTests.ConnectedFloorStillRejectsAnOrdinaryWall",
+      "Status": "Passed",
+      "Duration": 0.0023026,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossDashSupportTests.SupportedEndsCannotAuthorizeADashAcrossAnOpenGap",
+      "Status": "Passed",
+      "Duration": 0.0009561,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossDashSupportTests.SupportedStartOrDestinationCannotOverlapScenery(False)",
+      "Status": "Passed",
+      "Duration": 0.0013742,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossDashSupportTests.SupportedStartOrDestinationCannotOverlapScenery(True)",
+      "Status": "Passed",
+      "Duration": 0.0007549,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossDashSupportTests.WorkshopCornerCanClearTheColumnAndStillEndWithoutFloor",
+      "Status": "Passed",
+      "Duration": 0.0017764,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossResetTests.NewRoundIgnoresOldBossDeathAndCutsUntilItsOwnSnapshotArrives",
+      "Status": "Passed",
+      "Duration": 0.007754,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossResetTests.RestartRemovesOnlyItsOwnPendingSeveredVisuals",
+      "Status": "Passed",
+      "Duration": 0.0018515,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossResetTests.RestartRestoresCutBodyBeforeANewEncounterClockCanPresentIt",
+      "Status": "Passed",
+      "Duration": 0.0039598,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossTests.EightDistinctCutsExposeAttachedLimbsAndSlowMonotonically",
+      "Status": "Passed",
+      "Duration": 0.0049023,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossTests.FastDiskSweepHitsOrMissesRotatedScaledPart(0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0016944,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossTests.FastDiskSweepHitsOrMissesRotatedScaledPart(2.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002758,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBossTests.InvalidDiskDoesNotCut",
+      "Status": "Passed",
+      "Duration": 0.0004983,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.AlternateArmsMapToTheSameServiceProgress(-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0024975,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.AlternateArmsMapToTheSameServiceProgress(1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004906,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.InvalidRowsCannotHideAValidGuideAndMappedProgressStaysWithinTheRoute",
+      "Status": "Passed",
+      "Duration": 0.0005517,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.NoGuidesPreserveLegacyProjection(-5.0f,3.0f,0.0f,5.830952f)",
+      "Status": "Passed",
+      "Duration": 0.0010671,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.NoGuidesPreserveLegacyProjection(5.0f,3.0f,0.5f,3.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003488,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.NoGuidesPreserveLegacyProjection(15.0f,3.0f,1.5f,3.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002588,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.NoGuidesPreserveLegacyProjection(25.0f,3.0f,2.0f,5.830952f)",
+      "Status": "Passed",
+      "Duration": 0.0005149,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.NullAndZeroLengthGuidesFallBackToTheLegacyPath",
+      "Status": "Passed",
+      "Duration": 0.0006779,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.RestartInvalidatesTheCachedPlayerPathDistances",
+      "Status": "Passed",
+      "Duration": 0.0006433,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerBranchGuideTests.SeparateGuideRowsDoNotInventAConnectorOrUseTheLegacyCenterline",
+      "Status": "Passed",
+      "Duration": 0.0004819,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.CurrentRoundSnapshotRestoresTheNewStrikeAfterStaleVisualsWereCleared",
+      "Status": "Passed",
+      "Duration": 0.0191331,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"Preparing\",\"None\")",
+      "Status": "Passed",
+      "Duration": 0.0165653,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"Warning\",\"None\")",
+      "Status": "Passed",
+      "Duration": 0.0115586,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"Strike\",\"None\")",
+      "Status": "Passed",
+      "Duration": 0.0102347,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"Grab\",\"None\")",
+      "Status": "Passed",
+      "Duration": 0.0100159,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"Throw\",\"None\")",
+      "Status": "Passed",
+      "Duration": 0.0103642,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"None\",\"DebrisWarning\")",
+      "Status": "Passed",
+      "Duration": 0.0093477,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewClockBeforeNewPursuerSnapshotDropsPreviousRoundPoseAndIndicators(\"None\",\"DebrisFlight\")",
+      "Status": "Passed",
+      "Duration": 0.0101577,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewRoundCannotResampleOldBossDeathOrMaimedPoseEvenWhenChaseSnapshotArrivesFirst(\"Dead\",255)",
+      "Status": "Passed",
+      "Duration": 0.0134169,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.NewRoundCannotResampleOldBossDeathOrMaimedPoseEvenWhenChaseSnapshotArrivesFirst(\"Battle\",48)",
+      "Status": "Passed",
+      "Duration": 0.0103197,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerDollStateTests.ResetBarrierHidesTheOldPoseEvenBeforeItsEpochChanges",
+      "Status": "Passed",
+      "Duration": 0.0103052,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.AChangedRunnerOrRouteIntervalCanReplaceTheCommittedIntercept(8UL,3.0565f)",
+      "Status": "Passed",
+      "Duration": 0.0046551,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.AChangedRunnerOrRouteIntervalCanReplaceTheCommittedIntercept(7UL,4.2f)",
+      "Status": "Passed",
+      "Duration": 0.0007692,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CaptureStartsOnlyAfterLandingOutside(-1,0,False)",
+      "Status": "Passed",
+      "Duration": 0.0018692,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CaptureStartsOnlyAfterLandingOutside(0,3,False)",
+      "Status": "Passed",
+      "Duration": 0.0005041,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CaptureStartsOnlyAfterLandingOutside(0,5,False)",
+      "Status": "Passed",
+      "Duration": 0.0005459,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CaptureStartsOnlyAfterLandingOutside(0,6,True)",
+      "Status": "Passed",
+      "Duration": 0.0004839,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CaptureStartsOnlyAfterLandingOutside(0,9,False)",
+      "Status": "Passed",
+      "Duration": 0.0004228,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CooldownCannotPreferAnUnreachableBayOverAVisibleSidePositionAroundAPillar",
+      "Status": "Passed",
+      "Duration": 0.0038855,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.CooldownExpiryCannotCancelAnInterceptWhileThePoleRiderStaysPut",
+      "Status": "Passed",
+      "Duration": 0.0010602,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.FinalOutdoorRouteRemainsAttackableAfterEncounterEnds",
+      "Status": "Passed",
+      "Duration": 0.0005099,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.ForwardExitBayCanPressureAPlayerBehindItsRoutePoint",
+      "Status": "Passed",
+      "Duration": 0.001142,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.ProjectilePressureDelaysIdleRelocationButNotTheMaximumEncounterDuration",
+      "Status": "Passed",
+      "Duration": 0.0008451,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.ReachableWireAfterTargetIsNotOutsideTheAheadOfRouteBay",
+      "Status": "Passed",
+      "Duration": 0.0009506,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.RepositionWaitsForCaptureAndThreatCuesButDoesNotCampForeverWhileMoving",
+      "Status": "Passed",
+      "Duration": 0.0007891,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.RestartDoesNotLeaveAnOutdoorCaptureOrJumpActive",
+      "Status": "Passed",
+      "Duration": 0.000639,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.SeveredAttackHandCannotGrabOrThrowFromAnInvisibleSocket(0,True)",
+      "Status": "Passed",
+      "Duration": 0.0008942,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.SeveredAttackHandCannotGrabOrThrowFromAnInvisibleSocket(4,True)",
+      "Status": "Passed",
+      "Duration": 0.0005475,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.SeveredAttackHandCannotGrabOrThrowFromAnInvisibleSocket(8,False)",
+      "Status": "Passed",
+      "Duration": 0.0006442,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.SeveredAttackHandCannotGrabOrThrowFromAnInvisibleSocket(128,False)",
+      "Status": "Passed",
+      "Duration": 0.0005432,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.SeveredAttackHandCannotGrabOrThrowFromAnInvisibleSocket(255,False)",
+      "Status": "Passed",
+      "Duration": 0.0006139,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEncounterTests.StationaryRiderInsideTheSameProgressIntervalCannotHoldAnEncounterForever",
+      "Status": "Passed",
+      "Duration": 0.0006016,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.BypassRecognizesTheActualAdditionalCannonSeat(1)",
+      "Status": "Passed",
+      "Duration": 0.0088176,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.BypassRecognizesTheActualAdditionalCannonSeat(2)",
+      "Status": "Passed",
+      "Duration": 0.0021269,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.BypassRecognizesTheActualAdditionalCannonSeat(3)",
+      "Status": "Passed",
+      "Duration": 0.0023783,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.DisabledFirstWireDoesNotMarkDeparture",
+      "Status": "Passed",
+      "Duration": 0.0026366,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.LegacySceneWithNoAdditionalArrayKeepsOnlyTheOriginalCannon(False)",
+      "Status": "Passed",
+      "Duration": 0.0024903,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.LegacySceneWithNoAdditionalArrayKeepsOnlyTheOriginalCannon(True)",
+      "Status": "Passed",
+      "Duration": 0.0017434,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.RegisteredEntranceCannonsRecognizeTheSameSafeFirstWire(0)",
+      "Status": "Passed",
+      "Duration": 0.0018611,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.RegisteredEntranceCannonsRecognizeTheSameSafeFirstWire(1)",
+      "Status": "Passed",
+      "Duration": 0.0016262,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.RegisteredEntranceCannonsRecognizeTheSameSafeFirstWire(2)",
+      "Status": "Passed",
+      "Duration": 0.0015494,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.RegisteredEntranceCannonsRecognizeTheSameSafeFirstWire(3)",
+      "Status": "Passed",
+      "Duration": 0.0024901,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.SafeLandingOnAnotherSurfaceDoesNotMarkDeparture",
+      "Status": "Passed",
+      "Duration": 0.0018147,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnregisteredOrInvalidCannonsDoNotMarkDeparture(4)",
+      "Status": "Passed",
+      "Duration": 0.002634,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnregisteredOrInvalidCannonsDoNotMarkDeparture(5)",
+      "Status": "Passed",
+      "Duration": 0.001797,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnregisteredOrInvalidCannonsDoNotMarkDeparture(-1)",
+      "Status": "Passed",
+      "Duration": 0.0018056,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnregisteredOrInvalidCannonsDoNotMarkDeparture(6)",
+      "Status": "Passed",
+      "Duration": 0.0026589,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnsafeLandingDoesNotMarkDeparture(0)",
+      "Status": "Passed",
+      "Duration": 0.0019394,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnsafeLandingDoesNotMarkDeparture(1)",
+      "Status": "Passed",
+      "Duration": 0.0016746,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnsafeLandingDoesNotMarkDeparture(2)",
+      "Status": "Passed",
+      "Duration": 0.001632,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerEntryCannonTests.UnsafeLandingDoesNotMarkDeparture(3)",
+      "Status": "Passed",
+      "Duration": 0.001687,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ApproachIsKeptWhenAnyLivingTeammateCanStillBePressured(1)",
+      "Status": "Passed",
+      "Duration": 0.0093698,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ApproachIsKeptWhenAnyLivingTeammateCanStillBePressured(2)",
+      "Status": "Passed",
+      "Duration": 0.0039548,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ApproachIsKeptWhenAnyLivingTeammateCanStillBePressured(3)",
+      "Status": "Passed",
+      "Duration": 0.0040254,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.CommittedJumpOrOutdoorEncounterIsNeverCancelledByApproachRetargeting(5)",
+      "Status": "Passed",
+      "Duration": 0.0032604,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.CommittedJumpOrOutdoorEncounterIsNeverCancelledByApproachRetargeting(6)",
+      "Status": "Passed",
+      "Duration": 0.002265,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.CommittedJumpOrOutdoorEncounterIsNeverCancelledByApproachRetargeting(8)",
+      "Status": "Passed",
+      "Duration": 0.0020484,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.EmptyOutdatedBayRetracesOnlyTheApproachAlreadyWalked(0,12)",
+      "Status": "Passed",
+      "Duration": 0.0037805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.EmptyOutdatedBayRetracesOnlyTheApproachAlreadyWalked(1,11)",
+      "Status": "Passed",
+      "Duration": 0.0033354,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.EmptyOutdatedBayRetracesOnlyTheApproachAlreadyWalked(2,10)",
+      "Status": "Passed",
+      "Duration": 0.0029499,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.EmptyOutdatedBayRetracesOnlyTheApproachAlreadyWalked(3,9)",
+      "Status": "Passed",
+      "Duration": 0.0028948,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.EmptyOutdatedBayRetracesOnlyTheApproachAlreadyWalked(4,9)",
+      "Status": "Passed",
+      "Duration": 0.0029548,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ExistingAttackCannotBeInterruptedByApproachRetargeting(\"Warning\")",
+      "Status": "Passed",
+      "Duration": 0.0035083,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ExistingAttackCannotBeInterruptedByApproachRetargeting(\"Strike\")",
+      "Status": "Passed",
+      "Duration": 0.0022119,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ExistingAttackCannotBeInterruptedByApproachRetargeting(\"Grab\")",
+      "Status": "Passed",
+      "Duration": 0.002049,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.ExistingAttackCannotBeInterruptedByApproachRetargeting(\"Throw\")",
+      "Status": "Passed",
+      "Duration": 0.0021873,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.FinalContinuationCannotBeSkippedWhenTheRunnerAlreadyReachedTheExit",
+      "Status": "Passed",
+      "Duration": 0.0023995,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.NoAlternativeBayDoesNotCauseAnImmediateApproachReturnLoop",
+      "Status": "Passed",
+      "Duration": 0.0031762,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.RunnerActuallyLeavingTheCorridorCanStillBeFollowedBackThroughTheBreach",
+      "Status": "Passed",
+      "Duration": 0.0066763,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.RunnerAlreadyOnTheCorridorKeepsThePursuerOutsideDespiteEarlierProgress(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0034538,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.RunnerAlreadyOnTheCorridorKeepsThePursuerOutsideDespiteEarlierProgress(47.0f)",
+      "Status": "Passed",
+      "Duration": 0.0026581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.RunnerAlreadyOnTheCorridorKeepsThePursuerOutsideDespiteEarlierProgress(180.0f)",
+      "Status": "Passed",
+      "Duration": 0.0025465,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.UnavailableTeammateDoesNotHoldAnObsoleteApproach(\"Fallen\",True)",
+      "Status": "Passed",
+      "Duration": 0.0036157,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.UnavailableTeammateDoesNotHoldAnObsoleteApproach(\"Retired\",True)",
+      "Status": "Passed",
+      "Duration": 0.0030604,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.UnavailableTeammateDoesNotHoldAnObsoleteApproach(\"Arrived\",True)",
+      "Status": "Passed",
+      "Duration": 0.0031902,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.UnavailableTeammateDoesNotHoldAnObsoleteApproach(\"EscapeCaptured\",True)",
+      "Status": "Passed",
+      "Duration": 0.0043838,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.UnavailableTeammateDoesNotHoldAnObsoleteApproach(\"Normal\",False)",
+      "Status": "Passed",
+      "Duration": 0.0029218,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerFinaleHandoffTests.WallStrikeFinishesBeforeAnOutdatedApproachCanReturn",
+      "Status": "Passed",
+      "Duration": 0.0032031,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.DirectClipSamplingRemainsPureDuringADisplayTransition",
+      "Status": "Passed",
+      "Duration": 0.1964148,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.DisplayTransitionSpreadsAnArbitraryPhaseSwitchAcrossFrames(0.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0322217,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.DisplayTransitionSpreadsAnArbitraryPhaseSwitchAcrossFrames(1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0247933,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.FootfallTransitionCompensatesForTheMovingRoot(0,0.05f)",
+      "Status": "Passed",
+      "Duration": 0.0253692,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.FootfallTransitionCompensatesForTheMovingRoot(1,0.55f)",
+      "Status": "Passed",
+      "Duration": 0.0243481,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceKeepsBothFeetOnOneAuthoredContactSchedule(0.25f,\"Walk\")",
+      "Status": "Passed",
+      "Duration": 0.019281,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceKeepsBothFeetOnOneAuthoredContactSchedule(0.75f,\"Run\")",
+      "Status": "Passed",
+      "Duration": 0.0183363,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceUsesTheSameDistanceAsItsPlantedFoot(0.25f,0,0.05f)",
+      "Status": "Passed",
+      "Duration": 0.0213805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceUsesTheSameDistanceAsItsPlantedFoot(0.25f,1,0.55f)",
+      "Status": "Passed",
+      "Duration": 0.0198982,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceUsesTheSameDistanceAsItsPlantedFoot(0.75f,0,0.05f)",
+      "Status": "Passed",
+      "Duration": 0.0168791,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.IntermediatePaceUsesTheSameDistanceAsItsPlantedFoot(0.75f,1,0.55f)",
+      "Status": "Passed",
+      "Duration": 0.0217623,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.LegacyRigKeepsItsExistingInterpolatedCycleDistance",
+      "Status": "Passed",
+      "Duration": 0.012497,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.SameFrameResamplingDoesNotAdvanceTheDisplayTransition",
+      "Status": "Passed",
+      "Duration": 0.0151139,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerGaitBlendTests.SnapshotPoseDoesNotDependOnPreviouslySampledPace",
+      "Status": "Passed",
+      "Duration": 0.0159285,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.AdditionalStrikeFilterCannotBypassExistingPhysicalConstraints(\"unsupported\")",
+      "Status": "Passed",
+      "Duration": 0.0170185,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.AdditionalStrikeFilterCannotBypassExistingPhysicalConstraints(\"range\")",
+      "Status": "Passed",
+      "Duration": 0.0106644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.AdditionalStrikeFilterCannotBypassExistingPhysicalConstraints(\"body\")",
+      "Status": "Passed",
+      "Duration": 0.0100443,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.BayChoiceRejectsChestVisibleButHandBlockedBayEvenWhenTheAlternativeHasACooldown",
+      "Status": "Passed",
+      "Duration": 0.0157687,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.NoUsableHandPositionReportsFailureWithoutInventingAnAttackPoint",
+      "Status": "Passed",
+      "Duration": 0.0114005,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.RealWindupHandBlockedByReceiverFinSelectsAnotherSupportedAttackPosition(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0247965,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.RealWindupHandBlockedByReceiverFinSelectsAnotherSupportedAttackPosition(90.0f)",
+      "Status": "Passed",
+      "Duration": 0.0151871,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.RealWindupHandBlockedByReceiverFinSelectsAnotherSupportedAttackPosition(180.0f)",
+      "Status": "Passed",
+      "Duration": 0.018385,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHandAttackPositionTests.RealWindupHandBlockedByReceiverFinSelectsAnotherSupportedAttackPosition(270.0f)",
+      "Status": "Passed",
+      "Duration": 0.0215588,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Leaping\",False)",
+      "Status": "Passed",
+      "Duration": 0.0318229,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Landing\",False)",
+      "Status": "Passed",
+      "Duration": 0.0198803,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"LeapWarning\",False)",
+      "Status": "Passed",
+      "Duration": 0.0233388,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Hit\",False)",
+      "Status": "Passed",
+      "Duration": 0.0259499,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Dying\",False)",
+      "Status": "Passed",
+      "Duration": 0.023959,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Battle\",True)",
+      "Status": "Passed",
+      "Duration": 0.0294621,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BossOnlyCountsGroundedMovementIncludingTheFinalLeapFrame(\"Dashing\",True)",
+      "Status": "Passed",
+      "Duration": 0.0216144,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.BothFootPlantsAndAirborneRecoverySurviveUnityImport",
+      "Status": "Passed",
+      "Duration": 0.0398697,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.ContactFollowsAnimationPhaseAfterIdleAndAcrossSkippedFrames",
+      "Status": "Passed",
+      "Duration": 0.0268252,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.ImpactVoiceCannotRetuneWalkingTailAndSourcesHaveNoDoppler",
+      "Status": "Passed",
+      "Duration": 0.0190277,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerHeavyGaitTests.LongRunCountsTwoContactsPerCycleAtNormalPressureAndHiddenTravelSpeeds",
+      "Status": "Passed",
+      "Duration": 0.0236673,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.BehindAndExtremeHeightTargetsRespectAnatomicalLimits(8,2,-8)",
+      "Status": "Passed",
+      "Duration": 0.0355533,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.BehindAndExtremeHeightTargetsRespectAnatomicalLimits(-8,20,-8)",
+      "Status": "Passed",
+      "Duration": 0.0392102,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.BehindAndExtremeHeightTargetsRespectAnatomicalLimits(0,-20,1)",
+      "Status": "Passed",
+      "Duration": 0.0423439,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.CommittedAttackWinsOverThreatAndDeathClearsTheTarget",
+      "Status": "Passed",
+      "Duration": 0.0034562,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.CommonPrefabContainsCalibratedNeckAndUpdatedSkin",
+      "Status": "Passed",
+      "Duration": 0.0021894,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"Idle\")",
+      "Status": "Passed",
+      "Duration": 0.0681825,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"Walk\")",
+      "Status": "Passed",
+      "Duration": 0.0791098,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"Run\")",
+      "Status": "Passed",
+      "Duration": 0.0666854,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"CrouchWalk\")",
+      "Status": "Passed",
+      "Duration": 0.0531036,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"GrabStretch\")",
+      "Status": "Passed",
+      "Duration": 0.0519339,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"Throw\")",
+      "Status": "Passed",
+      "Duration": 0.051888,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"WallStrike\")",
+      "Status": "Passed",
+      "Duration": 0.050058,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"JumpLand\")",
+      "Status": "Passed",
+      "Duration": 0.0551579,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.HeadTracksAfterEveryAnimationSampleWithoutMovingTheBodyOrHand(\"Roar\")",
+      "Status": "Passed",
+      "Duration": 0.0517589,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.LatestSkinTurnsTheBlackFaceRigidly",
+      "Status": "Passed",
+      "Duration": 0.1368133,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.LiveSelectedPlayerFollowsMotionAndBodyHeightAndRejectsDisconnectedActors",
+      "Status": "Passed",
+      "Duration": 0.0042341,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.StaleOrOtherRoundSnapshotCannotReplaceTheRemoteLookTarget",
+      "Status": "Passed",
+      "Duration": 0.0021944,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerLookTests.TargetChangesSmoothlyAndLostTargetRestoresAuthoredPoseWithoutAccumulation",
+      "Status": "Passed",
+      "Duration": 0.0565354,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CachedStepChecksSupportBeforeItsRefreshDeadline",
+      "Status": "Passed",
+      "Duration": 0.00285,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CachedStepReplansWhenSceneryAppearsOrMovesIntoItsWay(False)",
+      "Status": "Passed",
+      "Duration": 0.0046758,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CachedStepReplansWhenSceneryAppearsOrMovesIntoItsWay(True)",
+      "Status": "Passed",
+      "Duration": 0.0019992,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.ChangingPursuitAreaDiscardsTheOldCachedGoal",
+      "Status": "Passed",
+      "Duration": 0.000657,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CrowdedIgnoredHitsDoNotHideARealBlocker(\"Overlap\")",
+      "Status": "Passed",
+      "Duration": 0.0029224,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CrowdedIgnoredHitsDoNotHideARealBlocker(\"Sweep\")",
+      "Status": "Passed",
+      "Duration": 0.0016327,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.CrowdedIgnoredHitsDoNotHideARealBlocker(\"Sight\")",
+      "Status": "Passed",
+      "Duration": 0.0013894,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.LargeCachedStepCannotSkipAnUnsupportedMiddle",
+      "Status": "Passed",
+      "Duration": 0.0019698,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.MovingGoalReplacesTheOldDetourWhenSearchIsDue",
+      "Status": "Passed",
+      "Duration": 0.0020709,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerNavigationCacheTests.RemovingSceneryKeepsTheDetourUntilShortcutRefreshThenUsesTheOpening",
+      "Status": "Passed",
+      "Duration": 0.0031167,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.AllTwentyFiveClipsResolveOnLatestModelAndKeepEveryBoneAtUnitScale",
+      "Status": "Passed",
+      "Duration": 0.4727462,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"Ignition\",\"Ignition\")",
+      "Status": "Passed",
+      "Duration": 0.0478561,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"DashWarning\",\"ChargeWarning\")",
+      "Status": "Passed",
+      "Duration": 0.0153508,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"Dashing\",\"Dash\")",
+      "Status": "Passed",
+      "Duration": 0.0138298,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"Hit\",\"HitLeft\")",
+      "Status": "Passed",
+      "Duration": 0.0126591,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"Dying\",\"Death\")",
+      "Status": "Passed",
+      "Duration": 0.0128881,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.BossPhasesUseTheAuthoredClips(\"Dead\",\"Death\")",
+      "Status": "Passed",
+      "Duration": 0.0124482,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.CaptureSelectsTearingHoldAndCarryingInsteadOfFreezingTheReach",
+      "Status": "Passed",
+      "Duration": 0.0135709,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.CommonPrefabUsesLatestBonesAndAllEightSeverableParts",
+      "Status": "Passed",
+      "Duration": 0.0127383,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.CrouchedTrackingFitsTheExistingPassage",
+      "Status": "Passed",
+      "Duration": 0.3883049,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.LatestGripAnimationClosesAllTenFingersAndResamplingRemovesReach",
+      "Status": "Passed",
+      "Duration": 0.0189639,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.MissingLegsStayLowDuringHitsAttacksAndDeathAndResetWithTheRound",
+      "Status": "Passed",
+      "Duration": 0.0725051,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.PlantedFootStaysStillWhenTheGameAdvancesByTheAuthoredStride(\"Walk\",3.24f,0.58f)",
+      "Status": "Passed",
+      "Duration": 0.0267805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.PlantedFootStaysStillWhenTheGameAdvancesByTheAuthoredStride(\"Run\",7.48f,0.3f)",
+      "Status": "Passed",
+      "Duration": 0.0348925,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.PlantedFootStaysStillWhenTheGameAdvancesByTheAuthoredStride(\"CrouchWalk\",3.6f,0.6f)",
+      "Status": "Passed",
+      "Duration": 0.0373716,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.PlantedFootStaysStillWhenTheGameAdvancesByTheAuthoredStride(\"CarryWalk\",3.24f,0.58f)",
+      "Status": "Passed",
+      "Duration": 0.0309266,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.RuntimeReachKeepsTheHandAndShellRigidWhileStoredCanvasUnfolds(4,0,1)",
+      "Status": "Passed",
+      "Duration": 0.0239963,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.RuntimeReachKeepsTheHandAndShellRigidWhileStoredCanvasUnfolds(12,1,1)",
+      "Status": "Passed",
+      "Duration": 0.0161756,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.RuntimeReachKeepsTheHandAndShellRigidWhileStoredCanvasUnfolds(36,-1,1)",
+      "Status": "Passed",
+      "Duration": 0.0158668,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRevision7Tests.RuntimeReachKeepsTheHandAndShellRigidWhileStoredCanvasUnfolds(36,1,-1)",
+      "Status": "Passed",
+      "Duration": 0.0156657,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.ActiveLeadKeepsPriorityBeforeTheExistingNeglectDeadline",
+      "Status": "Passed",
+      "Duration": 0.0116772,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.ActualPressureRefreshesNeglectButDoesNotInventProgress",
+      "Status": "Passed",
+      "Duration": 0.0025937,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.AirborneRouteRunnerKeepsLastTrustedProgressAcrossDistantGuidesAndEntranceVolume",
+      "Status": "Passed",
+      "Duration": 0.0021755,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.BackwardClockRebasesTemporalPriorityWithoutMovingTheRouteOrLosingTrustedFlightProgress",
+      "Status": "Passed",
+      "Duration": 0.001849,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.CachedRouteFocusIsRecheckedWhenThatPlayerReturnsToTheEntrance",
+      "Status": "Passed",
+      "Duration": 0.0016967,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.DistantAirborneProjectionCannotRefreshARealRunnersNeglectWatch",
+      "Status": "Passed",
+      "Duration": 0.0018617,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.DistantEntrantCannotOutrankTheActualProgressNineRunner",
+      "Status": "Passed",
+      "Duration": 0.0020923,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.EntrantGetsOneZeroProgressWatchDespiteDistantFalseProjection",
+      "Status": "Passed",
+      "Duration": 0.0022701,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.EntryHandoffRequiresPhysicalArrivalAndConnectedMeshAndPreservesRoundForReentry",
+      "Status": "Passed",
+      "Duration": 0.0026152,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.FinaleRearPriorityCanStillSelectTheLivingEntrantForHallReturn",
+      "Status": "Passed",
+      "Duration": 0.0021611,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.HallReturnCannotInterruptAnExistingCapture(\"Grab\")",
+      "Status": "Passed",
+      "Duration": 0.0015388,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.HallReturnCannotInterruptAnExistingCapture(\"Throw\")",
+      "Status": "Passed",
+      "Duration": 0.0014056,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.NeglectedCachedTargetIsImmediatelyInvalidWhenNoLongerNormal(\"EscapeCaptured\")",
+      "Status": "Passed",
+      "Duration": 0.0015391,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.NeglectedCachedTargetIsImmediatelyInvalidWhenNoLongerNormal(\"Retired\")",
+      "Status": "Passed",
+      "Duration": 0.001354,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.NeglectedEntrantOutranksProgressFiftyEightBeforeBossChasing",
+      "Status": "Passed",
+      "Duration": 0.002158,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.NeglectedHallTargetStaysSelectedWhilePhysicallyReversingTheServiceRoute",
+      "Status": "Passed",
+      "Duration": 0.0030982,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.NoSurvivingRouteCandidateStillSetsAReverseGoalInsteadOfKeepingTheOldBay",
+      "Status": "Passed",
+      "Duration": 0.0014157,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.OldestNeglectedRunnerWinsAndOriginalProgressBreaksEqualAge",
+      "Status": "Passed",
+      "Duration": 0.0017747,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.OnlyTheExistingFourMetresOfActualForwardProgressRefreshesNeglect",
+      "Status": "Passed",
+      "Duration": 0.0017735,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.RemainingEntrantsRequestPhysicalReturnInsteadOfLeavingNoRouteTarget",
+      "Status": "Passed",
+      "Duration": 0.0014787,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.RestartClearsNeglectedPriorityAndCachedHallTarget",
+      "Status": "Passed",
+      "Duration": 0.0014916,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTargetTests.TrustedProgressCanDecreaseWhenTheRunnerBacktracks",
+      "Status": "Passed",
+      "Duration": 0.0012614,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.AlternateReturnLeapRequiresClearFlightAndSupportedEnds",
+      "Status": "Passed",
+      "Duration": 0.0032525,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.BoundaryRoundoffCannotPoisonTheNextMovementUpdate",
+      "Status": "Passed",
+      "Duration": 0.0017445,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.CachedDetourStopsWhenItsFloorDisappears",
+      "Status": "Passed",
+      "Duration": 0.0023439,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.CannotEnterServiceRouteByTeleportingFromAnotherRoom",
+      "Status": "Passed",
+      "Duration": 0.000487,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.CloseTargetDoesNotResetRunningSpeed",
+      "Status": "Passed",
+      "Duration": 0.0004943,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.ConveyorWaitCoversFirstBoardingButCannotBeRefreshedByDismountingOrLaunching",
+      "Status": "Passed",
+      "Duration": 0.0008033,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.CrossingARevealKeepsRunningAndUsesTheRemainingBudget",
+      "Status": "Passed",
+      "Duration": 0.0004449,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.EntranceClipCanBeSampledWithoutAnimatorInAPlayerBuild",
+      "Status": "Passed",
+      "Duration": 0.000355,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.FirstCannonDeckFindsAnAttackPositionForTheHangingExitPole",
+      "Status": "Passed",
+      "Duration": 0.0011271,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.JumpGapCannotBeWalkedAcross",
+      "Status": "Passed",
+      "Duration": 0.0006284,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.OccludedRiderGetsAVisibleSupportedAttackPositionAroundTheWall",
+      "Status": "Passed",
+      "Duration": 0.0017053,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.PursuerReachesTargetAroundSceneryWithoutCrossingIt",
+      "Status": "Passed",
+      "Duration": 0.0031043,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RestartClearsTravelAndFinaleDelay",
+      "Status": "Passed",
+      "Duration": 0.0005748,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.ReturningAcrossAGapRequiresAReverseJump",
+      "Status": "Passed",
+      "Duration": 0.0005478,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.ReturningSurvivorCanBeFollowedBackThroughTheRoute",
+      "Status": "Passed",
+      "Duration": 0.0004356,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.ReverseArrivalPinsTheCursorToTheStartAndKeepsAllRouteReadersValid",
+      "Status": "Passed",
+      "Duration": 0.0080696,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RoutePressureUsesTheStrongerClockAndCapsTheResult(419.0d,44.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004344,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RoutePressureUsesTheStrongerClockAndCapsTheResult(60.0d,67.5d,0.5f)",
+      "Status": "Passed",
+      "Duration": 0.0002772,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RoutePressureUsesTheStrongerClockAndCapsTheResult(442.5d,0.0d,0.5f)",
+      "Status": "Passed",
+      "Duration": 0.0001587,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RoutePressureUsesTheStrongerClockAndCapsTheResult(442.5d,67.5d,0.5f)",
+      "Status": "Passed",
+      "Duration": 0.0001449,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.RoutePressureUsesTheStrongerClockAndCapsTheResult(5.0d,150.0d,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0001382,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.ServiceTravelUsesAvailableMovementBudget",
+      "Status": "Passed",
+      "Duration": 0.0004586,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.StationaryPoleTargetStillLeadsToAnAuthoredEmergenceAnchor",
+      "Status": "Passed",
+      "Duration": 0.0006824,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.SweptHandDetectsCrossingAndAllowsLeavingLockedLine(-8.0f,8.0f,1.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0008161,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.SweptHandDetectsCrossingAndAllowsLeavingLockedLine(-8.0f,8.0f,1.0f,2.1f,False)",
+      "Status": "Passed",
+      "Duration": 0.0003607,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.SweptHandDetectsCrossingAndAllowsLeavingLockedLine(-8.0f,8.0f,5.0f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001813,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.SweptHandDetectsCrossingAndAllowsLeavingLockedLine(0.0f,0.0f,1.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0002011,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerRouteTests.SweptHandDetectsCrossingAndAllowsLeavingLockedLine(0.0f,0.0f,1.0f,2.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001677,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.EndShutterOpensWhenRunnerIsOnEitherSide",
+      "Status": "Passed",
+      "Duration": 0.0032442,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.OnlyThePanelBetweenCreatureAndRunnerCanOpen(0.0f,1.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0004018,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.OnlyThePanelBetweenCreatureAndRunnerCanOpen(2.2f,1.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001463,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.OnlyThePanelBetweenCreatureAndRunnerCanOpen(0.0f,7.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.00013,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.ParallelOrBeyondTheRunnerDoesNotOpen",
+      "Status": "Passed",
+      "Duration": 0.0004581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerScreenTests.SlopingBayUsesItsActualTrapezoid",
+      "Status": "Passed",
+      "Duration": 0.0005925,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.HitDoesNotEraseAlreadyReleasedProjectileOrItsImpact(\"DebrisFlight\")",
+      "Status": "Passed",
+      "Duration": 0.002667,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.HitDoesNotEraseAlreadyReleasedProjectileOrItsImpact(\"Impact\")",
+      "Status": "Passed",
+      "Duration": 0.0007465,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.NonThrowingLimbHitCancelsUnreleasedAttackBeforeHitPoseCanHideItsRelease(1,\"DebrisWarning\")",
+      "Status": "Passed",
+      "Duration": 0.002427,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.NonThrowingLimbHitCancelsUnreleasedAttackBeforeHitPoseCanHideItsRelease(4,\"DebrisWarning\")",
+      "Status": "Passed",
+      "Duration": 0.0007351,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.NonThrowingLimbHitCancelsUnreleasedAttackBeforeHitPoseCanHideItsRelease(17,\"DebrisWarning\")",
+      "Status": "Passed",
+      "Duration": 0.0010627,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatInterruptTests.NonThrowingLimbHitCancelsUnreleasedAttackBeforeHitPoseCanHideItsRelease(4,\"ChargeWarning\")",
+      "Status": "Passed",
+      "Duration": 0.0009967,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.DiscardThrowRejectsAPlatformUnderItsEndpoint",
+      "Status": "Passed",
+      "Duration": 0.0028771,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.DiscardThrowUsesTheLongClearArcBeforeTheNearbyAuthoredBay",
+      "Status": "Passed",
+      "Duration": 0.0016084,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.FinishedThreatRemovesItsGuidesAndProjectile",
+      "Status": "Passed",
+      "Duration": 0.0009278,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.HeldFirstPoleKeepsItsWireWarningAndFullReachAfterRouteEntry",
+      "Status": "Passed",
+      "Duration": 0.0041789,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.MissingPoseReferenceCannotLeaveAnOldCaptureGuideVisible",
+      "Status": "Passed",
+      "Duration": 0.000814,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.OpeningRoarDoesNotShowAPlayerTargetMarkerOrLine",
+      "Status": "Passed",
+      "Duration": 0.0006577,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.OpeningRoarStartsWithoutAHallTargetAndRetainsItsGuards",
+      "Status": "Passed",
+      "Duration": 0.0013549,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ProjectileUsesElevatedBodyCapsuleAndAllowsSidestepping(0.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0011667,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ProjectileUsesElevatedBodyCapsuleAndAllowsSidestepping(4.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.000207,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ProjectileUsesElevatedBodyCapsuleAndAllowsSidestepping(12.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0001403,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ProjectileUsesElevatedBodyCapsuleAndAllowsSidestepping(4.0f,2.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001397,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.RaisedThrowArcRejectsAnOverheadBeamThatAStraightSweepMisses",
+      "Status": "Passed",
+      "Duration": 0.0016014,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ThreatSnapshotRejectsInvalidDurationAndDelayedRoundWithoutReplacingAcceptedState",
+      "Status": "Passed",
+      "Duration": 0.0021762,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ThrowReachesLockedTargetAndHasAnElevatedMidpoint(\"DebrisPosition\")",
+      "Status": "Passed",
+      "Duration": 0.0007924,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerThreatTests.ThrowReachesLockedTargetAndHasAnElevatedMidpoint(\"ThrowPosition\")",
+      "Status": "Passed",
+      "Duration": 0.0003389,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.AJumpWaitsForItsTakeoffWallToBreak",
+      "Status": "Passed",
+      "Duration": 0.0046875,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.ARealJumpArcClearsALowWallThatItsGroundChordWouldHit",
+      "Status": "Passed",
+      "Duration": 0.000871,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.BreachUsesTheStruckFaceAndKeepsTheFollowThroughAfterCollisionOpens(0.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0010026,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.BreachUsesTheStruckFaceAndKeepsTheFollowThroughAfterCollisionOpens(45.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004771,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.BreachUsesTheStruckFaceAndKeepsTheFollowThroughAfterCollisionOpens(45.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0005306,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.ClientQueriesCannotStartABreachButDoNotCrossItsWall",
+      "Status": "Passed",
+      "Duration": 0.0010734,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.CursorAlignmentCannotSkipAnAirborneEdgeOrMoveToADistantAnchor",
+      "Status": "Passed",
+      "Duration": 0.0010118,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(0,False,24.0f,0.01666667f)",
+      "Status": "Passed",
+      "Duration": 0.0034294,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(0,True,24.0f,0.01666667f)",
+      "Status": "Passed",
+      "Duration": 0.0015361,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(37,False,24.0f,0.01666667f)",
+      "Status": "Passed",
+      "Duration": 0.0023998,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(37,True,24.0f,0.01666667f)",
+      "Status": "Passed",
+      "Duration": 0.0014757,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(90,False,24.0f,0.33f)",
+      "Status": "Passed",
+      "Duration": 0.0005742,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(90,True,24.0f,0.33f)",
+      "Status": "Passed",
+      "Duration": 0.0006847,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(-53,False,6.6f,0.33f)",
+      "Status": "Passed",
+      "Duration": 0.0007121,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FirstCannonDiagonalMakesProgressThroughItsActualGateAtDifferentFrameRates(-53,True,6.6f,0.33f)",
+      "Status": "Passed",
+      "Duration": 0.0005779,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.FullChaseBudgetChecksTheNextEdgeAfterTurningACorner",
+      "Status": "Passed",
+      "Duration": 0.0015949,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.LongFramesBreakTwoWallsInOrderWithoutSkippingEither",
+      "Status": "Passed",
+      "Duration": 0.0009541,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.PhysicallyReachedAnchorPinsItsFractionalCursorForwardBackwardAndAtTheEnd(0.9999996f,2.0f,1)",
+      "Status": "Passed",
+      "Duration": 0.0010644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.PhysicallyReachedAnchorPinsItsFractionalCursorForwardBackwardAndAtTheEnd(1.0f,0.0f,1)",
+      "Status": "Passed",
+      "Duration": 0.0007317,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.PhysicallyReachedAnchorPinsItsFractionalCursorForwardBackwardAndAtTheEnd(2.0f,2.0f,2)",
+      "Status": "Passed",
+      "Duration": 0.0005628,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.ReachedTakeoffAnchorAlignsBeforeTheNextRealJumpWithoutCompletingIt",
+      "Status": "Passed",
+      "Duration": 0.0011983,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.RecordedLiveStallAtTwoPointEightTwoMetresTakesTheMissingApproachStep",
+      "Status": "Passed",
+      "Duration": 0.0009328,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.SubMillimetreRemainingTravelOutsideTheZeroDistanceBranchStillReachesItsAnchor(0.99999f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.000961,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.SubMillimetreRemainingTravelOutsideTheZeroDistanceBranchStillReachesItsAnchor(1.00001f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.000579,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.SubMillimetreRemainingTravelOutsideTheZeroDistanceBranchStillReachesItsAnchor(1.99999f,2.0f)",
+      "Status": "Passed",
+      "Duration": 0.0005581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWallTraversalTests.TinyRemainingDistanceStillHonorsTheActualMovementBudget",
+      "Status": "Passed",
+      "Duration": 0.0011958,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ActualBossAdaptersUseBodyWidthAndHideAcrossPhases",
+      "Status": "Passed",
+      "Duration": 0.0120805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ActualStrikeShrinksTheSweepWithoutDependingOnLegacyRenderers",
+      "Status": "Passed",
+      "Duration": 0.0055401,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"disable\")",
+      "Status": "Passed",
+      "Duration": 0.0025339,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"showcase\")",
+      "Status": "Passed",
+      "Duration": 0.0022883,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"restart\")",
+      "Status": "Passed",
+      "Duration": 0.0020836,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"stale round\")",
+      "Status": "Passed",
+      "Duration": 0.00196,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.CameraTargetQueryRequiresAnActiveTargetingPhaseAndCurrentRoundOnBothPeers",
+      "Status": "Passed",
+      "Duration": 0.0036277,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.DisableAndRoundInvalidationClearRealViewsAndAllowReplay",
+      "Status": "Passed",
+      "Duration": 0.00405,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.InvalidEndpointsAndReplaysCannotReplaceCommittedJumpButNewRevisionCan",
+      "Status": "Passed",
+      "Duration": 0.0022327,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.MissingKitUsesLegacyWithoutStoppingTheArm",
+      "Status": "Passed",
+      "Duration": 0.002395,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationLocksTheLatestUnpredictedPositionThenWaitsTheFullStartup",
+      "Status": "Passed",
+      "Duration": 0.0039902,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"despawn\")",
+      "Status": "Passed",
+      "Duration": 0.0025648,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"out of reach\")",
+      "Status": "Passed",
+      "Duration": 0.0020576,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"blocked\")",
+      "Status": "Passed",
+      "Duration": 0.0023549,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparingAppendsToTheWireEnumAndOutOfRangePhasesAreRejected",
+      "Status": "Passed",
+      "Duration": 0.0021333,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.RepeatedServiceJumpCommitsANewRevisionWithoutChangingItsPoseClock",
+      "Status": "Passed",
+      "Duration": 0.0034353,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.RouteContactUsesPhysicalDiameterAndNeverProjectsOntoAnAbyssFloor",
+      "Status": "Passed",
+      "Duration": 0.0026487,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ShowcaseUsesPreparationThenKeepsItsLockedAimAcrossMovingSamples",
+      "Status": "Passed",
+      "Duration": 0.0030669,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.StopChaseCleansTheRouteEvenWhenItsAgentEarlyReturns",
+      "Status": "Passed",
+      "Duration": 0.0023127,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.TargetFollowsHeadThenLocksAndPathIsOffByDefaultAndNeverAppearsDuringPreparation",
+      "Status": "Passed",
+      "Duration": 0.0043785,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ThrownEndpointsUsePhysicalRadiusAndDisappearWithoutSupport(False)",
+      "Status": "Passed",
+      "Duration": 0.0035612,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ThrownEndpointsUsePhysicalRadiusAndDisappearWithoutSupport(True)",
+      "Status": "Passed",
+      "Duration": 0.0030597,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.WireSnapshotDrivesRemoteLandingAndRejectsTruncatedOrNonServerPayloads",
+      "Status": "Passed",
+      "Duration": 0.0065906,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
