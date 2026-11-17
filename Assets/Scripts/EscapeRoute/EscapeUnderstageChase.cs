@@ -51,6 +51,7 @@ namespace CurtainCall.EscapeRoute
 
         void Awake()
         {
+            if (doll) CurtainCall.WorldIndicators.ActorShadowPresenter.AttachPursuer(this, doll.transform, true);
             agent = GetComponent<NavMeshAgent>();
             agent.autoBraking = false;
             agent.acceleration = 24f;
@@ -124,6 +125,7 @@ namespace CurtainCall.EscapeRoute
             }
             // Presentation only: a client must not finish a captured player's authoritative state.
             // Invalidate these even if the clock's reset and restart both arrived between frames.
+            HideChaseWorldUi();
             if (captureCable) captureCable.enabled = false;
             if (aimRing) aimRing.enabled = false;
             if (extendedForearm) extendedForearm.gameObject.SetActive(false);
@@ -456,6 +458,7 @@ namespace CurtainCall.EscapeRoute
 
         void StopChase()
         {
+            HideRouteLandingWorldUi();
             if (!agent || !agent.enabled && !body.enabled) return;
             agent.enabled = false;
             jumping = false;

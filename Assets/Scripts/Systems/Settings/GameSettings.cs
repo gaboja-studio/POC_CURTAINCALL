@@ -58,6 +58,9 @@ namespace CurtainCall.Settings
         [Tooltip("탈출로 세팅(탈출로 구간·추격·엔딩).")]
         [SerializeField] EscapeRouteSettings escapeRoute;
 
+        [Tooltip("아이콘 없는 위험 영역·공중 그랩·대포 궤적·캐릭터 그림자의 공통 표시 설정.")]
+        [SerializeField] WorldUiSettings worldUi;
+
         static GameSettings current;
         static BaseGameSettings fallbackBase;
         static TightropeSettings fallbackTightrope;
@@ -67,6 +70,7 @@ namespace CurtainCall.Settings
         static WaitingRoomSettings fallbackWaitingRoom;
         static ExplorationSettings fallbackExploration;
         static EscapeRouteSettings fallbackEscapeRoute;
+        static WorldUiSettings fallbackWorldUi;
 
         /// <summary>지금 쓰는 시작점 세팅. 처음 부를 때 Resources에서 읽는다.</summary>
         public static GameSettings Current
@@ -106,6 +110,7 @@ namespace CurtainCall.Settings
 
         /// <summary>탈출로 세팅.</summary>
         public static EscapeRouteSettings EscapeRoute => Linked(Current.escapeRoute, ref fallbackEscapeRoute);
+        public static WorldUiSettings WorldUi => Linked(Current.worldUi, ref fallbackWorldUi);
 
         static T Linked<T>(T settings, ref T fallback) where T : ScriptableObject
         {

@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 0.3,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.WarningBatchTests.TransformReferencedWarningDescendantsAreNeverExtractedAsStaticFactoryGeometry",
+      "Status": "Passed",
+      "Duration": 0.005596,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.WarningBatchTests.WarningStartsHiddenBlinksOnlyBeforeFireAndClearsOnStopOrDisable",
+      "Status": "Passed",
+      "Duration": 0.0014215,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

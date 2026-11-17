@@ -1,0 +1,118 @@
+{
+  "status": "completed",
+  "duration": 0.44,
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Fallen)",
+      "Status": "Passed",
+      "Duration": 0.0175832,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Retired)",
+      "Status": "Passed",
+      "Duration": 0.0011132,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(EscapeCaptured)",
+      "Status": "Passed",
+      "Duration": 0.000844,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Arrived)",
+      "Status": "Passed",
+      "Duration": 0.0007173,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DistanceSettingChangesProximityButNeverDropsAnExplicitFarTarget",
+      "Status": "Passed",
+      "Duration": 0.0026737,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EdgeMeshKeepsTheCentreClearAndDisappearsOnCleanup",
+      "Status": "Passed",
+      "Duration": 0.0049675,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(True,100.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0026021,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,17.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0007177,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,18.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.000666,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,18.01f,False)",
+      "Status": "Passed",
+      "Duration": 0.0005478,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeToggleIsIndependentOfWaitingToggleAndClearsImmediately",
+      "Status": "Passed",
+      "Duration": 0.0008792,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.MissingEncounterOrInvalidRoundClearsInsteadOfLeavingAFadingOldThreat",
+      "Status": "Passed",
+      "Duration": 0.0007408,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.MultipleScenePresentersShareOneOverlayAndSurvivorTakesOver",
+      "Status": "Passed",
+      "Duration": 0.0031298,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.ScreenFocusUsesTheSpectatedPlayerAndNeverFallsBackWhenTargetIsMissing",
+      "Status": "Passed",
+      "Duration": 0.0013089,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.SwitchingSpectatorOrRoundCannotCarryThePreviousPulse",
+      "Status": "Passed",
+      "Duration": 0.0007588,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

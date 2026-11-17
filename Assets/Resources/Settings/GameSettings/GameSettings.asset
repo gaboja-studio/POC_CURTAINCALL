@@ -20,3 +20,4 @@ MonoBehaviour:
   waitingRoom: {fileID: 11400000, guid: f5d60d1bdfa0cdd4082851f111f4e8f5, type: 2}
   exploration: {fileID: 11400000, guid: 63fa02d662356074485804d445703e08, type: 2}
   escapeRoute: {fileID: 11400000, guid: 54d5bb8505ad4fc46a48c6511c0d8867, type: 2}
+  worldUi: {fileID: 11400000, guid: 9a3e106067b11354994163f3496854d5, type: 2}

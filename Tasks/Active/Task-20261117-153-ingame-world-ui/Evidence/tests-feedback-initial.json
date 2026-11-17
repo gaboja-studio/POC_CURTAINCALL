@@ -1,0 +1,118 @@
+{
+  "status": "completed",
+  "duration": 0.44,
+  "summary": {
+    "total": 15,
+    "passed": 6,
+    "failed": 9,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Fallen)",
+      "Status": "Failed",
+      "Duration": 0.0180135,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected (CurtainCall.Network.PlayerSync.PlayerState state) [0x000d7] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:178 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Retired)",
+      "Status": "Failed",
+      "Duration": 0.0012254,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected (CurtainCall.Network.PlayerSync.PlayerState state) [0x000d7] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:178 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(EscapeCaptured)",
+      "Status": "Failed",
+      "Duration": 0.0009178,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected (CurtainCall.Network.PlayerSync.PlayerState state) [0x000d7] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:178 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected(Arrived)",
+      "Status": "Failed",
+      "Duration": 0.0009604,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DeadCapturedOrFinishedSpectatorFocusIsRejected (CurtainCall.Network.PlayerSync.PlayerState state) [0x000d7] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:178 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DistanceSettingChangesProximityButNeverDropsAnExplicitFarTarget",
+      "Status": "Failed",
+      "Duration": 0.0009732,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.DistanceSettingChangesProximityButNeverDropsAnExplicitFarTarget () [0x00034] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:118 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EdgeMeshKeepsTheCentreClearAndDisappearsOnCleanup",
+      "Status": "Failed",
+      "Duration": 0.0010124,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EdgeMeshKeepsTheCentreClearAndDisappearsOnCleanup () [0x00063] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:209 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(True,100.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0038271,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,17.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0008581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,18.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0006516,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeTargetsOrConfiguredProximityDriveTheExistingEdge(False,18.01f,False)",
+      "Status": "Passed",
+      "Duration": 0.000703,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeToggleIsIndependentOfWaitingToggleAndClearsImmediately",
+      "Status": "Failed",
+      "Duration": 0.0029856,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.EscapeToggleIsIndependentOfWaitingToggleAndClearsImmediately () [0x000a5] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:134 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.MissingEncounterOrInvalidRoundClearsInsteadOfLeavingAFadingOldThreat",
+      "Status": "Failed",
+      "Duration": 0.000844,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.MissingEncounterOrInvalidRoundClearsInsteadOfLeavingAFadingOldThreat () [0x00047] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:145 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.MultipleScenePresentersShareOneOverlayAndSurvivorTakesOver",
+      "Status": "Passed",
+      "Duration": 0.0029409,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.ScreenFocusUsesTheSpectatedPlayerAndNeverFallsBackWhenTargetIsMissing",
+      "Status": "Passed",
+      "Duration": 0.0013484,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.SwitchingSpectatorOrRoundCannotCarryThePreviousPulse",
+      "Status": "Failed",
+      "Duration": 0.0008564,
+      "Message": "System.Reflection.AmbiguousMatchException : Ambiguous match found.",
+      "StackTrace": "  at System.RuntimeType.GetMethodImplCommon (System.String name, System.Int32 genericParameterCount, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00050] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.RuntimeType.GetMethodImpl (System.String name, System.Reflection.BindingFlags bindingAttr, System.Reflection.Binder binder, System.Reflection.CallingConventions callConv, System.Type[] types, System.Reflection.ParameterModifier[] modifiers) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Type.GetMethod (System.String name, System.Reflection.BindingFlags bindingAttr) [0x0000e] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.Call (System.Object target, System.String method, System.Object[] args) [0x00000] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:245 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.AssertHidden () [0x00049] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:96 \r\n  at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitFeedbackTests.SwitchingSpectatorOrRoundCannotCarryThePreviousPulse () [0x00053] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitFeedbackTests.cs:157 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Project Facts
 
+- [World-ui/](World-ui/index.md) — 착지 그림자 중복·추격자 방향 표시·공격 및 장애물 예고를 수정할 때
+
 - [escape-results-kit.md](escape-results-kit.md) — 엔딩 키트·실제 플레이어 Cinemachine·성공 로비/실패 새 런·공유 영상을 확인할 때
 - [Navigation/](Navigation/index.md) — 리허설 네비의 레이어·프리팹·호출 API·실게임 연결을 확인할 때
 

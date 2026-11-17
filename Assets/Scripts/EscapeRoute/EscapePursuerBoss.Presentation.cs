@@ -16,6 +16,7 @@ namespace CurtainCall.EscapeRoute
 
         void ResetPresentation()
         {
+            HideBossWorldUi();
             presentedMask = 0; presentedRound = landedAt = -1;
             if (landingRing) landingRing.enabled = false;
             if (blood) blood.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -82,9 +83,10 @@ namespace CurtainCall.EscapeRoute
             if (state.Phase == Phase.LeapWarning) chase.SampleJump(age / Tuning.bossLeapWarning * chase.ContactTime * .4f, state.From, state.From);
             else if (state.Phase == Phase.Leaping) chase.SampleJumpPose(chase.ContactTime * Mathf.Lerp(.5f, .95f, age / Tuning.bossLeapSeconds));
             else if (state.Phase == Phase.Landing) chase.SampleJumpPose(chase.ContactTime + age);
+            bool worldUi = PresentBossWorldUi(age);
             if (landingRing)
             {
-                landingRing.enabled = state.Phase == Phase.LeapWarning || state.Phase == Phase.Leaping || state.Phase == Phase.DashWarning;
+                landingRing.enabled = !worldUi && (state.Phase == Phase.LeapWarning || state.Phase == Phase.Leaping || state.Phase == Phase.DashWarning);
                 if (landingRing.enabled)
                 {
                     landingRing.transform.position = state.Goal + Vector3.up * .06f;

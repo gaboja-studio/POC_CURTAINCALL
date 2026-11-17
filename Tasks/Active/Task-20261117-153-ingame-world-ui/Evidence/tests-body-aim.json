@@ -1,0 +1,181 @@
+{
+  "status": "completed",
+  "duration": 0.48,
+  "summary": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ActualBossAdaptersUseBodyWidthAndHideAcrossPhases",
+      "Status": "Passed",
+      "Duration": 0.014644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ActualStrikeShrinksTheSweepWithoutDependingOnLegacyRenderers",
+      "Status": "Passed",
+      "Duration": 0.0073355,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"disable\")",
+      "Status": "Passed",
+      "Duration": 0.0041762,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"showcase\")",
+      "Status": "Passed",
+      "Duration": 0.0026066,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"restart\")",
+      "Status": "Passed",
+      "Duration": 0.0033189,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.BossLifecycleClearsRealViews(\"stale round\")",
+      "Status": "Passed",
+      "Duration": 0.0021611,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.CameraTargetQueryRequiresAnActiveTargetingPhaseAndCurrentRoundOnBothPeers",
+      "Status": "Passed",
+      "Duration": 0.0052897,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.DisableAndRoundInvalidationClearRealViewsAndAllowReplay",
+      "Status": "Passed",
+      "Duration": 0.0055353,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.InvalidEndpointsAndReplaysCannotReplaceCommittedJumpButNewRevisionCan",
+      "Status": "Passed",
+      "Duration": 0.0026785,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.MissingKitUsesLegacyWithoutStoppingTheArm",
+      "Status": "Passed",
+      "Duration": 0.0030612,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationLocksTheLatestUnpredictedPositionThenWaitsTheFullStartup",
+      "Status": "Passed",
+      "Duration": 0.0054392,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"despawn\")",
+      "Status": "Passed",
+      "Duration": 0.0026119,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"out of reach\")",
+      "Status": "Passed",
+      "Duration": 0.0025326,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparationRevalidatesBeforeCommitting(\"blocked\")",
+      "Status": "Passed",
+      "Duration": 0.0024071,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.PreparingAppendsToTheWireEnumAndOutOfRangePhasesAreRejected",
+      "Status": "Passed",
+      "Duration": 0.0024926,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.RepeatedServiceJumpCommitsANewRevisionWithoutChangingItsPoseClock",
+      "Status": "Passed",
+      "Duration": 0.0032342,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.RouteContactUsesPhysicalDiameterAndNeverProjectsOntoAnAbyssFloor",
+      "Status": "Passed",
+      "Duration": 0.0027037,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ShowcaseUsesPreparationThenKeepsItsLockedAimAcrossMovingSamples",
+      "Status": "Passed",
+      "Duration": 0.003113,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.StopChaseCleansTheRouteEvenWhenItsAgentEarlyReturns",
+      "Status": "Passed",
+      "Duration": 0.0031279,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.TargetFollowsBodyAimThenLocksAndPathIsOffByDefaultAndNeverAppearsDuringPreparation(1.8f)",
+      "Status": "Passed",
+      "Duration": 0.0044955,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.TargetFollowsBodyAimThenLocksAndPathIsOffByDefaultAndNeverAppearsDuringPreparation(0.9f)",
+      "Status": "Passed",
+      "Duration": 0.0041107,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ThrownEndpointsUsePhysicalRadiusAndDisappearWithoutSupport(False)",
+      "Status": "Passed",
+      "Duration": 0.0034697,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.ThrownEndpointsUsePhysicalRadiusAndDisappearWithoutSupport(True)",
+      "Status": "Passed",
+      "Duration": 0.0039061,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuerWorldUiTests.WireSnapshotDrivesRemoteLandingAndRejectsTruncatedOrNonServerPayloads",
+      "Status": "Passed",
+      "Duration": 0.0072077,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

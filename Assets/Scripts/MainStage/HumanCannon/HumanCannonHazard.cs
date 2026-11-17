@@ -38,6 +38,27 @@ namespace CurtainCall.HumanCannon
         }
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
+        public Vector3 WorldUiSize
+        {
+            get
+            {
+                if (UsesBoxGeometry) return boxSize; // BoxTouches is world-axis aligned.
+                if (kind == CannonHazardKind.SpikeMace) return Vector3.one * (radius * 2);
+                Vector3 n = BladeNormal.normalized;
+                float r = kind == CannonHazardKind.RotatingBlades ? bladeHalfLength : radius;
+                if (kind == CannonHazardKind.RotatingBlades)
+                    return new Vector3(Mathf.Sqrt(Mathf.Max(0,1-n.x*n.x))*r+bladeHalfThickness,
+                        Mathf.Sqrt(Mathf.Max(0,1-n.y*n.y))*r+bladeHalfThickness,
+                        Mathf.Sqrt(Mathf.Max(0,1-n.z*n.z))*r+bladeHalfThickness)*2;
+                // Projection of the full spinning disc, including its physical thickness.
+                return new Vector3(Mathf.Sqrt(Mathf.Max(0, 1-n.x*n.x))*r + Mathf.Abs(n.x)*bladeHalfThickness,
+                    Mathf.Sqrt(Mathf.Max(0, 1-n.y*n.y))*r + Mathf.Abs(n.y)*bladeHalfThickness,
+                    Mathf.Sqrt(Mathf.Max(0, 1-n.z*n.z))*r + Mathf.Abs(n.z)*bladeHalfThickness) * 2;
+            }
+        }
+        public Transform WorldUiVisual => visual;
+        CurtainCall.WorldIndicators.HazardWorldIndicator worldIndicator;
+        void OnDisable() { if (worldIndicator) worldIndicator.Hide(); }
         public float PeriodSeconds => periodSeconds;
         public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
         public bool UsesAuthoredPath => authoredPath;
@@ -128,6 +149,11 @@ namespace CurtainCall.HumanCannon
             if (visual != null) visual.gameObject.SetActive(visible && (cue == null || cue.Visible(elapsed)));
             if (TryGetComponent(out LineRenderer rail))
             {
+                if (cue == null && showRail && Application.isPlaying)
+                {
+                    if (!worldIndicator) worldIndicator = gameObject.AddComponent<CurtainCall.WorldIndicators.HazardWorldIndicator>();
+                    if (worldIndicator.Present(this, null, visible, elapsed)) { rail.enabled = false; return; }
+                }
                 rail.enabled = visible && showRail;
                 if (!rail.enabled || IsPoleSaw) return;
                 Vector3 half = Travel;

@@ -36,6 +36,9 @@ namespace CurtainCall.EscapeRoute
             }
             if (walls && walls.StrikePose(transform.position, out _, out _, out var contact))
             { point = contact; return true; }
+            var cue = net.IsServer ? attack : latest.Attack;
+            if (cue.Phase == AttackPhase.Warning || cue.Phase == AttackPhase.Strike)
+            { point = cue.Aim; return true; }
             return LookPoint(net.IsServer ? HostLookActor : latest.LookActor, out point);
         }
 
@@ -119,6 +122,8 @@ namespace CurtainCall.EscapeRoute
                 Set(Motion.Throw, doll.releaseTime * Mathf.Clamp01((float)(now - intent.Started) / Tuning.debrisWarning));
             else if (intent.Phase == ThreatPhase.DebrisFlight || intent.Phase == ThreatPhase.Impact)
                 Set(Motion.Throw, doll.releaseTime + Mathf.Max(0, (float)(now - intent.Started)) / Mathf.Max(.05f, Tuning.throwSwingSeconds) * (doll.clips[(int)Motion.Throw].length - doll.releaseTime));
+            else if (cue.Phase == AttackPhase.Preparing)
+                Set(reach, 0);
             else if (cue.Phase == AttackPhase.Warning)
                 Set(reach, grasp * .6f * Mathf.Clamp01(age / Warning(cue.Reach)));
             else if (cue.Phase == AttackPhase.Strike)

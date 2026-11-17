@@ -28,6 +28,8 @@ namespace CurtainCall.EscapeRoute
 
         void ResetThreat()
         {
+            // Also reached by the chase's reset/inactive/OnDisable paths.
+            HideChaseWorldUi();
             threat = default;
             nextDebris = 0;
             previousFlight = 0;
@@ -213,7 +215,14 @@ namespace CurtainCall.EscapeRoute
 
         void PresentThreat(ThreatCue cue, double now)
         {
+            float age = Mathf.Max(0, (float)(now - cue.Started));
             bool warning = cue.Phase == ThreatPhase.ChargeWarning || cue.Phase == ThreatPhase.DebrisWarning;
+            bool debris = cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight;
+            float progress = (age + (cue.Phase == ThreatPhase.DebrisFlight ? Tuning.debrisWarning : 0))
+                / Mathf.Max(.001f, Tuning.debrisWarning + cue.Duration);
+            bool legacyEndpoint = PresentEndpointWorldUi(ref debrisLanding, debris
+                && (cue.Phase != ThreatPhase.DebrisFlight || age < cue.Duration),
+                cue.To - Vector3.up, Tuning.debrisRadius, progress, out var support);
             if (thrownDebris) thrownDebris.gameObject.SetActive(cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight);
             // The opening roar belongs to the creature, without a selected player or marker.
             // A thrown object retains its separate, time-limited impact warning.
@@ -221,10 +230,11 @@ namespace CurtainCall.EscapeRoute
             if (cue.Phase != ThreatPhase.None)
             {
                 if (captureCable) captureCable.enabled = false;
-                if (aimRing) aimRing.enabled = cue.Phase == ThreatPhase.DebrisWarning;
+                if (attackVolume) attackVolume.Hide();
+                if (grabTarget) grabTarget.Hide();
+                if (aimRing) aimRing.enabled = legacyEndpoint && cue.Phase == ThreatPhase.DebrisWarning;
             }
             if (cue.Phase == ThreatPhase.None) return;
-            float age = Mathf.Max(0, (float)(now - cue.Started));
             if (cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight)
             {
                 // Reuse the torso throw's overhand wind-up, release and recovery on the grey rig.
@@ -242,8 +252,9 @@ namespace CurtainCall.EscapeRoute
                     voicedAt = cue.Started;
                     if (threatAudio) threatAudio.PlayOneShot(cue.Phase == ThreatPhase.ChargeWarning ? chargeVoice : throwVoice);
                 }
-                if (cue.Phase == ThreatPhase.DebrisWarning && aimRing)
-                { aimRing.enabled = true; aimRing.transform.SetPositionAndRotation(cue.To - Vector3.up * .9f, Quaternion.Euler(90, 0, 0)); }
+                if (cue.Phase == ThreatPhase.DebrisWarning && aimRing && aimRing.enabled)
+                    aimRing.transform.SetPositionAndRotation(support.point + support.normal * .07f,
+                        Quaternion.FromToRotation(Vector3.up, support.normal) * Quaternion.Euler(90, 0, 0));
             }
             if (thrownDebris && thrownDebris.gameObject.activeSelf)
             {

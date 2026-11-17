@@ -34,6 +34,13 @@ namespace CurtainCall.WaitingRoom.Pursuit
         readonly Color[] colors = new Color[(Sectors + 1) * (Rings + 1)];
         public void SetCaptureCount(int count) => CaptureCount = Mathf.Max(0, count);
         public static int CueState(PursuitBehaviour behaviour) => (int)PursuitEyeTransition.Resolve(behaviour, true, false);
+        void Awake()
+        {
+            actor = GetComponent<PursuitActor>();
+            CurtainCall.WorldIndicators.ActorShadowPresenter.AttachPursuer(this,
+                actor != null && actor.Motion != null ? actor.Motion.transform : transform, false,
+                () => actor != null && actor.IsActivated && actor.IsRendered);
+        }
         void Start()
         {
             actor = GetComponent<PursuitActor>(); RefreshSurface(InjuryBloodEffects.IsVisible);

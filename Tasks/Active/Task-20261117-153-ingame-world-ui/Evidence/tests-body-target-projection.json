@@ -1,0 +1,76 @@
+{
+  "status": "completed",
+  "duration": 0.43,
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.AirborneSweepPreservesElevationRadiusAndHidesCountdownDuringStrike",
+      "Status": "Passed",
+      "Duration": 0.1614954,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.BodyClearancePreservesProjectedReticleAndProgress(False)",
+      "Status": "Passed",
+      "Duration": 0.0041998,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.BodyClearancePreservesProjectedReticleAndProgress(True)",
+      "Status": "Passed",
+      "Duration": 0.0006523,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.CanonicalKitHasLinkedIndependentLayersAndNoPhysicsOrShadowCasters",
+      "Status": "Passed",
+      "Duration": 0.0039168,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.CountdownChangesProgressButNeverDamageBounds",
+      "Status": "Passed",
+      "Duration": 0.0049095,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.DisabledAndInvalidViewsCannotLeaveStaleGeometryVisible",
+      "Status": "Passed",
+      "Duration": 0.0010633,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.DropAdapterUsesPhysicalFootprintAndClearsWhenWarningEndsOrSupportDisappears",
+      "Status": "Passed",
+      "Duration": 0.0069203,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.InvalidTrajectoryClearsPreviousDisplayAndValidPathHasOneArrow",
+      "Status": "Passed",
+      "Duration": 0.0016849,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.RepeatedPresentationReusesLayersAndRuntimeMeshes",
+      "Status": "Passed",
+      "Duration": 0.0061579,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -12,6 +12,7 @@ namespace CurtainCall.HumanCannon
         [Min(0)] public float phase;
         public bool falling, showWhileWarning;
         public bool controlsVisual;
+        CurtainCall.WorldIndicators.HazardWorldIndicator worldIndicator;
         public double Cycle(double elapsed)
         {
             double period = warningSeconds + activeSeconds + restSeconds;
@@ -33,7 +34,14 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, bool running)
         {
             double t = Cycle(elapsed);
-            if (warning != null) warning.gameObject.SetActive(running && t >= 0 && t < warningSeconds
+            bool modern = false;
+            if (Application.isPlaying && TryGetComponent<HumanCannonHazard>(out var hazard))
+            {
+                if (!worldIndicator) worldIndicator = GetComponent<CurtainCall.WorldIndicators.HazardWorldIndicator>();
+                if (!worldIndicator) worldIndicator = gameObject.AddComponent<CurtainCall.WorldIndicators.HazardWorldIndicator>();
+                modern = worldIndicator.Present(hazard, this, running, elapsed);
+            }
+            if (warning != null) warning.gameObject.SetActive(!modern && running && t >= 0 && t < warningSeconds
                 && Math.Floor(t * 6) % 2 == 0);
             if (controlsVisual && visual != null) visual.gameObject.SetActive(running && Visible(elapsed));
         }
@@ -42,6 +50,6 @@ namespace CurtainCall.HumanCannon
             var course = HumanCannonHazardCourse.Current;
             Present(course != null ? course.Elapsed : 0, course != null && course.IsSynchronized);
         }
-        void OnDisable() { if (warning != null) warning.gameObject.SetActive(false); }
+        void OnDisable() { if (warning != null) warning.gameObject.SetActive(false); if (worldIndicator) worldIndicator.Hide(); }
     }
 }

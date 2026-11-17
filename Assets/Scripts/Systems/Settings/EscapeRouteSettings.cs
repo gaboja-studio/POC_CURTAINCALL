@@ -184,6 +184,8 @@ namespace CurtainCall.Settings
             [Min(0)] public float closeCaptureDistance = .6f;
             [Tooltip("승강장·와이어 구간에서 팔을 길게 뻗어 닿는 최대 거리(m).")]
             [Min(.1f)] public float armRange = 36f;
+            [Tooltip("대상의 현재 위치를 따라 준비한 뒤 조준을 고정하는 시간(초). 기존 공격 예고 시간에 추가됩니다.")]
+            [Min(0)] public float grabPrepareSeconds = .35f;
             [Tooltip("복도에서 팔 공격 전에 예고하는 시간(초). 이 시간 안에 피하면 맞지 않는다.")]
             [Min(.1f)] public float hallWarning = .45f;
             [Tooltip("승강장(대피소 앞)에서 팔 공격 전 예고 시간(초).")]

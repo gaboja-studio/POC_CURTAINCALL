@@ -1,0 +1,62 @@
+{
+  "status": "completed",
+  "duration": 0.39,
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.AirborneSweepPreservesElevationRadiusAndHidesCountdownDuringStrike",
+      "Status": "Passed",
+      "Duration": 0.0360135,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.CanonicalKitHasLinkedIndependentLayersAndNoPhysicsOrShadowCasters",
+      "Status": "Passed",
+      "Duration": 0.0050792,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.CountdownChangesProgressButNeverDamageBounds",
+      "Status": "Passed",
+      "Duration": 0.0059965,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.DisabledAndInvalidViewsCannotLeaveStaleGeometryVisible",
+      "Status": "Passed",
+      "Duration": 0.0012333,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.DropAdapterUsesPhysicalFootprintAndClearsWhenWarningEndsOrSupportDisappears",
+      "Status": "Passed",
+      "Duration": 0.0053566,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.InvalidTrajectoryClearsPreviousDisplayAndValidPathHasOneArrow",
+      "Status": "Passed",
+      "Duration": 0.0014556,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WorldIndicators.EditorTools.WorldIndicatorTests.RepeatedPresentationReusesLayersAndRuntimeMeshes",
+      "Status": "Passed",
+      "Duration": 0.0085226,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
