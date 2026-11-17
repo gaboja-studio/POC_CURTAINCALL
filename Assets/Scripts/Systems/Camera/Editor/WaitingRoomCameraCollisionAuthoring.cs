@@ -31,7 +31,10 @@ namespace CurtainCall.Cameras.Editor
             "Floor", "Floor_BrokenConcrete", "RoundFloor", "GalleryFloor", "CarFloor", "ApproachFloor",
             "DeckPlate", "TopLanding", "MidLanding", "Landing", "LandingBranch", "PlatformTop",
             "RestoredFactoryDeckGrating", "DoorwayFloorInfill", "HiddenPassageThreshold",
-            "TornCanopy"
+            "TornCanopy",
+            // 2026-11-17: 나중에 덧붙인 작은 방(숙소 녹슨 벽 뒤 방, 기둥 뒤 숨은 방 등)과 로비 벽 메움. 벽 밖으로 카메라가 나가 바깥이 보였다.
+            "SideWallW", "SideWallE", "SideWallS", "SideWallN", "OuterWall_RustDoorCut", "WallSouth", "WallNorth", "WallAbove",
+            "RustPanelS", "RustPanelN", "RustPanelTop", "SealWall", "Lintel", "ReturnWall", "RoofCap", "Roof"
         };
 
         public static MeshFilter[] Collect(Scene scene) => scene.GetRootGameObjects()

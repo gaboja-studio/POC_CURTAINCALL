@@ -49,7 +49,9 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>커튼이 열린 정도(0 닫힘 ~ 1 다 열림). 테스트 확인용.</summary>
         public float CurtainOpen => open;
-        public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
+        // 외곽선은 양쪽 문짝에 모두 그린다(2026-11-17 사용자: 한쪽에만 나옴). 두 문짝만 담은 공통 부모가 있으면 그것을 쓴다.
+        public Transform VisualRoot => curtainLeft == null ? transform
+            : curtainRight != null && curtainLeft.parent != null && curtainLeft.parent == curtainRight.parent && curtainLeft.parent != transform ? curtainLeft.parent : curtainLeft;
         // The lift's door meshes are centred above the player. Use the existing boarding point at
         // common body-centre height so an injured customer's reduced reach still reaches the entrance.
         public Vector3 PresentationPoint => outside != null
@@ -310,7 +312,7 @@ namespace CurtainCall.WaitingRoom
                 ExpertRoomPhase.Booked => WaitingRoomText.Format("expert-room.status-waiting-entry", "{player} 입장 대기", ("player", WaitingRoomShop.PlayerLabel(service.Buyer))),
                 ExpertRoomPhase.Working => WaitingRoomText.Get("expert-room.status-in-use", "이용 중"),
                 ExpertRoomPhase.Exiting => WaitingRoomText.Get("expert-room.status-done", "복구 완료"),
-                _ => ExpertService.IsServiceTime ? WaitingRoomText.Get("expert-room.status-open", "신체 복구 영업 중") : WaitingRoomText.Get("expert-room.status-closed-show", "공연 중 휴업"),
+                _ => ExpertService.IsServiceTime ? WaitingRoomText.Get("expert-room.status-open", "신체 복구 영업 중") : WaitingRoomText.Get("expert-room.status-closed-show", "공연 중 이용 불가"),
             };
 
         void PlayClank()

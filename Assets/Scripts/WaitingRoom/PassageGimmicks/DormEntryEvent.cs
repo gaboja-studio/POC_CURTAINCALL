@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom
     /// 닫힘(<see cref="jammedId"/>)·배선 절단(<see cref="cableId"/>)은 탐색 장부로 공유되고, 각 화면이 같은 순간에 같은 연출을 재생한다.
     /// 연출 중에는 조작이 잠기고 추격자·탐색 제한 시간이 멈춘다.
     /// </summary>
-    public sealed class DormEntryEvent : MonoBehaviour
+    public sealed class DormEntryEvent : MonoBehaviour, IShopTarget, IShopPresentation, IShopHintOnly
     {
         [SerializeField] string jammedId = "dorm:entry-jammed", cableId = "dorm:entry-cable";
         [Header("문")]
@@ -45,7 +45,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Vector3 wireCamera, wireLook;
         [SerializeField, Min(.1f)] float wireSeconds = 2.6f;
         [SerializeField, Min(.1f)] float wideSeconds = 2.4f, fallSeconds = .7f, closeSeconds = 3.2f, returnSeconds = .8f;
-        [SerializeField] string title = "잠긴 문";
+        [SerializeField] string title = "숙소 문";
         [SerializeField, TextArea] string message = "절단기를 이용해 배선을 끊어 숙소 문을 여세요.";
 
         Vector3 leafClosed, standPosition; Quaternion standRotation;
@@ -53,8 +53,37 @@ namespace CurtainCall.WaitingRoom
         bool seen, wasJammed, playing, falling;
         CurtainCall.EscapeRoute.EscapeCuttableCable[] wires;
 
+        /// <summary>숙소 입구 문이 다 열리지 않았다(대기실 튜토리얼 전 봉인, 오작동 연출 중, 배선을 끊기 전, 열리는 중). 잠자기 안내를 미루고 문 열기 안내를 띄우는 데 쓴다.</summary>
+        public static bool IsDoorClosed => active != null && active.isActiveAndEnabled && (active.closedAmount > .001f || active.playing);
+        /// <summary>숙소 입구 문이 완전히 닫힌 채 멈춰 있다(연출·여닫는 움직임 중이 아님). 문 열기 안내는 이때만 띄운다.</summary>
+        public static bool IsDoorShut => active != null && active.isActiveAndEnabled && !active.playing && active.closedAmount >= .999f;
+        static DormEntryEvent active;
+
+        // ---- 닫힌 문에 다가갔을 때의 상호작용 설명(2026-11-17 사용자) ----
+        // 문이 오작동으로 닫혔고 아직 배선을 끊지 않은 동안에만 대상이 된다. 누를 수 있는 동작은 없고("사용 불가") 여는 방법만 알려 준다.
+        bool NeedsCutter => !playing && closedAmount >= .999f && !Open(cableId);
+        public Transform VisualRoot => leaf != null ? leaf : transform;
+        public Vector3 PresentationPoint => blocker != null && blocker.enabled ? blocker.bounds.center : VisualRoot.position + Vector3.up * 1.2f;
+        public string ActionLabel => WaitingRoomText.Get("target.dorm:entry-door.locked", "휴대 절단기를 이용해 전력을 끊어야 합니다.");
+        public bool IsAvailable => false;
+        public float Reach(Vector3 feet, Component actor = null)
+        {
+            if (!NeedsCutter) return -1f;
+            // 문을 막는 충돌체가 문짝과 다른 물체라, 그 충돌체를 대상으로 삼아야 시야 검사가 자기 자신에게 막히지 않는다. 거리는 문에서 가장 가까운 점으로 잰다.
+            var origin = actor != null ? CurtainCall.Player.PlayerInteraction.Center(actor) : feet + Vector3.up;
+            bool solid = blocker != null && blocker.enabled;
+            return ExplorationReach.From(solid ? blocker.transform : VisualRoot, solid ? blocker.ClosestPoint(origin) : PresentationPoint, feet,
+                CurtainCall.Settings.GameSettings.Base.Interaction.Distance, actor: actor);
+        }
+        public void Interact() { }
+
         // 한 번만 나오는 이벤트: 세대가 바뀌어도 닫힘·배선 절단 기록은 남긴다(문은 열린 채, 절단기는 사라진 채).
-        void OnEnable() => ExplorationState.KeepAcrossGenerations(jammedId, cableId);
+        void OnEnable()
+        {
+            ExplorationState.KeepAcrossGenerations(jammedId, cableId);
+            active = this;
+            ShopReach.Add(this);
+        }
 
         void Awake()
         {
@@ -198,6 +227,7 @@ namespace CurtainCall.WaitingRoom
                 if (t >= wideSeconds + fallSeconds && !noticeShown)
                 {
                     noticeShown = true;
+                    // 제목은 작업실·소품실의 "잠긴 문" 안내와 구분한다(2026-11-17 사용자: 잠긴 문 설명은 작업실·소품실에서만).
                     WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("cutscene.dorm-door.title", title), WaitingRoomText.Get("cutscene.dorm-door.body", message), closeSeconds + wireSeconds + 2f, RoomNotice.Notice);
                 }
                 yield return null;
@@ -214,6 +244,8 @@ namespace CurtainCall.WaitingRoom
 
         void OnDisable()
         {
+            ShopReach.Remove(this);
+            if (active == this) active = null;
             if (!playing) return;
             StopAllCoroutines(); InputGate.SetBlocking(this, false); playing = false; falling = false;
         }

@@ -188870,6 +188870,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitDoorObstacle
   Source: {fileID: 3743481585645447328}
+  Noise: 7
 --- !u!1 &6267028123298325663
 GameObject:
   m_ObjectHideFlags: 0

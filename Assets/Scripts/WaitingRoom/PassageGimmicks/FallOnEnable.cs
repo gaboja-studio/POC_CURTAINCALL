@@ -28,7 +28,8 @@ namespace CurtainCall.WaitingRoom
             var step = outward * (push * dt) + Vector3.down * (fallSpeed * dt);
             // 덮개 가운데에서 아래로 쏴 바닥(가구 포함)에 닿으면 눕힌다.
             var centre = transform.position + transform.up * .1f;
-            if (Physics.Raycast(centre, Vector3.down, out var hit, step.magnitude + .12f, ~0, QueryTriggerInteraction.Ignore) && !hit.collider.transform.IsChildOf(transform))
+            // 캐릭터 몸에 닿아도 그 위에 눕지 않고 지나쳐 실제 바닥까지 떨어진다(2026-11-17 사용자: 캐릭터 위 허공에 떠 있음).
+            if (TryFloor(centre, step.magnitude + .12f, out var hit))
             {
                 transform.position = hit.point + Vector3.up * .03f;
                 // 판이 바닥에 평평하게: 판의 면(로컬 z)이 위를 보게 눕힌다.
@@ -37,6 +38,21 @@ namespace CurtainCall.WaitingRoom
             }
             transform.position += step;
             if (turned < 80f) { float turn = Mathf.Min(spin * dt, 80f - turned); transform.Rotate(Vector3.right, -turn, Space.Self); turned += turn; }
+        }
+
+        readonly RaycastHit[] hits = new RaycastHit[16];
+        bool TryFloor(Vector3 from, float distance, out RaycastHit floor)
+        {
+            floor = default; float best = float.PositiveInfinity;
+            int count = Physics.RaycastNonAlloc(from, Vector3.down, hits, distance, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                var c = hits[i].collider;
+                if (c == null || c.transform.IsChildOf(transform) || hits[i].distance >= best
+                    || c.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>() != null) continue;
+                best = hits[i].distance; floor = hits[i];
+            }
+            return best < float.PositiveInfinity;
         }
     }
 }

@@ -49,6 +49,8 @@ namespace CurtainCall.UI.SceneIntegration
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
             public bool Hold, ScreenGuide, NoOutline, Device;
+            /// <summary>설명만 보여 주는 대상: 키 버튼을 그리지 않는다(2026-11-17 사용자).</summary>
+            public bool NoKey;
             /// <summary>플레이어 상호작용 거리 안(InFocus는 이번 프레임 외곽선 대상 여부).</summary>
             public bool Reachable = true, InFocus;
             /// <summary>외줄 전용 장치(그네·릴레이·공중그네)처럼 자기 시스템이 대상을 정하는 후보. LowGuide는 목마 해제 같은 후순위 화면 안내.</summary>
@@ -126,6 +128,7 @@ namespace CurtainCall.UI.SceneIntegration
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
                 candidates[candidates.Count - 1].NoOutline = target is IShopOutlineOptional { HideOutline: true };
+                candidates[candidates.Count - 1].NoKey = target is IShopHintOnly;
                 candidates[candidates.Count - 1].Reachable = PlayerInteraction.RestrictReach(target.Reach(feet, reader), reader) >= 0f;
             }
             foreach (var item in lobby)
@@ -241,6 +244,7 @@ namespace CurtainCall.UI.SceneIntegration
                 helper = PerformanceHudProfile.FormatKeys(helper, reader);
             }
             bool presented = HudUIManager.ShowInteraction(actionLabel, prompt, key, availability, focused.Hold, progress, helper);
+            SetKeyBadgeVisible(!focused.NoKey);
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
             string deviceText = key + actionLabel + helper;
@@ -252,6 +256,21 @@ namespace CurtainCall.UI.SceneIntegration
             layout.SetDeviceText(cannonOrPole);
             layout.RefreshLayout();
             shownDevice = cannonOrPole && presented ? state : default;
+        }
+
+        // 안내 판의 키 버튼(테두리·글자)은 공용 UI 묶음 안의 비공개 칸이라 한 번 찾아 두고 켜고 끈다.
+        Behaviour[] keyBadge; InteractionPromptView keyBadgeOwner;
+        void SetKeyBadgeVisible(bool visible)
+        {
+            if (prompt == null) return;
+            if (keyBadge == null || keyBadgeOwner != prompt)
+            {
+                keyBadgeOwner = prompt; var found = new System.Collections.Generic.List<Behaviour>();
+                foreach (string name in new[] { "keyFrame", "keyLabel" })
+                    if (typeof(InteractionPromptView).GetField(name, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(prompt) is Behaviour b) found.Add(b);
+                keyBadge = found.ToArray();
+            }
+            foreach (var b in keyBadge) if (b != null && b.enabled != visible) b.enabled = visible;
         }
 
         float FarSkip => highlightDistance + 10f;
