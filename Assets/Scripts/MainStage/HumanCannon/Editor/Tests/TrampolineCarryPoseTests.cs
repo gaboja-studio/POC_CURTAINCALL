@@ -1,13 +1,243 @@
 using System.Reflection;
 using CurtainCall.Damage;
+using CurtainCall.EscapeRoute;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
+using CurtainCall.WaitingRoom.Pursuit;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
+        [Test, Category("CommonProgressionRegression")]
+        public void DuplicateOwnershipReplyDoesNotRestartDropOrChangeCarrier()
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Remote trampoline"); root.SetActive(false);
+            var origin = new Vector3(12800, 100, 12800);
+            root.transform.position = origin + Vector3.up * 2;
+            var trampoline = root.AddComponent<HumanCannonTrampoline>();
+            var type = typeof(HumanCannonTrampoline);
+            var collider = root.AddComponent<BoxCollider>(); collider.size = new Vector3(1, .5f, 1);
+            type.GetField("carryBody", members).SetValue(trampoline, collider);
+            var receive = type.GetMethod("HandleStateMessage", members);
+            void Deliver(uint revision, ulong carrier, Vector3 point)
+            {
+                using var writer = new FastBufferWriter(40, Allocator.Temp);
+                writer.WriteValueSafe(revision); writer.WriteValueSafe(carrier);
+                writer.WriteValueSafe(point); writer.WriteValueSafe(Quaternion.identity);
+                using var reader = new FastBufferReader(writer, Allocator.Temp);
+                receive.Invoke(trampoline, new object[] { NetworkManager.ServerClientId, reader });
+            }
+            try
+            {
+                Deliver(3, CannonSeatState.Nobody, origin);
+                Assert.That(type.GetField("hasOwnershipSnapshot", members).GetValue(trampoline), Is.True);
+                Assert.That(type.GetField("dropping", members).GetValue(trampoline), Is.True);
+                type.GetField("dropSpeed", members).SetValue(trampoline, 4f);
+                Deliver(3, CannonSeatState.Nobody, origin);
+                Assert.That(type.GetField("dropSpeed", members).GetValue(trampoline), Is.EqualTo(4f));
+                Deliver(3, 2, origin);
+                Deliver(4, 2, new Vector3(float.NaN, 0, 0));
+                Assert.That(trampoline.Carrier, Is.EqualTo(CannonSeatState.Nobody));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void GroundBelowIsNotADropPlacementWhenTheFrameOverlapsAPillar()
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Trampoline drop"); root.SetActive(false);
+            var floor = new GameObject("Floor");
+            var pillar = new GameObject("Pillar next to drop");
+            var origin = new Vector3(12800, 100, 12800);
+            try
+            {
+                root.transform.position = origin + Vector3.up * 2;
+                var body = root.AddComponent<BoxCollider>(); body.center = Vector3.up * .3f; body.size = new Vector3(3, .6f, 3);
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                var type = typeof(HumanCannonTrampoline);
+                root.SetActive(true);
+                body.center = Vector3.up * .3f; body.size = new Vector3(3, .6f, 3);
+                type.GetField("carryBody", members).SetValue(trampoline, body);
+                floor.transform.position = origin + Vector3.down * .25f;
+                floor.AddComponent<BoxCollider>().size = new Vector3(10, .5f, 10);
+                pillar.transform.position = origin + new Vector3(1f, 1, 0);
+                pillar.AddComponent<BoxCollider>().size = new Vector3(.5f, 2, .5f);
+                Physics.SyncTransforms();
+                Assert.That(HumanCannonCarry.CanMove(root.transform, body, origin, Quaternion.identity, null, false), Is.False);
+                var check = type.GetMethod("TryDropHere", members);
+                Assert.That(check.Invoke(trampoline, new object[] { null, Vector3.zero }), Is.False);
+                root.transform.position += Vector3.left * 2;
+                Assert.That(check.Invoke(trampoline, new object[] { null, Vector3.zero }), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root); Object.DestroyImmediate(floor); Object.DestroyImmediate(pillar);
+                Physics.SyncTransforms();
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        [Category("CommonProgressionRegression")]
+        public void CargoColumnRejectsLocalSweepButDoesNotFreezeAValidRemoteArrival(bool local)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var origin = new Vector3(12800, 100, 12800);
+            var root = new GameObject("Carried trampoline");
+            var actor = new GameObject("Carrier");
+            var column = new GameObject("Cargo column");
+            try
+            {
+                actor.transform.position = origin;
+                var player = actor.AddComponent<NetworkPlayer>();
+                var mover = actor.GetComponent<PlayerMover>();
+                typeof(PlayerMover).GetMethod("Awake", members).Invoke(mover, null);
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, local);
+                mover.Simulated = local;
+                root.transform.position = origin + Vector3.forward * 1.2f;
+                var collider = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                var handle = new GameObject("Handle").transform;
+                handle.SetParent(root.transform, false);
+                handle.localPosition = Vector3.back * 1.2f;
+                typeof(HumanCannonTrampoline).GetField("handle", members).SetValue(trampoline, handle);
+                typeof(HumanCannonTrampoline).GetField("halfSize", members).SetValue(trampoline, Vector2.one * .5f);
+                var ownership = new CannonSeatState();
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, 0, 0));
+                typeof(HumanCannonTrampoline).GetField("ownership", members).SetValue(trampoline, ownership);
+                var follow = typeof(HumanCannonTrampoline).GetMethod("UpdateCarryPose", members);
+                follow.Invoke(trampoline, new object[] { player, true, false });
+                var startingPose = root.transform.position;
+                column.transform.position = startingPose + new Vector3(1, 0, 0);
+                column.AddComponent<BoxCollider>().size = new Vector3(.2f, 4, 1.5f);
+
+                // An observer can receive only the samples before and after the owner's turn around a column.
+                actor.transform.position = origin + new Vector3(2, -.4f, 0);
+                Physics.SyncTransforms();
+                var arrival = startingPose + new Vector3(2, -.4f, 0);
+                Assert.IsFalse(HumanCannonCarry.CanMove(root.transform, collider, arrival, Quaternion.identity, player, true));
+                Assert.IsTrue(HumanCannonCarry.CanMove(root.transform, collider, arrival, Quaternion.identity, player, false));
+                follow.Invoke(trampoline, new object[] { player, false, false });
+                Assert.That(root.transform.position.x, Is.EqualTo(local ? startingPose.x : arrival.x).Within(.002f));
+                Assert.That(actor.transform.position.y, Is.EqualTo(origin.y - .4f).Within(.002f),
+                    "The load must not lift a falling player back to the last carry height.");
+
+                if (!local)
+                {
+                    var previousSurface = (Vector3)typeof(HumanCannonTrampoline).GetField("previousSurface", members).GetValue(trampoline);
+                    Assert.AreEqual(trampoline.Surface, previousSurface,
+                        "A remote correction must not generate rebound contacts across the skipped segment.");
+                    actor.transform.position = origin + Vector3.right;
+                    Physics.SyncTransforms();
+                    follow.Invoke(trampoline, new object[] { player, false, false });
+                    Assert.That(root.transform.position.x, Is.EqualTo(arrival.x).Within(.002f),
+                        "A sampled pose inside the solid column must still be rejected.");
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(column);
+            }
+        }
+
+        [TestCase("WaitingRoom")]
+        [TestCase("escape_route")]
+        [Category("CommonProgressionRegression")]
+        public void TraversalCoreClearsTheRimAndPursuerButPlacementChecksTheFullShape(string sceneName)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var scene = SceneManager.GetActiveScene();
+            string previousSceneName = scene.name;
+            scene.name = sceneName + "_TrampolineTest";
+            var root = new GameObject("Trampoline");
+            var floor = new GameObject("Floor");
+            var pillar = new GameObject("Pillar");
+            var pursuer = new GameObject("Pursuer");
+            try
+            {
+                var origin = new Vector3(12000, 100, 12000);
+                root.transform.position = origin + Vector3.up;
+                root.SetActive(false);
+                var fullBody = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                trampoline.enabled = false;
+                root.SetActive(true);
+                var ownership = (CannonSeatState)typeof(HumanCannonTrampoline)
+                    .GetField("ownership", members).GetValue(trampoline);
+                var refresh = typeof(HumanCannonTrampoline).GetMethod("RefreshCarryBody", members);
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, 42, ownership.Revision));
+                refresh.Invoke(trampoline, new object[] { null });
+                var core = (BoxCollider)typeof(HumanCannonTrampoline).GetProperty("MoveCheckBody", members).GetValue(trampoline);
+                Assert.That(core, Is.Not.SameAs(fullBody));
+                Assert.That(core.bounds.size.x, Is.EqualTo(1f).Within(.01f));
+                Assert.IsTrue(fullBody.isTrigger);
+
+                floor.AddComponent<BoxCollider>().size = new Vector3(10, .2f, 10);
+                floor.transform.position = origin - Vector3.up * .1f;
+                pillar.AddComponent<BoxCollider>().size = new Vector3(.3f, 3f, .3f);
+                var destination = root.transform.position + Vector3.forward;
+                pillar.transform.position = destination + Vector3.right * 1.25f;
+                Physics.SyncTransforms();
+
+                var findPlacement = typeof(HumanCannonTrampoline).GetMethod("TryFindPlacement", members);
+                bool CanPlace() => (bool)findPlacement.Invoke(trampoline,
+                    new object[] { destination, Quaternion.identity, null, Vector3.zero, false });
+                bool CanCarry() => HumanCannonCarry.CanMove(root.transform, core, destination, Quaternion.identity, null);
+                Assert.IsTrue(CanCarry(), "The rim may overlap the pillar during carry.");
+                Assert.IsFalse(CanPlace(), "The same pillar obstructs the full landing footprint.");
+                pillar.transform.position = destination;
+                Physics.SyncTransforms();
+                Assert.IsFalse(CanCarry(), "The core must still stop at the pillar.");
+
+                pillar.SetActive(false);
+                pursuer.SetActive(false);
+                var capsule = pursuer.AddComponent<CapsuleCollider>();
+                capsule.center = Vector3.up * .9f;
+                capsule.height = 1.8f;
+                capsule.radius = .28f;
+                if (sceneName == "WaitingRoom") pursuer.AddComponent<PursuitActor>();
+                else
+                {
+                    pursuer.AddComponent<EscapeUnderstageChase>().enabled = false;
+                    pursuer.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
+                }
+                pursuer.transform.position = destination - Vector3.up;
+                pursuer.SetActive(true);
+                Physics.SyncTransforms();
+                Assert.IsTrue(CanCarry(), "The carried core must not obstruct the pursuer.");
+                Assert.IsFalse(CanPlace(), "The full footprint must not be placed on the pursuer.");
+                Assert.IsFalse(PursuitSeparation.TryResolve(capsule, pursuer.transform.position, pursuer.transform, 1f,
+                    false, out _), "The carried trampoline must not displace the pursuer.");
+
+                pursuer.SetActive(false);
+                Physics.SyncTransforms();
+                Assert.IsTrue(CanPlace());
+                Assert.IsTrue(ownership.TryApply(CannonAction.Release, 42, ownership.Revision));
+                refresh.Invoke(trampoline, new object[] { null });
+                Assert.IsFalse(fullBody.isTrigger, "A settled trampoline restores its original collider.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(floor);
+                Object.DestroyImmediate(pillar);
+                Object.DestroyImmediate(pursuer);
+                scene.name = previousSceneName;
+            }
+        }
+
         [Test, Category("TrampolineLayerRegression")]
         public void MarkedLimbCannotObstructCarryOrBecomeDropSupportWithStaleLayer()
         {

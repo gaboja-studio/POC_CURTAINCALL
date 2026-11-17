@@ -32,7 +32,7 @@ namespace CurtainCall.Cameras
         public bool Intersect(Vector3 origin, Vector3 direction, float radius, out float distance)
             => IntersectWithin(origin, direction, radius, float.PositiveInfinity, out distance);
 
-        bool IntersectWithin(Vector3 origin, Vector3 direction, float radius, float maximum, out float distance)
+        internal bool IntersectWithin(Vector3 origin, Vector3 direction, float radius, float maximum, out float distance)
         {
             if (UseMeshGeometry) {
                 if (meshFilter == null) meshFilter = GetComponent<MeshFilter>();

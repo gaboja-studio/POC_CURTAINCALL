@@ -48,7 +48,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     var p = a * w.x + b * w.y + c * w.z;
                     // Low ceilings are traversable while crouched; only carve solid interiors below crouch height.
                     int n = Physics.OverlapCapsuleNonAlloc(p + Vector3.up * .3f, p + Vector3.up * (PursuitActor.CrouchBodyHeight - .1f), .05f, buffer, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-                    for (int k = 0; k < n; k++) inside[buffer[k]] = inside.TryGetValue(buffer[k], out int count) ? count + 1 : 1;
+                    for (int k = 0; k < n; k++) {
+                        if (WalkedOn(buffer[k], p)) continue;
+                        inside[buffer[k]] = inside.TryGetValue(buffer[k], out int count) ? count + 1 : 1;
+                    }
                 }
             }
             foreach (var (collider, count) in inside) {
@@ -70,6 +73,18 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (added.Count > 0) PursuitNavigation.Invalidate();
             Debug.Log($"[Pursuit] navmesh repair obstacles={added.Count}");
             return added.Count;
+        }
+
+        /// <summary>
+        /// 길 표본이 이 충돌체 윗면을 밟고 있는지(가파른 계단 경사로·단). 경사에서는 NavMesh가 실제 면보다 조금 낮아
+        /// 몸통 검사에 걸리지만 물체 속이 아니다. 2026-11-17: 지하 계단 FlightRamp 전체가 실행 중 깎여 계단 앞에서 멈췄다.
+        /// </summary>
+        public static bool WalkedOn(Collider c, Vector3 p)
+        {
+            if (c == null) return false;
+            if (!c.Raycast(new Ray(p + Vector3.up * 1.2f, Vector3.down), out var hit, 1.6f)) return false;
+            float rise = hit.point.y - p.y;
+            return hit.normal.y > .45f && rise > -.15f && rise < .4f;
         }
 
         // 움직이거나 상태가 바뀌는 물체(문·출입구·부서지는 벽·장애물이 이미 있는 것·물리 물체·플레이어·추격자)는 제외한다.

@@ -21,6 +21,7 @@ namespace CurtainCall.WaitingRoom
         const string TrampolinePrefab = "Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RoundTrampolinePrepared";
 
         static WaitingRoomStageDevices instance;
+        static Scene suspendedDeparture;
         Transform room;
         GameObject systemRoot, trampoline;
         bool systemHasCannons, warned;
@@ -31,7 +32,7 @@ namespace CurtainCall.WaitingRoom
         float resumeUntil;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() => instance = null;
+        static void ResetStatics() { instance = null; suspendedDeparture = default; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
@@ -44,6 +45,12 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>인간대포 리허설이 자기 코스(대포 시스템·트램펄린)를 만들기 직전에 부른다. 같은 프레임에 비워야 겹치지 않는다.</summary>
         public static void ReleaseForRehearsal() { if (instance != null) instance.Release(); }
+
+        internal static void SetDepartureSuspended(Scene scene, bool suspended)
+        {
+            if (suspended) suspendedDeparture = scene;
+            else if (suspendedDeparture == scene) suspendedDeparture = default;
+        }
 
         internal static void ReserveCarrierForRehearsal()
         {
@@ -69,6 +76,8 @@ namespace CurtainCall.WaitingRoom
                 nextSearch = Time.unscaledTime + 1f;
                 room = WaitingRoomScenes.FindPracticeRoom();
             }
+            // The departure scene stays loaded while escape background modules activate over several frames.
+            if (room != null && room.gameObject.scene == suspendedDeparture) return;
             if (room == null || WaitingRoomCannonRehearsal.IsActive) { Release(); return; }
 
             var freePlay = PracticeRoomFreePlay.Current;

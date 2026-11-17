@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Damage;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using UnityEngine;
@@ -152,8 +153,8 @@ namespace CurtainCall.EscapeRoute
             // A blocked turn can leave a valid held pose. Reject a shot only if that pose lost the carrier's hand.
             if (carryBlocked && Vector3.Distance(Handle.position, carrier.transform.position + Vector3.up * carryHandleHeight) >= .3f)
                 return false;
+            if (!SpawnProjectile()) return false;
             shotWait = shotInterval;
-            SpawnProjectile();
             return true;
         }
         bool CanOperate(NetworkPlayer player)
@@ -167,25 +168,69 @@ namespace CurtainCall.EscapeRoute
                 && !(CurtainCall.Tightrope.TightropeHangSystem.Current != null && CurtainCall.Tightrope.TightropeHangSystem.Current.IsHanging(player))
                 && !(CurtainCall.Tightrope.PiggybackSystem.Current != null && CurtainCall.Tightrope.PiggybackSystem.Current.IsInStack(player));
         }
-        void SpawnProjectile()
+        bool SpawnProjectile()
         {
-            if (shots.Count >= MaxProjectiles) return;
+            if (shots.Count >= MaxProjectiles) return false;
             var origin = muzzle != null ? muzzle : blade != null ? blade : CarryRoot;
             Vector3 direction = pendingBossAim.sqrMagnitude > .99f ? pendingBossAim
                 : Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
-            if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return;
+            if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return false;
             // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
             // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
             Vector3 start = origin.position;
             float back = Vector3.Dot(start - CarryRoot.position, direction);
             for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
                 start = origin.position - direction * (back * (step + 1) / 6f);
+            var carrier = FindPlayer(Carrier);
+            if (ObstructionDistance(start, direction, 0, out _)
+                || carrier != null && LaunchPathObstructed(carrier.transform.position, start))
+            {
+                // The held body can cross a rail or wall, but the blade must start on
+                // the bearer's side. Do not discard a click just because the muzzle
+                // protrudes through scenery; launch from a clear point near the hand.
+                if (carrier == null || !TryFindNearHandLaunch(carrier, origin.position.y, direction, out start)) return false;
+            }
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
             CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawFire, start, CarryRoot);
             ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
             lastPresentedShot = shotSerial;
             EmitLaunch();
+            return true;
+        }
+
+        bool TryFindNearHandLaunch(NetworkPlayer carrier, float height, Vector3 direction, out Vector3 start)
+        {
+            var anchor = carrier.transform.position;
+            anchor.y = height;
+            start = anchor;
+            for (int step = 0; step <= 8; step++)
+            {
+                var candidate = anchor - direction * (projectileRadius * step / 8f);
+                if (ObstructionDistance(candidate, direction, 0, out _)
+                    || LaunchPathObstructed(carrier.transform.position, candidate)) continue;
+                start = candidate;
+                return true;
+            }
+            return false;
+        }
+
+        // The carried body may pass through scenery. A muzzle on the far side of a
+        // wall must not create a blade there, even if the muzzle itself is clear.
+        bool LaunchPathObstructed(Vector3 carrierPosition, Vector3 start)
+        {
+            carrierPosition.y = start.y;
+            var offset = start - carrierPosition;
+            float distance = offset.magnitude;
+            if (distance <= .001f) return false;
+            var direction = offset / distance;
+            int count = Physics.RaycastNonAlloc(carrierPosition, direction, shotHits, distance, ~0, QueryTriggerInteraction.Ignore);
+            var hits = count == shotHits.Length
+                ? Physics.RaycastAll(carrierPosition, direction, distance, ~0, QueryTriggerInteraction.Ignore) : shotHits;
+            if (hits != shotHits) count = hits.Length;
+            for (int i = 0; i < count; i++)
+                if (ShotObstacle(hits[i].collider)) return true;
+            return false;
         }
         void StepProjectiles(float deltaTime, bool host)
         {
@@ -223,18 +268,23 @@ namespace CurtainCall.EscapeRoute
             var orientation = Quaternion.LookRotation(direction, Vector3.up);
             var half = new Vector3(projectileRadius, projectileHalfThickness, projectileRadius);
             int overlapsCount = Physics.OverlapBoxNonAlloc(from, half, shotOverlaps, orientation, ~0, QueryTriggerInteraction.Ignore);
-            if (overlapsCount == shotOverlaps.Length) { allowed = 0; return true; }
-            for (int i = 0; i < overlapsCount; i++) if (ShotObstacle(shotOverlaps[i])) { allowed = 0; return true; }
+            var overlaps = overlapsCount == shotOverlaps.Length
+                ? Physics.OverlapBox(from, half, orientation, ~0, QueryTriggerInteraction.Ignore) : shotOverlaps;
+            if (overlaps != shotOverlaps) overlapsCount = overlaps.Length;
+            for (int i = 0; i < overlapsCount; i++) if (ShotObstacle(overlaps[i])) { allowed = 0; return true; }
             if (wanted <= 0) return false;
             int count = Physics.BoxCastNonAlloc(from, half, direction, shotHits, orientation, wanted, ~0, QueryTriggerInteraction.Ignore);
-            if (count == shotHits.Length) { allowed = 0; return true; }
+            var hits = count == shotHits.Length
+                ? Physics.BoxCastAll(from, half, direction, orientation, wanted, ~0, QueryTriggerInteraction.Ignore) : shotHits;
+            if (hits != shotHits) count = hits.Length;
             bool blocked = false;
             for (int i = 0; i < count; i++)
-                if (ShotObstacle(shotHits[i].collider) && shotHits[i].distance <= allowed)
-                { allowed = Mathf.Max(0, shotHits[i].distance - .002f); blocked = true; }
+                if (ShotObstacle(hits[i].collider) && hits[i].distance <= allowed)
+                { allowed = Mathf.Max(0, hits[i].distance - .002f); blocked = true; }
             return blocked;
         }
         bool ShotObstacle(Collider collider) => collider != null && !collider.transform.IsChildOf(CarryRoot)
+            && !DismemberedLimb.Contains(collider)
             && collider.GetComponentInParent<CurtainCall.WaitingRoom.Pursuit.PursuitActor>() == null
             && !collider.GetComponent<EscapePursuerDebris>()
             && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null

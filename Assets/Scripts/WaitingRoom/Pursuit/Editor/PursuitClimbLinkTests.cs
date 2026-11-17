@@ -14,6 +14,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         NavMeshData data;
         NavMeshDataInstance mesh;
         GameObject roof;
+        readonly List<GameObject> solids = new();
 
         [SetUp] public void Setup()
         {
@@ -21,9 +22,17 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var settings = NavMesh.GetSettingsByIndex(0);
             settings.agentRadius = .24f; settings.agentHeight = 1.7f; settings.agentClimb = .55f; settings.agentSlope = 55;
             var sources = new List<NavMeshBuildSource>();
-            void Box(Vector3 center, Vector3 size) => sources.Add(new NavMeshBuildSource {
-                shape = NavMeshBuildSourceShape.Box, transform = Matrix4x4.TRS(Origin + center, Quaternion.identity, Vector3.one),
-                size = size, area = 0 });
+            // 오르기는 실제 벽 지지(물리 충돌체)를 요구한다(67f369e4). NavMesh 상자와 같은 자리에 충돌체도 둔다.
+            void Box(Vector3 center, Vector3 size)
+            {
+                sources.Add(new NavMeshBuildSource {
+                    shape = NavMeshBuildSourceShape.Box, transform = Matrix4x4.TRS(Origin + center, Quaternion.identity, Vector3.one),
+                    size = size, area = 0 });
+                var solid = new GameObject("climb-test-solid");
+                solid.transform.position = Origin + center;
+                solid.AddComponent<BoxCollider>().size = size;
+                solids.Add(solid);
+            }
             Box(new Vector3(0, -.25f, 0), new Vector3(24, .5f, 24));
             Box(new Vector3(-6, .6f, 0), new Vector3(3, 1.2f, 3));   // 오를 수 있는 상자(1.2m)
             Box(new Vector3(6, 1.25f, 0), new Vector3(3, 2.5f, 3));  // 너무 높은 상자(2.5m)
@@ -43,6 +52,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             mesh.Remove();
             if (data != null) Object.DestroyImmediate(data);
             if (roof != null) Object.DestroyImmediate(roof);
+            foreach (var solid in solids) if (solid != null) Object.DestroyImmediate(solid);
+            solids.Clear();
         }
 
         static List<(Vector3 bottom, Vector3 top)> Local(float maxHeight) => PursuitClimbLinks.Candidates(maxHeight, 0)

@@ -27,13 +27,14 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             if (heights.Length == 0) heights = (room.SpawnPoints ?? Array.Empty<Transform>()).Where(p => p != null).Select(p => p.position.y).OrderBy(y => y).ToArray();
             return heights.Length > 0 ? heights[heights.Length / 2] : Bounds(room).min.y;
         }
-        public static bool Ground(PursuitRoom room, Vector3 input, out Vector3 point)
+        public static bool Ground(PursuitRoom room, Vector3 input, out Vector3 point, float? storey = null)
         {
             Physics.SyncTransforms();
             var bounds = Bounds(room);
             // Detection volumes extend below floors (Lobby min=-3, floor=0).
             // Probe this storey, not the bottom of the detection volume or a lower floor.
-            float floor = FloorReference(room);
+            // A multi-storey room (stair shaft) is probed on the storey being edited.
+            float floor = storey ?? FloorReference(room);
             float top = Mathf.Min(bounds.max.y - .1f, floor + 2.4f);
             var hits = Physics.RaycastAll(new Vector3(input.x, top, input.z), Vector3.down,
                 Mathf.Max(.1f, top - floor + .75f), ~0, QueryTriggerInteraction.Ignore);
@@ -76,10 +77,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             }
             return count;
         }
-        public static PursuitPlacement Add(PursuitRoom room, GameObject prefab, Vector3 position, bool snap = true)
+        public static PursuitPlacement Add(PursuitRoom room, GameObject prefab, Vector3 position, bool snap = true, float? storey = null)
         {
             if (EditorApplication.isPlaying || room == null || prefab == null || prefab.GetComponent<PursuitActor>() == null) return null;
-            if (snap && !Ground(room, position, out position)) return null;
+            if (snap && !Ground(room, position, out position, storey)) return null;
             var go = new GameObject("Mannequin_" + prefab.name.Replace("Pursuit_", ""));
             Undo.RegisterCreatedObjectUndo(go, "마네킹 배치");
             go.transform.SetParent(PlacementParent(room), false); go.transform.position = position;

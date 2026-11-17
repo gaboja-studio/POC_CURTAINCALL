@@ -116,9 +116,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
         /// <summary>오르기 통로 위면 이동을 진행하고 true. 이번 틱에는 행동 판단·포획을 하지 않는다.</summary>
         bool TickClimb()
         {
+            if (vaulting) { TickVault(); return true; }
             if (!climbing) {
                 if (!agent.isOnOffMeshLink) return false;
                 var link = agent.currentOffMeshLinkData;
+                // 같은 높이 사이의 낮은 펜스·난간은 바로 넘는다.
+                if (!IsClimbLink(link) && PursuitClimbLinks.TryVault(link.startPos, link.endPos, out float barrier)) {
+                    BeginVault(link, barrier); return true;
+                }
                 // 낮은 계단 통로(씬의 StepLink 등)는 기존처럼 걸어서 지난다.
                 if (!IsClimbLink(link)) {
                     WalkLink(link); return false;
@@ -186,7 +191,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void ResetClimb()
         {
             RestoreClimbRotation();
-            climbing = false; remoteTraversal = false; climbPath = null;
+            climbing = false; remoteTraversal = false; climbPath = null; vaulting = false;
             directTraversal = perched = hasDirectApproach = hasDropLanding = false;
             perchIdleFor = noDropFor = dropPlanAt = 0; climbWalk = 0;
             ResetDetour();
@@ -334,6 +339,44 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
 
         static bool IsClimbLink(OffMeshLinkData link) => Mathf.Abs(link.endPos.y - link.startPos.y) >= PursuitClimbLinks.MinHeight - .05f;
+
+        // ---- 낮은 펜스 넘기 ----
+        bool vaulting;
+        Vector3 vaultFrom, vaultTo;
+        float vaultStarted, vaultSeconds, vaultPeak;
+        public bool IsVaulting => vaulting;
+
+        void BeginVault(OffMeshLinkData link, float barrier)
+        {
+            vaulting = true; vaultFrom = transform.position; vaultTo = link.endPos; vaultStarted = Time.time;
+            float distance = Vector3.Distance(vaultFrom, vaultTo);
+            vaultSeconds = Mathf.Clamp(distance / Mathf.Max(2, agent.speed) + .3f, .45f, 1.1f);
+            // 막이 위로 발이 지나가는 높이(몸통이 아니라 발 기준 + 여유).
+            vaultPeak = Mathf.Max(vaultFrom.y, vaultTo.y) + barrier + .12f;
+            if (agent != null && !ownsClimbRotation) { previousAgentRotation = agent.updateRotation; agent.updateRotation = false; ownsClimbRotation = true; }
+            SetMotion(PursuitMotion.Run);
+        }
+
+        void TickVault()
+        {
+            float t = Mathf.Clamp01((Time.time - vaultStarted) / vaultSeconds);
+            transform.position = VaultPose(vaultFrom, vaultTo, vaultPeak, t);
+            Face(vaultTo);
+            if (t < 1) return;
+            vaulting = false; RestoreClimbRotation();
+            transform.position = vaultTo;
+            if (agent.enabled && agent.isOnOffMeshLink) agent.CompleteOffMeshLink();
+            replanRequested = true; stuckFor = 0;
+        }
+
+        /// <summary>펜스 넘기 궤적: 수평은 일정하게, 높이는 가운데에서 막이 위(peak)를 지나는 포물선.</summary>
+        public static Vector3 VaultPose(Vector3 from, Vector3 to, float peak, float t)
+        {
+            var p = Vector3.Lerp(from, to, t);
+            float baseline = Mathf.Lerp(from.y, to.y, .5f);
+            p.y = Mathf.Lerp(from.y, to.y, t) + Mathf.Max(0, peak - baseline) * Mathf.Sin(t * Mathf.PI);
+            return p;
+        }
 
         // 계단 통로(자동 통과를 끈 뒤): 일정 속도로 바로 걸어 지난다.
         void WalkLink(OffMeshLinkData link)

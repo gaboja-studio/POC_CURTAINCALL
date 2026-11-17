@@ -13,7 +13,12 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         int panControl, panInputId;
         float ActiveFloor => viewInitialized ? viewFloor : FloorHeight(Room);
         bool HasTargetRoom => Room != null && OnActiveFloor(Room) && (!autoTargetRoom || !viewInitialized || centerHasRoom);
-        bool OnActiveFloor(PursuitRoom room) => Mathf.Abs(FloorHeight(room) - ActiveFloor) <= .75f;
+        bool OnActiveFloor(PursuitRoom room) => OnFloor(room, ActiveFloor);
+        // 계단·환풍구 출구처럼 여러 층에 걸친 방은 지정한 추가 층에서도 같은 방으로 보인다.
+        bool OnFloor(PursuitRoom room, float floor) => Mathf.Abs(FloorHeight(room) - floor) <= .75f
+            || (room.ExtraFloors ?? Array.Empty<float>()).Any(y => Mathf.Abs(y - floor) <= .75f);
+        // 배치·감시 지점을 찍을 층: 방 기본 층이 아니라 지금 보고 있는 층.
+        float? PlacementFloor(PursuitRoom room) => room != null && Mathf.Abs(FloorHeight(room) - ActiveFloor) > .75f ? ActiveFloor : (float?)null;
         PursuitRoom[] VisibleRooms() => rooms.Where(OnActiveFloor).ToArray();
         bool OnActiveFloor(Vector3 position)
         {
@@ -32,7 +37,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         {
             if (EditorApplication.isPlaying) liveFollowPlayer = false;
             EndPan(); selected = null; pointIndex = -1; addPoint = false; dragging = false;
-            var candidates = rooms.Where(r => Mathf.Abs(FloorHeight(r) - floor) <= .75f).ToArray();
+            var candidates = rooms.Where(r => OnFloor(r, floor)).ToArray();
             if (candidates.Length == 0) return;
             var center = viewInitialized ? viewCenter : PursuitAuthoring.Bounds(Room).center;
             viewFloor = floor; autoTargetRoom = true;
