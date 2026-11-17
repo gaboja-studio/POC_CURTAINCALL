@@ -55,10 +55,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try {
                 // 1) 부수기 전: 높은 벽·문은 막고, 낮은 상자 위 플레이어에게는 올라선다.
                 foreach (var c in cases) c.Before = Measure(c, path);
-                var box = cases.FirstOrDefault(c => c.Low && !string.IsNullOrEmpty(c.Id) && c.Blocker.bounds.min.y < .3f);
+                // 바닥에 놓여 양옆이 걸을 수 있는 상자를 이름순으로 고른다(실행마다 같은 대상).
+                var box = cases.Where(c => c.Low && c.HasSides && !string.IsNullOrEmpty(c.Id) && c.Blocker.bounds.min.y < .3f)
+                    .OrderBy(c => c.Id, System.StringComparer.Ordinal).FirstOrDefault();
+                Assert.IsNotNull(box, "양옆이 열린 바닥 상자가 없다.");
                 if (box != null) {
                     var top = box.Blocker.bounds.center; top.y = box.Blocker.bounds.max.y;
-                    var start = box.HasSides ? box.Front : top + Vector3.right * 3;
+                    var start = box.Front;
                     Call(actor, "ResetActor"); agent.enabled = false; actor.transform.position = start;
                     target.transform.position = top; candidates.Clear(); candidates.Add(target);
                     bool reached = false; until = Time.time + 20;
@@ -99,12 +102,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Call(actor, "ResetActor"); agent.enabled = false; actor.transform.position = wall.Front;
                     target.transform.position = wall.Back; candidates.Clear(); candidates.Add(target);
                     bool reached = false; until = Time.time + 20;
+                    var trace = new System.Text.StringBuilder(); float nextTrace = 0;
                     while (Time.time < until) {
                         Call(actor, "ServerTick", 600f, false); yield return null;
                         var d = wall.Back - actor.transform.position;
+                        if (Time.time >= nextTrace) {
+                            nextTrace = Time.time + 1;
+                            trace.Append($" {actor.transform.position.ToString("F1")}:{Get(actor, "Behaviour")}/{Get(actor, "State")}/goal={Get(actor, "NavigationGoal")}");
+                        }
                         if (new Vector2(d.x, d.z).magnitude < 1.2f && Mathf.Abs(d.y) < .6f) { reached = true; break; }
                     }
-                    report.AppendLine($"[after] walk through {wall.Name}({wall.Id}) reached={reached} end={actor.transform.position}");
+                    report.AppendLine($"[after] walk through {wall.Name}({wall.Id}) from={wall.Front} to={wall.Back} reached={reached} end={actor.transform.position} trace={trace}");
                     if (!reached) failures++;
                 }
                 report.AppendLine($"links={Get(null, links, "Count")} vaults={Get(null, links, "VaultCount")}");

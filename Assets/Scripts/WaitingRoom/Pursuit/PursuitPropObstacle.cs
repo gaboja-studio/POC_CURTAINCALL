@@ -22,27 +22,31 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (prop.GetComponent<PursuitPropObstacle>() == null) prop.gameObject.AddComponent<PursuitPropObstacle>();
         }
 
-        void Awake()
+        void Awake() => trampoline = GetComponent<HumanCannonTrampoline>();
+
+        // 들고 있는 동안 트램펄린 전체 충돌체는 트리거다(PR #413). 내려놓아 단단해진 때 크기를 잰다.
+        bool Measure()
         {
-            trampoline = GetComponent<HumanCannonTrampoline>();
             // 자식 충돌체를 묶은 범위를 소품 기준 상자로 둔다(회전한 채 내려놓아도 같이 돈다).
             var bounds = new Bounds(); bool any = false;
-            foreach (var c in GetComponentsInChildren<Collider>(true)) {
-                if (c.isTrigger) continue;
-                var b = c.bounds;
-                foreach (var corner in Corners(b)) {
+            foreach (var c in GetComponentsInChildren<Collider>(false)) {
+                if (c.isTrigger || !c.enabled) continue;
+                foreach (var corner in Corners(c.bounds)) {
                     var local = transform.InverseTransformPoint(corner);
                     if (!any) { bounds = new Bounds(local, Vector3.zero); any = true; } else bounds.Encapsulate(local);
                 }
             }
-            if (!any) { enabled = false; return; }
-            var holder = new GameObject("Pursuit prop obstacle") { hideFlags = HideFlags.DontSave };
-            holder.transform.SetParent(transform, false);
-            obstacle = holder.AddComponent<NavMeshObstacle>();
-            obstacle.shape = NavMeshObstacleShape.Box;
+            if (!any) return false;
+            if (obstacle == null) {
+                var holder = new GameObject("Pursuit prop obstacle") { hideFlags = HideFlags.DontSave };
+                holder.transform.SetParent(transform, false);
+                obstacle = holder.AddComponent<NavMeshObstacle>();
+                obstacle.shape = NavMeshObstacleShape.Box;
+                obstacle.carving = true; obstacle.carveOnlyStationary = true;
+                obstacle.enabled = false;
+            }
             obstacle.center = bounds.center; obstacle.size = bounds.size;
-            obstacle.carving = true; obstacle.carveOnlyStationary = true;
-            obstacle.enabled = false;
+            return true;
         }
 
         static Vector3[] Corners(Bounds b)
@@ -56,10 +60,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         void LateUpdate()
         {
-            if (obstacle == null) return;
             bool next = trampoline != null && trampoline.isActiveAndEnabled && trampoline.Carrier == CannonSeatState.Nobody;
             if (next == blocking) return;
-            blocking = next; obstacle.enabled = next;
+            // 내려놓는 순간 충돌체가 아직 트리거면 다음 프레임에 다시 잰다.
+            if (next && !Measure()) return;
+            blocking = next;
+            if (obstacle != null) obstacle.enabled = next;
             // 깎기 반영 뒤 추격자들이 같은 목표라도 다시 길을 찾고 오르기 통로도 새로 만든다.
             PursuitNavigation.Invalidate(); PursuitClimbLinks.Invalidate();
         }
