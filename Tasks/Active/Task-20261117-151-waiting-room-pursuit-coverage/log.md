@@ -29,3 +29,4 @@
 - origin/dev 9커밋 병합(스크립트·셰이더·문서만, 씬/프리팹/설정 겹침 없음). Unity 종료 명령이 실행 환경에서 막혀 에디터는 저장 완료·대기 상태로 열어 둔 채 병합.
 - dev에 같은 번호 Task-20261117-148(camera-foreground-occlusion)이 있어 이 Task를 151로 변경.
 - 병합 후 check-work 안전성·문서/규칙·컴파일·공통 설정 PASS, PursuitCoverage PlayMode 1/1 재통과.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/412 (fix/waiting-room/pursuit → dev). 병합하지 않고 검토 대기.
