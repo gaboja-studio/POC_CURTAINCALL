@@ -94,14 +94,30 @@ namespace CurtainCall.EscapeRoute.EditorTools
             AssetDatabase.CreateFolder(path.Substring(0, i), path.Substring(i + 1));
         }
 
-        public static string Apply(string planPath)
+        public static string Apply(string planPath) => ApplyInternal(planPath, null);
+
+        // Current production cleanup stores generated meshes in the public scene art
+        // library and saves only those assets, never unrelated dirty materials.
+        public static string ApplyReviewedLibrary(string planPath, string libraryPath)
+        {
+            if (!libraryPath.StartsWith("Assets/Scenes/Levels/EscapeFactoryArt/", StringComparison.Ordinal)
+                || !libraryPath.EndsWith(".asset", StringComparison.Ordinal) || libraryPath.Contains(".."))
+                throw new ArgumentException("Scene-owned mesh library required", nameof(libraryPath));
+            if (AssetDatabase.LoadMainAssetAtPath(libraryPath)) throw new InvalidOperationException("Library already exists");
+            return ApplyInternal(planPath, libraryPath);
+        }
+
+        static string ApplyInternal(string planPath, string libraryPath)
         {
             var scene = SceneManager.GetActiveScene();
             if (Application.isPlaying || scene.isDirty || scene.path != "Assets/Scenes/Levels/escape_route.unity")
                 throw new InvalidOperationException("Saved A edit scene required");
             var frame = scene.GetRootGameObjects().Single().transform;
             var plan = JsonUtility.FromJson<Plan>(File.ReadAllText(planPath));
-            const string folder = "Assets/_ThirdParty/Task073/SurfaceReview"; Folder(folder);
+            string folder = libraryPath == null ? "Assets/_ThirdParty/Task073/SurfaceReview" : Path.GetDirectoryName(libraryPath).Replace('\\', '/');
+            Folder(folder);
+            string invariants = libraryPath == null ? null : EscapeStaticSurfaceOptimization.Invariants(frame);
+            Mesh library = null;
             var sources = new Dictionary<string, Source>();
             foreach (string id in plan.rules.SelectMany(r => new[] { r.target, r.occluder }).Distinct())
             {
@@ -109,6 +125,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     || GlobalObjectId.GlobalObjectIdentifierToObjectSlow(global) is not MeshFilter filter || filter.gameObject.scene != scene)
                     throw new InvalidOperationException("Surface owner no longer matches the reviewed scene");
                 var mesh = filter.sharedMesh;
+                if (!mesh || !mesh.isReadable) throw new InvalidOperationException("Readable reviewed source mesh required");
                 sources[id] = new Source { filter = filter, mesh = mesh,
                     points = mesh.vertices.Select(p => frame.InverseTransformPoint(filter.transform.TransformPoint(p))).ToArray(),
                     triangles = Enumerable.Range(0, mesh.subMeshCount).Select(mesh.GetTriangles).ToArray(),
@@ -178,6 +195,24 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     }
                 }
                 if (changed == 0) continue;
+                if (libraryPath != null && submeshes.All(s => s.Count == 0))
+                {
+                    var renderer = source.filter.GetComponent<MeshRenderer>();
+                    Undo.RecordObject(renderer, "Disable fully duplicated surface"); renderer.enabled = false;
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+                    meshes++; trimmed += changed; continue;
+                }
+                if (libraryPath != null)
+                {
+                    var used = submeshes.SelectMany(s => s).Distinct().OrderBy(i => i).ToArray();
+                    var remap = used.Select((old, index) => (old, index)).ToDictionary(p => p.old, p => p.index);
+                    vertices = used.Select(i => vertices[i]).ToList();
+                    if (hasNormals) normals = used.Select(i => normals[i]).ToList();
+                    if (hasTangents) tangents = used.Select(i => tangents[i]).ToList();
+                    if (hasColors) colors = used.Select(i => colors[i]).ToList();
+                    for (int ch = 0; ch < 8; ch++) if (validUv[ch]) uv[ch] = used.Select(i => uv[ch][i]).ToList();
+                    submeshes = submeshes.Select(s => s.Select(i => remap[i]).ToList()).ToArray();
+                }
                 string path = folder + "/" + Path.GetFileNameWithoutExtension(planPath) + "-" + source.filter.GetInstanceID() + ".asset";
                 if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) throw new InvalidOperationException("Surface asset already exists");
                 var result = new Mesh { name = "Reviewed surface " + source.filter.name,
@@ -188,11 +223,22 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 result.subMeshCount = submeshes.Length;
                 for (int sub = 0; sub < submeshes.Length; sub++) result.SetTriangles(submeshes[sub], sub, false);
                 result.RecalculateBounds(); if (!hasNormals) result.RecalculateNormals();
-                AssetDatabase.CreateAsset(result, path); Undo.RecordObject(source.filter, "Remove shared coplanar render area");
+                if (libraryPath == null) AssetDatabase.CreateAsset(result, path);
+                else
+                {
+                    if (!library) { library = new Mesh { name = "Escape reviewed coplanar surfaces" }; AssetDatabase.CreateAsset(library, libraryPath); }
+                    AssetDatabase.AddObjectToAsset(result, library);
+                }
+                Undo.RecordObject(source.filter, "Remove shared coplanar render area");
                 source.filter.sharedMesh = result; PrefabUtility.RecordPrefabInstancePropertyModifications(source.filter);
                 meshes++; trimmed += changed;
             }
-            Undo.FlushUndoRecordObjects(); AssetDatabase.SaveAssets(); EditorSceneManager.MarkSceneDirty(scene);
+            if (invariants != null && invariants != EscapeStaticSurfaceOptimization.Invariants(frame))
+                throw new InvalidOperationException("Collision or gameplay state changed; do not save");
+            Undo.FlushUndoRecordObjects();
+            if (libraryPath == null) AssetDatabase.SaveAssets();
+            else if (library) { EditorUtility.SetDirty(library); AssetDatabase.SaveAssetIfDirty(library); }
+            EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene); return "Reviewed meshes=" + meshes + "; trimmed triangles=" + trimmed;
         }
     }
