@@ -155,7 +155,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         /// <summary>넘을 수 있는 막이의 최대 높이(발 기준).</summary>
         public const float VaultMaxHeight = 1.3f;
-        static readonly float[] VaultProbe = { .5f, .8f, 1.1f };
+        // 난간(얇음)부터 부술 수 있는 상자(약 0.9m 폭 + 양쪽 몸 반경)까지.
+        static readonly float[] VaultProbe = { .5f, .8f, 1.1f, 1.4f, 1.7f };
         const float VaultSpacing = 1f, VaultLevel = .35f;
         static readonly List<(Vector3 a, Vector3 b, float height)> vaults = new();
         public static int VaultCount => vaults.Count;
@@ -248,11 +249,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return !float.IsPositiveInfinity(nearest);
         }
 
-        // 잠긴 문·출입구·움직이는 소품은 넘지 않는다(문 규칙을 우회하지 않게).
+        // 잠긴 문·출입구·환풍구 덮개·움직이는 소품은 넘지 않는다(문 규칙을 우회하지 않게).
+        // 부술 수 있는 낮은 상자(소음 없음 장애물)는 플레이어처럼 넘는다. 부서지면 링크를 다시 만들어 그 자리를 걸어서 지난다.
         static bool Barred(Collider c)
         {
-            if (c.attachedRigidbody != null || c.GetComponentInParent<PursuitDoorObstacle>() != null
-                || c.GetComponentInParent<CurtainCall.HumanCannon.HumanCannonTrampoline>() != null) return true;
+            var obstacle = c.GetComponentInParent<PursuitDoorObstacle>();
+            if (obstacle != null && (obstacle.Noise != PursuitNoiseKind.None || c.bounds.size.y > VaultMaxHeight + .1f)) return true;
+            if (c.attachedRigidbody != null || c.GetComponentInParent<CurtainCall.HumanCannon.HumanCannonTrampoline>() != null) return true;
+            if (obstacle != null) return false;
             for (var t = c.transform; t != null; t = t.parent) {
                 var name = t.name.ToLowerInvariant();
                 if (name.Contains("door") || name.Contains("gate") || name.Contains("shutter")) return true;

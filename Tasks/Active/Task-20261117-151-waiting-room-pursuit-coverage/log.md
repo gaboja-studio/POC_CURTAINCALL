@@ -30,3 +30,13 @@
 - dev에 같은 번호 Task-20261117-148(camera-foreground-occlusion)이 있어 이 Task를 151로 변경.
 - 병합 후 check-work 안전성·문서/규칙·컴파일·공통 설정 PASS, PursuitCoverage PlayMode 1/1 재통과.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/412 (fix/waiting-room/pursuit → dev). 병합하지 않고 검토 대기.
+
+## 2026-11-17 부서지는 오브젝트 후속(사용자 요청)
+- 기존 실패 테스트의 "상자"는 게임 오브젝트가 아니라 (-20000,0,20000)의 길찾기 전용 가상 상자(충돌체 없음)였다.
+- 실제 부서지는 대상: BreakableWall 3, ExplorationGate(상자·문·덮개) 다수, ToolTarget(잠긴 가구). 막는 충돌체는 모두 PursuitDoorObstacle로 굽기 제외+실행 중 깎기. 기계실 녹슨 벽은 막는 충돌체 없음(통로 아님), ToolTarget 가구는 통로가 아님.
+- 넘기 규칙이 부서지는 상자(소음 없음 장애물)까지 막던 것을 풀어, 1.3m 이하 상자는 좁은 길에서 넘는다(문·출입구·환풍구 덮개는 계속 금지). 넘기 탐색 거리 1.7m까지.
+- 새 PlayMode `PursuitBreakables_PathsRecomputeBeforeAndAfterOpening` 1/1: 대상 31개 디버그 열기 전/후 비교. 높은 벽·문 12곳 전 PathPartial→후 직선 통과, 상자 자리 NavMesh 복구, 열린 뒤에도 남는 steelBox는 막힘 유지, 부수기 전 상자 위 대상에게 올라서기·부순 BreachWall 실제 통과 성공. 숙소 상자 2개의 72m 경로는 벽에 붙은 상자 뒤편 측정점이 옆방이라 정상.
+- 테스트 갱신: PursuitClimbLinkTests 고정 상자에 충돌체 추가(벽 지지 검사 반영), UnifiedWaitingRoomSceneTests는 통합 대기실 기준(방 등록·배치 참조·모든 부서지는 막이의 장애물 등록)으로 교체.
+- 결과: EditMode Pursuit 212/212, PursuitCoverage 1/1 재통과.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
