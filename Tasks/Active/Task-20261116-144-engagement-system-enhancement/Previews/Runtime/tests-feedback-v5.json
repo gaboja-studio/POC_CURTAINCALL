@@ -1,0 +1,52 @@
+{
+  "Summary": {
+    "Total": 5,
+    "Passed": 5,
+    "Failed": 0,
+    "Skipped": 0,
+    "Inconclusive": 0
+  },
+  "Results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.PerformanceFeedbackNumericTests.CombinesOnlyWithinOriginalWindowAndRespectsActualZero",
+      "Status": "Passed",
+      "Duration": 0.0012972,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.PerformanceFeedbackNumericTests.OppositeLanesRemainIndependentAndClearOnContextReset",
+      "Status": "Passed",
+      "Duration": 0.0002898,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.PerformanceFeedbackTests.AudienceSectorNewPerformanceDiscardsQueuedGesture",
+      "Status": "Passed",
+      "Duration": 0.0037078,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.PerformanceFeedbackTests.OnlyLocalExplicitReactionsDisplayAcrossRevisionGaps",
+      "Status": "Passed",
+      "Duration": 0.0024711,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.PerformanceFeedbackTests.OpposingPlayersFollowOnlyTheObservedClientAndSwitchWithoutReplay",
+      "Status": "Passed",
+      "Duration": 0.0011053,
+      "Message": null,
+      "StackTrace": null
+    }
+  ],
+  "Duration": 4.72,
+  "StatusPath": null,
+  "Mode": "EditMode",
+  "FilterApplied": "testname: PerformanceFeedback",
+  "success": true,
+  "result": null
+}

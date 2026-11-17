@@ -1,8 +1,8 @@
 ---
 summary: Editor GetComponent의 Unity fake-null은 C# ??로 처리되지 않을 수 있다
 status: active
-updated: 2026-10-28
-source: Task-20261027-076
+updated: 2026-11-17
+source: Task-20261027-076, Task-20261116-144
 ---
 
 # Unity Object와 null 병합
@@ -18,3 +18,4 @@ source: Task-20261027-076
 - Unity Object는 `var value = GetComponent<T>(); if (value == null) value = AddComponent<T>();`로 처리한다.
 - 생성 후 컴포넌트 개수와 실제 직렬화 참조를 검사한다. 프리팹 저장 성공만으로 충분하지 않다.
 - Task-076에서는 수정 후 Preview Scene에 CanvasGroup 1개가 생성됨을 확인하고, 기존 제품 프리팹의 누락 컴포넌트/참조만 PrefabUtility로 보완했다.
+- Task-144의 PrefabUtility 콘텐츠에서 `GetComponent<AudioSource>() ?? AddComponent<AudioSource>()`도 재현됐다. 명시적 Unity null 비교로 고친 뒤 실제 외줄/대포 PlayMode 검사에서 서로 다른 Transform의 AudioSource 2개와 정지 동작을 확인했다.

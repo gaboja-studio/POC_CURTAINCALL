@@ -1,8 +1,8 @@
 ---
 summary: 공연장 톱날·철골·쇼 조명·안개·현수물·먼지/불티의 동작과 전체 Scene 미리보기
 status: active
-updated: 2026-10-30
-source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각형 보존 확인
+updated: 2026-11-17
+source: Task-20261020-067; Task-20261116-144 v7 한 구역 실루엣·객석 조명 확인
 ---
 
 # 공연장 동적 연출
@@ -38,6 +38,9 @@ source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각�
 - `31_ShowExpansion`/`ShowExpansion/`: 공용 타워에 붙인 독립 회전·상하 프레임 6개를 추가해 Crane track 총9개다. 끝단 상향/하향 스폿·가시 빛기둥은 각각12개 추가(ShowLights 총31), 그림자는 끈다. 기존 희박한 GrindingSparks 6개를 비활성으로 보존하고 톱15개에 고정 접촉 슈·World 공간 스파크를 연결했다. Particles 총27개(먼지/불티12+톱15). 생성 도구 `PerformanceBackgroundShowExpansion.Build()`는 중복 실행을 거부한다.
 
 ## 남은 확인
+
+- Task144 v7 한 구역 관객 시험은 `AudienceSectorTrial`과 별도 `AudienceTrial.prefab`을 사용한다. 72명 결합 메시1개/864삼각형, 사람별 객체·물리·네트워크 없음. 고정 어두운 unlit 몸색과 GPU 자세 보간을 사용한다.
+- 같은 프리팹의 그림자 없는 Spot1개가 기존 좌석만 비춘다. 환호는 넓은 이동, 야유는 좁은 고정이며 같은 백열색이다. 부모 배경 scale 약1/3과 별개로 Light.range는 월드 단위다. 종료/초기화 시 광원을 끈다. 금빛·적색 몸 발광은 사용자 기각으로 제거했다.
 
 - 최종 미감·회전 범위·대상 PC 성능은 사용자 확인이 필요하다.
 - 배경 씬과 파생 메시가 private 저장소에 있으므로 공개 코드와 비공개 에셋을 함께 보존해야 한다.

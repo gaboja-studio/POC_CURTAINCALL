@@ -1,0 +1,32 @@
+4.50 wait connect
+5.28 ready connect
+5.28 wait local player sync
+5.28 ready local player sync
+5.28 wait all peers synced
+5.40 ready all peers synced
+5.90 wait dev launch
+6.52 loaded PerformanceTransitionUI Additive
+6.93 NGO Unload CommonMenuUI client=0
+6.93 NGO Unload Start client=0
+6.93 NGO Load Tightrope client=0
+6.94 NGO UnloadComplete CommonMenuUI client=0
+6.97 NGO UnloadComplete Start client=0
+7.13 loaded Tightrope Single
+7.13 NGO LoadComplete Tightrope client=0
+7.57 loaded performance_background Additive
+7.75 NGO LoadComplete Tightrope client=1
+7.80 NGO LoadComplete Tightrope client=2
+7.82 NGO LoadComplete Tightrope client=3
+7.82 NGO LoadEventCompleted Tightrope client=0
+8.08 loaded CommonMenuUI Additive
+8.32 loaded CommonPerformanceUI Additive
+8.63 loaded CommonInteractionUI Additive
+9.23 ready dev launch
+9.23 wait performance UI/rewards/course/local player
+9.23 ready performance UI/rewards/course/local player
+10.55 wait sector renderer
+10.66 ready sector renderer
+19.17 wait all peers warm
+19.17 ready all peers warm
+19.17 wait all peers warm
+19.17 ready all peers warm

@@ -242,6 +242,7 @@ namespace CurtainCall.UI.SceneIntegration
                 hud.SetContext(false, false, false);
                 cheer.gameObject.SetActive(false);
                 CommonPerformanceUI.Current?.Feedback?.SetContext(false);
+                CommonPerformanceUI.Current?.Feedback?.SetVenueContext(false);
                 return;
             }
             if (!ReferenceEquals(rewards, PerformanceRewards.Instance)) BindRewards();
@@ -266,7 +267,14 @@ namespace CurtainCall.UI.SceneIntegration
             if (localBalance != null)
                 HudLayout.PlaceBalance((RectTransform)localBalance.transform, CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition);
             if (sharedScene && CommonPerformanceUI.Current != null)
-                CommonPerformanceUI.Current.Feedback?.SetContext(active && !observing && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
+            {
+                var feedback = CommonPerformanceUI.Current.Feedback;
+                feedback?.SetVenueContext(active && rewards?.State?.IsOpen == true);
+                feedback?.RefreshFocus(rewards?.State);
+                bool hasFocus = PerformanceFeedback.FocusPlayer != null
+                    && (!observing || CurtainCall.Cameras.CameraSpectator.IsSpectating);
+                feedback?.SetContext(active && hasFocus && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
+            }
             var hangs = TightropeHangSystem.Current;
             bool hanging = !humanCannon && hangs != null && hangs.IsHanging(local);
             if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && (balance.IsActive || hanging), observing);

@@ -65,7 +65,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         TMP_Text SettingsParagraph(object view, string id) => SettingsContent(view).Find(id + "_TMP").GetComponent<TMP_Text>();
         Action CaptureSettingsExtras()
         {
-            string[] floats = { "CurtainCall.Settings.Volume", "CurtainCall.Settings.BgmVolume", "CurtainCall.Settings.SfxVolume", "CurtainCall.Voice.MicVolume", "CurtainCall.Voice.TeamVolume" };
+            string[] floats = { "CurtainCall.Settings.Volume", "CurtainCall.Settings.BgmVolume", "CurtainCall.Settings.SfxVolume", "CurtainCall.Settings.AudienceCheerVolume", "CurtainCall.Settings.AudienceBooVolume", "CurtainCall.Settings.AudienceMurmurVolume", "CurtainCall.Voice.MicVolume", "CurtainCall.Voice.TeamVolume" };
             string[] ints = { "CurtainCall.Voice.MicMuted", "CurtainCall.Voice.TeamMuted" };
             var fv = floats.Select(k => PlayerPrefs.HasKey(k) ? (float?)PlayerPrefs.GetFloat(k) : null).ToArray();
             var iv = ints.Select(k => PlayerPrefs.HasKey(k) ? (int?)PlayerPrefs.GetInt(k) : null).ToArray();

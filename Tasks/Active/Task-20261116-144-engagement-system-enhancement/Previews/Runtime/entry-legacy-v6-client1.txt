@@ -1,0 +1,21 @@
+4.14 wait connect
+4.45 ready connect
+5.51 wait local player sync
+5.51 ready local player sync
+5.51 wait all peers synced
+5.71 ready all peers synced
+6.22 wait performance UI/rewards/course/local player
+6.87 loaded PerformanceTransitionUI Additive
+7.63 NGO Unload Start client=1
+7.63 NGO Load Tightrope client=1
+7.68 NGO UnloadComplete Start client=1
+7.89 loaded Tightrope Single
+7.89 NGO LoadComplete Tightrope client=1
+8.44 NGO LoadEventCompleted Tightrope client=0
+8.96 loaded performance_background Additive
+9.04 loaded CommonMenuUI Additive
+9.28 loaded CommonPerformanceUI Additive
+9.35 loaded CommonInteractionUI Additive
+11.28 performance UI/rewards/course/local player / scenes=Tightrope,performance_background,CommonMenuUI,CommonPerformanceUI,CommonInteractionUI; ui=True; rewards=False; rope=True; local=True; director=False; entry=False; placed=False; uiLoading=False; curtain=False
+16.25 performance UI/rewards/course/local player / scenes=Tightrope,performance_background,CommonMenuUI,CommonPerformanceUI,CommonInteractionUI; ui=True; rewards=False; rope=True; local=True; director=False; entry=False; placed=False; uiLoading=False; curtain=False
+21.30 performance UI/rewards/course/local player / scenes=Tightrope,performance_background,CommonMenuUI,CommonPerformanceUI,CommonInteractionUI; ui=True; rewards=False; rope=True; local=True; director=False; entry=False; placed=False; uiLoading=False; curtain=False

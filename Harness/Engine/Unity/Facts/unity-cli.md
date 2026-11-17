@@ -1,8 +1,8 @@
 ---
 summary: Unity CLI 버전, 주요 명령, 버전업으로 바뀐 동작, 로그 경로
 status: active
-updated: 2026-10-30
-source: Task-20260930-007 beta.9~12; Task-20261027-076 beta.13·14; Task-20261029-078 beta.15 설치·명령 실행 확인
+updated: 2026-11-17
+source: Task-20260930-007 beta.9~12; Task-20261027-076 beta.13·14; Task-20261029-078 beta.15; Task-20261116-144 CLI 1.0.1 실행 확인
 ---
 
 # Unity CLI
@@ -11,7 +11,8 @@ CLI로 에디터 상태 확인, 명령 실행, 테스트, 프로젝트 열기를
 
 ## 사실
 
-- CLI 버전: `1.0.0-beta.15` (`unity --version`), Pipeline `com.unity.pipeline` 0.8.0-exp.1
+- 2026-11-17 Windows 작업 PC CLI: `1.0.1` (`unity --version`). 프로젝트 Pipeline `com.unity.pipeline` 0.8.0-exp.1과 Editor 고정값은 변경하지 않았다. 아래 beta 시기 명령 설명은 버전별 기록이며 현재 명령은 `--help`/`command --query`로 확인한다.
+- CLI 1.0.1 + Pipeline 0.8에서는 `editor_status`, `editor_play`, `run_script`, `recompile_status`, `run_tests`, `build_status` 같은 구형 이름을 사용했다. `unity close <project> --if-saved --timeout 30 --format json`은 미저장 확인 후 정상 종료하며, `unsaved_unverified`이면 리로드 종료를 기다린 뒤 다시 확인한다. 강제 종료로 우회하지 않는다.
 - 주요 명령 (모든 에디터 조작에 `--project-path` 필수):
   - `unity status [--project-path p] --json` — 연결된 에디터 목록. 없으면 `STATUS_NO_INSTANCES`. `--until-ready`로 준비될 때까지 대기(기본 300초)
   - `unity command [name] [args] --project-path p` — 에디터 명령 실행. `--timeout` 기본 30초, `--result-only`로 결과만 JSON

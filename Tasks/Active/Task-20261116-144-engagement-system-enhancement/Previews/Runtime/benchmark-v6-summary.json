@@ -1,0 +1,308 @@
+[
+  {
+    "run": "single-v6-fixed",
+    "role": "host",
+    "actualPlayers": 1,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        5.7859,
+        5.5991
+      ],
+      "onP95": [
+        5.5711,
+        5.6249
+      ],
+      "pairedDelta": [
+        -0.2148,
+        0.0258
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        1.47456,
+        1.393408
+      ],
+      "onP95": [
+        1.420544,
+        1.402368
+      ],
+      "pairedDelta": [
+        -0.054,
+        0.009
+      ]
+    }
+  },
+  {
+    "run": "four-v6-fixed",
+    "role": "client1",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        9.8316,
+        9.8868
+      ],
+      "onP95": [
+        9.5815,
+        9.9443
+      ],
+      "pairedDelta": [
+        -0.2501,
+        0.0575
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        2.819328,
+        2.866688
+      ],
+      "onP95": [
+        2.849792,
+        2.711296
+      ],
+      "pairedDelta": [
+        0.0305,
+        -0.1554
+      ]
+    }
+  },
+  {
+    "run": "four-v6-fixed",
+    "role": "client2",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        12.3671,
+        11.3752
+      ],
+      "onP95": [
+        11.2818,
+        12.0569
+      ],
+      "pairedDelta": [
+        -1.0853,
+        0.6817
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.412928,
+        4.448512
+      ],
+      "onP95": [
+        4.511744,
+        4.460032
+      ],
+      "pairedDelta": [
+        0.0988,
+        0.0115
+      ]
+    }
+  },
+  {
+    "run": "four-v6-fixed",
+    "role": "client3",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.7348,
+        11.6826
+      ],
+      "onP95": [
+        11.5196,
+        12.0559
+      ],
+      "pairedDelta": [
+        -0.2152,
+        0.3733
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.458752,
+        4.411648
+      ],
+      "onP95": [
+        4.495104,
+        4.793088
+      ],
+      "pairedDelta": [
+        0.0364,
+        0.3814
+      ]
+    }
+  },
+  {
+    "run": "four-v6-fixed",
+    "role": "host",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.8515,
+        12.2862
+      ],
+      "onP95": [
+        11.8856,
+        12.2674
+      ],
+      "pairedDelta": [
+        0.0341,
+        -0.0188
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.269824,
+        4.451584
+      ],
+      "onP95": [
+        4.077824,
+        4.499712
+      ],
+      "pairedDelta": [
+        -0.192,
+        0.0481
+      ]
+    }
+  },
+  {
+    "run": "four-v6-repeat",
+    "role": "client1",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.4892,
+        11.7193
+      ],
+      "onP95": [
+        11.1885,
+        11.5569
+      ],
+      "pairedDelta": [
+        -0.3007,
+        -0.1624
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.337408,
+        4.788736
+      ],
+      "onP95": [
+        4.673536,
+        4.427776
+      ],
+      "pairedDelta": [
+        0.3361,
+        -0.361
+      ]
+    }
+  },
+  {
+    "run": "four-v6-repeat",
+    "role": "client2",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.7175,
+        11.4827
+      ],
+      "onP95": [
+        11.2122,
+        11.5335
+      ],
+      "pairedDelta": [
+        -0.5053,
+        0.0508
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.239104,
+        4.313856
+      ],
+      "onP95": [
+        4.580864,
+        4.522496
+      ],
+      "pairedDelta": [
+        0.3418,
+        0.2086
+      ]
+    }
+  },
+  {
+    "run": "four-v6-repeat",
+    "role": "client3",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        9.766,
+        10.3785
+      ],
+      "onP95": [
+        9.931,
+        9.8697
+      ],
+      "pairedDelta": [
+        0.165,
+        -0.5088
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        2.866432,
+        2.815232
+      ],
+      "onP95": [
+        2.83648,
+        2.907648
+      ],
+      "pairedDelta": [
+        -0.03,
+        0.0924
+      ]
+    }
+  },
+  {
+    "run": "four-v6-repeat",
+    "role": "host",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        16.175,
+        12.5737
+      ],
+      "onP95": [
+        12.0002,
+        12.3867
+      ],
+      "pairedDelta": [
+        -4.1748,
+        -0.187
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.210944,
+        4.319744
+      ],
+      "onP95": [
+        4.316928,
+        4.725248
+      ],
+      "pairedDelta": [
+        0.106,
+        0.4055
+      ]
+    }
+  }
+]

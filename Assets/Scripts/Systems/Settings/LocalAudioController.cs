@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Settings
 {
-    public enum LocalAudioCategory { Sfx, Bgm, Voice }
+    public enum LocalAudioCategory { Sfx, Bgm, Voice, AudienceCheer, AudienceBoo, AudienceMurmur }
 
     /// <summary>
     /// 네이티브 Vivox는 Unity 리스너를 거치지 않는다. Unity 음원은 기본 SFX로 분류하며,
@@ -124,7 +124,10 @@ namespace CurtainCall.Settings
         static void Apply(Route route)
         {
             route.Multiplier = route.Category == LocalAudioCategory.Bgm ? ClientSettings.BgmVolume
-                : route.Category == LocalAudioCategory.Sfx ? ClientSettings.SfxVolume : 1f;
+                : route.Category == LocalAudioCategory.Sfx ? ClientSettings.SfxVolume
+                : route.Category == LocalAudioCategory.AudienceCheer ? ClientSettings.SfxVolume * ClientSettings.AudienceCheerVolume
+                : route.Category == LocalAudioCategory.AudienceBoo ? ClientSettings.SfxVolume * ClientSettings.AudienceBooVolume
+                : route.Category == LocalAudioCategory.AudienceMurmur ? ClientSettings.SfxVolume * ClientSettings.AudienceMurmurVolume : 1f;
             route.AppliedVolume = route.BaseVolume * route.Multiplier;
             route.Source.volume = route.AppliedVolume;
         }

@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 28.16,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.AudienceNumbers_HumanCannon",
+      "Status": "Passed",
+      "Duration": 17.3083945,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.AudienceNumbers_Tightrope",
+      "Status": "Passed",
+      "Duration": 10.7256879,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

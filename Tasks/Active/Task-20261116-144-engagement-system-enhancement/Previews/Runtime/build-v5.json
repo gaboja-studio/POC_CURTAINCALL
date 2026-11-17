@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "buildId": "build_0073a9337c51",
+  "result": "Succeeded",
+  "platform": "StandaloneWindows64",
+  "totalSizeBytes": 2783649151,
+  "buildTimeMs": 100216,
+  "totalWarnings": 32,
+  "totalErrors": 0,
+  "buildEndedAt": "2026-11-16T09:41:41.6756139Z"
+}

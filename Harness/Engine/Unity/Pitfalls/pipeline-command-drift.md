@@ -1,8 +1,8 @@
 ---
 summary: Pipeline 패키지/Unity CLI 버전이 바뀌면 검증 스크립트가 쓰던 명령이 사라지거나 결과 형식이 바뀜
 status: active
-updated: 2026-10-30
-source: Octoplug 회고; Task-20261029-078 파란 삐에로 제작
+updated: 2026-11-17
+source: Octoplug 회고; Task-20261029-078 파란 삐에로 제작; Task-20261116-144
 ---
 
 # Pipeline 명령 이름·형식 변경
@@ -35,3 +35,7 @@ CLI beta.15의 공통 `--timeout`은 초 단위이며 Pipeline `eval_file`의 �
 
 ## CLI beta.15 status의 구형 Pipeline 탐색 오류
 - Pipeline0.8.0-exp.1에서는 unity status가 지원하지 않는 editor status를 먼저 보내 Console 오류를 남기고 최종 상태는 성공할 수 있다. 명시적 unity command editor_status --project-path <p>는 오류 없이 동작함을2026-11-03 재현. verify-unity는 직접 상태 조회와 응답 projectPath 확인을 사용한다. 콘솔의 반복 명령 오류를 게임 예외로 오인하지 않는다.
+
+## 빌드가 completed/Unknown/NoTarget으로 끝날 때
+- Unity 6000.3.25f1·Pipeline 0.8에서 스크립팅 정의 변경 직후 컴파일 중 빌드를 요청하면 `completed`, `Unknown`, `NoTarget`, 0바이트·오류0개가 반환될 수 있다. 실제 Editor.log에는 `Error building Player because scripts are compiling`이 남았다. 완료 상태나 오류 개수만 보고 성공으로 처리하지 않는다.
+- 정의 변경 후 컴파일/도메인 리로드 완료를 확인한 다음 빌드한다. 성공 판정에는 `result=Succeeded`와 실제 출력 실행 파일을 함께 확인한다. 에디터가 여럿이면 `Application.consoleLogPath`를 조회하고, 로그에 NUL이 있으면 `rg -a`로 필요한 오류만 찾는다.

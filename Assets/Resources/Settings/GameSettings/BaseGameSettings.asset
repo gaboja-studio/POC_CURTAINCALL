@@ -100,6 +100,29 @@ MonoBehaviour:
     tiltAcceleration: 0.5
   hudLayout:
     balancePosition: 0
+  audienceFeedback:
+    anchor: 1
+    popupSeconds: 1.2
+    combineSeconds: 0.2
+    fontSize: 44
+    audioVolume: 0.58
+    audioInterval: 0.4
+    spatialBlend: 0.65
+    ambienceVolume: 0.5
+    ambienceDuck: 0.65
+    ambienceFadeSeconds: 1.2
+    crowdTrial: 1
+  performanceLighting:
+    enabled: 1
+    ambientScale: 0.45
+    reflectionScale: 0.3
+    mainLightScale: 0.35
+    sceneryColorScale: 0.65
+    sceneryEmissionScale: 0.25
+    lampEmissionScale: 2.5
+    readabilityIntensity: 250
+    readabilityRange: 42
+    readabilityOffset: {x: 0, y: 8, z: 10}
   landingMarker:
     showInPerformance: 1
     showInEscapeRoute: 1

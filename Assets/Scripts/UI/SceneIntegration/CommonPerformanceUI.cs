@@ -38,7 +38,7 @@ namespace CurtainCall.UI.SceneIntegration
         public void Hide()
         {
             HideHints();
-            if (feedback != null) { feedback.SetContext(false); feedback.Clear(); }
+            if (feedback != null) { feedback.SetContext(false); feedback.Clear(); feedback.SetVenueContext(false); }
             if (hud != null) hud.ResetForRuntime();
             if (cheer != null) { cheer.SetUnavailable(); cheer.gameObject.SetActive(false); }
         }

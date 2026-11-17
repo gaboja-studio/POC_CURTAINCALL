@@ -1,0 +1,77 @@
+{
+  "device": "NVIDIA GeForce RTX 5070 Ti",
+  "cpu": "AMD Ryzen 7 9700X 8-Core Processor ",
+  "width": 1920,
+  "height": 1080,
+  "editor": true,
+  "results": [
+    {
+      "on": false,
+      "frames": 231,
+      "mainMs": {
+        "median": 16.6587,
+        "p95": 23.7609
+      },
+      "renderMs": null,
+      "drawCalls": {
+        "median": 2403.0,
+        "p95": 4808.0
+      },
+      "triangles": {
+        "median": 8757011.0,
+        "p95": 17545957.0
+      }
+    },
+    {
+      "on": true,
+      "frames": 208,
+      "mainMs": {
+        "median": 18.5766,
+        "p95": 26.6746
+      },
+      "renderMs": null,
+      "drawCalls": {
+        "median": 2409.0,
+        "p95": 4816.0
+      },
+      "triangles": {
+        "median": 8744851.0,
+        "p95": 17532662.0
+      }
+    },
+    {
+      "on": false,
+      "frames": 230,
+      "mainMs": {
+        "median": 16.0418,
+        "p95": 23.7885
+      },
+      "renderMs": null,
+      "drawCalls": {
+        "median": 2403.0,
+        "p95": 4803.0
+      },
+      "triangles": {
+        "median": 8753015.0,
+        "p95": 17562914.0
+      }
+    },
+    {
+      "on": true,
+      "frames": 235,
+      "mainMs": {
+        "median": 16.1977,
+        "p95": 23.144
+      },
+      "renderMs": null,
+      "drawCalls": {
+        "median": 2404.0,
+        "p95": 4810.0
+      },
+      "triangles": {
+        "median": 8764193.0,
+        "p95": 17580318.0
+      }
+    }
+  ]
+}

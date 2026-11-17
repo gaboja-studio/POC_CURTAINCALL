@@ -9,6 +9,9 @@ namespace CurtainCall.StartLobby
         const string VolumeKey = "CurtainCall.Settings.Volume";
         const string BgmVolumeKey = "CurtainCall.Settings.BgmVolume";
         const string SfxVolumeKey = "CurtainCall.Settings.SfxVolume";
+        const string AudienceCheerVolumeKey = "CurtainCall.Settings.AudienceCheerVolume";
+        const string AudienceBooVolumeKey = "CurtainCall.Settings.AudienceBooVolume";
+        const string AudienceMurmurVolumeKey = "CurtainCall.Settings.AudienceMurmurVolume";
         const string HideNearbyCharacterKey = "CurtainCall.Settings.HideNearbyCharacter";
 
         /// <summary>카메라가 몸에 가까워지면 이 화면에서만 내 캐릭터를 숨긴다.</summary>
@@ -43,6 +46,7 @@ namespace CurtainCall.StartLobby
         public const float DefaultVolume = 0.8f;
         public const float DefaultBgmVolume = 1f;
         public const float DefaultSfxVolume = 1f;
+        public const float DefaultAudienceVolume = 1f;
         public const int DefaultFrameRateLimit = 60;
         public const FullScreenMode DefaultScreenMode = FullScreenMode.FullScreenWindow;
         public static Resolution DefaultResolution => ResolveResolution(0, 0);
@@ -88,6 +92,22 @@ namespace CurtainCall.StartLobby
         {
             get => Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumeKey, DefaultSfxVolume));
             set { PlayerPrefs.SetFloat(SfxVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
+        }
+
+        public static float AudienceCheerVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(AudienceCheerVolumeKey, DefaultAudienceVolume));
+            set { PlayerPrefs.SetFloat(AudienceCheerVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
+        }
+        public static float AudienceBooVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(AudienceBooVolumeKey, DefaultAudienceVolume));
+            set { PlayerPrefs.SetFloat(AudienceBooVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
+        }
+        public static float AudienceMurmurVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(AudienceMurmurVolumeKey, DefaultAudienceVolume));
+            set { PlayerPrefs.SetFloat(AudienceMurmurVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
         }
 
         /// <summary>기존 bool API. true는 전체 화면 창, false는 창 모드로 설정한다.</summary>

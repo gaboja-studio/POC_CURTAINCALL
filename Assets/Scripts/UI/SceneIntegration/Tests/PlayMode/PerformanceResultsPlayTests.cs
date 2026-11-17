@@ -212,10 +212,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var participant = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>().First();
                 string participantId = (string)Get(participant, "ParticipantId");
                 Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participantId, 20));
+                var updatedParticipant = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>().First(p => (string)Get(p, "ParticipantId") == participantId);
+                int actualCheer = (int)Get(updatedParticipant, "ReactionAmount");
                 yield return new WaitForSecondsRealtime(.2f);
                 Assert.IsTrue((bool)Get(feedbackView, "IsVisible"), (string)Get(feedbackView, "LastIssue"));
                 var feedbackTexts = ((Component)feedbackView).GetComponentsInChildren<TMPro.TMP_Text>(true);
+                Assert.IsTrue(feedbackTexts.Any(t => t.text == "+" + actualCheer));
                 Assert.IsTrue(feedbackTexts.Any(t => t.text == "환호"));
+                Assert.Greater((int)Get(Get(feedback, "ReactionAudio"), "PlayCount"), 0);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath($".harness/local/c10-{trick}.png"));
                 yield return new WaitForSecondsRealtime(.8f);
                 Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participantId, -5));

@@ -1,0 +1,9 @@
+4 local processes; initial player/slot sync completed on all peers.
+No valid performance samples: all three clients timed out after 90s in performance UI/rewards/course/local player readiness.
+No performance cost conclusion. Host was gracefully closed after client termination.
+Attempt 1: four-v5-current; attempt 2 with initial-sync barrier: four-v5-synced-peers.
+Raw private local logs: .harness/local/audience-measurements/four-v5-synced-peers/
+System.TimeoutException: Benchmark setup: client1 / performance UI/rewards/course/local player
+  at CurtainCall.UI.SceneIntegration.AudienceTrialBenchmark.Until (System.Func`1[TResult] condition, System.Int32 seconds) [0x0003c] in D:\github-worktrees\POC_CURTAINCALL\fix-engagement-system-enhancement\Assets\Scripts\UI\SceneIntegration\AudienceTrialBenchmark.cs:38
+  at CurtainCall.UI.SceneIntegration.AudienceTrialBenchmark.Setup () [0x0072f] in D:\github-worktrees\POC_CURTAINCALL\fix-engagement-system-enhancement\Assets\Scripts\UI\SceneIntegration\AudienceTrialBenchmark.cs:53
+  at CurtainCall.UI.SceneIntegration.AudienceTrialBenchmark.Start () [0x000ba] in D:\github-worktrees\POC_CURTAINCALL\fix-engagement-system-enhancement\Assets\Scripts\UI\SceneIntegration\AudienceTrialBenchmark.cs:36

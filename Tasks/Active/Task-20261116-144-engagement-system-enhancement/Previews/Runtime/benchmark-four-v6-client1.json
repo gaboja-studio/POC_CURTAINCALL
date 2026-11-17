@@ -1,0 +1,176 @@
+{
+  "role": "client1",
+  "players": 4,
+  "passSeconds": 4.0,
+  "warmupSeconds": 8,
+  "actualPlayers": 4,
+  "cpu": "AMD Ryzen 7 9700X 8-Core Processor ",
+  "gpu": "NVIDIA GeForce RTX 5070 Ti",
+  "ramMiB": 31860,
+  "width": 1280,
+  "height": 720,
+  "development": true,
+  "quality": "PC",
+  "vSync": 0,
+  "targetFps": -1,
+  "launchSeconds": 2.500868500000001,
+  "creationMs": 0.0631,
+  "lastReactionLatencyMs": 120.808716,
+  "rendererCount": 1,
+  "triangles": 864,
+  "meshBytes": 163520,
+  "networkObjects": 0,
+  "observe": {
+    "calls": 130,
+    "allocatedBytes": 0,
+    "totalMs": 0.2143,
+    "includes": "Observe only; snapshots prepared before measurement; four participants"
+  },
+  "passes": [
+    {
+      "pass": 0,
+      "on": false,
+      "valid": true,
+      "frames": 459,
+      "mainMs": {
+        "samples": 459,
+        "median": 7.2797,
+        "p95": 9.8316
+      },
+      "renderMs": null,
+      "gpuMs": {
+        "samples": 456,
+        "median": 1.62304,
+        "p95": 2.819328
+      },
+      "drawCalls": {
+        "samples": 459,
+        "median": 2355.0,
+        "p95": 2362.0
+      },
+      "wholeFrameGcBytes": {
+        "samples": 459,
+        "median": 447201.0,
+        "p95": 447401.0
+      },
+      "frameMs": {
+        "samples": 459,
+        "median": 7.2937994264066219,
+        "p95": 9.83770564198494
+      },
+      "receivedBytes": 48520,
+      "receivedMessages": 97,
+      "crowdReactions": 0,
+      "personalReactions": 1
+    },
+    {
+      "pass": 1,
+      "on": true,
+      "valid": true,
+      "frames": 467,
+      "mainMs": {
+        "samples": 467,
+        "median": 7.2759,
+        "p95": 9.5815
+      },
+      "renderMs": null,
+      "gpuMs": {
+        "samples": 460,
+        "median": 1.558528,
+        "p95": 2.849792
+      },
+      "drawCalls": {
+        "samples": 467,
+        "median": 2358.0,
+        "p95": 2365.0
+      },
+      "wholeFrameGcBytes": {
+        "samples": 467,
+        "median": 447201.0,
+        "p95": 447401.0
+      },
+      "frameMs": {
+        "samples": 467,
+        "median": 7.2849984280765057,
+        "p95": 9.5954006537795067
+      },
+      "receivedBytes": 39184,
+      "receivedMessages": 88,
+      "crowdReactions": 1,
+      "personalReactions": 1
+    },
+    {
+      "pass": 2,
+      "on": false,
+      "valid": true,
+      "frames": 454,
+      "mainMs": {
+        "samples": 454,
+        "median": 7.3941,
+        "p95": 9.8868
+      },
+      "renderMs": null,
+      "gpuMs": {
+        "samples": 448,
+        "median": 1.589248,
+        "p95": 2.866688
+      },
+      "drawCalls": {
+        "samples": 454,
+        "median": 2359.0,
+        "p95": 2364.0
+      },
+      "wholeFrameGcBytes": {
+        "samples": 454,
+        "median": 447201.0,
+        "p95": 447401.0
+      },
+      "frameMs": {
+        "samples": 454,
+        "median": 7.4064978398382664,
+        "p95": 9.8952027037739754
+      },
+      "receivedBytes": 56352,
+      "receivedMessages": 92,
+      "crowdReactions": 0,
+      "personalReactions": 2
+    },
+    {
+      "pass": 3,
+      "on": true,
+      "valid": true,
+      "frames": 446,
+      "mainMs": {
+        "samples": 446,
+        "median": 7.6567,
+        "p95": 9.9443
+      },
+      "renderMs": null,
+      "gpuMs": {
+        "samples": 441,
+        "median": 1.53728,
+        "p95": 2.711296
+      },
+      "drawCalls": {
+        "samples": 446,
+        "median": 2359.0,
+        "p95": 2366.0
+      },
+      "wholeFrameGcBytes": {
+        "samples": 446,
+        "median": 447201.0,
+        "p95": 447401.0
+      },
+      "frameMs": {
+        "samples": 446,
+        "median": 7.6661990024149418,
+        "p95": 9.958900511264801
+      },
+      "receivedBytes": 56816,
+      "receivedMessages": 91,
+      "crowdReactions": 2,
+      "personalReactions": 2
+    }
+  ],
+  "note": "Local same-machine LAN; all players render. Frame GC includes entire game; GPU null means unavailable. A/B does not prove internet or separate-PC performance."
+}

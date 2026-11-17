@@ -135,6 +135,9 @@ namespace CurtainCall.UI.SceneIntegration
             sound.rows.Add(Slider("volume", "게임 전체 음량", ClientSettings.Volume));
             sound.rows.Add(Slider("bgmVolume", "배경음 음량", ClientSettings.BgmVolume));
             sound.rows.Add(Slider("sfxVolume", "효과음 음량", ClientSettings.SfxVolume));
+            sound.rows.Add(Slider("audienceCheerVolume", "관객 환호 음량", ClientSettings.AudienceCheerVolume));
+            sound.rows.Add(Slider("audienceBooVolume", "관객 야유 음량", ClientSettings.AudienceBooVolume));
+            sound.rows.Add(Slider("audienceMurmurVolume", "관객 웅성거림 음량", ClientSettings.AudienceMurmurVolume));
             sound.rows.Add(Slider("teamVolume", "전체 음성 수신 음량", voice != null ? voice.TeamVolume : 1));
             sound.rows.Add(Slider("micVolume", "내 마이크 입력 음량", voice != null ? voice.MicVolume : 1));
             sound.rows.Add(Toggle("micEnabled", "마이크 켜기", voice == null || !voice.IsMicMuted));
@@ -325,6 +328,9 @@ namespace CurtainCall.UI.SceneIntegration
                     values.Add(new V2Value { rowId = "volume", number = ClientSettings.DefaultVolume });
                     values.Add(new V2Value { rowId = "bgmVolume", number = ClientSettings.DefaultBgmVolume });
                     values.Add(new V2Value { rowId = "sfxVolume", number = ClientSettings.DefaultSfxVolume });
+                    values.Add(new V2Value { rowId = "audienceCheerVolume", number = ClientSettings.DefaultAudienceVolume });
+                    values.Add(new V2Value { rowId = "audienceBooVolume", number = ClientSettings.DefaultAudienceVolume });
+                    values.Add(new V2Value { rowId = "audienceMurmurVolume", number = ClientSettings.DefaultAudienceVolume });
                     values.Add(new V2Value { rowId = "teamVolume", number = 1 });
                     values.Add(new V2Value { rowId = "micVolume", number = 1 });
                     values.Add(new V2Value { rowId = "micEnabled", toggle = true });
@@ -366,7 +372,11 @@ namespace CurtainCall.UI.SceneIntegration
                 ClientSettings.HideNearbyCharacter = values["HideNearbyCharacter"].toggle;
                 if (values.TryGetValue("ShowBloodEffect", out var blood)) ClientSettings.ShowBloodEffect = blood.toggle;
                 if (values.TryGetValue("WaitingRoomGuide", out var guide)) CurtainCall.WaitingRoom.WaitingRoomTutorial.Enabled = guide.toggle;
-                ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number; ClientSettings.Save();
+                ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number;
+                ClientSettings.AudienceCheerVolume = values["audienceCheerVolume"].number;
+                ClientSettings.AudienceBooVolume = values["audienceBooVolume"].number;
+                ClientSettings.AudienceMurmurVolume = values["audienceMurmurVolume"].number;
+                ClientSettings.Save();
                 var voice = VoiceChat.Instance;
                 voice?.ApplyAudioPreferences(values["micVolume"].number, !values["micEnabled"].toggle, values["teamVolume"].number, values["teamMuted"].toggle);
                 foreach (var id in peers.Keys) voice?.SetParticipantPreference(id, values["peerVolume_" + id].number, values["peerMuted_" + id].toggle);

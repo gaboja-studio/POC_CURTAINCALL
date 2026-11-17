@@ -28,6 +28,8 @@ namespace CurtainCall.CheerGauge
         readonly float[] targets = new float[MaximumPlayers];
         readonly float[] flashUntil = new float[MaximumPlayers];
         float started;
+        float reactionUntil;
+        Color restingTotalColor, reactionColor;
         bool transitioning;
         public bool HasData { get; private set; }
         public long Total { get; private set; }
@@ -44,9 +46,24 @@ namespace CurtainCall.CheerGauge
         {
             transitioning = false;
             ClearHighlights();
+            if (reactionUntil > 0 && totalText != null) totalText.color = restingTotalColor;
+            reactionUntil = 0;
+        }
+        public void PulseReaction(bool positive)
+        {
+            if (totalText == null || !HasData) return;
+            if (reactionUntil <= 0) restingTotalColor = totalText.color;
+            reactionColor = positive ? new Color32(255, 232, 173, 255) : new Color32(255, 148, 135, 255);
+            reactionUntil = Time.unscaledTime + .45f;
         }
         void Update()
         {
+            if (reactionUntil > 0 && totalText != null)
+            {
+                float left = reactionUntil - Time.unscaledTime;
+                totalText.color = Color.Lerp(restingTotalColor, reactionColor, Mathf.Clamp01(left / .45f));
+                if (left <= 0) reactionUntil = 0;
+            }
             if (transitioning) Step();
             if (highlights == null) return;
             for (int i = 0; i < highlights.Length; i++)

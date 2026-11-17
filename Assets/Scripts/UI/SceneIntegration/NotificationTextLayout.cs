@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (var guide in root.GetComponentsInChildren<CurtainCall.UI.GuidesV1.GuideView>(true)) HudText.ConfigureView(guide);
                 foreach (var tooltip in root.GetComponentsInChildren<CurtainCall.UI.TooltipsV1.TooltipView>(true)) HudText.ConfigureView(tooltip);
                 foreach (var spectator in root.GetComponentsInChildren<CurtainCall.UI.SpectatorV1.SpectatorView>(true)) HudText.ConfigureView(spectator);
-                foreach (var feedback in root.GetComponentsInChildren<CurtainCall.UI.FeedbackView>(true)) HudText.ConfigureView(feedback);
+                // C10 validates fixed-size, plain, single-line text before presenting. Generic rich/wrapped formatting rejects it.
                 foreach (var hud in root.GetComponentsInChildren<CurtainCall.UI.BackstageHudV1.BackstageHUDView>(true)) HudText.ConfigureView(hud);
                 foreach (var hud in root.GetComponentsInChildren<CurtainCall.UI.PerformanceHudV1.PerformanceHUDView>(true)) HudText.ConfigureView(hud);
                 foreach (var caption in root.GetComponentsInChildren<CurtainCall.UI.CaptionsV1.CaptionView>(true)) HudText.ConfigureView(caption);

@@ -9,12 +9,15 @@ namespace CurtainCall.PerformanceBackground
     sealed class PerformanceBackgroundEnvironment
     {
         readonly Dictionary<Camera, (CameraClearFlags flags, Color color)> cameras = new();
+        readonly PerformanceLightingRig lighting = new();
         Scene scene;
         bool applied;
         Material skybox;
         AmbientMode ambientMode;
         Color sky, equator, ground, fogColor;
         float ambientIntensity, fogDensity;
+        SphericalHarmonicsL2 ambientProbe;
+        float reflectionIntensity;
         bool fog;
         FogMode fogMode;
 
@@ -33,6 +36,8 @@ namespace CurtainCall.PerformanceBackground
                 equator = RenderSettings.ambientEquatorColor;
                 ground = RenderSettings.ambientGroundColor;
                 ambientIntensity = RenderSettings.ambientIntensity;
+                ambientProbe = RenderSettings.ambientProbe;
+                reflectionIntensity = RenderSettings.reflectionIntensity;
                 fog = RenderSettings.fog;
                 fogMode = RenderSettings.fogMode;
                 fogDensity = RenderSettings.fogDensity;
@@ -49,6 +54,10 @@ namespace CurtainCall.PerformanceBackground
                 RenderSettings.fogColor = new Color(0.016f, 0.021f, 0.034f);
                 applied = true;
             }
+            var contrast = PerformanceLightingConfiguration.ReadSettings?.Invoke() ?? default;
+            RenderSettings.ambientProbe = ambientProbe * (contrast.Enabled ? contrast.AmbientScale : 1);
+            RenderSettings.reflectionIntensity = reflectionIntensity * (contrast.Enabled ? contrast.ReflectionScale : 1);
+            lighting.Update(active, contrast);
             var camera = Camera.main;
             if (camera == null || cameras.ContainsKey(camera)) return;
             cameras.Add(camera, (camera.clearFlags, camera.backgroundColor));
@@ -58,6 +67,7 @@ namespace CurtainCall.PerformanceBackground
 
         public void Restore()
         {
+            lighting.Restore();
             if (applied && SceneManager.GetActiveScene() == scene)
             {
                 RenderSettings.skybox = skybox;
@@ -66,6 +76,8 @@ namespace CurtainCall.PerformanceBackground
                 RenderSettings.ambientEquatorColor = equator;
                 RenderSettings.ambientGroundColor = ground;
                 RenderSettings.ambientIntensity = ambientIntensity;
+                RenderSettings.ambientProbe = ambientProbe;
+                RenderSettings.reflectionIntensity = reflectionIntensity;
                 RenderSettings.fog = fog;
                 RenderSettings.fogMode = fogMode;
                 RenderSettings.fogDensity = fogDensity;

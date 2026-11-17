@@ -7,9 +7,10 @@ namespace CurtainCall.Settings.EditorTests
 {
     public sealed class LocalAudioSettingsTests
     {
-        static readonly string[] Keys = { "CurtainCall.Settings.Volume", "CurtainCall.Settings.BgmVolume", "CurtainCall.Settings.SfxVolume" };
-        readonly bool[] existed = new bool[3];
-        readonly float[] values = new float[3];
+        static readonly string[] Keys = { "CurtainCall.Settings.Volume", "CurtainCall.Settings.BgmVolume", "CurtainCall.Settings.SfxVolume",
+            "CurtainCall.Settings.AudienceCheerVolume", "CurtainCall.Settings.AudienceBooVolume", "CurtainCall.Settings.AudienceMurmurVolume" };
+        readonly bool[] existed = new bool[Keys.Length];
+        readonly float[] values = new float[Keys.Length];
         float listener;
 
         [SetUp]
@@ -67,6 +68,21 @@ namespace CurtainCall.Settings.EditorTests
                 Assert.AreEqual(3, changes);
             }
             finally { ClientSettings.AudioChanged -= Changed; }
+        }
+
+        [Test]
+        public void AudienceVolumes_AreIndependentPersistedAndClamped()
+        {
+            Assert.AreEqual(1f, ClientSettings.AudienceCheerVolume);
+            Assert.AreEqual(1f, ClientSettings.AudienceBooVolume);
+            Assert.AreEqual(1f, ClientSettings.AudienceMurmurVolume);
+            ClientSettings.AudienceCheerVolume = 0;
+            ClientSettings.AudienceBooVolume = .43f;
+            ClientSettings.AudienceMurmurVolume = 2;
+            Assert.AreEqual(0, PlayerPrefs.GetFloat(Keys[3]));
+            Assert.AreEqual(.43f, PlayerPrefs.GetFloat(Keys[4]));
+            Assert.AreEqual(1, PlayerPrefs.GetFloat(Keys[5]));
+            Assert.AreEqual(1, ClientSettings.SfxVolume);
         }
 
         [TestCase(0f, -50)]

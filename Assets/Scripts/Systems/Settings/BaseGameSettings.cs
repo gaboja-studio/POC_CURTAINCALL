@@ -57,6 +57,10 @@ namespace CurtainCall.Settings
         [Header("HUD 배치")]
         [Tooltip("균형 게이지 등 HUD 요소를 화면 어디에 둘지.")]
         [SerializeField] HudLayoutSettings hudLayout = new();
+        [Header("관객 반응 표시·음향")]
+        [SerializeField] AudienceFeedbackSettings audienceFeedback = new();
+        [Header("공연장 명암")]
+        [SerializeField] PerformanceLightingSettings performanceLighting = new();
         [Header("착지 표시")]
         [SerializeField] LandingMarkerSettings landingMarker = new();
         [Header("네비게이션 안내")]
@@ -89,6 +93,8 @@ namespace CurtainCall.Settings
         public AirControlSettings AirControl => airControl;
         public BalanceSettings Balance => balance;
         public HudLayoutSettings HudLayout => hudLayout;
+        public AudienceFeedbackSettings AudienceFeedback => audienceFeedback ??= new();
+        public PerformanceLightingSettings PerformanceLighting => performanceLighting ??= new();
         public LandingMarkerSettings LandingMarker => landingMarker;
         public NavigationGuideSettings Navigation => navigation ??= new();
         public PresentationSettings Presentation => presentation;

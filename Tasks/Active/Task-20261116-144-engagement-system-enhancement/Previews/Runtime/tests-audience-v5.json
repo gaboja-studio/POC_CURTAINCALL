@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 50.73,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.AudienceBed_HumanCannon",
+      "Status": "Passed",
+      "Duration": 19.8005826,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.AudienceBed_Tightrope",
+      "Status": "Passed",
+      "Duration": 10.532673,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.AudienceSoundSettings_SaveCancelResetAndIndependentGain",
+      "Status": "Passed",
+      "Duration": 5.0074134,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CompletionAudience_AllSurvivorsWaitForActualArrival",
+      "Status": "Passed",
+      "Duration": 5.3819978,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CompletionAudience_DodgeAndSwingOnceRescueEverySuccess",
+      "Status": "Passed",
+      "Duration": 4.8830728,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CompletionAudience_TierBonusKeepsCapJeerCutAndCompletionRules",
+      "Status": "Passed",
+      "Duration": 4.8926072,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

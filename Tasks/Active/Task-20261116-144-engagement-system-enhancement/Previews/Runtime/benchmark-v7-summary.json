@@ -1,0 +1,138 @@
+[
+  {
+    "run": "four-v7-seating",
+    "role": "client1",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.5456,
+        14.4515
+      ],
+      "onP95": [
+        12.3513,
+        11.7682
+      ],
+      "pairedDelta": [
+        0.8057,
+        -2.6833
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.307968,
+        4.852736
+      ],
+      "onP95": [
+        4.608,
+        4.4288
+      ],
+      "pairedDelta": [
+        0.3,
+        -0.4239
+      ]
+    }
+  },
+  {
+    "run": "four-v7-seating",
+    "role": "client2",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        10.1837,
+        11.3086
+      ],
+      "onP95": [
+        9.9846,
+        9.9867
+      ],
+      "pairedDelta": [
+        -0.1991,
+        -1.3219
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        2.833152,
+        2.64448
+      ],
+      "onP95": [
+        2.958848,
+        2.818304
+      ],
+      "pairedDelta": [
+        0.1257,
+        0.1738
+      ]
+    }
+  },
+  {
+    "run": "four-v7-seating",
+    "role": "client3",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        16.3081,
+        13.7104
+      ],
+      "onP95": [
+        15.2764,
+        12.2621
+      ],
+      "pairedDelta": [
+        -1.0317,
+        -1.4483
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.518912,
+        4.447232
+      ],
+      "onP95": [
+        4.50304,
+        4.195584
+      ],
+      "pairedDelta": [
+        -0.0159,
+        -0.2516
+      ]
+    }
+  },
+  {
+    "run": "four-v7-seating",
+    "role": "host",
+    "actualPlayers": 4,
+    "allValid": true,
+    "mainMs": {
+      "offP95": [
+        11.3472,
+        11.3357
+      ],
+      "onP95": [
+        10.2072,
+        10.4359
+      ],
+      "pairedDelta": [
+        -1.14,
+        -0.8998
+      ]
+    },
+    "gpuMs": {
+      "offP95": [
+        4.308736,
+        4.473856
+      ],
+      "onP95": [
+        4.362496,
+        4.480768
+      ],
+      "pairedDelta": [
+        0.0538,
+        0.0069
+      ]
+    }
+  }
+]
