@@ -1,7 +1,7 @@
 ---
 summary: 탈출로 복사 씬의 경로·바닥·추격자 출구를 만들 때 부모 스케일·절단 잔여물·역주행 경계를 확인한다
 status: active
-updated: 2026-11-16
+updated: 2026-11-17
 source: Tasks/Active/Task-20261114-130-escape-pursuer-followup/log.md
 ---
 
@@ -48,3 +48,9 @@ source: Tasks/Active/Task-20261114-130-escape-pursuer-followup/log.md
 - 열린 wallFed 레일의 재순환은 위치 불연속이다. 점유 상태를 유지하면 승객까지 약123m 순간이동한다. 공용 PoleSystem이 첫 경계에서 호스트 낙하 해제를 발행하고 클라이언트는 승인까지 말단 위치를 보존한다. 닫힌 순환 레일에는 이 처리를 적용하지 않는다.
 - 재순환 임시 위치를 JoinedRevision으로 식별하면 클라이언트에 그 값이 전달되지 않아 다음 탑승도 얼어붙는다. 실제 상태 패킷의 actor/launch/segment를 사용한다. 로컬 위치뿐 아니라 원격 LateUpdate 표시도 같은 위치 API를 사용해야 한다.
 - Task136은 이동 봉6개를 +1.5m 높이고 말단 길이를56→52.4m로 줄였다. 100,464 몸 표본 충돌0, 36 말단 지지 통과, 정상/외팔 대포 접근 표본 보존. 실제 다인 입력 플레이를 수행한 결과는 아니다.
+
+## 렌더 면 최적화 (Task153)
+- AABB가 다른 메시를 포함한다고 그 안의 면을 지우지 않는다. 구형 잘린 벽·열린 문틀의 bounds도 통짜 박스처럼 보인다. 여섯 면의 실제 삼각형·외향 법선·모서리·공유 대각선까지 확인한 폐체만 차폐 근거로 쓴다. 면적 합만 같으면 중복된 반쪽 삼각형을 폐체로 오인할 수 있다.
+- 숨은 작은 조각을 전부 잘라내면 삼각형 수가 늘어난다. 공면 깜빡임은 제거하되 내부 면은 분할 비용도 비교한다. 생성 메시의 UV·노멀·머티리얼은 보존하고 물리 MeshCollider에는 절단한 렌더 메시를 넣지 않는다.
+- 서사실 machine guard bar와 wall bracket은 개별 렌더 외곽을 접근/지지 감사에 사용한다. 안쪽 면 절단으로 bounds만 작아져도 충돌 대응·지지 경고가 생긴다. 해당 연결물은 원본 외곽을 유지한다. 경고를 무시하거나 검사를 약하게 바꾸지 않는다.
+- 보이지 않는 렌더러를 꺼도 객체·Collider·추격 경로를 지우지 않는다. 현행 escape_route의 NavMeshSurface는 PhysicsColliders를 수집한다. 저장 전 해시뿐 아니라 실제 씬 diff가 m_Mesh/m_Enabled로 한정되는지도 확인한다. AssetDatabase.SaveAssets는 unrelated dirty 재질까지 저장하므로 새 라이브러리에 SaveAssetIfDirty를 사용한다.
