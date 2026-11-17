@@ -22,3 +22,4 @@
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
 - 최종 check-work -Base origin/dev -CommonRegression 종료0. 안전성·문서/규칙·컴파일·공통 설정 PASS, 공통 EditMode 1,021/1,021 PASS. 문서 길이 경고78/hard0과 기존 ThirdParty dirty 안내는 기록했으며 제출 파일에 포함하지 않는다.
+- 제출: 구현 0d8ade4e, fix/escape-surface-optimization push, PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/414 (base dev). new-pr DryRun은 기존 별도 미커밋 파일과 최초 push 전 상태를 이유로 등록을 보류했다. 사용자 제출 승인 범위의16개 파일만 선택 저장 후 gh로 등록했으며 별도 재질/폰트/ThirdParty 변경은 보존했다. 병합은 수행하지 않았다.
