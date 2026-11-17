@@ -90,6 +90,7 @@ namespace CurtainCall.HumanCannon
                 StopDrop();
                 transform.SetPositionAndRotation(position, rotation);
             }
+            RefreshCarryBody(null);
             if (carrier != CannonSeatState.Nobody)
             {
                 var player = FindPlayer(carrier);

@@ -1,11 +1,14 @@
 using System.Reflection;
 using CurtainCall.Damage;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.WaitingRoom.Pursuit;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
@@ -146,6 +149,92 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(actor);
                 Object.DestroyImmediate(column);
+            }
+        }
+
+        [TestCase("WaitingRoom")]
+        [TestCase("escape_route")]
+        [Category("CommonProgressionRegression")]
+        public void TraversalCoreClearsTheRimAndPursuerButPlacementChecksTheFullShape(string sceneName)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var scene = SceneManager.GetActiveScene();
+            string previousSceneName = scene.name;
+            scene.name = sceneName + "_TrampolineTest";
+            var root = new GameObject("Trampoline");
+            var floor = new GameObject("Floor");
+            var pillar = new GameObject("Pillar");
+            var pursuer = new GameObject("Pursuer");
+            try
+            {
+                var origin = new Vector3(12000, 100, 12000);
+                root.transform.position = origin + Vector3.up;
+                root.SetActive(false);
+                var fullBody = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                trampoline.enabled = false;
+                root.SetActive(true);
+                var ownership = (CannonSeatState)typeof(HumanCannonTrampoline)
+                    .GetField("ownership", members).GetValue(trampoline);
+                var refresh = typeof(HumanCannonTrampoline).GetMethod("RefreshCarryBody", members);
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, 42, ownership.Revision));
+                refresh.Invoke(trampoline, new object[] { null });
+                var core = (BoxCollider)typeof(HumanCannonTrampoline).GetProperty("MoveCheckBody", members).GetValue(trampoline);
+                Assert.That(core, Is.Not.SameAs(fullBody));
+                Assert.That(core.bounds.size.x, Is.EqualTo(1f).Within(.01f));
+                Assert.IsTrue(fullBody.isTrigger);
+
+                floor.AddComponent<BoxCollider>().size = new Vector3(10, .2f, 10);
+                floor.transform.position = origin - Vector3.up * .1f;
+                pillar.AddComponent<BoxCollider>().size = new Vector3(.3f, 3f, .3f);
+                var destination = root.transform.position + Vector3.forward;
+                pillar.transform.position = destination + Vector3.right * 1.25f;
+                Physics.SyncTransforms();
+
+                var findPlacement = typeof(HumanCannonTrampoline).GetMethod("TryFindPlacement", members);
+                bool CanPlace() => (bool)findPlacement.Invoke(trampoline,
+                    new object[] { destination, Quaternion.identity, null, Vector3.zero, false });
+                bool CanCarry() => HumanCannonCarry.CanMove(root.transform, core, destination, Quaternion.identity, null);
+                Assert.IsTrue(CanCarry(), "The rim may overlap the pillar during carry.");
+                Assert.IsFalse(CanPlace(), "The same pillar obstructs the full landing footprint.");
+                pillar.transform.position = destination;
+                Physics.SyncTransforms();
+                Assert.IsFalse(CanCarry(), "The core must still stop at the pillar.");
+
+                pillar.SetActive(false);
+                pursuer.SetActive(false);
+                var capsule = pursuer.AddComponent<CapsuleCollider>();
+                capsule.center = Vector3.up * .9f;
+                capsule.height = 1.8f;
+                capsule.radius = .28f;
+                if (sceneName == "WaitingRoom") pursuer.AddComponent<PursuitActor>();
+                else
+                {
+                    pursuer.AddComponent<EscapeUnderstageChase>().enabled = false;
+                    pursuer.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
+                }
+                pursuer.transform.position = destination - Vector3.up;
+                pursuer.SetActive(true);
+                Physics.SyncTransforms();
+                Assert.IsTrue(CanCarry(), "The carried core must not obstruct the pursuer.");
+                Assert.IsFalse(CanPlace(), "The full footprint must not be placed on the pursuer.");
+                Assert.IsFalse(PursuitSeparation.TryResolve(capsule, pursuer.transform.position, pursuer.transform, 1f,
+                    false, out _), "The carried trampoline must not displace the pursuer.");
+
+                pursuer.SetActive(false);
+                Physics.SyncTransforms();
+                Assert.IsTrue(CanPlace());
+                Assert.IsTrue(ownership.TryApply(CannonAction.Release, 42, ownership.Revision));
+                refresh.Invoke(trampoline, new object[] { null });
+                Assert.IsFalse(fullBody.isTrigger, "A settled trampoline restores its original collider.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(floor);
+                Object.DestroyImmediate(pillar);
+                Object.DestroyImmediate(pursuer);
+                scene.name = previousSceneName;
             }
         }
 

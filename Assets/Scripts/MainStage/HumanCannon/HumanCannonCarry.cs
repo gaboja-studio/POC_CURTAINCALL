@@ -43,6 +43,9 @@ namespace CurtainCall.HumanCannon
             => CheckMoveFrom(root, body, root.position, position, rotation, carrier, sweep, floorClearance, riddenTransport,
                 allowExistingOverlap, out obstruction);
 
+        internal static bool CanMoveFromPose(Transform root, Collider body, Vector3 from, Vector3 to, Quaternion rotation, NetworkPlayer carrier)
+            => CheckMoveFrom(root, body, from, to, rotation, carrier, true, 0f, null, true, out _, rotation);
+
         // Check the up/across/down path separately so a carry pose cannot cut through a step edge or a ceiling.
         internal static bool TryCarryOverStep(Transform root, Collider body, Vector3 target, NetworkPlayer carrier,
             float floorClearance, float maxLift, out Vector3 position)
@@ -71,10 +74,12 @@ namespace CurtainCall.HumanCannon
 
         static bool CheckMoveFrom(Transform root, Collider body, Vector3 startPosition, Vector3 position, Quaternion rotation,
             NetworkPlayer carrier, bool sweep, float floorClearance, HumanCannonTransport riddenTransport,
-            bool allowExistingOverlap, out Vector3 obstruction)
+            bool allowExistingOverlap, out Vector3 obstruction, Quaternion? startRotation = null)
         {
             obstruction = Vector3.zero;
             if (body == null) return false;
+            bool trampolineCore = root.TryGetComponent<HumanCannonTrampoline>(out var trampoline) && trampoline.IsCarryCheckBody(body);
+            Quaternion fromRotation = startRotation ?? root.rotation;
             var bounds = body is BoxCollider box ? new Bounds(box.center, box.size)
                 : body is MeshCollider mesh && mesh.sharedMesh != null ? mesh.sharedMesh.bounds : new Bounds(Vector3.zero, Vector3.one);
             Vector3 localCenter = root.InverseTransformPoint(body.transform.TransformPoint(bounds.center));
@@ -85,12 +90,12 @@ namespace CurtainCall.HumanCannon
             half = new Vector3(Mathf.Max(.001f, Mathf.Abs(half.x) - skin), Mathf.Max(.001f, Mathf.Abs(half.y) - skin), Mathf.Max(.001f, Mathf.Abs(half.z) - skin));
             Quaternion relative = Quaternion.Inverse(root.rotation) * body.transform.rotation;
             int steps = sweep ? Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(startPosition, position) / .05f),
-                Mathf.CeilToInt(Quaternion.Angle(root.rotation, rotation) / 3f)) : 1;
+                Mathf.CeilToInt(Quaternion.Angle(fromRotation, rotation) / 3f)) : 1;
             if (steps > 256) return false; // A teleport must be reconciled, not swept through an entire room.
             for (int step = 1; step <= steps; step++)
             {
                 float t = step / (float)steps;
-                var pose = sweep ? Quaternion.Slerp(root.rotation, rotation, t) : rotation;
+                var pose = sweep ? Quaternion.Slerp(fromRotation, rotation, t) : rotation;
                 var origin = sweep ? Vector3.Lerp(startPosition, position, t) : position;
                 var at = origin + pose * Vector3.Scale(localCenter, root.lossyScale);
                 var bodyPosition = origin + pose * Vector3.Scale(localBody, root.lossyScale);
@@ -105,6 +110,7 @@ namespace CurtainCall.HumanCannon
                     var hit = obstacles[i];
                     if (hit == null || hit.transform.IsChildOf(root) || carrier != null && hit.transform.IsChildOf(carrier.transform)) continue;
                     if (DismemberedLimb.Contains(hit)) continue;
+                    if (trampolineCore && HumanCannonTrampoline.IsPursuerCollider(hit)) continue;
                     if (Physics.GetIgnoreLayerCollision(root.gameObject.layer, hit.gameObject.layer)) continue;
                     if (riddenTransport != null && riddenTransport.IsBoardingBarrier(hit)) continue;
                     if (Physics.ComputePenetration(body, bodyPosition, pose * relative, hit, hit.transform.position, hit.transform.rotation,
@@ -113,7 +119,7 @@ namespace CurtainCall.HumanCannon
                     {
                         // The load can leave an overlap introduced by a moving platform or obstacle.
                         // New contacts and deeper penetration are still blocked throughout the sweep.
-                        if (allowExistingOverlap && Physics.ComputePenetration(body, startPosition + root.rotation * Vector3.Scale(localBody, root.lossyScale), body.transform.rotation,
+                        if (allowExistingOverlap && Physics.ComputePenetration(body, startPosition + fromRotation * Vector3.Scale(localBody, root.lossyScale), fromRotation * relative,
                             hit, hit.transform.position, hit.transform.rotation, out _, out float initialDepth)
                             && depth <= initialDepth + .001f) continue;
                         obstruction = separation;
