@@ -37,3 +37,5 @@
 - 대기실/탈출로 씬 및 공용 설정 에셋을 이 수정으로 변경하지 않았다. 기존 폰트·재질·ThirdParty 작업은 보존한다. 커밋·push하지 않았다. 다음 확인: 사용자 실플레이에서 일반/녹슨 발사기 참가자 잡기·발사·교대, 트램펄린 화물 적재실 동기화.
 
 - 2026-11-17 제출 준비: Unity 정상 종료 확인 후 origin/dev fetch·merge 실행, b933060a Already up to date. 검사 이후 코드 변경 없음으로 공용 981/981·발사기 398/398 결과를 재사용한다. 기존 폰트·재질 14개와 ThirdParty는 제출에서 제외한다.
+
+- 2026-11-17 PR 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/410 (fix/waiting-room-saw-guest → dev). 구현 커밋 72468be0, 필요한 18개 파일만 저장·push. 제출 후 origin/dev 재조회·병합 확인도 b933060a로 최신 상태이며 DEV 병합은 하지 않았다.
