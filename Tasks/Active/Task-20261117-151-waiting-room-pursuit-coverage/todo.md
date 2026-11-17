@@ -9,4 +9,4 @@
 - [x] PlayMode 경로 검증(환풍구 계단·계단실 경사로·화물 통로 두 모서리)
 - [x] check-work
 - [ ] 사람 플레이 확인: 트램펄린 내려놓기/끼임, 문 개폐 중 추격, 배치 창 0층에서 N4 배치
-- [ ] 저장·제출 요청 시 사용자 설정(WaitingRoomSettings·씬)과 함께 commit/push·PR
+- [x] 저장·dev PR 제출

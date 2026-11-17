@@ -19,3 +19,13 @@
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 씬 저장: N4 ExtraFloors=[0]과 사용자 S06 구역 등록, 기존 방 ExtraFloors 직렬화만 변경. 사용자 GameSettings 조명 값 보존. 커밋/푸시 없음.
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-17 제출
+- 저장 커밋 59b55df2(코드·테스트·씬·사용자 GameSettings·기록). 폰트 캐시·재질 소수점 차이·_ThirdParty 변경은 제외하고 로컬 유지.
+- origin/dev 9커밋 병합(스크립트·셰이더·문서만, 씬/프리팹/설정 겹침 없음). Unity 종료 명령이 실행 환경에서 막혀 에디터는 저장 완료·대기 상태로 열어 둔 채 병합.
+- dev에 같은 번호 Task-20261117-148(camera-foreground-occlusion)이 있어 이 Task를 151로 변경.
+- 병합 후 check-work 안전성·문서/규칙·컴파일·공통 설정 PASS, PursuitCoverage PlayMode 1/1 재통과.
