@@ -246,18 +246,17 @@ namespace CurtainCall.Cameras.Tests
 
         [TestCase(false)]
         [TestCase(true)]
-        public void OcclusionFadeFindsASiblingRendererAndRestoresItsMaterial(bool startsInside)
+        public void OcclusionFindsTheVisualSiblingOfADynamicCollider(bool startsInside)
         {
             const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
             var root = new GameObject("Foreground prop fixture");
             root.transform.position = new Vector3(14000, 14000, 14000);
             var material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            Component fade = null;
             try
             {
                 var target = new GameObject("Camera target").transform; target.SetParent(root.transform, false);
                 var rig = new GameObject("Fade rig"); rig.SetActive(false); rig.transform.SetParent(root.transform, false);
-                fade = rig.AddComponent(GameType("CurtainCall.Cameras.CameraOcclusionFade"));
+                var fade = rig.AddComponent(GameType("CurtainCall.Cameras.CameraOcclusionFade"));
                 var prop = new GameObject("Dynamic prop"); prop.transform.SetParent(root.transform, false);
                 prop.transform.localPosition = new Vector3(0f, 1f, startsInside ? -4f : -2f);
                 prop.AddComponent<Rigidbody>().useGravity = false;
@@ -270,16 +269,63 @@ namespace CurtainCall.Cameras.Tests
                 Physics.SyncTransforms();
                 fade.GetType().GetMethod("MarkOccluders", fields).Invoke(fade,
                     new object[] { root.transform.position + new Vector3(0f, 1f, -4f), target, 1f, rules });
-                Assert.That(renderer.sharedMaterial, Is.Not.SameAs(material));
-                fade.GetType().GetMethod("RestoreAll", fields).Invoke(fade, null);
+                var occluders = (System.Collections.Generic.HashSet<Renderer>)fade.GetType().GetField("foregroundOccluders", fields).GetValue(fade);
+                Assert.IsTrue(occluders.Contains(renderer));
                 Assert.That(renderer.sharedMaterial, Is.SameAs(material));
             }
             finally
             {
-                if (fade != null) fade.GetType().GetMethod("RestoreAll", fields).Invoke(fade, null);
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(material);
                 Physics.SyncTransforms();
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RenderOnlyOccluderIsSelectedWithoutChangingItsMaterial(bool cameraInside)
+        {
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Render-only occlusion fixture");
+            root.transform.position = new Vector3(14000, 14000, 14000);
+            var material = new Material(Shader.Find("Unlit/Color"));
+            try
+            {
+                var actor = new GameObject("Camera target").transform;
+                actor.SetParent(root.transform, false);
+                var rig = new GameObject("Fade rig");
+                rig.SetActive(false);
+                rig.transform.SetParent(root.transform, false);
+                var type = GameType("CurtainCall.Cameras.CameraOcclusionFade");
+                var fade = rig.AddComponent(type);
+                var rules = Activator.CreateInstance(GameType("CurtainCall.Cameras.CameraOcclusionRules"));
+                var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                visual.transform.SetParent(root.transform, false);
+                visual.transform.localPosition = new Vector3(0f, 1f, cameraInside ? -4f : -2f);
+                Object.DestroyImmediate(visual.GetComponent<Collider>());
+                var renderer = visual.GetComponent<MeshRenderer>();
+                renderer.sharedMaterial = material;
+                var outsideView = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                outsideView.transform.SetParent(root.transform, false);
+                outsideView.transform.localPosition = new Vector3(0f, 1f, 1.5f);
+                Object.DestroyImmediate(outsideView.GetComponent<Collider>());
+                var behindRenderer = outsideView.GetComponent<MeshRenderer>();
+                behindRenderer.sharedMaterial = material;
+
+                var origin = root.transform.position + new Vector3(0f, 1f, -4f);
+                var args = new object[] { origin, actor, 1f, rules, ~0 };
+                type.GetMethod("MarkVisualOccluders", fields).Invoke(fade, args);
+                var occluders = (System.Collections.Generic.HashSet<Renderer>)type.GetField("foregroundOccluders", fields).GetValue(fade);
+                Assert.IsTrue(occluders.Contains(renderer));
+                Assert.IsFalse(occluders.Contains(behindRenderer));
+                Assert.That(behindRenderer.sharedMaterial, Is.SameAs(material));
+                Assert.That(renderer.sharedMaterial, Is.SameAs(material));
+                Assert.IsFalse(renderer.forceRenderingOff, "시야 검사 자체는 렌더러를 숨기지 않는다.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(material);
             }
         }
 

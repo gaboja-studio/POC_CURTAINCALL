@@ -88,7 +88,7 @@ namespace CurtainCall.HumanCannon.Tests
             var makeTransparent = GameType("CurtainCall.Cameras.CameraOcclusionFade")
                 .GetMethod("MakeTransparent", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.IsNotNull(makeTransparent);
-            faded = (Material)makeTransparent.Invoke(null, new object[] { original });
+            faded = (Material)makeTransparent.Invoke(null, new object[] { original, null });
             Assert.IsNotNull(faded);
             faded.SetColor("_BaseColor", new Color(1, 1, 1, 0.2f));
             source.sharedMaterial = faded;
@@ -125,9 +125,75 @@ namespace CurtainCall.HumanCannon.Tests
             Assert.That(DarkPixels(), Is.GreaterThan(20));
         }
 
-        void Render()
+        [Test]
+        public void ForegroundDitherIsStableAndLimitedToItsAssignedCamera()
         {
-            camera.Render();
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var type = GameType("CurtainCall.Cameras.CameraOcclusionFade");
+            var fade = camera.gameObject.AddComponent(type);
+            var otherObject = new GameObject("Second camera");
+            SceneManager.MoveGameObjectToScene(otherObject, scene);
+            var other = otherObject.AddComponent<Camera>();
+            other.enabled = false;
+            other.CopyFrom(camera);
+            other.enabled = false;
+            other.scene = scene;
+            other.transform.SetPositionAndRotation(camera.transform.position, camera.transform.rotation);
+
+            original.SetColor("_BaseColor", Color.black);
+            Render();
+            int opaquePixels = DarkPixels();
+            Assert.That(opaquePixels, Is.GreaterThan(20));
+            type.GetField("foregroundCamera", fields).SetValue(fade, camera);
+            var occluders = (System.Collections.Generic.HashSet<Renderer>)type.GetField("foregroundOccluders", fields).GetValue(fade);
+            occluders.Add(source);
+            occluders.Add(outline);
+            var step = type.GetMethod("StepForeground", fields);
+            step.Invoke(fade, new object[] { 1f, 1f, .35f });
+            Render();
+            Assert.That(DarkPixels(), Is.EqualTo(opaquePixels), "시선이 한 프레임 스친 오브젝트는 그대로 둔다.");
+            step.Invoke(fade, new object[] { 1.05f, .15f, .35f });
+            Render();
+            int firstFadePixels = DarkPixels();
+            Assert.That(firstFadePixels, Is.InRange(opaquePixels * .88f, opaquePixels * .99f), "가림이 확인돼도 처음에는 조금씩 옅어진다.");
+
+            step.Invoke(fade, new object[] { 1.1f, .2f, .35f });
+            Render();
+            int middleFadePixels = DarkPixels();
+            Assert.That(middleFadePixels, Is.LessThan(firstFadePixels));
+
+            step.Invoke(fade, new object[] { 1.25f, .65f, .35f });
+
+            Render();
+            int ditheredPixels = DarkPixels();
+            Assert.That(ditheredPixels, Is.InRange(opaquePixels * .25f, opaquePixels * .5f));
+            Assert.That(ditheredPixels, Is.LessThan(middleFadePixels));
+            Assert.IsFalse(source.forceRenderingOff);
+            Assert.That(source.sharedMaterial, Is.SameAs(original));
+
+            Render(other);
+            Assert.That(DarkPixels(), Is.EqualTo(opaquePixels), "다른 카메라에서는 전경이 그대로 보여야 한다.");
+            occluders.Clear();
+            step.Invoke(fade, new object[] { 1.30f, .05f, .35f });
+            Render();
+            Assert.That(DarkPixels(), Is.EqualTo(ditheredPixels), "한 프레임 빗나가도 패턴을 유지한다.");
+            step.Invoke(fade, new object[] { 1.45f, .3f, .35f });
+            Render();
+            Assert.That(DarkPixels(), Is.GreaterThan(ditheredPixels).And.LessThan(opaquePixels), "가림이 풀리면 픽셀이 단계적으로 돌아온다.");
+            step.Invoke(fade, new object[] { 1.8f, 1f, .35f });
+            Render();
+            Assert.That(DarkPixels(), Is.EqualTo(opaquePixels));
+        }
+
+        void Render(Camera view = null)
+        {
+            bool asyncCompilation = ShaderUtil.allowAsyncCompilation;
+            try
+            {
+                ShaderUtil.allowAsyncCompilation = false;
+                (view != null ? view : camera).Render();
+            }
+            finally { ShaderUtil.allowAsyncCompilation = asyncCompilation; }
             var previous = RenderTexture.active;
             try
             {

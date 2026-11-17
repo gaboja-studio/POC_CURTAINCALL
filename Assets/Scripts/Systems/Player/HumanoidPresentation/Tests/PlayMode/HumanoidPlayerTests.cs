@@ -767,7 +767,9 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Call(view, "SetColor", color);
             var type = TypeFor("CurtainCall.Cameras.CameraOcclusionFade");
             var flags = BindingFlags.NonPublic | BindingFlags.Static;
-            var entry = type.GetMethod("CreateFaded", flags).Invoke(null, new object[] { renderer });
+            var template = Resources.Load<Material>("Prefabs/Controllers/Camera/CameraFadeTemplate");
+            Assert.That(template, Is.Not.Null);
+            var entry = type.GetMethod("CreateFaded", flags).Invoke(null, new object[] { renderer, template });
             Assert.That(entry, Is.Not.Null);
             entry.GetType().GetField("Alpha").SetValue(entry, .25f);
             type.GetMethod("ApplyAlpha", flags).Invoke(null, new[] { entry });
