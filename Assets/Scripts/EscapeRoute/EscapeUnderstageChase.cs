@@ -58,6 +58,7 @@ namespace CurtainCall.EscapeRoute
             routeAreas = agent.areaMask;
             if (cartLink) agent.autoTraverseOffMeshLink = false;
             body = GetComponent<CapsuleCollider>();
+            FindCloseCaptureModel();
             tall = gait[upright.name];
             low = gait[crouched.name];
             fast = runClip ? gait[runClip.name] : null;

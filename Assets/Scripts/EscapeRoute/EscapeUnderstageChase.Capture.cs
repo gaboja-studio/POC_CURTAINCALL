@@ -142,6 +142,9 @@ namespace CurtainCall.EscapeRoute
                 return true;
             }
 
+            // Body contact cannot be avoided by orbiting faster than the turn/windup,
+            // or by remaining beside the model during a missed strike's recovery.
+            if (TryCloseCapture(now, ref watch)) return true;
             if (attack.Phase != AttackPhase.None) return AdvanceArm(now, ref watch);
             if (now < nextAim) return false;
             if (!CanAttackFromRoute && !(boss && boss.InBattle)) return false;
