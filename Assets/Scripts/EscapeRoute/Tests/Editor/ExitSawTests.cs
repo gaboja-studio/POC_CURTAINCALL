@@ -252,6 +252,36 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(door.position.y, Is.EqualTo(closed.y + .5f).Within(.001)); Assert.That(door.GetComponent<BoxCollider>().enabled, Is.True);
             Set(saw, "cutProgress", 0f); Call(saw, "Present", 0f, true); Assert.That(door.position, Is.EqualTo(closed));
         }
+        [TestCase(1UL), TestCase(2UL), TestCase(3UL)]
+        public void HostGrantsLauncherToLandedGuestWhileJumpSnapshotIsStillAirborne(ulong guestId)
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            var guest = Player(guestId);
+            Set(guest, "IsOwner", false);
+            var mover = guest.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover, "Simulated", false);
+            Set(Get(guest, "jump"), "Value", Enum.Parse(T("CurtainCall.Player.JumpKind"), "Fall"));
+            var load = device.gameObject.AddComponent<BoxCollider>();
+            load.center = Vector3.up * .8f;
+            load.size = new Vector3(.5f, 1.2f, .5f);
+            Set(saw, "loadCollider", load);
+
+            guest.transform.position = Origin + Vector3.up * .4f;
+            Physics.SyncTransforms();
+            Call(saw, "HandleAction", guestId, (byte)1, 0u, false);
+            Assert.That(Get(saw, "Carrier"), Is.EqualTo(ulong.MaxValue),
+                "Away from the floor, the same request must be rejected.");
+
+            guest.transform.position = Origin;
+            Physics.SyncTransforms();
+            Assert.That(Get(guest, "IsAirborne"), Is.True);
+            Assert.That(Call(saw, "Grounded", guest, true), Is.False, "The prior gate rejects this landed pose.");
+            Call(saw, "HandleAction", guestId, (byte)1, 0u, false);
+            Assert.That(Get(saw, "Carrier"), Is.EqualTo(guestId),
+                "A late jump snapshot must not veto a guest whose feet already touch the floor.");
+        }
+
         [Test]
         public void CarriedBodyRejectsSceneryOverlapButIgnoresOwnLoadCollider()
         {
@@ -262,6 +292,44 @@ namespace CurtainCall.EscapeRoute.Tests
             var wall = Root("Load wall", true).AddComponent<BoxCollider>(); wall.transform.position = device.position + Vector3.up * .8f;
             wall.size = new Vector3(.2f, 2, 2); Physics.SyncTransforms();
             Assert.That(Call(saw, "PoseFits", device.position, device.rotation, player), Is.False);
+        }
+
+        [TestCase(1UL), TestCase(2UL), TestCase(3UL)]
+        [Category("CommonProgressionRegression")]
+        public void GuestCanPickUpLauncherBesideRailButNotThroughAClosedWall(ulong guestId)
+        {
+            Fixture(true); Set(saw, "fireWithoutCables", true);
+            var guest = Player(guestId); Set(guest, "IsOwner", false);
+            var load = device.gameObject.AddComponent<BoxCollider>();
+            load.center = Vector3.up * .8f; load.size = new Vector3(1f, 1.4f, 1f);
+            Set(saw, "loadCollider", load);
+            var rail = Root("Rail intersects launcher body, not handle reach", true).AddComponent<BoxCollider>();
+            rail.transform.position = device.position + Vector3.up * .8f;
+            rail.size = new Vector3(3f, .15f, .15f);
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "PoseFits", device.position, device.rotation, guest), Is.False);
+            Assert.That(Call(saw, "CanGrab", guest), Is.True);
+
+            var blocker = Root("Closed wall between actor and handle", true).AddComponent<BoxCollider>();
+            blocker.transform.position = Origin + new Vector3(.3f, 1f, 0);
+            blocker.size = new Vector3(.1f, 2f, 3f);
+            guest.transform.position = Origin + Vector3.right * .7f;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "CanGrab", guest), Is.False, "Pickup must still obey the common wall/line-of-sight rule.");
+            blocker.enabled = false; guest.transform.position = Origin; Physics.SyncTransforms();
+            Call(saw, "HandleAction", guestId, (byte)1, 0u, false);
+            Assert.That(Get(saw, "Carrier"), Is.EqualTo(guestId));
+        }
+
+        [Test, Category("CommonProgressionRegression")]
+        public void RemoteLauncherFollowingDoesNotOverwriteTheOwnersReplicatedRotation()
+        {
+            Fixture(true); Set(saw, "fireWithoutCables", true);
+            var guest = Player(1); Set(guest, "IsOwner", false); Own(1);
+            guest.transform.rotation = Quaternion.Euler(0, 71f, 0);
+            var expected = guest.transform.rotation;
+            Assert.That(Call(saw, "FollowCarrier", guest, false), Is.True);
+            Assert.That(Quaternion.Angle(guest.transform.rotation, expected), Is.LessThan(.001f));
         }
 
         Component CarriedSawBeforeIntrusion(out BoxCollider load)

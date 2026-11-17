@@ -174,6 +174,7 @@ namespace CurtainCall.EscapeRoute
             if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
             else if (!scaleWithCrew && carryRoot != null && carryRoot != transform && carryRoot.gameObject.activeSelf == Suppressed) carryRoot.gameObject.SetActive(!Suppressed);
             RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
+            if (session != null && session.IsHost && pendingGrabs.Count > 0) TickPendingGrabs(Time.unscaledTimeAsDouble);
             if (!Ready && CrewAvailable && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)
             { nextSync = Time.unscaledTimeAsDouble + .5; SendRequest(0, resetBarrier.Waiting ? resetBarrier.Token : 0); }
         }
@@ -198,9 +199,16 @@ namespace CurtainCall.EscapeRoute
             PresentProjectiles(Time.deltaTime);
         }
 
-        public bool CanGrab(NetworkPlayer player)
+        public bool CanGrab(NetworkPlayer player) => TryGetGrabPose(player, out _, out _);
+
+        bool TryGetGrabPose(NetworkPlayer player, out Vector3 position, out Quaternion rotation)
         {
-            if (Suppressed || !Ready || ownership.IsOccupied || !Grounded(player) || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            position = default; rotation = Quaternion.identity;
+            if (Suppressed || !Ready || ownership.IsOccupied || !Alive(player)
+                || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            bool remoteOnHost = session.IsHost && !player.IsLocal;
+            Vector3 feet = player.transform.position;
+            if (!Grounded(player, requireReportedGrounded: !remoteOnHost)) return false;
             var course = TightropeCourse.Current;
             if (CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockRopeWithSaw
                 && course != null && course.IsTraversalActive && player.TryGetComponent(out PlayerMover mover)
@@ -210,9 +218,16 @@ namespace CurtainCall.EscapeRoute
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, transform)
-                && HumanCannonCarry.TryFollowPose(player, CarryRoot, Handle, carryHandleHeight, true, out var position, out var rotation, out _)
-                && PoseFits(position, rotation, player);
+            if (!PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, transform)) return false;
+
+            // Both sides grip the handle in its current direction. Camera-facing steering starts after pickup.
+            Vector3 offset = Vector3.Scale(CarryRoot.InverseTransformPoint(GrabPoint), CarryRoot.lossyScale);
+            return TrampolineCarryPose.TryCalculate(feet + Vector3.up * Mathf.Max(0f, carryHandleHeight),
+                CarryRoot.position - GrabPoint, offset, out position, out rotation)
+                // A projectile launcher may overlap scenery once held. Requiring an empty
+                // body-sized volume here makes its valid handle ungrabbable beside a rail.
+                // Reach, line of sight, support and exclusive ownership are still required.
+                && (ProjectileMode || PoseFits(position, rotation, player));
         }
         public void RequestGrab() { if (CanGrab(NetworkPlayer.Local)) RequestAction(1); }
         public void RequestDrop() { if (NetworkPlayer.Local != null && Carrier == NetworkPlayer.Local.OwnerClientId) RequestAction(2); }
@@ -233,14 +248,7 @@ namespace CurtainCall.EscapeRoute
             var cannon = HumanCannonSystem.Current;
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
             float maxFootGap = reportedAirborne ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) : .25f;
-            int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .15f, Vector3.down, floorHits, .4f, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < count; i++)
-            {
-                var hit = floorHits[i];
-                if (hit.normal.y > .5f && hit.distance <= .15f + maxFootGap && hit.collider != null && !hit.collider.transform.IsChildOf(CarryRoot)
-                    && hit.collider.GetComponentInParent<NetworkPlayer>() == null) return true;
-            }
-            return false;
+            return HasSupport(player.transform.position, maxFootGap);
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
@@ -252,7 +260,11 @@ namespace CurtainCall.EscapeRoute
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
-            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
+            // A held launcher follows the hand; the player's controller owns world movement.
+            carryBlocked = (align || !ProjectileMode)
+                && !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
+            if (carryBlocked && !align)
+                carryBlocked = !TryFollowAlongContact(carrier, out position, out rotation, out carrierRotation);
             if (carryBlocked)
             {
                 // Undo horizontal penetration only. Restoring the old height suspends a falling carrier in midair.
@@ -261,7 +273,7 @@ namespace CurtainCall.EscapeRoute
                 return false;
             }
             CarryRoot.SetPositionAndRotation(position, rotation);
-            carrier.transform.rotation = carrierRotation;
+            if (carrier.IsLocal) carrier.transform.rotation = carrierRotation;
             lastSafeFeet = carrier.transform.position;
             return true;
         }
@@ -314,8 +326,7 @@ namespace CurtainCall.EscapeRoute
         {
             followedCarrier = CannonSeatState.Nobody;
             CarrierChanged();
-            CarryRoot.SetPositionAndRotation(recoveryAnchor != null ? recoveryAnchor.position : initialPosition,
-                recoveryAnchor != null ? recoveryAnchor.rotation : initialRotation);
+            RecoverCarryPose();
             if (!DoorOpen) cutProgress = 0;
             cutting = carryBlocked = false;
         }

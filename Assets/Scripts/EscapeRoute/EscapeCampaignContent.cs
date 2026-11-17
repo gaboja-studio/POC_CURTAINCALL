@@ -259,6 +259,7 @@ namespace CurtainCall.EscapeRoute
         void SuspendDepartureDevices()
         {
             if (!departureScene.isLoaded) return;
+            WaitingRoomStageDevices.SetDepartureSuspended(departureScene, true);
             // Keep the departure floor and camera alive while releasing shared device channels.
             Suspend(PracticeRoomFreePlay.Current);
             Suspend(TightropeCourse.Current);
@@ -281,6 +282,7 @@ namespace CurtainCall.EscapeRoute
                 foreach (var device in suspendedDepartureDevices)
                     if (device != null) device.SetActive(true);
             suspendedDepartureDevices.Clear();
+            WaitingRoomStageDevices.SetDepartureSuspended(departureScene, false);
         }
 
         IEnumerator RevealScenery()
