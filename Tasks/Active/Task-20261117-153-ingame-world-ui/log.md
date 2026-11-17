@@ -1,4 +1,5 @@
 # Log
+- 2026-11-17 저장·제출 완료: 게임 구현95b7abf2 및 private 에셋162868bd push. PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/417 (feat/ui/ingame-ui → dev), 지정 팀원 검토/병합 대기. 마지막 check-work PASS, diff 공백 검사 PASS. new-pr DryRun 템플릿 확인 후 무관한 폰트 캐시4개를 로컬에 보존하기 위해 명시 stage/gh --body-file 경로로 제출. 사용자 실전 검증·추격자 그림자 성능 비교는 후속으로 유지.
 - 사용자 저장·dev 제출 요청 수신. 재개 fetch 시 d2163566/origin-dev 동일, 프로젝트 Unity 종료 확인. private sprite kit 162868bd를 CURTAINCALL_PaidAssets/main에 push(LFS14개 포함). 최신 private main의 기존 관객 반응 에셋도 보존한다. 자동 TMP font cache4개는 제출 제외·로컬 보존, 관련 경로만 stage하여 저장한다.
 - d2163566 병합 후 verify-unity -Compile: Compile/Common settings PASS(exit0), dirty scenes0. 처음 조회는 Editor 초기 로딩 중 Pipeline 미등록으로 ENV_BLOCKED였으며 ready 확인 뒤 정상 통과. 제출 시 HEAD/origin-dev 0/0, 커밋·push 없음.
 - 몸 조준 변경 묶음 check-work exit0: 안전성·문서·컴파일·공통 설정 PASS. 자동 테스트는 별도 24+9개 실행 결과 사용. 제출 직전 Unity 정상 종료 후 dev 6커밋(a8d755d5 → d2163566)을 fast-forward, 대기실 수정이며 현재 작업 충돌 없음. 병합 상태 컴파일/공통 설정 재확인.
