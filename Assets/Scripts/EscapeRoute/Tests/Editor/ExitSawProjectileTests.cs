@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace CurtainCall.EscapeRoute.Tests
@@ -41,6 +42,169 @@ namespace CurtainCall.EscapeRoute.Tests
             => (bool)Call(saw, "ApplySnapshot", version, owner, actor, device.position, device.rotation, 0f, (byte)0,
                 token, mask, points, entries, 0f, course);
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
+
+        [Test]
+        public void HeldLauncherFollowsThroughFinalBayRailButPlayerStillStopsAtIt()
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            var player = Player(41);
+            Own(41);
+            Set(player, "IsOwner", true);
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover, "Simulated", true);
+            Isolate("CurtainCall.Cameras.CameraViewDirector");
+            var load = device.gameObject.AddComponent<BoxCollider>();
+            load.center = new Vector3(0, .55f, 0);
+            load.size = new Vector3(.735f, 1.05f, .805f);
+            Set(saw, "loadCollider", load);
+            Physics.SyncTransforms();
+            Assert.IsTrue((bool)Call(saw, "FollowCarrier", player, false));
+
+            // Use the finale rail's authored length, height and depth.
+            var rail = Root("Finale rail", true).AddComponent<BoxCollider>();
+            rail.size = new Vector3(29.4f, .15f, .14f);
+            rail.transform.position = Origin + new Vector3(0, .8f, 1.7f);
+            player.transform.position += new Vector3(.35f, 0, .3f);
+            Physics.SyncTransforms();
+            Assert.IsTrue((bool)Call(saw, "FollowCarrier", player, false));
+            Assert.That(device.position.x - Origin.x, Is.EqualTo(.35f).Within(.02f));
+            Assert.That(player.transform.position.z - Origin.z, Is.EqualTo(.3f).Within(.02f));
+            Physics.SyncTransforms();
+            Assert.That(load.bounds.Intersects(rail.bounds), Is.True);
+
+            var body = (CharacterController)Get(mover, "Body");
+            body.Move(Vector3.forward * 3f);
+            Assert.That(player.transform.position.z, Is.LessThan(rail.bounds.min.z));
+            var feetBeforeFollow = player.transform.position;
+            Physics.SyncTransforms();
+            Assert.IsTrue((bool)Call(saw, "FollowCarrier", player, false));
+            Assert.That(player.transform.position, Is.EqualTo(feetBeforeFollow));
+            Assert.That(load.enabled, Is.True);
+        }
+
+        [Test]
+        public void AClearMuzzleBeyondAThinWallCannotSpawnABladeThroughIt()
+        {
+            Fixture(true);
+            var player = Player(41);
+            Own(41);
+            var strand = Strand(ShotStart + Vector3.forward * 4f);
+            SetCables(strand);
+            var wall = Root("Thin wall between bearer and muzzle", true).AddComponent<BoxCollider>();
+            wall.size = new Vector3(4f, 4f, .04f);
+            wall.transform.position = Origin + Vector3.forward * .9f;
+            Physics.SyncTransforms();
+
+            object[] sweep = { blade.position, Vector3.forward, 0f, 0f };
+            Assert.IsFalse((bool)Call(saw, "ObstructionDistance", sweep), "The muzzle itself is beyond the wall and clear.");
+            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
+            Assert.That(Get(strand, "IsCut"), Is.False);
+
+            wall.enabled = false;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.True);
+            Call(saw, "StepProjectiles", .2f, true);
+            Assert.That(Get(strand, "IsCut"), Is.True);
+        }
+
+        [Test]
+        public void CompletelyObstructedShotDoesNotReportFiringAndCanRetry()
+        {
+            Fixture(true);
+            var player = Player(41);
+            Own(41);
+            SetCables(Strand(ShotStart + Vector3.forward * 4));
+            var wall = Root("Blocked muzzle and fallback", true).AddComponent<BoxCollider>();
+            wall.transform.position = blade.position;
+            wall.size = new Vector3(2f, .5f, 3f);
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
+            Assert.That(Get(saw, "recoilTime"), Is.EqualTo(0f));
+            wall.enabled = false;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.True);
+        }
+
+        [Test]
+        public void ManyLooseLimbCollidersDoNotAbsorbBladeOrHideARealWall()
+        {
+            Fixture(true);
+            var strand = Strand(ShotStart + Vector3.forward * 4);
+            SetCables(strand);
+            for (int i = 0; i < 68; i++)
+            {
+                var limb = Root("Detached limb", true);
+                limb.transform.position = ShotStart + Vector3.forward * (2f + i * .002f);
+                limb.AddComponent(T("CurtainCall.Damage.DismemberedLimb"));
+                limb.AddComponent<BoxCollider>().size = Vector3.one * .1f;
+            }
+            var wall = Root("Solid wall past the cable", true).AddComponent<BoxCollider>();
+            wall.transform.position = ShotStart + Vector3.forward * 6f;
+            wall.size = new Vector3(4, 4, .2f);
+            var shots = (IList)Get(saw, "shots");
+            Own(41);
+            shots.Add(Shot(1, 1, ShotStart, Vector3.forward));
+            Physics.SyncTransforms();
+            Call(saw, "StepProjectiles", .5f, true);
+            Assert.That(Get(strand, "IsCut"), Is.True);
+            Assert.That(shots.Count, Is.Zero, "The real wall still stops the blade after it cuts.");
+        }
+
+        [Test]
+        public void LauncherIgnoresCollidersFromTheActualPlayerCutPath()
+        {
+            Fixture();
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Rabbit.prefab");
+            Assert.IsNotNull(prefab);
+            var modelRoot = UnityEngine.Object.Instantiate(prefab);
+            roots.Add(modelRoot);
+            modelRoot.transform.position = Origin;
+            var model = modelRoot.GetComponent(T("CurtainCall.Player.HumanoidModel"));
+            var animator = (Animator)Get(model, "Animator");
+            animator.Rebind();
+            animator.Update(0f);
+            var piece = Call(model, "BakePiece", 0, null);
+            var fragment = (GameObject)Get(piece, "Object");
+            var mesh = (Mesh)Get(piece, "Mesh");
+            try
+            {
+                fragment.SetActive(true);
+                var colliders = fragment.GetComponentsInChildren<Collider>();
+                Assert.That(colliders.Length, Is.EqualTo(2));
+                foreach (var collider in colliders)
+                    Assert.That(Call(saw, "ShotObstacle", collider), Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(fragment);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void RecoveryFindsSupportedSpaceWhenAnotherLauncherOccupiesTheAnchor()
+        {
+            Fixture(true);
+            var load = device.gameObject.AddComponent<BoxCollider>();
+            load.center = Vector3.up * .45f;
+            load.size = Vector3.one * .6f;
+            Set(saw, "loadCollider", load);
+            var anchor = device.position;
+            var blocker = Root("Another launcher on the anchor", true).AddComponent<BoxCollider>();
+            blocker.size = load.size;
+            blocker.transform.position = anchor + load.center;
+            device.position += Vector3.forward * 2;
+            Physics.SyncTransforms();
+            Call(saw, "Recover");
+            Physics.SyncTransforms();
+            Assert.That(device.position.y, Is.EqualTo(anchor.y));
+            Assert.That(Vector3.Distance(device.position, anchor), Is.InRange(.7f, 1.7f));
+            Assert.That(load.bounds.Intersects(blocker.bounds), Is.False);
+        }
 
         [Test]
         public void CosmeticPursuerChunksDoNotAbsorbShotsButWallsDo()
