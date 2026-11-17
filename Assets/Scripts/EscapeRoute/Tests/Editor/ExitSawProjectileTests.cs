@@ -44,13 +44,15 @@ namespace CurtainCall.EscapeRoute.Tests
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
-        public void FinalBayRailStopsInwardMotionButAllowsSlidingAndBackingOut()
+        public void HeldLauncherFollowsThroughFinalBayRailButPlayerStillStopsAtIt()
         {
             Fixture(true);
+            Set(saw, "fireWithoutCables", true);
             var player = Player(41);
             Own(41);
             Set(player, "IsOwner", true);
-            Set(player.GetComponent(T("CurtainCall.Player.PlayerMover")), "Simulated", true);
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Set(mover, "Simulated", true);
             Isolate("CurtainCall.Cameras.CameraViewDirector");
             var load = device.gameObject.AddComponent<BoxCollider>();
             load.center = new Vector3(0, .55f, 0);
@@ -67,13 +69,44 @@ namespace CurtainCall.EscapeRoute.Tests
             Physics.SyncTransforms();
             Assert.IsTrue((bool)Call(saw, "FollowCarrier", player, false));
             Assert.That(device.position.x - Origin.x, Is.EqualTo(.35f).Within(.02f));
-            Assert.That(player.transform.position.z - Origin.z, Is.EqualTo(0).Within(.02f));
-            Assert.That(load.bounds.max.z, Is.LessThan(rail.bounds.min.z));
+            Assert.That(player.transform.position.z - Origin.z, Is.EqualTo(.3f).Within(.02f));
+            Physics.SyncTransforms();
+            Assert.That(load.bounds.Intersects(rail.bounds), Is.True);
 
-            player.transform.position += new Vector3(.2f, 0, -.2f);
+            var body = (CharacterController)Get(mover, "Body");
+            body.Move(Vector3.forward * 3f);
+            Assert.That(player.transform.position.z, Is.LessThan(rail.bounds.min.z));
+            var feetBeforeFollow = player.transform.position;
             Physics.SyncTransforms();
             Assert.IsTrue((bool)Call(saw, "FollowCarrier", player, false));
-            Assert.That(player.transform.position.z - Origin.z, Is.EqualTo(-.2f).Within(.02f));
+            Assert.That(player.transform.position, Is.EqualTo(feetBeforeFollow));
+            Assert.That(load.enabled, Is.True);
+        }
+
+        [Test]
+        public void AClearMuzzleBeyondAThinWallCannotSpawnABladeThroughIt()
+        {
+            Fixture(true);
+            var player = Player(41);
+            Own(41);
+            var strand = Strand(ShotStart + Vector3.forward * 4f);
+            SetCables(strand);
+            var wall = Root("Thin wall between bearer and muzzle", true).AddComponent<BoxCollider>();
+            wall.size = new Vector3(4f, 4f, .04f);
+            wall.transform.position = Origin + Vector3.forward * .9f;
+            Physics.SyncTransforms();
+
+            object[] sweep = { blade.position, Vector3.forward, 0f, 0f };
+            Assert.IsFalse((bool)Call(saw, "ObstructionDistance", sweep), "The muzzle itself is beyond the wall and clear.");
+            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
+            Assert.That(Get(strand, "IsCut"), Is.False);
+
+            wall.enabled = false;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "TryFire", player), Is.True);
+            Call(saw, "StepProjectiles", .2f, true);
+            Assert.That(Get(strand, "IsCut"), Is.True);
         }
 
         [Test]

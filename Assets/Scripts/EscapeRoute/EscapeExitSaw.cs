@@ -245,7 +245,10 @@ namespace CurtainCall.EscapeRoute
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
-            carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
+            // Once a launcher is held, the carrier's controller owns movement through the scene.
+            // The launcher follows the hand even when its body overlaps a rail or fixture.
+            carryBlocked = (align || !ProjectileMode)
+                && !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
             if (carryBlocked && !align)
                 carryBlocked = !TryFollowAlongContact(carrier, out position, out rotation, out carrierRotation);
             if (carryBlocked)

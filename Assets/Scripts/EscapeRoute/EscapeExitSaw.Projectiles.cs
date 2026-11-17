@@ -182,6 +182,8 @@ namespace CurtainCall.EscapeRoute
             for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
                 start = origin.position - direction * (back * (step + 1) / 6f);
             if (ObstructionDistance(start, direction, 0, out _)) return false;
+            var carrier = FindPlayer(Carrier);
+            if (carrier != null && LaunchPathObstructed(carrier.transform.position, start)) return false;
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
             CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawFire, start, CarryRoot);
@@ -189,6 +191,24 @@ namespace CurtainCall.EscapeRoute
             lastPresentedShot = shotSerial;
             EmitLaunch();
             return true;
+        }
+
+        // The carried body may pass through scenery. A muzzle on the far side of a
+        // wall must not create a blade there, even if the muzzle itself is clear.
+        bool LaunchPathObstructed(Vector3 carrierPosition, Vector3 start)
+        {
+            carrierPosition.y = start.y;
+            var offset = start - carrierPosition;
+            float distance = offset.magnitude;
+            if (distance <= .001f) return false;
+            var direction = offset / distance;
+            int count = Physics.RaycastNonAlloc(carrierPosition, direction, shotHits, distance, ~0, QueryTriggerInteraction.Ignore);
+            var hits = count == shotHits.Length
+                ? Physics.RaycastAll(carrierPosition, direction, distance, ~0, QueryTriggerInteraction.Ignore) : shotHits;
+            if (hits != shotHits) count = hits.Length;
+            for (int i = 0; i < count; i++)
+                if (ShotObstacle(hits[i].collider)) return true;
+            return false;
         }
         void StepProjectiles(float deltaTime, bool host)
         {
