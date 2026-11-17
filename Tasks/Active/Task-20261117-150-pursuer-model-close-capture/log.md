@@ -13,3 +13,5 @@
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-17 사용자 저장·제출 요청: Unity EditMode·dirty scene 0 확인 후 정상 종료. origin/dev fetch·merge 결과 b933060a 최신, 충돌 없음. 최종 검사 이후 코드 변경이 없어 컴파일·공용 설정 및 추격자 205/205 결과를 재사용한다. 관련 11개 파일만 제출하고 기존 폰트/재질 14개·ThirdParty는 제외한다.
+
+- 2026-11-17 PR 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/411 (fix/pursuer-model-close-capture → dev). 구현 커밋 2465bde9, 11개 파일만 저장·push. 제출 후 DEV fetch·merge도 최신 상태(b933060a)이며 DEV 병합은 하지 않았다.
