@@ -13,3 +13,5 @@
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS
+
+- 2026-11-17 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/413 (fix/trampoline-carry-clearance → dev)
