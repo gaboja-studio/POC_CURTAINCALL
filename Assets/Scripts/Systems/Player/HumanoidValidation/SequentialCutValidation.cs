@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Damage;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -144,6 +145,7 @@ namespace CurtainCall.Player.Validation
                     LastPoseError = Mathf.Max(LastPoseError, Vector3.Distance(source.transform.TransformPoint(vertex), piece.Object.transform.TransformPoint(vertex)));
                 if (LastPoseError > .00001f) throw new InvalidOperationException("Fragment world pose mismatch.");
                 CutPoint(piece);
+                piece.Object.AddComponent<DismemberedLimb>();
                 return piece;
             }
             catch
