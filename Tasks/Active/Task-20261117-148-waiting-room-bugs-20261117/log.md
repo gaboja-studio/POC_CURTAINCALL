@@ -62,3 +62,4 @@
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-11-17 제출 준비: Unity 종료 확인 후 origin/dev(25커밋) 병합 — 충돌 없음(966b5ec2), 푸시. 병합 뒤 컴파일·씬 열기는 Unity가 닫혀 있어 하지 않음. check-work의 문서/규칙 실패는 dev에도 있는 `Task-20261105-107…/guides` 폴더명 때문. 작업 전부터 있던 머티리얼·폰트 변경과 `_ThirdParty`, `Docs/References` 파일은 커밋에서 제외.
+- 2026-11-17 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/415 (dev, 검토자 지정 없음 — 사용자). new-pr.ps1은 작업 전부터 있던 미커밋 머티리얼·폰트 변경 때문에 거부되어, 같은 템플릿 형식으로 gh로 직접 등록.
