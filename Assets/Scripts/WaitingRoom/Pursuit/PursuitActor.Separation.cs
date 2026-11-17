@@ -28,7 +28,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             separationBody.radius = .24f; separationBody.height = Mathf.Max(.5f, height - bottom);
             separationBody.center = Vector3.up * (bottom + separationBody.height * .5f);
             nextSeparationRetry = Time.time + .04f;
-            if (!PursuitSeparation.TryResolve(separationBody, transform.position, transform, Mathf.Max(.5f, rules.SeparationDistance), climbing, out var position)) return;
+            // 펜스를 넘는 중에는 넘는 난간 자체가 몸과 겹친다. 오르기처럼 움직이는 물체만 밀어낸다.
+            if (!PursuitSeparation.TryResolve(separationBody, transform.position, transform, Mathf.Max(.5f, rules.SeparationDistance), climbing || vaulting, out var position)) return;
             if (agent != null) agent.enabled = false; // Avoid ResetPath completing an active link.
             bool falling = climbing;
             ResetClimb(); transform.position = position;

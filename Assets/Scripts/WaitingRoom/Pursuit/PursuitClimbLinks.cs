@@ -45,17 +45,23 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             foreach (var link in links) NavMesh.RemoveLink(link);
             links.Clear();
+            vaults.Clear();
             Built = false;
             rebuildPending = false;
         }
 
-        /// <summary>현재 NavMesh로 오르기 링크를 만든다. 오르기 단계가 꺼져 있으면 만들지 않는다.</summary>
+        /// <summary>현재 NavMesh로 오르기 링크를 만든다. 낮은 펜스 넘기는 단계와 관계없이 항상 만든다.</summary>
         public static int Build(int agentTypeID, PursuitSettings rules)
         {
             Clear();
             Built = true;
-            if (rules == null || rules.ClimbFromStage <= 0) return 0;
             long started = Stopwatch.GetTimestamp();
+            int vaultCount = BuildVaults(agentTypeID);
+            if (rules == null || rules.ClimbFromStage <= 0) {
+                BuildMs = (Stopwatch.GetTimestamp() - started) * 1000.0 / Stopwatch.Frequency;
+                UnityEngine.Debug.Log($"[Pursuit] climb links=0 vaults={vaultCount} {BuildMs:0.0}ms");
+                return links.Count;
+            }
             var candidates = Candidates(rules.ResolvedClimbMaxHeight, agentTypeID);
             var walk = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
             var path = new NavMeshPath();
@@ -80,7 +86,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 links.Add(instance); accepted.Add(top);
             }
             BuildMs = (Stopwatch.GetTimestamp() - started) * 1000.0 / Stopwatch.Frequency;
-            UnityEngine.Debug.Log($"[Pursuit] climb links={links.Count} candidates={candidates.Count} {BuildMs:0.0}ms");
+            UnityEngine.Debug.Log($"[Pursuit] climb links={links.Count - vaultCount} vaults={vaultCount} candidates={candidates.Count} {BuildMs:0.0}ms");
             return links.Count;
         }
 
@@ -92,9 +98,26 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public static List<(Vector3 bottom, Vector3 top)> Candidates(float maxHeight, int agentTypeID)
         {
             var result = new List<(Vector3, Vector3)>();
+            var query = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
+            float maxDrop = 0;
+            foreach (var (top, outward) in EdgeSamples(v => {
+                // 높이 제한 없음(무한대)이어도 NavMesh 전체 높이보다 깊이 찾을 필요는 없다.
+                float lowest = float.PositiveInfinity, highest = float.NegativeInfinity;
+                foreach (var p in v) { lowest = Mathf.Min(lowest, p.y); highest = Mathf.Max(highest, p.y); }
+                maxDrop = Mathf.Max(MinHeight, Mathf.Min(maxHeight, highest - lowest + SampleRadius));
+            }))
+                if (TryBottom(top, outward, maxDrop, query, out var bottom) && Clear(bottom, top, outward))
+                    result.Add((bottom, top));
+            return result;
+        }
+
+        /// <summary>NavMesh 가장자리(삼각형 하나에만 속한 변)를 따라 0.75m 간격 표본과 바깥 방향.</summary>
+        static IEnumerable<(Vector3 top, Vector3 outward)> EdgeSamples(System.Action<Vector3[]> prepare = null)
+        {
             var mesh = NavMesh.CalculateTriangulation();
             var vertices = mesh.vertices; var indices = mesh.indices;
-            if (vertices == null || indices == null || indices.Length < 3) return result;
+            if (vertices == null || indices == null || indices.Length < 3) yield break;
+            prepare?.Invoke(vertices);
             // 같은 위치의 정점을 하나로 묶어 타일 경계의 가짜 가장자리를 없앤다.
             var weld = new int[vertices.Length];
             var byPosition = new Dictionary<Vector3Int, int>();
@@ -113,11 +136,6 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var key = a < b ? (a, b) : (b, a);
                 edges[key] = edges.TryGetValue(key, out var e) ? (e.count + 1, e.a, e.b, e.c) : (1, a, b, c);
             }
-            var query = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
-            // 높이 제한 없음(무한대)이어도 NavMesh 전체 높이보다 깊이 찾을 필요는 없다.
-            float lowest = float.PositiveInfinity, highest = float.NegativeInfinity;
-            foreach (var v in vertices) { lowest = Mathf.Min(lowest, v.y); highest = Mathf.Max(highest, v.y); }
-            float maxDrop = Mathf.Max(MinHeight, Mathf.Min(maxHeight, highest - lowest + SampleRadius));
             foreach (var edge in edges.Values) {
                 if (edge.count != 1) continue;
                 Vector3 a = vertices[edge.a], b = vertices[edge.b], inside = vertices[edge.c];
@@ -127,13 +145,119 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var outward = Vector3.Cross(Vector3.up, along / length);
                 if (Vector3.Dot(outward, inside - a) > 0) outward = -outward;
                 int samples = Mathf.Clamp(Mathf.FloorToInt(length / .75f), 1, MaxSamplesPerEdge);
-                for (int s = 0; s < samples; s++) {
-                    var top = Vector3.Lerp(a, b, (s + .5f) / samples);
-                    if (TryBottom(top, outward, maxDrop, query, out var bottom) && Clear(bottom, top, outward))
-                        result.Add((bottom, top));
+                for (int s = 0; s < samples; s++) yield return (Vector3.Lerp(a, b, (s + .5f) / samples), outward);
+            }
+        }
+
+        // ---- 낮은 펜스·난간 넘기 ----
+        // 2026-11-17 사용자 보고: 무대 장치실 화물 통로가 꺾이는 곳의 1.1m 난간에 통로 NavMesh가 끊겨 추격자가 바닥으로 내려갔다 다시 올라왔다.
+        // 같은 높이의 양쪽 길이 얇고 낮은 막이로만 갈려 있으면 넘는 링크를 둔다(단계와 관계없이 항상, 플레이어처럼 바로 넘는다).
+
+        /// <summary>넘을 수 있는 막이의 최대 높이(발 기준).</summary>
+        public const float VaultMaxHeight = 1.3f;
+        static readonly float[] VaultProbe = { .5f, .8f, 1.1f };
+        const float VaultSpacing = 1f, VaultLevel = .35f;
+        static readonly List<(Vector3 a, Vector3 b, float height)> vaults = new();
+        public static int VaultCount => vaults.Count;
+
+        /// <summary>링크 양 끝(어느 방향이든)이 펜스 넘기면 막이 높이(발 기준)를 준다.</summary>
+        public static bool TryVault(Vector3 start, Vector3 end, out float height)
+        {
+            const float tolerance = .3f;
+            foreach (var v in vaults) {
+                if (((v.a - start).sqrMagnitude < tolerance * tolerance && (v.b - end).sqrMagnitude < tolerance * tolerance)
+                    || ((v.b - start).sqrMagnitude < tolerance * tolerance && (v.a - end).sqrMagnitude < tolerance * tolerance)) {
+                    height = v.height; return true;
+                }
+            }
+            height = 0; return false;
+        }
+
+        static int BuildVaults(int agentTypeID)
+        {
+            var walk = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
+            var path = new NavMeshPath();
+            var accepted = new List<Vector3>();
+            int before = links.Count;
+            foreach (var (from, to, height) in VaultCandidates(agentTypeID)) {
+                if (links.Count >= MaxLinks) break;
+                if (Near(accepted, from, VaultSpacing) || Near(accepted, to, VaultSpacing)) continue;
+                float straight = Vector3.Distance(from, to);
+                // 가까이 돌아가는 길이 있으면 넘지 않는다(문 옆 낮은 턱 등).
+                if (NavMesh.CalculatePath(from, to, walk, path) && path.status == NavMeshPathStatus.PathComplete
+                    && PursuitNavigation.Length(path.corners) <= straight + 4) continue;
+                var instance = NavMesh.AddLink(new NavMeshLinkData {
+                    startPosition = from, endPosition = to, width = 0, bidirectional = true,
+                    area = 0, agentTypeID = agentTypeID, costModifier = 3 });
+                if (!NavMesh.IsLinkValid(instance)) continue;
+                links.Add(instance); vaults.Add((from, to, height));
+                accepted.Add(from); accepted.Add(to);
+            }
+            return links.Count - before;
+        }
+
+        /// <summary>같은 높이 NavMesh 사이가 낮고 얇은 막이(난간·펜스)로만 갈린 곳의 (출발, 도착, 막이 높이).</summary>
+        public static List<(Vector3 from, Vector3 to, float height)> VaultCandidates(int agentTypeID)
+        {
+            var result = new List<(Vector3, Vector3, float)>();
+            var query = new NavMeshQueryFilter { agentTypeID = agentTypeID, areaMask = NavMesh.AllAreas & ~AreaMask };
+            foreach (var (top, outward) in EdgeSamples()) {
+                foreach (float distance in VaultProbe) {
+                    var probe = top + outward * distance;
+                    if (!NavMesh.SamplePosition(probe, out var hit, .3f, query)) continue;
+                    var other = hit.position;
+                    var flat = other - probe; flat.y = 0;
+                    if (Mathf.Abs(other.y - top.y) > VaultLevel || flat.magnitude > .3f) continue;
+                    if (VaultBarrier(top, other, out float height)) result.Add((top, other, height));
+                    break;
                 }
             }
             return result;
+        }
+
+        static bool VaultBarrier(Vector3 a, Vector3 b, out float height)
+        {
+            height = 0;
+            float floor = Mathf.Max(a.y, b.y);
+            // 무릎 높이가 막혀야 펜스다(막이 없는 바닥 틈·구멍은 넘기가 아니다).
+            var knee = Vector3.up * (floor - a.y + .35f);
+            var kneeTo = Vector3.up * (floor - b.y + .35f);
+            if (!FirstSolid(a + knee, b + kneeTo, out var block) || Barred(block.collider)) return false;
+            // 막이 윗면 높이. 1.3m를 넘으면 벽이다.
+            var mid = new Vector3(block.point.x, floor + VaultMaxHeight + .3f, block.point.z);
+            if (!Physics.Raycast(mid, Vector3.down, out var top, VaultMaxHeight + .3f, ~0, QueryTriggerInteraction.Ignore)) return false;
+            height = top.point.y - floor;
+            if (height < .3f || height > VaultMaxHeight) return false;
+            // 넘어가는 몸이 지나갈 공간(막이 위·머리 높이)이 비어 있어야 한다.
+            float over = floor + height + .35f, head = floor + Mathf.Max(height + .9f, 1.6f);
+            return Open(new Vector3(a.x, over, a.z), new Vector3(b.x, over, b.z))
+                && Open(new Vector3(a.x, head, a.z), new Vector3(b.x, head, b.z));
+        }
+
+        static bool FirstSolid(Vector3 from, Vector3 to, out RaycastHit first)
+        {
+            first = default;
+            var direction = to - from;
+            int count = Physics.RaycastNonAlloc(from, direction, hits, direction.magnitude, ~0, QueryTriggerInteraction.Ignore);
+            float nearest = float.PositiveInfinity;
+            for (int i = 0; i < count; i++) {
+                var t = hits[i].transform;
+                if (t.GetComponentInParent<NetworkPlayer>() != null || t.GetComponentInParent<PursuitActor>() != null) continue;
+                if (hits[i].distance < nearest) { nearest = hits[i].distance; first = hits[i]; }
+            }
+            return !float.IsPositiveInfinity(nearest);
+        }
+
+        // 잠긴 문·출입구·움직이는 소품은 넘지 않는다(문 규칙을 우회하지 않게).
+        static bool Barred(Collider c)
+        {
+            if (c.attachedRigidbody != null || c.GetComponentInParent<PursuitDoorObstacle>() != null
+                || c.GetComponentInParent<CurtainCall.HumanCannon.HumanCannonTrampoline>() != null) return true;
+            for (var t = c.transform; t != null; t = t.parent) {
+                var name = t.name.ToLowerInvariant();
+                if (name.Contains("door") || name.Contains("gate") || name.Contains("shutter")) return true;
+            }
+            return false;
         }
 
         static bool TryBottom(Vector3 top, Vector3 outward, float maxDrop, NavMeshQueryFilter query, out Vector3 bottom)

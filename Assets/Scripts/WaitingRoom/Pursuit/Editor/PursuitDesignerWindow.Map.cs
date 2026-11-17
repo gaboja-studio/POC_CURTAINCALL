@@ -162,7 +162,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 DragAndDrop.visualMode = prefab != null && inside ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
                 if (e.type == EventType.DragPerform && prefab != null && inside) {
                     DragAndDrop.AcceptDrag();
-                    SelectPlacement(PursuitAuthoring.Add(dropRoom, prefab, dropPosition)); pointIndex = -1;
+                    SelectPlacement(PursuitAuthoring.Add(dropRoom, prefab, dropPosition, true, PlacementFloor(dropRoom))); pointIndex = -1;
                     if (selected == null) ShowNotification(new GUIContent("이 위치에는 바닥이 없습니다. 방 내부 바닥 위에 놓아 주세요."));
                     e.Use();
                 }
@@ -177,7 +177,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             if (e.type == EventType.MouseDown && e.button == 0 && rect.Contains(e.mousePosition)) {
                 GUIUtility.keyboardControl = 0;
                 if (HasTargetRoom && addPoint && selected != null) {
-                    if (PursuitAuthoring.Ground(Room, Unproject(e.mousePosition, rect), out var ground)) {
+                    if (PursuitAuthoring.Ground(Room, Unproject(e.mousePosition, rect), out var ground, PlacementFloor(Room))) {
                         PursuitAuthoring.AddPoint(selected, ground); pointIndex = selected.PatrolPoints.Length - 1;
                     } else ShowNotification(new GUIContent("바닥 위에 감시 지점을 추가해 주세요."));
                     e.Use(); return;
@@ -205,7 +205,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 e.Use();
             }
             if (e.type == EventType.MouseDrag && e.button == 0 && dragging && selected != null) {
-                if (rect.Contains(e.mousePosition) && PursuitAuthoring.Ground(Room, Unproject(e.mousePosition, rect), out var ground)) {
+                if (rect.Contains(e.mousePosition) && PursuitAuthoring.Ground(Room, Unproject(e.mousePosition, rect), out var ground, PlacementFloor(Room))) {
                     if (pointIndex >= 0) { var point = selected.PatrolPoints[pointIndex]; Undo.RecordObject(point, "감시 지점 이동"); point.position = ground; PursuitAuthoring.Dirty(point); }
                     else PursuitAuthoring.Move(selected, ground, selected.transform.rotation);
                 }

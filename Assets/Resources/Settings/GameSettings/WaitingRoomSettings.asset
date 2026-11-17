@@ -191,7 +191,7 @@ MonoBehaviour:
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
       - Brightness: 0.25
-        AmbientBrightness: 0.25
+        AmbientBrightness: 0.45
         Tint: {r: 1, g: 0.3820755, b: 0.3820755, a: 1}
         TintAmount: 0.2
         CracklePerMinute: 5
@@ -206,10 +206,10 @@ MonoBehaviour:
         NeighborDistance: 4
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
-      - Brightness: 0.15
-        AmbientBrightness: 0.15
+      - Brightness: 0.25
+        AmbientBrightness: 0.25
         Tint: {r: 1, g: 0, b: 0, a: 1}
-        TintAmount: 0.2
+        TintAmount: 0.4
         CracklePerMinute: 5
         CrackleSeconds: 0.32
         CrackleDip: 0.08
