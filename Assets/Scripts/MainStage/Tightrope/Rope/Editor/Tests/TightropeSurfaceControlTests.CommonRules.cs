@@ -567,7 +567,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     GiveTrampolineHostAuthority(trampoline);
     MovePlayer(new Vector3(0f, 0f, 7f));
     ConfigureSmallTrampoline(trampoline, origin + new Vector3(0f, .6f, 7f));
-    var recovery = origin + Vector3.back;
+    var recovery = origin + new Vector3(3f, 0f, -1f);
     typeof(HumanCannonTrampoline).GetField("initialPosition", BindingFlags.Instance | BindingFlags.NonPublic)
      .SetValue(trampoline, recovery);
     if (hasSideFloor)
