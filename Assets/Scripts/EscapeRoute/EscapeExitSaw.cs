@@ -233,14 +233,7 @@ namespace CurtainCall.EscapeRoute
             var cannon = HumanCannonSystem.Current;
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
             float maxFootGap = reportedAirborne ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) : .25f;
-            int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .15f, Vector3.down, floorHits, .4f, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < count; i++)
-            {
-                var hit = floorHits[i];
-                if (hit.normal.y > .5f && hit.distance <= .15f + maxFootGap && hit.collider != null && !hit.collider.transform.IsChildOf(CarryRoot)
-                    && hit.collider.GetComponentInParent<NetworkPlayer>() == null) return true;
-            }
-            return false;
+            return HasSupport(player.transform.position, maxFootGap);
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
@@ -253,6 +246,8 @@ namespace CurtainCall.EscapeRoute
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
             carryBlocked = !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);
+            if (carryBlocked && !align)
+                carryBlocked = !TryFollowAlongContact(carrier, out position, out rotation, out carrierRotation);
             if (carryBlocked)
             {
                 // Undo horizontal penetration only. Restoring the old height suspends a falling carrier in midair.
@@ -314,8 +309,7 @@ namespace CurtainCall.EscapeRoute
         {
             followedCarrier = CannonSeatState.Nobody;
             CarrierChanged();
-            CarryRoot.SetPositionAndRotation(recoveryAnchor != null ? recoveryAnchor.position : initialPosition,
-                recoveryAnchor != null ? recoveryAnchor.rotation : initialRotation);
+            RecoverCarryPose();
             if (!DoorOpen) cutProgress = 0;
             cutting = carryBlocked = false;
         }

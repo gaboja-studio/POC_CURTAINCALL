@@ -83,7 +83,7 @@ namespace CurtainCall.EscapeRoute
             {
                 if (!ownership.TryApply(CannonAction.Release, actor, expected)) return;
                 CarrierChanged();
-                if (!Grounded(player)) Recover();
+                if (!CanLeaveAtCurrentPose(player)) Recover();
                 if (!DoorOpen) cutProgress = 0;
                 cutting = carryBlocked = false;
             }
