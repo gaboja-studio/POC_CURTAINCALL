@@ -1,42 +1,25 @@
 # Project Pitfalls
-
 - [Pursuit/](Pursuit/index.md) — 난간 벽 지지·환풍구 링크 갱신·플레이어 동작과 팔다리 봉합을 수정할 때
-
 - [escape-remake-parent-scale.md](escape-remake-parent-scale.md) — 탈출로 복사 씬에 새 경로·바닥·추격자 출구를 만들 때 부모 스케일과 절단 잔여물을 검사한다
-
 - [pursuer-doll-unity-rig.md](pursuer-doll-unity-rig.md) — 추격자 소켓·신장 손 크기·숙임 통로·플레이어 목 시선을 연결할 때
-
 - [Player/](Player/index.md) — 가구 모서리 부양과 실제 발 지지 판정을 확인할 때
 - [Reward/](Reward/index.md) — 같은 방 재시작 후 기존 참가자의 자금·장부만 갱신되지 않을 때
-
 - [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 시선 조작·출발 정렬·매달림 카메라 압착·절단 후 단차를 확인할 때
-
 - [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 패널이 비거나 새 방의 안내 잠금·재연습 설명 덮임이 발생할 때
-
 - [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
-
 - [escape-balance-ui-overrides.md](escape-balance-ui-overrides.md) — 같은 균형 HUD 프리팹인데 탈출로와 원본 외줄 UI의 두께/화면 스케일이 다를 때
-
 - [escape-held-saw-collision.md](escape-held-saw-collision.md) — 휴대 톱 자기 충돌·벽 뒤 전선/뱅크 교차·도달 재현을 확인할 때
-
 - [waiting-room-moved-camera-zones.md](waiting-room-moved-camera-zones.md) — 대기실 통로 재배치 뒤 시점이 너무 일찍 바뀌거나 기존 좌표 검사가 실패할 때
 - [escape-additive-footprint.md](escape-additive-footprint.md) — 대기실/A 동시 로드 시 전체 외벽 침범과 편집/런타임 위치 불일치를 검사할 때
-
 - [flag-double-sided-flicker.md](flag-double-sided-flicker.md) — 공연장 깃발의 양면 중복 렌더링·깜빡임을 확인할 때
 - [Human-cannon/](Human-cannon/index.md) — 트램펄린 모델 교체와 실제 접촉 경계를 확인할 때
-
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
-
 - [escape-cannon-platform-lanes.md](escape-cannon-platform-lanes.md) — 낮은 대포대 낙사·옆줄 점프 간격/시작점·길이 정보를 고칠 때
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지·시점 인계와 다리/장비 공유 시각·재수신을 고칠 때
-
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
-
 - [Telemetry/](Telemetry/index.md) — 로그·설문의 연결 종료와 최초 실행 시점을 확인할 때
-
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때
-
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 - [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
 - [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
@@ -46,11 +29,8 @@
 - [pursuit-narrow-top-no-navmesh.md](pursuit-narrow-top-no-navmesh.md) — 추격자가 드럼통·상자·침대 위 플레이어에게 오르지 못할 때
 - [pursuit-stale-navmesh-inside-props.md](pursuit-stale-navmesh-inside-props.md) — 추격자가 콜라이더로 막힌 물체 안으로 들어가거나 물체 속에서 오를 때(키 큰 물체 속 빈 바닥·건넘 연결, 배치 변경 뒤 미재굽기)
 - [pursuit-playmode-settings-pollution.md](pursuit-playmode-settings-pollution.md) — 추격 PlayMode 실패 뒤 다른 추격 테스트가 느린 추격·이상한 단계값으로 실패할 때(메모리 GameSettings 오염)
-
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
-
 - [imported-factory-lod.md](imported-factory-lod.md) — 공장 프리팹이 조감도에서는 보이고 근접 카메라에서는 사라질 때
-
 - [Ui/](Ui/index.md) — UI 키트 수신 뒤 공통 타입 중복 컴파일 오류가 발생할 때
 - [shell-rosetta-brew.md](shell-rosetta-brew.md) — brew install 실패 또는 pwsh를 찾지 못할 때
 - [duplicate-unity-cli.md](duplicate-unity-cli.md) — doctor의 unity-cli가 WARN이거나 셸마다 CLI 버전이 다를 때
@@ -78,3 +58,5 @@
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
 - [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 재사용·URP17 조명·8×8 연기 flipbook·절단 설비 조립 기준
 - [arrived-state-after-performance.md](arrived-state-after-performance.md) — 외줄 완주자가 Arrived로 남아 대기실 안내·상호작용·첫날 진행이 멈춘다
+
+- [escape-landing-surface-overlap.md](escape-landing-surface-overlap.md) — 착지대와 장식 받침의 자글거림, 장식 삭제 후 벽 구멍을 검사할 때

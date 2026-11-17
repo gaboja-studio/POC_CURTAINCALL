@@ -131,7 +131,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             foreach (var at in new[] { new Vector3(67, -10, 63), new Vector3(67, -16, 40), new Vector3(67, -22, 14) })
             {
                 BLight(group, at + new Vector3(4, 8, -2), at, 420, 24);
-                BMass(group, "층위를 드러내는 벽체 받침", new Vector3(72, at.y - 2, at.z), new Vector3(1.2f, 4, 4), bRecess);
+                // Depth is conveyed by the wall and lighting. Old decorative blocks
+                // protruded through the later shared cannon landing apron.
             }
             // Short approach: keep the huge former under-stage as architecture behind a closed service gate.
             var points = UnityEngine.Object.FindAnyObjectByType<PlayerSpawnPoints>();
