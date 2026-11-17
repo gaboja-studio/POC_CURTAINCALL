@@ -279,7 +279,9 @@ namespace CurtainCall.WaitingRoom
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
                 if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
                 bool look = kind == ExplorationGateKind.Monitor && screenSurface != null && monitorFeed != null && BeginLook();
-                if (look) panelView.Open(Label, MonitorText, false, null, ClosePanel, true);
+                // 조작법은 오버뷰·TV와 같은 방식으로 설명 아래 한 줄 띄우고 적는다(2026-11-17 사용자: 감시 화면에 조작법 누락).
+                if (look) panelView.Open(Label, (string.IsNullOrEmpty(MonitorText) ? "" : MonitorText + "\n\n") + "<color=#B8B29C>"
+                    + WaitingRoomText.Get("gate.monitor-help", "ESC·F·마우스 우클릭: 나가기") + "</color>", false, null, ClosePanel, true);
                 else if (IsTerminal) panelView.OpenTerminal(Label, password.Length, value => {
                     if (!PanelOwnerCanUse) { ClosePanel(); return; }
                     ExplorationState.Instance?.RequestCode(targetId, value);
@@ -315,12 +317,32 @@ namespace CurtainCall.WaitingRoom
             // 아래쪽 설명 판에 가리지 않게 화면을 조금 위쪽에 둔다.
             lookCamera.transform.SetPositionAndRotation(b.center + outward * distance + Vector3.down * (b.size.y * .28f), Quaternion.LookRotation(-outward, Vector3.up));
             lookCamera.enabled = true;
+            HidePlayers();
             return true;
         }
         void EndLook()
         {
+            ShowPlayers();
             if (lookCamera != null) { Destroy(lookCamera.gameObject); lookCamera = null; }
             if (screenSurface != null && kind == ExplorationGateKind.Monitor) screenSurface.enabled = false;
+        }
+        // 들여다보는 동안에는 캐릭터(나·동료)가 화면을 가리지 않게 내 화면에서만 숨긴다. 숙소 TV(TapeScreen)·스케줄표와 같은 규칙(2026-11-17 사용자).
+        readonly System.Collections.Generic.List<Renderer> hiddenPlayers = new();
+        float nextHide;
+        void HidePlayers()
+        {
+            nextHide = Time.unscaledTime + .5f; // 보는 중에 들어온 사람도 숨긴다
+            foreach (var p in NetworkPlayer.All)
+            {
+                if (p == null) continue;
+                foreach (var r in p.GetComponentsInChildren<Renderer>())
+                    if (!r.forceRenderingOff) { r.forceRenderingOff = true; hiddenPlayers.Add(r); }
+            }
+        }
+        void ShowPlayers()
+        {
+            foreach (var r in hiddenPlayers) if (r != null) r.forceRenderingOff = false;
+            hiddenPlayers.Clear();
         }
         static bool LocalCanUsePanel => NetworkPlayer.Local != null
             ? PlayerInteraction.CanInteract(NetworkPlayer.Local)
@@ -396,6 +418,8 @@ namespace CurtainCall.WaitingRoom
             if (feedShown && EscapeOpenCutscene.IsShowing) { if (!feedHidden && panelView != null) panelView.SetVisible(false); feedHidden = true; return; }
             if (feedHidden) { feedHidden = false; if (panelView != null) panelView.SetVisible(true); feedShownAt = Time.unscaledTime; feedUntil = Time.unscaledTime + FeedTextSeconds; }
             if (!PanelOwnerCanUse) { ClosePanel(); return; }
+            if (lookCamera != null && Time.unscaledTime >= nextHide) HidePlayers();
+            if (lookCamera != null && Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame) { ClosePanel(); return; }
             // 단말기: 암호가 맞으면 바로 닫지 않고 "잠금 해제 완료" 문구 창을 잠깐 띄운다. 영상은 없다 — 문이 열리는 모습은 나가는 길 개방 연출이 모두에게 보여 준다(2026-11-15 사용자).
             bool feed = IsTerminal && monitorCamera != null && Opened;
             if (feed && !feedShown && panelView != null)

@@ -38,6 +38,8 @@ namespace CurtainCall.WaitingRoom
         /// N01(오늘 밤 할 일)은 왼쪽 설명 패널로, 밤 연계의 첫 안내(G01과 같은 텍스트 잠금)로 띄운다.
         /// 오른쪽에는 첫날 진행 퀘스트(<see cref="WaitingRoomFirstDayFlow"/>)를 띄운다.
         string[] RestChain,NightChain;
+        /// 2026-11-17 사용자: N04 물려줄 선반은 밤 연계에서 빼고, 소품실 안으로 들어섰을 때(문틀이 아니라 방 안) 바로 카메라 안내로 띄운다. 그때 떠 있던 화면 위 알림(잠긴 문 해제 조건)은 잠시 내렸다가 안내가 끝나면 이어서 띄운다.
+        const string ShelfId = "N04";
         static readonly HashSet<string> CloseUpIds = new() { "G11", "N02", "N04", "N03", "N05", "G10" };
         static readonly HashSet<string> LockedIds = new(CloseUpIds) { "G01", "N01" };
 
@@ -73,8 +75,9 @@ namespace CurtainCall.WaitingRoom
             foreach (string id in LockedIds) if (Book.IsQueued(id)) return false;
             if (state.Phase == CampaignPhase.Night)
             {
-                foreach (string id in instance.NightChain) if (!Book.IsDone(id)) return false;
-                return Book.IsDone("N05");
+                // 잠긴 장소의 안내는 해금 뒤로 미뤄지므로 전원 대기를 붙잡지 않는다.
+                foreach (string id in instance.NightChain) if (id != ShelfId && !Book.IsDone(id) && !instance.PlaceLocked(id)) return false;
+                return Book.IsDone("N05") || instance.PlaceLocked("N05");
             }
             if (state.Rest == RestKind.Guide)
                 foreach (string id in instance.RestChain) if (!Book.IsDone(id)) return false;
@@ -228,12 +231,67 @@ namespace CurtainCall.WaitingRoom
             if (rest) CheckRest(s);
             if (night)
             {
-                foreach (var id in NightChain) b.Enqueue(id);
+                foreach (var id in NightChain) if (id != ShelfId) b.Enqueue(id);
                 b.Enqueue("N05");
+                // 숙소 문이 닫혀 잠자기 안내를 미루는 동안에는, 밤 연계 안내가 끝난 뒤 문부터 열라고 왼쪽 설명 패널로 알린다(2026-11-17 사용자).
+                if (!sequence && !InputGate.IsBlocked && DormEntryEvent.IsDoorShut && !b.IsDone("N05") && NightChainShown()) b.Enqueue("N06");
+                else if (b.IsQueued("N06") && !DormEntryEvent.IsDoorShut) b.Dequeue("N06");
             }
             CheckNearby();
             CheckHeld();
+            // 해금되지 않은 장소의 안내는 줄에서 빼 두고, 그 장소가 열린 뒤에 띄운다(2026-11-17 사용자 규칙 변경).
+            foreach (string id in PlaceIds) if (b.IsQueued(id) && PlaceLocked(id)) b.Dequeue(id);
+            foreach (string id in NightChain) if (b.IsQueued(id) && PlaceLocked(id)) b.Dequeue(id);
             Pump();
+        }
+
+        static readonly string[] PlaceIds = { "N04", "N05" };
+        const string PropRoomDoorId = "learning:craft-door", WorkshopGateName = "WorkshopGate";
+        Collider propRoomDoor; NightDoorLock workshopGate; bool placeDoorsFound;
+
+        /// <summary>
+        /// 안내가 비추는 장소가 아직 잠겨 있는가(2026-11-17 사용자: 해금되지 않은 장소는 보여 주지 않고 해금한 다음에 안내한다).
+        /// N05 숙소 침대 = 숙소 입구 문, N04 물려줄 선반 = 소품실 전실의 전기 문과 작업실 갈림길 셔터. 문이 없는 씬에서는 잠기지 않은 것으로 본다.
+        /// </summary>
+        bool PlaceLocked(string id)
+        {
+            if (IsExtra(id))
+                id = WaitingRoomHudProfile.Current.Extra(id)?.shot switch { RoomShot.Shelf => "N04", RoomShot.Bed => "N05", _ => null };
+            if (id != "N04" && id != "N05") return false;
+            int slot = id == "N04" ? 0 : 1;
+            // 문이 열리는 연출·움직임과 겹치지 않게, 이 화면에서 잠겨 있던 장소는 열린 뒤 연출이 끝나고(조작이 돌아오고) 잠시 지나서야 해금으로 본다(2026-11-17 사용자).
+            if (DoorClosed(id)) { wasLocked[slot] = true; unlockedAt[slot] = Time.unscaledTime; return true; }
+            if (!wasLocked[slot]) return false;
+            if (!sequence && InputGate.IsBlocked) unlockedAt[slot] = Time.unscaledTime;
+            if (Time.unscaledTime - unlockedAt[slot] < UnlockSettleSeconds) return true;
+            wasLocked[slot] = false;
+            return false;
+        }
+        /// <summary>문이 다 열리고 그 연출·알림이 지나간 뒤 안내를 시작하기까지 두는 간격(초).</summary>
+        const float UnlockSettleSeconds = 2.5f;
+        readonly bool[] wasLocked = new bool[2];
+        readonly float[] unlockedAt = new float[2];
+
+        bool DoorClosed(string id)
+        {
+            if (id == "N05") return DormEntryEvent.IsDoorClosed;
+            if (!placeDoorsFound || propRoomDoor == null && workshopGate == null)
+            {
+                placeDoorsFound = true;
+                foreach (var gate in FindObjectsByType<ExplorationGate>(FindObjectsSortMode.None))
+                    if (gate.TargetId == PropRoomDoorId) propRoomDoor = gate.GetComponent<BoxCollider>();
+                foreach (var gate in FindObjectsByType<NightDoorLock>(FindObjectsSortMode.None))
+                    if (gate.name == WorkshopGateName) workshopGate = gate;
+            }
+            return propRoomDoor != null && propRoomDoor.enabled && propRoomDoor.gameObject.activeInHierarchy
+                || workshopGate != null && workshopGate.isActiveAndEnabled && workshopGate.IsLocked;
+        }
+
+        /// <summary>밤 연계 안내 중 지금 띄울 수 있는 것(잠긴 장소 제외)을 모두 봤다.</summary>
+        bool NightChainShown()
+        {
+            foreach (string id in NightChain) if (id != ShelfId && !Book.IsDone(id) && !PlaceLocked(id)) return false;
+            return true;
         }
 
         /// <summary>지금 런의 본 안내 ID 목록. 테스트 확인용.</summary>
@@ -252,6 +310,21 @@ namespace CurtainCall.WaitingRoom
             else if (Time.time - restStartedAt >= HiddenGearDelay) b.Enqueue("G08");
         }
 
+        /// <summary>내 캐릭터가 소품실 방 안에 들어와 있다. 전실·갈림길(문틀 쪽)에서 0.8m 넘게 안쪽이어야 한다.</summary>
+        bool InPropRoom()
+        {
+            if (zones == null || !ShopReach.TryLocalFeet(out var feet)) return false;
+            var point = feet + Vector3.up * .5f; bool inside = false;
+            foreach (var zone in zones.Zones)
+            {
+                if (zone == null || !zone.enabled || !zone.gameObject.activeInHierarchy) continue;
+                var b = zone.bounds;
+                if (zone.name == "Area_S04_PropRoom") inside |= b.Contains(point);
+                else if (zone.name == "F8_PropRoom" || zone.name == "WorkshopBranch" || zone.name == "Area_S10_Workshop") { b.Expand(new Vector3(1.6f, 0f, 1.6f)); if (b.Contains(point)) return false; }
+            }
+            return inside;
+        }
+
         void CheckNearby()
         {
             var b = Book;
@@ -259,8 +332,8 @@ namespace CurtainCall.WaitingRoom
             // 상호작용 가능한 대상을 처음 발견(바라봄)했을 때 상호작용 안내.
             if (focused != null) b.Enqueue("G03");
             if (focused is ShopPhone && CampaignRun.Instance.State.Phase == CampaignPhase.RestTime) b.Enqueue("G09");
-            else if (focused is HandoverShelfView) b.Enqueue("N04");
             else if (focused is ExplorationGate gate && gate.NeedsPartner && gate.HasKeySlots) b.Enqueue("G12");
+            if (InPropRoom()) b.Enqueue(ShelfId);
         }
 
         void CheckHeld()
@@ -317,6 +390,8 @@ namespace CurtainCall.WaitingRoom
             float seconds = framed ? WaitingRoomTutorialCamera.Total : IsExtra(entry.id) ? entry.seconds : TextLockSeconds;
             if (!ShowEntry(entry, body, seconds)) { closeUp.Stop(); return; }
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
+            // 소품실 안내는 들어서는 즉시 시작한다. 떠 있던 화면 위 알림(잠긴 문 해제 조건 등)은 잠시 내렸다가 안내가 끝나면 이어서 띄운다(2026-11-17 사용자).
+            if (entry.id == ShelfId) WaitingRoomGuidePanel.Suspend();
             stepEndsAt = Time.unscaledTime + seconds;
             b.MarkDone(entry.id);
         }
@@ -344,6 +419,7 @@ namespace CurtainCall.WaitingRoom
         void EndSequence()
         {
             if (closeUp != null) closeUp.Stop();
+            WaitingRoomGuidePanel.Resume();
             if (!sequence) return;
             sequence = false;
             InputGate.SetBlocking(this, false);
@@ -391,7 +467,11 @@ namespace CurtainCall.WaitingRoom
                     var board = FindFirstObjectByType<ScheduleBoardView>();
                     if (board == null) break;
                     // 스케줄표 창이 쓰는 클로즈업 자리를 그대로 쓴다.
-                    if (board.CloseUpPose != null) { pos = board.CloseUpPose.position; rot = board.CloseUpPose.rotation; point = RendererBounds(board.VisualRoot).center; return true; }
+                    // 단, 스케줄표를 옮긴 뒤 클로즈업 자리가 옛 위치에 남아 있으면(2026-11-17: 23m 떨어져 있었음) 쓰지 않고 스케줄표 앞에 새로 잡는다.
+                    var boardCenter = RendererBounds(board.VisualRoot).center;
+                    if (board.CloseUpPose != null && (board.CloseUpPose.position - boardCenter).sqrMagnitude < 6f * 6f
+                        && Vector3.Dot(board.CloseUpPose.forward, (boardCenter - board.CloseUpPose.position).normalized) > .5f)
+                    { pos = board.CloseUpPose.position; rot = board.CloseUpPose.rotation; point = boardCenter; return true; }
                     focus = RendererBounds(board.VisualRoot);
                     break;
                 case "N05":

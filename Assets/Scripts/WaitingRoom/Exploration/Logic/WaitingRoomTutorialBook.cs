@@ -50,6 +50,7 @@ namespace CurtainCall.WaitingRoom
             new TutorialEntry("N03", "내일 공연 정하기", "로비 스케줄표에서 공연과 난이도를 고르면 바로 적용됩니다. 공연 입장 전까지 변경할 수 있습니다."),
             new TutorialEntry("N04", "물려줄 선반", "선반 4칸에 올린 기물은 런에 실패해 처음부터 다시 시작해도 남습니다."),
             new TutorialEntry("N05", "잠자리", "준비가 끝나면 숙소의 자기 침대에서 [{interact}]를 누르세요. 모두 누우면 다음 날이 됩니다."),
+            new TutorialEntry("N06", "숙소 문 열기", "숙소 문이 닫혀 있습니다. 침대에 누우려면 먼저 숙소 문을 열어야 합니다."),
             // 상황 안내
             new TutorialEntry("S01", "다시 깨어남", "공연에서 쓰러졌지만 팔 하나만 남은 채 돌아왔습니다. 신체 복구로 잃은 팔다리를 되찾을 수 있습니다."),
             new TutorialEntry("S02", "쓰러진 동료", "공연에서 쓰러진 동료는 다음 쉬는 시간에 팔 하나만 남은 채 돌아옵니다."),
@@ -114,6 +115,9 @@ namespace CurtainCall.WaitingRoom
             queue.Remove(id);
             if (entries.ContainsKey(id)) done.Add(id);
         }
+
+        /// <summary>본 것으로 기록하지 않고 줄에서만 뺀다(조건이 다시 맞으면 다시 줄 선다).</summary>
+        public void Dequeue(string id) => queue.Remove(id);
 
         public void ResetAll() { done.Clear(); queue.Clear(); }
         public void ClearQueue() => queue.Clear();

@@ -7,10 +7,14 @@ using UnityEngine.AI;
 
 namespace CurtainCall.WaitingRoom
 {
-    /// <summary>통행 가능한 바닥 경로 위로 이동하는 개인 튜토리얼 카메라. 경로가 없으면 벽을 관통하는 이동을 하지 않는다.</summary>
+    /// <summary>
+    /// 통행 가능한 바닥 경로 위로 이동하는 개인 튜토리얼 카메라. 잠긴 장소의 안내는 <see cref="WaitingRoomTutorial"/>이 해금 뒤로 미루므로 문을 뚫지 않는다.
+    /// 바닥 경로가 없으면 안내를 건너뛰지 않고 목적지까지 곧장 날아간다. 다 보여 준 뒤에는 되돌아가는 이동 없이 바로 플레이어 시점으로 바뀐다(2026-11-17 사용자).
+    /// </summary>
     public sealed class WaitingRoomTutorialCamera : MonoBehaviour
     {
-        public const float MoveIn = 1.8f, Hold = 2.5f, MoveOut = MoveIn / 3f, Total = MoveIn + Hold + MoveOut;
+        /// <summary>복귀는 화면 전환(컷)이라 이동 시간이 없다.</summary>
+        public const float MoveIn = 1.8f, Hold = 2.5f, MoveOut = 0f, Total = MoveIn + Hold + MoveOut;
         const int Priority = 230;
         const float EyeHeight = 1.6f, Clearance = .12f;
         /// <summary>모퉁이를 둥글게 도는 최대 반경(m)·앞을 내다보는 거리(m)·회전이 따라가는 빠르기·호를 나누는 수.</summary>
@@ -20,16 +24,29 @@ namespace CurtainCall.WaitingRoom
         CinemachineBrain brain;
         CinemachineBlendDefinition savedBlend;
         CinemachineBlenderSettings savedCustom;
-        bool blendCut, routeReady, chained, leaving;
+        bool blendCut, routeReady, chained;
         int restoreAtFrame = -1;
-        Vector3 fromPos, toPos, focusPoint, homePos, homeFeet;
-        Quaternion fromRot, toRot, homeRot;
-        float startedAt, routeLength, backLength, moveIn, moveOut;
-        readonly List<Vector3> route = new(), back = new();
+        Vector3 fromPos, toPos, focusPoint, homeFeet;
+        Quaternion fromRot, toRot;
+        float startedAt, routeLength, moveIn;
+        readonly List<Vector3> route = new();
         Coroutine preparing;
         NavMeshData navData;
         NavMeshDataInstance navInstance;
         NavMeshQueryFilter navFilter;
+        static bool Ignored(Collider c) => c == null || passThrough.Contains(c) || c.GetComponentInParent<NetworkPlayer>() != null;
+        /// <summary>카메라가 돌아가지 않고 그대로 뚫고 지나가는 장식(로비 가운데 원뿔 천막과 그 둘레 소품, 2026-11-17 사용자). 경로를 준비할 때마다 다시 모은다.</summary>
+        const string TentRootName = "ShabbyChristmasTent";
+        static readonly HashSet<Collider> passThrough = new();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => passThrough.Clear();
+        static void CollectPassThrough()
+        {
+            passThrough.Clear();
+            var tent = GameObject.Find(TentRootName);
+            if (tent != null) passThrough.UnionWith(tent.GetComponentsInChildren<Collider>(true));
+        }
+
         public bool IsActive => view != null;
         /// <summary>이동·복귀뿐 아니라 원래 카메라 블렌드 복구까지 끝나야 다음 안내를 시작할 수 있다.</summary>
         public bool IsBusy => view != null || preparing != null || blendCut || restoreAtFrame >= 0;
@@ -39,7 +56,10 @@ namespace CurtainCall.WaitingRoom
         public Vector3 LastCompletedFocus { get; private set; }
         public string RouteFailure { get; private set; }
         /// <summary>지금 장소를 다 보여줘 복귀를 시작할 차례다. 이 프레임에 <see cref="Continue"/>를 부르면 복귀 없이 다음 장소로 간다.</summary>
-        public bool HoldEnded => view != null && routeReady && !leaving && Time.unscaledTime - startedAt >= moveIn + Hold;
+        public bool HoldEnded => view != null && routeReady && Time.unscaledTime - startedAt >= moveIn + Hold;
+        /// <summary>바닥 경로 없이 곧장 날아가는 중(막힘 검사를 하지 않는다).</summary>
+        bool direct;
+        int holdEndFrame = -1;
 
         public bool Begin(Vector3 pos, Quaternion rot) => Begin(pos, rot, pos + rot * Vector3.forward * 4f);
 
@@ -48,10 +68,10 @@ namespace CurtainCall.WaitingRoom
             var main = Camera.main;
             if (main == null || NetworkPlayer.Local == null) return false;
             Stop();
-            fromPos = homePos = main.transform.position; fromRot = homeRot = main.transform.rotation;
+            fromPos = main.transform.position; fromRot = main.transform.rotation;
             homeFeet = NetworkPlayer.Local.transform.position;
             toPos = pos; toRot = rot; focusPoint = focus;
-            routeReady = chained = leaving = false; route.Clear(); back.Clear(); RouteCompleted = false; RouteFailure = "";
+            routeReady = chained = false; route.Clear(); RouteCompleted = false; RouteFailure = ""; holdEndFrame = -1;
             CutBlends(main);
             var go = new GameObject("TutorialCloseUpCamera");
             go.transform.SetParent(transform, false);
@@ -69,20 +89,22 @@ namespace CurtainCall.WaitingRoom
             RouteCompleted = false; CompletedRouteCount++; LastCompletedFocus = focusPoint;
             fromPos = view.transform.position; fromRot = view.transform.rotation;
             toPos = pos; toRot = rot; focusPoint = focus;
-            routeReady = false; chained = true; RouteFailure = "";
+            routeReady = false; chained = true; RouteFailure = ""; holdEndFrame = -1;
             preparing = StartCoroutine(PrepareRoute(fromPos + Vector3.down * EyeHeight));
             return true;
         }
 
         IEnumerator PrepareRoute(Vector3 feet)
         {
+            direct = false; CollectPassThrough();
+            Vector3 wantedPos = toPos; Quaternion wantedRot = toRot;
             var bounds = new Bounds(new Vector3(-10f, 8f, 80f), new Vector3(160f, 60f, 160f));
             bounds.Encapsulate(feet); bounds.Encapsulate(toPos); bounds.Encapsulate(homeFeet); bounds.Expand(12f);
             var sources = new List<NavMeshBuildSource>();
             NavMeshBuilder.CollectSources(bounds, ~0, NavMeshCollectGeometry.PhysicsColliders, 0,
                 new List<NavMeshBuildMarkup>(), sources);
             sources.RemoveAll(s => s.component is Collider c && (c.isTrigger || !c.enabled || !c.gameObject.activeInHierarchy
-                || c.GetComponentInParent<NetworkPlayer>() != null));
+                || Ignored(c)));
             // 전용 에이전트로 굽고 조회한다. 같은 에이전트면 리허설 때 구운 길안내 NavMesh(철창이 닫힌 옛 맵)가 경로에 섞인다.
             var settings = NavMesh.CreateSettings();
             navFilter = new NavMeshQueryFilter { agentTypeID = settings.agentTypeID, areaMask = NavMesh.AllAreas };
@@ -117,53 +139,21 @@ namespace CurtainCall.WaitingRoom
             {
                 // 벽을 따라 꺾이는 경로점을 그대로 타면 카메라가 튄다. 막히지 않는 만큼 곧게 잇고 모퉁이는 둥글게 돈다.
                 var smooth = RoundCorners(Simplify(leg));
-                PlanReturn(smooth, goal.position);
                 route.Clear(); route.AddRange(smooth);
-                routeLength = Length(route);
             }
             ReleaseNavMesh(); preparing = null;
             if (!valid || leg.Count < 2)
             {
                 if (string.IsNullOrEmpty(RouteFailure)) RouteFailure = $"바닥 경로 없음: {start} → {desired}, {path?.status.ToString() ?? "후보 없음"}";
-                Debug.LogWarning("[TutorialCamera] 통행 가능한 카메라 경로가 없어 이동 연출을 생략합니다. " + RouteFailure);
-                // 이어 가는 중이면 끊지 않고 지금 자리에서 플레이어에게 돌아간다.
-                if (chained) { startedAt = Time.unscaledTime - moveIn - Hold; routeReady = true; }
-                else Stop();
-                yield break;
+                Debug.LogWarning("[TutorialCamera] 통행 가능한 카메라 경로가 없어 목적지까지 곧장 이동합니다. " + RouteFailure);
+                // 안내를 건너뛰거나 연달아 넘기지 않게, 원래 잡은 자리까지 곧장 날아가 보여 준다.
+                direct = true; toPos = wantedPos; toRot = wantedRot;
+                route.Clear(); route.Add(fromPos); route.Add(toPos);
+                if (Vector3.Distance(fromPos, toPos) < .05f) route[1] = toPos + Vector3.up * .05f;
             }
+            routeLength = Length(route);
             moveIn = Mathf.Max(MoveIn, routeLength / 14f);
-            // 복귀 경로를 갈 때보다 3배 빠르게 지난다.
-            moveOut = Mathf.Max(.2f, Mathf.Max(MoveIn, backLength / 14f) / 3f);
-            startedAt = Time.unscaledTime; routeReady = true; leaving = false;
-        }
-
-        /// <summary>
-        /// 한 장소만 보면 온 길을 되돌아간다. 이어 간 뒤에는 지나온 장소를 되짚지 않고 마지막 장소에서 플레이어에게 곧장 간다.
-        /// 곧장 갈 길이 없으면 지나온 길로 돌아간다.
-        /// </summary>
-        void PlanReturn(List<Vector3> leg, Vector3 goalFloor)
-        {
-            var reversed = new List<Vector3>(leg);
-            reversed.Reverse();
-            if (!chained) { back.Clear(); back.AddRange(reversed); backLength = Length(back); return; }
-            var home = new List<Vector3>();
-            var path = new NavMeshPath();
-            bool clear = NavMesh.SamplePosition(homeFeet, out var feet, 3f, navFilter)
-                && NavMesh.CalculatePath(goalFloor, feet.position, navFilter, path) && path.status == NavMeshPathStatus.PathComplete;
-            if (clear)
-            {
-                AddPoint(home, toPos);
-                foreach (var corner in path.corners) AddPoint(home, corner + Vector3.up * EyeHeight);
-                AddPoint(home, homeFeet + Vector3.up * EyeHeight);
-                for (int i = 1; i < home.Count && clear; i++) clear = ClearSegment(home[i - 1], home[i]);
-            }
-            if (clear)
-            {
-                AddPoint(home, homePos);
-                home = RoundCorners(Simplify(home));
-            }
-            else { home = reversed; home.AddRange(back); }
-            back.Clear(); back.AddRange(home); backLength = Length(back);
+            startedAt = Time.unscaledTime; routeReady = true; holdEndFrame = -1;
         }
 
         static float Length(List<Vector3> points)
@@ -257,7 +247,7 @@ namespace CurtainCall.WaitingRoom
             var delta = b - a;
             if (delta.sqrMagnitude < .0001f) return true;
             foreach (var hit in Physics.SphereCastAll(a, Clearance, delta.normalized, delta.magnitude, ~0, QueryTriggerInteraction.Ignore))
-                if (hit.collider != null && hit.collider.GetComponentInParent<NetworkPlayer>() == null) return false;
+                if (!Ignored(hit.collider)) return false;
             return true;
         }
 
@@ -288,29 +278,31 @@ namespace CurtainCall.WaitingRoom
             if (view != null && routeReady)
             {
                 float t = Time.unscaledTime - startedAt;
-                bool returning = leaving = t >= moveIn + Hold;
-                float progress = returning ? Mathf.SmoothStep(0f, 1f, (t - moveIn - Hold) / moveOut) : Mathf.SmoothStep(0f, 1f, t / moveIn);
-                var path = returning ? back : route;
-                float total = returning ? backLength : routeLength;
-                var position = PointAt(path, total, progress);
-                // 플레이어 쪽 첫 구간(카메라 ↔ 플레이어 눈높이)은 원래 화면이 보던 구간이라 막힘 검사를 하지 않는다.
-                bool nearPlayer = returning
-                    ? progress * total >= total - Vector3.Distance(path[path.Count - 2], path[path.Count - 1]) - .05f
-                    : !chained && progress * total <= Vector3.Distance(path[0], path[1]) + .05f;
-                if (!nearPlayer && !ClearSegment(view.transform.position, position)) { Stop(); return; }
-                Quaternion rotation = toRot;
-                if (t < moveIn || returning)
+                if (t >= moveIn + Hold)
                 {
-                    // 지금 구간이 아니라 조금 앞의 경로를 바라본다. 모퉁이에서 고개가 꺾이지 않고 미리 돌아간다.
-                    var look = PointAt(path, total, progress + LookAhead / Mathf.Max(total, .01f)) - position;
-                    look.y = 0f;
-                    rotation = look.sqrMagnitude > .01f ? Quaternion.LookRotation(look) : view.transform.rotation;
-                    rotation = Quaternion.Slerp(rotation, returning ? homeRot : toRot, Mathf.SmoothStep(0f, 1f, progress * 5f - 4f));
+                    // 다 보여 줬다. 한 프레임은 다음 장소로 이어 갈 기회(Continue)를 주고, 이어 가지 않으면 되돌아가는 이동 없이 바로 플레이어 시점으로 바꾼다.
+                    if (holdEndFrame < 0) holdEndFrame = Time.frameCount;
+                    else if (Time.frameCount > holdEndFrame)
+                    { RouteCompleted = true; CompletedRouteCount++; LastCompletedFocus = focusPoint; Stop(); }
                 }
-                view.transform.SetPositionAndRotation(position, Quaternion.Slerp(view.transform.rotation, rotation, 1f - Mathf.Exp(-TurnRate * Time.unscaledDeltaTime)));
-                if (t >= moveIn + Hold + moveOut)
+                else
                 {
-                    RouteCompleted = true; CompletedRouteCount++; LastCompletedFocus = focusPoint; Stop();
+                    float progress = Mathf.SmoothStep(0f, 1f, t / moveIn);
+                    var position = PointAt(route, routeLength, progress);
+                    // 플레이어 쪽 첫 구간(카메라 ↔ 플레이어 눈높이)은 원래 화면이 보던 구간이라 막힘 검사를 하지 않는다.
+                    bool nearPlayer = !chained && progress * routeLength <= Vector3.Distance(route[0], route[1]) + .05f;
+                    // 가는 길이 막혀도(그 사이 닫힌 문 등) 연출을 끊지 않고 그대로 지나간다.
+                    if (!direct && !nearPlayer && !ClearSegment(view.transform.position, position)) direct = true;
+                    Quaternion rotation = toRot;
+                    if (t < moveIn)
+                    {
+                        // 지금 구간이 아니라 조금 앞의 경로를 바라본다. 모퉁이에서 고개가 꺾이지 않고 미리 돌아간다.
+                        var look = PointAt(route, routeLength, progress + LookAhead / Mathf.Max(routeLength, .01f)) - position;
+                        look.y = 0f;
+                        rotation = look.sqrMagnitude > .01f ? Quaternion.LookRotation(look) : view.transform.rotation;
+                        rotation = Quaternion.Slerp(rotation, toRot, Mathf.SmoothStep(0f, 1f, progress * 5f - 4f));
+                    }
+                    view.transform.SetPositionAndRotation(position, Quaternion.Slerp(view.transform.rotation, rotation, 1f - Mathf.Exp(-TurnRate * Time.unscaledDeltaTime)));
                 }
             }
             if (restoreAtFrame >= 0 && Time.frameCount >= restoreAtFrame) { restoreAtFrame = -1; RestoreBlends(); }

@@ -39,7 +39,7 @@ expert-room.status-waiting-entry | {player} 입장 대기중...
 expert-room.status-in-use | 이용 중...
 expert-room.status-done | 복구 완료
 expert-room.status-open | 의료 서비스 이용 가능
-expert-room.status-closed-show | 공연 중 휴업
+expert-room.status-closed-show | 공연 중 이용 불가
 # 예약한 공연 준비자 화면 위쪽에 계속 보이는 안내 ({meters} = 승강기까지 거리, m)
 expert-room.booked-hint-distance | 서비스 예약됨 — 의료용 승강기 앞에서 F · {meters}m
 expert-room.booked-hint | 서비스 예약됨 — 의료용 승강기 앞에서 F
@@ -722,6 +722,7 @@ target.final:torn-note-4.name | 찢겨진 노트 낱장
 target.final:torn-note-4.desc | 누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.
 gate.terminal-feed-title | cam_exit.feed
 gate.terminal-feed-locked | > 잠금 해제 완료
+gate.monitor-help | ESC·F·마우스 우클릭: 나가기
 
 # 맨몸 부수기: 도구 없이 칠 때 F 안내 뒤에 붙는 말(2026-11-13)
 prompt.bare-hold | F키로 상호작용 하기
@@ -774,8 +775,9 @@ cutscene.escape-open.title | 나가는 길
 cutscene.escape-open.body | 나가는 길이 개방되었습니다. 서커스장에서 탈출하세요.
 
 # 숙소 입구 이벤트(2026-11-14). 화면 위 시스템 알림.
-cutscene.dorm-door.title | 잠긴 문
+cutscene.dorm-door.title | 숙소 문
 cutscene.dorm-door.body | 절단기를 이용해 배선을 끊어 숙소 문을 여세요.
+target.dorm:entry-door.locked | 휴대 절단기를 이용해 전력을 끊어야 합니다.
 
 # 녹슨 문 발견 연출(2026-11-14). 화면 위 시스템 알림.
 cutscene.rust-door.title | 상호작용 가능한 기물
