@@ -16,3 +16,4 @@
 
 - 2026-11-17 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 비공개 메시 제출: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/22 (94303505). GitHub 연결 앱은 private PR 생성 404로 CLI 사용. 원래 private 작업 트리 HEAD/폰트 수정은 보존.
+- 제출 상태: 공개 커밋 b4078835 저장 완료. pre-push가 private 94303505의 main 미반영을 이유로 push 거절. private PR #22 선행 병합 승인을 요청했고 공개 PR은 아직 생성하지 않음. 기존 폰트/재질 때문에 new-pr DryRun의 dirty 경고가 남지만 해당 변경은 제출 대상에서 제외했다.
