@@ -27,7 +27,7 @@ namespace CurtainCall.HumanCannon
         Vector3 SharedPosition => dropping ? dropTarget : transform.position;
 
         /// <summary>낙사 때 옮길 곳: 시작 지점에 가장 가까운 생존자 발밑 지면. 공중 생존자도 그 아래 지면을 쓴다.
-        /// 대포 안이거나 발밑에 지면이 없으면 생존자 2m 뒤, 거기도 지면이 없으면 4m 뒤에 둔다.</summary>
+        /// 발밑에 둘 수 없으면 2m와 4m 뒤의 지면을 확인한다.</summary>
         bool TryFindSurvivorGround(out Vector3 ground)
         {
             ground = default;
@@ -47,19 +47,25 @@ namespace CurtainCall.HumanCannon
             Vector3 position = survivor.transform.position;
             var cannon = HumanCannonSystem.Current;
             bool seated = cannon != null && cannon.IsSeated(survivor.OwnerClientId);
-            if (!seated && TryFindGround(position, out ground)) return true;
+            if (!seated && TryFindDropPlacement(position, survivor, initialRotation, out ground)) return true;
             Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up);
             if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
-            // 2m 뒤 아래에 지면이 있으면 그 위에, 없으면 2m 더 뒤(4m)를 본다. 그래도 없으면 4m 뒤 생존자 높이에 둔다.
+            // Try the existing recovery offsets before returning to the authored rest pose.
             Vector3 behind = position;
             for (int step = 0; step < SurvivorBehindSteps; step++)
             {
                 behind -= forward.normalized * SurvivorBehindDistance;
-                if (TryFindGround(behind, out ground)) return true;
+                if (TryFindDropPlacement(behind, survivor, initialRotation, out ground)) return true;
             }
-            ground = behind;
-            return true;
+            return false;
         }
+
+        bool TryFindDropPlacement(Vector3 from, NetworkPlayer carrier, Quaternion rotation, out Vector3 ground) =>
+            TryFindGround(from, out ground) && HumanCannonCarry.CanMove(transform, carryBody, ground, rotation, carrier, false);
+
+        bool TryDropHere(NetworkPlayer carrier, out Vector3 ground) =>
+            TryFindDropPlacement(transform.position, carrier, transform.rotation, out ground)
+            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, true, 0f, null, allowExistingOverlap: true);
 
         /// <summary>주어진 위치 바로 아래 가장 가까운 지면. 플레이어·자기 자신·트리거·벽면은 제외한다.</summary>
         bool TryFindGround(Vector3 from, out Vector3 ground, bool avoidRope = false)
@@ -128,7 +134,8 @@ namespace CurtainCall.HumanCannon
 
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
             TryFindGround(from, out ground, avoidRope: true) && from.y - ground.y <= reach
-            && HumanCannonCarry.CanMove(transform, MoveCheckBody, ground, transform.rotation, carrier);
+            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, false)
+            && HumanCannonCarry.CanMove(transform, carryBody, ground, transform.rotation, carrier, true, 0f, null, allowExistingOverlap: true);
 
         void StartDrop(Vector3 target)
         {
@@ -148,11 +155,12 @@ namespace CurtainCall.HumanCannon
         void StopDrop() => dropping = false;
 
         /// <summary>원격 화면: 확정 지점이 현재 위치 바로 아래면 순간이동 대신 떨어뜨린다.</summary>
-        bool TryStartRemoteDrop(Vector3 target)
+        bool TryStartRemoteDrop(Vector3 target, Quaternion rotation)
         {
             Vector3 position = transform.position;
             Vector2 horizontal = new Vector2(target.x - position.x, target.z - position.z);
-            if (target.y >= position.y - DropMinHeight || horizontal.sqrMagnitude > DropHorizontalTolerance * DropHorizontalTolerance)
+            if (target.y >= position.y - DropMinHeight || horizontal.sqrMagnitude > DropHorizontalTolerance * DropHorizontalTolerance
+                || !HumanCannonCarry.CanMove(transform, carryBody, target, rotation, null, true))
                 return false;
             StartDrop(target);
             return true;

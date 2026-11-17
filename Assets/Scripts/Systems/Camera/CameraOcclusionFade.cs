@@ -12,10 +12,10 @@ using UnityEngine.SceneManagement;
 namespace CurtainCall.Cameras
 {
     /// <summary>
-    /// 카메라와 내 캐릭터 사이를 가리는 것(다른 플레이어·목마·장애물 등)을 내 화면에서만 반투명으로 흐린다. 다른 화면에는 영향이 없다.
-    /// 메인 카메라에서 내 캐릭터의 몸(가슴·머리 높이)까지 굵은 선(구)을 쏘아 걸린 콜라이더의 겉모습을 흐리고, 벗어나면 되돌린다.
+    /// 내 카메라를 가리는 전경 오브젝트는 화면에 고정된 디더 패턴으로 그린다. 다른 캐릭터의 가림은 반투명으로 표시한다.
+    /// 메인 카메라에서 내 캐릭터까지 콜라이더와 렌더링 전용 메시를 검사한다.
     /// 콘텐츠가 예외 조건·수치를 등록한다. 관전 중(<see cref="CameraSpectator"/>)에는 모두 되돌린다.
-    /// 공용 수치는 CameraViewSettings. 지원 셰이더: URP Lit 계열(_Surface·_BaseColor)만. 다른 셰이더는 그대로 둔다.
+    /// 공용 수치는 CameraViewSettings. URP 계열은 원본을 복사하고, 표준 색·텍스처를 가진 불투명 재질에는 공용 투명 재질을 쓴다.
     /// 카메라 리그 프리팹(PlayerFollowCamera)에 둔다.
     /// </summary>
     public sealed class CameraOcclusionFade : MonoBehaviour
@@ -28,6 +28,11 @@ namespace CurtainCall.Cameras
         static readonly int DstBlendAlphaId = Shader.PropertyToID("_DstBlendAlpha");
         static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
         static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        static readonly int ColorId = Shader.PropertyToID("_Color");
+        static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
+        static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        static readonly int BaseColorMapId = Shader.PropertyToID("_BaseColorMap");
+        static readonly int CoverageId = Shader.PropertyToID("_CameraOcclusionCoverage");
 
         readonly CameraOcclusionRules fallback = new();
         readonly CameraRequestResolver<UnityEngine.Object, CameraOcclusionRules> ruleRequests = new();
@@ -55,18 +60,71 @@ namespace CurtainCall.Cameras
 
         readonly Dictionary<Renderer, Faded> faded = new();
         readonly List<Renderer> finished = new();
+        readonly HashSet<Renderer> foregroundOccluders = new();
+        readonly Dictionary<Renderer, ForegroundFade> foregroundFades = new();
+        readonly List<Renderer> switchedForeground = new();
+        readonly List<Material> liveMaterials = new();
+        Camera foregroundCamera;
+        Shader ditherShader;
+        const float ForegroundConfirmDelay = .035f;
+        const float ForegroundReleaseDelay = .15f;
+
+        sealed class ForegroundFade
+        {
+            public float Coverage = 1f;
+            public float StartCoverage = 1f;
+            public float GoalCoverage = 1f;
+            public float Progress = 1f;
+            public float FirstHit;
+            public float LastHit;
+            public bool Confirmed;
+            public Material[] Originals;
+            public Material[] Dithered;
+        }
         RaycastHit[] hits = new RaycastHit[32];
         Collider[] nearCamera = new Collider[8];
         readonly List<Renderer> renderers = new();
         readonly HashSet<Transform> markedRoots = new();
+        readonly List<GameObject> sceneRoots = new();
+        readonly List<Renderer> sceneRenderers = new();
+        readonly List<Renderer> nearbyRenderers = new();
+        readonly List<Renderer> rootRenderers = new();
+        float refreshSceneAt = float.NegativeInfinity;
+        float refreshNearbyAt = float.NegativeInfinity;
+        Vector3 lastCameraPosition, lastTargetPosition;
+        const float NearPlaneRange = .35f;
 
         void Awake() => director = GetComponent<CameraViewDirector>();
 
-        void OnEnable() => CinemachineCore.CameraUpdatedEvent.AddListener(OnCameraUpdated);
+        void OnEnable()
+        {
+            CinemachineCore.CameraUpdatedEvent.AddListener(OnCameraUpdated);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+            RenderPipelineManager.beginCameraRendering += BeginForegroundRender;
+            RenderPipelineManager.endCameraRendering += EndForegroundRender;
+        }
+
+        void OnSceneLoaded(Scene scene, LoadSceneMode mode) => InvalidateRenderers();
+        void OnSceneUnloaded(Scene scene) => InvalidateRenderers();
+        void InvalidateRenderers()
+        {
+            refreshSceneAt = float.NegativeInfinity;
+            foregroundOccluders.Clear();
+            ClearForegroundFades();
+        }
 
         void OnDisable()
         {
             CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            RenderPipelineManager.beginCameraRendering -= BeginForegroundRender;
+            RenderPipelineManager.endCameraRendering -= EndForegroundRender;
+            foregroundCamera = null;
+            sceneRenderers.Clear();
+            nearbyRenderers.Clear();
+            InvalidateRenderers();
             occludedSubject?.Dispose();
             occludedSubject = null;
             RestoreAll();
@@ -96,6 +154,8 @@ namespace CurtainCall.Cameras
             if (!Application.IsPlaying(gameObject)) return;
             var view = brain != null ? brain.OutputCamera : null;
             if (view == null || view != Camera.main) return;
+            foregroundCamera = view;
+            foregroundOccluders.Clear();
             PruneSources();
             var rules = ruleRequests.TryResolve(out _, out var requested) ? requested
                 : director != null && director.Settings != null ? director.Settings.Occlusion : fallback;
@@ -109,10 +169,17 @@ namespace CurtainCall.Cameras
             {
                 float posture = local.TryGetComponent(out PlayerMover mover) ? mover.PostureHeightScale : 1f;
                 MarkOccluders(view.transform.position, local.transform, posture, rules);
+                MarkVisualOccluders(view.transform.position, local.transform, posture, rules, view.cullingMask);
             }
 
-            float step = steppedFrame == Time.frameCount ? 0f : Mathf.Max(0f, rules.FadeSpeed) * Time.deltaTime;
+            bool newFrame = steppedFrame != Time.frameCount;
+            float fadeSpeed = Mathf.Max(0f, rules.FadeSpeed);
+            float step = newFrame ? fadeSpeed * Time.deltaTime : 0f;
+            // Keep a long frame from advancing most of the foreground transition at once.
+            float foregroundStep = newFrame ? Mathf.Min(fadeSpeed * Time.unscaledDeltaTime * .5f, .2f) : 0f;
             steppedFrame = Time.frameCount;
+            if (trackLocal) StepForeground(Time.unscaledTime, foregroundStep, Mathf.Clamp01(rules.Alpha));
+            else ClearForegroundFades();
             foreach (var pair in faded)
             {
                 var entry = pair.Value;
@@ -124,6 +191,246 @@ namespace CurtainCall.Cameras
 
             foreach (var renderer in finished) Restore(renderer);
             finished.Clear();
+        }
+
+        void BeginForegroundRender(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera != foregroundCamera) return;
+            RestoreForeground();
+            if (CameraSpectator.IsSpectating || foregroundFades.Count == 0) return;
+            if (ditherShader == null) ditherShader = Resources.Load<Shader>("Prefabs/Controllers/Camera/CameraForegroundDither");
+            if (ditherShader == null) return;
+            foreach (var pair in foregroundFades)
+            {
+                var renderer = pair.Key;
+                var fade = pair.Value;
+                if (renderer == null || !renderer.enabled || renderer.forceRenderingOff) continue;
+                if (fade.Coverage >= 1f) continue;
+                renderer.GetSharedMaterials(liveMaterials);
+                if (!MatchesOriginals(fade))
+                {
+                    DestroyDitherMaterials(fade);
+                    fade.Originals = liveMaterials.ToArray();
+                    fade.Dithered = new Material[fade.Originals.Length];
+                    for (int i = 0; i < fade.Originals.Length; i++)
+                    {
+                        var source = fade.Originals[i];
+                        fade.Dithered[i] = source != null && source.renderQueue < (int)RenderQueue.Transparent
+                            ? MakeDithered(source, ditherShader) : source;
+                    }
+                }
+                for (int i = 0; i < fade.Dithered.Length; i++)
+                    if (fade.Dithered[i] != fade.Originals[i]) fade.Dithered[i].SetFloat(CoverageId, fade.Coverage);
+                renderer.sharedMaterials = fade.Dithered;
+                switchedForeground.Add(renderer);
+            }
+        }
+
+        void EndForegroundRender(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera == foregroundCamera) RestoreForeground();
+        }
+
+        void RestoreForeground()
+        {
+            foreach (var renderer in switchedForeground)
+                if (renderer != null) renderer.sharedMaterials = foregroundFades[renderer].Originals;
+            switchedForeground.Clear();
+        }
+
+        bool MatchesOriginals(ForegroundFade fade)
+        {
+            if (fade.Originals == null || fade.Originals.Length != liveMaterials.Count) return false;
+            for (int i = 0; i < liveMaterials.Count; i++)
+                if (liveMaterials[i] != fade.Originals[i]) return false;
+            return true;
+        }
+
+        void StepForeground(float now, float step, float targetCoverage)
+        {
+            foreach (var renderer in foregroundOccluders)
+            {
+                if (!foregroundFades.TryGetValue(renderer, out var fade))
+                    foregroundFades.Add(renderer, fade = new ForegroundFade { FirstHit = now });
+                fade.LastHit = now;
+                if (now - fade.FirstHit >= ForegroundConfirmDelay) fade.Confirmed = true;
+            }
+
+            foreach (var pair in foregroundFades)
+            {
+                var fade = pair.Value;
+                bool held = fade.Confirmed && now - fade.LastHit <= ForegroundReleaseDelay;
+                float goal = held ? targetCoverage : 1f;
+                if (goal != fade.GoalCoverage)
+                {
+                    // If the target changes mid-fade, continue from the visible density.
+                    fade.StartCoverage = fade.Coverage;
+                    fade.GoalCoverage = goal;
+                    fade.Progress = 0f;
+                }
+                fade.Progress = Mathf.Min(fade.Progress + step, 1f);
+                fade.Coverage = Mathf.SmoothStep(fade.StartCoverage, fade.GoalCoverage, fade.Progress);
+                if (pair.Key == null || (!held && fade.Coverage >= 1f && !foregroundOccluders.Contains(pair.Key)))
+                    finished.Add(pair.Key);
+            }
+            foreach (var renderer in finished)
+            {
+                DestroyDitherMaterials(foregroundFades[renderer]);
+                foregroundFades.Remove(renderer);
+            }
+            finished.Clear();
+        }
+
+        void ClearForegroundFades()
+        {
+            RestoreForeground();
+            foreach (var fade in foregroundFades.Values) DestroyDitherMaterials(fade);
+            foregroundFades.Clear();
+        }
+
+        static void DestroyDitherMaterials(ForegroundFade fade)
+        {
+            if (fade.Dithered == null) return;
+            for (int i = 0; i < fade.Dithered.Length; i++)
+                if (fade.Dithered[i] != fade.Originals[i]) CoreUtils.Destroy(fade.Dithered[i]);
+        }
+
+        static Material MakeDithered(Material source, Shader shader)
+        {
+            var material = new Material(shader) { name = source.name + " (Camera Dither)" };
+            material.CopyPropertiesFromMaterial(source);
+            material.shaderKeywords = Array.Empty<string>();
+            material.renderQueue = (int)RenderQueue.AlphaTest;
+            material.SetFloat(SurfaceId, 0f);
+            CopyBaseAppearance(source, material);
+            if (source.IsKeywordEnabled("_ALPHATEST_ON")) material.EnableKeyword("_ALPHATEST_ON");
+            if (source.HasProperty("_BumpMap") && source.GetTexture("_BumpMap") != null)
+                material.EnableKeyword("_NORMALMAP");
+            else if (source.HasProperty("_BaseNormalMap") && source.GetTexture("_BaseNormalMap") != null)
+            {
+                material.SetTexture("_BumpMap", source.GetTexture("_BaseNormalMap"));
+                material.EnableKeyword("_NORMALMAP");
+            }
+            return material;
+        }
+
+        static void CopyBaseAppearance(Material source, Material target)
+        {
+            int color = source.HasProperty(BaseColorId) ? BaseColorId : ColorId;
+            int map = source.HasProperty(BaseMapId) ? BaseMapId : source.HasProperty(BaseColorMapId) ? BaseColorMapId : MainTexId;
+            if (source.HasProperty(color)) target.SetColor(BaseColorId, source.GetColor(color));
+            if (!source.HasProperty(map)) return;
+            target.SetTexture(BaseMapId, source.GetTexture(map));
+            target.SetTextureOffset(BaseMapId, source.GetTextureOffset(map));
+            target.SetTextureScale(BaseMapId, source.GetTextureScale(map));
+        }
+
+        void MarkVisualOccluders(Vector3 origin, Transform target, float posture, CameraOcclusionRules rules, int cullingMask)
+        {
+            var chest = target.position + Vector3.up * rules.TargetHeights.x * posture;
+            var head = target.position + Vector3.up * rules.TargetHeights.y * posture;
+            // Bounds-only meshes use a tighter sweep so objects beside the sight line stay solid.
+            float radius = Mathf.Clamp(rules.Radius, .001f, .15f);
+            RefreshVisualCandidates(origin, chest, head, radius);
+
+            foreach (var renderer in nearbyRenderers)
+            {
+                if (renderer == null || !renderer.enabled || renderer.forceRenderingOff || !renderer.gameObject.activeInHierarchy
+                    || (cullingMask & (1 << renderer.gameObject.layer)) == 0
+                    || renderer.transform.IsChildOf(target) || IsExcluded(renderer.transform)) continue;
+                IntersectsView(renderer, origin, chest, radius, out float chestHit);
+                IntersectsView(renderer, origin, head, radius, out float headHit);
+                float hit = Mathf.Min(chestHit, headHit);
+                if (float.IsPositiveInfinity(hit)) continue;
+                if (renderer.GetComponentInParent<NetworkPlayer>() != null)
+                    Mark(renderer, hit <= NearPlaneRange ? Mathf.Clamp01(rules.Alpha) : 1f);
+                else
+                    foregroundOccluders.Add(renderer);
+            }
+        }
+
+        void RefreshVisualCandidates(Vector3 origin, Vector3 chest, Vector3 head, float radius)
+        {
+            float now = Time.unscaledTime;
+            if (now >= refreshSceneAt)
+            {
+                sceneRenderers.Clear();
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    if (!scene.isLoaded) continue;
+                    scene.GetRootGameObjects(sceneRoots);
+                    foreach (var root in sceneRoots)
+                    {
+                        root.GetComponentsInChildren(true, rootRenderers);
+                        foreach (var renderer in rootRenderers)
+                            if (renderer is MeshRenderer || renderer is SkinnedMeshRenderer) sceneRenderers.Add(renderer);
+                    }
+                }
+                rootRenderers.Clear();
+                sceneRoots.Clear();
+                refreshSceneAt = now + 1f;
+                refreshNearbyAt = float.NegativeInfinity;
+            }
+            if (now < refreshNearbyAt && (origin - lastCameraPosition).sqrMagnitude < .25f
+                && (chest - lastTargetPosition).sqrMagnitude < .25f) return;
+
+            // 좁은 후보 범위는 짧게 보관하되, 실제 시선 교차는 매 카메라 갱신마다 검사한다.
+            var viewBounds = new Bounds(origin, Vector3.zero);
+            viewBounds.Encapsulate(chest);
+            viewBounds.Encapsulate(head);
+            viewBounds.Expand(2f * (radius + 1f));
+            nearbyRenderers.Clear();
+            foreach (var renderer in sceneRenderers)
+                if (renderer != null && renderer.gameObject.activeInHierarchy && renderer.bounds.Intersects(viewBounds))
+                    nearbyRenderers.Add(renderer);
+            refreshNearbyAt = now + .12f;
+            lastCameraPosition = origin;
+            lastTargetPosition = chest;
+        }
+
+        static bool IntersectsView(Renderer renderer, Vector3 origin, Vector3 target, float radius, out float hit)
+        {
+            hit = float.PositiveInfinity;
+            Vector3 segment = target - origin;
+            float distance = segment.magnitude;
+            if (distance <= .001f) return false;
+            Vector3 direction = segment / distance;
+            // A skinned mesh's rendered bounds can follow its root bone rather than this transform.
+            if (renderer is SkinnedMeshRenderer)
+            {
+                var worldBounds = renderer.bounds;
+                worldBounds.Expand(2f * radius);
+                if (worldBounds.Contains(origin)) { hit = 0f; return true; }
+                if (!worldBounds.IntersectRay(new Ray(origin, direction), out float worldHit) || worldHit >= distance)
+                    return false;
+                hit = worldHit;
+                return true;
+            }
+
+            // 명시된 벽면은 기존 메시 검사로 문과 통로의 빈 공간을 보존한다.
+            if (renderer.TryGetComponent(out CameraCollisionSurface surface) && surface.isActiveAndEnabled && surface.UseMeshGeometry
+                && renderer.TryGetComponent(out MeshFilter filter) && filter.sharedMesh != null && filter.sharedMesh.isReadable)
+            {
+                if (!surface.IntersectWithin(origin, direction, radius, distance, out float surfaceHit) || surfaceHit >= distance) return false;
+                hit = surfaceHit;
+                return true;
+            }
+
+            // 월드 AABB의 빈 모서리가 회전한 배관 등을 가림으로 오인하지 않도록 렌더러 로컬 범위를 쓴다.
+            var inverse = renderer.worldToLocalMatrix;
+            Vector3 localOrigin = inverse.MultiplyPoint3x4(origin);
+            Vector3 localDirection = inverse.MultiplyVector(direction);
+            float localLength = localDirection.magnitude;
+            if (localLength < .000001f) return false;
+            var bounds = renderer.localBounds;
+            if (bounds.Contains(localOrigin)) { hit = 0f; return true; }
+            bounds.Expand(new Vector3(((Vector3)inverse.GetRow(0)).magnitude, ((Vector3)inverse.GetRow(1)).magnitude,
+                ((Vector3)inverse.GetRow(2)).magnitude) * (2f * radius));
+            if (!bounds.IntersectRay(new Ray(localOrigin, localDirection / localLength), out float localHit)
+                || localHit >= distance * localLength) return false;
+            hit = localHit / localLength;
+            return true;
         }
 
         void RefreshOccludedSubject(Camera view, NetworkPlayer player)
@@ -183,7 +490,12 @@ namespace CurtainCall.Cameras
             if (root.IsChildOf(target) || IsExcluded(root) || !markedRoots.Add(root)) return;
             root.GetComponentsInChildren(renderers);
             foreach (var renderer in renderers)
-                if (!renderer.transform.IsChildOf(target) && !IsExcluded(renderer.transform)) Mark(renderer);
+            {
+                if (renderer.transform.IsChildOf(target) || IsExcluded(renderer.transform)
+                    || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) continue;
+                if (player != null) Mark(renderer);
+                else foregroundOccluders.Add(renderer);
+            }
             renderers.Clear();
         }
 
@@ -211,19 +523,20 @@ namespace CurtainCall.Cameras
             _ => true,
         };
 
-        void Mark(Renderer renderer)
+        void Mark(Renderer renderer, float startingAlpha = 1f)
         {
             if (!renderer.enabled || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) return;
             if (!faded.TryGetValue(renderer, out var entry))
             {
-                entry = CreateFaded(renderer);
+                entry = CreateFaded(renderer, transparentTemplate);
                 if (entry == null) return;
                 faded.Add(renderer, entry);
             }
+            entry.Alpha = Mathf.Min(entry.Alpha, startingAlpha);
             entry.Occluding = true;
         }
 
-        static Faded CreateFaded(Renderer renderer)
+        static Faded CreateFaded(Renderer renderer, Material transparentTemplate)
         {
             var originals = renderer.sharedMaterials;
             var copies = new Material[originals.Length];
@@ -231,9 +544,9 @@ namespace CurtainCall.Cameras
             bool any = false;
             for (int i = 0; i < originals.Length; i++)
             {
-                copies[i] = MakeTransparent(originals[i]);
+                copies[i] = MakeTransparent(originals[i], transparentTemplate);
                 if (copies[i] == null) continue;
-                colors[i] = originals[i].GetColor(BaseColorId);
+                colors[i] = copies[i].GetColor(BaseColorId);
                 any = true;
             }
             if (!any) return null;
@@ -255,11 +568,25 @@ namespace CurtainCall.Cameras
                 PropertyColors = propertyColors, PropertyAlphas = propertyAlphas, PropertyBlock = block, Renderer = renderer };
         }
 
-        /// <summary>URP Lit 계열 머티리얼의 투명 복사본. 지원하지 않으면 null.</summary>
-        static Material MakeTransparent(Material source)
+        /// <summary>원본의 셰이더 또는 공용 템플릿으로 투명 복사본을 만든다.</summary>
+        static Material MakeTransparent(Material source, Material transparentTemplate)
         {
-            if (source == null || !source.HasProperty(SurfaceId) || !source.HasProperty(BaseColorId)) return null;
-            var material = new Material(source) { name = source.name + " (Fade)" };
+            if (source == null) return null;
+            Material material;
+            if (source.shader.name.StartsWith("Universal Render Pipeline/", StringComparison.Ordinal)
+                && source.HasProperty(SurfaceId) && source.HasProperty(BaseColorId) && source.HasProperty(ZWriteId)
+                && source.HasProperty(SrcBlendId) && source.HasProperty(DstBlendId))
+                material = new Material(source);
+            else
+            {
+                if (transparentTemplate == null || source.renderQueue >= (int)RenderQueue.Transparent) return null;
+                int color = source.HasProperty(BaseColorId) ? BaseColorId : ColorId;
+                int map = source.HasProperty(BaseMapId) ? BaseMapId : source.HasProperty(BaseColorMapId) ? BaseColorMapId : MainTexId;
+                if (!source.HasProperty(color) && !source.HasProperty(map)) return null;
+                material = new Material(transparentTemplate);
+                CopyBaseAppearance(source, material);
+            }
+            material.name = source.name + " (Fade)";
             material.SetFloat(SurfaceId, 1f);
             if (material.HasProperty(BlendId)) material.SetFloat(BlendId, 0f); // Alpha
             material.SetFloat(SrcBlendId, (float)BlendMode.SrcAlpha);

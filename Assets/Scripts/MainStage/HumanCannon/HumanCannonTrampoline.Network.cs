@@ -17,6 +17,8 @@ namespace CurtainCall.HumanCannon
         const int RequestSize = 45;
         const int StateSize = 40;
         const int BounceSize = 37;
+        bool hasOwnershipSnapshot;
+        double nextOwnershipSync;
 
         void SendRequest(TrampolineAction action, int station, uint launch, uint segment, Vector3 position)
         {
@@ -76,9 +78,13 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out ulong carrier);
             reader.ReadValueSafe(out Vector3 position);
             reader.ReadValueSafe(out Quaternion rotation);
+            // A retried sync can repeat the same in-flight drop or carry state. Apply it only once.
+            if (!Finite(position) || !Finite(rotation) || hasOwnershipSnapshot && revision <= ownership.Revision) return;
             if (!ownership.Receive(revision, carrier)) return;
+            hasOwnershipSnapshot = true;
+            localGrabPending = false;
             // 운반자가 공중에서 죽어 놓인 경우 순간이동 대신 바로 아래 지면까지 떨어뜨린다.
-            if (carrier == CannonSeatState.Nobody && TryStartRemoteDrop(position)) transform.rotation = rotation;
+            if (carrier == CannonSeatState.Nobody && TryStartRemoteDrop(position, rotation)) transform.rotation = rotation;
             else
             {
                 StopDrop();
@@ -132,6 +138,8 @@ namespace CurtainCall.HumanCannon
         void HandleConnection(SessionConnectionState state)
         {
             localGrabPending = false;
+            hasOwnershipSnapshot = false;
+            nextOwnershipSync = 0;
             Unregister();
             if (state == SessionConnectionState.Offline)
             {
@@ -145,7 +153,9 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             if (state != SessionConnectionState.Host && state != SessionConnectionState.Client) return;
+            if (session.NetworkManager == null || !session.NetworkManager.IsListening) return;
             messaging = session.NetworkManager.CustomMessagingManager;
+            if (messaging == null) return;
             if (state == SessionConnectionState.Host)
                 messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequestMessage);
             else
@@ -153,16 +163,23 @@ namespace CurtainCall.HumanCannon
                 messaging.RegisterNamedMessageHandler(StateMessage, HandleStateMessage);
                 messaging.RegisterNamedMessageHandler(BounceMessage, HandleBounceMessage);
                 messaging.RegisterNamedMessageHandler(GroundBounceMessage, HandleGroundBounceMessage);
-                using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
-                writer.WriteValueSafe((byte)TrampolineAction.Sync);
-                writer.WriteValueSafe(0u);
-                writer.WriteValueSafe(-1);
-                writer.WriteValueSafe(0u);
-                writer.WriteValueSafe(0u);
-                writer.WriteValueSafe(Vector3.zero);
-                writer.WriteValueSafe(Quaternion.identity);
-                messaging.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
             }
+        }
+
+        void RetryOwnershipSync()
+        {
+            double now = Time.unscaledTimeAsDouble;
+            if (messaging == null || hasOwnershipSnapshot || now < nextOwnershipSync) return;
+            nextOwnershipSync = now + .5;
+            using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
+            writer.WriteValueSafe((byte)TrampolineAction.Sync);
+            writer.WriteValueSafe(0u);
+            writer.WriteValueSafe(-1);
+            writer.WriteValueSafe(0u);
+            writer.WriteValueSafe(0u);
+            writer.WriteValueSafe(Vector3.zero);
+            writer.WriteValueSafe(Quaternion.identity);
+            messaging.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void Unregister()

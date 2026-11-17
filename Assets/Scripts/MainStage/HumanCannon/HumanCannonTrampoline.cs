@@ -162,6 +162,9 @@ namespace CurtainCall.HumanCannon
                 session.ConnectionStateChanged += HandleConnection;
                 HandleConnection(session.ConnectionState);
             }
+            if (session != null && messaging == null && session.ConnectionState is SessionConnectionState.Host or SessionConnectionState.Client)
+                HandleConnection(session.ConnectionState);
+            if (session != null && session.ConnectionState == SessionConnectionState.Client) RetryOwnershipSync();
             TickDrop();
             if (session == null || !session.IsHost) return;
             if (!ownership.IsOccupied) return;
@@ -194,13 +197,14 @@ namespace CurtainCall.HumanCannon
 
         void ReleaseCarrierToGround(NetworkPlayer carrier)
         {
+            if (carryBody == null) RefreshCarryBody(carrier);
             // 들고 낙사하면 시작 지점에 가장 가까운 생존자 발밑 지면으로 옮긴다(2026-11-05 사용자 요청).
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
                 && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
             ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
             // 아래에 지면이 없으면 낙사와 같이 처리한다.
-            if (fellOff || !TryFindGround(transform.position, out var ground))
+            if (fellOff || !TryDropHere(carrier, out var ground))
             {
                 StopDrop();
                 // 지면에 선 생존자를 찾지 못하면(전멸 등) 시작 지점 원래 위치로 돌린다.
@@ -297,17 +301,21 @@ namespace CurtainCall.HumanCannon
                 carrier.TryGetComponent(out PlayerMover mover);
                 float floorClearance = !alignToCarrier && mover != null && mover.Body != null
                     ? mover.Body.skinWidth * Mathf.Abs(mover.Body.transform.lossyScale.y) : 0f;
-                // The authorized lift owns both poses until arrival; walking still uses the swept load collision.
-                if (!riding && !HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, carrier, !alignToCarrier,
-                    floorClearance, null, allowExistingOverlap: !alignToCarrier) && (alignToCarrier || !TryTranslateWithoutTurning(carrier, mover, floorClearance,
-                        out position, out rotation, out carrierRotation)))
+                bool fits = riding || HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, carrier, !alignToCarrier,
+                    floorClearance, null, allowExistingOverlap: !alignToCarrier);
+                // A remote sample can omit the turn around a column, so its straight path is not authoritative.
+                bool catchUp = !fits && !alignToCarrier && !carrier.IsLocal &&
+                    HumanCannonCarry.CanMove(transform, MoveCheckBody, position, rotation, carrier, false, floorClearance, null);
+                if (!fits && !catchUp && (alignToCarrier || !TryTranslateWithoutTurning(carrier, mover, floorClearance,
+                    out position, out rotation, out carrierRotation)))
                 {
                     if (carrier.IsLocal && mover != null && mover.Simulated && mover.Body != null && mover.Body.enabled)
-                        mover.Body.Move(lastSafeCarrierFeet - carrier.transform.position);
+                        mover.Body.Move(Vector3.ProjectOnPlane(lastSafeCarrierFeet - carrier.transform.position, Vector3.up));
                     return;
                 }
                 transform.SetPositionAndRotation(position, rotation);
-                carrier.transform.rotation = carrierRotation;
+                if (catchUp) ResetPreviousPose();
+                if (carrier.IsLocal) carrier.transform.rotation = carrierRotation;
                 lastSafeCarrierFeet = carrier.transform.position;
             }
         }
@@ -364,6 +372,7 @@ namespace CurtainCall.HumanCannon
         bool CanAcquire(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
+                || session != null && session.ConnectionState == SessionConnectionState.Client && !hasOwnershipSnapshot
                 || HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsPracticeReady(player.OwnerClientId)
                 || HumanCannonCarry.HasOccupiedHands(player)
                 || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)
@@ -527,8 +536,10 @@ namespace CurtainCall.HumanCannon
                 if (!Finite(rotation) || Carrier != actor || ownership.Revision != revision) return;
                 // 로컬 장치 위치를 사용하되 마지막 동기화 위치에서 비정상적으로 먼 요청은 무시한다.
                 float turnSpan = Mathf.Max(4f, 2f * Vector3.Distance(transform.position, Handle.position) + 1f);
-                if ((position - transform.position).sqrMagnitude <= turnSpan * turnSpan)
-                    transform.SetPositionAndRotation(position, Quaternion.Euler(0f, rotation.eulerAngles.y, 0f));
+                var dropRotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
+                if ((position - transform.position).sqrMagnitude <= turnSpan * turnSpan
+                    && HumanCannonCarry.CanMove(transform, MoveCheckBody, position, dropRotation, player, false))
+                    transform.SetPositionAndRotation(position, dropRotation);
                 // Dropping during a jump uses the same supported fall/recovery as a lost carrier.
                 // Publish its landing target so every client follows the same drop.
                 ReleaseCarrierToGround(player);

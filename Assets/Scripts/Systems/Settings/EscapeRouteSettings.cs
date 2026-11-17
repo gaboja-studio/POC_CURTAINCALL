@@ -180,6 +180,8 @@ namespace CurtainCall.Settings
             [Min(0)] public float finalChaseLeadSeconds = 4f;
             [Tooltip("복도에서 팔을 뻗어 잡을 수 있는 수평 거리(m).")]
             [Min(.1f)] public float contactRange = 3.6f;
+            [Tooltip("몸통 모델 크기로 정한 추격자 중심 원형 포획 반경에 더하는 여유 거리(m). 모든 방향에 동일하며 벽·층간 차폐는 유지한다.")]
+            [Min(0)] public float closeCaptureDistance = .6f;
             [Tooltip("승강장·와이어 구간에서 팔을 길게 뻗어 닿는 최대 거리(m).")]
             [Min(.1f)] public float armRange = 36f;
             [Tooltip("복도에서 팔 공격 전에 예고하는 시간(초). 이 시간 안에 피하면 맞지 않는다.")]

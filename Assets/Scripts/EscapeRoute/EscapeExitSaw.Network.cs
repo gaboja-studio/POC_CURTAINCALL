@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
@@ -16,6 +17,8 @@ namespace CurtainCall.EscapeRoute
         string attachedRequestName, attachedStateName;
         const int RequestSize = 9, StateSize = 66, ShotSize = 36;
         const int AimedRequestSize = RequestSize + 12;
+        const double RemoteGrabGrace = .35;
+        readonly List<(ulong Actor, uint Revision, double Expires)> pendingGrabs = new();
         Vector3 pendingBossAim;
         CustomMessagingManager messaging;
         void RequestAction(byte action)
@@ -67,29 +70,34 @@ namespace CurtainCall.EscapeRoute
             if (!Alive(player)) return;
             if (action == 1)
             {
-                if (!CanGrab(player)) return;
+                if (!TryGetGrabPose(player, out var position, out var rotation)) return;
                 if (!interactionReady && HumanCannonSystem.Current.DelayInjuredInteraction(player, -777, expected,
                     () => this != null && CanGrab(player) && ownership.Revision == expected,
                     () => HandleAction(actor, action, expected, true))) return;
-                if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, expected)) return;
+                if (!ownership.TryApply(CannonAction.Board, actor, expected)) return;
                 CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,this,"CUTTER","ACQUIRED",CarryRoot.position,true);
                 CarrierChanged();
                 HumanCannonSystem.Current.StartCarrying(actor);
                 lastSafeFeet = player.transform.position;
-                FollowCarrier(player, true);
+                CarryRoot.SetPositionAndRotation(position, rotation);
+                followedCarrier = actor;
                 CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawGrab, Handle.position, CarryRoot);
             }
             else if (action == 2)
             {
                 if (!ownership.TryApply(CannonAction.Release, actor, expected)) return;
                 CarrierChanged();
-                if (!Grounded(player)) Recover();
+                if (!CanLeaveAtCurrentPose(player)) Recover();
                 if (!DoorOpen) cutProgress = 0;
                 cutting = carryBlocked = false;
             }
             else if (action == 3)
             {
-                if (Carrier != actor || !TryFire(player)) return;
+                if (Carrier != actor) return;
+                // Requests arrive before LateUpdate. Shoot from the latest replicated
+                // hand pose, not the previous frame's position across a pillar/rail.
+                FollowCarrier(player, false);
+                if (!TryFire(player)) return;
             }
             else return;
             Changed();
@@ -127,7 +135,36 @@ namespace CurtainCall.EscapeRoute
                 return;
             }
             if (action == 0 && token >= 0) SendState(sender, token);
-            else if ((action == 1 || action == 2 || action == 3) && token == 0) { HandleAction(sender, action, expected); SendState(sender, 0); }
+            else if ((action == 1 || action == 2 || action == 3) && token == 0)
+            {
+                if (action == 1 && Ready && !Suppressed && !ownership.IsOccupied && expected == ownership.Revision
+                    && FindPlayer(sender) is { } player && !CanGrab(player))
+                {
+                    // The reliable input can reach the host before the interpolated owner pose catches up.
+                    // Keep one request per guest and recheck the normal pickup rules on the host.
+                    if (!pendingGrabs.Exists(request => request.Actor == sender && request.Revision == expected))
+                        pendingGrabs.Add((sender, expected, Time.unscaledTimeAsDouble + RemoteGrabGrace));
+                }
+                else HandleAction(sender, action, expected);
+                SendState(sender, 0);
+            }
+        }
+        void TickPendingGrabs(double now)
+        {
+            for (int i = 0; i < pendingGrabs.Count;)
+            {
+                var request = pendingGrabs[i];
+                var player = FindPlayer(request.Actor);
+                if (!Ready || Suppressed || ownership.IsOccupied || request.Revision != ownership.Revision
+                    || request.Expires < now || player == null)
+                {
+                    pendingGrabs.RemoveAt(i);
+                    continue;
+                }
+                if (!CanGrab(player)) { i++; continue; }
+                pendingGrabs.RemoveAt(i);
+                HandleAction(request.Actor, 1, request.Revision);
+            }
         }
         void Publish()
         {
@@ -138,6 +175,7 @@ namespace CurtainCall.EscapeRoute
         }
         void SendState(ulong client, int token)
         {
+            if (messaging == null) return;
             using var writer = new FastBufferWriter(StateSize + BitCount(cutMask) * 12 + shots.Count * ShotSize, Allocator.Temp);
             WriteState(writer, token);
             // Click firing can leave more than one MTU of in-flight saws. Keep the complete snapshot reliable.
@@ -254,6 +292,7 @@ namespace CurtainCall.EscapeRoute
                 if (attachedStateName != null) messaging.UnregisterNamedMessageHandler(attachedStateName);
             }
             attachedRequestName = attachedStateName = null;
+            pendingGrabs.Clear();
             messaging = null; session = null; synchronized = false;
             TeamReachedExitZone = false;
             ownership = new CannonSeatState(); stateRevision = courseEpoch = 0; cutProgress = 0; cutting = false;
