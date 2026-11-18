@@ -62,6 +62,7 @@ namespace CurtainCall.EscapeRoute
                     if (effect.system.isPlaying || effect.system.particleCount > 0)
                         effect.system.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                 }
+                if (bay.ignitionSparks) bay.ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                 foreach (var lamp in bay.lights) if (lamp != null) lamp.enabled = false;
                 if (bay.burstAudio != null && bay.burstAudio.isPlaying) bay.burstAudio.Stop();
                 view.phase = FirePhase.Dormant;
@@ -85,6 +86,11 @@ namespace CurtainCall.EscapeRoute
                 float rate = phase == FirePhase.Burst ? Mathf.Max(0, burstEmissionMultiplier) : Mathf.Max(.01f, steadyEmissionMultiplier);
                 if (phase != view.phase)
                 {
+                    if (bay.ignitionSparks)
+                    {
+                        if (phase == FirePhase.Warning) bay.ignitionSparks.Play(false);
+                        else bay.ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+                    }
                     foreach (var effect in view.effects)
                     {
                         if (effect == null || effect.system == null) continue;

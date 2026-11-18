@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
         public sealed class Bay
         {
             public BoxCollider coverage;
+            public ParticleSystem ignitionSparks;
             public ParticleSystem[] effects = Array.Empty<ParticleSystem>();
             public Light[] lights = Array.Empty<Light>();
             public AudioSource burstAudio;

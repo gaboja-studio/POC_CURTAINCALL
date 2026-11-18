@@ -12,6 +12,9 @@ namespace CurtainCall.HumanCannon
         [Min(0)] public float phase;
         public bool falling, showWhileWarning;
         public bool controlsVisual;
+        [SerializeField] ParticleSystem ignitionSparks;
+        [SerializeField, Tooltip("World-space movement of the falling load's visual during the harmless rest phase.")]
+        Vector3 landingVisualTransfer;
         CurtainCall.WorldIndicators.HazardWorldIndicator worldIndicator;
         public double Cycle(double elapsed)
         {
@@ -23,7 +26,25 @@ namespace CurtainCall.HumanCannon
             double t = Cycle(elapsed);
             return t >= warningSeconds && t < warningSeconds + activeSeconds;
         }
-        public bool Visible(double elapsed) => Live(elapsed) || showWhileWarning && Cycle(elapsed) >= 0 && Cycle(elapsed) < warningSeconds;
+        public bool Visible(double elapsed)
+        {
+            double t = Cycle(elapsed);
+            return t >= 0 && (t < warningSeconds
+                ? showWhileWarning
+                : t < warningSeconds + activeSeconds || HasLandingTransfer);
+        }
+
+        bool HasLandingTransfer => falling && restSeconds > 0 && landingVisualTransfer != Vector3.zero;
+
+        public Vector3 VisualPosition(double elapsed)
+        {
+            double restTime = Cycle(elapsed) - (warningSeconds + activeSeconds);
+            if (!HasLandingTransfer || restTime < 0) return Position(elapsed);
+
+            // Leave a short beat for impact before the rollers take the load.
+            float progress = Mathf.InverseLerp(.12f * restSeconds, restSeconds, (float)restTime);
+            return destination + landingVisualTransfer * Mathf.SmoothStep(0, 1, progress);
+        }
         public Vector3 Position(double elapsed)
         {
             float t = Mathf.Clamp01((float)(Cycle(elapsed) - warningSeconds) / Mathf.Max(.1f, activeSeconds));
@@ -34,6 +55,12 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, bool running)
         {
             double t = Cycle(elapsed);
+            if (ignitionSparks)
+            {
+                bool heating = running && t >= Math.Max(0, warningSeconds - .7f) && t < warningSeconds;
+                if (heating && !ignitionSparks.isEmitting) ignitionSparks.Play(false);
+                else if (!heating && ignitionSparks.isEmitting) ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            }
             bool modern = false;
             if (Application.isPlaying && TryGetComponent<HumanCannonHazard>(out var hazard))
             {
@@ -50,6 +77,11 @@ namespace CurtainCall.HumanCannon
             var course = HumanCannonHazardCourse.Current;
             Present(course != null ? course.Elapsed : 0, course != null && course.IsSynchronized);
         }
-        void OnDisable() { if (warning != null) warning.gameObject.SetActive(false); if (worldIndicator) worldIndicator.Hide(); }
+        void OnDisable()
+        {
+            if (warning != null) warning.gameObject.SetActive(false);
+            if (worldIndicator) worldIndicator.Hide();
+            if (ignitionSparks) ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
     }
 }
