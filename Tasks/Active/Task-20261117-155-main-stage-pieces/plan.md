@@ -54,3 +54,4 @@
 - 2026-11-18 사용자 commit/push 및 dev PR 제출 요청. 신규 외부 프리팹·재질은 private 저장소에 먼저 저장하고 메인 프로젝트는 gitlink를 포함한다.
 - 기존 폰트3개·escape-labels·Vivox 개인 설정·무관한 머티리얼 직렬화·private DayClock/RestTimer 메타 변경은 이번 커밋에서 제외하고 작업 트리에 보존한다.
 - Confluence 최종 기획·내구도 UI·검증 기록 보완 및 시연 MP4 4편 첨부 완료. 사람 플레이 항목은 후속 확인으로 남긴다.
+- 사용자 후속 승인으로 private PR23 main 병합 완료. 메인 프로젝트 푸시 및 [dev PR419](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/419) 제출 완료. dev 병합은 지정 검토 후 진행한다.
