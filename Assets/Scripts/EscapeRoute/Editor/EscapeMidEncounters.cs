@@ -97,14 +97,28 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Vector3 size, Vector3 floor, Vector3 footprint, float warning, float active, float rest, float phase)
         {
             var template = GameObject.Find(RootName + "/25_FinaleHazards_A/" + templateName).GetComponentInChildren<HumanCannonHazard>();
-            var originalCue = template.GetComponent<HumanCannonHazardCue>();
             var group = VerticalChild(parent, name);
-            var visual = UnityEngine.Object.Instantiate(originalCue.visual.gameObject, group).transform;
-            Undo.RegisterCreatedObjectUndo(visual.gameObject, "Existing obstacle art copy");
-            visual.name = "MovingVisual"; visual.SetPositionAndRotation(from, template.transform.rotation);
-            Vector3 sourceSize = new SerializedObject(template).FindProperty("boxSize").vector3Value;
-            if (template.KillsOnContact) visual.localScale = Vector3.Scale(visual.localScale, new Vector3(size.x / sourceSize.x, size.y / sourceSize.y, size.z / sourceSize.z));
-            visual.gameObject.SetActive(true);
+            Transform visual;
+            if (template.Kind == CannonHazardKind.FallingLoad)
+            {
+                visual = ChildAt(group, "MovingVisual", from, template.transform.rotation);
+                var press = ChildAt(visual, "낙하 중량물", from, template.transform.rotation);
+                press.localScale = size;
+                Undo.AddComponent<MeshFilter>(press.gameObject).sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(
+                    "Assets/Resources/Sounds/EscapeRouteMeshes/block-3x46x3.asset");
+                Undo.AddComponent<MeshRenderer>(press.gameObject).sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/Scenes/Levels/EscapeFactoryArt/factory-recess.mat");
+            }
+            else
+            {
+                var originalCue = template.GetComponent<HumanCannonHazardCue>();
+                visual = UnityEngine.Object.Instantiate(originalCue.visual.gameObject, group).transform;
+                Undo.RegisterCreatedObjectUndo(visual.gameObject, "Existing obstacle art copy");
+                visual.name = "MovingVisual"; visual.SetPositionAndRotation(from, template.transform.rotation);
+                Vector3 sourceSize = new SerializedObject(template).FindProperty("boxSize").vector3Value;
+                if (template.KillsOnContact) visual.localScale = Vector3.Scale(visual.localScale, new Vector3(size.x / sourceSize.x, size.y / sourceSize.y, size.z / sourceSize.z));
+                visual.gameObject.SetActive(true);
+            }
             var mechanism = ChildAt(group, "OriginalMechanism", from, template.transform.rotation);
             var cue = Undo.AddComponent<HumanCannonHazardCue>(mechanism.gameObject);
             cue.origin = from; cue.destination = to; cue.visual = visual;

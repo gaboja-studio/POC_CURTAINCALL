@@ -27,3 +27,5 @@
 - submit-work DryRun으로 dev 대상·템플릿 확인. 도구는 작업 트리 전체 clean을 요구하므로 무관한 자동 변경을 보존하기 위해 명시 경로 stage와 gh PR 제출을 사용한다. 로컬 보고서/영상은 .harness/local/task159에 보존하며 공개 PR에 private 에셋 원문이나 녹화 파일을 업로드하지 않는다.
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함). 최신3a27bc18 통합 기준, 공통 설정 PASS. 종료 후 재fetch에서도 최신 유지.
 - private 커밋28e0a6b3을 resource/slaughter-circus-lighting에 push 완료. 공개 PR에서 해당 gitlink를 참조하므로 씬·파생 재질을 함께 받을 수 있다.
+- 공개 push 훅이 private main 포함을 요구하여 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/28 생성. 최신 private main의 컨베이어 URP 변경을 충돌 없이 통합(1290bdf6), 에셋 규칙 CI PASS 후 Merge로 main에 반영했다. 공개 gitlink도1290bdf6으로 맞춘다. dev PR은 병합하지 않는다.
+- private 최신 통합 후 check-work-pr-final.txt: 안전성/문서/컴파일/공통 설정 PASS, 자동 테스트 SKIPPED. 공개 기능 커밋d5d6f525, 관련 없는 자동 변경6개는 unstaged 유지.

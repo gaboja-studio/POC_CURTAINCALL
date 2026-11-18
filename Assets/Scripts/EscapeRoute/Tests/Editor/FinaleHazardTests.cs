@@ -47,6 +47,23 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(hazard,"Touches",new Vector3(0,5.575f,0),1.73f,.3f,2d,1f),Is.True);
             Assert.That(Call(hazard,"Touches",new Vector3(0,.7f,0),1.73f,.3f,4d,1f),Is.False);
         }
+
+        [Test]
+        public void FallingCargoTransfersVisuallyDuringRestWithoutMovingTheDamageBox()
+        {
+            var cue = Cue();
+            Set(cue, "landingVisualTransfer", Vector3.forward * 8f);
+            Set(cue, "showWhileWarning", true);
+
+            Assert.That(Call(cue, "VisualPosition", 2d), Is.EqualTo(Call(cue, "Position", 2d)));
+            Assert.That(Call(cue, "VisualPosition", 3d), Is.EqualTo(new Vector3(0, 1.5f, 0)));
+            Assert.That(Call(cue, "Visible", 4d), Is.True);
+            Assert.That(Call(cue, "Live", 4d), Is.False);
+            Assert.That(Call(cue, "Position", 4d), Is.EqualTo(new Vector3(0, 1.5f, 0)));
+            Assert.That(((Vector3)Call(cue, "VisualPosition", 4d)).z, Is.GreaterThan(0));
+            Assert.That(Call(cue, "VisualPosition", 6d), Is.EqualTo(new Vector3(0, 8, 0)));
+        }
+
         [Test] public void BoxContactHandlesStandingCrawlingCornersAndInvalidInput()
         {
             var method=Find("CannonHazardGeometry").GetMethod("BoxTouches",BindingFlags.Public|BindingFlags.Static);
@@ -58,6 +75,26 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Touch(new Vector3(0,3,0),1.73f),Is.False);
             Assert.That(Touch(new Vector3(float.NaN,0,0),1.73f),Is.False);
         }
+        [Test]
+        public void SpecimensCanBeReconstructedAtAnyDropAndNeverRepeatAcrossBatches()
+        {
+            var type = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.EscapeRoute.EscapeTankSpecimen")).First(t => t != null);
+            var select = type.GetMethod("SelectPair", BindingFlags.Static | BindingFlags.NonPublic);
+            int Pick(int seed, int drop) => (int)select.Invoke(null, new object[] { seed, drop });
+            foreach (int seed in new[] { 0, 17, -1, int.MaxValue })
+            {
+                int previous = -1;
+                for (int first = 0; first < 64; first += 4)
+                {
+                    var batch = Enumerable.Range(first, 4).Select(drop => Pick(seed, drop)).ToArray();
+                    Assert.That(batch, Is.EquivalentTo(new[] { 0, 1, 2, 3 }));
+                    Assert.That(batch[0], Is.Not.EqualTo(previous));
+                    Assert.That(Pick(seed, first + 2), Is.EqualTo(batch[2]));
+                    previous = batch[3];
+                }
+            }
+        }
+
         [Test] public void OriginalHazardWithoutCueRetainsItsSinusoidalMotion()
         {
             var hazard=Create("HumanCannonHazard");

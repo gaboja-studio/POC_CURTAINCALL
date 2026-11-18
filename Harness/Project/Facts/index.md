@@ -1,5 +1,7 @@
 # Project Facts
 
+- [보유 에셋 패키지 조사](asset-package-inventory.md) — 외부 에셋과 Unity 패키지를 찾거나 탈출로 공장 설비 교체 후보를 고를 때
+
 - [Performance-equipment/](Performance-equipment/index.md) — 환호 포인트 시안·기물 내구도 UI 연출을 열거나 수정할 때
 
 - [World-ui/](World-ui/index.md) — 착지 그림자 중복·추격자 방향 표시·공격 및 장애물 예고를 수정할 때

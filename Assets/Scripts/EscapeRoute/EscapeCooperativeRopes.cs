@@ -18,6 +18,22 @@ namespace CurtainCall.EscapeRoute
     {
         [SerializeField] Collider[] ropeSupports = Array.Empty<Collider>();
         [SerializeField] Renderer[] ropeVisuals = Array.Empty<Renderer>();
+        [SerializeField] Material dissolveBurn;
+        [Serializable]
+        struct BurnRun
+        {
+            public ParticleSystem embers;
+            public Light glow;
+            public ParticleSystem nearContact, farContact, formingFilaments, closingSeam;
+            public Vector3 start, end;
+        }
+        [SerializeField] BurnRun[] burnRuns = Array.Empty<BurnRun>();
+        Material[] ropeMaterials;
+        MaterialPropertyBlock[] originalBlocks;
+        float[] burnOffsets;
+        MaterialPropertyBlock ropeBlock;
+        bool dissolving, contactsLive, filamentsLive, seamLive;
+        static readonly int DissolveAmount = Shader.PropertyToID("_DissolveAmount");
         [SerializeField] LineRenderer[] warningArcs = Array.Empty<LineRenderer>();
         [Min(.1f), SerializeField] float warningSeconds = 2f;
         [SerializeField] Transform button;
@@ -123,6 +139,23 @@ namespace CurtainCall.EscapeRoute
             initialSupports = new bool[ropeSupports.Length];
             for (int i = 0; i < ropeSupports.Length; i++) initialSupports[i] = ropeSupports[i] != null && ropeSupports[i].enabled;
             initialVisuals = new bool[ropeVisuals.Length];
+            ropeMaterials = new Material[ropeVisuals.Length];
+            ropeBlock = new MaterialPropertyBlock();
+            originalBlocks = new MaterialPropertyBlock[ropeVisuals.Length];
+            burnOffsets = new float[ropeVisuals.Length];
+            for (int i = 0; i < ropeVisuals.Length; i++)
+            {
+                var visual = ropeVisuals[i];
+                if (!visual) continue;
+                ropeMaterials[i] = visual.sharedMaterial;
+                var block = new MaterialPropertyBlock();
+                visual.GetPropertyBlock(block);
+                if (!block.isEmpty) originalBlocks[i] = block;
+                if (burnRuns.Length == 0) continue;
+                var span = burnRuns[0].end - burnRuns[0].start;
+                burnOffsets[i] = Mathf.Clamp01(Vector3.Dot(visual.bounds.center - burnRuns[0].start, span)
+                    / Mathf.Max(.001f, span.sqrMagnitude));
+            }
             for (int i = 0; i < ropeVisuals.Length; i++) initialVisuals[i] = ropeVisuals[i] != null && ropeVisuals[i].enabled;
             phase = RopePhase.Visible;
             SetWarning(false);
@@ -138,6 +171,9 @@ namespace CurtainCall.EscapeRoute
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
             SetPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible);
+            double cycle = timed ? hazards.Elapsed % (visibleSeconds + hiddenSeconds) : 0;
+            UpdateDissolve(cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - Mathf.Min(1.05f, warningSeconds), visibleSeconds, (float)cycle) : 0);
+            UpdateTransitionParticles(timed ? hazards.Elapsed : -1, cycle);
             UpdateTraversal(NetworkPlayer.Local);
             if (session != null && session.IsHost && synchronized && !resetBarrier.Waiting
                 && resetFrame != Time.frameCount) RefreshWorker();
@@ -174,11 +210,92 @@ namespace CurtainCall.EscapeRoute
             return (int)(progress * 6d) % 2 == 0 ? RopePhase.Flash : RopePhase.Visible;
         }
 
+        void UpdateDissolve(float amount)
+        {
+            if (!dissolveBurn || (amount <= 0 && !dissolving)) return;
+            bool active = amount > 0;
+            if (active && !dissolving) SetWarning(false);
+            for (int i = 0; i < ropeVisuals.Length; i++)
+            {
+                var visual = ropeVisuals[i];
+                if (!visual) continue;
+                if (!active)
+                {
+                    visual.sharedMaterial = ropeMaterials[i];
+                    visual.SetPropertyBlock(originalBlocks[i]);
+                    continue;
+                }
+                float burn = Mathf.Clamp01((amount - .80f * burnOffsets[i]) / .20f);
+                if (burn <= 0f)
+                {
+                    if (visual.sharedMaterial == dissolveBurn)
+                    {
+                        visual.sharedMaterial = ropeMaterials[i];
+                        visual.SetPropertyBlock(originalBlocks[i]);
+                    }
+                    continue;
+                }
+                if (visual.sharedMaterial != dissolveBurn) visual.sharedMaterial = dissolveBurn;
+                visual.GetPropertyBlock(ropeBlock);
+                var cable = ropeMaterials[i];
+                if (cable && cable.mainTexture) ropeBlock.SetTexture("_Base_Tex", cable.mainTexture);
+                ropeBlock.SetFloat(DissolveAmount, burn);
+                ropeBlock.SetFloat("_DissolveWidth", .065f);
+                visual.SetPropertyBlock(ropeBlock);
+            }
+            foreach (var run in burnRuns)
+            {
+                if (!run.embers) continue;
+                if (run.glow && active != dissolving) run.glow.enabled = active;
+                if (active)
+                {
+                    run.embers.transform.position = Vector3.Lerp(run.start, run.end, amount);
+                    if (!dissolving) run.embers.Play();
+                }
+                else run.embers.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
+            dissolving = active;
+        }
+
+        // The contact sparks hand off to the existing fuse. Cool filaments gather just before
+        // support returns, then a short seam runs back along the restored cable.
+        void UpdateTransitionParticles(double elapsed, double cycle)
+        {
+            double burnLength = Math.Min(1.05d, warningSeconds);
+            double period = visibleSeconds + hiddenSeconds;
+            bool contacts = elapsed >= 0 && cycle >= visibleSeconds - warningSeconds && cycle < visibleSeconds - burnLength;
+            bool justReturned = elapsed >= period && cycle < .46d;
+            bool filaments = elapsed >= 0 && (cycle >= period - Math.Min(.42d, hiddenSeconds) || justReturned && cycle < .14d);
+            if (contacts == contactsLive && filaments == filamentsLive && justReturned == seamLive && !justReturned) return;
+            foreach (var run in burnRuns)
+            {
+                if (contacts != contactsLive)
+                {
+                    SetSpray(run.nearContact, contacts);
+                    SetSpray(run.farContact, contacts);
+                }
+                if (filaments != filamentsLive) SetSpray(run.formingFilaments, filaments);
+                if (justReturned && run.closingSeam)
+                    run.closingSeam.transform.position = Vector3.Lerp(run.end, run.start, (float)(cycle / .46d));
+                if (justReturned != seamLive) SetSpray(run.closingSeam, justReturned);
+            }
+            contactsLive = contacts;
+            filamentsLive = filaments;
+            seamLive = justReturned;
+        }
+
+        static void SetSpray(ParticleSystem spray, bool emit)
+        {
+            if (!spray) return;
+            if (emit) spray.Play(false);
+            else spray.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+        }
+
         void SetWarning(bool lit)
         {
             for (int i = 0; i < warningArcs.Length; i++)
                 if (warningArcs[i] != null)
-                    warningArcs[i].enabled = lit && i < initialSupports.Length && initialSupports[i];
+                    warningArcs[i].enabled = lit && !dissolving && i < initialSupports.Length && initialSupports[i];
         }
 
         void SetPhase(RopePhase next)
@@ -428,6 +545,8 @@ namespace CurtainCall.EscapeRoute
         void OnDisable()
         {
             if (Current != this) return;
+            UpdateDissolve(0);
+            UpdateTransitionParticles(-1, 0);
             UpdateTraversal(null);
             NetworkPlayer.Restarted -= Restart; Detach();
             if (returnGate != null) returnGate.SetActive(initialGate);

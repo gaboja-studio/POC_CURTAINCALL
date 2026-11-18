@@ -138,7 +138,8 @@ namespace CurtainCall.HumanCannon
         {
             if (visual == null) return;
             if (layeredVisual != visual) RefreshPhysicsLayer();
-            visual.SetPositionAndRotation(Position(elapsed, speed), UsesBoxGeometry ? transform.rotation
+            Vector3 position = cue != null ? cue.VisualPosition(elapsed) : Position(elapsed, speed);
+            visual.SetPositionAndRotation(position, UsesBoxGeometry ? transform.rotation
                 : BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
         }
 
