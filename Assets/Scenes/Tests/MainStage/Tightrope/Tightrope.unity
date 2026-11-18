@@ -16690,6 +16690,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3242728770163890023, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: segmentRopeBurn
+      value: 
+      objectReference: {fileID: 2100000, guid: d6ee7b82a8fd5d5439b9f044ae34adcb, type: 2}
     - target: {fileID: 8413489186545113913, guid: f0f55abe05d7341079412a875384e580, type: 3}
       propertyPath: m_Name
       value: TightropeFire

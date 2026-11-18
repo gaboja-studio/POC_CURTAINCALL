@@ -9,7 +9,7 @@ namespace CurtainCall.Tightrope.Fire
     /// 최대치(발화)에서 줄이 끊어지는 순간 새 불꽃을 멈춘다. 남은 불꽃은 위로 올라가며 사라지므로 아래쪽부터 비어 보인다.
     /// </summary>
     [RequireComponent(typeof(TightropeFire))]
-    public sealed class FireView : MonoBehaviour
+    public sealed partial class FireView : MonoBehaviour
     {
         /// <summary>비우면 임시 빨간 상자를 쓴다. 불벽은 너비 1m 기준으로 만들고 X 배율로 코스 폭을 맞춘다.</summary>
         [SerializeField] Transform chaseEffect;
@@ -36,7 +36,7 @@ namespace CurtainCall.Tightrope.Fire
         /// <summary>구간 불꽃 세기(0~1). 예고 중 0→1로 커진다. 발화(줄 끊김) 후와 표시하지 않을 때는 -1.</summary>
         public float SegmentIntensity(int index)
         {
-            if (fire == null || fire.Settings == null || index < 0 || index >= segments.Count) return -1f;
+            if (fire == null || fire.Settings == null || index < 0 || index >= fire.Settings.segments.Length) return -1f;
             if (fire.IsSegmentActive(index)) return -1f; // 줄이 끊어지는 순간 불꽃도 아래부터 사라지기 시작한다.
             float remaining = fire.WarningRemaining(index);
             if (remaining < 0f) return -1f;
@@ -84,6 +84,7 @@ namespace CurtainCall.Tightrope.Fire
             bool available = settings != null && course != null && fire.IsPerformanceActive;
             if (!available) { Hide(); return; }
             if (shown != settings || shownRound != fire.Round) Rebuild(settings);
+            if (segmentRopeBurn != null) UpdateRopeBurn();
             chase.gameObject.SetActive(fire.IsChasing);
             if (fire.IsChasing && !chaseShown)
                 foreach (var particles in chaseParticles) { particles.Clear(true); particles.Play(true); }
@@ -134,7 +135,8 @@ namespace CurtainCall.Tightrope.Fire
             var main = particles.main;
             main.startColor = new ParticleSystem.MinMaxGradient(
                 Color.Lerp(WeakCool, FullCool, intensity), Color.Lerp(WeakWarm, FullHot, intensity));
-            main.startSize = new ParticleSystem.MinMaxCurve(Mathf.Lerp(0.08f, 0.55f, t), Mathf.Lerp(0.16f, 1.1f, t));
+            float size = segmentRopeBurn != null ? .3f : 1f;
+            main.startSize = new ParticleSystem.MinMaxCurve(size * Mathf.Lerp(0.08f, 0.55f, t), size * Mathf.Lerp(0.16f, 1.1f, t));
             main.startLifetime = new ParticleSystem.MinMaxCurve(Mathf.Lerp(0.25f, 0.55f, t), Mathf.Lerp(0.4f, 0.95f, t));
             var velocity = particles.velocityOverLifetime;
             float rise = Mathf.Lerp(0.3f, 2.4f, t);
@@ -142,7 +144,8 @@ namespace CurtainCall.Tightrope.Fire
             var shape = particles.shape;
             shape.scale = new Vector3(course.Shape.RopeWalkWidth * Mathf.Lerp(0.6f, 1.6f, t), 0.05f, Mathf.Max(0.1f, length));
             var emission = particles.emission;
-            emission.rateOverTime = Mathf.Max(0.1f, length) * Mathf.Lerp(3f, 45f, t);
+            float rate = segmentRopeBurn != null ? .12f : 1f;
+            emission.rateOverTime = rate * Mathf.Max(0.1f, length) * Mathf.Lerp(3f, 45f, t);
             if (!particles.isPlaying) particles.Play();
         }
 
@@ -156,6 +159,7 @@ namespace CurtainCall.Tightrope.Fire
 
         void Rebuild(FireSettings settings)
         {
+            ClearRopeBurn();
             foreach (var pieces in segments) foreach (var piece in pieces) Destroy(piece.gameObject);
             segments.Clear();
             for (int i = 0; i < settings.segments.Length; i++)
@@ -236,6 +240,7 @@ namespace CurtainCall.Tightrope.Fire
 
         void Hide()
         {
+            ClearRopeBurn();
             if (chase != null) chase.gameObject.SetActive(false);
             chaseShown = false;
             foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);
@@ -245,6 +250,7 @@ namespace CurtainCall.Tightrope.Fire
 
         void OnDestroy()
         {
+            foreach (var material in burnMaterials.Values) Destroy(material);
             if (flame != null) Destroy(flame);
             if (ownsParticleMaterial && particleMaterial != null) Destroy(particleMaterial);
         }
