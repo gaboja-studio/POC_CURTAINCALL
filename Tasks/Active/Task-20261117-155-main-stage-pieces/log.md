@@ -33,6 +33,7 @@
 - Confluence d1:3037: 변경 이력, 공통 내구도 UI 연출, 최신 검증 기록 보완. 이전 후보 검토의 미완료 문구를 과거 시점으로 정정.
 - 기획 페이지 44793873에 MP4 4편 업로드 및 첨부 목록/시연 링크 확인: 신발 att45940738, 최종 구조 att45973505, 끈끈이 att46006273, 벌룬 att46006279. 영상은 자동 조작 실제 공연 시연이며 구조는 한 호스트의 두 캐릭터; 다인 동기화 별도 검증의 범위는 기존 기록대로 유지.
 - private PR: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/23 (resource/performance-equipment → main), PM 팀 검토 요청. 메인 프로젝트의 pre-push가 private main에 포함된 gitlink만 허용하므로 에셋 PR 반영 전에는 메인 프로젝트 push/dev PR을 완료할 수 없다. 검사 우회 없이 관련 파일 커밋·PR 본문까지 준비한다.
+- 메인 프로젝트 구현 커밋 d178f9a8 생성(104파일). verify-scope/verify-fast/스테이징 diff-check/gh 작성자 검사 통과. verify-third-party -CheckSubmodule은 에셋701a1bbe가 main에 없다는 1건으로 FAIL. 공개 푸시 훅을 우회하지 않고 PR23의 main 반영 승인 대기. dev PR 본문 `.harness/local/main-stage-pr.md` 준비 완료. 코드·에셋 검증은 직전 결과 재사용.
 
 - 최종: dirty 씬 0 확인 후 대상 Unity를 --if-saved로 정상 종료. origin/dev fetch 후 HEAD...origin/dev=0/0, 병합 불필요. 종료 시 GripYellow/LA_DeadScreenGlass/GB_Dark의 _Color에 약 1.6e-8 수준 직렬화 반올림 변경만 추가됨을 diff로 확인해 보존했다. 최종 컴파일·안전성·문서 검사는 PASS, 선택 PlayMode 2개도 별도 PASS. 에디터는 종료 상태이며 갤러리 파일을 열어 Play로 확인 가능. 기존 사용자 변경 보존, commit/push 미실행.
 
