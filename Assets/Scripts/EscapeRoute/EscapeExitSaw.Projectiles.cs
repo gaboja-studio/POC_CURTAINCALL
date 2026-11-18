@@ -349,7 +349,7 @@ namespace CurtainCall.EscapeRoute
                     var shot = shots[i];
                     // 수평 원판: 이동은 날 평면 안, 회전축과 실제 절단 두께축은 위쪽.
                     item.transform.SetPositionAndRotation(shot.Position,
-                        Quaternion.LookRotation(shot.Direction, Vector3.up) * Quaternion.AngleAxis(shot.Age * 1100, Vector3.up));
+                        Quaternion.LookRotation(shot.Direction, Vector3.up) * Quaternion.AngleAxis(shot.Age * BladeSpinDegreesPerSecond, Vector3.up));
                 }
             }
             if (recoilVisual != null)

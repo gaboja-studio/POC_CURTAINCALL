@@ -130,7 +130,7 @@ namespace CurtainCall.EscapeRoute
             if (aimRing) aimRing.enabled = false;
             if (extendedForearm) extendedForearm.gameObject.SetActive(false);
             if (graspingHand) graspingHand.gameObject.SetActive(false);
-            if (thrownDebris) thrownDebris.gameObject.SetActive(false);
+            HideDebrisProps();
             if (threatAudio) threatAudio.Stop();
         }
 
@@ -199,7 +199,8 @@ namespace CurtainCall.EscapeRoute
             body.enabled = true;
 
             Vector3 chest = transform.position + Vector3.up;
-            float clearance = Vector3.Distance(chest, lowPassage.ClosestPoint(chest));
+            float clearance = lowPassage && lowPassage.enabled && lowPassage.gameObject.activeInHierarchy
+                ? Vector3.Distance(chest, lowPassage.ClosestPoint(chest)) : float.PositiveInfinity;
             float duck = 1f - Mathf.SmoothStep(0f, 1f, clearance / 2f);
             bool hurry = false;
             Vector3 watch = Vector3.zero;
@@ -519,7 +520,7 @@ namespace CurtainCall.EscapeRoute
         {
             target = runner;
             if (!runner && attack.Phase == AttackPhase.None) return false;
-            if (TryDebrisAttack(runner)) return true;
+            if (TryDebrisAttack(runner, bossVolley: true)) return true;
             Vector3 goal = transform.position, watch = Vector3.zero;
             bool busy = UpdateAttack(true, false, ref goal, ref watch, runner);
             if (watch.sqrMagnitude > .01f) transform.rotation = Quaternion.RotateTowards(transform.rotation,

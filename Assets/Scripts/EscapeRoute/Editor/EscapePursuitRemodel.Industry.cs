@@ -166,7 +166,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 var grinder = IndustryCloneVisual(sawTemplate.transform, grinderMount, new Dictionary<Transform, Transform>());
                 grinder.localPosition = Vector3.zero; grinder.localRotation = Quaternion.identity; grinder.localScale = Vector3.one * 1.8f;
                 var pivot = grinder.Find("RotationPivot");
-                effects.rotors = new[] { new EscapeIndustrialVignette.Rotor { target = pivot, localAxis = Vector3.up, degreesPerSecond = 430 } };
+                effects.rotors = new[] { new EscapeIndustrialVignette.Rotor { target = pivot, localAxis = Vector3.up, degreesPerSecond = 860 } };
                 IndustryBox(line, "Auxiliary wheel fixed spindle", new(12, -3, -.1f), new(.32f, .32f, 1.6f), steel);
                 IndustryBox(line, "Auxiliary grinder pedestal", new(12, -8.1f, -.75f), new(.6f, 9.8f, .65f), steel);
                 var grinding = IndustryParticles(line, "Metal edge grinding sparks", new(11.1f, -3.45f, .7f), sparkMaterial,

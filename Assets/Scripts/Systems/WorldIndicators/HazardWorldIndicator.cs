@@ -28,7 +28,18 @@ namespace CurtainCall.WorldIndicators
             {
                 cachedStart=start; cachedFinish=finish;
                 nextSupport=Time.unscaledTime+Mathf.Max(.02f,settings.surfaceRefreshSeconds);
-                supported=Ground(start,hazard,out cachedA) && Ground(finish,hazard,out cachedB);
+                bool startGrounded = Ground(start, hazard, out cachedA);
+                bool endGrounded = Ground(finish, hazard, out cachedB);
+                supported = startGrounded && endGrounded;
+                if (!supported && hazard.Kind == CannonHazardKind.GroundSaw)
+                {
+                    // A saw can cross a gap or emerge from the wall past the last walkable tile.
+                    float y = startGrounded ? cachedA.y : endGrounded ? cachedB.y :
+                        Ground((start + finish) * .5f, hazard, out var middle) ? middle.y : start.y - size.y * .5f;
+                    if (!startGrounded) cachedA = new Vector3(start.x, y, start.z);
+                    if (!endGrounded) cachedB = new Vector3(finish.x, y, finish.z);
+                    supported = true;
+                }
             }
             if(!supported) { Hide(); return true; }
             var a=cachedA; var b=cachedB;
@@ -52,7 +63,8 @@ namespace CurtainCall.WorldIndicators
         }
         bool Ground(Vector3 point,HumanCannonHazard hazard,out Vector3 ground)
         {
-            ground=default; int n=Physics.RaycastNonAlloc(point+Vector3.up,Vector3.down,hits,60,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore);
+            float depth = hazard.Kind == CannonHazardKind.GroundSaw ? 2f + hazard.Radius : 60f;
+            ground=default; int n=Physics.RaycastNonAlloc(point+Vector3.up,Vector3.down,hits,depth,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore);
             float best=float.PositiveInfinity;
             if(n==hits.Length) return false;
             for(int i=0;i<n;i++)

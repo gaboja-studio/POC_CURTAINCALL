@@ -6,8 +6,8 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeUnderstageChase
     {
-        // v10 adds Preparing (appended to preserve phase values); v9 added committed jump endpoints.
-        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v10";
+        // v11 adds the locked debris spread and per-projectile impact bits.
+        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v11";
         const double SendInterval = .1;
         enum Stage : byte { Entrance, Idle, Pursuit, CartJump, ServiceRoute }
 
@@ -52,7 +52,7 @@ namespace CurtainCall.EscapeRoute
             double now = timer.Clock;
             ulong lookActor = HostLookActor;
             bool transition = attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started || attack.Stopped != lastSentAttack.Stopped || attack.Release != lastSentAttack.Release
-                || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started || lookActor != lastSentLookActor
+                || threat.Stopped != lastSentThreat.Stopped || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started || lookActor != lastSentLookActor
                 || jumping != lastSentJumping || jumping && jumpRevision != lastSentJumpRevision;
             if (net.ConnectedClientsIds.Count < 2 || now < nextSend && !transition) return;
             lastSentAttack = attack;
@@ -106,6 +106,7 @@ namespace CurtainCall.EscapeRoute
                 !float.IsFinite(state.Attack.StopPosition.sqrMagnitude) ||
                 (byte)state.Threat.Phase > (byte)ThreatPhase.Impact || !double.IsFinite(state.Threat.Started) ||
                 !float.IsFinite(state.Threat.From.sqrMagnitude) || !float.IsFinite(state.Threat.To.sqrMagnitude) ||
+                !float.IsFinite(state.Threat.Spread.sqrMagnitude) || state.Threat.Stopped >= (1 << state.Threat.Count) ||
                 !float.IsFinite(state.Threat.Duration) || state.Threat.Duration < 0 || state.Threat.Duration > 10 ||
                 (state.Threat.Phase != ThreatPhase.None && state.Threat.Duration <= 0) ||
                 !float.IsFinite(state.JumpTime) || state.JumpTime < 0f ||

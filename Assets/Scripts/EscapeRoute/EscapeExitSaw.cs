@@ -46,6 +46,7 @@ namespace CurtainCall.EscapeRoute
         ulong followedCarrier = CannonSeatState.Nobody;
         Quaternion initialRotation, initialBladeRotation;
         MaterialPropertyBlock tint;
+        const float BladeSpinDegreesPerSecond = 2200f;
         float cutProgress, bladeAngle;
         bool cutting, synchronized, initialized, carryBlocked;
         uint stateRevision;
@@ -350,7 +351,7 @@ namespace CurtainCall.EscapeRoute
             }
             bool running = Ready && Carrier != CannonSeatState.Nobody && (ProjectileMode || !DoorOpen);
             if (blade != null && running)
-            { bladeAngle = Mathf.Repeat(bladeAngle + 1100f * deltaTime, 360); blade.localRotation = initialBladeRotation * Quaternion.AngleAxis(bladeAngle, bladeAxis); }
+            { bladeAngle = Mathf.Repeat(bladeAngle + BladeSpinDegreesPerSecond * deltaTime, 360); blade.localRotation = initialBladeRotation * Quaternion.AngleAxis(bladeAngle, bladeAxis); }
             if (!ProjectileMode && intactCable != null) intactCable.SetActive(!DoorOpen);
             if (!ProjectileMode && severedCable != null) severedCable.SetActive(DoorOpen);
             bool contactSparks = !ProjectileMode && IsCutting;

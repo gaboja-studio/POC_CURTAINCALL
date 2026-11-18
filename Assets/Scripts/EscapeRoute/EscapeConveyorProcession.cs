@@ -145,7 +145,7 @@ namespace CurtainCall.EscapeRoute
         {
             time *= playbackSpeed;
             float travel = (float)((time * speed) % trackLength);
-            saw.localRotation = Quaternion.AngleAxis((float)(time % 1d) * 360f, Vector3.forward);
+            saw.localRotation = Quaternion.AngleAxis((float)(time % 1d) * 720f, Vector3.forward);
             for (int i = 0; i < carriers.Length; i++)
             {
                 var carrier = carriers[i];
