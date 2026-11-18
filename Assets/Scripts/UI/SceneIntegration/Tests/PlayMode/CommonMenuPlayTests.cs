@@ -46,7 +46,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual("CurtainCall.UI.SettingsV2.SettingsPanelView", view.GetType().FullName);
             Assert.IsFalse((bool)Call(view, "IsPageEnabled", 0));
             Assert.IsFalse(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
-            var prefs = new[] { "CurtainCall.Settings.Volume", "CurtainCall.Settings.Fullscreen", "CurtainCall.Voice.MicVolume", "CurtainCall.Voice.TeamVolume", "CurtainCall.Voice.MicMuted", "CurtainCall.Voice.TeamMuted" };
+            var prefs = new[] { "CurtainCall.Settings.Volume", "CurtainCall.Settings.Fullscreen", "CurtainCall.Voice.MicVolume", "CurtainCall.Voice.TeamVolume", "CurtainCall.Voice.MicMuted", "CurtainCall.Voice.TeamMuted", "CurtainCall.Voice.MicVolumeScale" };
             bool[] existed = prefs.Select(PlayerPrefs.HasKey).ToArray();
             float volume = (float)Static("CurtainCall.StartLobby.ClientSettings", "Volume");
             var graphicsBefore = CaptureGraphics();

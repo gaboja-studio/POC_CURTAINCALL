@@ -119,6 +119,7 @@ namespace CurtainCall.UI.SceneIntegration
             bool owns = IsOpen || leaving;
             if (!owns) foreach (var panel in panels) owns |= panel.IsAnimating;
             InputGate.SetBlocking(this, owns);
+            CurtainCall.Voice.VoiceChat.SetMuteKeyBlocked(this, owns);
             backdrop.SetActive(owns);
             if (owns) { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
         }
@@ -155,6 +156,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (settings != null) settings.Close();
             InputGate.SetBlocking(this, false);
+            CurtainCall.Voice.VoiceChat.SetMuteKeyBlocked(this, false);
             if (Current == this) Current = null;
         }
     }

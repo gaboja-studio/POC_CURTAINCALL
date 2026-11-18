@@ -136,7 +136,7 @@ namespace CurtainCall.UI.SceneIntegration
             sound.rows.Add(Slider("bgmVolume", "배경음 음량", ClientSettings.BgmVolume));
             sound.rows.Add(Slider("sfxVolume", "효과음 음량", ClientSettings.SfxVolume));
             sound.rows.Add(Slider("teamVolume", "전체 음성 수신 음량", voice != null ? voice.TeamVolume : 1));
-            sound.rows.Add(Slider("micVolume", "내 마이크 입력 음량", voice != null ? voice.MicVolume : 1));
+            sound.rows.Add(Slider("micVolume", "내 마이크 입력 음량", voice != null ? voice.MicVolume : VoiceChat.DefaultMicVolume));
             sound.rows.Add(Toggle("micEnabled", "마이크 켜기", voice == null || !voice.IsMicMuted));
             sound.rows.Add(Toggle("teamMuted", "전체 음성 수신 음소거", voice != null && voice.IsTeamMuted));
             sound.rows.Add(Choice("InputDevice", "음성 입력 기기", "unavailable", new[] { new SettingsChoice("unavailable", "기기 목록을 불러와 주세요"), new SettingsChoice(VoiceChat.SystemDefaultDeviceId, "시스템 기본 기기") }));
@@ -328,7 +328,7 @@ namespace CurtainCall.UI.SceneIntegration
                     values.Add(new V2Value { rowId = "bgmVolume", number = ClientSettings.DefaultBgmVolume });
                     values.Add(new V2Value { rowId = "sfxVolume", number = ClientSettings.DefaultSfxVolume });
                     values.Add(new V2Value { rowId = "teamVolume", number = 1 });
-                    values.Add(new V2Value { rowId = "micVolume", number = 1 });
+                    values.Add(new V2Value { rowId = "micVolume", number = VoiceChat.DefaultMicVolume });
                     values.Add(new V2Value { rowId = "micEnabled", toggle = true });
                     values.Add(new V2Value { rowId = "teamMuted", toggle = false });
                     values.Add(new V2Value { rowId = "InputDevice", choiceId = VoiceChat.SystemDefaultDeviceId });

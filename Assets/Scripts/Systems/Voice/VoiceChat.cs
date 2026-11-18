@@ -105,6 +105,32 @@ namespace CurtainCall.Voice
         /// <summary>내 마이크 끄기/켜기를 바꾼다(음소거 키와 같음).</summary>
         public void ToggleMicMuted() => SetMicMuted(!IsMicMuted);
 
+        static readonly HashSet<object> _muteKeyBlockers = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetMuteKeyBlockers() => _muteKeyBlockers.Clear();
+
+        /// <summary>
+        /// 음소거 키·마이크 버튼을 막는 화면(공통 메뉴·설정의 키 변경처럼 키를 직접 받는 화면)이 열려 있는지.
+        /// 카메라 안내·로딩 커튼·연출처럼 게임 입력만 막는 <see cref="CurtainCall.Player.InputGate"/>에는 막히지 않는다(2026-11-19 사용자).
+        /// </summary>
+        public static bool IsMuteKeyBlocked
+        {
+            get
+            {
+                _muteKeyBlockers.RemoveWhere(owner => owner is UnityEngine.Object unity && unity == null);
+                return _muteKeyBlockers.Count > 0;
+            }
+        }
+
+        /// <summary><paramref name="owner"/> 화면이 열릴 때 true, 닫힐 때 false로 음소거 키를 막거나 푼다.</summary>
+        public static void SetMuteKeyBlocked(object owner, bool blocked)
+        {
+            if (owner == null) return;
+            if (blocked) _muteKeyBlockers.Add(owner);
+            else _muteKeyBlockers.Remove(owner);
+        }
+
         void Awake()
         {
             if (Instance != null && Instance != this)
@@ -132,7 +158,8 @@ namespace CurtainCall.Voice
             bool active = settings.Enabled
                 && VoiceRoomRules.IsVoiceScene(StartLobbyFlow.Instance != null, SceneManager.GetActiveScene().name, settings.Scenes);
 
-            if (active && !CurtainCall.Player.InputGate.IsRequested && MuteKeyPressed(settings.MuteKey))
+            // 카메라 안내·로딩 중에도 마이크는 끄고 켤 수 있다. 공통 메뉴(키 변경 포함)가 열려 있을 때만 막는다.
+            if (active && !IsMuteKeyBlocked && MuteKeyPressed(settings.MuteKey))
                 ToggleMicMuted();
 
             string key = active ? _roomKey.Resolve(NetworkSessionManager.Instance, settings.UseOnLan) : null;
