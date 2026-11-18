@@ -125,3 +125,7 @@
 - 에셋 PR 병합 전에는 팀에서 재현 가능한 dev의 22e55ec1 포인터를 유지하고 게임 변경을 먼저 리뷰에 제출한다. 에셋 병합 뒤 검증된 포인터를 올린다. 추가 FinaleHazardTests 6/6 통과.
 - 게임 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/423 과 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/27 을 제출했다.
 - 사용자 승인으로 비공개 에셋 PR #27이 main에 병합됐다(424e899c). 게임 PR #423은 검증한 셰이더 커밋 8b83e6ce를 참조한다. 해당 커밋이 비공개 main에 포함됨을 확인했다.
+- #424의 dev 병합 3a27bc18을 반영했다. 두 PR의 비공개 에셋 커밋을 모두 포함하는 main의 424e899c를 선택했고, 탈출로 씬은 기존 제출본과 동일하다.
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- #424가 변경한 게임 저장소의 53개 경로 중 에셋 참조를 제외한 52개가 dev 병합본과 동일하다. 대포 비공개 에셋 7개의 Git 객체 ID가 모두 일치했다. 통합 후 OriginalMechanicsTests 7/7, FinaleHazardTests 6/6 통과.
