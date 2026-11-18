@@ -68,3 +68,7 @@
 - 일반 Game View `PursuitCoverage_StairsVentAndRailCornersReachTarget` PASS: 환풍구→설비실 계단, 계단실 경사로, 화물 북서쪽, 화물 남동쪽 **4/4** 도달. 남동쪽 최저 5.61m, 목표까지 수평 1.47m로 검사의 1.60m 도달 기준 충족. 접합부 몸통/머리 높이가 열려 있고, 낙하 가장자리의 난간·상단벽이 유지되는 것도 검사했다.
 - `check-work`: 안전성, 문서 규칙, Unity 컴파일, 공통 설정 통과. PlayMode는 위 대상 검사를 별도 실행했다.
 - 최신 `origin/dev`(`0285331d`) 반영 후 Game View에서 **4/4** 재통과. 남동쪽 최저 5.61m, 목표까지 수평 1.49m. Unity 종료 후 `origin/dev`가 최신임을 다시 확인했다.
+
+- 2026-11-19 제출 전 `check-work`: 안전성·문서 규칙·Unity 컴파일·공통 설정 PASS. 위의 EditMode와 Game View PlayMode 결과를 재사용했다. 변경 커밋 `087f4c49`를 push했고, PM 팀에 PR 검토를 요청했다.
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/434 (fix/waiting-room/pursuit → dev)
