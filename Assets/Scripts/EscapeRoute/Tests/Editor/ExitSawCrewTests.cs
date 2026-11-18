@@ -80,6 +80,78 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.IsTrue((bool)Get(cable, "IsCut"), "새 코스의 새 절단은 표시한다.");
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [Category("EscapeFinal165")]
+        public void HostSuspensionKeepsCutCablesAndObjectiveInTheSameRun(int slot)
+        {
+            Fixture(true);
+            Call(saw, "OnEnable");
+            Set(saw, "deviceId", slot);
+            SetCables(Strand(ShotStart + Vector3.forward * 3));
+            var cable = ((Array)Get(saw, "cables")).GetValue(0);
+            Set(saw, "cutMask", 1u);
+            ((Vector3[])Get(saw, "cutPoints"))[0] = ShotStart;
+            Set(saw, "TeamReachedExitZone", true);
+            Set(saw, "courseEpoch", 8u);
+            Set(saw, "stateRevision", 9u);
+            Own(42);
+            var manager = Root("Same network host").AddComponent(T("Unity.Netcode.NetworkManager"));
+            var transport = Activator.CreateInstance(T("Unity.Netcode.CustomMessagingManager"), Flags, null,
+                new object[] { manager }, null);
+            Set(saw, "messaging", transport);
+
+            Call(saw, "OnDisable");
+            Call(saw, "OnEnable");
+            Call(saw, "RestoreSharedCableState");
+            Assert.AreEqual(10u, Get(saw, "stateRevision"));
+            Assert.AreEqual(ulong.MaxValue, Get(saw, "Carrier"));
+            Assert.AreEqual(8u, Get(saw, "courseEpoch"), "Suspending one launcher must not start a new course.");
+            Assert.IsTrue((bool)Get(saw, "TeamReachedExitZone"));
+            Assert.AreEqual(ShotStart, ((Vector3[])Get(saw, "cutPoints"))[0]);
+            Assert.IsTrue((bool)Get(saw, "DoorOpen"));
+            Assert.IsTrue((bool)Get(cable, "IsCut"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        [Category("EscapeFinal165")]
+        public void ResumedLauncherUsesCutsMadeWhileItWasDisabled(bool peerRestarted)
+        {
+            Fixture(true);
+            Call(saw, "OnEnable");
+            SetCables(Strand(ShotStart + Vector3.forward * 3), Strand(ShotStart + Vector3.forward * 5));
+            Set(saw, "courseEpoch", 4u);
+            Set(saw, "cutMask", 1u);
+            Set(saw, "TeamReachedExitZone", true);
+            var manager = Root("Retained network").AddComponent(T("Unity.Netcode.NetworkManager"));
+            var transport = Activator.CreateInstance(T("Unity.Netcode.CustomMessagingManager"), Flags, null,
+                new object[] { manager }, null);
+            Set(saw, "messaging", transport);
+            Call(saw, "OnDisable");
+
+            var peer = Root("Still active launcher").AddComponent(T(SawType));
+            Set(peer, "carryRoot", Root("Other launcher geometry", true).transform);
+            Set(peer, "cables", Get(saw, "cables"));
+            Set(peer, "courseEpoch", peerRestarted ? 5u : 4u);
+            Set(peer, "cutMask", peerRestarted ? 2u : 3u);
+            var newCut = ShotStart + Vector3.forward * 5;
+            ((Vector3[])Get(peer, "cutPoints"))[1] = newCut;
+            Call(peer, "OnEnable");
+            try
+            {
+                Call(saw, "OnEnable");
+                Call(saw, "RestoreSharedCableState");
+            }
+            finally { Call(peer, "OnDisable"); }
+
+            Assert.AreEqual(peerRestarted ? 5u : 4u, Get(saw, "courseEpoch"));
+            Assert.AreEqual(peerRestarted ? 2u : 3u, Get(saw, "cutMask"));
+            Assert.AreEqual(!peerRestarted, Get(saw, "TeamReachedExitZone"));
+            Assert.AreEqual(newCut, ((Vector3[])Get(saw, "cutPoints"))[1]);
+            Assert.AreEqual(!peerRestarted, Get(saw, "DoorOpen"));
+        }
+
         [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
         public void ConnectedCrewGetsOneLauncherEachAndRejoiningRestoresTheSameDevice(int crew)
         {

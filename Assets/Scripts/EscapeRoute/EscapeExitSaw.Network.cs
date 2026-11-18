@@ -122,7 +122,11 @@ namespace CurtainCall.EscapeRoute
             {
                 synchronized = true;
                 manager.RegisterNamedMessageHandler(attachedRequestName, ReadRequest);
-                if (resumingHost) Publish();
+                if (resumingHost)
+                {
+                    RestoreSharedCableState();
+                    Publish();
+                }
             }
             else { manager.RegisterNamedMessageHandler(attachedStateName, ReadState); SendRequest(0, 0); }
         }
@@ -315,12 +319,15 @@ namespace CurtainCall.EscapeRoute
             {
                 ownership.Reset();
                 stateRevision++;
-                courseEpoch++;
+                ClearShots();
             }
             else
             {
                 ownership = new CannonSeatState();
                 stateRevision = courseEpoch = 0;
+                TeamReachedExitZone = false;
+                cutProgress = 0;
+                ResetProjectileCourse();
             }
             if (messaging != null)
             {
@@ -330,9 +337,8 @@ namespace CurtainCall.EscapeRoute
             attachedRequestName = attachedStateName = null;
             pendingGrabs.Clear();
             messaging = null; session = null; synchronized = false;
-            TeamReachedExitZone = false;
-            cutProgress = 0; cutting = false;
-            resetBarrier.Clear(); ResetProjectileCourse(); Recover(); Present(0, true);
+            resetBarrier.Clear();
+            Recover(); Present(0, true);
         }
     }
 }
