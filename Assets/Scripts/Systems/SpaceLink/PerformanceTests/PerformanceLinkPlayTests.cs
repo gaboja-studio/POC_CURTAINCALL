@@ -687,7 +687,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return null;
             // StartGame 최소 인원을 우회하는 테스트 전용 RunState. 접속 명부/NetworkPlayer는 LAN 호스트 1명 그대로다.
             host = Activator.CreateInstance(PerformanceLinkReflection.GameType("CurtainCall.Campaign.RunState"));
-            Call(host, "StartSession");
+            Call(host, "StartSession", Type.Missing);
             Set(campaign, "host", host);
             Set(campaign, "offlineRun", false);
             Call(campaign, "Apply", Get(host, "Snapshot"));
