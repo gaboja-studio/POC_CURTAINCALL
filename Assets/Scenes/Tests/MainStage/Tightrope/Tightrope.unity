@@ -16341,6 +16341,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 479346, guid: f12e7b5c70fbeac4b99a545b6993f9b9, type: 3}
   m_PrefabInstance: {fileID: 456863820}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &462321067
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 462321068}
+  - component: {fileID: 462321069}
+  m_Layer: 0
+  m_Name: Cheer_05_Equipment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &462321068
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 462321067}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.5, y: 4.1, z: 154}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1279543188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &462321069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 462321067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: d37f764740f14168941cfa0bb13f391a
+  trickId: Tightrope
+  equipmentRoute: 1
 --- !u!1001 &518337019
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22005,6 +22052,100 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4595804501893810, guid: c759a8001ad2d6c4b8324b0361b95929, type: 3}
   m_PrefabInstance: {fileID: 786553004}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &812736611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 812736612}
+  - component: {fileID: 812736613}
+  m_Layer: 0
+  m_Name: Cheer_01_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &812736612
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812736611}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.5, y: 1, z: 12}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1279543188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &812736613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812736611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: 78778b9a53c849d4b6630f17f40c4e7c
+  trickId: Tightrope
+  equipmentRoute: 0
+--- !u!1 &908907643
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 908907644}
+  - component: {fileID: 908907645}
+  m_Layer: 0
+  m_Name: Cheer_03_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &908907644
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 908907643}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.5, y: 1, z: 148}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1279543188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &908907645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 908907643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: 23f46404dd18477f94b64fc2e6f53e9c
+  trickId: Tightrope
+  equipmentRoute: 0
 --- !u!1001 &946041250
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22452,28 +22593,6 @@ Transform:
   - {fileID: 518337020}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1276619452 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 531039770891401842, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
-  m_PrefabInstance: {fileID: 735797995}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 735797996}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41fbb8fb41d394ea084fb33d70a30f0f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
---- !u!114 &1276619453 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5323995462504985704, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
-  m_PrefabInstance: {fileID: 735797995}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 735797996}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6973c7e6af1984615ac73ef3e2d2e73f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.PlayerSpawnPoints
 --- !u!1001 &1211040134
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22721,6 +22840,111 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 479346, guid: f12e7b5c70fbeac4b99a545b6993f9b9, type: 3}
   m_PrefabInstance: {fileID: 1211040134}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1228366699
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1228366700}
+  - component: {fileID: 1228366701}
+  m_Layer: 0
+  m_Name: Cheer_04_Equipment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1228366700
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228366699}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.5, y: 4.1, z: 22}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1279543188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1228366701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228366699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: befda938da124d3b93109897ab35e298
+  trickId: Tightrope
+  equipmentRoute: 1
+--- !u!114 &1276619452 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 531039770891401842, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+  m_PrefabInstance: {fileID: 735797995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41fbb8fb41d394ea084fb33d70a30f0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
+--- !u!114 &1276619453 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5323995462504985704, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+  m_PrefabInstance: {fileID: 735797995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6973c7e6af1984615ac73ef3e2d2e73f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.PlayerSpawnPoints
+--- !u!1 &1279543187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1279543188}
+  m_Layer: 0
+  m_Name: PerformanceCheerPoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1279543188
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279543187}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 812736612}
+  - {fileID: 1488614899}
+  - {fileID: 908907644}
+  - {fileID: 1228366700}
+  - {fileID: 462321068}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1284927394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28360,6 +28584,53 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!1 &1488614898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1488614899}
+  - component: {fileID: 1488614900}
+  m_Layer: 0
+  m_Name: Cheer_02_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1488614899
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488614898}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.5, y: 1, z: 58}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1279543188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1488614900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488614898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: e94f7a168f184cb99fc3c9e29a533c98
+  trickId: Tightrope
+  equipmentRoute: 0
 --- !u!1 &1554897180
 GameObject:
   m_ObjectHideFlags: 0
@@ -54191,3 +54462,4 @@ SceneRoots:
   - {fileID: 1055310581}
   - {fileID: 1584228852}
   - {fileID: 2121898495}
+  - {fileID: 1279543188}

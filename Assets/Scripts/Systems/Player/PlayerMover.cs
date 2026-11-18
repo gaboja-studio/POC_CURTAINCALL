@@ -308,6 +308,22 @@ namespace CurtainCall.Player
             SetAirborne(true);
         }
 
+        public bool TryEquipmentJump(float height)
+        {
+            if(!Simulated || !ControlEnabled || !IsAirborne || !controller.enabled || height<=0) return false;
+            // Keep the current horizontal trajectory and lane destination; only replace vertical momentum.
+            verticalSpeed=Mathf.Sqrt(2f*Mathf.Max(.01f,EffectiveGravity)*height);
+            if(CurrentJump==JumpKind.Lane) laneFlightUntil=Time.timeAsDouble+4f;
+            return true;
+        }
+
+        bool equipmentGlide;
+        public bool EquipmentGlide
+        {
+            get=>equipmentGlide;
+            set { if(value && !equipmentGlide && CurrentJump==JumpKind.Lane) CurrentJump=JumpKind.InPlace; equipmentGlide=value; }
+        }
+
         public void ResetExternalMotion(bool airborne)
         {
             ClearPendingInput();
@@ -658,7 +674,7 @@ namespace CurtainCall.Player
             {
                 IsMoving = false;
                 IsSprinting = false;
-                if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane && !directionalLaunchPending)
+                if ((FreeMovement && FreeAirControl || EquipmentGlide) && ControlEnabled && CurrentJump != JumpKind.Lane && !directionalLaunchPending)
                 {
                     airVelocity = ReadAirMovement(forward, move, sideInput);
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
@@ -673,6 +689,11 @@ namespace CurtainCall.Player
             Vector3 displacement = ballistic ? BallisticMotion.Step(ref velocity, Vector3.zero, EffectiveGravity, Time.deltaTime)
                 : velocity * Time.deltaTime;
             verticalSpeed = velocity.y;
+            if(ballistic && EquipmentGlide && verticalSpeed < 0)
+            {
+                verticalSpeed=Mathf.Max(verticalSpeed,-GameSettings.PerformanceEquipment.balloonFallSpeed);
+                displacement.y=Mathf.Max(displacement.y,verticalSpeed*Time.deltaTime);
+            }
             Vector3 horizontalStep = new(displacement.x, 0f, displacement.z);
             Vector3 step = FreeMovement
                 ? LimitAgainstPlayers(horizontalStep)
@@ -701,6 +722,7 @@ namespace CurtainCall.Player
         {
             Vector3 direction = ReadMovementDirection(forward, move, side);
             float speed = GameSettings.Base.AirControl.Speed;
+            if(EquipmentGlide) speed *= GameSettings.PerformanceEquipment.balloonSteering;
             if (sprintJumpVelocity != Vector3.zero && verticalSpeed > 0f)
             {
                 // 이륙 방향으로만 남은 속도를 더하고, 점프 정점에서 공통 공중 속도로 돌아온다.

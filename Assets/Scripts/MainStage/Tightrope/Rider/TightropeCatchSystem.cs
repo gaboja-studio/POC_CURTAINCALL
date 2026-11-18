@@ -43,8 +43,7 @@ namespace CurtainCall.Tightrope
         public static float GloveRange => ItemCatalog.Get(ItemUses.RescueGloves) is { effect2: > 0f } e ? e.effect2 : 2f;
 
         /// <summary>구조 장갑으로 지금 받아줄 수 있는 사람인가(모든 화면, 소지 상태는 공유값).</summary>
-        public bool IsGloveCatcher(NetworkPlayer player) => player != null && PropCarry.Instance != null
-            && PropCarry.Instance.EquipmentReady(player.OwnerClientId, ItemUses.RescueGloves) && CanPrepare(player);
+        public bool IsGloveCatcher(NetworkPlayer player) => false; // 구조 장갑은 슬롯 사용으로 동료를 끌어오는 단일 효과.
 
         bool CanCatch(NetworkPlayer player) => IsReady(player) || IsGloveCatcher(player);
         bool Active => isActiveAndEnabled && TightropeCourse.Current != null

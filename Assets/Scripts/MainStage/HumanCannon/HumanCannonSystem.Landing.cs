@@ -173,7 +173,7 @@ namespace CurtainCall.HumanCannon
             }
             float height = player.FallHeightAt(position);
             if (player.CompleteFall(height, position,
-                () => safe && TrySpringRebound(player, index, revision, segment, position),
+                null, // 신발은 공중 수동 점프만 제공하며 착지 자동 반동은 하지 않는다.
                 () => ApplyLanding(player.OwnerClientId, index, revision, segment, safe))) return;
             // 지지면에 닿아 비행이 끝났어도 사망한 착지를 교육 성공/통과로 알리지 않는다.
             NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe && player.State == PlayerState.Normal);

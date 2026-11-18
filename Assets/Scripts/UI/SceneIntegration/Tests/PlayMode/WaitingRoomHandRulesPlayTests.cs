@@ -75,13 +75,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Held(), "마지막 회차를 쓰면 파괴·슬롯 제거");
             Assert.AreEqual(false, Call(carry, "EquipmentReady", me, "rescue-gloves"), "0회·없는 장비는 새 효과를 내지 못한다");
 
-            // 끈끈이 장갑: 장갑이 있을 때만 제한 있는 매달림이 1.5배로 늘어난다.
+            // 수동 기물 개편: 소지만으로 제한시간이 늘어나지 않는다.
             var sticky = T("CurtainCall.WaitingRoom.StickyGloves");
             double Extra() => (double)sticky.GetMethod("ExtraSeconds").Invoke(null, new object[] { me, 7d });
             Assert.AreEqual(0d, Extra(), 1e-6);
             Assert.AreEqual("None", Call(carry, "Receive", me, Item(9103, "sticky-gloves", 3)).ToString());
             yield return null;
-            Assert.AreEqual(3.5d, Extra(), 1e-6);
+            Assert.AreEqual(0d, Extra(), 1e-6);
         }
     }
 }

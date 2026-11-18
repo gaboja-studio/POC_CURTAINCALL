@@ -21,7 +21,7 @@ namespace CurtainCall.UI.SceneIntegration
         public string emptyHandText;
         [Tooltip("도구를 손에 들었을 때. {item} = 기물 이름")]
         public string holdingFormat;
-        [Tooltip("장비 칸을 골랐을 때(장비는 손에 들지 않고 슬롯에서 자동 적용). {item} = 기물 이름")]
+        [Tooltip("장비 칸을 골랐을 때. 공연 장비는 슬롯 사용키로 발동한다. {item} = 기물 이름")]
         public string equipmentSelectedFormat;
         [Tooltip("잠긴 칸의 번호 자리. {n} = 칸 번호")]
         public string lockedSlotFormat;
@@ -77,6 +77,10 @@ namespace CurtainCall.UI.SceneIntegration
             bool uvHeld = reader != null && reader.Current.UvLightHeld && !InputGate.IsBlocked && ownsUv;
             var useMark = carry != null ? carry.LastUse(id) : default;
             string next = $"{id}:{capacity}:{selected.Uid}:{uvHeld}:{useMark.Serial}";
+            string firstUse=reader ? reader.BindingLabel("UseSlotOne","Q") : "Q";
+            string secondUse=reader ? reader.BindingLabel("UseSlotTwo","E") : "E";
+            bool firstReady=local && local.CanUseEquipmentSlot(0), secondReady=local && local.CanUseEquipmentSlot(1);
+            next+=$":{firstUse}:{secondUse}:{firstReady}:{secondReady}";
             if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}";
             if (signature != next)
             {
@@ -85,7 +89,9 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     bool occupied = held != null && i < held.Count;
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
-                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : Fill(lockedSlotFormat, ("n", i + 1)),
+                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity
+                            ? (occupied && ItemCatalog.Get(held[i].ItemId)?.kind==ItemKind.Equipment || local && local.ActiveBalloonSlot==i) ? (i==0 ? firstUse : secondUse) : (i+1).ToString()
+                            : Fill(lockedSlotFormat, ("n", i + 1)),
                         QuantityLabel = "" }); // 남은 사용 횟수는 칸 아래 내구도 바로 보인다(2026-11-02 사용자)
                 }
                 string itemName = selected.Uid == 0 ? Fill(emptyHandText)
@@ -96,7 +102,8 @@ namespace CurtainCall.UI.SceneIntegration
                     var view = slots.GetSlot(i);
                     var opacity = view.GetComponent<CanvasGroup>();
                     if (opacity == null) opacity = view.gameObject.AddComponent<CanvasGroup>();
-                    opacity.alpha = i < capacity ? 1f : .35f;
+                    bool equipment=held!=null && i<held.Count && ItemCatalog.Get(held[i].ItemId)?.kind==ItemKind.Equipment;
+                    opacity.alpha = i>=capacity ? .35f : equipment && !(i==0 ? firstReady : secondReady) ? .65f : 1f;
                     // 칸 선택 테두리는 슬롯 템플릿(씬)에 배치했다. 슬롯은 템플릿의 복제본이라 같은 테두리를 가진다.
                     var border = view.GetComponentInChildren<InventorySlotSelectionBorder>(true);
                     if (border != null) border.Show(data[i].IsHeld);

@@ -99,6 +99,8 @@ namespace CurtainCall.Reward
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            if (!GetComponent<CurtainCall.MainStage.CheerPoints.PerformanceCheerRuntime>())
+                gameObject.AddComponent<CurtainCall.MainStage.CheerPoints.PerformanceCheerRuntime>();
         }
 
         void Start() => Bind();

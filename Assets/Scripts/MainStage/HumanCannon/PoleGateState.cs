@@ -50,6 +50,12 @@ namespace CurtainCall.HumanCannon
             return -1;
         }
 
+        public bool DelayHold(int seat,double seconds)
+        {
+            if(OccupantAt(seat)==Nobody || deadlines[seat]<=0 || !double.IsFinite(seconds) || seconds<=0 || !double.IsFinite(deadlines[seat]+seconds)) return false;
+            deadlines[seat]+=seconds; Revision++; return true;
+        }
+
         public bool TryGrab(ulong actor, uint expectedRevision, double now, float holdSeconds, bool fixedGateWindow = false, int seat = -1)
         {
             if (actor == Nobody || !HasFreeSeat || SeatOf(actor) >= 0 || expectedRevision != Revision || !ValidTime(now)
@@ -143,9 +149,9 @@ namespace CurtainCall.HumanCannon
             {
                 PoleSawPhase.Active => occupant == Nobody && holdUntil == 0 && rearmAt == 0,
                 PoleSawPhase.Retracted => (occupant != Nobody && rearmAt == 0)
-                    || (rearmAt > 0 && ((occupant == Nobody && holdUntil == 0) || (occupant != Nobody && holdUntil == rearmAt))),
+                    || (rearmAt > 0 && ((occupant == Nobody && holdUntil == 0) || (occupant != Nobody && holdUntil >= rearmAt))),
                 PoleSawPhase.Warning => rearmAt > 0 && ((occupant == Nobody && holdUntil == 0)
-                    || (occupant != Nobody && holdUntil == rearmAt)),
+                    || (occupant != Nobody && holdUntil >= rearmAt)),
                 _ => false
             };
             if (!valid) return false;

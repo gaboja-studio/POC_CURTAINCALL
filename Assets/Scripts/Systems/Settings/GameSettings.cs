@@ -33,6 +33,10 @@ namespace CurtainCall.Settings
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Game Settings", fileName = "GameSettings")]
     public sealed class GameSettings : ScriptableObject
     {
+        [Tooltip("공연 기물 수동 효과·환호 고리 외형과 통과 보상.")]
+        [SerializeField] PerformanceEquipmentSettings performanceEquipment;
+        static PerformanceEquipmentSettings fallbackPerformanceEquipment;
+        public static PerformanceEquipmentSettings PerformanceEquipment => Linked(Current.performanceEquipment, ref fallbackPerformanceEquipment);
         const string ResourcePath = "Settings/GameSettings/GameSettings";
 
         [Tooltip("공통 세팅(세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화).")]

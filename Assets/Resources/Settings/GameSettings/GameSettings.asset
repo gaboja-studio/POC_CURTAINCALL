@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1803174f2dd3c4cdd9bb059939258783, type: 3}
   m_Name: GameSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.GameSettings
+  performanceEquipment: {fileID: 11400000, guid: c9d8965475eb52d4f8890d4f5e0ed0e0, type: 2}
   baseSettings: {fileID: 11400000, guid: 83e0f3bf71fe246479b4e65d31320546, type: 2}
   tightrope: {fileID: 11400000, guid: fcccd7ee5d461433ea8ef0aba34fb392, type: 2}
   humanCannon: {fileID: 11400000, guid: 52c881da1ede6f041a1486250b65cff9, type: 2}

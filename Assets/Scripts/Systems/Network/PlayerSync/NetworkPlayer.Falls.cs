@@ -92,6 +92,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)) return;
             CurtainCall.SpaceLink.CampaignPerformanceEntry.ConfirmPlayerPlacement(this, feet);
+            CurtainCall.MainStage.CheerPoints.PerformanceCheerRuntime.InvalidateTraversal(OwnerClientId);
             WaitForFallTeleport(feet);
         }
 
@@ -116,7 +117,7 @@ namespace CurtainCall.Network.PlayerSync
             return true;
         }
 
-        bool HeldAboveGround() => restingBed.Value >= 0
+        bool HeldAboveGround() => IsBeingRescued || restingBed.Value >= 0
             || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(OwnerClientId) >= 0
             || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsSeated(OwnerClientId)
             || TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(this)
@@ -260,7 +261,7 @@ namespace CurtainCall.Network.PlayerSync
             float segmentPeak = ownerPeakSequence == sequence ? Mathf.Max(peak, ownerFallPeak) : peak;
             // The owner reports the peak/contact of this exact segment. A host pose or owner peak
             // belonging to the following jump is an upper-bound check, not extra height for this landing.
-            bool rebounded = CompleteFall(segmentPeak - feet.y, feet, TryOrdinarySpringRebound);
+            bool rebounded = CompleteFall(segmentPeak - feet.y, feet, null);
             // Valid owner landings can finish even if the exact teleport destination frame was skipped.
             // Every accepted ordinary landing uses reported contact, even when the server pose is delayed.
             if (!rebounded && State == PlayerState.Normal)

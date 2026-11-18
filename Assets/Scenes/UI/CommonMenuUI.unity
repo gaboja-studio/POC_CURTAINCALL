@@ -2927,13 +2927,15 @@ MonoBehaviour:
   effectMaterial: {fileID: 2100000, guid: 61cf14f79f3d90d4984ad5913446d863, type: 2}
   useFlashColor: {r: 1, g: 0.93, b: 0.6, a: 0.85}
   useSeconds: 0.4
-  useIconPunch: 0.35
+  useIconPunch: 0.2
   useHitBlend: 0.85
   breakFlashColor: {r: 1, g: 0.3, b: 0.22, a: 0.9}
-  breakSeconds: 0.7
-  breakGhostScale: 1.45
-  breakGhostSpin: 18
+  breakSeconds: 1.05
+  breakGhostScale: 1.2
+  breakGhostSpin: -9
   breakFadeTo: 0.65
+  breakRise: 25
+  breakLiftFraction: 0.28
 --- !u!1001 &1966890438
 PrefabInstance:
   m_ObjectHideFlags: 0

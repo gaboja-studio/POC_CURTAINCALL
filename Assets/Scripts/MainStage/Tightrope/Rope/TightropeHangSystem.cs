@@ -44,7 +44,7 @@ namespace CurtainCall.Tightrope
 
         /// <summary>표시용 남은 버티는 시간(초). 끌어올리는 중이면 멈춘 값.</summary>
         public float RemainingSeconds(TightropeHangBook.Hang hang) => hang == null ? 0f
-            : (float)Math.Max(0d, hang.IsPulling || IsHost ? hang.Remaining : hang.Remaining - (Now - snapshotAt));
+            : (float)Math.Max(0d, hang.IsPulling || IsHost ? hang.Remaining : hang.Remaining - (Now - snapshotAt) + (Find(hang.Id)?.HoldPauseDelta(Now-snapshotAt) ?? 0));
 
         /// <summary>
         /// 외줄 추락 매달림 전용 추락 게이지. 버티는 시간(기본 7초, 끈끈이 장갑이면 1.5배) 동안 0→1, 구조 중에는 버티기 시간과 함께 정지한다.
@@ -239,7 +239,7 @@ namespace CurtainCall.Tightrope
                 }
                 changed = true;
             }
-            foreach (var (id, outcome, hang) in book.Tick(deltaTime))
+            foreach (var (id, outcome, hang) in book.Tick(deltaTime,id=>Find(id)?.HoldPauseDelta(deltaTime) ?? 0))
             {
                 changed = true;
                 // 끈끈이 장갑: 추가 시간에 들어섰던 매달림이 끝나면 1 소모·쿨타임 시작(마지막 회차도 매달림이 끝난 뒤 파괴).

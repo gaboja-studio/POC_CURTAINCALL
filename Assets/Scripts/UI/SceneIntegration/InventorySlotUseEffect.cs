@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration
     /// 소지 칸 사용 연출(2026-11-02 사용자, Task-094). 기물 내구도가 줄면 그 칸에 사용 연출, 다 써서 사라지면 파괴 연출을 띄운다.
     /// CommonMenuUI 씬의 슬롯 템플릿(00_SlotTemplate)에 배치하고, 세기·시간·색은 씬에서 고친다. CommonInventoryUI가 부른다.
     /// - 사용: 칸 번쩍임(<see cref="flash"/>) + 아이콘 튀김 + 아이콘 흰빛(All In 1 Sprite Shader Hit Effect).
-    /// - 파괴: 사라진 기물 그림(<see cref="breakGhost"/>)이 커지며 타 없어짐(All In 1 Sprite Shader Fade) + 칸 붉은 번쩍임.
+    /// - 파괴: 사라진 기물 그림이 슬롯 위로 튀어오른 뒤 All In 1 Fade로 천천히 소멸한다.
     /// - 머티리얼(<see cref="effectMaterial"/>)은 _ThirdParty에 둔 All In 1 UI 머티리얼. 연출 동안만 복사본을 씌우고 끝나면 원래대로 돌린다.
     /// </summary>
     public sealed class InventorySlotUseEffect : MonoBehaviour
@@ -38,15 +38,24 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] float breakGhostSpin = 18f;
         [Tooltip("파괴 때 Fade Amount 끝 값. 0.6 근처면 그림이 다 타 없어진다")]
         [SerializeField, Range(0f, 1f)] float breakFadeTo = .65f;
+        [Tooltip("소진된 아이콘이 슬롯에서 떠오르는 높이(UI 로컬 단위)")]
+        [SerializeField, Min(0f)] float breakRise = 24f;
+        [Tooltip("전체 연출 중 먼저 튀어오르는 구간. 이 구간에는 아이콘을 소멸시키지 않는다")]
+        [SerializeField, Range(.1f, .6f)] float breakLiftFraction = .28f;
 
         Material iconInstance, ghostInstance;
         Material iconOriginal;
         bool iconSwapped;
+        Vector2 ghostRestPosition;
+        Vector3 ghostRestScale;
+        Quaternion ghostRestRotation;
+        bool ghostPoseCaptured;
 
         void Awake()
         {
             if (flash != null) SetAlpha(flash, 0f);
             if (breakGhost != null) breakGhost.enabled = false;
+            CaptureGhostPose();
         }
 
         /// <summary>내구도 1 사용.</summary>
@@ -84,27 +93,48 @@ namespace CurtainCall.UI.SceneIntegration
                     .Append(flash.DOFade(0f, breakSeconds * .6f).SetEase(Ease.InQuad));
             }
             if (breakGhost == null || lostSprite == null) return;
+            CaptureGhostPose();
             breakGhost.sprite = lostSprite;
             breakGhost.enabled = true;
+            breakGhost.raycastTarget = false;
             breakGhost.color = Color.white;
             var rect = breakGhost.rectTransform;
-            rect.localScale = Vector3.one;
-            rect.localRotation = Quaternion.identity;
+            rect.anchoredPosition = ghostRestPosition;
+            rect.localScale = ghostRestScale;
+            rect.localRotation = ghostRestRotation;
+            float duration = Mathf.Max(.15f, breakSeconds);
+            float lift = duration * breakLiftFraction;
+            float dissolve = duration - lift;
+            var sequence = DOTween.Sequence().SetTarget(this).SetUpdate(true);
+            sequence.Append(rect.DOAnchorPos(ghostRestPosition + Vector2.up * breakRise, lift).SetEase(Ease.OutCubic));
+            sequence.Join(rect.DOScale(ghostRestScale * breakGhostScale, lift).SetEase(Ease.OutBack));
+            sequence.Join(rect.DOLocalRotate(ghostRestRotation.eulerAngles + new Vector3(0f, 0f, breakGhostSpin), lift).SetEase(Ease.OutQuad));
+            sequence.Append(rect.DOAnchorPos(ghostRestPosition + Vector2.up * (breakRise * .82f), dissolve).SetEase(Ease.InSine));
             if (effectMaterial != null)
             {
                 if (ghostInstance == null) ghostInstance = new Material(effectMaterial) { name = effectMaterial.name + " (Ghost)" };
                 ghostInstance.SetFloat(HitBlend, 1f);
                 ghostInstance.SetFloat(FadeAmount, -.1f);
                 breakGhost.material = ghostInstance;
-                DOTween.Sequence().SetTarget(this).SetUpdate(true)
-                    .Append(ghostInstance.DOFloat(0f, HitBlend, breakSeconds * .35f))
-                    .Join(ghostInstance.DOFloat(breakFadeTo, FadeAmount, breakSeconds).SetEase(Ease.Linear));
+                sequence.Insert(0f, ghostInstance.DOFloat(0f, HitBlend, lift).SetEase(Ease.OutQuad));
+                sequence.Insert(lift, ghostInstance.DOFloat(breakFadeTo, FadeAmount, dissolve).SetEase(Ease.InOutSine));
             }
-            else breakGhost.DOFade(0f, breakSeconds).SetEase(Ease.InQuad).SetUpdate(true);
-            rect.DOScale(breakGhostScale, breakSeconds).SetEase(Ease.OutCubic).SetUpdate(true);
-            rect.DOLocalRotate(new Vector3(0f, 0f, breakGhostSpin), breakSeconds).SetEase(Ease.OutCubic).SetUpdate(true)
-                .OnComplete(HideGhost).OnKill(HideGhost);
-            rect.DOShakeAnchorPos(breakSeconds * .35f, 4f, 30, 90f, false, true).SetUpdate(true);
+            // Keep the initial lift opaque, and guarantee a clean tail even with a custom fade texture.
+            if (effectMaterial != null)
+                sequence.Insert(lift + dissolve * .65f, breakGhost.DOFade(0f, dissolve * .35f).SetEase(Ease.InQuad));
+            else
+                sequence.Insert(lift, breakGhost.DOFade(0f, dissolve).SetEase(Ease.InQuad));
+            sequence.OnComplete(HideGhost).OnKill(HideGhost);
+        }
+
+        void CaptureGhostPose()
+        {
+            if (ghostPoseCaptured || breakGhost == null) return;
+            var rect = breakGhost.rectTransform;
+            ghostRestPosition = rect.anchoredPosition;
+            ghostRestScale = rect.localScale;
+            ghostRestRotation = rect.localRotation;
+            ghostPoseCaptured = true;
         }
 
         Material IconMaterial()
@@ -130,8 +160,12 @@ namespace CurtainCall.UI.SceneIntegration
             breakGhost.enabled = false;
             breakGhost.material = null;
             var rect = breakGhost.rectTransform;
-            rect.localScale = Vector3.one;
-            rect.localRotation = Quaternion.identity;
+            if (ghostPoseCaptured)
+            {
+                rect.anchoredPosition = ghostRestPosition;
+                rect.localScale = ghostRestScale;
+                rect.localRotation = ghostRestRotation;
+            }
         }
 
         void StopAll()

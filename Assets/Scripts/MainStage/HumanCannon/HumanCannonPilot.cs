@@ -133,7 +133,6 @@ namespace CurtainCall.HumanCannon
 
         internal void Launch(int index, uint revision, Vector3 position, Quaternion rotation, Vector3 launchVelocity)
         {
-            FinishBalloonPants();
             airControl.Clear();
             steerPoleMomentum = false;
             airControl.BeginPoleFlight(0f);
@@ -170,7 +169,7 @@ namespace CurtainCall.HumanCannon
         {
             if (!MatchesFlight(index, revision, segment)) return;
             flightSegment++;
-            // 스프링 신발은 바닥 착지 요청 뒤에 반동한다(Task-092). 착지 대기도 풀어야 비행이 이어진다.
+            if(fromTrampoline) player?.ResetEquipmentAirCycle();
             awaitingBounce = awaitingLanding = rejectedSurface = false;
             // 반동은 자동 전진 관성만 없앤다. WASD 보정은 누르는 동안 계속 적용한다.
             velocity = Vector3.up * upwardSpeed;
@@ -192,6 +191,7 @@ namespace CurtainCall.HumanCannon
         internal void CompleteLanding(int index, uint revision, uint segment)
         {
             if (!awaitingLanding || !MatchesFlight(index, revision, segment)) return;
+            player?.ResetEquipmentAirCycle();
             ReleaseMovement();
             // 호스트가 확정한 실제 착지다. 이전 점프/옆줄 목표 없이 지지면 조작으로 인계한다.
             if (mover != null) mover.ResetExternalMotion(false);
@@ -220,7 +220,6 @@ namespace CurtainCall.HumanCannon
 
         internal void ReleaseMovement()
         {
-            FinishBalloonPants();
             airControl.Clear();
             bool captured = player != null && player.State == PlayerState.EscapeCaptured;
             if (mover != null && IsDriving)
@@ -259,7 +258,6 @@ namespace CurtainCall.HumanCannon
 
         void SimulateFlight()
         {
-            WatchBalloonPantsEnd();
             if (IsHoldingPole) return;
             if (awaitingBounce && HumanCannonTrampoline.Current == null)
             {
@@ -271,6 +269,7 @@ namespace CurtainCall.HumanCannon
             float gravity = GameSettings.Base.Character.Gravity;
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
             float controlMultiplier = trampolineFlight ? 1f : GameSettings.Base.BodyDamage.MoveMultiplier(condition != null ? condition.LostLegCount : 0);
+            if(BalloonPantsActive) controlMultiplier *= GameSettings.PerformanceEquipment.balloonSteering;
             Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
             float controlLimit = steerPoleMomentum ? poleFlightSpeedLimit
                 : Vector3.ProjectOnPlane(velocity, Vector3.up).magnitude + airControlSpeed * controlMultiplier;

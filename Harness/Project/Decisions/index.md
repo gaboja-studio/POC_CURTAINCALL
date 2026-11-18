@@ -1,5 +1,7 @@
 # Project Decisions
 
+- [Performance-equipment/](Performance-equipment/index.md) — 공연 신발의 공중 추가 점프·착지 전 1회·실제 적용 소모 규칙을 구현할 때
+
 - [interaction-focus.md](interaction-focus.md) — F 대상 선택(화면 기준점·분류 우선순위)·아웃라인·T 기물 내려놓기·대기실 목마 상태 규칙(2026-11-16). 상호작용 대상을 추가하거나 선택·안내를 바꿀 때
 - [common-poles.md](common-poles.md) — 봉·스위치 봉·연습 봉의 조작/물리/인원/시간을 바꿀 때 읽는 공통 규칙
 

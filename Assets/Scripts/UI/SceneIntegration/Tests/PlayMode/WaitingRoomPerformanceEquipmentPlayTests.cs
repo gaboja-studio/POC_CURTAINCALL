@@ -8,177 +8,213 @@ using UnityEngine.TestTools;
 
 namespace CurtainCall.UI.SceneIntegration.Tests
 {
-    /// <summary>
-    /// Task-092 공연용 장비 효과(실제 캠페인 호스트로 공연 씬 진입, 대기실 소지 장부 유지).
-    /// 스프링 신발: 다칠 바닥 착지 → 부상 대신 반동·1 소모, 쿨타임 없이 다시 반동하고 다 쓰면 기존 부상(2026-11-02 내구도 2).
-    /// 광대 벌룬 바지: 하강 변위 30% 감소, 하강이 끝나면 1 소모.
-    /// 끈끈이 장갑: 외줄 추락 매달림 7초 → 10.5초, 추가 시간에 들어선 매달림이 끝나면 1 소모.
-    /// </summary>
     public sealed partial class DevStartLauncherPlayTests
     {
         const BindingFlags AnyInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        object CarryItem(object carry, ulong me, string id) => ((IEnumerable)Call(carry,"Held",me)).Cast<object>().FirstOrDefault(i=>(string)Get(i,"ItemId")==id);
+        int UsesOf(object carry,ulong me,string id) { var item=CarryItem(carry,me,id); return item==null ? 0 : (int)Get(item,"Uses"); }
+        void Give(object carry,ulong me,int uid,string id,int uses) => Assert.AreEqual("None",Call(carry,"Receive",me,Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"),uid,id,id,uses)).ToString());
 
-        object CarryItem(object carry, ulong me, string id) =>
-            ((IEnumerable)Call(carry, "Held", me)).Cast<object>().FirstOrDefault(i => (string)Get(i, "ItemId") == id);
-
-        int UsesOf(object carry, ulong me, string id) { var item = CarryItem(carry, me, id); return item == null ? 0 : (int)Get(item, "Uses"); }
-
-        void Give(object carry, ulong me, int uid, string id, int uses) =>
-            Assert.AreEqual("None", Call(carry, "Receive", me, Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), uid, id, id, uses)).ToString());
-
-        [UnityTest, Category("CommonRulesFollowup")]
-        public IEnumerator Performance_SpringShoesReboundInsteadOfFallInjuryWithoutCooldown()
+        [UnityTest,Category("PerformanceEquipment")]
+        public IEnumerator Performance_RescueRequiresSafeTargetAndMovesItWithoutInjury()
         {
-            yield return Launch(2, "Performance", 1, "HumanCannon", "HumanCannon");
-            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
-            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            ulong me = (ulong)Get(player, "OwnerClientId");
-            Give(carry, me, 9201, "spring-shoes", 2);
-            var system = Find("CurtainCall.HumanCannon.HumanCannonSystem");
-            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            // 대포 탑승 자리는 안전 착지면일 수 있다. 추락 부상이 나는 바닥(안전 착지면 아님·코스 아래 아님)을 찾는다.
-            var safeSurface = system.GetType().GetMethod("IsSafeLandingSurface", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-            var protectedZone = T("CurtainCall.HumanCannon.HumanCannonLandingZone").GetMethod("ContainsLanding",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
-                new[] { T("CurtainCall.Player.PlayerMover"), typeof(Vector3) }, null);
-            float injuryHeight = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "BodyDamage"), "FallInjuryHeight");
-            var belowCourse = T("CurtainCall.HumanCannon.HumanCannonRouteSystem").GetMethod("IsBelowCourse");
-            Vector3? found = null;
-            for (int s = 0; s < (int)Get(system, "StationCount") && found == null; s++)
-            {
-                var boarding = ((Transform)Get((Component)Call(system, "Station", s), "BoardingPoint")).position;
-                for (float radius = 1.5f; radius <= 6f && found == null; radius += 1.5f)
-                    for (int a = 0; a < 12 && found == null; a++)
-                    {
-                        var probe = boarding + Quaternion.Euler(0, a * 30f, 0) * Vector3.forward * radius + Vector3.up * 2f;
-                        if (!Physics.Raycast(probe, Vector3.down, out var hit, 6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
-                        if (hit.collider.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) != null) continue;
-                        if ((bool)belowCourse.Invoke(null, new object[] { hit.point }) || !(bool)safeSurface.Invoke(null, new object[] { mover, hit.point })) continue;
-                        if ((bool)protectedZone.Invoke(null, new object[] { mover, hit.point })) continue;
-                        found = hit.point;
-                    }
-            }
-            Assert.IsNotNull(found, "실제 지지 가능한 일반 바닥을 찾아야 한다");
-            Call(mover, "SetStartPose", found.Value + Vector3.up * .05f, Quaternion.identity, true);
-            yield return new WaitForSecondsRealtime(.3f);
-            Vector3 floor = player.transform.position;
-
-            var flying = system.GetType().GetField("flying", AnyInstance).GetValue(system);
-            var land = system.GetType().GetMethod("HandleLanding", AnyInstance);
-            int rebounds = 0;
-            var evt = system.GetType().GetEvent("ServerSpringRebounded");
-            Action<ulong> onRebound = _ => rebounds++;
-            evt.AddEventHandler(null, onRebound);
+            yield return Launch(2,"Performance",1,"HumanCannon","HumanCannon");
+            var target=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            var network=Static("Unity.Netcode.NetworkManager","Singleton");
+            var carry=Find("CurtainCall.WaitingRoom.PropCarry"); ulong me=(ulong)Get(target,"OwnerClientId");
+            Give(carry,me,9801,"rescue-gloves",2);
+            Assert.IsFalse((bool)Call(target,"CanUseEquipmentSlot",0));
+            Call(target,"TryUseEquipmentSlot",0); yield return null;
+            Assert.AreEqual(2,UsesOf(carry,me,"rescue-gloves"));
+            var floor=GameObject.CreatePrimitive(PrimitiveType.Cube); floor.transform.position=new Vector3(0,39.5f,0); floor.transform.localScale=new Vector3(12,1,12);
+            var prefab=(GameObject)Field(Field(network,"NetworkConfig"),"PlayerPrefab");
+            var helper=UnityEngine.Object.Instantiate(prefab); var net=helper.GetComponent(T("Unity.Netcode.NetworkObject"));
+            // Two host-owned actors exercise the real server/owner RPC route without a second process.
+            Call(net,"SpawnWithOwnership",me,true);
+            var caster=helper.GetComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+            var mover=(Behaviour)target.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var previousCamera=Camera.main;
+            var testCamera=new GameObject("Rescue test view").AddComponent<Camera>();testCamera.tag="MainCamera";
+            testCamera.transform.position=new Vector3(4,43,-6);testCamera.transform.LookAt(new Vector3(0,41,1));
+            if(previousCamera)previousCamera.enabled=false;
             try
             {
-                Call(flying, "Begin", me, 1, 900u);
-                Call(player, "BeginFallAt", floor + Vector3.up * (injuryHeight + .3f));
-                land.Invoke(system, new object[] { player, 1, 900u, 0u, floor });
+                var helperMover=helper.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                yield return new WaitForSecondsRealtime(.5f); // Let the campaign spawn placement finish first.
+                Call(helperMover,"SetStartPose",new Vector3(0,40.03f,0),Quaternion.identity,true);
                 yield return null;
-                Assert.AreEqual(1, rebounds, "다칠 바닥이면 스프링 신발이 반동한다");
-                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")), "반동하면 추락 부상이 없다");
-                Assert.AreEqual(1, UsesOf(carry, me, "spring-shoes"), "실제 반동 때 1 소모");
-                Assert.IsTrue((bool)Call(flying, "Matches", me, 1, 900u, 1u), "반동하면 같은 비행이 다음 구간으로 이어진다");
-
-                // 2026-11-02 사용자: 공연 기물 쿨타임 없음. 바로 다음 착지도 반동하고, 마지막 회차 뒤 신발이 사라진다.
-                Call(player, "BeginFallAt", floor + Vector3.up * (injuryHeight + .3f));
-                land.Invoke(system, new object[] { player, 1, 900u, 1u, floor });
-                yield return null;
-                Assert.AreEqual(2, rebounds, "쿨타임 없이 바로 다음 착지도 반동한다");
-                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
-                Assert.AreEqual(0, UsesOf(carry, me, "spring-shoes"), "새 제품 내구도 2를 다 쓰면 사라진다");
-
-                Call(player, "BeginFallAt", floor + Vector3.up * (injuryHeight + .3f));
-                land.Invoke(system, new object[] { player, 1, 900u, 2u, floor });
-                yield return null;
-                Assert.AreEqual(2, rebounds, "다 쓴 뒤에는 반동하지 않는다");
-                Assert.AreNotEqual(0, Convert.ToInt32(Get(player, "LostParts")), "신발이 없으면 기존 추락 부상");
+                Call(mover,"SetStartPose",new Vector3(0,41.1f,2.5f),Quaternion.identity,true);
+                Call(mover,"LaunchBounce",1f); mover.enabled=false;
+                Physics.SyncTransforms(); yield return null;
+                Assert.AreSame(target,Get(caster,"RescuePreviewTarget"));
+                var marker=caster.GetComponent(T("CurtainCall.MainStage.CheerPoints.RescueTargetIndicator"));
+                yield return null;Assert.AreSame(target,Get(marker,"VisibleTarget"));
+                var rotation=testCamera.transform.rotation;testCamera.transform.rotation=Quaternion.Euler(0,180,0);
+                Assert.IsNull(Get(caster,"RescuePreviewTarget"),"Offscreen targets are not advertised.");testCamera.transform.rotation=rotation;
+                var wall=GameObject.CreatePrimitive(PrimitiveType.Cube);wall.transform.position=new Vector3(0,41.3f,1.25f);wall.transform.localScale=new Vector3(1,3,.2f);
+                Physics.SyncTransforms();Assert.IsNull(Get(caster,"RescuePreviewTarget"),"Occluded teammates are not advertised.");
+                Assert.IsFalse((bool)Call(caster,"TryUseEquipmentSlot",0));Assert.AreEqual(2,UsesOf(carry,me,"rescue-gloves"));
+                UnityEngine.Object.Destroy(wall);yield return null;
+                var find=caster.GetType().GetMethod("FindEquipmentRescue",AnyInstance); object[] landing={Vector3.zero}; var found=find.Invoke(caster,landing);
+                Assert.IsTrue((bool)Call(caster,"CanUseEquipmentSlot",0),$"caster={helper.transform.position} state={Get(caster,"State")} airborne={Get(caster,"IsAirborne")} target={target.transform.position} state={Get(target,"State")} air={Get(target,"IsAirborne")} found={found} gate={Static("CurtainCall.Player.InputGate","IsBlocked")}");
+                Vector3 before=target.transform.position;
+                Assert.IsTrue((bool)Call(caster,"TryUseEquipmentSlot",0));
+                yield return new WaitForSecondsRealtime(.3f);
+                Assert.AreEqual(1,UsesOf(carry,me,"rescue-gloves"));
+                Assert.IsTrue((bool)Get(target,"IsBeingRescued"));
+                Assert.Greater(Vector3.Distance(before,target.transform.position),.1f,"The pull has started moving.");
+                Assert.Greater(Vector3.Distance(helper.transform.position,target.transform.position),1.6f,"Midway is not an instant teleport.");
+                Assert.IsFalse((bool)Call(caster,"TryUseEquipmentSlot",0),"Cannot start another pull during this one.");
+                yield return new WaitForSecondsRealtime(.8f);
+                Assert.IsFalse((bool)Get(target,"IsBeingRescued"));
+                Assert.Less(Vector3.Distance(helper.transform.position,target.transform.position),1.6f);
+                Assert.Greater(Vector3.Distance(before,target.transform.position),.5f);
+                Assert.AreEqual(0,Convert.ToInt32(Get(target,"LostParts")));
+                Assert.IsFalse((bool)Get(target,"IsDroppingFromSupport"));
+                Assert.IsFalse((bool)Call(caster,"CanUseEquipmentSlot",0),"A rescued grounded teammate is no longer a valid target.");
             }
-            finally { evt.RemoveEventHandler(null, onRebound); }
+            finally { mover.enabled=true; if(helper) UnityEngine.Object.Destroy(helper); UnityEngine.Object.Destroy(floor);UnityEngine.Object.Destroy(testCamera.gameObject);if(previousCamera)previousCamera.enabled=true; }
         }
 
-        [UnityTest]
-        public IEnumerator Performance_BalloonPantsSlowDescentAndUseOncePerFlight()
+        [UnityTest,Category("PerformanceEquipment")]
+        public IEnumerator Performance_SlotBindingsPersistAndDriveReader()
         {
-            yield return Launch(2, "Performance", 1, "HumanCannon", "HumanCannon");
-            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
-            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            ulong me = (ulong)Get(player, "OwnerClientId");
-            var system = Find("CurtainCall.HumanCannon.HumanCannonSystem");
-            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            var pilot = player.GetComponent(T("CurtainCall.HumanCannon.HumanCannonPilot"));
-            var station = (Component)Call(system, "Station", 1);
-            Call(mover, "SetStartPose", ((Transform)Get(station, "BoardingPoint")).position, Quaternion.identity, true);
-            yield return new WaitForSecondsRealtime(.3f);
-            var launch = pilot.GetType().GetMethod("Launch", AnyInstance);
-
-            // 바지 없이 / 바지 입고 같은 높이에서 같은 시간 떨어진 거리를 비교한다.
-            float[] drops = new float[2];
-            for (int pass = 0; pass < 2; pass++)
-            {
-                if (pass == 1) Give(carry, me, 9301, "balloon-pants", 4);
-                Vector3 start = player.transform.position + Vector3.up * 20f;
-                launch.Invoke(pilot, new object[] { -1, 950u + (uint)pass, start, Quaternion.identity, Vector3.zero });
-                yield return null;
-                float y0 = player.transform.position.y, until = Time.realtimeSinceStartup + .5f;
-                while (Time.realtimeSinceStartup < until) yield return null;
-                drops[pass] = y0 - player.transform.position.y;
-                Assert.AreEqual(pass == 1, (bool)Get(pilot, "BalloonPantsActive"), pass == 1 ? "하강 중 바지가 켜진다" : "바지가 없으면 꺼져 있다");
-                pilot.GetType().GetMethod("ReleaseMovement", AnyInstance).Invoke(pilot, null);
-                yield return null;
-            }
-            Assert.Greater(drops[0], .5f);
-            float ratio = drops[1] / drops[0];
-            Assert.That(ratio, Is.InRange(.55f, .85f), $"하강 변위 30% 감소(초안). 바지 없음 {drops[0]:0.00}m, 바지 {drops[1]:0.00}m");
-            float wait = Time.realtimeSinceStartup + 2f;
-            while (UsesOf(carry, me, "balloon-pants") != 3 && Time.realtimeSinceStartup < wait) yield return null;
-            Assert.AreEqual(3, UsesOf(carry, me, "balloon-pants"), "하강이 끝나면 비행당 1 소모");
-            Assert.AreEqual(0f, (float)Call(carry, "CooldownLeft", me, "balloon-pants"), "공연 기물 쿨타임 없음(2026-11-02)");
-        }
-
-        [UnityTest]
-        public IEnumerator Performance_StickyGlovesExtendTightropeHangAndUseAfterExtraTime()
-        {
-            yield return Launch(3, "Performance", 0, "Tightrope", "Tightrope");
-            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
-            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            ulong me = (ulong)Get(player, "OwnerClientId");
-            Give(carry, me, 9401, "sticky-gloves", 3);
-            var hangs = Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
-            var course = Static("CurtainCall.Tightrope.TightropeCourse", "Current");
-            // 실제 줄 위(쓸 수 있는 줄의 앞쪽)로 옮긴 뒤 매달린다.
-            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
-            int lanes = (int)Get(course, "LaneCount"); int lane = -1; float along = 6f;
-            for (int i = 0; i < lanes && lane < 0; i++) if ((bool)Call(course, "IsLaneUsable", i, along)) lane = i;
-            Assert.GreaterOrEqual(lane, 0, "쓸 수 있는 줄");
-            Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", lane, along) + Vector3.up * .02f, Quaternion.identity);
-            yield return new WaitForSecondsRealtime(.3f);
-            object[] point = { player.transform.position, 0, 0f };
-            Assert.IsTrue((bool)course.GetType().GetMethod("TryGetRopePoint").Invoke(course, point), "줄 위");
-            Assert.IsTrue((bool)Call(hangs, "ServerTryHang", player, (float)point[2], (int)point[1]), "추락 게이지 넘침 → 매달림");
-            var hang = ((IEnumerable)Get(hangs, "Hangs")).Cast<object>().Single(h => (ulong)h.GetType().GetField("Id").GetValue(h) == me);
-            double Field2(string name) => (double)hang.GetType().GetField(name).GetValue(hang);
-            Assert.AreEqual(10.5d, Field2("Total"), 1e-3, "7초 × 1.5");
-            Assert.AreEqual(3.5d, Field2("Extra"), 1e-3);
-            Assert.AreEqual(3, UsesOf(carry, me, "sticky-gloves"), "기본 시간 안에서는 소모하지 않는다");
-
-            string cue = null;
-            var noticeEvent = carry.GetType().GetEvent("LocalItemNotice");
-            Action<string, string, bool> onNotice = (_, c, __) => cue = c;
-            noticeEvent.AddEventHandler(carry, onNotice);
+            yield return Launch(2,"Performance",1,"HumanCannon","HumanCannon");
+            const string key="CurtainCall.Input.CommonBindings.v1";
+            bool had=PlayerPrefs.HasKey(key); string saved=PlayerPrefs.GetString(key,"");
+            var preferences=T("CurtainCall.Player.InputBindingPreferences");
+            var original=(UnityEngine.InputSystem.InputActionAsset)preferences.GetMethod("CreateDraft").Invoke(null,null);
+            var draft=(UnityEngine.InputSystem.InputActionAsset)preferences.GetMethod("CreateDefaultDraft").Invoke(null,null);
+            var reader=((Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local")).GetComponent(T("CurtainCall.Player.PlayerInputReader"));
             try
             {
-                hang.GetType().GetField("Remaining").SetValue(hang, 3.4d); // 기본 7초를 다 쓴 상태
-                yield return null; yield return null;
-                Assert.IsTrue((bool)hang.GetType().GetField("ExtraEntered").GetValue(hang), "추가 시간에 들어섰다");
-                Assert.AreEqual("sticky-gloves", cue, "\"아직 붙어 있다!\" 발동 문구");
-                Assert.AreEqual(3, UsesOf(carry, me, "sticky-gloves"), "매달림이 끝나기 전에는 슬롯에 그대로");
-                hang.GetType().GetField("Remaining").SetValue(hang, .01d);
-                float until = Time.realtimeSinceStartup + 2f;
-                while (UsesOf(carry, me, "sticky-gloves") != 2 && Time.realtimeSinceStartup < until) yield return null;
-                Assert.AreEqual(2, UsesOf(carry, me, "sticky-gloves"), "추가 시간에 들어선 매달림이 끝나면 1 소모");
+                Assert.AreEqual("<Keyboard>/q",draft.FindAction("Common/UseSlotOne",true).bindings[0].effectivePath);
+                Assert.AreEqual("<Keyboard>/e",draft.FindAction("Common/UseSlotTwo",true).bindings[0].effectivePath);
+                UnityEngine.InputSystem.InputActionRebindingExtensions.ApplyBindingOverride(draft.FindAction("Common/UseSlotOne"),0,"<Keyboard>/g");
+                object[] args={draft,null}; Assert.IsTrue((bool)preferences.GetMethod("TryApply").Invoke(null,args),args[1]?.ToString());
+                var loaded=(UnityEngine.InputSystem.InputActionAsset)preferences.GetMethod("CreateDraft").Invoke(null,null);
+                Assert.AreEqual("<Keyboard>/g",loaded.FindAction("Common/UseSlotOne").bindings[0].effectivePath);
+                UnityEngine.Object.Destroy(loaded);
+                CursorTestKey(null); yield return null; yield return null;
+                CursorTestKey("G"); yield return null;
+                Assert.IsTrue((bool)Field(Get(reader,"Current"),"UseSlotOnePressed"),"The rebound action reaches gameplay input.");
+                Assert.AreEqual("G",Call(reader,"BindingLabel","UseSlotOne","Q"));
+                var labels=T("CurtainCall.UI.SceneIntegration.CommonSettingsUI").GetMethod("ActionLabel",BindingFlags.NonPublic|BindingFlags.Static);
+                StringAssert.Contains("1",(string)labels.Invoke(null,new object[]{"UseSlotOne",""}));
+                StringAssert.Contains("2",(string)labels.Invoke(null,new object[]{"UseSlotTwo",""}));
             }
-            finally { noticeEvent.RemoveEventHandler(carry, onNotice); }
+            finally
+            {
+                CursorTestKey(null); object[] restore={original,null}; preferences.GetMethod("TryApply").Invoke(null,restore);
+                if(had) PlayerPrefs.SetString(key,saved); else PlayerPrefs.DeleteKey(key); PlayerPrefs.Save();
+                UnityEngine.Object.Destroy(original); UnityEngine.Object.Destroy(draft);
+            }
+        }
+
+        [UnityTest,Category("PerformanceEquipment")]
+        public IEnumerator Performance_ManualAirItemsChargeOnceAndBalloonCanFold()
+        {
+            yield return Launch(2,"Performance",1,"HumanCannon","HumanCannon");
+            var carry=Find("CurtainCall.WaitingRoom.PropCarry");
+            var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            ulong me=(ulong)Get(player,"OwnerClientId");
+            var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var pilot=player.GetComponent(T("CurtainCall.HumanCannon.HumanCannonPilot"));
+            Give(carry,me,9201,"spring-shoes",2); Give(carry,me,9301,"balloon-pants",2);
+            yield return new WaitForSecondsRealtime(.3f);
+            T("CurtainCall.MainStage.CheerPoints.Editor.PerformanceEquipmentAuthoring").GetMethod("CaptureLive").Invoke(null,new object[]{"HumanCannon"});
+            Assert.IsFalse((bool)Call(player,"TryUseEquipmentSlot",0),"Ground use is invalid.");
+            Assert.AreEqual(2,UsesOf(carry,me,"spring-shoes"));
+            var launch=pilot.GetType().GetMethod("Launch",AnyInstance);
+            launch.Invoke(pilot,new object[]{-1,950u,player.transform.position+Vector3.up*20,Quaternion.identity,Vector3.down*8});
+            yield return null;
+            Assert.IsFalse((bool)Get(pilot,"BalloonPantsActive"),"Carrying pants does not auto-activate.");
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",0));
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.AreEqual(1,UsesOf(carry,me,"spring-shoes"));
+            Assert.Greater(((Vector3)pilot.GetType().GetField("velocity",AnyInstance).GetValue(pilot)).y,0,"The extra jump replaces downward momentum.");
+            Assert.IsFalse((bool)Call(player,"TryUseEquipmentSlot",0),"No third jump before landing.");
+            Assert.AreEqual(1,UsesOf(carry,me,"spring-shoes"));
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",1));
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.IsTrue((bool)Get(player,"BalloonEquipmentActive"));
+            Assert.AreEqual(1,UsesOf(carry,me,"balloon-pants"));
+            pilot.GetType().GetField("velocity",AnyInstance).SetValue(pilot,Vector3.down*15);
+            yield return null;
+            Assert.GreaterOrEqual(((Vector3)pilot.GetType().GetField("velocity",AnyInstance).GetValue(pilot)).y,-2.01f);
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",1),"Same slot folds the balloon.");
+            yield return null;
+            Assert.IsFalse((bool)Get(player,"BalloonEquipmentActive"));
+            Assert.IsFalse((bool)Call(player,"TryUseEquipmentSlot",1),"Folding does not restore the airtime use.");
+            Assert.AreEqual(1,UsesOf(carry,me,"balloon-pants"));
+            // A confirmed landing starts a new air cycle, including the last-charge case.
+            Call(player,"ResetEquipmentAirCycle");
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",1));
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.AreEqual(0,UsesOf(carry,me,"balloon-pants"));
+            Assert.IsTrue((bool)Get(player,"BalloonEquipmentActive"),"Last durability keeps its granted effect.");
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",1),"The now-empty original slot can still fold.");
+            yield return null;
+            Assert.IsFalse((bool)Get(player,"BalloonEquipmentActive"));
+        }
+
+        [UnityTest,Category("PerformanceEquipment")]
+        public IEnumerator Performance_StickyPausesTimerOncePerHang()
+        {
+            yield return Launch(3,"Performance",0,"Tightrope","Tightrope");
+            var carry=Find("CurtainCall.WaitingRoom.PropCarry");
+            var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            ulong me=(ulong)Get(player,"OwnerClientId");
+            Give(carry,me,9401,"sticky-gloves",3);
+            var hangs=Static("CurtainCall.Tightrope.TightropeHangSystem","Current");
+            var course=Static("CurtainCall.Tightrope.TightropeCourse","Current");
+            var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Call(mover,"SetStartPose",(Vector3)Call(course,"GetLanePosition",1,6f),Quaternion.identity,true);
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsTrue((bool)Call(hangs,"ServerTryHang",player,6f,1));
+            yield return null;
+            var hang=((IEnumerable)Get(hangs,"Hangs")).Cast<object>().Single(h=>(ulong)h.GetType().GetField("Id").GetValue(h)==me);
+            double Remaining()=>(double)hang.GetType().GetField("Remaining").GetValue(hang);
+            Assert.AreEqual(0d,hang.GetType().GetField("Extra").GetValue(hang),"No automatic extension.");
+            Assert.IsTrue((bool)Call(player,"TryUseEquipmentSlot",0));
+            yield return new WaitForSecondsRealtime(.1f);
+            double before=Remaining();
+            Assert.AreEqual(2,UsesOf(carry,me,"sticky-gloves"));
+            yield return new WaitForSecondsRealtime(1f);
+            Assert.That(Remaining(),Is.EqualTo(before).Within(.12),"The hold countdown pauses.");
+            Assert.IsFalse((bool)Call(player,"TryUseEquipmentSlot",0));
+            yield return new WaitForSecondsRealtime(2.2f);
+            Assert.Less(Remaining(),before-.1,"Countdown resumes after 3 seconds.");
+            Call(player,"TryUseEquipmentSlot",0);
+            yield return null;
+            Assert.AreEqual(2,UsesOf(carry,me,"sticky-gloves"),"Same hold cannot spend again.");
+        }
+
+        [UnityTest,Category("PerformanceEquipment")]
+        public IEnumerator Performance_HoopAwardsOnceOnlyThroughOpening()
+        {
+            yield return Launch(3,"Performance",0,"Tightrope","Tightrope");
+            var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
+            var mover=(Behaviour)player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var points=UnityEngine.Object.FindObjectsByType(T("CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint"),FindObjectsSortMode.None).Cast<Component>().ToArray();
+            Assert.AreEqual(5,points.Length);
+            var point=points.First(p=>!(bool)Field(p,"equipmentRoute"));
+            var body=player.GetComponent<CharacterController>();
+            Call(mover,"SetStartPose",point.transform.position-player.transform.TransformVector(body.center)-point.transform.forward,Quaternion.identity,true);
+            mover.enabled=false;
+            yield return new WaitForSecondsRealtime(.5f);
+            Assert.IsFalse((bool)Get(point,"Collected"));
+            T("CurtainCall.MainStage.CheerPoints.Editor.PerformanceEquipmentAuthoring").GetMethod("CaptureLive").Invoke(null,new object[]{"Tightrope"});
+            body.Move(point.transform.forward*2f);
+            yield return null; yield return null;
+            Assert.IsTrue((bool)Get(point,"Collected"),"Crossing inside claims the point.");
+            var rewards=Static("CurtainCall.Reward.PerformanceRewards","Instance");
+            long Amount()=>Convert.ToInt64(Get(((IEnumerable)Get(Get(rewards,"State"),"Segments")).Cast<object>().First(),"Amount"));
+            long after=Amount();
+            body.Move(-point.transform.forward*2f); yield return null;
+            Assert.AreEqual(after,Amount(),"A claimed point cannot reward twice.");
+            Assert.AreEqual(0,point.GetComponentsInChildren<Collider>(true).Length,"Fire has no damage or physical collision.");
+            mover.enabled=true;
         }
     }
 }
