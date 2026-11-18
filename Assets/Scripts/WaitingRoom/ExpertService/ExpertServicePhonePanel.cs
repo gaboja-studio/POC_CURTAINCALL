@@ -60,7 +60,7 @@ namespace CurtainCall.WaitingRoom
             for (int parts = 1; parts <= ExpertService.MaxPartsPerUse; parts++)
             {
                 var refusal = service.LocalMedicalRefusal(parts);
-                long cost = service.MedicalCost(parts);
+                long cost = service.LocalCost(parts);
                 bool canBuy = refusal == ExpertRefusal.None && service.Balance >= cost;
                 GUI.enabled = canBuy;
                 if (GUILayout.Button($"{parts}개\n{cost}", GUILayout.Height(40))) service.RequestMedical(parts);
@@ -69,7 +69,7 @@ namespace CurtainCall.WaitingRoom
             GUI.enabled = true;
             var reason = service.LocalMedicalRefusal();
             if (reason != ExpertRefusal.None) GUILayout.Label(ExpertServiceBook.Explain(reason));
-            else if (service.Balance < service.MedicalCost(1)) GUILayout.Label("공동 자금 부족");
+            else if (service.Balance < service.LocalCost(1)) GUILayout.Label("공동 자금 부족");
             else GUILayout.Label($"잃은 팔다리 {ExpertService.LocalLostLimbs}개 · 이번에 최대 {max}개");
         }
         public static string PhaseLabel(ExpertRoomPhase phase) => phase switch

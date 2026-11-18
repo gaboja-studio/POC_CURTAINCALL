@@ -37,7 +37,7 @@ namespace CurtainCall.Network.PlayerSync
             var carry=PropCarry.Instance; var held=carry?.Held(OwnerClientId);
             if(held==null || slot<0 || slot>=held.Count) return false;
             var item=held[slot];
-            if(!carry.EquipmentReady(OwnerClientId,item.ItemId) || !CanApplyEquipment(item.ItemId)) return false;
+            if(EquipmentPlaceBlocked(item.ItemId) || !carry.EquipmentReady(OwnerClientId,item.ItemId) || !CanApplyEquipment(item.ItemId)) return false;
             if(item.ItemId==ItemUses.StickyGloves && IsServer) return CurrentStickyHold() is {} hold && !Equals(hold,stickyHold);
             if(item.ItemId==ItemUses.RescueGloves) return FindEquipmentRescue(out _) != null;
             return true;
@@ -80,6 +80,8 @@ namespace CurtainCall.Network.PlayerSync
             var items=carry?.Held(OwnerClientId);
             if(items==null || slot>=items.Count) return false;
             var item=items[slot];
+            // 대기실 연습실 밖에서 쓰려 하면 이 플레이어에게만 쓸 수 있는 곳을 안내한다(2026-11-18 사용자).
+            if(EquipmentPlaceBlocked(item.ItemId)) { PropCarry.ShowEquipmentPlaceGuide(transform); return false; }
             if(!carry.EquipmentReady(OwnerClientId,item.ItemId) || !CanApplyEquipment(item.ItemId)) return false;
             var rescueTarget=item.ItemId==ItemUses.RescueGloves ? FindEquipmentRescue(out _) : null;
             if(item.ItemId==ItemUses.RescueGloves && !rescueTarget) return false;
@@ -87,6 +89,10 @@ namespace CurtainCall.Network.PlayerSync
             RequestEquipmentRpc(slot,item.Uid,equipmentPending,RestartVersion,reviveCount.Value,rescueTarget ? rescueTarget.NetworkObjectId : ulong.MaxValue);
             return true;
         }
+
+        // 대기실에서는 연습실 구역에서만 공연 기물을 쓴다(연습실은 내구도 소모 없음, PropCarry.UseEquipmentUid). 2026-11-18 사용자.
+        bool EquipmentPlaceBlocked(string id) => ItemCatalog.Get(id)?.use==ItemUse.Performance
+            && PropCarry.PlaceAt(transform.position)==PropCarry.EquipmentPlace.Blocked;
 
         bool CanApplyEquipment(string id) => id switch
         {
@@ -103,7 +109,8 @@ namespace CurtainCall.Network.PlayerSync
             bool valid=sequence>equipmentLastRequest && CurrentFallEpoch(restart,revive) && State==PlayerState.Normal && !IsBeingRescued && equipmentPendingUid==0;
             equipmentLastRequest=Math.Max(equipmentLastRequest,sequence);
             var carry=PropCarry.Instance; var items=carry?.Held(OwnerClientId);
-            if(!valid || items==null || slot<0 || slot>1 || slot>=items.Count || items[slot].Uid!=uid || !carry.EquipmentReady(OwnerClientId,items[slot].ItemId))
+            if(!valid || items==null || slot<0 || slot>1 || slot>=items.Count || items[slot].Uid!=uid || !carry.EquipmentReady(OwnerClientId,items[slot].ItemId)
+                || EquipmentPlaceBlocked(items[slot].ItemId))
             { EquipmentResultRpc(sequence,false); return; }
             string id=items[slot].ItemId;
             if(id==ItemUses.StickyGloves)

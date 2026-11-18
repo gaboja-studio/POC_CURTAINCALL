@@ -99,10 +99,21 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>고를 수 있는 최대 개수 기준의 거절 사유(창 표시용).</summary>
-        public ExpertRefusal LocalMedicalRefusal() => LocalMedicalRefusal(Math.Max(1, LocalMaxParts));
+        public ExpertRefusal LocalMedicalRefusal() => LocalMedicalRefusal(Math.Max(1, LocalSelectableParts));
+
+        /// <summary>내가 입장 전 예약자라 팔다리를 더 예약하는 중인가.</summary>
+        public bool LocalIsAdding => book.IsAddition(channel.LocalClientId);
+
+        /// <summary>내가 지금 고를 수 있는 최대 개수(추가 예약이면 남은 수, 남이 이용 중이면 0).</summary>
+        public int LocalSelectableParts => book.SelectableParts(channel.LocalClientId, LocalLostLimbs, MaxPartsPerUse);
 
         /// <summary><paramref name="parts"/>개 복구 비용(지금 단가 × 개수).</summary>
         public long MedicalCost(int parts) => ExpertServiceBook.Cost(parts, book.TeamUses, Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep);
+
+        /// <summary>내가 <paramref name="parts"/>개를 살 때의 비용. 추가 예약은 예약 때 단가를 쓴다.</summary>
+        public long LocalCost(int parts) => CostFor(channel.LocalClientId, parts);
+
+        long CostFor(ulong buyer, int parts) => ExpertServiceBook.Cost(parts, book.PriceUses(buyer), Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep);
 
         /// <summary>내가 고를 수 있는 최대 개수의 비용.</summary>
         public long LocalMedicalCost => MedicalCost(LocalMaxParts);
@@ -181,7 +192,7 @@ namespace CurtainCall.WaitingRoom
         public void RequestMedical() => RequestMedicalTracked("");
         /// <summary>③ 수화기 창: <paramref name="parts"/>개(1~3) 신체 복구를 산다.</summary>
         public void RequestMedical(int parts) => RequestMedicalTracked(parts, "");
-        public void RequestMedicalTracked(string requestId) => RequestMedicalTracked(Math.Max(1, LocalMaxParts), requestId);
+        public void RequestMedicalTracked(string requestId) => RequestMedicalTracked(Math.Max(1, LocalSelectableParts), requestId);
         public void RequestMedicalTracked(int parts, string requestId)
         {
             if (HasAuthority) Answer(channel.LocalClientId, BuyMedical(channel.LocalClientId, parts), requestId);
@@ -218,13 +229,20 @@ namespace CurtainCall.WaitingRoom
             var player = Find(buyer);
             bool alive = PlayerInteraction.CanInteract(player);
             int lost = player != null ? PlayerCondition.CountLimbs(player.LostParts) : 0;
-            long cost = MedicalCost(parts);
+            long cost = CostFor(buyer, parts);
+            bool adding = book.IsAddition(buyer);
             var before = book.Phase;
+            string ledger = adding
+                ? WaitingRoomText.Format("ledger.medical-add", "신체 복구 {n}개 추가 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))
+                : WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)));
             var refusal = book.BookMedical(buyer, IsServiceTime, alive, lost, parts, MaxPartsPerUse,
-                () => rewards.TrySpend(cost, WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))), cost);
+                () => rewards.TrySpend(cost, ledger), cost);
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
-            Debug.Log($"[Expert] 신체 복구 {parts}개 구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
+            Debug.Log($"[Expert] 신체 복구 {parts}개 {(adding ? "추가 " : "")}구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 예약 {book.BookedLimbs}개 / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
             Publish(before);
+            if (adding)
+                return (true, WaitingRoomText.Format("expert.bought-more", "추가 예약 완료(+{n}개, {price}) — 총 {total}개를 복구합니다.",
+                    ("n", parts), ("price", cost), ("total", book.BookedLimbs)));
             return (true, WaitingRoomText.Format("expert.bought", "구매 완료({n}개, {price}) — 신체 복구 승강기 앞으로 가세요.", ("n", parts), ("price", cost)));
         }
 

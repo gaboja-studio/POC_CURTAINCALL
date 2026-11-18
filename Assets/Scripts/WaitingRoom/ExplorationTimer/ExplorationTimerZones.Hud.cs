@@ -49,6 +49,12 @@ namespace CurtainCall.WaitingRoom
             }
             Add(areas ? areas : transform);Add(transform.Find("WaitingRoomArea"));
         }
+        /// <summary>지금 대기실 씬의 구역 판정(없으면 null).</summary>
+        public static ExplorationTimerZones Current { get; private set; }
+        static readonly string[] PracticeZones={"Area_S09_PracticeRoom","F8_Practice","Area_RoundPractice"};
+        /// <summary>지역명 "연습실"로 표시되는 구역 안인가(공연 기물 연습, 2026-11-18 사용자). 구역 판정이 없으면 false.</summary>
+        public static bool IsPracticeRoom(Vector3 feet)=>Current!=null && System.Array.IndexOf(PracticeZones,Current.ZoneAt(feet))>=0;
+        void OnEnable()=>Current=this;
         public string ZoneAt(Vector3 feet)=>ZoneAt(feet,false);
         /// <summary>unlockedOnly: 아직 잠긴 구역은 건너뛰고 그다음으로 작은 구역을 고른다(지역명 표시용).</summary>
         public string ZoneAt(Vector3 feet,bool unlockedOnly)
@@ -84,6 +90,6 @@ namespace CurtainCall.WaitingRoom
             zoneCard=HudUIManager.Current.ShowZoneName(text,transform);
         }
         void HideZone(){if(zoneKey!=null)HudUIManager.DismissOwned(transform,HudRole.ZoneName);zoneCard=null;zoneKey=null;}
-        void OnDisable()=>HideZone();
+        void OnDisable(){HideZone();if(Current==this)Current=null;}
     }
 }

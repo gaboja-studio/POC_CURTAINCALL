@@ -218,6 +218,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             Route("equipmentUnlocked","새 공연 해금","공연 장비를 발견해 공연이 해금됐을 때 표시합니다.");
             Route("medicalBooked","신체 복구 예약 완료","의료 서비스를 예약한 직후 표시합니다.");
             Route("carryResult","기물 처리 결과","기물 들기 등 요청의 결과 문구가 있을 때 표시합니다.");
+            Route("shopItemsAdded","상점 기물 추가","누군가 기물을 처음 습득해 상점에 추가될 때 모든 화면에 표시합니다.");
+            Route("equipmentPlaceBlocked","공연 기물 사용 불가 장소","대기실 연습실 밖에서 공연 기물을 쓰려 할 때 그 플레이어에게만 표시합니다.");
             Section("⑤ 임무·방송·대상 문구","글만 바꾸는 곳입니다. 예: banner.broadcast-title은 일반 방송의 제목입니다. {ready}, {total} 같은 표시는 게임 값이므로 그대로 두세요.");
             list=P("copy");
             if(list.arraySize>0)

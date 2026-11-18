@@ -66,6 +66,10 @@ namespace CurtainCall.UI.SceneIntegration
         public string countButton;
         [Tooltip("수 고르기 버튼을 누른 뒤 창 아래 줄. {n} = 고른 수")]
         public string countSelected;
+        [Tooltip("예약한 사람이 입장 전에 더 예약할 때의 예약 버튼. {n} = 추가할 수, {booked} = 이미 예약한 수")]
+        public string addBookButton = "{n}개 추가 예약";
+        [Tooltip("추가 예약 중일 때 목록 줄의 둘째 줄. {booked} = 이미 예약한 수, {max} = 더 고를 수 있는 수")]
+        public string medicalAddSubtitle = "예약 {booked}개 · 추가 가능 {max}개";
         [Tooltip("서비스 정보를 아직 받지 못했을 때")]
         public string serviceLoading;
         [Tooltip("설명 칸의 상태 줄. {player} = 이용 중인 공연 준비자, {phase} = 진행 단계")]

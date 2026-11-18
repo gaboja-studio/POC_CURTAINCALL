@@ -104,6 +104,7 @@ namespace CurtainCall.WaitingRoom
                 if (!WaitingRoomShop.CanPurchase) GUILayout.Label(WaitingRoomShop.PurchaseTimeRefusal);
                 foreach (var item in shop.Catalog)
                 {
+                    if (WaitingRoomShop.ShopLocked(item.Id)) continue; // 아직 상점에 추가되지 않은 기물은 목록에 없다.
                     GUI.enabled = WaitingRoomShop.CanPurchase && item.Price <= shop.Balance;
                     if (GUILayout.Button($"{item.Name} — {item.Price}")) shop.RequestPurchase(item.Id);
                 }

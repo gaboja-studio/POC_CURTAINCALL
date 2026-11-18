@@ -80,7 +80,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.Greater(Vector3.Distance(before,target.transform.position),.5f);
                 Assert.AreEqual(0,Convert.ToInt32(Get(target,"LostParts")));
                 Assert.IsFalse((bool)Get(target,"IsDroppingFromSupport"));
-                Assert.IsFalse((bool)Call(caster,"CanUseEquipmentSlot",0),"A rescued grounded teammate is no longer a valid target.");
+                // 2026-11-18 사용자: 땅에 선(달리기·앉기 포함) 동료도 범위 안이면 당길 수 있다. 상태만으로 제외되지 않는지 본다.
+                Assert.IsTrue((bool)Get(target,"CanBeRescuePulled"),"A grounded teammate stays a valid pull target after the rescue.");
             }
             finally { mover.enabled=true; if(helper) UnityEngine.Object.Destroy(helper); UnityEngine.Object.Destroy(floor);UnityEngine.Object.Destroy(testCamera.gameObject);if(previousCamera)previousCamera.enabled=true; }
         }

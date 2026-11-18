@@ -168,6 +168,8 @@ MonoBehaviour:
   equipmentUnlocked: 4
   medicalBooked: 1
   carryResult: 1
+  shopItemsAdded: 4
+  equipmentPlaceBlocked: 1
   copy:
   - id: banner.broadcast-title
     text: 

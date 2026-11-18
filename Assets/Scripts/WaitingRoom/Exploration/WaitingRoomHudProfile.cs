@@ -56,6 +56,7 @@ namespace CurtainCall.WaitingRoom
         public RoomNotice recall=RoomNotice.Warning, broadcast=RoomNotice.Notice, nightBegins=RoomNotice.Notice;
         public RoomNotice bedBlocked=RoomNotice.Feedback, stageBlocked=RoomNotice.Feedback;
         public RoomNotice equipmentUnlocked=RoomNotice.Reward, medicalBooked=RoomNotice.Feedback, carryResult=RoomNotice.Feedback;
+        public RoomNotice shopItemsAdded=RoomNotice.Reward, equipmentPlaceBlocked=RoomNotice.Feedback;
         [Header("게임 문구 덮어쓰기 · 비우면 기존 문구 사용")]
         public RoomCopy[] copy=Array.Empty<RoomCopy>();
         public RoomCopy[] rehearsalCopy=Array.Empty<RoomCopy>();

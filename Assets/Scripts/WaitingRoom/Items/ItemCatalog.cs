@@ -34,6 +34,8 @@ namespace CurtainCall.WaitingRoom
             public int foundUses;
             [Tooltip("새 제품 구매 가격(토큰, 확정).")]
             public int price;
+            [Tooltip("체크: 처음부터 상점에서 판매한다.\n해제: 상점 목록에 없다가, 누군가 이 기물을 처음 주워 습득하면 모든 플레이어의 상점에 알림과 함께 추가된다(2026-11-18 사용자).")]
+            public bool shopUnlockedFromStart;
             [Tooltip("쿨타임(초, 초안). 0이면 없음.")]
             public float cooldown;
             [Tooltip("핵심 효과 수치(초안): 구조 장갑 균형 손실 감소율, 끈끈이 장갑 버티기 배율, 벌룬 바지 하강 감속률, 머리핀 개방 확률, 천막 말뚝 뽑개의 힘(1초 동안 깎는 내구도, F 누르는 시간 = 대상 내구도 ÷ 힘) 등.")]

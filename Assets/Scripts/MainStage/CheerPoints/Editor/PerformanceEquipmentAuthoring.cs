@@ -35,20 +35,41 @@ namespace CurtainCall.MainStage.CheerPoints.Editor
             if(map.FindAction("UseSlotOne")==null) map.AddAction("UseSlotOne",InputActionType.Button,"<Keyboard>/q",expectedControlLayout:"Button");
             if(map.FindAction("UseSlotTwo")==null) map.AddAction("UseSlotTwo",InputActionType.Button,"<Keyboard>/e",expectedControlLayout:"Button");
             File.WriteAllText(inputPath,inputs.ToJson()); UnityEngine.Object.DestroyImmediate(inputs); AssetDatabase.ImportAsset(inputPath);
+            ApplyDescriptions();
+            return "Configured 3 visuals, 4 descriptions, Q/E and GameSettings link.";
+        }
+
+        const string Use="슬롯 사용키(1슬롯 Q · 2슬롯 E)", Where="공연 · 연습실(연습은 내구도 소모 없음)";
+
+        /// <summary>
+        /// 공연 기물 4종의 상점 설명·툴팁(기획 "공연 기물 고도화" Confluence 44793873, 2026-11-18).
+        /// 형식은 상점 공통(2026-11-02 사용자): 설명 = 문장 · 빈 줄 · 적용 · 사용 · 내구도 · 소모 조건, 툴팁 = 문장 · "사용: … · 내구도: …".
+        /// </summary>
+        public static string ApplyDescriptions()
+        {
             var catalog=AssetDatabase.LoadAssetAtPath<ItemCatalog>("Assets/Resources/Settings/GameSettings/Items/ItemCatalog.asset");
+            int changed=0;
             foreach(var e in catalog.Items)
             {
-                string description=e.id switch {
-                    ItemUses.SpringShoes=>"공중에서 사용하면 한 번 더 점프합니다. 착지 전까지 1회만 사용할 수 있으며, 실제 추가 점프 시 내구도 1을 소모합니다.",
-                    ItemUses.RescueGloves=>"안전한 바닥에서 바라보는 가까운 동료를 내 주변의 안전한 위치로 끌어옵니다. 공중·매달림 상태의 동료와 빈 착지 공간이 있을 때만 발동하며 내구도 1을 소모합니다.",
-                    ItemUses.StickyGloves=>"매달린 상태에서 사용하면 3초 동안 매달림 제한시간이 줄어들지 않습니다. 한 번의 매달림에 1회만 사용할 수 있으며 발동 시 내구도 1을 소모합니다. 주변 위험물은 멈추지 않습니다.",
-                    ItemUses.BalloonPants=>"공중에서 사용하면 최대 3초 동안 하강이 느려지고 수평 조작이 강화됩니다. 같은 슬롯 키를 다시 누르면 접습니다. 한 체공에 1회만 사용할 수 있으며 발동 시 내구도 1을 소모합니다.", _=>null };
-                if(description==null) continue;
-                e.summary=e.shopDescription=e.shopTooltip=description;
+                (string sentence,string tip,string spend)? text=e.id switch {
+                    ItemUses.SpringShoes=>("공중에서 한 번 더 점프합니다. 착지 전에는 다시 사용할 수 없습니다.",
+                        "공중에서 한 번 더 점프합니다.","실제로 추가 점프할 때 내구도 소모"),
+                    ItemUses.RescueGloves=>("안전한 바닥에서 앞쪽의 가까운 동료를 내 곁으로 부드럽게 끌어옵니다. 당길 수 있는 동료에게는 나에게만 장갑 아이콘과 사용키가 보입니다.",
+                        "앞쪽의 가까운 동료를 내 곁으로 끌어옵니다.","길과 도착할 자리가 안전해 실제로 당길 때 내구도 소모"),
+                    ItemUses.StickyGloves=>("매달린 상태에서 사용하면 남은 매달림 시간이 3초 동안 줄어들지 않습니다. 주변 위험물은 멈추지 않습니다.",
+                        "매달려 있을 때 3초 동안 매달림 시간이 멈춥니다.","한 번 매달리는 동안 한 번, 사용할 때 내구도 소모"),
+                    ItemUses.BalloonPants=>("공중에서 바지가 부풀어 최대 3초 동안 천천히 내려오고 좌우로 더 쉽게 움직입니다. 같은 키를 다시 누르거나 착지하면 접힙니다.",
+                        "공중에서 천천히 내려오며 좌우로 더 쉽게 움직입니다.","착지 전 한 번, 펼칠 때 내구도 소모(접을 때는 소모 없음)"),
+                    _=>null };
+                if(text==null) continue;
+                var (sentence,tip,spend)=text.Value;
+                e.summary=e.shopDescription=$"{sentence}\n\n• 적용: {Where}\n• 사용: {Use}\n• 내구도: {e.newUses}\n• {spend}";
+                e.shopTooltip=$"{tip}\n사용: {Use} · 내구도: {e.newUses}";
                 e.useCue=e.id switch { ItemUses.SpringShoes=>"한 번 더!", ItemUses.RescueGloves=>"잡았다!", ItemUses.StickyGloves=>"아직 붙어 있다!", _=>"사뿐하게!" };
+                changed++;
             }
             EditorUtility.SetDirty(catalog); AssetDatabase.SaveAssets();
-            return "Configured 3 visuals, 4 descriptions, Q/E and GameSettings link.";
+            return $"Performance item descriptions: {changed}";
         }
 
         public static string InspectCourses()

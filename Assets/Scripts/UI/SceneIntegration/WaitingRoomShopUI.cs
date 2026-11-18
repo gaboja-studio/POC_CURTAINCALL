@@ -110,7 +110,9 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var item in shop.Catalog)
                 {
-                    string reason = WaitingRoomShop.CraftRoomsLocked(item.Id) ? WaitingRoomShop.CraftRoomsLockedText : !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
+                    // 아직 상점에 추가되지 않은 기물은 목록에 넣지 않는다. 누군가 처음 습득하면 알림과 함께 추가된다(2026-11-18 사용자).
+                    if (WaitingRoomShop.ShopLocked(item.Id)) continue;
+                    string reason = !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
                     string icon = view.ResolveIcon(item.Id) != null ? item.Id : texts.itemFallbackIcon;
                     string description = string.Join("\n", new[] { ItemCatalog.Description(item.Id), Fill(texts.itemDescriptionFooter) }.Where(line => !string.IsNullOrEmpty(line)));
                     entries.Add(new ShopEntryPresentation("item:" + item.Id, ShopTab.Items, icon, item.Name, Fill(texts.itemSubtitle), item.Price.ToString(),
@@ -147,28 +149,38 @@ namespace CurtainCall.UI.SceneIntegration
         }
         // M2: 서비스는 신체 복구 하나(시설 서비스 삭제). 한 항목에서 1~최대(잃은 부위, 3개) 수량을 고르고 예약한다. 비용은 지금 1개당 가격 × 개수.
         // 상점 템플릿은 항목당 버튼 2개까지라 [예약]·[수량 변경] 두 버튼을 쓴다. 수량은 이 화면에만 있는 선택값이다.
+        // 예약한 사람은 입장 전까지 남은 팔다리를 같은 두 버튼으로 추가 예약한다(2026-11-18 사용자). 추가분은 예약 때 단가.
         int medicalParts = 1;
+        int MedicalMax => Mathf.Max(1, service != null ? service.LocalSelectableParts : ExpertService.LocalMaxParts);
         void AddServices(List<ShopEntryPresentation> entries)
         {
             string status = service == null || service.Phase == ExpertRoomPhase.Idle ? ""
                 : Fill(texts.serviceStatus, ("player", WaitingRoomShop.PlayerLabel(service.Buyer)), ("phase", ExpertServicePhonePanel.PhaseLabel(service.Phase)));
-            int max = Mathf.Max(1, ExpertService.LocalMaxParts);
+            int max = MedicalMax;
             medicalParts = Mathf.Clamp(medicalParts, 1, max);
             int parts = medicalParts;
+            bool adding = service != null && service.LocalIsAdding;
+            int booked = adding ? service.BookedLimbs : 0;
             var refusal = service != null ? service.LocalMedicalRefusal(parts) : ExpertRefusal.InPerformance;
-            long cost = service?.MedicalCost(parts) ?? 0;
+            long cost = service?.LocalCost(parts) ?? 0;
             string reason = service == null ? Fill(texts.serviceLoading) : refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : service.Balance < cost ? Fill(texts.reasonNoFunds) : "";
             bool canBook = reason.Length == 0;
             bool canChangeCount = service != null && refusal == ExpertRefusal.None && max > 1;
+            string subtitle = adding && !string.IsNullOrEmpty(texts.medicalAddSubtitle)
+                ? Fill(texts.medicalAddSubtitle, ("booked", booked), ("max", max), ("lost", ExpertService.LocalLostLimbs))
+                : Fill(texts.medicalSubtitle, ("lost", ExpertService.LocalLostLimbs), ("max", max));
+            string bookLabel = adding && !string.IsNullOrEmpty(texts.addBookButton)
+                ? Fill(texts.addBookButton, ("n", parts), ("booked", booked))
+                : Fill(texts.bookButton, ("n", parts));
             entries.Add(new ShopEntryPresentation("medical", ShopTab.Services, texts.medicalIcon,
                 Fill(texts.medicalTitle, ("n", parts)),
-                Fill(texts.medicalSubtitle, ("lost", ExpertService.LocalLostLimbs), ("max", max)),
+                subtitle,
                 service == null ? "—" : cost.ToString(),
                 Fill(texts.medicalDescription),
-                service == null ? "" : Fill(texts.medicalPriceDetail, ("price", service.MedicalPrice)),
+                service == null ? "" : Fill(texts.medicalPriceDetail, ("price", adding && parts > 0 ? cost / parts : service.MedicalPrice)),
                 // Entry availability gates both buttons. Keep quantity selection usable when only funds are short.
                 canBook || canChangeCount, reason, status, texts.medicalIcon,
-                new ShopActionPresentation("medical", Fill(texts.bookButton, ("n", parts)), canBook),
+                new ShopActionPresentation("medical", bookLabel, canBook),
                 new ShopActionPresentation("count", Fill(texts.countButton, ("n", parts), ("max", max)), canChangeCount)));
         }
         void Request(ShopActionRequest request)
@@ -177,7 +189,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (request.EntryId == "medical" && request.ActionId == "count")
             {
                 // 수량 변경은 서버 요청 없이 이 화면에서 1 → 최대 → 1 순서로 돈다.
-                int max = Mathf.Max(1, ExpertService.LocalMaxParts);
+                int max = MedicalMax;
                 medicalParts = medicalParts % max + 1;
                 view.AcceptAction(request, Fill(texts.countSelected, ("n", medicalParts)), Build()); fingerprint = null; nextRefresh = 0; ApplyFonts();
                 return;
@@ -186,7 +198,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (request.EntryId.StartsWith("item:") && request.ActionId == "buy" && shop != null)
                 shop.RequestPurchaseTracked(request.EntryId.Substring(5), requestId);
             else if (request.EntryId == "medical" && request.ActionId == "medical" && service != null)
-                service.RequestMedicalTracked(Mathf.Clamp(medicalParts, 1, Mathf.Max(1, ExpertService.LocalMaxParts)), requestId);
+                service.RequestMedicalTracked(Mathf.Clamp(medicalParts, 1, MedicalMax), requestId);
             else Answer(requestId, false, Fill(texts.invalidRequest));
         }
         void Answer(string id, bool ok, string text)

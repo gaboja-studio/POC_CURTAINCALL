@@ -414,6 +414,7 @@ namespace CurtainCall.WaitingRoom
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
             CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(FindPlayer(player),"EXPLORATION_TOOL",new(){["itemType"]=item.ItemId,["uid"]=uid,["usesAfter"]=item.Uses,["state"]="PICKED_UP"},"HOST");
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
+            WaitingRoomShop.RecordAcquired(item.ItemId); // 처음 습득한 기물은 모든 플레이어의 상점에 추가된다.
             AutoHold(player, item);
             Publish();
             return (true, WaitingRoomText.Format("carry.picked", "{item:을} 주웠습니다.", ("item", item.Name)));
@@ -432,7 +433,7 @@ namespace CurtainCall.WaitingRoom
             var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, chosen == 0 ? -1 : chosen);
             if (refusal != CarryRefusal.None) return Reject(player, "SHELF", chosen, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");
-            if (!placed) AutoHold(player, item);
+            if (!placed) { WaitingRoomShop.RecordAcquired(item.ItemId); AutoHold(player, item); }
             Publish();
             return (true, placed
                 ? WaitingRoomText.Format("carry.shelf-placed", "{item:을} 선반 {n}칸에 올렸습니다.", ("item", item.Name), ("n", slot + 1))
