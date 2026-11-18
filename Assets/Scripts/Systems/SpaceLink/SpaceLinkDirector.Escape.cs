@@ -9,6 +9,9 @@ namespace CurtainCall.SpaceLink
 {
     public sealed partial class SpaceLinkDirector
     {
+        // Same timeout as a network scene load, with time for an owner to place after scene initialization.
+        const float MinimumEscapeAckTimeoutSeconds = 30f;
+
         public bool EscapePrepared => EscapeSceneTransfer.Current != null && EscapeSceneTransfer.Current.Ready;
 
         IEnumerator TransitionEscape(TransitionRequest request)
@@ -27,8 +30,8 @@ namespace CurtainCall.SpaceLink
                     if (IsCurrent(request)) transfer.Failed("로딩 화면 준비 실패");
                     yield break;
                 }
-                while (IsCurrent(request) && transfer.Coordinating && !transfer.AllCaptured) yield return null;
-                if (!IsCurrent(request) || !transfer.Coordinating) yield break;
+                yield return WaitForEscapeAcknowledgements(request, transfer, false);
+                if (!IsCurrent(request) || !transfer.Coordinating || !transfer.AllCaptured) yield break;
 
                 using (CommonUiSceneLoader.DeferSceneChanges())
                 {
@@ -43,8 +46,8 @@ namespace CurtainCall.SpaceLink
                     }
                     var destination = SceneManager.GetSceneByName(request.SceneName);
                     SceneManager.SetActiveScene(destination);
-                    while (IsCurrent(request) && transfer.Coordinating && !transfer.AllPlaced) yield return null;
-                    if (!IsCurrent(request) || !transfer.Coordinating) yield break;
+                    yield return WaitForEscapeAcknowledgements(request, transfer, true);
+                    if (!IsCurrent(request) || !transfer.Coordinating || !transfer.AllPlaced) yield break;
                     foreach (var old in LoadedSpaceScenes(GameSettings.Base.SpaceTransition))
                     {
                         if (old == destination) continue;
@@ -61,6 +64,25 @@ namespace CurtainCall.SpaceLink
                 SpaceChanged?.Invoke(SpaceId.EscapeRoute);
             }
             finally { SceneCurtainTransition.CompleteFor(curtainVersion); }
+        }
+
+        IEnumerator WaitForEscapeAcknowledgements(TransitionRequest request, EscapeSceneTransfer transfer, bool placement)
+        {
+            var network = Unity.Netcode.NetworkManager.Singleton;
+            float timeout = Mathf.Max(MinimumEscapeAckTimeoutSeconds,
+                network != null ? network.NetworkConfig.LoadSceneTimeOut : 0f);
+            double deadline = Time.unscaledTimeAsDouble + timeout;
+            while (IsCurrent(request) && transfer.Coordinating
+                && !(placement ? transfer.AllPlaced : transfer.AllCaptured))
+            {
+                if (Time.unscaledTimeAsDouble >= deadline)
+                {
+                    // Retain placement acknowledgements and loaded scenes. The transfer coordinator retries.
+                    transfer.Failed(placement ? "탈출로 도착 확인 시간 초과" : "대기실 출발 확인 시간 초과");
+                    yield break;
+                }
+                yield return null;
+            }
         }
     }
 }
