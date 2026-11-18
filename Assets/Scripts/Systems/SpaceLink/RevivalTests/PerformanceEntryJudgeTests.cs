@@ -119,6 +119,49 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
+        public IEnumerator NetworkSceneLoadWithoutDirectorPreparesOwnerOnce() => ReloadWithoutDirector(false);
+
+        [UnityTest]
+        public IEnumerator NetworkSceneLoadWaitsForLateCampaignSnapshot() => ReloadWithoutDirector(true);
+
+        IEnumerator ReloadWithoutDirector(bool lateSnapshot)
+        {
+            yield return PrepareManagedCannon();
+            Assert.IsNull(StaticGet("CurtainCall.SpaceLink.SpaceLinkDirector", "Instance"),
+                "This regression must exercise a peer that skipped the lobby/director.");
+            Object.Destroy(entry.gameObject);
+            yield return Frames(2);
+            entry = null;
+            Teleport(new Vector3(30f, 0f, 30f));
+            var savedSnapshot = Get(campaign, "State");
+            var savedHost = Get(campaign, "host");
+            if (lateSnapshot) {
+                Set(campaign, "host", null);
+                Set(campaign, "state", Activator.CreateInstance(GameType("CurtainCall.Campaign.CampaignSnapshot")));
+            }
+
+            var sceneManager = Get(network, "SceneManager");
+            Assert.AreEqual("Started", Call(sceneManager, "LoadScene", CannonScene, LoadSceneMode.Single).ToString());
+            yield return WaitUntil(() => {
+                entry = Object.FindFirstObjectByType(GameType(EntryType)) as Component;
+                return entry != null;
+            }, 20f, "sceneLoaded must create the entry without a SpaceLinkDirector");
+            if (lateSnapshot) {
+                yield return Frames(3);
+                Assert.IsFalse(LocalPlaced, "Do not place against an absent campaign snapshot.");
+                Call(campaign, "Apply", savedSnapshot);
+                Set(campaign, "host", savedHost);
+            }
+            yield return WaitUntil(() => LocalPlaced, 5f, "owner placement after campaign state is ready");
+            SpawnPose(out var spawn, out _);
+            Assert.AreEqual("Normal", State);
+            Assert.That(Vector3.Distance(player.transform.position, spawn), Is.LessThan(.15f));
+            StaticCall(EntryType, "Prepare", entry.gameObject.scene); // Director and scene hook may both observe a load.
+            Assert.AreEqual(1, Object.FindObjectsByType(GameType(EntryType), FindObjectsSortMode.None).Length);
+            Assert.IsNull(StaticGet("CurtainCall.SpaceLink.SpaceLinkDirector", "Instance"), "Placement must not create a scene authority.");
+        }
+
+        [UnityTest]
         public IEnumerator Managed_HostDoesNotKillPlayerBeforeOwnerPlacementArrives()
         {
             yield return PrepareManagedCannon();
@@ -144,7 +187,7 @@ namespace CurtainCall.SpaceLink.Tests
             // 도입 시간대의 배치 함수 직접 호출로 합성한다. 매 프레임 재시도(Update)는 같은 함수를 부른다.
             yield return PrepareManagedCannon(false);
             Teleport(Below);
-            Call(player, "ServerSetState", EnumValue("CurtainCall.Network.PlayerSync.PlayerState", "Fallen"));
+            Call(player, "ServerSetState", EnumValue("CurtainCall.Network.PlayerSync.PlayerState", "Fallen"), Type.Missing);
             yield return Frames(2);
             Call(entry, "Place", player);
             Assert.IsFalse(LocalPlaced, "사망 상태라 옮기지 않았으면 배치 완료로 표시하지 않는다.");
@@ -164,7 +207,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitUntil(() => LocalPlaced, 3f, "인간대포 출발점 배치");
             yield return Frames(3);
             Teleport(Below);
-            Assert.IsTrue((bool)Call(player, "ServerKill"), "공연 중 낙하 사망은 허용한다.");
+            Assert.IsTrue((bool)Call(player, "ServerKill", Type.Missing, Type.Missing), "공연 중 낙하 사망은 허용한다.");
             Assert.AreEqual("Fallen", State);
 
             // 씬 전환보다 먼저 오는 밤 정비를 합성한다. 옛 씬과 낙하 위치는 그대로 남긴다.
@@ -173,7 +216,7 @@ namespace CurtainCall.SpaceLink.Tests
             Set(night, "PerformanceIndex", 1);
             Call(campaign, "Apply", night);
             Assert.AreEqual("Normal", State, "밤 정비 시작 시 외팔로 부활한다.");
-            Assert.IsFalse((bool)Call(player, "ServerKill"), "공연 종료 뒤 같은 프레임의 옛 함정 피해도 거부한다.");
+            Assert.IsFalse((bool)Call(player, "ServerKill", Type.Missing, Type.Missing), "공연 종료 뒤 같은 프레임의 옛 함정 피해도 거부한다.");
             yield return Frames(5);
             Assert.AreEqual("Normal", State, "대기실 배치 전 옛 씬의 낙하 판정으로 다시 죽으면 안 된다.");
             var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
