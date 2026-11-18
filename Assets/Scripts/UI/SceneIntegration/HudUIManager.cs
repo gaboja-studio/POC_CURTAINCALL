@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CurtainCall.Sound;
 using CurtainCall.UI.BackstageHudV1;
 using CurtainCall.UI.InteractionV1;
 using CurtainCall.UI.NotificationsV1;
@@ -64,8 +65,13 @@ namespace CurtainCall.UI.SceneIntegration
         }
         public HudRoleCard ShowSystemEvent(string content, Transform owner, string title, float? seconds = null,HudEventKind kind=HudEventKind.Notice) =>
             Add(HudRole.SystemEvent,content,owner,title,"",seconds,null,kind);
-        internal HudRoleCard ShowDeathWarning(string content, Transform owner, string title, float seconds) =>
-            Add(HudRole.SystemEvent,content,owner,title,"",seconds,kind:HudEventKind.Warning,upperRightEvent:true);
+        /// <param name="sound">카드와 함께 낼 사운드 상황 키(예: 내 사망). 동료 사망처럼 소리가 따로 없으면 null.</param>
+        internal HudRoleCard ShowDeathWarning(string content, Transform owner, string title, float seconds, string sound = null)
+        {
+            var card = Add(HudRole.SystemEvent,content,owner,title,"",seconds,kind:HudEventKind.Warning,upperRightEvent:true);
+            if (card != null && !string.IsNullOrEmpty(sound)) SoundManager.Play(sound);
+            return card;
+        }
         public HudRoleCard ShowZoneName(string content, Transform owner)
             => Add(HudRole.ZoneName,content,owner,"","",null);
         public HudRoleCard ShowFeedback(string content, Transform owner, string title = "", float? seconds = null) =>

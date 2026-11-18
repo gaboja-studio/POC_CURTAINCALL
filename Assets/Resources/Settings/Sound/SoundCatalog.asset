@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d5b773eaf4fa44b8efa7b1f9036bff, type: 3}
+  m_Name: SoundCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Sound.SoundCatalog
+  uiVolume: 1
+  sfxVolume: 1
+  bgmVolume: 1
+  voices: 12
+  cues:
+  - id: UI-104
+    situation: "\uBC29\uC1A1 \uBC30\uB108\uC74C"
+    description: "\uC26C\uB294 \uC2DC\uAC04 \uC885\uB8CC 60\uCD08 \uC804 \uBB34\uB300
+      \uBCF5\uADC0 \uC18C\uC9D1 \uBC29\uC1A1 \uBC30\uB108. \uC784\uC2DC \uD569\uC131
+      \uC885\uC18C\uB9AC\uB97C \uB300\uCCB4.\n\uC6D0\uBCF8: Fun Casual Sounds / game_over_dark_bell_chime_01
+      (5.1\uCD08 \u2192 \uC2DC\uD2B8 0:03\uC5D0 \uB9DE\uCDB0 3\uCD08, \uB05D 0.8\uCD08
+      \uD398\uC774\uB4DC)"
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: e54ed0fc4f32b36469f4f3a6e50a28c3, type: 3}
+    category: 0
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 3
+    loop: 0
+    fadeOut: 0.8
+    delay: 0
+    cooldown: 1
+    output: {fileID: 0}
+  - id: UI-701
+    situation: "\uAC1C\uC778 \uC0AC\uB9DD\uC74C"
+    description: "\uB0B4 \uB2E8\uC6D0\uC774 \uC0AC\uB9DD\uD574 \uC0AC\uB9DD \uCE74\uB4DC\uAC00
+      \uB730 \uB54C \uC7AC\uC0DD.\n\uC6D0\uBCF8: Fantasy Game 16bit / Fantasy_Game_Magic_Organic_Poof_Buff_Hit"
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 8790b46af53d14fcb89edc31d2fe9da0, type: 3}
+    category: 0
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0.5
+    output: {fileID: 0}
+  - id: UI-905
+    situation: "\uD0C0\uC774\uBA38 30\uCD08 \uACBD\uACE0\uC74C"
+    description: "\uD734\uC2DD\xB7\uC815\uBE44 \uD0C0\uC774\uBA38\uAC00 30\uCD08
+      \uACBD\uACE0 \uC0C1\uD0DC\uB85C \uBC14\uB014 \uB54C \uC7AC\uC0DD.\n\uC6D0\uBCF8:
+      Fantasy Game 16bit / Fantasy_Game_UI_Distant_Soft_Rumble_1 (5\uCD08 \u2192
+      1.5\uCD08, \uB05D 0.5\uCD08 \uD398\uC774\uB4DC)"
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: bd3d1b4c134dc41f5889276aed8d2a28, type: 3}
+    category: 0
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1.5
+    loop: 0
+    fadeOut: 0.5
+    delay: 0
+    cooldown: 1
+    output: {fileID: 0}
+  - id: UI-906
+    situation: "\uB9C8\uC9C0\uB9C9 10\uCD08 \uD2F1"
+    description: "\uD0C0\uC774\uBA38 \uB9C8\uC9C0\uB9C9 10\uCD08 \uB3D9\uC548 \uCD08\uB9C8\uB2E4
+      \uC7AC\uC0DD.\n\uC6D0\uBCF8: Rogue Waves Kawaii UI / UIClick_Verbsynth UI Back
+      1"
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: c450183dc6acd4706bfc7e2dd6d0e7fb, type: 3}
+    category: 0
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0.5
+    output: {fileID: 0}
+  situations:
+  - key: waiting-room.recall-broadcast
+    label: "\uC18C\uC9D1 \uACBD\uBCF4 \uBC29\uC1A1"
+    description: "\uC26C\uB294 \uC2DC\uAC04 \uC885\uB8CC 60\uCD08 \uC804 \uBB34\uB300
+      \uBCF5\uADC0 \uC18C\uC9D1 \uBC30\uB108\uAC00 \uB730 \uB54C. ExplorationTimerView.Show"
+    cueId: UI-104
+    enabled: 1
+    volumeScale: 1
+  - key: performance.local-death
+    label: "\uACF5\uC5F0 \uC911 \uB0B4 \uC0AC\uB9DD"
+    description: "\uACF5\uC5F0 \uC911 \uB0B4 \uB2E8\uC6D0\uC774 \uC8FD\uC5B4 '\uC0AC\uB9DD\uD588\uC2B5\uB2C8\uB2E4'
+      \uCE74\uB4DC\uAC00 \uB730 \uB54C. PerformanceEndingPresentation.ObserveDeath"
+    cueId: UI-701
+    enabled: 1
+    volumeScale: 1
+  - key: waiting-room.local-death
+    label: "\uB300\uAE30\uC2E4 \uB0B4 \uC0AC\uB9DD"
+    description: "\uB300\uAE30\uC2E4\uC5D0\uC11C \uB0B4 \uB2E8\uC6D0\uC774 \uC8FD\uC5B4
+      '\uB098 \uC0AC\uB9DD' \uCE74\uB4DC\uAC00 \uB730 \uB54C. CommonWaitingRoomUI.ObserveDeaths"
+    cueId: UI-701
+    enabled: 1
+    volumeScale: 1
+  - key: escape.local-death
+    label: "\uD0C8\uCD9C\uB85C \uB0B4 \uC0AC\uB9DD\xB7\uD3EC\uD68D"
+    description: "\uD0C8\uCD9C\uB85C\uC5D0\uC11C \uB0B4 \uB2E8\uC6D0\uC774 \uC0AC\uB9DD\xB7\uD3EC\uD68D\uB3FC
+      \uAD00\uC804\uC73C\uB85C \uBC14\uB014 \uB54C(\uCE74\uB4DC \uC5C6\uC74C). EscapeLocalDeathSound"
+    cueId: UI-701
+    enabled: 1
+    volumeScale: 1
+  - key: rest-timer.warning
+    label: "\uD0C0\uC774\uBA38 30\uCD08 \uACBD\uACE0"
+    description: "\uD734\uC2DD\xB7\uBC24 \uC815\uBE44 \uD0C0\uC774\uBA38\uAC00 30\uCD08
+      \uACBD\uACE0(\uBD89\uC740 \uD14C\uB450\uB9AC) \uC0C1\uD0DC\uB85C \uBC14\uB014
+      \uB54C. RestTimerView.Show"
+    cueId: UI-905
+    enabled: 1
+    volumeScale: 1
+  - key: rest-timer.final-tick
+    label: "\uD0C0\uC774\uBA38 \uB9C8\uC9C0\uB9C9 10\uCD08 \uD2F1"
+    description: "\uD734\uC2DD\xB7\uBC24 \uC815\uBE44 \uD0C0\uC774\uBA38 10\uCD08~1\uCD08
+      \uB3D9\uC548 \uCD08\uB9C8\uB2E4. RestTimerView.Show"
+    cueId: UI-906
+    enabled: 1
+    volumeScale: 1
