@@ -124,3 +124,4 @@
 - 제출용 Conveyor Works URP 셰이더 5종은 비공개 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/27 에 등록했다. 게임은 게시된 8b83e6ce를 참조한다.
 - 에셋 PR 병합 전에는 팀에서 재현 가능한 dev의 22e55ec1 포인터를 유지하고 게임 변경을 먼저 리뷰에 제출한다. 에셋 병합 뒤 검증된 포인터를 올린다. 추가 FinaleHazardTests 6/6 통과.
 - 게임 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/423 과 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/27 을 제출했다.
+- 사용자 승인으로 비공개 에셋 PR #27이 main에 병합됐다(424e899c). 게임 PR #423은 검증한 셰이더 커밋 8b83e6ce를 참조한다. 해당 커밋이 비공개 main에 포함됨을 확인했다.
