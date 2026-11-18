@@ -33,6 +33,10 @@ namespace CurtainCall.Settings
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Game Settings", fileName = "GameSettings")]
     public sealed class GameSettings : ScriptableObject
     {
+        [Tooltip("공연장 감광·객석·천장 추적등. 연결된 에셋에 한국어 설명과 조정값이 있습니다.")]
+        [SerializeField] PerformanceLightingSettings performanceLighting;
+        static PerformanceLightingSettings fallbackPerformanceLighting;
+        public static PerformanceLightingSettings PerformanceLighting => Linked(Current.performanceLighting, ref fallbackPerformanceLighting);
         [Tooltip("공연 기물 수동 효과·환호 고리 외형과 통과 보상.")]
         [SerializeField] PerformanceEquipmentSettings performanceEquipment;
         static PerformanceEquipmentSettings fallbackPerformanceEquipment;

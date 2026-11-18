@@ -46,6 +46,7 @@ namespace CurtainCall.Player
         static readonly RaycastHit[] groundHits = new RaycastHit[16];
 
         CharacterController controller;
+        ConveyorSurface conveyorSupport;
         float moveInput;
         float sideInput; // 일반 이동의 옆 입력(+1 오른쪽)
         bool sprintInput;
@@ -326,6 +327,7 @@ namespace CurtainCall.Player
 
         public void ResetExternalMotion(bool airborne)
         {
+            conveyorSupport = null;
             ClearPendingInput();
             verticalSpeed = 0f;
             groundVelocity = Vector3.zero;
@@ -683,6 +685,10 @@ namespace CurtainCall.Player
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;
+            if (grounded && CurrentJump == JumpKind.None && conveyorSupport && conveyorSupport.isActiveAndEnabled)
+                horizontal += conveyorSupport.Velocity;
+            // The next controller move must establish support again, including after walking off the belt.
+            conveyorSupport = null;
             directionalLaunchPending = false;
             bool ballistic = CurrentJump != JumpKind.None || !grounded;
             var velocity = new Vector3(horizontal.x, verticalSpeed, horizontal.z);
@@ -937,6 +943,9 @@ namespace CurtainCall.Player
         /// <summary>몸통이 부딪힌 물체(래그돌 등 움직이는 Rigidbody)를 미는 방향으로 민다. 위에서 밟은 경우는 밀지 않는다.</summary>
         void OnControllerColliderHit(ControllerColliderHit hit)
         {
+            if (hit.normal.y >= .7f && hit.collider.TryGetComponent(out ConveyorSurface belt))
+                conveyorSupport = belt;
+
             var body = hit.rigidbody;
             float pushSpeed = Character.PushSpeed;
             if (pushSpeed <= 0f || body == null || body.isKinematic || hit.moveDirection.y < -0.3f) return;
