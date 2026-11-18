@@ -120,3 +120,4 @@
 
 - 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 위 2026-11-19 첫 검사의 컴파일=FAIL은 컴파일 PASS 뒤 공통 설정 run_script 호출이 에디터 연결 끊김(Connection reset)으로 실패한 것. 코드 변경 없이 재실행해 전 항목 PASS. 제출 직전 origin/dev 차이 0/0.
+- 2026-11-19 제출: 커밋 18cc5734, PR #433 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/433 (fix/main-stage/pieces → dev, Squash, 지정 팀원 검토 대기). 무관 로컬 변경(CommonButtons·CheerGauge 폰트, escape-labels, Vivox 설정, _ThirdParty)은 제외해 new-pr.ps1 dirty 검사 대신 같은 제목·본문으로 gh 등록.
