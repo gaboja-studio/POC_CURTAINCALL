@@ -7,3 +7,5 @@
 - 독립 C# 재현에서 수정 전 실제 Detach 코드가 같은 런의 진행을 지워 실패했다. 수정 후 비활성 중 절단, 실제 재시작, 다른 장치 코스 분리 조합이 통과했다. Unity 컴파일 응답 파일로 게임 및 탈출로 테스트 C# 어셈블리를 직접 컴파일했다.
 - 재임포트 후 최신 DEV에서 Unity 컴파일 및 새 EscapeFinal165 EditMode 4/4 통과. 재활성화 처리에서 절단 상태를 복구한 뒤 배선 표시도 갱신한다. 기존 테스트 묶음과 실제 플레이는 실행하지 않았다.
 - 제출 전 최신 DEV 7882f5f4와 서브모듈을 맞췄다. DEV에서 사용한 Task 번호 165와 중복돼 이 Task를 166으로 정리했다. 새 EditMode 4건은 UI 사운드 병합 이전 DEV에서 통과했고, 병합된 최신 소스의 C# 컴파일과 범위·지식 검사를 확인했다.
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/437 (fix/escape-shared-cuts-reactivation → dev)
