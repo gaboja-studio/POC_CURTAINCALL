@@ -21,3 +21,5 @@
 - 카탈로그에 기본 상황 6개 추가(SaveAssetIfDirty로 이 에셋만 저장, 사용자 조정 음량 유지).
 - 검사: SoundCueTests 9/9 PASS, 코드 위치 검색이 6개 상황 모두 실제 줄을 찾음, 테스트 씬 플레이에서 소집(ExplorationTimerView.Show:92)·공연 사망(HudUIManager.ShowDeathWarning)·탈출로(EscapeLocalDeathSound.Notify) Played, 동료 사망 무음 확인. check-work 컴파일 PASS.
 - 2026-11-19 제출 전 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=EditMode SoundCueTests 9/9 PASS (WaitingRoomHudPlayTests는 삭제된 Start_Lobby 씬 참조로 SetUp 기존 실패)
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/436 (feat/ui-sound-manager → dev)
