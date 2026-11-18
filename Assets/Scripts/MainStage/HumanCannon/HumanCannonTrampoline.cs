@@ -570,8 +570,12 @@ namespace CurtainCall.HumanCannon
                 }
                 if (TryFindDropPath(position, rotation, player, out var ground))
                     ReleaseAt(actor, revision, position, rotation, ground);
-                else if (!UsesTraversalCarryClearance(gameObject.scene.name))
-                    ReleaseCarrierToGround(player);
+                else if (UsesTraversalCarryClearance(gameObject.scene.name))
+                {
+                    if (TryFindNearbySidePlacement(position, rotation, player, out ground, avoidRope: false, fullWidth: true))
+                        ReleaseAt(actor, revision, new Vector3(ground.x, position.y, ground.z), rotation, ground);
+                }
+                else ReleaseCarrierToGround(player);
                 return;
             }
             else return;

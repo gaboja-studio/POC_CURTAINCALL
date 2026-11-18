@@ -75,6 +75,7 @@ namespace CurtainCall.EscapeRoute
                     () => this != null && CanGrab(player) && ownership.Revision == expected,
                     () => HandleAction(actor, action, expected, true))) return;
                 if (!ownership.TryApply(CannonAction.Board, actor, expected)) return;
+                if (!player.IsLocal) Debug.Log($"[ExitSaw] {RequestName} host granted guest {actor}, revision {ownership.Revision}", this);
                 CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,this,"CUTTER","ACQUIRED",CarryRoot.position,true);
                 CarrierChanged();
                 HumanCannonSystem.Current.StartCarrying(actor);
@@ -85,9 +86,10 @@ namespace CurtainCall.EscapeRoute
             }
             else if (action == 2)
             {
-                if (!ownership.TryApply(CannonAction.Release, actor, expected)) return;
+                if (Carrier != actor) return;
+                FollowCarrier(player, false);
+                if (!CanLeaveAtCurrentPose(player) || !ownership.TryApply(CannonAction.Release, actor, expected)) return;
                 CarrierChanged();
-                if (!CanLeaveAtCurrentPose(player)) Recover();
                 if (!DoorOpen) cutProgress = 0;
                 cutting = carryBlocked = false;
             }
@@ -120,8 +122,13 @@ namespace CurtainCall.EscapeRoute
         {
             if (messaging == null) return;
             using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
-            writer.WriteValueSafe(action); writer.WriteValueSafe(ownership.Revision); writer.WriteValueSafe(token);
+            WriteRequest(writer, action, token);
+            if (action == 1) Debug.Log($"[ExitSaw] {RequestName} guest grab sent, revision {ownership.Revision}", this);
             messaging.SendNamedMessage(RequestName, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+        }
+        void WriteRequest(FastBufferWriter writer, byte action, int token)
+        {
+            writer.WriteValueSafe(action); writer.WriteValueSafe(ownership.Revision); writer.WriteValueSafe(token);
         }
         void ReadRequest(ulong sender, FastBufferReader reader)
         {
@@ -138,14 +145,19 @@ namespace CurtainCall.EscapeRoute
             else if ((action == 1 || action == 2 || action == 3) && token == 0)
             {
                 if (action == 1 && Ready && !Suppressed && !ownership.IsOccupied && expected == ownership.Revision
-                    && FindPlayer(sender) is { } player && !CanGrab(player))
+                    && !CanGrab(FindPlayer(sender)))
                 {
                     // The reliable input can reach the host before the interpolated owner pose catches up.
                     // Keep one request per guest and recheck the normal pickup rules on the host.
                     if (!pendingGrabs.Exists(request => request.Actor == sender && request.Revision == expected))
                         pendingGrabs.Add((sender, expected, Time.unscaledTimeAsDouble + RemoteGrabGrace));
                 }
-                else HandleAction(sender, action, expected);
+                else
+                {
+                    if (action == 1 && (!Ready || Suppressed || ownership.IsOccupied || expected != ownership.Revision))
+                        Debug.Log($"[ExitSaw] {RequestName} guest {sender} grab rejected: ready={Ready}, hidden={Suppressed}, carrier={Carrier}, requested/current revision={expected}/{ownership.Revision}", this);
+                    HandleAction(sender, action, expected);
+                }
                 SendState(sender, 0);
             }
         }
@@ -156,8 +168,10 @@ namespace CurtainCall.EscapeRoute
                 var request = pendingGrabs[i];
                 var player = FindPlayer(request.Actor);
                 if (!Ready || Suppressed || ownership.IsOccupied || request.Revision != ownership.Revision
-                    || request.Expires < now || player == null)
+                    || request.Expires < now)
                 {
+                    if (request.Expires < now && !ownership.IsOccupied && request.Revision == ownership.Revision)
+                        Debug.LogWarning($"[ExitSaw] {gameObject.scene.name}/{deviceId} guest {request.Actor} grab expired: {CheckGrab(player, out _, out _)}", this);
                     pendingGrabs.RemoveAt(i);
                     continue;
                 }

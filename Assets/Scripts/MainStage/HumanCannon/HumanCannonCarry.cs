@@ -169,6 +169,13 @@ namespace CurtainCall.HumanCannon
                 || hangs != null && (hangs.IsHanging(player) || hangs.IsRescuing(player));
         }
 
+        // Use the target locked at F-down, even if another handle becomes nearer before F-up.
+        public static IHumanCannonCarry SelectedGrabbable(NetworkPlayer player)
+        {
+            var target = CommonInteractionSelection.Selected(player) as IHumanCannonCarry;
+            return Active(target) && target.CanGrab(player) ? target : null;
+        }
+
         public static IHumanCannonCarry FindGrabbable(NetworkPlayer player)
         {
             if (player == null || Held(player.OwnerClientId) != null) return null;

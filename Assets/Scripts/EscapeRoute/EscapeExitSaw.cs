@@ -203,23 +203,27 @@ namespace CurtainCall.EscapeRoute
         public bool CanGrab(NetworkPlayer player) => TryGetGrabPose(player, out _, out _);
 
         bool TryGetGrabPose(NetworkPlayer player, out Vector3 position, out Quaternion rotation)
+            => CheckGrab(player, out position, out rotation) == null;
+
+        string CheckGrab(NetworkPlayer player, out Vector3 position, out Quaternion rotation)
         {
             position = default; rotation = Quaternion.identity;
-            if (Suppressed || !Ready || ownership.IsOccupied || !Alive(player)
-                || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
+            if (Suppressed || !Ready) return "device unavailable";
+            if (!Alive(player)) return "actor unavailable";
+            if (ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null) return "already carrying";
             bool remoteOnHost = session.IsHost && !player.IsLocal;
             Vector3 feet = player.transform.position;
-            if (!Grounded(player, requireReportedGrounded: !remoteOnHost)) return false;
+            if (!Grounded(player, requireReportedGrounded: !remoteOnHost)) return "no ground contact";
             var course = TightropeCourse.Current;
             if (CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockRopeWithSaw
                 && course != null && course.IsTraversalActive && player.TryGetComponent(out PlayerMover mover)
-                && course.TryGetSupportingRope(mover, out _)) return false;
+                && course.TryGetSupportingRope(mover, out _)) return "on rope";
             var cannon = HumanCannonSystem.Current;
-            if (cannon == null || cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)) return false;
+            if (cannon == null || cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)) return "cannon unavailable or in use";
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
-                || PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
+                || PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return "mounted";
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            if (!PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, transform)) return false;
+            if (!PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, CarryRoot)) return "out of reach or obstructed";
 
             // Both sides grip the handle in its current direction. Camera-facing steering starts after pickup.
             Vector3 offset = Vector3.Scale(CarryRoot.InverseTransformPoint(GrabPoint), CarryRoot.lossyScale);
@@ -228,7 +232,7 @@ namespace CurtainCall.EscapeRoute
                 // A projectile launcher may overlap scenery once held. Requiring an empty
                 // body-sized volume here makes its valid handle ungrabbable beside a rail.
                 // Reach, line of sight, support and exclusive ownership are still required.
-                && (ProjectileMode || PoseFits(position, rotation, player));
+                && (ProjectileMode || PoseFits(position, rotation, player)) ? null : "no carry pose";
         }
         public void RequestGrab() { if (CanGrab(NetworkPlayer.Local)) RequestAction(1); }
         public void RequestDrop() { if (NetworkPlayer.Local != null && Carrier == NetworkPlayer.Local.OwnerClientId) RequestAction(2); }
@@ -248,8 +252,15 @@ namespace CurtainCall.EscapeRoute
             if (reportedAirborne && (requireReportedGrounded || player.IsLocal)) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
-            float maxFootGap = reportedAirborne ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) : .25f;
-            return HasSupport(player.transform.position, maxFootGap);
+            float maxFootGap = reportedAirborne
+                ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) + Physics.defaultContactOffset : .25f;
+            var feet = player.transform.position;
+            if (HasSupport(feet, maxFootGap)) return true;
+            // At floor seams the capsule can stand on an edge while its center ray misses.
+            return WalkableSupport.TryGetSupport(mover, feet, out var support)
+                && Mathf.Abs(feet.y - support.point.y) <= maxFootGap
+                && !support.transform.IsChildOf(CarryRoot) && !support.collider.GetComponentInParent<EscapeExitSaw>()
+                && !CurtainCall.Damage.DismemberedLimb.Contains(support.collider);
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {

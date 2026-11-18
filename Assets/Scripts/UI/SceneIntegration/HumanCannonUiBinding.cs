@@ -86,7 +86,7 @@ namespace CurtainCall.UI.SceneIntegration
             var pilot = player.GetComponent<HumanCannonPilot>();
             var trampoline = HumanCannonTrampoline.Current;
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
-            var carryTarget = HumanCannonCarry.FindGrabbable(player);
+            var carryTarget = HumanCannonCarry.SelectedGrabbable(player);
             var route = HumanCannonRouteSystem.Current;
             var poles = HumanCannonPoleSystem.Current;
             bool riding = route != null && route.IsRiding(player.OwnerClientId);
@@ -122,6 +122,7 @@ namespace CurtainCall.UI.SceneIntegration
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
             if (holding || riding || seated || carrying || hasInteractTarget && commonPrompt) HideTooltip();
+            else if (carryTarget != null) ShowTooltip("carry:" + carryTarget.CarryRoot.GetInstanceID(), carryTarget.CarryName, "[F] 잡기", carryTarget.Handle.position);
             else if (pole >= 0)
             {
                 var physical = poles.Pole(pole);
@@ -131,7 +132,6 @@ namespace CurtainCall.UI.SceneIntegration
                     ? $"협동 그네 {poles.OccupantCount(pole)}/{crewCapacity}" : "봉";
                 ShowTooltip("pole:" + pole + ":" + title, title, "[F] 잡기", poles.InteractionPoint(pole, player));
             }
-            else if (carryTarget != null) ShowTooltip("carry:" + carryTarget.CarryRoot.GetInstanceID(), carryTarget.CarryName, "[F] 잡기", carryTarget.Handle.position);
             else
             {
                 int index = cannon.FindBoardableStation(player);

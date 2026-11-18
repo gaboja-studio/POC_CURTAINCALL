@@ -138,7 +138,7 @@ namespace CurtainCall.HumanCannon
                 || TryFindNearbyPlacement(initialPosition, initialRotation, carrier, out ground, avoidRope);
         }
 
-        bool TryFindNearbySidePlacement(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope)
+        bool TryFindNearbySidePlacement(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope, bool fullWidth = false)
         {
             float reach = GameSettings.Trampoline.GrabDistance;
             for (int step = 1; step <= 2; step++)
@@ -146,20 +146,20 @@ namespace CurtainCall.HumanCannon
                 float offset = reach * step / 2f;
                 Vector3 right = rotation * Vector3.right * offset;
                 Vector3 forward = rotation * Vector3.forward * offset;
-                if (TryFindReachablePlacement(position, position - forward, rotation, carrier, out ground, avoidRope)
-                    || TryFindReachablePlacement(position, position + right, rotation, carrier, out ground, avoidRope)
-                    || TryFindReachablePlacement(position, position - right, rotation, carrier, out ground, avoidRope)
-                    || TryFindReachablePlacement(position, position + forward, rotation, carrier, out ground, avoidRope)) return true;
+                if (TryFindReachablePlacement(position, position - forward, rotation, carrier, out ground, avoidRope, fullWidth)
+                    || TryFindReachablePlacement(position, position + right, rotation, carrier, out ground, avoidRope, fullWidth)
+                    || TryFindReachablePlacement(position, position - right, rotation, carrier, out ground, avoidRope, fullWidth)
+                    || TryFindReachablePlacement(position, position + forward, rotation, carrier, out ground, avoidRope, fullWidth)) return true;
             }
             ground = default;
             return false;
         }
 
         bool TryFindReachablePlacement(Vector3 from, Vector3 candidate, Quaternion rotation, NetworkPlayer carrier,
-            out Vector3 ground, bool avoidRope)
-            => TryFindDropPath(candidate, rotation, carrier, out ground, avoidRope)
+            out Vector3 ground, bool avoidRope, bool fullWidth)
+            => TryFindDropPath(candidate, rotation, fullWidth ? null : carrier, out ground, avoidRope)
                 && (!avoidRope || candidate.y - ground.y <= GameSettings.Trampoline.GrabDistance)
-                && HumanCannonCarry.CanMoveFromPose(transform, MoveCheckBody, from, candidate, rotation, carrier);
+                && HumanCannonCarry.CanMoveFromPose(transform, fullWidth ? carryBody : MoveCheckBody, from, candidate, rotation, carrier);
 
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
             TryFindDropPath(from, transform.rotation, carrier, out ground, avoidRope: true) && from.y - ground.y <= reach;
