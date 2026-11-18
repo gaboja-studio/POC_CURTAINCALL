@@ -1,5 +1,14 @@
 # Log
 
+- 후속 제출 완료: 공개 기능 커밋a8bf025f, fix/main-stage/side-spotlights-cheer → dev PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/430 생성 및 @RagSpirin 검토 요청. private PR29 병합은 자동 승인 검토에서 별도 권한 필요로 거절되어 사용자에게 확인했고, 명시적 승인 후 merge aeb950aa로 main 반영. 공개 gitlink911fd676 포함 확인 및 pre-push ThirdParty PASS. dev는 병합하지 않음.
+
+- 후속 제출 요청 수신. Unity 종료 확인 후 dev317ecfbf 최신 유지, private main31c09aec의 README 갱신 통합. 기능 변경은 마지막 check-work-cone-final.txt 검사본과 동일하므로 Unity 검사를 반복하지 않음. private 에셋 커밋911fd676 및 PR29 생성: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/29. 공개 dev PR용 참조를 함께 제출한다.
+
+- 2026-11-18 원뿔 후속: FocusedBeam을 반경0 꼭짓점·거리 비례 단면의 폐쇄 메시(433정점)로 갱신. 균일 표면 알파를 원뿔 내부16표본 밀도 적분·카메라 깊이 차폐로 교체했다. 기존 GUID·최상단 위치·0.75m 반경·공연별 밝기 유지. Beam Width/Opacity 툴팁에 의미를 명시.
+- 실제 외줄/대포 검증: 원점 일치, 내부7단면 반경/z=1 오차6e-8, 밝기1.6/1, 셰이더 진단0. 두 영상 약14초·0.7m 이동, 광원 이동0m·최대추적오차0.093°. 자유 시점에서 상부로 좁아지는 원뿔과 바닥·캐릭터 차폐 확인. CLI 구버전 명령명 오류1건 외 해당 플레이 오류 없음. 대상 PC 성능·빌드 미검증.
+- followup.html을 cone 영상2개·이미지5개·씬별/공통 설정 안내로 갱신. 브라우저 영상 ready4(14.07/13.87초), 이미지 전부 로드, 가로 넘침 없음.
+- 제출 전 Unity 정상 종료 후 dev317ecfbf 동기화. 기존 자동 캐시6개는 stash(task159-preserve-auto-assets-before-dev-317ecfbf)에 보존하고 최신 dev와 내용 동일 확인. 최신 대기실·탈출로 변경과 이번 수정 모두 유지, 충돌 없음. 최종 check-work 진행, 후속 작업 미커밋·미푸시.
+
 - 2026-11-18: doctor 1회 실행. 초기 sandbox의 서브모듈 Git 메타데이터 접근 제한은 승격한 상태 조회로 해소. Unity 종료 상태에서 origin/dev fetch, HEAD=origin/dev=14ca2f3b 확인. 작업 브랜치 fix/main-stage/background, private HEAD 119cb7d2, 기존 변경 없음.
 - 서브모듈 검색 가능 파일 18,647개(.meta 제외), 프리팹 4,303개, FBX 4,975개를 .harness/local/task159/asset-inventory.csv로 조사. HorrorCarnival 488, StylizedFactory 100, Conveyor Works 206개 프리팹 등 후보 확인. 개별 후보 8개 AssetDatabase 로드 성공; 전체 호환 검증은 아님.
 - Unity 6000.3.25f1 / URP PC_RPAsset. 공용 원본 광원100개(활성72), runtime Scale=1/3, 광원 세기=1/9. 기존 결승 추적등은 플레이어 옆을 이동함. 외줄/대포 실제 카메라 기준 PNG 저장.
@@ -13,6 +22,7 @@
 - 지식 갱신 및 verify-knowledge PASS. HTML 보고서와 최종 check-work/제출 전 origin/dev 확인 진행. 최종 미감 사용자 피드백 대기. commit/push 하지 않음.
 
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 후속 최종 check-work-upper PASS, 별도 Feedback EditMode2/2 PASS. followup.html 브라우저 확인: 영상 ready4(13.7초/13.47초), 이미지4개 로드, 가로 넘침 없음. Unity 저장 누락 없이 종료 후 origin/dev 재fetch, fa86538e 최신 일치 및 양 저장소 diff --check PASS.
 - 후속 피드백: 공연 영역이 어두워 간접 보조등 요청. Unity 종료 뒤 origin/dev 5커밋을 fast-forward(0b8f5e8f)로 반영했고 작업 변경은 보존했다.
 - Performance Indirect Gallery: 실물 측면 조명22개, 공연 전용 Rendering Layer7(bit128), 실게임 범위30m·밝기배율 .55·110도·그림자/빔 없음. 객석과 배경 수광 대상0개, 코스 renderer 외줄601/대포2665개 포함을 실게임 검사했다. GameSettings에 켜기/밝기/거리/색/각도/결승 유지율과 한국어 설명 추가.
 - 동일 카메라 보조등 OFF/ON PNG와 수정 영상 tightrope-fill.mp4/cannon-fill.mp4 생성, HTML 상단에 피드백 비교 추가. 수정 영상 외줄0.6m 이동·고정 장착부0m 변화·최대 추적오차 .124도. disable/enable 시 재질 및 rendering bit 복원 검사 PASS. 장식 콜라이더 총181개 비활성. 수정 묶음 check-work 재실행 예정.
@@ -33,3 +43,14 @@
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/426 (fix/main-stage/background → dev). @RagSpirin 검토 요청, GitHub MERGEABLE 확인. dev 미병합.
 - 최신 dev의 Task155 log가131줄로 hard130 제한을 넘어 통합 검사의 문서 단계가 실패했다. compact-docs에 따라 초기41줄을 같은 Task의 History/001-architecture-iterations.md로 원문 보존하고 링크를 남겼다. 재구성 전후 원문 문자열 일치를 확인했다.
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함). 최종 dev5b1f0904 통합과 문서 정리 기준. 중간 실행은 로그 갱신으로 fingerprint가 바뀌어 무효 처리했고, 파일 변경 없이 재실행한 check-work-pr426-final.txt에서 정상 종료했다.
+- 후속 요청: PR426 병합본 dev fa86538e 반영 후 fix/main-stage/side-spotlights-cheer에서 진행. 중간 시안의 낮은 측면 광원을 사용자가 지적하여 최상단 높이79.33m·트랙 좌우100m로 수정했다. 사용자 중단/재개 후 다시 종료·fetch하여 최신 일치 확인. doctor는 같은 작업이라 반복하지 않음.
+- 등12개의 실제 위치·원뿔 꼭짓점·렌즈 방향 확인. 광원 하향각 외줄40.26°/대포36.86°, 목표 반경0.75m, 실제 cookie 표본0.732/0.738m, 밝기 외줄1.6배/대포1배. Unity 최소각1° 제한을 runtime cookie로 보정(PC URP 지원 확인), 비활성 시 cookie12개 복원 검사 PASS.
+- 고리 통과 재현: 점수0→30과 ReactionSequence 증가에도 팝업이 거부됨. LastIssue는 한 줄 일반 TMP 계약 위반. 원인은 HudText.Configure의 richText/줄바꿈 강제 변경. FeedbackView 하위 제외 후 외줄/대포 실제 통과 환호+30 및 야유 표시 확인. 보상 규칙 변경 없음.
+- 회귀 EditMode PerformanceFeedbackTests 2/2 PASS(공통 서식 보존·로컬/원격·중복·상한), 컴파일 오류0. 테스트 첫 작성의 internal 접근 오류는 reflection으로 수정했다. 최종 Play 콘솔 오류0. 실제 이동1.2m 영상에서 등기구 위치변화0m·최대 추적오차0.074°. 검증용 임시 고리는 런타임만 생성·제거했고 코스는 저장 변경하지 않았다.
+- 실제 영상 tightrope-upper.mp4/cannon-upper.mp4 및 followup.html 생성(.harness/local/task159). 기존 자동 캐시6개는 계속 보존. 이번 후속 변경은 미커밋·미푸시이며 최종 사용자 미감 확인 대기.
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

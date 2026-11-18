@@ -242,11 +242,18 @@ namespace CurtainCall.Presentation
                     float distance=Mathf.Max(1,Vector3.Distance(spot.transform.position,focus));
                     spot.spotAngle=Mathf.Clamp(2*Mathf.Atan(Mathf.Max(.3f,s.spotRadius)/distance)*Mathf.Rad2Deg,1,90);
                     spot.innerSpotAngle=spot.spotAngle*Mathf.Clamp(s.innerConeRatio,.1f,.98f);spot.range=distance*1.7f+Mathf.Max(4,s.spotRadius*2);
-                    spot.intensity=s.performerIlluminance*distance*distance*fixture.fade*Mathf.Lerp(1,s.finaleSpotBoost,cue);
+                    fixture.UpdateAperture(distance,Mathf.Max(.3f,s.spotRadius),Mathf.Clamp(s.innerConeRatio,.1f,.98f));
+                    float performanceBrightness=performance.name=="Tightrope"?s.tightropeSpotBrightness:s.humanCannonSpotBrightness;
+                    spot.intensity=s.performerIlluminance*Mathf.Max(0,performanceBrightness)*distance*distance*fixture.fade*Mathf.Lerp(1,s.finaleSpotBoost,cue);
                     if(fixture.beam!=null)
                     {
                         float scale=Mathf.Max(.0001f,fixture.beam.transform.parent.lossyScale.x);
-                        fixture.beam.transform.localScale=new Vector3(s.spotRadius*s.beamWidth/scale,s.spotRadius*s.beamWidth/scale,distance/scale);
+                        // The cone starts at the lens and continues slightly beyond the performer.
+                        // Keep its radius at the focus plane identical to the real spot's visible core.
+                        const float extension=1.12f;
+                        fixture.beam.transform.localPosition=Vector3.zero;
+                        fixture.beam.transform.localRotation=Quaternion.identity;
+                        fixture.beam.transform.localScale=new Vector3(s.spotRadius*s.beamWidth*extension/scale,s.spotRadius*s.beamWidth*extension/scale,distance*extension/scale);
                     }
                 }
                 else spot.intensity*=Mathf.Clamp01(1-Time.unscaledDeltaTime/Mathf.Max(.05f,s.handoffSeconds));
@@ -282,7 +289,7 @@ namespace CurtainCall.Presentation
             foreach(var pair in originalMaterials)if(pair.Key!=null)pair.Key.sharedMaterials=pair.Value;
             foreach(var copy in emissionCopies.Values)if(copy!=null)Destroy(copy);
             originalMaterials.Clear();emissionCopies.Clear();
-            foreach(var fixture in fixtures)if(fixture!=null){fixture.fade=0;if(fixture.spot!=null)fixture.spot.enabled=false;if(fixture.beam!=null)fixture.beam.enabled=false;if(fixture.lens!=null)fixture.lens.SetPropertyBlock(null);}
+            foreach(var fixture in fixtures)if(fixture!=null){fixture.fade=0;fixture.ReleaseAperture();if(fixture.spot!=null)fixture.spot.enabled=false;if(fixture.beam!=null)fixture.beam.enabled=false;if(fixture.lens!=null)fixture.lens.SetPropertyBlock(null);}
             if(environmentCaptured && SceneManager.GetActiveScene()==performance && venue!=null && venue.gameObject.activeInHierarchy)
             {
                 RenderSettings.ambientMode=ambientMode;RenderSettings.ambientProbe=ambientProbe;RenderSettings.ambientSkyColor=ambientSky;RenderSettings.ambientEquatorColor=ambientEquator;RenderSettings.ambientGroundColor=ambientGround;

@@ -54,3 +54,6 @@ source: Task-20261020-067; Task-20261118-159; Unity 실제 Game View와 추적·
 - 후속 피드백으로 `Performance Indirect Gallery`에 부드러운 보조등22개 추가. Rendering Layer 7(bit128)을 코스·플레이어에만 부여하고 배경에서 제외한다. GameObject/물리 Layer는 변경하지 않으며 종료·비활성 때 원래 rendering bit를 복원한다. 동적 기물은 0.5초마다 갱신한다.
 - `Indirect Fill/Brightness/Range/Color/Angle/Finale Brightness`: 기본 켜짐·0.55배·30m·따뜻한 백색·110도·결승0.85배. 그림자와 빛기둥을 쓰지 않는 실시간 반사광 근사이며 베이크 GI가 아니다. 총 장식 콜라이더181개 비활성. 외줄601·대포2665 코스 renderer 포함, 보조등 대상 배경0개 확인.
 - 실제 외줄 0.7m 이동 녹화에서 장착 위치 변화 0m, 최대 추적 오차 약 .143도. 라이브 반경/객석 밝기·비활성/재활성·재질 복원 검사 통과. 다중 클라이언트와 대상 PC 성능 측정은 별도 확인 범위다.
+- 후속 수정: `Upper Outer Spotlight Gallery`의12등은 최상단 높이79.33m, 트랙 좌우100m에서 약37~40° 대각선으로 비춘다. 반경0.75m, 외줄 밝기1.6배·인간 대포1배를 독립 설정한다. 빛기둥 꼭짓점은 렌즈 위치와 일치한다.
+- Unity Spot Light는1°보다 작은 각도를 clamp하므로 먼 광원에서는 `PerformanceSpotlightFixture.UpdateAperture`의 런타임 원형 cookie로 좁은 반경을 유지한다. PC_RPAsset의 Light Cookies 지원이 필요하며 비활성/종료 시 원래 cookie를 복원한다.
+- 가시 원뿔은 렌즈에서 반경0으로 시작해 거리에 비례하여 넓어지는 폐쇄 메시다. `Focused Beam` 셰이더는 균일한 표면 알파 대신 원뿔 내부의 시선 길이·밀도를 적분하고 카메라 깊이로 가린다. PC URP의 Depth Texture가 필요하다. `Beam Width`는 단면 폭, `Beam Opacity`는 공기 중 농도이며 실제 광량과 별개다.
