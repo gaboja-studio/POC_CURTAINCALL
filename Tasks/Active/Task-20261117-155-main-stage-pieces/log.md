@@ -99,3 +99,24 @@
 
 
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 기획 템플릿 정리: Confluence 44793873의 빈 자리 8곳을 본문 미디어(영상7·사진1)로 교체. 4종 설명을 제목 바로 아래 2~3문장·줄바꿈으로 옮기고 세부 설정/검증을 접기 영역으로 정리. 저장 본문 d1:3866, placeholder0/figure8 및 실제 브라우저 재생 카드·사진 로딩 확인.
+- 새 자료: 실제 슬롯 UI/DOTween/All In 1 Sprite Shader의 감소·소진 연출 확대 시연과 실제 PerformanceCheerPoint.Present 소멸 미리보기(각3초). 고리 영상은 통과/보상 플레이 촬영이 아닌 연출 재생임을 본문에 명시. 씬/게임 코드 변경 없음, 임시 캡처 코드는 ignored .harness/local. 미저장 씬0 확인 후 촬영용 에디터 정상 종료. 기존 비관련 로컬 변경 유지.
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 후속 버그 수정: 이 워크트리를 `fix/main-stage/pieces`로 전환하고 origin/dev(e9c99451)로 fast-forward·push. 기존 로컬 변경은 scratchpad 백업 후 보존(dev와 같은 폰트·머티리얼 7개는 dev 내용과 일치, CommonButtons SemiBold SDF만 로컬본 복원). _ThirdParty는 dev gitlink 911fd676으로 갱신.
+- 칸 키 Q/E는 `PropCarry.PlaceAt`≠Blocked인 공간의 공연 기물 칸에서 유지(벌룬 접기 칸 포함), 그 밖은 1/2. 연습실 밖 대기실에서 `RescuePreviewTarget` 차단. 대기실 공연 기물 1/2는 설명 팝업과 함께 실제 선택(선택 해제 시 팝업 닫힘). 슬롯 설명 팝업은 영속 HudUIManager의 UiRuntimeFontFallback으로 글자 보충. 구조 장갑 수평 사거리 4→8m, 전방 반각 조건 제거 후 화면 정중앙 조준점과 가장 가까운 대상 선택.
+- 검사: check-work 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(실행 중인 Unity 에디터 없음). 대체로 현재 파일 목록을 보충한 Assembly-CSharp csproj를 dotnet build → 오류 0(참조 asmdef 포함). Unity 실제 컴파일·자동 테스트·사람 플레이는 미실행.
+- Unity 최소 플레이 검증(에디터 6000.3.25f1, 이 워크트리): verify-unity 컴파일 PASS. 기존 PlayMode `Performance_RescueRequiresSafeTargetAndMovesItWithoutInjury` 1/1 PASS(화면 밖·가림 대상 제외, 실제 당김), `RescueNetworkPlayTests` 1/1 PASS.
+- 임시 PlayMode(실행 후 삭제): 대기실 시작(D-2 아침)에서 구조 장갑·머리핀 지급 → 연습실 밖 칸 키 1/2, 앞 3m 동료가 있어도 구조 대상·표식 없음, Digit1 입력으로 칸 선택+설명 팝업(글자 48자 □ 0개), 같은 키로 선택 해제·팝업 닫힘, 연습실 이동 시 Q/2, 복귀 시 1, 선택 후 버리기 성공, rescueRange=8 로드. 1/1 PASS. 캡처 `.harness/local/slot-check-waiting-tooltip.png`, `slot-check-practice.png`.
+- 첫 실행 실패는 같은 소유자 보조 캐릭터 생성으로 `NetworkPlayer.Local`이 보조 캐릭터로 바뀐 테스트 구성 문제(로그로 확인)였고 게임 코드 변경 없이 재실행 PASS. 연습실 안 구조 대상 표시(양성)와 조준점 최근접 전환은 이 구성으로 확인 불가 → 사람 2인 플레이로 넘김.
+- 테스트 부수 변경: CheerGauge Pretendard-Bold SDF·escape-labels 런타임 글자 아틀라스 저장, _ThirdParty 셰이더 EOL·dayclock .meta 재저장. 이번 수정과 무관, 되돌리지 않고 커밋 제외 대상으로 보고.
+- 2026-11-18 검사: 안전성=미실행; 문서/규칙=미실행; 컴파일=PASS(Unity); 테스트=PlayMode 3/3 PASS(기존 2 + 임시 1)
+
+- 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=FAIL; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 위 2026-11-19 첫 검사의 컴파일=FAIL은 컴파일 PASS 뒤 공통 설정 run_script 호출이 에디터 연결 끊김(Connection reset)으로 실패한 것. 코드 변경 없이 재실행해 전 항목 PASS. 제출 직전 origin/dev 차이 0/0.

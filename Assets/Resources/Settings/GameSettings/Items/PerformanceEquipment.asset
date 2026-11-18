@@ -31,9 +31,8 @@ MonoBehaviour:
   cheerRetractSpeed: 28
   cheerHideMinHeight: 18
   extraJumpHeight: 2
-  rescueRange: 4
+  rescueRange: 8
   rescueHeightRange: 6
-  rescueHalfAngle: 55
   rescuePullSeconds: 0.8
   stickySeconds: 3
   balloonSeconds: 3

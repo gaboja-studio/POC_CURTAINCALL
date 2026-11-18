@@ -38,7 +38,11 @@ namespace CurtainCall.UI.SceneIntegration
             string description = ItemCatalog.Tooltip(item.ItemId);
             if (string.IsNullOrWhiteSpace(description)) description = ItemCatalog.Description(item.ItemId);
             if (slotCanvas != null) canvas.sortingOrder = slotCanvas.sortingOrder + 1;
-            if (!view.ShowNearby(ItemCatalog.DisplayName(item), description, Vector2.zero, Width)) return;
+            string title = ItemCatalog.DisplayName(item);
+            // 툴팁 프리팹 폰트는 일부 글자만 구운 정적 폰트라 설명 대부분이 □로 깨진다(2026-11-18 사용자).
+            // 런 동안 남는 HUD 관리자의 런타임 폰트 보충으로 원본 Pretendard에서 필요한 글자를 채운다(HudRoleCard와 같은 경로).
+            if (HudUIManager.Current.TryGetComponent(out UiRuntimeFontFallback fonts)) fonts.WarmUpLocalText(instance.transform, title + description);
+            if (!view.ShowNearby(title, description, Vector2.zero, Width)) return;
             PanelHoverTooltip.FitWholeDescription(view);
             slot = index; uid = item.Uid;
             hasFeet = feet.HasValue; openedAt = feet ?? default;

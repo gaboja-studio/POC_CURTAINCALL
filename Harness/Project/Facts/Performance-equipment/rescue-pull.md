@@ -11,7 +11,8 @@ source: Task-20261117-155, 사용자 구조 장갑 피드백
 구조 대상 선택·표시, 이동 중 잠금, 위치 동기화 또는 관련 테스트를 수정할 때.
 
 ## 경로
-- `NetworkPlayer.RescueTargeting`: 거리/전방 반각, 화면 안/카메라 시야·몸 시야, 대상 공중/매달림 상태, 안전 도착 공간과 캡슐 경로 검사. 가장 가까운 유효 대상 한 명을 선택한다.
+- `NetworkPlayer.RescueTargeting`: 수평 사거리 `rescueRange`(기본8m)·높이 `rescueHeightRange`(6m), 화면 안/카메라 시야·몸 시야, 대상 상태(`CanBeRescuePulled`), 안전 도착 공간과 캡슐 경로 검사. 유효 대상 중 화면 정중앙 조준점(`InteractionCrosshair`)과의 화면 픽셀 거리가 가장 가까운 한 명을 매 프레임 고른다. 전방 반각 조건은 2026-11-18 제거. 서버 재검사는 화면을 모르므로 요청된 대상의 범위·가림·착지만 본다.
+- 연습실 밖 대기실처럼 공연 기물을 쓸 수 없는 곳에서는 `RescuePreviewTarget`이 null이라 표식·대상 검사를 하지 않는다(2026-11-18).
 - `RescueTargetIndicator`: 소유자에게만 생성하는 ScreenSpaceOverlay. 표적 머리 위 금빛 표식·해당 슬롯의 현재 재지정 키. NetworkObject가 아니므로 다른 피어에 생성되지 않는다. 입력 잠금/기물 없음/내구도0/구조 중/가림 시 숨긴다.
 - 표식 외형은 `Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/RescueTargetMarker.prefab`. `GameSettings.PerformanceEquipment.rescueTargetVisual`로 연결한다. `RescueTargetMarkerView`가 위치·0.16초 등장·1.5px 부유·재지정 키캡을 갱신하며 코드에서 UI 하이어라키를 생성하지 않는다.
 - 기존 장갑 슬롯 아이콘, world_ui_v1 원형/포인터, performance_hud_v1 정본 키캡을 참조한다. 문장 라벨 없이 아이콘 메달+키캡으로 구성. 프리팹의 개별 Image/RectTransform과 View 모션값으로 조절한다. 입력을 가로채지 않으며 타겟 소실 시 즉시 숨긴다. 재지정 키 문자열은 30~96px 키캡/자동 글자 크기로 수용한다.
