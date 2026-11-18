@@ -131,6 +131,38 @@ namespace CurtainCall.EscapeRoute
             }
             return cut;
         }
+        void RestoreSharedCableState()
+        {
+            if (cables == null || cables.Length == 0) return;
+            uint newestCourse = courseEpoch;
+            foreach (var peer in devices)
+            {
+                if (peer == null || peer == this || peer.cables == null || peer.courseEpoch <= newestCourse) continue;
+                foreach (var cable in cables)
+                {
+                    if (cable == null || Array.IndexOf(peer.cables, cable) < 0) continue;
+                    newestCourse = peer.courseEpoch;
+                    break;
+                }
+            }
+
+            // A peer can see a genuine restart or finish cutting a cable while this
+            // launcher is disabled. Only a shared cable identifies the same course.
+            if (newestCourse != courseEpoch)
+            {
+                courseEpoch = newestCourse;
+                TeamReachedExitZone = false;
+                ResetProjectileCourse();
+            }
+            for (int i = 0; i < cables.Length && i < 32; i++)
+            {
+                if (cables[i] == null || !SharedCableCut(i, out Vector3 point)) continue;
+                cutMask |= 1u << i;
+                cutPoints[i] = point;
+            }
+            PresentCables(false);
+        }
+
         void HostProjectileStep(float deltaTime, NetworkPlayer carrier)
         {
             if (!float.IsFinite(deltaTime) || deltaTime < 0) return;
