@@ -7,3 +7,5 @@
 - 변경한 C#은 Unity 6.3.25f1 Roslyn으로 전체 게임 어셈블리를 컴파일했다. DEV에 고정된 씬·머티리얼·셰이더 GUID와 방향성 소각 프로퍼티를 정적으로 확인했다. 실제 대기 코루틴의 10개 조건(시간 초과, 늦은 확인, 새 대기 한도, 전환 취소)을 순수 C# 시간 모델로 검사했다.
 - Unity 편집 모드 프리뷰에서 실제 밧줄 메시의 주황 발화, 위치별 소각 경계, 예고 98%의 잔여 실루엣, 원래 재질 복구를 확인했다. 세 소각 구간과 양끝, 연속 지지 콜라이더에 영향이 없는 것도 확인했다.
 - check-work에서 안전성·문서 규칙·Unity 컴파일·공통 설정 PASS. Unity 테스트 러너와 플레이는 실행하지 않았다. 검증용 에디터 종료 후 origin/dev 7882f5f4를 다시 확인했다.
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/439 (fix/tightrope-burn-visibility → dev)
