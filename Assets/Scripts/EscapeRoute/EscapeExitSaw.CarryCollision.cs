@@ -77,7 +77,7 @@ namespace CurtainCall.EscapeRoute
         }
 
         bool CanLeaveAtCurrentPose(NetworkPlayer carrier) =>
-            Grounded(carrier) && (loadCollider == null || PoseFits(CarryRoot.position, CarryRoot.rotation, null));
+            Grounded(carrier, requireReportedGrounded: carrier.IsLocal) && (loadCollider == null || PoseFits(CarryRoot.position, CarryRoot.rotation, null));
 
         void RecoverCarryPose()
         {

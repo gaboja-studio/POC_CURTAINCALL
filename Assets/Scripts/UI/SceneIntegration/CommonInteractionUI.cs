@@ -543,7 +543,7 @@ namespace CurtainCall.UI.SceneIntegration
                 return;
             }
             if (system.IsSeated(player.OwnerClientId)) return;
-            var carryTarget = HumanCannonCarry.FindGrabbable(player);
+            var carryTarget = HumanCannonCarry.SelectedGrabbable(player) ?? HumanCannonCarry.FindGrabbable(player);
             bool canCarry = carryTarget != null;
             var poles = HumanCannonPoleSystem.Current;
             int focused = poles != null ? poles.FindGrabbable(player) : -1;

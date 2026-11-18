@@ -75,6 +75,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(HumanCannonCarry.CanMove(root.transform, body, origin, Quaternion.identity, null, false), Is.False);
                 var check = type.GetMethod("TryDropHere", members);
                 Assert.That(check.Invoke(trampoline, new object[] { null, Vector3.zero }), Is.False);
+                var search = type.GetMethod("TryFindNearbySidePlacement", members);
+                var args = new object[] { root.transform.position, root.transform.rotation, null, Vector3.zero, false, true };
+                Assert.That(search.Invoke(trampoline, args), Is.True, "The clear floor beside the blocked footprint is reachable.");
+                Assert.That(HumanCannonCarry.CanMove(root.transform, body, (Vector3)args[3], root.transform.rotation, null, false), Is.True);
                 root.transform.position += Vector3.left * 2;
                 Assert.That(check.Invoke(trampoline, new object[] { null, Vector3.zero }), Is.True);
             }

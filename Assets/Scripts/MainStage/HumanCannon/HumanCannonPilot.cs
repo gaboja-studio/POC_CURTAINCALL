@@ -107,7 +107,7 @@ namespace CurtainCall.HumanCannon
                 return true;
             }
             if (!input.InteractTapped) return false;
-            var target = HumanCannonCarry.FindGrabbable(player);
+            var target = HumanCannonCarry.SelectedGrabbable(player);
             if (target == null || !CommonInteractionSelection.Consume(player, target)) return false;
             target.RequestGrab();
             return true;

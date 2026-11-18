@@ -723,7 +723,9 @@ namespace CurtainCall.Tightrope
                 if (platform != null && ServerDismountOnPlatform(carrier, platform, FindPlayer(riderId))) return "해제: 발판에 내려옴";
                 // 대기실 바닥은 여러 조각·가구로 나뉘어 발판 하나 안에서 자리를 못 찾는 일이 많다(2026-11-16 사용자: F 홀드 하차가 잘 안 됨).
                 // 주변 아무 바닥에 내려 주고, 그래도 자리가 없으면 점프 하차처럼 그 자리에서 연결만 끊는다.
-                if (InWaitingRoom)
+                bool waitingRoomFloor = platform != null && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene())
+                    && (course == null || !course.PiggybackUsesRopeBalance(carrier, true));
+                if (InWaitingRoom || waitingRoomFloor)
                 {
                     if (ServerDismountNearby(carrier, FindPlayer(riderId))) return "해제: 근처 바닥에 내려옴";
                 }

@@ -32,7 +32,7 @@ namespace CurtainCall.HumanCannon
             {
                 // Re-enter common platform control after a rehearsal checkpoint or device handoff.
                 ApplyPlatformMovement(context.Mover);
-                base.Tick(context, routed);
+                TickPlatform(context, routed);
             }
             else context.LogUndefinedLocomotion(input, "인간 대포 탑승·비행"); // 대포 전용 이동 중 달리기·앉기는 미정: 로그만
             Pilot.ReadInput(routed);

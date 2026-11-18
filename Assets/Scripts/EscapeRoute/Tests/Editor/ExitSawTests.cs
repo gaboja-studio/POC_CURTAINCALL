@@ -282,6 +282,165 @@ namespace CurtainCall.EscapeRoute.Tests
                 "A late jump snapshot must not veto a guest whose feet already touch the floor.");
         }
 
+        [TestCase(false, false), TestCase(true, false), TestCase(true, true)]
+        public void PlatformInputKeepsThePromptedLauncherUntilKeyUp(bool anotherDeviceMovesCloser, bool targetUnavailable)
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            Isolate(PlayerType, "Local");
+            var actor = Player(2);
+            Set(actor, "mover", actor.GetComponent(T("CurtainCall.Player.PlayerMover")));
+            Set(actor, "IsOwner", true);
+            T(PlayerType).GetProperty("Local", Static).SetValue(null, actor);
+            var pilot = actor.gameObject.AddComponent(T("CurtainCall.HumanCannon.HumanCannonPilot"));
+            Set(pilot, "system", T("CurtainCall.HumanCannon.HumanCannonSystem").GetProperty("Current", Static).GetValue(null));
+            Set(pilot, "player", actor);
+            var scheme = ScriptableObject.CreateInstance(T("CurtainCall.Player.PlatformControlScheme"));
+            try
+            {
+                var context = Activator.CreateInstance(T("CurtainCall.Player.PlayerControlContext"), new object[] { actor.gameObject });
+                var frame = Activator.CreateInstance(T("CurtainCall.Player.PlayerInputFrame"));
+                var reader = actor.GetComponent(T("CurtainCall.Player.PlayerInputReader"))
+                    ?? actor.gameObject.AddComponent(T("CurtainCall.Player.PlayerInputReader"));
+                var select = T("CurtainCall.Player.CommonInteractionSelection").GetMethod("Selected", Static);
+                Set(frame, "InteractHeld", true);
+                Set(reader, "Current", frame);
+                Assert.That(select.Invoke(null, new object[] { actor }), Is.SameAs(saw));
+
+                if (anotherDeviceMovesCloser)
+                {
+                    var second = Root("Other available launcher").AddComponent(T(SawType));
+                    var secondBody = Root("Other launcher body", true).transform;
+                    secondBody.position = device.position;
+                    var grip = new GameObject("Other grip").transform;
+                    grip.SetParent(secondBody, false);
+                    grip.localPosition = ((Transform)Get(saw, "Handle")).localPosition;
+                    Set(second, "carryRoot", secondBody); Set(second, "handle", grip);
+                    Set(second, "fireWithoutCables", true);
+                    second.gameObject.SetActive(true);
+                    Set(second, "session", Get(saw, "session")); Set(second, "synchronized", true);
+                    var carry = T("CurtainCall.HumanCannon.HumanCannonCarry");
+                    carry.GetMethod("Register", Static).Invoke(null, new object[] { second });
+                    device.position += Vector3.right * .35f;
+                    Physics.SyncTransforms();
+                    Assert.That(carry.GetMethod("FindGrabbable", Static).Invoke(null, new object[] { actor }), Is.SameAs(second));
+                    Assert.That(select.Invoke(null, new object[] { actor }), Is.SameAs(saw));
+                }
+
+                if (targetUnavailable) Set(saw, "Suppressed", true);
+                // Advance the gesture to the release frame inside this synchronous EditMode test.
+                var gestures = (IDictionary)select.DeclaringType.GetField("gestures", Static).GetValue(null);
+                Set(gestures[reader.GetInstanceID()], "Frame", -1);
+                Set(frame, "InteractHeld", false);
+                Set(frame, "InteractTapped", true);
+                Set(reader, "Current", frame);
+                Call(scheme, "Tick", context, frame);
+                if (targetUnavailable)
+                {
+                    Assert.That(devices.Cast<object>().Any(d => (ulong)Get(d, "Carrier") == 2UL), Is.False,
+                        "Losing the selected launcher must not redirect this tap to another device.");
+                    return;
+                }
+                Assert.That(Get(saw, "Carrier"), Is.EqualTo(2UL));
+                Set(frame, "InteractTapped", false);
+                Set(frame, "UseDevicePressed", true);
+                Call(scheme, "Tick", context, frame);
+                Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
+            }
+            finally { Object.DestroyImmediate(scheme); }
+        }
+
+        [Test, Combinatorial]
+        public void GuestWireRequestsGrabFireAndDropAtDestination(
+            [Values(1UL, 2UL, 3UL)] ulong guestId,
+            [Values("Normal", "Fallen", "Retired", "EscapeCaptured", "Arrived")] string hostState,
+            [Values(false, true)] bool hostPreviouslyCarried)
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            var host = saw;
+            var guest = Player(guestId);
+            Set(guest, "IsOwner", false);
+            var localHost = Player(0);
+            var stateType = T("CurtainCall.Network.PlayerSync.PlayerState");
+            Isolate(PlayerType, "Local");
+            T(PlayerType).GetProperty("Local", Static).SetValue(null, localHost);
+            Set(localHost, "mover", localHost.GetComponent(T("CurtainCall.Player.PlayerMover")));
+            Set(localHost, "IsOwner", true);
+            var competitor = Player(guestId == 1 ? 2UL : 1UL);
+            if (hostPreviouslyCarried) Own(0);
+            Set(Get(localHost, "state"), "Value", Enum.Parse(stateType, hostState));
+            var spectator = "CurtainCall.Cameras.CameraSpectator";
+            Isolate(spectator, "IsSpectating"); Isolate(spectator, "Target");
+            if (hostState != "Normal")
+            {
+                T(spectator).GetProperty("IsSpectating", Static).SetValue(null, true);
+                T(spectator).GetProperty("Target", Static).SetValue(null, hostPreviouslyCarried ? competitor : guest);
+            }
+            if (hostPreviouslyCarried && hostState == "Normal")
+                Call(host, "HandleAction", 0UL, (byte)2, 1u, true);
+            else Call(host, "ReleaseUnavailableCarrier");
+            Assert.That(Get(host, "Carrier"), Is.EqualTo(ulong.MaxValue));
+            var replica = Root("Guest launcher").AddComponent(T(SawType));
+            Set(replica, "fireWithoutCables", true);
+            var client = Host();
+            Set(client, "ConnectionState", Enum.Parse(T("CurtainCall.Network.Session.SessionConnectionState"), "Client"));
+            Set(replica, "session", client);
+            var allocator = Enum.Parse(T("Unity.Collections.Allocator"), "Temp");
+            var writerType = T("Unity.Netcode.FastBufferWriter");
+            var constructor = T("Unity.Netcode.FastBufferReader").GetConstructors().Single(c => c.GetParameters()[0].ParameterType == writerType);
+            void Deliver(Component target, string receiver, ulong sender, Action<object> write)
+            {
+                using var writer = (IDisposable)Activator.CreateInstance(writerType, 4096, allocator, -1);
+                write(writer);
+                using var reader = (IDisposable)constructor.Invoke(new object[] { writer, allocator, -1, 0, allocator });
+                Call(target, receiver, sender, reader);
+            }
+            void Sync() => Deliver(replica, "ReadState", 0, w => Call(host, "WriteState", w, 0));
+            void Request(byte action) => Deliver(host, "ReadRequest", guestId, w => Call(replica, "WriteRequest", w, action, 0));
+
+            Physics.SyncTransforms();
+            Sync();
+            Assert.That(Get(replica, "synchronized"), Is.True, "Initial host packet must enable guest interaction.");
+            Request(1);
+            // A second press saw the same empty ownership revision before the first grant arrived.
+            Deliver(host, "ReadRequest", (ulong)Get(competitor, "OwnerClientId"), w => Call(replica, "WriteRequest", w, (byte)1, 0));
+            Sync();
+            Assert.That(Get(replica, "Carrier"), Is.EqualTo(guestId));
+            if (hostPreviouslyCarried) Call(host, "HandleAction", 0UL, (byte)2, 1u, true);
+            Assert.That(Get(host, "Carrier"), Is.EqualTo(guestId));
+            Request(3);
+            Sync();
+            Assert.That(Get(replica, "ActiveProjectileCount"), Is.EqualTo(1));
+            guest.transform.position += Vector3.right * 3;
+            Physics.SyncTransforms();
+            Set(Get(guest, "jump"), "Value", Enum.Parse(T("CurtainCall.Player.JumpKind"), "Fall"));
+            Request(2);
+            Sync();
+            Assert.That(Get(replica, "Carrier"), Is.EqualTo(ulong.MaxValue));
+            Assert.That(replica.transform.position.x, Is.EqualTo(guest.transform.position.x).Within(.05f));
+        }
+
+        [Test]
+        public void RemoteGrabUsesCapsuleSupportAcrossAGapBetweenFloorPanels()
+        {
+            Fixture(true);
+            var guest = Player(2);
+            Set(saw, "fireWithoutCables", true);
+            var floor = roots.Single(root => root.name == "Actual support");
+            floor.transform.position += Vector3.right * 5.04f;
+            var other = Root("Left floor panel", true).AddComponent<BoxCollider>();
+            other.center = Vector3.down * .25f;
+            other.size = new Vector3(10f, .5f, 10f);
+            other.transform.position -= Vector3.right * 5.04f;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "HasSupport", Origin, .25f), Is.False);
+            Assert.That(Call(saw, "CanGrab", guest), Is.True);
+            guest.transform.position += Vector3.up * .5f;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "CanGrab", guest), Is.False);
+        }
+
         [Test]
         public void CarriedBodyRejectsSceneryOverlapButIgnoresOwnLoadCollider()
         {
