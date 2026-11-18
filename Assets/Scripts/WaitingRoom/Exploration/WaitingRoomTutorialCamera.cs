@@ -63,8 +63,13 @@ namespace CurtainCall.WaitingRoom
 
         public bool Begin(Vector3 pos, Quaternion rot) => Begin(pos, rot, pos + rot * Vector3.forward * 4f);
 
-        public bool Begin(Vector3 pos, Quaternion rot, Vector3 focus)
+        /// <summary>바닥 경로 없이 지금 자리에서 목적지까지 곧장(벽을 뚫고) 날아가며 처음부터 대상을 바라본다.</summary>
+        bool straight;
+
+        /// <param name="straightThrough">소품실 선반처럼 방에 들어서자마자 보여 줄 대상(2026-11-18 사용자: 문 쪽을 비췄다가 돌지 말고 바로 선반).</param>
+        public bool Begin(Vector3 pos, Quaternion rot, Vector3 focus, bool straightThrough = false)
         {
+            straight = straightThrough;
             var main = Camera.main;
             if (main == null || NetworkPlayer.Local == null) return false;
             Stop();
@@ -78,7 +83,14 @@ namespace CurtainCall.WaitingRoom
             go.transform.SetPositionAndRotation(fromPos, fromRot);
             view = go.AddComponent<CinemachineCamera>();
             view.Lens = LensSettings.FromCamera(main); view.Priority = Priority;
-            preparing = StartCoroutine(PrepareRoute(homeFeet));
+            if (straight)
+            {
+                direct = true;
+                route.Add(fromPos); route.Add(Vector3.Distance(fromPos, toPos) < .05f ? toPos + Vector3.up * .05f : toPos);
+                routeLength = Length(route); moveIn = MoveIn;
+                startedAt = Time.unscaledTime; routeReady = true;
+            }
+            else preparing = StartCoroutine(PrepareRoute(homeFeet));
             return true;
         }
 
@@ -88,7 +100,7 @@ namespace CurtainCall.WaitingRoom
             if (!HoldEnded) return false;
             RouteCompleted = false; CompletedRouteCount++; LastCompletedFocus = focusPoint;
             fromPos = view.transform.position; fromRot = view.transform.rotation;
-            toPos = pos; toRot = rot; focusPoint = focus;
+            toPos = pos; toRot = rot; focusPoint = focus; straight = false;
             routeReady = false; chained = true; RouteFailure = ""; holdEndFrame = -1;
             preparing = StartCoroutine(PrepareRoute(fromPos + Vector3.down * EyeHeight));
             return true;
@@ -294,7 +306,13 @@ namespace CurtainCall.WaitingRoom
                     // 가는 길이 막혀도(그 사이 닫힌 문 등) 연출을 끊지 않고 그대로 지나간다.
                     if (!direct && !nearPlayer && !ClearSegment(view.transform.position, position)) direct = true;
                     Quaternion rotation = toRot;
-                    if (t < moveIn)
+                    if (straight)
+                    {
+                        // 가는 내내 대상을 바라본다.
+                        var aim = focusPoint - position;
+                        if (aim.sqrMagnitude > .01f) rotation = Quaternion.LookRotation(aim, Vector3.up);
+                    }
+                    else if (t < moveIn)
                     {
                         // 지금 구간이 아니라 조금 앞의 경로를 바라본다. 모퉁이에서 고개가 꺾이지 않고 미리 돌아간다.
                         var look = PointAt(route, routeLength, progress + LookAhead / Mathf.Max(routeLength, .01f)) - position;
