@@ -232,9 +232,11 @@ namespace CurtainCall.WaitingRoom
             long cost = CostFor(buyer, parts);
             bool adding = book.IsAddition(buyer);
             var before = book.Phase;
+            string ledger = adding
+                ? WaitingRoomText.Format("ledger.medical-add", "신체 복구 {n}개 추가 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))
+                : WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)));
             var refusal = book.BookMedical(buyer, IsServiceTime, alive, lost, parts, MaxPartsPerUse,
-                () => rewards.TrySpend(cost, WaitingRoomText.Format(adding ? "ledger.medical-add" : "ledger.medical", adding ? "신체 복구 {n}개 추가 — {player}" : "신체 복구 {n}개 — {player}",
-                    ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))), cost);
+                () => rewards.TrySpend(cost, ledger), cost);
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
             Debug.Log($"[Expert] 신체 복구 {parts}개 {(adding ? "추가 " : "")}구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 예약 {book.BookedLimbs}개 / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
             Publish(before);

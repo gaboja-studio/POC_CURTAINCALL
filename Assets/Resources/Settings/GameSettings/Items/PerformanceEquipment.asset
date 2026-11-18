@@ -32,6 +32,7 @@ MonoBehaviour:
   cheerHideMinHeight: 18
   extraJumpHeight: 2
   rescueRange: 4
+  rescueHeightRange: 6
   rescueHalfAngle: 55
   rescuePullSeconds: 0.8
   stickySeconds: 3

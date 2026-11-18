@@ -110,8 +110,8 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var item in shop.Catalog)
                 {
-                    // 작업실·소품실을 열기 전의 공연 기물은 목록에 넣지 않는다. 열리면 알림과 함께 추가된다(2026-11-18 사용자).
-                    if (WaitingRoomShop.CraftRoomsLocked(item.Id)) continue;
+                    // 아직 상점에 추가되지 않은 기물은 목록에 넣지 않는다. 누군가 처음 습득하면 알림과 함께 추가된다(2026-11-18 사용자).
+                    if (WaitingRoomShop.ShopLocked(item.Id)) continue;
                     string reason = !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
                     string icon = view.ResolveIcon(item.Id) != null ? item.Id : texts.itemFallbackIcon;
                     string description = string.Join("\n", new[] { ItemCatalog.Description(item.Id), Fill(texts.itemDescriptionFooter) }.Where(line => !string.IsNullOrEmpty(line)));

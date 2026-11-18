@@ -28,7 +28,12 @@ namespace CurtainCall.Settings
         [InspectorName("숨기기 전 최소 상승 높이"), Min(3)] public float cheerHideMinHeight = 18f;
         [Header("수동 공연 기물")]
         [InspectorName("신발 추가 점프 높이"), Min(.1f)] public float extraJumpHeight = 2f;
-        [InspectorName("구조 장갑 최대 거리"), Min(.1f)] public float rescueRange = 4f;
+        [InspectorName("구조 장갑 수평 범위"), Min(.1f)]
+        [Tooltip("구조 장갑으로 당길 수 있는 동료까지의 수평 거리(m). 높이 차이는 아래 '구조 장갑 높이 범위'로 따로 정한다.")]
+        public float rescueRange = 4f;
+        [InspectorName("구조 장갑 높이 범위"), Min(0f)]
+        [Tooltip("구조 장갑으로 당길 수 있는 위·아래 높이 차이(m). 외줄 위·대포 비행·추락 중인 동료까지 닿도록 정한다.")]
+        public float rescueHeightRange = 6f;
         [InspectorName("구조 장갑 전방 반각"), Range(1,90)] public float rescueHalfAngle = 55f;
         [InspectorName("구조 장갑 끌어당김 시간"), Min(.2f)] public float rescuePullSeconds = .8f;
         [InspectorName("끈끈이 장갑 유지 시간"), Min(.1f)] public float stickySeconds = 3f;

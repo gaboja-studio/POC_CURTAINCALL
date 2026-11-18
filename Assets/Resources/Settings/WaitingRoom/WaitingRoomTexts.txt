@@ -738,10 +738,14 @@ gate.socket-insert | {label} — {tool} 꽂기
 gate.socket-remove | {label} — {tool} 빼기
 explore.socket-in | {tool:을} 꽂았습니다.
 explore.socket-out | {tool:을} 뺐습니다.
-shop.craft-rooms-locked | 작업실과 소품실을 개방하지 않아 구매할 수 없습니다.
-# 작업실·소품실을 처음 열어 공연 기물이 상점에 추가될 때(모든 화면, 2026-11-18). {items} = 추가된 기물 이름
-shop.items-added.title | 상점에 공연 기물 추가
-shop.items-added.body | 작업실과 소품실이 개방되어 공연 기물을 상점에서 구매할 수 있습니다.\n추가된 기물: {items}
+# 누군가 기물을 처음 습득해 상점에 추가될 때(모든 화면, 2026-11-18). {items} = 추가된 기물 이름
+shop.items-added.title | 상점에 기물 추가
+shop.items-added.body | {items:을} 처음 습득해 이제 상점에서 구매할 수 있습니다.
+# 아직 상점에 추가되지 않은 기물을 주문하려 할 때
+shop.item-locked | 아직 상점에 추가되지 않은 기물입니다.
+# 대기실 연습실 밖에서 공연 기물 사용키를 눌렀을 때(그 플레이어에게만, 2026-11-18)
+equipment.place-blocked.title | 여기서는 쓸 수 없습니다
+equipment.place-blocked.body | 공연 기물은 연습실이나 공연장에서 사용할 수 있습니다.
 guide.power-door.title | 잠긴 문
 guide.power-door.body | 잠긴 문을 열려면 전력이 필요합니다. 전력을 공급할 도구를 찾아보세요.
 guide.power-circuit.title | 잠긴 문

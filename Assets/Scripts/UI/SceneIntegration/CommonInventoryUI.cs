@@ -39,6 +39,18 @@ namespace CurtainCall.UI.SceneIntegration
         void Awake() => InputGate.AddReleaseKeys(Keys);
         void OnEnable() => Current = this;
 
+        readonly InventorySlotTooltip slotTooltip = new();
+        Canvas slotCanvas;
+        Canvas SlotCanvas => slotCanvas != null ? slotCanvas : slotCanvas = slots != null ? slots.GetComponentInParent<Canvas>() : null;
+        /// <summary>대기실 슬롯 설명이 켜져 있으면 끄고 true(ESC가 메뉴 대신 설명을 닫는다).</summary>
+        internal bool CloseSlotTooltip()
+        {
+            if (!slotTooltip.IsOpen) return false;
+            slotTooltip.Hide();
+            return true;
+        }
+        void OnDestroy() => slotTooltip.Dispose();
+
         internal Vector2 PlaceStatusAboveSlots(RectTransform card, Vector2 position, float gap)
         {
             if (!group || group.alpha <= 0 || !slots || !slots.isActiveAndEnabled) return position;
@@ -63,12 +75,29 @@ namespace CurtainCall.UI.SceneIntegration
             group.alpha = active ? 1 : 0;
             group.blocksRaycasts = group.interactable = false;
             var carry = PropCarry.Instance;
-            if (!active) { slots.SetContext(false); signature = null; SkipUseMarks(); return; }
+            if (!active) { slots.SetContext(false); signature = null; SkipUseMarks(); slotTooltip.Hide(); return; }
             var local = NetworkPlayer.Local;
-            if (carry != null && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal && Keyboard.current != null)
-                for (int i = 0; i < Keys.Length; i++) if (Keyboard.current[Keys[i]].wasPressedThisFrame) carry.RequestSelectSlot(i);
+            bool waitingRoom = (waiting != null && waiting.gameObject.scene == scene) || CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(scene);
             ulong id = carry != null ? carry.LocalClientId : 0;
             var held = carry != null ? carry.Held(id) : null;
+            Vector3? feet = local != null ? local.transform.position : null;
+            if (carry != null && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal && Keyboard.current != null)
+                for (int i = 0; i < Keys.Length; i++)
+                {
+                    if (!Keyboard.current[Keys[i]].wasPressedThisFrame) continue;
+                    var item = held != null && i < held.Count ? held[i] : default;
+                    // 대기실의 공연 기물은 꺼내고 넣지 않는다. 슬롯 키로 그 칸 위 설명을 켜고 끈다(2026-11-18 사용자).
+                    if (waitingRoom && item.Uid != 0 && ItemCatalog.Get(item.ItemId)?.use == ItemUse.Performance)
+                    {
+                        var view = slots.GetSlot(i);
+                        slotTooltip.Toggle(i, item, view != null ? (RectTransform)view.transform : null, SlotCanvas, transform, feet);
+                    }
+                    else { slotTooltip.Hide(); carry.RequestSelectSlot(i); }
+                }
+            var shownItem = slotTooltip.IsOpen && held != null && slotTooltip.Slot < held.Count ? held[slotTooltip.Slot] : default;
+            bool tooltipAllowed = waitingRoom && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal
+                && !(CommonMenuUI.Current != null && CommonMenuUI.Current.IsOpen);
+            slotTooltip.Tick(slots, SlotCanvas, shownItem, feet, tooltipAllowed);
             int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots();
             var selected = carry != null ? carry.Selected(id) : default;
             var reader = local != null ? local.GetComponent<PlayerInputReader>() : CurtainCall.Player.OfflineLocalPlayer.Reader;
@@ -88,9 +117,10 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int i = 0; i < VisibleSlotCount; i++)
                 {
                     bool occupied = held != null && i < held.Count;
+                    // 칸 키는 기본 1·2. 공연 기물을 쓸 수 있을 때만 InventorySlotKeyLabel이 같은 자리를 Q·E(노랑)로 바꾼다(2026-11-18 사용자).
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
                         IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity
-                            ? (occupied && ItemCatalog.Get(held[i].ItemId)?.kind==ItemKind.Equipment || local && local.ActiveBalloonSlot==i) ? (i==0 ? firstUse : secondUse) : (i+1).ToString()
+                            ? (i+1).ToString()
                             : Fill(lockedSlotFormat, ("n", i + 1)),
                         QuantityLabel = "" }); // 남은 사용 횟수는 칸 아래 내구도 바로 보인다(2026-11-02 사용자)
                 }
@@ -107,6 +137,8 @@ namespace CurtainCall.UI.SceneIntegration
                     // 칸 선택 테두리는 슬롯 템플릿(씬)에 배치했다. 슬롯은 템플릿의 복제본이라 같은 테두리를 가진다.
                     var border = view.GetComponentInChildren<InventorySlotSelectionBorder>(true);
                     if (border != null) border.Show(data[i].IsHeld);
+                    // 칸 키 글자: 그 칸의 공연 기물을 지금 쓸 수 있을 때만(벌룬 접기 포함) 1·2 → Q·E(노랑)로 부드럽게 바꾸고, 쓸 수 없으면 다시 1·2(흰색).
+                    InventorySlotKeyLabel.For(view)?.Show(data[i].KeyLabel, i==0 ? firstUse : secondUse, i < capacity && (i==0 ? firstReady : secondReady));
                     var bar = view.GetComponentInChildren<InventorySlotDurabilityBar>(true);
                     if (bar != null)
                     {
@@ -195,6 +227,7 @@ namespace CurtainCall.UI.SceneIntegration
         void OnDisable()
         {
             if (Current == this) Current = null;
+            slotTooltip.Hide(true);
             if (group != null) group.alpha = 0;
             if (slots != null) slots.SetContext(false);
         }

@@ -129,31 +129,58 @@ namespace CurtainCall.WaitingRoom
             }
             channel.Update();
             WatchGeneration();
-            WatchCraftRooms();
+            WatchUnlocks();
         }
 
-        // 작업실·소품실이 열리면(잠김 → 열림) 공연 기물이 상점 목록에 추가됐다고 모든 화면에 알린다(2026-11-18 사용자).
-        // 동기화 전 상태·다른 씬(소켓 없음)은 보지 않아, 늦게 들어온 사람이나 장소 전환 뒤에는 다시 뜨지 않는다.
-        bool? craftRoomsSeenOpen;
-        void WatchCraftRooms()
+        // ---- 상점 해금(2026-11-18 사용자) ----
+        // 기물 목록에서 "처음부터 상점 판매"를 끈 기물은 누군가 처음 주워 습득한 순간 모든 플레이어의 상점에 추가된다.
+        // 기록은 탐색 장부(팀 공유·늦게 들어온 사람 포함)에 남기고, 세대가 바뀌어도 유지한다(새 게임 때 지워짐).
+
+        const string UnlockPrefix = "shop-unlock:";
+
+        /// <summary>아직 상점에 추가되지 않아 목록에 보이지 않고 살 수 없는 기물인가.</summary>
+        public static bool ShopLocked(string itemId)
+        {
+            var entry = ItemCatalog.Get(itemId);
+            if (entry == null || entry.shopUnlockedFromStart) return false;
+            var state = ExplorationState.Instance;
+            return state == null || !state.IsOpen(UnlockPrefix + itemId);
+        }
+
+        /// <summary>판정 화면: 플레이어가 기물을 습득했다. 처음이면 모든 화면의 상점에 추가한다.</summary>
+        public static void RecordAcquired(string itemId)
+        {
+            if (!ShopLocked(itemId) || ExplorationState.Instance == null || !ExplorationState.Instance.HasAuthority) return;
+            ExplorationState.KeepAcrossGenerations(UnlockPrefix + itemId);
+            ExplorationState.Instance.MarkVisited(UnlockPrefix + itemId);
+            Debug.Log($"[Shop] 첫 습득으로 상점 해금: {itemId}");
+        }
+
+        static string LockedText => WaitingRoomText.Get("shop.item-locked", "아직 상점에 추가되지 않은 기물입니다.");
+
+        // 해금 변화를 보고 모든 화면에 알린다. 동기화 전 상태는 보지 않고, 처음 본 상태는 알리지 않는다(늦게 들어온 사람·장소 전환).
+        readonly HashSet<string> seenUnlocked = new();
+        bool unlockSeeded;
+        void WatchUnlocks()
         {
             var state = ExplorationState.Instance;
-            if (state == null || !state.StateReady || ExplorationTargets.Find(CraftRoomsSocketId) == null) return;
-            bool open = state.IsOpen(CraftRoomsUnlockedId);
-            if (craftRoomsSeenOpen == false && open) AnnounceCraftItems();
-            craftRoomsSeenOpen = open;
-        }
-
-        void AnnounceCraftItems()
-        {
-            var names = new List<string>();
+            if (state == null || !state.StateReady) { unlockSeeded = false; return; }
+            List<string> added = null;
             foreach (var item in catalog)
-                if (ItemCatalog.Get(item.Id)?.use == ItemUse.Performance) names.Add(item.Name);
-            if (names.Count == 0) return;
+            {
+                var entry = ItemCatalog.Get(item.Id);
+                if (entry == null || entry.shopUnlockedFromStart) continue;
+                bool open = state.IsOpen(UnlockPrefix + item.Id);
+                if (!open) { seenUnlocked.Remove(item.Id); continue; }
+                if (seenUnlocked.Add(item.Id) && unlockSeeded) (added ??= new List<string>()).Add(item.Name);
+            }
+            unlockSeeded = true;
+            if (added == null) return;
             var profile = WaitingRoomHudProfile.Current;
-            WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("shop.items-added.title", "상점에 공연 기물 추가"),
-                WaitingRoomText.Format("shop.items-added.body", "작업실과 소품실이 개방되어 공연 기물을 상점에서 구매할 수 있습니다.\n추가된 기물: {items}",
-                    ("items", string.Join(", ", names))), 6f, profile != null ? profile.shopItemsAdded : RoomNotice.Reward);
+            string names = string.Join(", ", added);
+            WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("shop.items-added.title", "상점에 기물 추가"),
+                WaitingRoomText.Format("shop.items-added.body", "{items:을} 처음 습득해 이제 상점에서 구매할 수 있습니다.", ("items", names)),
+                6f, profile != null ? profile.shopItemsAdded : RoomNotice.Reward);
             NotifyChanged();
         }
 
@@ -228,10 +255,6 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>작업실·소품실 전실의 동력 소켓과, 한 번이라도 열었다는 기록(탐색 장부).</summary>
         public const string CraftRoomsSocketId = "learning:craft-socket", CraftRoomsUnlockedId = "learning:craft-unlocked";
-        /// <summary>작업실·소품실을 아직 열지 않아 살 수 없는 공연 기물인가(상점 화면도 같은 기준으로 회색 처리한다, 2026-11-14 사용자).</summary>
-        public static bool CraftRoomsLocked(string itemId) => ItemCatalog.Get(itemId)?.use == ItemUse.Performance && ExplorationTargets.Find(CraftRoomsSocketId) != null
-            && ExplorationState.Instance != null && !ExplorationState.Instance.IsOpen(CraftRoomsUnlockedId);
-        public static string CraftRoomsLockedText => WaitingRoomText.Get("shop.craft-rooms-locked", "작업실과 소품실을 개방하지 않아 구매할 수 없습니다.");
         static string PerformanceRefusal => WaitingRoomText.Get("shop.in-performance", "공연 중에는 상점을 쓸 수 없습니다.");
 
         (bool, string) Buy(string itemId, ulong buyer)
@@ -239,10 +262,9 @@ namespace CurtainCall.WaitingRoom
             if (!CurtainCall.Player.PlayerInteraction.CanInteract(buyer))
                 return Reject(buyer, "PURCHASE", itemId, 0, "NOT_ALIVE", "살아 있는 사람만 주문할 수 있습니다.");
             if (!CanPurchase) return Reject(buyer, "PURCHASE", itemId, 0, "NOT_NIGHT", PurchaseTimeRefusal);
-            // 작업실·소품실을 열기 전에는 공연용 기물을 살 수 없다(2026-11-13 사용자). 탐색 도구는 처음부터 살 수 있다.
-            // 전실 동력 소켓이 놓인 씬에서만 적용한다.
-            if (CraftRoomsLocked(itemId))
-                return Reject(buyer, "PURCHASE", itemId, 0, "CRAFT_ROOMS_LOCKED", CraftRoomsLockedText);
+            // 아직 상점에 추가되지 않은 기물(처음부터 판매가 아니고 아무도 습득하지 않음)은 살 수 없다(2026-11-18 사용자).
+            if (ShopLocked(itemId))
+                return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_LOCKED", LockedText);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
@@ -348,7 +370,7 @@ namespace CurtainCall.WaitingRoom
             receivedWaiting.Clear();
             receivedReceipts.Clear();
             seenGeneration = 0;
-            craftRoomsSeenOpen = null;
+            seenUnlocked.Clear(); unlockSeeded = false;
             LastMessage = "";
             NotifyChanged();
         }

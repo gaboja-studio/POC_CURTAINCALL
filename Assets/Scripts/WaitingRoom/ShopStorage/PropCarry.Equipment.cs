@@ -31,6 +31,46 @@ namespace CurtainCall.WaitingRoom
         /// <summary>내 화면에 장비 발동·파괴 알림이 떴다(기물 이름, 문구, 파괴 여부). 테스트·연출 확인용.</summary>
         public event Action<string, string, bool> LocalItemNotice;
 
+        /// <summary>공연 기물을 쓰는 장소 규칙(2026-11-18 사용자).</summary>
+        public enum EquipmentPlace
+        {
+            /// <summary>공연·탈출로 등 대기실 밖: 정상 발동·내구도 소모.</summary>
+            Normal,
+            /// <summary>대기실 연습실 구역: 발동하지만 내구도를 쓰지 않는다.</summary>
+            Practice,
+            /// <summary>그 밖의 대기실 구역: 쓸 수 없다.</summary>
+            Blocked,
+        }
+
+        static bool WaitingRoomScene => CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+
+        /// <summary>발 위치 기준 공연 기물 장소. 대기실이면 지역명 "연습실" 구역만 연습으로 허용한다.</summary>
+        public static EquipmentPlace PlaceAt(Vector3 feet) =>
+            !WaitingRoomScene ? EquipmentPlace.Normal : ExplorationTimerZones.IsPracticeRoom(feet) ? EquipmentPlace.Practice : EquipmentPlace.Blocked;
+
+        /// <summary>이 플레이어가 지금 공연 기물을 쓰는 장소. 대기실에서 캐릭터를 못 찾으면 막는다.</summary>
+        public static EquipmentPlace PlaceOf(ulong player)
+        {
+            if (!WaitingRoomScene) return EquipmentPlace.Normal;
+            var body = FindBody(player);
+            return body != null ? PlaceAt(body.position) : EquipmentPlace.Blocked;
+        }
+
+        static float lastPlaceGuide = -10f;
+
+        /// <summary>내 화면에만: 공연 기물은 연습실이나 공연장에서 쓸 수 있다고 안내한다(연타해도 1.5초에 한 번).</summary>
+        public static void ShowEquipmentPlaceGuide(Transform owner)
+        {
+            if (Time.unscaledTime - lastPlaceGuide < 1.5f) return;
+            lastPlaceGuide = Time.unscaledTime;
+            var profile = WaitingRoomHudProfile.Current;
+            WaitingRoomHudProfile.Emit(profile != null ? profile.equipmentPlaceBlocked : RoomNotice.Feedback, owner,
+                WaitingRoomText.Get("equipment.place-blocked.title", "여기서는 쓸 수 없습니다"),
+                WaitingRoomText.Get("equipment.place-blocked.body", "공연 기물은 연습실이나 공연장에서 사용할 수 있습니다."), 3f);
+        }
+
+        static bool IsPerformanceItem(string itemId) => ItemCatalog.Get(itemId)?.use == ItemUse.Performance;
+
         /// <summary>남은 쿨타임(초). 없으면 0.</summary>
         public float CooldownLeft(ulong player, string itemId) =>
             cooldownUntil.TryGetValue((player, itemId), out double until) ? (float)Math.Max(0, until - EquipmentClock) : 0f;
@@ -62,6 +102,17 @@ namespace CurtainCall.WaitingRoom
             if(item.Uid==0 || item.Uses<=0 || ItemCatalog.Get(item.ItemId)?.kind != ItemKind.Equipment) return false;
             string itemId=item.ItemId;
             if (!HasAuthority || !EquipmentReady(player, itemId)) return false;
+            if (IsPerformanceItem(itemId))
+            {
+                // 대기실: 연습실에서는 내구도 없이 발동만 하고, 다른 구역에서는 발동하지 않는다. 공연·탈출로는 아래 정상 소모.
+                var place = PlaceOf(player);
+                if (place == EquipmentPlace.Blocked) return false;
+                if (place == EquipmentPlace.Practice)
+                {
+                    Debug.Log($"[Carry] 연습 발동 {ItemCatalog.DisplayName(item)} (내구도 유지) — {WaitingRoomShop.PlayerLabel(player)}");
+                    return true;
+                }
+            }
             if (book.Use(player, item.Uid, out var after, out bool destroyed) != CarryRefusal.None) return false;
             MarkUsed(player, item.Uid, destroyed);
             if (startCooldown) SetCooldown(player, itemId);

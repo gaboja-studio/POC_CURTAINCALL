@@ -82,6 +82,8 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (settings.IsOpen) settings.CancelTop();
                 else if (menu.IsMenuOpen || menu.IsConfirmationOpen) menu.Cancel();
+                // 대기실 슬롯 설명이 켜져 있으면 ESC는 설명만 끈다(2026-11-18 사용자).
+                else if (CommonInventoryUI.Current != null && CommonInventoryUI.Current.CloseSlotTooltip()) { }
                 else if (!IsStart && HasSupportedSpace && !InputGate.IsBlocked) OpenMenu();
             }
             SyncInput();
