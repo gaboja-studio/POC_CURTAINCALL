@@ -91,6 +91,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             appearance?.SetCaptureCount(0);
             Victim = null; target = null; CaptureElapsed = 0; CaptureFinished = false; unseen = 0;
             activatedAt = -1;
+            standClearFor = crouchBlockedFor = 0;
             ResetClimb();
             ResetBrain();
             SetMotion(PursuitMotion.Display, true);
@@ -98,6 +99,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public void SetMotion(PursuitMotion next, bool force = false)
         {
             next = CrouchAdjusted(next);
+            bool enteringCrouch = (next == PursuitMotion.Crouch || next == PursuitMotion.CrouchWalk)
+                && State != PursuitMotion.Crouch && State != PursuitMotion.CrouchWalk;
             bool advanced = IsActivated && director.CurrentStageIndex + 1 >= GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
             if (State == next && !force && advancedMotion == advanced) return;
             advancedMotion = advanced;
@@ -120,7 +123,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     else if (next == PursuitMotion.Death) {
                         var state = Motion[clip]; state.time = 0; state.speed = 1; state.wrapMode = WrapMode.ClampForever;
                     }
-                    Motion.CrossFade(clip, IsTraversalMotion(next) ? .06f : .12f);
+                    // A standing blend can still put the head through a ceiling, particularly on a replica.
+                    if (enteringCrouch) Motion.Play(clip);
+                    else Motion.CrossFade(clip, IsTraversalMotion(next) ? .06f : .12f);
                 }
             }
         }
@@ -144,10 +149,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 return;
             }
             if (activatedAt < 0) activatedAt = Time.time;
+            RefreshCrouch(AheadFeet(), Time.deltaTime);
             if (IsAwakening) { SetMotion(PursuitMotion.Awaken); return; }
             if (agent == null) return;
             // NavMesh 밖 소품 위로 직접 오르내리는 중이거나 그 위에 서 있으면 길찾기 대신 직접 처리한다.
-            RefreshCrouch();
             if (TickDirect()) return;
             if (!EnsureOnNavMesh()) { SetMotion(PursuitMotion.Awaken); return; }
             ApplyClimbArea();

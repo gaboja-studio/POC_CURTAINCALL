@@ -104,6 +104,14 @@ namespace CurtainCall.UI.Wayfinding
         }
         public void InvalidatePaths()=>planner.Invalidate();
 
+        internal bool TryGetPathDistance(Vector3 from, Vector3 to, out float distance)
+        {
+            distance = 0;
+            if (!planner.TryCalculate(from, to, calculated)) return false;
+            for (int i = 1; i < calculated.Count; i++) distance += Vector3.Distance(calculated[i - 1], calculated[i]);
+            return true;
+        }
+
         void Update()
         {
             BindNetwork();

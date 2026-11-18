@@ -59,6 +59,22 @@ namespace CurtainCall.WaitingRoom
         public static bool IsDoorShut => active != null && active.isActiveAndEnabled && !active.playing && active.closedAmount >= .999f;
         static DormEntryEvent active;
 
+        // The entrance remains a valid place to guide players while they need to cut the door cable.
+        internal static bool IsInsideDormitory(Vector3 feet) => active != null && active.isActiveAndEnabled
+            && active.inside.Contains(feet + Vector3.up * .5f);
+
+        internal static Vector3? EntranceGuideDestination()
+        {
+            if (active == null || !active.isActiveAndEnabled) return null;
+            var entry = active.trigger.center;
+            entry.y = active.trigger.min.y;
+            if (IsDoorClosed && active.exitPoints.Length > 0) {
+                var outside = Vector3.ProjectOnPlane(active.exitPoints[0] - entry, Vector3.up).normalized;
+                entry = active.trigger.ClosestPoint(entry + 10f * outside) + .5f * outside;
+            }
+            return entry;
+        }
+
         // ---- 닫힌 문에 다가갔을 때의 상호작용 설명(2026-11-17 사용자) ----
         // 문이 오작동으로 닫혔고 아직 배선을 끊지 않은 동안에만 대상이 된다. 누를 수 있는 동작은 없고("사용 불가") 여는 방법만 알려 준다.
         bool NeedsCutter => !playing && closedAmount >= .999f && !Open(cableId);

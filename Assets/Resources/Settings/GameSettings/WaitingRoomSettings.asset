@@ -35,7 +35,7 @@ MonoBehaviour:
     - 
     - 
     - 
-    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098"
+    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uAE30"
     questBody: '{stage}
 
       {escape}
@@ -65,7 +65,7 @@ MonoBehaviour:
     - 
     - 
     - 
-    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uB77C"
+    questTitle: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uAE30"
     questBody: '{stage}
 
       {escape}

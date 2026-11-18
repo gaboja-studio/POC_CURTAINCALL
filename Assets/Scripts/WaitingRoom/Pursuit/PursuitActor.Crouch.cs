@@ -27,6 +27,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         // 앉아서도 앞이 막혀 멈춘 뒤 이 시간이 지나면 길찾기를 믿고 다시 움직인다(움직이는 소품에 영구 정지 방지).
         const float CrouchBlockedSeconds = .75f;
         float crouchBlockedFor;
+        float StandingBodyHeight => 1.8f * (Placement != null ? Placement.SizeScale : 1);
 
         bool BodyClear(Vector3 feet, float height)
         {
@@ -46,31 +47,32 @@ namespace CurtainCall.WaitingRoom.Pursuit
         Vector3 AheadFeet()
         {
             bool navigating = agent != null && agent.enabled && agent.isOnNavMesh;
-            var direction = navigating
-                ? Vector3.ProjectOnPlane(agent.hasPath ? agent.steeringTarget - transform.position : agent.desiredVelocity, Vector3.up)
-                : Vector3.ProjectOnPlane(transform.forward, Vector3.up);
-            if (navigating && direction.sqrMagnitude < .0001f) direction = Vector3.ProjectOnPlane(agent.desiredVelocity, Vector3.up);
-            var ahead = transform.position + (direction.sqrMagnitude > .0001f ? direction.normalized * .55f : Vector3.zero);
-            if (navigating && NavMesh.SamplePosition(ahead, out var hit, .6f, agent.areaMask)) ahead = hit.position;
+            var feet = transform.position;
+            var next = navigating && agent.isOnOffMeshLink ? agent.currentOffMeshLinkData.endPos
+                : navigating && agent.hasPath ? agent.steeringTarget : feet + (navigating ? agent.desiredVelocity : transform.forward);
+            var ahead = Vector3.MoveTowards(feet, next, .55f);
+            if (navigating && !agent.isOnOffMeshLink) {
+                // Keep the test on the actor's route. A nearby polygon on a duct roof or another floor isn't its next footstep.
+                var filter = new NavMeshQueryFilter { agentTypeID = agent.agentTypeID, areaMask = agent.areaMask };
+                if (NavMesh.SamplePosition(ahead, out var hit, .25f, filter)) ahead = hit.position;
+            }
             return ahead;
         }
 
-        /// <summary>
-        /// 2026-11-18 핫픽스: 환풍구처럼 앉아서 가야 하는 좁은 길에서 선 채로 쫓아오던 문제.
-        /// - 천장 이음매·창살 틈에서 한 프레임 검사가 '트임'으로 나와 바로 일어서던 것을 막기 위해, 머리 위가 잠시 계속 트여야 일어선다.
-        /// - 앉은 판정을 이동 판단보다 먼저 정해 <see cref="SetMotion"/>이 달리기·걷기·대기를 앉은 동작으로 바꾼다(소품 위 직접 이동·펜스 넘기 포함).
-        /// </summary>
+        // Keep crouching across short gaps between ceiling panels.
         const float StandUpClearSeconds = .35f;
+        const float HeadMargin = .1f;
         float standClearFor;
 
-        void RefreshCrouch()
+        void RefreshCrouch(Vector3 ahead, float clearTime = 0)
         {
             if (climbing || vaulting) return;
-            float height = 1.8f * (Placement != null ? Placement.SizeScale : 1);
-            bool narrow = !BodyClear(transform.position, height) || !BodyClear(AheadFeet(), height);
+            float height = StandingBodyHeight + HeadMargin;
+            var feet = transform.position;
+            bool narrow = !BodyClear(feet, height) || (ahead != feet && !BodyClear(ahead, height));
             if (narrow) { IsCrouched = true; standClearFor = 0; return; }
             if (!IsCrouched) return;
-            standClearFor += Time.deltaTime;
+            standClearFor += clearTime;
             if (standClearFor >= StandUpClearSeconds) { IsCrouched = false; standClearFor = 0; }
         }
 
@@ -89,10 +91,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
 
         void UpdateCrouch()
         {
-            if (agent == null || !agent.enabled || !agent.isOnNavMesh || climbing) return;
-            float scale = Placement != null ? Placement.SizeScale : 1;
+            if (agent == null || !agent.enabled || !agent.isOnNavMesh || climbing || vaulting) return;
             var ahead = AheadFeet();
-            agent.height = IsCrouched ? CrouchBodyHeight : 1.8f * scale;
+            // The brain may have set or turned onto a new path in this tick.
+            RefreshCrouch(ahead);
+            agent.height = IsCrouched ? CrouchBodyHeight : StandingBodyHeight;
             if (!IsCrouched) { crouchBlockedFor = 0; return; }
             bool canMove = BodyClear(ahead, CrouchBodyHeight);
             crouchBlockedFor = canMove ? 0 : crouchBlockedFor + Time.deltaTime;
@@ -100,7 +103,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (crouchBlockedFor >= CrouchBlockedSeconds && crouchBlockedFor - Time.deltaTime < CrouchBlockedSeconds) replanRequested = true;
             bool hold = !canMove && crouchBlockedFor < CrouchBlockedSeconds;
             agent.speed = hold ? 0 : Mathf.Min(agent.speed, CrouchMoveSpeed);
-            bool moving = !hold && agent.hasPath && agent.desiredVelocity.sqrMagnitude > .01f;
+            bool moving = !hold && (State == PursuitMotion.CrouchWalk || State == PursuitMotion.Walk || State == PursuitMotion.Run
+                || agent.isOnOffMeshLink);
             SetMotion(moving ? PursuitMotion.CrouchWalk : PursuitMotion.Crouch);
         }
     }
