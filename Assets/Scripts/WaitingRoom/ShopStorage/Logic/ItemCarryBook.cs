@@ -49,6 +49,12 @@ namespace CurtainCall.WaitingRoom
         public const string PowerBattery = "power-battery";
         /// <summary>비디오 테이프(2026-11-14 사용자). 숙소에서 주워 숙소 TV에 넣으면 화면에 재생된다. 닳지 않고 다시 뺄 수 있다. 상점에 없다.</summary>
         public const string VideoTape = "video-tape";
+        /// <summary>낡은 비디오 테이프1·2(2026-11-18 사용자). 숙소 TV에 넣는 규칙은 비디오 테이프와 같고 영상만 다르다.</summary>
+        public const string VideoTape1 = "video-tape-1", VideoTape2 = "video-tape-2";
+        public static bool IsVideoTape(string id) => id == VideoTape || id == VideoTape1 || id == VideoTape2;
+
+        /// <summary>도구 자리에 이 기물을 쓸 수 있는가. 비디오 테이프 자리는 모든 비디오 테이프를 받는다.</summary>
+        public static bool ToolMatches(string required, string held) => held == required || (required == VideoTape && IsVideoTape(held));
     }
 
     /// <summary>바닥에 놓인 기물과 위치(m).</summary>

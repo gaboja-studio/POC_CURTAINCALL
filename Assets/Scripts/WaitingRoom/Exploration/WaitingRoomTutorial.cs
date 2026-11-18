@@ -386,7 +386,7 @@ namespace CurtainCall.WaitingRoom
                 b.MarkDone(entry.id);
                 return;
             }
-            bool framed = HasShot(entry.id) && TryFocus(entry.id, out var pos, out var rot, out var focus) && closeUp.Begin(pos, rot, focus);
+            bool framed = HasShot(entry.id) && TryFocus(entry.id, out var pos, out var rot, out var focus) && closeUp.Begin(pos, rot, focus, IsShelfShot(entry.id));
             float seconds = framed ? WaitingRoomTutorialCamera.Total : IsExtra(entry.id) ? entry.seconds : TextLockSeconds;
             if (!ShowEntry(entry, body, seconds)) { closeUp.Stop(); return; }
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
@@ -425,6 +425,9 @@ namespace CurtainCall.WaitingRoom
             InputGate.SetBlocking(this, false);
             hiddenAt = Time.unscaledTime;
         }
+
+        /// <summary>소품실 선반 안내: 바닥 경로를 돌지 않고 곧장 선반으로 날아간다(2026-11-18 사용자).</summary>
+        bool IsShelfShot(string id) => id == ShelfId || (IsExtra(id) && WaitingRoomHudProfile.Current.Extra(id)?.shot == RoomShot.Shelf);
 
         /// <summary>안내가 가리키는 곳을 비출 카메라 자리.</summary>
         bool TryFocus(string id, out Vector3 pos, out Quaternion rot, out Vector3 point)

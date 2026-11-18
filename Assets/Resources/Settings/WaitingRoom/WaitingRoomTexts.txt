@@ -754,6 +754,8 @@ target.final:keycard-overview.desc | 누군가 복제한 관리실의 키 카드
 
 # 숙소 TV와 비디오 테이프(2026-11-14)
 item.video-tape.name | 비디오 테이프
+item.video-tape-1.name | 낡은 비디오 테이프1
+item.video-tape-2.name | 낡은 비디오 테이프2
 target.dorm:tv.name | 낡은 TV
 target.dorm:tv.hint | 재생할 테이프가 필요할 것 같다.
 target.dorm:tv.insert | {label} — {tool} 넣기

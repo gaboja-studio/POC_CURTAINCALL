@@ -292,6 +292,9 @@ namespace CurtainCall.WaitingRoom
         // 동력 소켓(2026-11-13 사용자): 배터리를 꽂으면 열리고, 꽂힌 배터리를 빼면 닫힌다. 배터리는 닳지 않는다.
         // 꽂을 때 손에서 사라지고(소켓 속으로), 뺄 때 같은 배터리가 손으로 돌아온다.
         readonly Dictionary<string, int> socketBattery = new();
+        readonly Dictionary<string, string> socketItem = new();
+        /// <summary>소켓에 기본 도구가 아닌 같은 계열 기물(낡은 비디오 테이프1·2)이 들어 있다는 공유 기록 키.</summary>
+        public static string SocketContent(string targetId, string itemId) => targetId + "@" + itemId;
         (bool ok, string text, string reason) UseSocket(ulong player, string targetId, ExplorationGate gate)
         {
             var body = FindBody(player);
@@ -307,9 +310,13 @@ namespace CurtainCall.WaitingRoom
             if (!book.IsOpen(targetId))
             {
                 var tool = carry.InHand(player);
-                if (tool.Uid == 0 || tool.ItemId != gate.ToolId) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(gate))), "REQUIRED_TOOL_MISSING");
+                if (tool.Uid == 0 || !ItemUses.ToolMatches(gate.ToolId, tool.ItemId)) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(gate))), "REQUIRED_TOOL_MISSING");
                 if (carry.UseItem(player, tool.Uid, out _, out bool gone) != CarryRefusal.None || !gone) return (false, PropCarry.Explain(CarryRefusal.NotFound), "CARRY_REFUSED");
                 socketBattery[targetId] = tool.Uid;
+                // 어떤 테이프가 들어 있는지 모두에게 알린다(TV가 테이프마다 다른 영상을 튼다). 꺼낼 때 같은 테이프를 돌려준다.
+                socketItem[targetId] = tool.ItemId;
+                if (tool.ItemId != gate.ToolId) book.Attempt(SocketContent(targetId, tool.ItemId), true, out _, out _);
+                toolName = ItemCatalog.Get(tool.ItemId)?.displayName ?? toolName;
                 book.Attempt(targetId, true, out _, out _);
                 Debug.Log($"[Exploration] {targetId} 배터리 꽂음 — {WaitingRoomShop.PlayerLabel(player)}");
                 DeliverRewards(); Publish();
@@ -318,9 +325,12 @@ namespace CurtainCall.WaitingRoom
             var refusal = carry.CanReceive(player);
             if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "HANDS_FULL");
             int uid = socketBattery.TryGetValue(targetId, out int kept) ? kept : 900000 + Mathf.Abs(targetId.GetHashCode() % 90000);
-            refusal = carry.Receive(player, ItemCatalog.NewProduct(uid, gate.ToolId, toolName));
+            string inside = socketItem.TryGetValue(targetId, out var keptItem) ? keptItem : gate.ToolId;
+            toolName = ItemCatalog.Get(inside)?.displayName ?? toolName;
+            refusal = carry.Receive(player, ItemCatalog.NewProduct(uid, inside, toolName));
             if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "CARRY_REFUSED");
-            socketBattery.Remove(targetId);
+            socketBattery.Remove(targetId); socketItem.Remove(targetId);
+            book.Close(SocketContent(targetId, inside));
             book.Close(targetId);
             Debug.Log($"[Exploration] {targetId} 배터리 뺌 — {WaitingRoomShop.PlayerLabel(player)}");
             Publish();

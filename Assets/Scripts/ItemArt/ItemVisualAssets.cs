@@ -13,9 +13,11 @@ namespace CurtainCall.ItemArt
         static readonly Dictionary<string, GameObject> prefabs = new();
         public static bool IsTool(string id) => ItemCatalog.Get(id)?.kind == ItemKind.Tool;
         public static string State(string motion, int stage) => motion + (stage > 0 ? "_Cut" + stage : "");
+        // 낡은 비디오 테이프1·2는 비디오 테이프 모델·아이콘을 같이 쓴다.
+        static string ArtId(string id) => ExplorationKeys.IsKey(id) ? ExplorationKeys.VisualId : ItemUses.IsVideoTape(id) ? ItemUses.VideoTape : id;
         public static Sprite Icon(string id, bool shop = false)
         {
-            if (ExplorationKeys.IsKey(id)) id = ExplorationKeys.VisualId;
+            id = ArtId(id);
             string key = id + (shop ? "-shop" : "-slot");
             if (!icons.TryGetValue(key, out var icon)) icons[key] = icon = Resources.Load<Sprite>("ItemArt/Icons/" + key);
             return icon;
@@ -32,7 +34,7 @@ namespace CurtainCall.ItemArt
         public static GameObject Create(string id, Transform parent = null)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            if (ExplorationKeys.IsKey(id)) id = ExplorationKeys.VisualId;
+            id = ArtId(id);
             if (!prefabs.TryGetValue(id, out var prefab)) prefabs[id] = prefab = Resources.Load<GameObject>("ItemArt/Prefabs/" + id);
             return prefab != null ? Object.Instantiate(prefab, parent) : null;
         }

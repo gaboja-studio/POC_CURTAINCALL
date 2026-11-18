@@ -18,8 +18,28 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string openedBy = "dorm:tv";
         [Tooltip("영상을 띄울 화면 면(Quad).")]
         [SerializeField] Renderer screen;
-        [Tooltip("재생할 영상. 비우면 노이즈.")]
+        [Tooltip("재생할 영상(기본 비디오 테이프). 비우면 노이즈.")]
         [SerializeField] VideoClip clip;
+
+        [System.Serializable]
+        public struct TapeClip
+        {
+            [Tooltip("이 테이프 기물 ID가 들어 있으면")] public string itemId;
+            [Tooltip("이 영상을 튼다")] public VideoClip clip;
+        }
+        [Tooltip("테이프마다 다른 영상(2026-11-18 사용자: 낡은 비디오 테이프1·2). 목록에 없는 테이프는 위 기본 영상.")]
+        [SerializeField] TapeClip[] tapeClips = new TapeClip[0];
+        VideoClip shownClip;
+
+        /// <summary>지금 들어 있는 테이프의 영상(모든 화면 공통, 탐색 장부 기준).</summary>
+        VideoClip CurrentClip()
+        {
+            var state = ExplorationState.Instance;
+            if (state != null)
+                foreach (var tape in tapeClips)
+                    if (!string.IsNullOrEmpty(tape.itemId) && state.IsOpen(ExplorationState.SocketContent(openedBy, tape.itemId))) return tape.clip;
+            return clip;
+        }
         [Tooltip("화면 빛(켜진 동안만).")]
         [SerializeField] Light glow;
         [SerializeField, Min(0f)] float glowIntensity = 1.4f;
@@ -177,14 +197,14 @@ namespace CurtainCall.WaitingRoom
             bool on = ExplorationGate.IsAnyOpen(openedBy) && Occupied();
             TickGlitch();
             bool glitch = !on && Time.unscaledTime < glitchUntil;
-            if (on != playing || glitch != glitching) Apply(on, glitch);
+            if (on != playing || glitch != glitching || (on && CurrentClip() != shownClip)) Apply(on, glitch);
             if ((on || glitch) && Time.time >= nextPursuitNoise) {
                 nextPursuitNoise = Time.time + Mathf.Max(.2f, CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.TvNoiseInterval);
                 Pursuit.PursuitStimuli.Emit(Pursuit.PursuitNoiseKind.Television, screen != null ? screen.bounds.center : transform.position, transform);
             }
             if (!on && !glitch) nextPursuitNoise = 0;
             if (Viewing) TickView();
-            if (!(glitching || (playing && clip == null)) || playMaterial == null || Time.unscaledTime < nextNoise) return;
+            if (!(glitching || (playing && shownClip == null)) || playMaterial == null || Time.unscaledTime < nextNoise) return;
             // 노이즈: 무늬를 매번 다른 자리로 옮겨 지직거리게 한다.
             nextNoise = Time.unscaledTime + .05f;
             playMaterial.mainTextureOffset = new Vector2(Random.value, Random.value);
@@ -216,6 +236,7 @@ namespace CurtainCall.WaitingRoom
         void Apply(bool on, bool glitch)
         {
             playing = on; glitching = glitch;
+            var clip = on ? CurrentClip() : null; shownClip = clip;
             if (glow != null) { glow.enabled = on || glitch; glow.intensity = glowIntensity; }
             if (screen == null) return;
             if (!on && !glitch)
