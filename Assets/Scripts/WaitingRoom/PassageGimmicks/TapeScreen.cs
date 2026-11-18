@@ -138,13 +138,11 @@ namespace CurtainCall.WaitingRoom
             var main = Camera.main;
             if (Viewing || gate == null || screen == null || main == null || !playing) return;
             viewGate = gate; waitRelease = true; heldFor = 0f;
-            var b = screen.bounds; Vector3 outward = -screen.transform.forward;
-            float distance = b.size.y * .5f / Mathf.Tan(main.fieldOfView * .5f * Mathf.Deg2Rad) / .6f;
             lookCamera = new GameObject("TvLookCamera").AddComponent<Camera>();
             lookCamera.CopyFrom(main); lookCamera.targetTexture = null; lookCamera.depth = main.depth + 10; lookCamera.useOcclusionCulling = false;
+            LookPose(screen, main.fieldOfView, main.aspect, out var lookPos, out var lookRot, out float distance);
             lookCamera.nearClipPlane = Mathf.Max(.03f, distance - .25f);
-            // 아래쪽 설명 판에 가리지 않게 화면을 조금 위쪽에 둔다.
-            lookCamera.transform.SetPositionAndRotation(b.center + outward * distance + Vector3.down * (b.size.y * .28f), Quaternion.LookRotation(-outward, Vector3.up));
+            lookCamera.transform.SetPositionAndRotation(lookPos, lookRot);
             if (blocker == null) { blocker = gameObject.AddComponent<UIInputBlocker>(); blocker.BlockWhileActive = false; }
             blocker.SetOpen(true);
             HidePlayers();
@@ -152,6 +150,25 @@ namespace CurtainCall.WaitingRoom
             string text = WaitingRoomText.Get("target." + openedBy + ".view-text", viewText).Replace("\\n", "\n");
             panel.Open(WaitingRoomText.Get("target." + openedBy + ".name", viewTitle), (string.IsNullOrEmpty(text) ? "" : text + "\n\n")
                 + "<color=#B8B29C>" + WaitingRoomText.Get("target." + openedBy + ".view-help", viewHelp) + "</color>", false, null, Close, true);
+        }
+
+        /// <summary>화면 아래 조작법 설명 판이 차지하는 높이(화면 높이 비율, 판 윗변 24% + 틈). 위 여백. 가로로 채우는 비율.</summary>
+        const float PanelReserve = .27f, TopMargin = .03f, WidthFill = .94f;
+
+        /// <summary>
+        /// 들여다보기 카메라 자리(2026-11-18 사용자: 테두리는 두고 전체화면처럼 크게, 조작법 설명이 화면을 가리지 않게).
+        /// 화면 면을 설명 판 위 공간에 가로·세로 중 먼저 닿는 쪽까지 채우고, 그 공간 가운데에 오게 카메라를 낮춘다. 남는 가장자리에 TV 테두리가 보인다.
+        /// </summary>
+        public static void LookPose(Renderer screen, float fieldOfView, float aspect, out Vector3 position, out Quaternion rotation, out float distance)
+        {
+            var b = screen.bounds; Vector3 outward = -screen.transform.forward;
+            float width = Mathf.Max(b.size.x, b.size.z), height = b.size.y, tan = Mathf.Tan(fieldOfView * .5f * Mathf.Deg2Rad);
+            float band = 1f - PanelReserve - TopMargin; // 보이는 높이 중 화면에 쓸 몫
+            distance = Mathf.Max(height / (2f * tan * band), width / (2f * tan * Mathf.Max(.1f, aspect) * WidthFill));
+            // 공간 가운데(아래에서 PanelReserve + band/2)가 화면 가운데보다 위에 있으니 그만큼 카메라를 내린다.
+            float lift = (PanelReserve + band * .5f - .5f) * 2f * distance * tan;
+            position = b.center + outward * distance + Vector3.down * lift;
+            rotation = Quaternion.LookRotation(-outward, Vector3.up);
         }
 
         public void Close()
