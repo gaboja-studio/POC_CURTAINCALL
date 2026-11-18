@@ -39,7 +39,9 @@ MonoBehaviour:
   indirectFinaleBrightness: 0.85
   followSpots: 1
   performerIlluminance: 5
-  spotRadius: 2.4
+  tightropeSpotBrightness: 1.6
+  humanCannonSpotBrightness: 1
+  spotRadius: 0.75
   innerConeRatio: 0.82
   spotColor: {r: 0.92, g: 0.94, b: 1, a: 1}
   secondarySpotColor: {r: 0.76, g: 0.8, b: 1, a: 1}
@@ -51,7 +53,7 @@ MonoBehaviour:
   spotShadows: 0
   shadowStrength: 0.8
   beamOpacity: 0.065
-  beamWidth: 0.85
+  beamWidth: 1
   decorativeBeamBrightness: 0.12
   finaleStart: 0.86
   finaleFull: 0.96

@@ -11,6 +11,30 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
     public sealed class PerformanceFeedbackTests
     {
         [Test]
+        public void SharedHudFormattingPreservesFeedbackTextContract()
+        {
+            var prefab=UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Feedback/Feedback.prefab");
+            Assert.IsNotNull(prefab);
+            var root=UnityEngine.Object.Instantiate(prefab);
+            try
+            {
+                typeof(PerformanceFeedback).Assembly.GetType("CurtainCall.UI.SceneIntegration.HudText")
+                    .GetMethod("ConfigureView",BindingFlags.Public|BindingFlags.Static).Invoke(null,new object[]{root.transform});
+                var labels=root.GetComponentInChildren<FeedbackView>(true).GetComponentsInChildren<TMPro.TMP_Text>(true);
+                Assert.AreEqual(2,labels.Length);
+                foreach(var label in labels)
+                {
+                    Assert.IsFalse(label.richText,label.name);
+                    Assert.AreEqual(TMPro.TextWrappingModes.NoWrap,label.textWrappingMode,label.name);
+                    Assert.IsFalse(label.enableAutoSizing,label.name);
+                    Assert.IsFalse(label.parseCtrlCharacters,label.name);
+                    Assert.IsNull(label.textPreprocessor,label.name);
+                }
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        [Test]
         public void OnlyLocalExplicitReactionsDisplayAcrossRevisionGaps()
         {
             var go = new GameObject("Feedback test");

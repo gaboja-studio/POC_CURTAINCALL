@@ -120,9 +120,41 @@ namespace CurtainCall.EditorTools
             var old=venue.Find("32_SuspendedServiceWorks");if(old!=null)old.localPosition+=Vector3.down*18;
             RenderSettings.ambientMode=AmbientMode.Trilight;RenderSettings.ambientSkyColor=settings.ambientSky;RenderSettings.ambientEquatorColor=settings.ambientEquator;RenderSettings.ambientGroundColor=settings.ambientGround;
             RenderSettings.fog=true;RenderSettings.fogMode=FogMode.ExponentialSquared;RenderSettings.fogColor=settings.fogColor;RenderSettings.fogDensity=settings.fogDensity*PerformanceBackgroundLayout.Scale;
-            AddIndirectGallery();Polish(root.gameObject);
+            AddIndirectGallery();MoveFollowSpotsToTrackSides();Polish(root.gameObject);
             EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
-            return "Built 12 physical ceiling follow fixtures, 6 route washes, 36 audience washes, 108 aisle bulbs, 6 prop islands and circus drapery. Saved only background and linked settings.";
+            return "Built 12 physical side follow fixtures, 6 route washes, 36 audience washes, 108 aisle bulbs, 6 prop islands and circus drapery. Saved only background and linked settings.";
+        }
+        [MenuItem("Tools/CurtainCall/Performance/Move Follow Spots To Upper Outer Rig")]
+        public static void MoveFollowSpotsToTrackSides()
+        {
+            if(Application.isPlaying)throw new InvalidOperationException("Stop Play Mode first.");
+            var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if(scene.path!=PerformanceBackgroundLayout.ScenePath)throw new InvalidOperationException("Open performance_background first.");
+            var root=GameObject.Find("PerformanceBackground/CircularVenue/33_DeathCircusRefit").transform;
+            var gallery=root.Find("Upper Outer Spotlight Gallery")??root.Find("Trackside Spotlight Gallery")??Node("Upper Outer Spotlight Gallery",root,Vector3.zero);
+            gallery.name="Upper Outer Spotlight Gallery";
+            var metal=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/RigIron.mat");
+            foreach(var fixture in root.GetComponentsInChildren<PerformanceSpotlightFixture>(true))
+            {
+                var old=root.InverseTransformPoint(fixture.transform.position);
+                int side=old.x<0?-1:1;
+                fixture.transform.SetParent(gallery,false);
+                fixture.transform.localPosition=new Vector3(side*300,238,old.z);
+                fixture.name=fixture.name.Replace("Ceiling Follow Spot","Upper Outer Follow Spot").Replace("Trackside Follow Spot","Upper Outer Follow Spot");
+                fixture.head.rotation=Quaternion.LookRotation(root.TransformPoint(new Vector3(0,2.7f,old.z))-fixture.head.position);
+                var support=fixture.transform.Find("Upper Rig Bracket")??fixture.transform.Find("Trackside Support");
+                if(support==null)support=Cube("Upper Rig Bracket",fixture.transform,Vector3.zero,Vector3.one,metal).transform;
+                support.name="Upper Rig Bracket";support.localPosition=new Vector3(0,3,0);support.localScale=new Vector3(1.2f,6,1.2f);
+                string boomName="Roof Lighting Boom "+side+" "+old.z;
+                if(gallery.Find(boomName)==null)
+                    Cube(boomName,gallery,new Vector3(side*176.5f,243,old.z),new Vector3(249,2.5f,2.5f),metal);
+            }
+            // Preserve the existing mesh asset and its GUID while making the source an exact apex.
+            var mesh=AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/FocusedBeam.asset");
+            var updated=Cone();EditorUtility.CopySerialized(updated,mesh);UnityEngine.Object.DestroyImmediate(updated);
+            EditorUtility.SetDirty(mesh);AssetDatabase.SaveAssetIfDirty(mesh);
+            Polish(gallery.gameObject);
+            EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
         }
         [MenuItem("Tools/CurtainCall/Performance/Add Indirect Gallery (Once)")]
         public static void AddIndirectGallery()
@@ -200,9 +232,18 @@ namespace CurtainCall.EditorTools
         }
         static Mesh Cone()
         {
-            const int n=48;var v=new Vector3[n*2];var uv=new Vector2[n*2];var tris=new int[n*6];
-            for(int i=0;i<n;i++){float a=i*Mathf.PI*2/n;v[i]=new Vector3(Mathf.Cos(a)*.003f,Mathf.Sin(a)*.003f,0);v[i+n]=new Vector3(Mathf.Cos(a),Mathf.Sin(a),1);uv[i]=new Vector2((float)i/n,0);uv[i+n]=new Vector2((float)i/n,1);int j=(i+1)%n;int k=i*6;tris[k]=i;tris[k+1]=i+n;tris[k+2]=j+n;tris[k+3]=i;tris[k+4]=j+n;tris[k+5]=j;}
-            var m=new Mesh{name="Focused ceiling beam"};m.vertices=v;m.uv=uv;m.triangles=tris;m.RecalculateNormals();m.RecalculateBounds();return m;
+            const int n=48,rings=8;var v=new Vector3[n*(rings+1)+1];var uv=new Vector2[v.Length];var tris=new List<int>();
+            for(int ring=0;ring<=rings;ring++)for(int i=0;i<n;i++)
+            {
+                float z=(float)ring/rings,a=i*Mathf.PI*2/n;int at=ring*n+i;
+                v[at]=new Vector3(Mathf.Cos(a)*z,Mathf.Sin(a)*z,z);uv[at]=new Vector2((float)i/n,z);
+                if(ring==rings)continue;
+                int next=ring*n+(i+1)%n,far=at+n,farNext=next+n;
+                tris.AddRange(new[]{at,next,far,next,farNext,far});
+            }
+            int cap=v.Length-1;v[cap]=Vector3.forward;uv[cap]=new Vector2(.5f,1);
+            for(int i=0;i<n;i++)tris.AddRange(new[]{cap,rings*n+i,rings*n+(i+1)%n});
+            var m=new Mesh{name="Focused source cone"};m.vertices=v;m.uv=uv;m.triangles=tris.ToArray();m.RecalculateNormals();m.RecalculateBounds();return m;
         }
     }
 }

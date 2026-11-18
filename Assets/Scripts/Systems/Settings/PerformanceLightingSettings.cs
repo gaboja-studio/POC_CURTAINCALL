@@ -32,10 +32,12 @@ namespace CurtainCall.Settings
         [Tooltip("공연 구역 보조등 색상. 채도가 낮은 따뜻한 백색을 권장합니다.")] public Color indirectColor=new(1,.91f,.81f);
         [Range(45,135),Tooltip("보조등이 퍼지는 바깥 각도(도). 이 등에는 가시 빛기둥이 없어 스폿 연출과 경쟁하지 않습니다.")] public float indirectAngle=110;
         [Range(.5f,1),Tooltip("결승에도 유지할 보조등 비율. 공연 가독성을 위해 절반 아래로 낮추지 않습니다.")] public float indirectFinaleBrightness=.85f;
-        [Header("천장 추적 스포트라이트")]
+        [Header("트랙 외곽 추적 스포트라이트")]
         [Tooltip("플레이어 추적등 사용. 꺼도 코스와 객석 조명은 유지됩니다.")] public bool followSpots=true;
         [Min(0),Tooltip("플레이어에 도달할 스폿 밝기 기준. 등기구와의 거리 제곱으로 광량을 보정합니다.")] public float performerIlluminance=5;
-        [Min(.3f),Tooltip("플레이어 위치의 빛 원뿔 반경(m). 낮추면 조명받는 영역이 좁고 또렷해집니다.")] public float spotRadius=2.4f;
+        [Min(0),Tooltip("외줄타기 추적 스폿의 밝기 배율. 공통 광량에 곱하며 인간 대포에는 영향을 주지 않습니다.")] public float tightropeSpotBrightness=1.6f;
+        [Min(0),Tooltip("인간 대포 추적 스폿의 밝기 배율. 1이면 기존 광량을 유지합니다.")] public float humanCannonSpotBrightness=1;
+        [Min(.3f),Tooltip("플레이어 위치의 빛 원뿔 반경(m). 기본 0.75m로 캐릭터 너비보다 조금 넓게 비춥니다.")] public float spotRadius=.75f;
         [Range(.1f,.98f),Tooltip("바깥 각도 대비 밝은 중심 비율. 1에 가까우면 가장자리 번짐이 줄어듭니다.")] public float innerConeRatio=.82f;
         [Tooltip("주 추적등 색상. 캐릭터 색을 읽기 위한 옅은 백색입니다.")] public Color spotColor=new(.92f,.94f,1);
         [Tooltip("일부 등기구에 섞을 보조 색상.")] public Color secondarySpotColor=new(.76f,.80f,1);
@@ -46,9 +48,9 @@ namespace CurtainCall.Settings
         [Min(0),Tooltip("플레이어 원점에서 위로 겨냥할 높이(m). 보통 가슴을 향합니다.")] public float focusHeight=.9f;
         [Tooltip("추적 스폿 그림자 사용. 켜면 천장과 플레이어 사이의 구조물이 빛을 가릴 수 있으며 다인원 성능 비용이 증가합니다.")] public bool spotShadows=false;
         [Range(0,1),Tooltip("추적 그림자의 진하기.")] public float shadowStrength=.8f;
-        [Header("빛기둥 · 번짐 억제")]
-        [Range(0,.2f),Tooltip("공기 중 추적 빛기둥 농도. 조명 밝기와 별개이며 낮으면 화면을 덜 덮습니다.")] public float beamOpacity=.065f;
-        [Range(.1f,1),Tooltip("실제 스폿 대비 보이는 빛기둥 폭 비율. 낮으면 가느다란 빔으로 보입니다.")] public float beamWidth=.85f;
+        [Header("원뿔 빛 · 번짐 억제")]
+        [Range(0,.2f),Tooltip("광원에서 플레이어로 퍼지는 원뿔 내부의 빛 농도. 실제 조명 밝기와 별개이며 낮으면 화면을 덜 덮습니다.")] public float beamOpacity=.065f;
+        [Range(.1f,1),Tooltip("플레이어 위치에서 실제 스폿 대비 보이는 원뿔 반경 비율. 발원지 반경은 항상 0이며 거리에 비례해 넓어집니다.")] public float beamWidth=1;
         [Range(0,1),Tooltip("기존 장식용 빛기둥 농도 배율. 추적 빛기둥과 경쟁하지 않게 낮게 둡니다.")] public float decorativeBeamBrightness=.12f;
         [Header("결승 연출")]
         [Range(0,1),Tooltip("결승 감광 시작 진행률. 0.86은 코스86%입니다.")] public float finaleStart=.86f;
