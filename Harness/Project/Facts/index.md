@@ -21,7 +21,7 @@
 
 이 POC의 확인 가능한 현재 상태. 상황에 맞는 파일 1개만 연다.
 
-- [performance-background-motion.md](performance-background-motion.md) — 공연장 크레인 철골·쇼 조명의 속도·회전 범위·Scene 미리보기를 조정할 때
+- [performance-background-motion.md](performance-background-motion.md) — 공연장 동작·천장 추적등·객석 약광·GameSettings 명암과 한국어 툴팁을 조정할 때
 
 - [overview.md](overview.md) — 기획 개요(M2 2026-10-27)와 현재 구현 상태. 게임 규칙·UX·씬 Task를 계획할 때
 - [game-flow.md](game-flow.md) — 최신 게임 흐름(M2 2026-10-27): 하루 시계·안전지대 없는 쉬는 시간·밤 정비·서비스 상시·기물 밤 구매·토큰 공동 자금·보상 확정 규칙·신체 복구 100/+25·난이도 단계 선택·탈출·세대 교체. 게임 흐름과 인간 대포 예외를 대조할 때

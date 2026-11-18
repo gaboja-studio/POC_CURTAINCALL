@@ -1,8 +1,8 @@
 ---
-summary: 공연장 톱날·철골·쇼 조명·안개·현수물·먼지/불티의 동작과 전체 Scene 미리보기
+summary: 공연장 동적 연출·천장 추적등·객석 약광과 GameSettings 조명 조정
 status: active
-updated: 2026-10-30
-source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각형 보존 확인
+updated: 2026-11-18
+source: Task-20261020-067; Task-20261118-159; Unity 실제 Game View와 추적·설정 복원 검사
 ---
 
 # 공연장 동적 연출
@@ -41,3 +41,16 @@ source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각�
 
 - 최종 미감·회전 범위·대상 PC 성능은 사용자 확인이 필요하다.
 - 배경 씬과 파생 메시가 private 저장소에 있으므로 공개 코드와 비공개 에셋을 함께 보존해야 한다.
+
+## 어두운 서커스와 천장 추적등 (Task-159)
+
+- `33_DeathCircusRefit`: 실물 천장 등기구 12개, 코스 천장등 6개, 객석 약광 36개, 난간 전구 108개, 철창·호이스트·컨베이어 소품 섬 6개. 장식 충돌체 159개는 비활성이다.
+- `GameSettings.PerformanceLighting` → `Assets/Resources/Settings/GameSettings/PerformanceLightingSettings.asset`. 메뉴 `Tools/CurtainCall/Performance/Select Lighting Settings`로 선택한다. 모든 조정값에 한국어 툴팁이 있으며 Play 중 즉시 반영된다.
+- 배경 조명·거리 감쇠·표면 명도·자체 발광·객석 조명/발광·추적 반경/색상/회전속도·빛기둥 농도를 각각 조절한다. 자체 발광 재질이 있으므로 조명 세기만 낮추면 철골이 밝게 남는다. 런타임 파생 재질로 조정하고 비활성화 때 복원한다.
+- `PerformanceFinaleLighting`이 전체 공연에서 살아 있는 플레이어를 추적한다. `PerformanceSpotlightFixture`의 장착 위치는 고정하고 헤드만 회전한다. 실제 렌즈 Spot Light와 보이는 원뿔은 같은 방향을 쓴다. 결승 감광은 기존 진행률을 이용한다.
+- 공용 배경은 실게임에서 1/3 크기, 기존 광량은 1/9가 된다. 추적등은 실게임 거리로 광량과 원뿔 각도를 계산한다. 기본 반경 2.4m, 중심각 비율 .82. 그림자를 켜면 중간 철골이 빛을 가릴 수 있어 기본은 꺼져 있다.
+- 신규 Dzendor/Conveyor 재질은 `DeathCircus/*_VenueURP.mat` 파생본을 사용한다. 원본 에셋은 변경하지 않는다. `PerformanceVenueAuthoring.Build()`는 중복 설치를 거부한다.
+- 외줄의 녹색 발판은 기존 `TightropeCourse.SafeGround`의 안전지대 표시다. 조명 오류로 오인해 제거하지 않는다.
+- 후속 피드백으로 `Performance Indirect Gallery`에 부드러운 보조등22개 추가. Rendering Layer 7(bit128)을 코스·플레이어에만 부여하고 배경에서 제외한다. GameObject/물리 Layer는 변경하지 않으며 종료·비활성 때 원래 rendering bit를 복원한다. 동적 기물은 0.5초마다 갱신한다.
+- `Indirect Fill/Brightness/Range/Color/Angle/Finale Brightness`: 기본 켜짐·0.55배·30m·따뜻한 백색·110도·결승0.85배. 그림자와 빛기둥을 쓰지 않는 실시간 반사광 근사이며 베이크 GI가 아니다. 총 장식 콜라이더181개 비활성. 외줄601·대포2665 코스 renderer 포함, 보조등 대상 배경0개 확인.
+- 실제 외줄 0.7m 이동 녹화에서 장착 위치 변화 0m, 최대 추적 오차 약 .143도. 라이브 반경/객석 밝기·비활성/재활성·재질 복원 검사 통과. 다중 클라이언트와 대상 PC 성능 측정은 별도 확인 범위다.
