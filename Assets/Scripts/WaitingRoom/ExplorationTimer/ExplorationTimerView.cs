@@ -1,4 +1,5 @@
 using CurtainCall.Campaign;
+using CurtainCall.Sound;
 using CurtainCall.Settings;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace CurtainCall.WaitingRoom
     /// 탐색 제한 시간 화면 표시(임시 연출, 2026-10-16 대기실 담당 결정). 모든 화면에서 각자 그린다.
     /// - 우측 하단: 원형 시계 아이콘(남은 비율 채움) + mm:ss. 쉬는 시간 동안만 보이고, 아무도 나가지 않아 멈춘 동안에도 전체 시간을 보여 준다.
     /// - 시계 옆: 경보·방송 문구(<see cref="ExplorationTimerAnnouncer.Announced"/>)를 잠시 띄운다.
-    /// - 소집 경보면 종소리. 클립이 비어 있으면 코드로 만든 임시 '딩동'을 쓴다.
+    /// - 소집 경보면 사운드 상황 <see cref="SoundSituations.RecallBroadcast"/>(기본 UI-104). 소리는 Tools/CurtainCall/사운드 설정에서 고친다.
     /// UI는 실행 때 코드로 만든다(프리팹 없음).
     /// </summary>
     public sealed class ExplorationTimerView : MonoBehaviour
@@ -22,9 +23,6 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] bool showLegacyUi = true;
         [Tooltip("비우면 Resources의 Pretendard 폰트.")]
         [SerializeField] TMP_FontAsset font;
-        [Tooltip("소집 경보 종소리. 비우면 임시 '딩동'을 만든다.")]
-        [SerializeField] AudioClip bellClip;
-        [SerializeField, Range(0f, 1f)] float bellVolume = 0.8f;
         [Tooltip("문구가 떠 있는 시간(초).")]
         [SerializeField, Min(0.5f)] float messageDuration = 4f;
 
@@ -38,18 +36,12 @@ namespace CurtainCall.WaitingRoom
         Image clockFill;
         TextMeshProUGUI timeText;
         TextMeshProUGUI messageText;
-        AudioSource audioSource;
         float messageUntil;
 
         void Awake()
         {
             if (announcer == null) announcer = FindFirstObjectByType<ExplorationTimerAnnouncer>();
             if (showLegacyUi) BuildUi();
-            audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f;
-            LocalAudioController.Register(audioSource, LocalAudioCategory.Sfx);
-            if (bellClip == null) bellClip = MakeBell();
         }
 
         void OnEnable()
@@ -62,7 +54,8 @@ namespace CurtainCall.WaitingRoom
             if (announcer != null) announcer.Announced -= Show;
         }
 
-        void Start() => run = CampaignRun.EnsureExists();
+        // 런 상태는 옛 시계 화면을 그릴 때만 읽는다(소집 종소리는 방송 이벤트만 받음).
+        void Start() { if (showLegacyUi) run = CampaignRun.EnsureExists(); }
 
         void LateUpdate()
         {
@@ -96,7 +89,7 @@ namespace CurtainCall.WaitingRoom
                 messageText.color = a.IsRecallAlarm ? alarmColor : normalColor;
             }
             messageUntil = Time.unscaledTime + messageDuration;
-            if (a.IsRecallAlarm && bellClip != null) audioSource.PlayOneShot(bellClip, bellVolume);
+            if (a.IsRecallAlarm) SoundManager.Play(SoundSituations.RecallBroadcast);
         }
 
         // ── UI 만들기 ────────────────────────────────────────
@@ -197,34 +190,6 @@ namespace CurtainCall.WaitingRoom
             tex.SetPixels32(pixels);
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
-        }
-
-        // 임시 종소리: 두 음(딩 E5 → 동 C5), 배음 조금, 지수 감쇠.
-        static AudioClip MakeBell()
-        {
-            const int rate = 44100;
-            const float noteLength = 0.9f, gap = 0.45f;
-            int total = (int)(rate * (gap + noteLength));
-            var data = new float[total];
-            AddTone(data, rate, 0, 659.25f, noteLength);
-            AddTone(data, rate, (int)(rate * gap), 523.25f, noteLength);
-            var clip = AudioClip.Create("TempRecallBell", total, 1, rate, false);
-            clip.SetData(data, 0);
-            return clip;
-        }
-
-        static void AddTone(float[] data, int rate, int start, float freq, float length)
-        {
-            int count = Mathf.Min((int)(rate * length), data.Length - start);
-            for (int i = 0; i < count; i++)
-            {
-                float t = i / (float)rate;
-                float env = Mathf.Exp(-4f * t) * Mathf.Clamp01(t * 200f);
-                float w = Mathf.Sin(2f * Mathf.PI * freq * t)
-                          + 0.4f * Mathf.Sin(2f * Mathf.PI * freq * 2.76f * t) * Mathf.Exp(-3f * t)
-                          + 0.2f * Mathf.Sin(2f * Mathf.PI * freq * 5.4f * t) * Mathf.Exp(-6f * t);
-                data[start + i] += 0.35f * env * w;
-            }
         }
     }
 }

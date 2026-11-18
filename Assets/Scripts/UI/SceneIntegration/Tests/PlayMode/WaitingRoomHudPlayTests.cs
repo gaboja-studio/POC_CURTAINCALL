@@ -188,7 +188,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Get(banner, "IsVisible"));
             StringAssert.Contains("소집 경보", Text(banner));
             StringAssert.Contains("무대 입구로 모이세요", Text(banner));
-            Assert.IsNotNull(announcer.GetComponent<AudioSource>(), "The existing recall bell must survive legacy UI cleanup.");
+            // 소집 종소리는 사운드 카탈로그의 UI-104 큐로 재생한다(임시 합성음 대체).
+            var catalog = Resources.Load<ScriptableObject>("Settings/Sound/SoundCatalog");
+            Assert.IsNotNull(catalog, "Recall bell cue catalog is missing.");
+            Assert.AreEqual(true, catalog.GetType().GetMethod("Find").Invoke(catalog, new object[] {"UI-104"}) != null, "Recall bell cue UI-104 must exist.");
             var binding = Find("CurtainCall.UI.SceneIntegration.WaitingRoomUiBinding") as Behaviour;
             binding.enabled = false;
             yield return WaitFor(() => !SceneManager.GetSceneByPath(Common).isLoaded);

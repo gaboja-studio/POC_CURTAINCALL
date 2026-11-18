@@ -5,6 +5,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Reward;
 using CurtainCall.Settings;
+using CurtainCall.Sound;
 using CurtainCall.UI.BackstageHudV1;
 using CurtainCall.UI.CaptionsV1;
 using CurtainCall.UI.NotificationsV1;
@@ -197,17 +198,23 @@ namespace CurtainCall.UI.SceneIntegration
             }
             if (!space) return;
             newDeaths.Clear();
+            bool localDied = false;
             foreach (var player in NetworkPlayer.All)
             {
                 if (!player || !player.IsSpawned) continue;
                 bool dead = player.State is PlayerState.Fallen or PlayerState.Retired;
                 if (dead && observedDeaths.TryGetValue(player,out bool wasDead) && !wasDead)
+                {
+                    localDied |= player == NetworkPlayer.Local;
                     newDeaths.Add(player == NetworkPlayer.Local ? "나" : player.Slot >= 0
                         ? $"단원 {player.Slot + 1}" : WaitingRoomShop.PlayerLabel(player.OwnerClientId));
+                }
                 observedDeaths[player] = dead;
             }
             if (newDeaths.Count > 0)
-                HudUIManager.Current.ShowDeathWarning("",transform,string.Join(", ",newDeaths) + " 사망",announcementSeconds);
+                // 개인 사망음은 내 단원이 죽었을 때만. 동료 사망 소리는 경고 배너음(UI-102)이 결정되면 상황을 추가한다.
+                HudUIManager.Current.ShowDeathWarning("",transform,string.Join(", ",newDeaths) + " 사망",announcementSeconds,
+                    localDied ? SoundSituations.WaitingRoomLocalDeath : null);
         }
 
         void OnDisable()

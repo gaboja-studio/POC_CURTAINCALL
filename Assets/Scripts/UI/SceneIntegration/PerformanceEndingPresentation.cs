@@ -7,6 +7,7 @@ using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Results;
 using CurtainCall.Reward;
+using CurtainCall.Sound;
 using CurtainCall.Settings;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.NotificationsV1;
@@ -240,7 +241,8 @@ namespace CurtainCall.UI.SceneIntegration
             // 포기한 사람은 정산만 사망과 같다. 사망 경고 없이 그 자리 그대로 결과를 본다.
             if (rewards.EndedByForfeit && local.State == PlayerState.Normal) return;
             float duration = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.deathNoticeSeconds : 2;
-            deathNotice = HudUIManager.Current.ShowDeathWarning("사망한 단원의 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration));
+            deathNotice = HudUIManager.Current.ShowDeathWarning("사망한 단원의 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration),
+                SoundSituations.PerformanceLocalDeath);
         }
         public void PresentResult(PerformanceResult result)
         {
