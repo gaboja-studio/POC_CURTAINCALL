@@ -67,6 +67,7 @@ MonoBehaviour:
     routeJumpSpeed: 18
     chargeWarning: 1.5
     debrisWarning: 1.1
+    bossDebrisSpacing: 2.4
     debrisCooldown: 8
     debrisMinimumRange: 7
     debrisSpeed: 21

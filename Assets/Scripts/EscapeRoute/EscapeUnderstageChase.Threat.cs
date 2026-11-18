@@ -2,6 +2,7 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Tightrope;
+using CurtainCall.WorldIndicators;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,7 +17,10 @@ namespace CurtainCall.EscapeRoute
             public ulong Actor;
             public double Started;
             public float Duration;
-            public Vector3 From, To;
+            public Vector3 From, To, Spread;
+            public byte Stopped;
+            public int Count => Spread == Vector3.zero ? 1 : 3;
+            public Vector3 Endpoint(int index) => index == 0 ? To : index == 1 ? To - Spread : To + Spread;
         }
 
         [SerializeField] Transform thrownDebris;
@@ -24,6 +28,9 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] AudioClip chargeVoice, throwVoice;
         ThreatCue threat;
         double threatRound = -1, nextDebris, voicedAt = -1, pressureRoarRound = -1;
+        readonly Transform[] sideDebris = new Transform[2];
+        readonly LineRenderer[] sideRings = new LineRenderer[2];
+        readonly AreaIndicatorView[] sideLandings = new AreaIndicatorView[2];
         float previousFlight;
 
         void ResetThreat()
@@ -34,7 +41,7 @@ namespace CurtainCall.EscapeRoute
             nextDebris = 0;
             previousFlight = 0;
             voicedAt = -1;
-            if (thrownDebris) thrownDebris.gameObject.SetActive(false);
+            HideDebrisProps();
             if (captureCable) captureCable.enabled = false;
             if (aimRing) aimRing.enabled = false;
             if (threatAudio) threatAudio.Stop();
@@ -80,18 +87,30 @@ namespace CurtainCall.EscapeRoute
             else if (threat.Phase == ThreatPhase.DebrisFlight)
             {
                 float t = Mathf.Clamp01(age / threat.Duration);
-                var from = DebrisPosition(threat.From, threat.To, previousFlight);
-                var to = DebrisPosition(threat.From, threat.To, t);
-                previousFlight = t;
-                if (SweepProjectile(from, to, Tuning.debrisRadius, ulong.MaxValue, out var hit) || t >= 1)
+                AdvanceDebrisFlight(t);
+                if (threat.Stopped == (1 << threat.Count) - 1)
                 {
                     threat.Phase = ThreatPhase.Impact;
-                    threat.From = hit;
                     threat.Started = timer.Clock;
                 }
             }
             else if (age >= .35f) threat = default;
             return true;
+        }
+
+        void AdvanceDebrisFlight(float t)
+        {
+            for (int i = 0; i < threat.Count; i++)
+            {
+                int bit = 1 << i;
+                if ((threat.Stopped & bit) != 0) continue;
+                var aim = threat.Endpoint(i);
+                var from = DebrisPosition(threat.From, aim, previousFlight);
+                var to = DebrisPosition(threat.From, aim, t);
+                if (SweepProjectile(from, to, Tuning.debrisRadius, ulong.MaxValue, out _) || t >= 1f)
+                    threat.Stopped |= (byte)bit;
+            }
+            previousFlight = t;
         }
 
         bool BeginChargeWarning(NetworkPlayer runner)
@@ -120,7 +139,7 @@ namespace CurtainCall.EscapeRoute
             nextSend = 0;
         }
 
-        bool TryDebrisAttack(NetworkPlayer runner)
+        bool TryDebrisAttack(NetworkPlayer runner, bool bossVolley = false)
         {
             double now = EscapeRouteTimer.Current.Clock;
             if (InShowcase || !CanUseAttackHand || !runner || WaitingForConveyor(runner.OwnerClientId)
@@ -134,6 +153,11 @@ namespace CurtainCall.EscapeRoute
             if (TryPressureWarning(runner)) return true;
             threat = new ThreatCue { Phase = ThreatPhase.DebrisWarning, Actor = runner.OwnerClientId,
                 Started = now, Duration = Mathf.Clamp(distance / Tuning.debrisSpeed, .25f, 2f), From = hand, To = aim };
+            if (bossVolley)
+            {
+                var right = Vector3.Cross(Vector3.up, aim - hand).normalized;
+                threat.Spread = (right == Vector3.zero ? transform.right : right) * Tuning.bossDebrisSpacing;
+            }
             float cooldown = Tuning.debrisCooldown * Mathf.Lerp(1f, Tuning.pressureDebrisCooldownScale, Pressure(runner));
             nextDebris = now + cooldown + Random.Range(0f, 2f);
             if (fullRoute) fullRoute.MarkPressured(runner);
@@ -220,10 +244,6 @@ namespace CurtainCall.EscapeRoute
             bool debris = cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight;
             float progress = (age + (cue.Phase == ThreatPhase.DebrisFlight ? Tuning.debrisWarning : 0))
                 / Mathf.Max(.001f, Tuning.debrisWarning + cue.Duration);
-            bool legacyEndpoint = PresentEndpointWorldUi(ref debrisLanding, debris
-                && (cue.Phase != ThreatPhase.DebrisFlight || age < cue.Duration),
-                cue.To - Vector3.up, Tuning.debrisRadius, progress, out var support);
-            if (thrownDebris) thrownDebris.gameObject.SetActive(cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight);
             // The opening roar belongs to the creature, without a selected player or marker.
             // A thrown object retains its separate, time-limited impact warning.
             // Do not overwrite the separate capture attack's indicators when no threat is active.
@@ -232,7 +252,12 @@ namespace CurtainCall.EscapeRoute
                 if (captureCable) captureCable.enabled = false;
                 if (attackVolume) attackVolume.Hide();
                 if (grabTarget) grabTarget.Hide();
-                if (aimRing) aimRing.enabled = legacyEndpoint && cue.Phase == ThreatPhase.DebrisWarning;
+                if (aimRing) aimRing.enabled = false;
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                bool active = debris && i < cue.Count && (cue.Stopped & (1 << i)) == 0;
+                PresentDebrisPiece(cue, i, active, age, progress);
             }
             if (cue.Phase == ThreatPhase.None) return;
             if (cue.Phase == ThreatPhase.DebrisWarning || cue.Phase == ThreatPhase.DebrisFlight)
@@ -252,15 +277,42 @@ namespace CurtainCall.EscapeRoute
                     voicedAt = cue.Started;
                     if (threatAudio) threatAudio.PlayOneShot(cue.Phase == ThreatPhase.ChargeWarning ? chargeVoice : throwVoice);
                 }
-                if (cue.Phase == ThreatPhase.DebrisWarning && aimRing && aimRing.enabled)
-                    aimRing.transform.SetPositionAndRotation(support.point + support.normal * .07f,
-                        Quaternion.FromToRotation(Vector3.up, support.normal) * Quaternion.Euler(90, 0, 0));
             }
-            if (thrownDebris && thrownDebris.gameObject.activeSelf)
+        }
+
+        void PresentDebrisPiece(ThreatCue cue, int i, bool active, float age, float progress)
+        {
+            ref var landing = ref (i == 0 ? ref debrisLanding : ref sideLandings[i - 1]);
+            var aim = cue.Endpoint(i);
+            bool warning = cue.Phase == ThreatPhase.DebrisWarning;
+            bool ringNeeded = PresentEndpointWorldUi(ref landing, active && (warning || age < cue.Duration),
+                aim - Vector3.up, Tuning.debrisRadius, progress, out var support) && warning;
+            if (i > 0 && ringNeeded && !sideRings[i - 1] && aimRing)
+                sideRings[i - 1] = Instantiate(aimRing, aimRing.transform.parent);
+            var ring = i == 0 ? aimRing : sideRings[i - 1];
+            // The central ring doubles as the capture indicator between threats.
+            if (ring && (i > 0 || cue.Phase != ThreatPhase.None))
             {
-                thrownDebris.position = cue.Phase == ThreatPhase.DebrisFlight ? DebrisPosition(cue.From, cue.To, age / cue.Duration) : Hand;
-                thrownDebris.rotation = Quaternion.Euler(age * 270f, age * 190f, age * 130f);
+                ring.enabled = ringNeeded;
+                if (ringNeeded) ring.transform.SetPositionAndRotation(support.point + support.normal * .07f,
+                    Quaternion.FromToRotation(Vector3.up, support.normal) * Quaternion.Euler(90, 0, 0));
             }
+
+            bool visible = active && (i == 0 || !warning);
+            if (i > 0 && visible && !sideDebris[i - 1] && thrownDebris)
+                sideDebris[i - 1] = Instantiate(thrownDebris, thrownDebris.parent);
+            var prop = i == 0 ? thrownDebris : sideDebris[i - 1];
+            if (!prop) return;
+            prop.gameObject.SetActive(visible);
+            if (visible)
+                prop.SetPositionAndRotation(warning ? Hand : DebrisPosition(cue.From, aim, age / cue.Duration),
+                    Quaternion.Euler(age * 270f, i * 37f + age * 190f, age * 130f));
+        }
+
+        void HideDebrisProps()
+        {
+            if (thrownDebris) thrownDebris.gameObject.SetActive(false);
+            foreach (var prop in sideDebris) if (prop) prop.gameObject.SetActive(false);
         }
     }
 }
