@@ -62,3 +62,4 @@
 - [arrived-state-after-performance.md](arrived-state-after-performance.md) — 외줄 완주자가 Arrived로 남아 대기실 안내·상호작용·첫날 진행이 멈춘다
 
 - [escape-landing-surface-overlap.md](escape-landing-surface-overlap.md) — 착지대와 장식 받침의 자글거림, 장식 삭제 후 벽 구멍을 검사할 때
+- [escape-transfer-ack-wait.md](escape-transfer-ack-wait.md) — 탈출로 입장에서 참가자의 배치 확인을 기다리다 로딩이 멈출 때
