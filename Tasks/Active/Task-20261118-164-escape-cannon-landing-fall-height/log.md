@@ -12,3 +12,5 @@
 
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 최신 DEV에 맞춘 최종 결과는 새 EditMode 6/6 통과다. 잘못된 발신자·이전 반동 구간의 착지 재개 응답도 별도로 검사했다. 로컬 UDP 4인에서 장치 재활성화 검증을 다시 통과했다.
+
+- 2026-11-18 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/432 (fix/escape-cannon-landing-fall-height → dev)
