@@ -376,6 +376,61 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(chase, method, cue, .1d); Assert.That(Visible(view), Is.False);
         }
 
+        [Test] public void OneBossThrowWarnsAndReleasesThreePiecesAndOnlyTheBlockedPieceStops()
+        {
+            var player = PreparingPlayer();
+            player.transform.position = origin + Vector3.forward * 14;
+            Set(chase, "attack", Attack("None"));
+            var rock = Child("Concrete");
+            Set(chase, "thrownDebris", rock);
+            Assert.That(Call(chase, "BossAttack", player), Is.True);
+            var cue = Get(chase, "threat");
+            Assert.That(Get(cue, "Phase").ToString(), Is.EqualTo("DebrisWarning"));
+            var spread = (Vector3)Get(cue, "Spread");
+            Assert.That(spread.x, Is.EqualTo(2.4f).Within(.01f));
+            var center = (Vector3)Get(cue, "To");
+            double warningAt = (double)Get(cue, "Started");
+            Call(chase, "PresentThreat", cue, warningAt);
+            var sides = (Component[])Get(chase, "sideLandings");
+            var markers = new[] { View(chase, "debrisLanding"), sides[0], sides[1] };
+            for (int i = 0; i < markers.Length; i++)
+            {
+                Assert.That(Visible(markers[i]), Is.True);
+                Assert.That(BoundsOf(markers[i]).center.x,
+                    Is.EqualTo(center.x + (i == 0 ? 0f : i == 1 ? -spread.x : spread.x)).Within(.02f));
+            }
+
+            // Cross the one shared release deadline, then step host collision through a wall in the left lane.
+            player.transform.position += Vector3.forward * 5;
+            Set(chase, "threatRound", 0d);
+            Set(cue, "Started", warningAt - 2d);
+            Set(chase, "threat", cue);
+            Assert.That(Call(chase, "AdvanceThreat"), Is.True);
+            cue = Get(chase, "threat");
+            Assert.That(Get(cue, "Phase").ToString(), Is.EqualTo("DebrisFlight"));
+            var release = (Vector3)Get(cue, "From");
+            double releaseAt = (double)Get(cue, "Started");
+            float duration = (float)Get(cue, "Duration");
+            Call(chase, "PresentThreat", cue, releaseAt + duration * .5d);
+            var props = (Transform[])Get(chase, "sideDebris");
+            Assert.That(rock.gameObject.activeSelf && props.All(prop => prop.gameObject.activeSelf), Is.True);
+            Assert.That(props[0].position.x, Is.LessThan(rock.position.x - 1f));
+            Assert.That(props[1].position.x, Is.GreaterThan(rock.position.x + 1f));
+            var wall = Own(new GameObject("Left lane obstruction")).AddComponent<BoxCollider>();
+            wall.transform.position = Vector3.Lerp(release, center - spread, .8f) + Vector3.up;
+            wall.size = new Vector3(.25f, 6f, .25f);
+            Physics.SyncTransforms();
+            Call(chase, "AdvanceDebrisFlight", .5f);
+            Call(chase, "AdvanceDebrisFlight", .9f);
+            cue = Get(chase, "threat");
+            Assert.That((byte)Get(cue, "Stopped"), Is.EqualTo(2));
+            Call(chase, "PresentThreat", cue, releaseAt + duration * .9d);
+            Assert.That(props[0].gameObject.activeSelf || Visible(sides[0]), Is.False);
+            Assert.That(rock.gameObject.activeSelf && props[1].gameObject.activeSelf && Visible(sides[1]), Is.True);
+            Call(chase, "AdvanceDebrisFlight", 1f);
+            Assert.That((byte)Get(Get(chase, "threat"), "Stopped"), Is.EqualTo(7));
+        }
+
         [Test] public void ActualBossAdaptersUseBodyWidthAndHideAcrossPhases()
         {
             root.transform.localScale = new Vector3(2, 1, 3); Physics.SyncTransforms();

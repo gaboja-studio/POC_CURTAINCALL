@@ -15,6 +15,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] ParticleSystem ignitionSparks;
         [SerializeField, Tooltip("World-space movement of the falling load's visual during the harmless rest phase.")]
         Vector3 landingVisualTransfer;
+        [SerializeField] Transform leftChuteDoor, rightChuteDoor;
+        [SerializeField] float chuteDoorTravel;
         CurtainCall.WorldIndicators.HazardWorldIndicator worldIndicator;
         public double Cycle(double elapsed)
         {
@@ -55,6 +57,14 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, bool running)
         {
             double t = Cycle(elapsed);
+            if (leftChuteDoor && rightChuteDoor)
+            {
+                float opening = Mathf.InverseLerp(warningSeconds - .55f, warningSeconds, (float)t);
+                float closing = Mathf.InverseLerp(warningSeconds + activeSeconds, warningSeconds + activeSeconds + .5f, (float)t);
+                float slide = running ? chuteDoorTravel * Mathf.SmoothStep(0, 1, opening - closing) : 0;
+                leftChuteDoor.localPosition = Vector3.left * slide;
+                rightChuteDoor.localPosition = Vector3.right * slide;
+            }
             if (ignitionSparks)
             {
                 bool heating = running && t >= Math.Max(0, warningSeconds - .7f) && t < warningSeconds;
@@ -81,6 +91,8 @@ namespace CurtainCall.HumanCannon
         {
             if (warning != null) warning.gameObject.SetActive(false);
             if (worldIndicator) worldIndicator.Hide();
+            if (leftChuteDoor) leftChuteDoor.localPosition = Vector3.zero;
+            if (rightChuteDoor) rightChuteDoor.localPosition = Vector3.zero;
             if (ignitionSparks) ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
     }

@@ -66,6 +66,30 @@ namespace CurtainCall.EscapeRoute.Tests
             roots.Clear();
         }
 
+        [TestCase(-2.95f)]
+        [TestCase(.17f)]
+        [TestCase(2.95f)]
+        public void BladeContactLeavesAnOpenGapAtTheHitHeight(float y)
+        {
+            var cable = Cable(Vector3.down * 3, Vector3.up * 3);
+            Assert.That(Disk(cable, new Vector3(0, y, -2), new Vector3(0, y, 2),
+                Vector3.up, out _, out var hit), Is.True);
+            Assert.That(Call(cable, "ApplyCut", hit, false), Is.True);
+            var mesh = cable.GetComponent<MeshFilter>().sharedMesh;
+            foreach (int submesh in new[] { 0, 1 })
+            {
+                var vertices = mesh.vertices;
+                var indices = mesh.GetTriangles(submesh);
+                for (int i = 0; i < indices.Length; i += 3)
+                {
+                    float a = vertices[indices[i]].y - hit.y;
+                    float b = vertices[indices[i + 1]].y - hit.y;
+                    float c = vertices[indices[i + 2]].y - hit.y;
+                    Assert.That(Mathf.Min(a,b,c) > .1f || Mathf.Max(a,b,c) < -.1f, Is.True);
+                }
+            }
+        }
+
         [Test]
         public void ThinBladeRejectsAdjacentStrandInsideItsSphericalBroadPhase()
         {

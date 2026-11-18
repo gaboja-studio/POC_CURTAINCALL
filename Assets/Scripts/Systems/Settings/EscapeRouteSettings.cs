@@ -155,6 +155,8 @@ namespace CurtainCall.Settings
             [Min(.2f)] public float chargeWarning = 1.5f;
             [Tooltip("콘크리트 파편을 던지기 전 예고 시간(초).")]
             [Min(.2f)] public float debrisWarning = 1.1f;
+            [Tooltip("마지막 보스가 동시에 던지는 세 파편의 착지점 간격(m).")]
+            [Min(.1f)] public float bossDebrisSpacing = 2.4f;
             [Tooltip("파편 공격 사이 최소 대기 시간(초).")]
             [Min(1f)] public float debrisCooldown = 8f;
             [Tooltip("파편 공격을 시작할 최소 대상 거리(m).")]

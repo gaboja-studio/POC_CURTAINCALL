@@ -50,7 +50,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             foreach(var hazard in UnityEngine.Object.FindObjectsByType<HumanCannonHazard>(FindObjectsSortMode.None))
             {
                 var data=new SerializedObject(hazard);
-                data.FindProperty("rotationSpeed").floatValue=105;
+                data.FindProperty("rotationSpeed").floatValue = hazard.Kind == CannonHazardKind.GroundSaw ? 210f : 105f;
                 data.FindProperty("periodSeconds").floatValue=4.2f;
                 data.ApplyModifiedProperties();
                 var cue=hazard.GetComponent<HumanCannonHazardCue>(); if(cue==null)continue;
