@@ -8,10 +8,24 @@ namespace CurtainCall.Settings
     public sealed class PerformanceEquipmentSettings : ScriptableObject
     {
         [Header("환호 고리 — 불은 피해를 주지 않음")]
+        [InspectorName("환호 포인트 사용")]
+        [Tooltip("끄면 모든 환호 포인트의 표시와 획득 보상을 중단합니다. 온라인에서는 호스트 설정을 따르며, 기존 배치와 외형은 유지합니다.")]
+        public bool cheerPointsEnabled = true;
         [InspectorName("환호 포인트 외형")] public CheerPointStyle cheerStyle;
         [InspectorName("외형 프리팹 (불/금빛/가면 순서)")] public GameObject[] cheerVisuals = new GameObject[3];
         [InspectorName("고리 내부 판정 반지름"), Min(.1f)] public float hoopRadius = 1.25f;
         [InspectorName("기본 획득 환호량"), Min(0)] public int cheerAmount = 15;
+        [Header("환호 고리 — 매달림과 회수")]
+        [InspectorName("반복 로프 메시")] public Mesh cheerRopeMesh;
+        [InspectorName("로프 매듭 프리팹")] public GameObject cheerRopeKnot;
+        [InspectorName("매다는 줄 재질")] public Material cheerRopeMaterial;
+        [InspectorName("줄 최소 길이"), Min(10)] public float cheerRopeLength = 80f;
+        [InspectorName("줄 두께"), Min(.01f)] public float cheerRopeWidth = .055f;
+        [InspectorName("획득 후 아래로 당기는 거리"), Min(0)] public float cheerDipDistance = .3f;
+        [InspectorName("아래로 당기는 시간"), Min(.05f)] public float cheerDipSeconds = .28f;
+        [InspectorName("위로 회수하는 가속도"), Min(1)] public float cheerRetractAcceleration = 36f;
+        [InspectorName("위로 회수하는 최고 속도"), Min(1)] public float cheerRetractSpeed = 28f;
+        [InspectorName("숨기기 전 최소 상승 높이"), Min(3)] public float cheerHideMinHeight = 18f;
         [Header("수동 공연 기물")]
         [InspectorName("신발 추가 점프 높이"), Min(.1f)] public float extraJumpHeight = 2f;
         [InspectorName("구조 장갑 최대 거리"), Min(.1f)] public float rescueRange = 4f;

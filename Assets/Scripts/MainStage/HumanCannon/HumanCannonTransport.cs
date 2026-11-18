@@ -151,7 +151,7 @@ namespace CurtainCall.HumanCannon
 
         public bool ContainsPassenger(Vector3 feet)
         {
-            if (!IsConfigured) return false;
+            if (!isActiveAndEnabled || !IsConfigured) return false;
             Vector3 point = Quaternion.Inverse(Rotation) * (feet - platform.position);
             // 점프·트램폴린 위 동승도 포함하되 아래로 떨어진 사람은 세지 않는다.
             return Mathf.Abs(point.x) < halfSize.x && Mathf.Abs(point.z) < halfSize.y
@@ -161,21 +161,21 @@ namespace CurtainCall.HumanCannon
         /// <summary>발판 면적 위 높이 제한 없는 기둥. 트램폴린 반동으로 높이 뜬 사람도 발판 위로 본다.</summary>
         public bool ContainsAirColumn(Vector3 point)
         {
-            if (!IsConfigured) return false;
+            if (!isActiveAndEnabled || !IsConfigured) return false;
             Vector3 local = Quaternion.Inverse(Rotation) * (point - platform.position);
             return Mathf.Abs(local.x) < halfSize.x && Mathf.Abs(local.z) < halfSize.y && local.y >= -0.15f;
         }
 
         public bool ContainsFallColumn(Vector3 contact)
         {
-            if (!IsConfigured) return false;
+            if (!isActiveAndEnabled || !IsConfigured) return false;
             Vector3 point = Quaternion.Inverse(Rotation) * (contact - platform.position);
             return Mathf.Abs(point.x) < halfSize.x && Mathf.Abs(point.z) < halfSize.y && point.y <= 2f;
         }
 
         public bool ContainsFeet(Vector3 feet, float margin = 0.15f)
         {
-            if (!IsConfigured) return false;
+            if (!isActiveAndEnabled || !IsConfigured) return false;
             Vector3 point = Quaternion.Inverse(Rotation) * (feet - platform.position);
             const float tolerance = 0.00001f;
             return Mathf.Abs(point.x) <= halfSize.x - margin + tolerance && Mathf.Abs(point.z) <= halfSize.y - margin + tolerance

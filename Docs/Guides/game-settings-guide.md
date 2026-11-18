@@ -19,6 +19,7 @@
 | `BaseGameSettings` | 묘기와 상관없는 게임 기본값: 세션·캐릭터·입력·균형 공통·연출·동기화 |
 | `Tricks/TightropeSettings` | 외줄 묘기 값: 코스·진행·줄 위 동작·손잡기·목마·카메라·보상 연결 |
 | `Tricks/Rewards/temporary-reward` | 공연 보상 임시 수치(환호·야유·상한·보너스). 항목·정산: [reward-settings-guide.md](reward-settings-guide.md) |
+| `Items/PerformanceEquipment` | 공연 기물과 환호 포인트. **환호 포인트 사용 = ON**이 기본이며, 켜면 기존 고리 표시·통과 보상을 함께 복구한다. 온라인은 호스트 기준, 실행 중 변경도 반영. 줄 길이·두께·하강/상승 속도·숨기기 전 최소 높이도 조절한다. `Tools → CurtainCall → 공연 → 공연 배치`에서 같은 설정과 난이도별 배치를 편집한다. |
 
 묘기가 늘어나면 `Tricks/` 아래에 묘기별 파일이 하나씩 생긴다.
 

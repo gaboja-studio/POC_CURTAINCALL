@@ -23,6 +23,8 @@ namespace CurtainCall.Tightrope.Saws
     [Serializable]
     public struct HorizontalSawEntry
     {
+        [Tooltip("이 난이도 배치에서 제외. 번호를 보존해 다른 톱날의 작동 순서를 바꾸지 않습니다.")]
+        public bool excluded;
         [Tooltip("중심 위치(m, 외줄 시작점 기준).")]
         public float distance;
 
@@ -40,6 +42,7 @@ namespace CurtainCall.Tightrope.Saws
 
         public HorizontalSawEntry(float distance, SawStartSide startSide)
         {
+            excluded = false;
             this.distance = distance;
             this.startSide = startSide;
             level = false;
@@ -252,7 +255,9 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>가로 톱날 수(단계 추가 톱날 포함).</summary>
         public int HorizontalCount => horizontalSaws?.Length ?? 0;
 
-        [NonSerialized] int baseHorizontalCount = -1;
+        [SerializeField, HideInInspector] int baseHorizontalCount = -1;
+
+        public void PreserveBaseCount() { if(baseHorizontalCount<0) baseHorizontalCount=HorizontalCount; }
 
         /// <summary>1단계 목록의 가로 톱날 수. 단계 추가 톱날은 이 뒤 번호에 붙는다.</summary>
         public int BaseHorizontalCount => baseHorizontalCount >= 0 ? Mathf.Min(baseHorizontalCount, HorizontalCount) : HorizontalCount;

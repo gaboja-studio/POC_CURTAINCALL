@@ -12,13 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a2cd261766e1fd4a886895644118c3e, type: 3}
   m_Name: PerformanceEquipment
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.PerformanceEquipmentSettings
+  cheerPointsEnabled: 1
   cheerStyle: 0
   cheerVisuals:
-  - {fileID: 3407589962199454504, guid: a20d3c49d8c831c4fa007981ef17589b, type: 3}
+  - {fileID: 1244901126715669196, guid: b235e07fffd7dbd44ad1e0045cc08839, type: 3}
   - {fileID: 7907346869076012337, guid: 17d7c2721dc7eda46bd83bc4d389f9ac, type: 3}
   - {fileID: 8497692543893057442, guid: f1bc876ca97d17b4dbb98998e92a73ea, type: 3}
   hoopRadius: 1.25
   cheerAmount: 15
+  cheerRopeMesh: {fileID: 4300000, guid: d7108bfa94e380145b649d2741d875b3, type: 2}
+  cheerRopeKnot: {fileID: 8601388438770623937, guid: 90b939a199f56934396ec9777291eb2a, type: 3}
+  cheerRopeMaterial: {fileID: 2100000, guid: a39d9f999614444489473d58b0c271bd, type: 2}
+  cheerRopeLength: 80
+  cheerRopeWidth: 0.075
+  cheerDipDistance: 0.3
+  cheerDipSeconds: 0.28
+  cheerRetractAcceleration: 36
+  cheerRetractSpeed: 28
+  cheerHideMinHeight: 18
   extraJumpHeight: 2
   rescueRange: 4
   rescueHalfAngle: 55

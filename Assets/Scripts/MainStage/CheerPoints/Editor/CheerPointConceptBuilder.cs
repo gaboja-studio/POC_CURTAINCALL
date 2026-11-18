@@ -22,6 +22,73 @@ namespace CurtainCall.MainStage.CheerPoints.Editor
         const string Background = "Assets/_ThirdParty/curtaincall/PerformanceBackground/Scenes/performance_background.unity";
         static readonly string[] Names = { "A_FireHoop", "B_EncoreHalo", "C_MaskApparition" };
 
+        [MenuItem("CurtainCall/Performance/Build Hanging Fire Hoop")]
+        public static void BuildHangingFireHoop()
+        {
+            if(EditorApplication.isPlaying) throw new InvalidOperationException("Stop play before authoring.");
+            const string generic="Assets/_ThirdParty/Synty/PolygonGeneric/Prefabs/Props/";
+            var source=AssetDatabase.LoadAssetAtPath<GameObject>(generic+"SM_Gen_Prop_Rope_01.prefab");
+            var mesh=source.GetComponentInChildren<MeshFilter>().sharedMesh;
+            // A separate readable copy allows one combined rope renderer in a built player.
+            // The licensed mesh remains inside the private asset repository.
+            string meshPath=Folder+"/HangingRope.asset";
+            var readable=AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            if(!readable) { readable=new Mesh(); AssetDatabase.CreateAsset(readable,meshPath); }
+            readable.Clear(); readable.name="HangingRope"; readable.vertices=mesh.vertices;
+            readable.normals=mesh.normals; readable.tangents=mesh.tangents; readable.uv=mesh.uv; readable.triangles=mesh.triangles;
+            readable.RecalculateBounds(); EditorUtility.SetDirty(readable); AssetDatabase.SaveAssetIfDirty(readable);
+            string materialPath=Folder+"/HempRope.mat";
+            var rope=AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if(!rope) { rope=new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(rope,materialPath); }
+            var sourceMaterial=source.GetComponentInChildren<Renderer>().sharedMaterial;
+            rope.SetTexture("_BaseMap",sourceMaterial.GetTexture("_Albedo_Map"));
+            rope.SetTexture("_BumpMap",sourceMaterial.GetTexture("_Normal_Map")); rope.EnableKeyword("_NORMALMAP");
+            rope.SetColor("_BaseColor",new Color(.82f,.73f,.59f)); rope.SetFloat("_Metallic",0); rope.SetFloat("_Smoothness",.12f);
+            EditorUtility.SetDirty(rope); AssetDatabase.SaveAssetIfDirty(rope);
+            var root=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Folder+"/A_FireHoop.prefab"));
+            try
+            {
+                PrefabUtility.UnpackPrefabInstance(root,PrefabUnpackMode.OutermostRoot,InteractionMode.AutomatedAction);
+                root.name="A_HangingFireHoop";
+                var hoop=root.GetComponentInChildren<MeshRenderer>();
+                var hoopFilter=hoop.GetComponent<MeshFilter>();
+                var hoopSource=hoopFilter.sharedMesh;
+                string hoopMeshPath=Folder+"/HangingHoop.asset";
+                var hoopMesh=AssetDatabase.LoadAssetAtPath<Mesh>(hoopMeshPath);
+                if(!hoopMesh) { hoopMesh=new Mesh(); AssetDatabase.CreateAsset(hoopMesh,hoopMeshPath); }
+                hoopMesh.Clear(); hoopMesh.name="HangingHoop"; hoopMesh.vertices=hoopSource.vertices;
+                hoopMesh.normals=hoopSource.normals; hoopMesh.tangents=hoopSource.tangents; hoopMesh.uv=hoopSource.uv; hoopMesh.triangles=hoopSource.triangles;
+                hoopMesh.RecalculateBounds(); EditorUtility.SetDirty(hoopMesh); AssetDatabase.SaveAssetIfDirty(hoopMesh);
+                hoopFilter.sharedMesh=hoopMesh;
+                var motion=root.GetComponent<CheerPointVisualPreview>(); motion.floatHeight=.018f; motion.tiltDegrees=.8f; motion.lightIntensity=1.6f;
+                foreach(var ps in root.GetComponentsInChildren<ParticleSystem>())
+                {
+                    ps.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
+                    bool fire=ps.name=="Fire";
+                    ps.transform.localPosition=new Vector3(0,0,-.02f);
+                    var main=ps.main; main.scalingMode=ParticleSystemScalingMode.Hierarchy;
+                    main.startLifetime=new ParticleSystem.MinMaxCurve(fire?.5f:.7f,fire?.8f:1.3f);
+                    main.startSize=new ParticleSystem.MinMaxCurve(fire?.28f:.015f,fire?.52f:.035f);
+                    main.startColor=fire ? new Color(1f,.55f,.19f,.8f) : new Color(1f,.46f,.08f,.75f);
+                    var emission=ps.emission; emission.rateOverTime=fire?150:9;
+                    var shape=ps.shape; shape.shapeType=ParticleSystemShapeType.MeshRenderer;
+                    shape.meshRenderer=hoop; shape.meshShapeType=ParticleSystemMeshShapeType.Triangle;
+                    var velocity=ps.velocityOverLifetime; velocity.y=fire?.48f:1.1f;
+                    var noise=ps.noise; noise.enabled=true; noise.strength=.12f; noise.frequency=.7f; noise.scrollSpeed=.35f;
+                    var size=ps.sizeOverLifetime; size.enabled=true;
+                    size.size=new ParticleSystem.MinMaxCurve(1,AnimationCurve.EaseInOut(0,1,1,.25f));
+                }
+                string path=Folder+"/A_HangingFireHoop.prefab";
+                var prefab=PrefabUtility.SaveAsPrefabAsset(root,path);
+                var settings=CurtainCall.Settings.GameSettings.PerformanceEquipment;
+                settings.cheerVisuals[0]=prefab; settings.cheerRopeMesh=readable;
+                settings.cheerRopeKnot=AssetDatabase.LoadAssetAtPath<GameObject>(generic+"SM_Gen_Prop_Rope_Knot_01.prefab");
+                settings.cheerRopeMaterial=rope; settings.cheerRopeWidth=.075f;
+                EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
         public static string Inspect()
         {
             var paths = new[] { "Props/SM_Prop_Hoops_Hoola_01.prefab", "Props/SM_Prop_Hoops_Small_01.prefab", "FX/FX_Fire_01.prefab", "FX/FX_Sparks_01.prefab" };
