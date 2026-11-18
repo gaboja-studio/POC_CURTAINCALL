@@ -86,13 +86,20 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     if (!Keyboard.current[Keys[i]].wasPressedThisFrame) continue;
                     var item = held != null && i < held.Count ? held[i] : default;
-                    // 대기실의 공연 기물은 꺼내고 넣지 않는다. 슬롯 키로 그 칸 위 설명을 켜고 끈다(2026-11-18 사용자).
+                    // 대기실의 공연 기물은 손에 꺼내 들지 않는 대신 그 칸 위 설명을 켜고 끈다. 칸 선택은 그대로 해서
+                    // 버리기·선반 보관이 된다(2026-11-18 사용자). 설명은 선택과 함께 켜지고, 선택이 풀리면 꺼진다.
+                    bool willSelect = item.Uid != 0 && carry.Selected(id).Uid != item.Uid;
                     if (waitingRoom && item.Uid != 0 && ItemCatalog.Get(item.ItemId)?.use == ItemUse.Performance)
                     {
-                        var view = slots.GetSlot(i);
-                        slotTooltip.Toggle(i, item, view != null ? (RectTransform)view.transform : null, SlotCanvas, transform, feet);
+                        if (!willSelect) slotTooltip.Hide();
+                        else if (slotTooltip.Slot != i)
+                        {
+                            var view = slots.GetSlot(i);
+                            slotTooltip.Toggle(i, item, view != null ? (RectTransform)view.transform : null, SlotCanvas, transform, feet);
+                        }
                     }
-                    else { slotTooltip.Hide(); carry.RequestSelectSlot(i); }
+                    else slotTooltip.Hide();
+                    carry.RequestSelectSlot(i);
                 }
             var shownItem = slotTooltip.IsOpen && held != null && slotTooltip.Slot < held.Count ? held[slotTooltip.Slot] : default;
             bool tooltipAllowed = waitingRoom && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal
@@ -109,7 +116,12 @@ namespace CurtainCall.UI.SceneIntegration
             string firstUse=reader ? reader.BindingLabel("UseSlotOne","Q") : "Q";
             string secondUse=reader ? reader.BindingLabel("UseSlotTwo","E") : "E";
             bool firstReady=local && local.CanUseEquipmentSlot(0), secondReady=local && local.CanUseEquipmentSlot(1);
-            next+=$":{firstUse}:{secondUse}:{firstReady}:{secondReady}";
+            // 칸 키 Q·E 전환은 "지금 발동 가능"이 아니라 "공연 기물을 쓸 수 있는 공간"을 기준으로 유지한다(2026-11-18 사용자).
+            // 연습실 밖 대기실처럼 쓸 수 없는 곳에서는 1·2로 돌아간다. 공연 기물이 아닌 칸은 늘 1·2.
+            bool usableHere = feet.HasValue && PropCarry.PlaceAt(feet.Value) != PropCarry.EquipmentPlace.Blocked;
+            int balloonSlot = local ? local.ActiveBalloonSlot : -1;
+            bool firstUseKey = UseKeyShown(0, held, capacity, usableHere, balloonSlot), secondUseKey = UseKeyShown(1, held, capacity, usableHere, balloonSlot);
+            next+=$":{firstUse}:{secondUse}:{firstReady}:{secondReady}:{firstUseKey}:{secondUseKey}";
             if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}";
             if (signature != next)
             {
@@ -117,7 +129,7 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int i = 0; i < VisibleSlotCount; i++)
                 {
                     bool occupied = held != null && i < held.Count;
-                    // 칸 키는 기본 1·2. 공연 기물을 쓸 수 있을 때만 InventorySlotKeyLabel이 같은 자리를 Q·E(노랑)로 바꾼다(2026-11-18 사용자).
+                    // 칸 키는 기본 1·2. 공연 기물을 쓸 수 있는 공간이면 InventorySlotKeyLabel이 같은 자리를 Q·E(노랑)로 바꾼다(2026-11-18 사용자).
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
                         IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity
                             ? (i+1).ToString()
@@ -137,8 +149,9 @@ namespace CurtainCall.UI.SceneIntegration
                     // 칸 선택 테두리는 슬롯 템플릿(씬)에 배치했다. 슬롯은 템플릿의 복제본이라 같은 테두리를 가진다.
                     var border = view.GetComponentInChildren<InventorySlotSelectionBorder>(true);
                     if (border != null) border.Show(data[i].IsHeld);
-                    // 칸 키 글자: 그 칸의 공연 기물을 지금 쓸 수 있을 때만(벌룬 접기 포함) 1·2 → Q·E(노랑)로 부드럽게 바꾸고, 쓸 수 없으면 다시 1·2(흰색).
-                    InventorySlotKeyLabel.For(view)?.Show(data[i].KeyLabel, i==0 ? firstUse : secondUse, i < capacity && (i==0 ? firstReady : secondReady));
+                    // 칸 키 글자: 공연 기물을 쓸 수 있는 공간에서 그 칸이 공연 기물이면(벌룬 접기 포함) 1·2 → Q·E(노랑)로 부드럽게 바꾸고 유지한다.
+                    // 쓸 수 없는 공간으로 가면 다시 1·2(흰색). 발동 가능 여부는 칸 불투명도로만 보인다.
+                    InventorySlotKeyLabel.For(view)?.Show(data[i].KeyLabel, i==0 ? firstUse : secondUse, i==0 ? firstUseKey : secondUseKey);
                     var bar = view.GetComponentInChildren<InventorySlotDurabilityBar>(true);
                     if (bar != null)
                     {
@@ -201,6 +214,14 @@ namespace CurtainCall.UI.SceneIntegration
 
         /// <summary>소지 칸 사용 연출이 났다(칸 번호, 파괴 여부). 칸을 못 찾으면 -1. 테스트 확인용.</summary>
         public event System.Action<int, bool> UseEffectPlayed;
+
+        /// <summary>그 칸 키를 Q·E(사용키)로 보일지: 쓸 수 있는 공간의 공연 기물 칸, 또는 펼친 벌룬을 접는 칸(마지막 내구도로 칸이 비어도).</summary>
+        static bool UseKeyShown(int slot, IReadOnlyList<PropItem> held, int capacity, bool usableHere, int balloonSlot)
+        {
+            if (slot >= capacity) return false;
+            if (slot == balloonSlot) return true;
+            return usableHere && held != null && slot < held.Count && ItemCatalog.Get(held[slot].ItemId)?.use == ItemUse.Performance;
+        }
 
         static bool IsWorn(PropItem item)
         {

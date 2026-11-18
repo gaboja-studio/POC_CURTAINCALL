@@ -1,7 +1,7 @@
 ---
 summary: 씬 소유 임시 폰트를 쓰는 영속 퀘스트 패널은 파괴된 Unity 소유자와 null을 구분해 다시 만들어야 한다
 status: active
-updated: 2026-11-05
+updated: 2026-11-18
 source: Task-20261102-097-rehearsal-flow
 ---
 
@@ -38,3 +38,4 @@ source: Task-20261102-097-rehearsal-flow
 - 공연 C7/C15 캔버스를 그대로 복사해도 CommonPerformanceUI 루트의 `UiRuntimeFontFallback`이 빠지면 한글 일부가 네모로 나온다. 뷰의 HasRuntimePresentation=true와 정적 폰트 참조 일치만으로 실제 글리프 표시를 보장하지 않는다.
 - 원본 폰트 보완 컴포넌트와 fallback/mediumSource/semiBoldSource 참조도 같은 연습 코스 수명 안에 복사한다. 새 정적 폰트 에셋을 만드는 방식으로 덮지 않는다.
 - 실제 문구의 Hangul HasCharacter(searchFallbacks/tryAddCharacter), TMP textElement의 원래 Unicode, UI 포함 플레이어 캡처로 확인한다. 이 폰트 소유자는 코스 종료와 함께 정리하고 영속 퀘스트는 기존 대기실 폰트 소유자를 계속 쓴다.
+- 대기실 슬롯 설명(`InventorySlotTooltip`)처럼 Retained/Tooltips 프리팹을 별도로 Instantiate하면 어느 폰트 보완 루트에도 속하지 않아 설명 대부분이 □로 나온다(2026-11-18, Task-155). 영속 `HudUIManager`의 `UiRuntimeFontFallback.WarmUpLocalText(인스턴스, 제목+설명)`로 표시 직전에 채운다. 씬 수명 보완 컴포넌트는 해제 때 복제 폰트를 지우므로 쓰지 않는다.

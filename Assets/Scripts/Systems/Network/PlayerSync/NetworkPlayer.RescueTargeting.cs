@@ -13,7 +13,9 @@ namespace CurtainCall.Network.PlayerSync
         {
             get
             {
+                // 공연 기물을 쓸 수 없는 곳(연습실 밖 대기실)에서는 대상을 찾지도, 표식을 띄우지도 않는다(2026-11-18 사용자).
                 if(!IsOwner || !IsSpawned || IsBeingRescued || State!=PlayerState.Normal || InputGate.IsBlocked || equipmentPending!=0
+                    || EquipmentPlaceBlocked(ItemUses.RescueGloves)
                     || PropCarry.Instance?.EquipmentReady(OwnerClientId,ItemUses.RescueGloves)!=true) return null;
                 return FindEquipmentRescue(out _);
             }
@@ -21,6 +23,11 @@ namespace CurtainCall.Network.PlayerSync
         public bool HasOutgoingRescue => All.Any(p=>p && p.NetworkManager==NetworkManager && p.rescueCaster.Value==NetworkObjectId);
         NetworkPlayer FindEquipmentRescue(out Vector3 landing) => FindRescueCandidate(out landing,ulong.MaxValue,true);
 
+        /// <summary>
+        /// 구조 대상 선택(2026-11-18 사용자): 사용 범위(수평·높이) 안에서 화면에 보이고 가리지 않은 동료 중,
+        /// 화면 정중앙 조준점(InteractionCrosshair)과 화면 위치가 가장 가까운 한 명. 이동·시점 회전에 따라 매 프레임 바뀔 수 있다.
+        /// 서버 재검사(checkView=false)는 클라이언트 화면을 모르므로 요청된 대상의 범위·가림·착지 공간만 다시 본다.
+        /// </summary>
         NetworkPlayer FindRescueCandidate(out Vector3 landing,ulong requested,bool checkView)
         {
             landing=default;
@@ -28,25 +35,29 @@ namespace CurtainCall.Network.PlayerSync
                 || !WalkableSupport.IsSafeLanding(mover,transform.position)) return null;
             var settings=GameSettings.PerformanceEquipment;
             Vector3 forward=Vector3.ProjectOnPlane(transform.forward,Vector3.up).normalized;
+            var view=checkView ? Camera.main : null;
+            Vector2 aim=view ? new Vector2(view.pixelWidth*.5f,view.pixelHeight*.5f) : default;
             NetworkPlayer closest=null; float best=float.PositiveInfinity;
             foreach(var other in All)
             {
                 if(!other || other==this || other.NetworkManager!=NetworkManager || !other.IsSpawned
                     || requested!=ulong.MaxValue && other.NetworkObjectId!=requested || !other.CanBeRescuePulled) continue;
-                // 범위는 수평 거리·높이 차이를 따로 본다. 방향도 수평으로만 재서, 높이 있는 동료(외줄·비행)가 각도 밖으로 빠지지 않게 한다.
+                // 범위는 수평 거리·높이 차이를 따로 본다(높이 있는 외줄·비행 동료도 닿게).
                 Vector3 delta=other.transform.position-transform.position;
                 Vector3 flat=Vector3.ProjectOnPlane(delta,Vector3.up);
                 if(flat.magnitude>settings.rescueRange || Mathf.Abs(delta.y)>settings.rescueHeightRange) continue;
-                if(flat.sqrMagnitude>.04f && Vector3.Angle(forward,flat)>settings.rescueHalfAngle) continue;
-                if(delta.magnitude>=best) continue;
                 var support=other.RescueSupport();
                 Vector3 from=transform.position+Vector3.up*.8f, to=other.transform.position+Vector3.up*.8f;
-                if(checkView && Camera.main)
+                // 화면이 있으면 조준점과의 화면 거리, 없으면(서버 재검사·카메라 없음) 실제 거리로 고른다.
+                float score=delta.magnitude;
+                if(view)
                 {
-                    var v=Camera.main.WorldToViewportPoint(to);
-                    if(v.z<=0 || v.x<0 || v.x>1 || v.y<0 || v.y>1) continue;
-                    if(RescueBlocked(Camera.main.transform.position,to,other,support)) continue;
+                    var screen=view.WorldToScreenPoint(to);
+                    if(screen.z<=0 || screen.x<0 || screen.x>view.pixelWidth || screen.y<0 || screen.y>view.pixelHeight) continue;
+                    score=Vector2.Distance(new Vector2(screen.x,screen.y),aim);
                 }
+                if(score>=best) continue;
+                if(view && RescueBlocked(view.transform.position,to,other,support)) continue;
                 if(RescueBlocked(from,to,other,support)) continue;
                 int mask=RescueMask(other);
                 foreach(var offset in new[]{forward*1.1f,transform.right*1.1f,-transform.right*1.1f})
@@ -59,7 +70,7 @@ namespace CurtainCall.Network.PlayerSync
                     if(Physics.OverlapCapsule(feet+Vector3.up*(radius+.05f),feet+Vector3.up*(other.mover.BodyHeight-radius),radius*.9f,
                         mask,QueryTriggerInteraction.Ignore).Any(c=>c!=ground.collider && RescueObstacle(c,other,support))) continue;
                     if(!RescuePathClear(other,feet,support)) continue;
-                    closest=other; landing=feet; best=delta.magnitude; break;
+                    closest=other; landing=feet; best=score; break;
                 }
             }
             return closest;
