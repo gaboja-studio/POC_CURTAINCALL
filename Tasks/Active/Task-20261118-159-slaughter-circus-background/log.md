@@ -1,5 +1,7 @@
 # Log
 
+- 후속 제출 완료: 공개 기능 커밋a8bf025f, fix/main-stage/side-spotlights-cheer → dev PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/430 생성 및 @RagSpirin 검토 요청. private PR29 병합은 자동 승인 검토에서 별도 권한 필요로 거절되어 사용자에게 확인했고, 명시적 승인 후 merge aeb950aa로 main 반영. 공개 gitlink911fd676 포함 확인 및 pre-push ThirdParty PASS. dev는 병합하지 않음.
+
 - 후속 제출 요청 수신. Unity 종료 확인 후 dev317ecfbf 최신 유지, private main31c09aec의 README 갱신 통합. 기능 변경은 마지막 check-work-cone-final.txt 검사본과 동일하므로 Unity 검사를 반복하지 않음. private 에셋 커밋911fd676 및 PR29 생성: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/29. 공개 dev PR용 참조를 함께 제출한다.
 
 - 2026-11-18 원뿔 후속: FocusedBeam을 반경0 꼭짓점·거리 비례 단면의 폐쇄 메시(433정점)로 갱신. 균일 표면 알파를 원뿔 내부16표본 밀도 적분·카메라 깊이 차폐로 교체했다. 기존 GUID·최상단 위치·0.75m 반경·공연별 밝기 유지. Beam Width/Opacity 툴팁에 의미를 명시.
