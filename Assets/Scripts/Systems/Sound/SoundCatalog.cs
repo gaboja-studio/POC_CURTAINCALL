@@ -44,6 +44,10 @@ namespace CurtainCall.Sound
         [Min(0f)] public float cooldown;
         [Tooltip("비우면 기본 출력. 믹서를 쓰게 되면 그룹을 지정한다.")]
         public AudioMixerGroup output;
+        [Tooltip("위치 소리(PlayAt)의 최대 음량 거리(m). 화면 소리에는 적용하지 않는다.")]
+        [Min(0.01f)] public float minDistance = 2f;
+        [Tooltip("위치 소리(PlayAt)가 들리는 최대 거리(m).")]
+        [Min(0.01f)] public float maxDistance = 45f;
 
         public bool HasClip => FirstClip != null;
 

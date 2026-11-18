@@ -37,6 +37,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Transform leftDoorHinge, rightDoorHinge;
         Quaternion closedLeftDoorRotation, closedRightDoorRotation;
         float doorAngle;
+        bool audioDoorWasOpen;
+        CurtainCall.Sound.SoundHandle doorSound;
         CannonSeatState ownership = new();
         readonly RaycastHit[] floorHits = new RaycastHit[24];
         readonly RouteResetBarrier resetBarrier = new();
@@ -344,6 +346,11 @@ namespace CurtainCall.EscapeRoute
         }
         void Present(float deltaTime, bool snapDoor = false)
         {
+            if (Application.isPlaying && Ready && !snapDoor && this == Current && DoorOpen && !audioDoorWasOpen)
+                doorSound = CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeDoorOpen,
+                    doorPanel ? doorPanel.position : CableSocket ? CableSocket.position : transform.position);
+            if (snapDoor || !DoorOpen) doorSound.Stop();
+            audioDoorWasOpen = DoorOpen;
             RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
             if (leftDoorHinge != null && rightDoorHinge != null)
             {
@@ -387,6 +394,7 @@ namespace CurtainCall.EscapeRoute
             && float.IsFinite(value.w) && Quaternion.Dot(value, value) > .001f;
         void OnDisable()
         {
+            doorSound.Stop();
             RestoreCarrierCollision();
             DisposeProjectiles();
             NetworkPlayer.Restarted -= Restart; HumanCannonCarry.Unregister(this); Detach(suspendHost: true);

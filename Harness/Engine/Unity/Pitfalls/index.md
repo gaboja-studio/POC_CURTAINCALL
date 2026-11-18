@@ -1,5 +1,7 @@
 # Unity Pitfalls
 
+- [test-asmdef-runtime-types.md](test-asmdef-runtime-types.md) — 새 asmdef 테스트가 Assembly-CSharp 타입을 찾지 못해 CS0234 또는 Safe Mode가 발생할 때.
+
 - [Blender/](Blender/index.md) — Blender 모델 병합·UV·금속도/매끄러움 텍스처를 Unity로 가져올 때
 
 - [scene-view-eye-position.md](scene-view-eye-position.md) — 실제 눈높이 SceneView 캡처의 카메라 거리를 계산할 때

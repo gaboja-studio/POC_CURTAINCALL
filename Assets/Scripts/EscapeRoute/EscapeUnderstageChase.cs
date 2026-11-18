@@ -1,4 +1,5 @@
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -543,6 +544,17 @@ namespace CurtainCall.EscapeRoute
 
         internal void PlayStep(float pitchScale = 1f)
         {
+            string cue = Mathf.Approximately(pitchScale, 1f) ? SoundCueIds.EscapeFootstep : SoundCueIds.EscapeLanding;
+            if (SoundCatalog.Current != null && SoundCatalog.Current.Find(cue) != null)
+            {
+                if (Mathf.Approximately(pitchScale, 1f))
+                {
+                    if (Time.timeAsDouble < nextFootfall) return;
+                    nextFootfall = Time.timeAsDouble + .45;
+                }
+                SoundManager.PlayAt(cue, transform);
+                return;
+            }
             var player = NetworkPlayer.Local;
             if (!player || !footstep || !footstep.clip) return;
             bool impact = !Mathf.Approximately(pitchScale, 1f);
@@ -565,6 +577,11 @@ namespace CurtainCall.EscapeRoute
 
         internal void PlayWallImpact(Vector3 contact)
         {
+            if (SoundCatalog.Current != null && SoundCatalog.Current.Find(SoundCueIds.EscapeWallCollapse) != null)
+            {
+                SoundManager.PlayAt(SoundCueIds.EscapeWallCollapse, contact);
+                return;
+            }
             if (!wallImpact || !wallImpact.clip) { PlayStep(.55f); return; }
             wallImpact.transform.position = contact;
             wallImpact.time = 2.3f;

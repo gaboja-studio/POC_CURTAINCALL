@@ -72,7 +72,7 @@ namespace CurtainCall.Sound
     /// SoundManager.Play("UI-404", new SoundPlayOptions { VolumeScale = .5f, Pitch = 1.2f });
     /// </code>
     /// 클립·음량·구간·피치·루프는 사운드 설정에서 바꾸며, 같은 키를 쓰는 모든 재생 지점에 함께 적용된다.
-    /// 2D(화면) 소리 전용이고 이 화면에서만 난다(네트워크로 보내지 않음). 음량은 <see cref="LocalAudioController"/>를 거친다.
+    /// Play는 화면 소리, PlayAt은 위치 소리다. 각 클라이언트에서만 재생하며 음량은 <see cref="LocalAudioController"/>를 거친다.
     /// </summary>
     public sealed class SoundManager : MonoBehaviour
     {
@@ -82,6 +82,8 @@ namespace CurtainCall.Sound
             public string CueId;
             public float StartedAt, EndAt, BaseVolume, Scale = 1f, FadeOut, LoopStart, LoopEnd;
             public bool Busy, Loop;
+            public Transform Follow;
+            public bool Following;
             public int Serial;
         }
 
@@ -123,6 +125,20 @@ namespace CurtainCall.Sound
         /// <summary>옵션(루프·음량 배율·피치·지연)을 덮어써 재생한다.</summary>
         public static SoundHandle Play(string keyOrId, SoundPlayOptions options,
             [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0, [CallerMemberName] string callerMember = "")
+            => PlayInternal(keyOrId, options, null, null, callerFile, callerLine, callerMember);
+
+        /// <summary>지정 위치에서 3D로 재생한다. 동기화된 상태를 표시하는 각 클라이언트에서 호출한다.</summary>
+        public static SoundHandle PlayAt(string keyOrId, Vector3 position, SoundPlayOptions options = default,
+            [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0, [CallerMemberName] string callerMember = "")
+            => PlayInternal(keyOrId, options, position, null, callerFile, callerLine, callerMember);
+
+        /// <summary>음원의 위치를 따라 재생한다. 대상이 비활성화되거나 사라지면 멈춘다.</summary>
+        public static SoundHandle PlayAt(string keyOrId, Transform follow, SoundPlayOptions options = default,
+            [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0, [CallerMemberName] string callerMember = "")
+            => follow != null ? PlayInternal(keyOrId, options, follow.position, follow, callerFile, callerLine, callerMember) : SoundHandle.None;
+
+        static SoundHandle PlayInternal(string keyOrId, SoundPlayOptions options, Vector3? position, Transform follow,
+            string callerFile, int callerLine, string callerMember)
         {
             var caller = (callerFile, callerLine, callerMember);
             var catalog = SoundCatalog.Current;
@@ -145,7 +161,7 @@ namespace CurtainCall.Sound
             var manager = EnsureExists();
             if (manager == null) return Record(keyOrId, cueId, SoundPlayResult.NotPlaying, loop, caller);
             float scale = (situation != null ? situation.volumeScale : 1f) * (options.VolumeScale ?? 1f);
-            var handle = manager.PlayCue(catalog, cue, options, loop, scale, out var result);
+            var handle = manager.PlayCue(catalog, cue, options, loop, scale, position, follow, out var result);
             Record(keyOrId, cueId, result, loop, caller);
             return handle;
         }
@@ -225,7 +241,8 @@ namespace CurtainCall.Sound
 
         // ── 재생 ─────────────────────────────────────────
 
-        SoundHandle PlayCue(SoundCatalog catalog, SoundCue cue, SoundPlayOptions options, bool loop, float scale, out SoundPlayResult result)
+        SoundHandle PlayCue(SoundCatalog catalog, SoundCue cue, SoundPlayOptions options, bool loop, float scale,
+            Vector3? position, Transform follow, out SoundPlayResult result)
         {
             var clip = cue.PickClip();
             if (clip == null) { result = SoundPlayResult.NoClip; return SoundHandle.None; }
@@ -242,6 +259,13 @@ namespace CurtainCall.Sound
             float pitch = options.Pitch ?? cue.PickPitch();
             float delay = Mathf.Max(0f, options.Delay ?? cue.delay);
             source.Stop();
+            voice.Follow = follow;
+            voice.Following = follow != null;
+            source.transform.position = position ?? transform.position;
+            source.spatialBlend = position.HasValue ? 1f : 0f;
+            source.ignoreListenerPause = !position.HasValue;
+            source.minDistance = Mathf.Max(.01f, cue.minDistance);
+            source.maxDistance = Mathf.Max(source.minDistance, cue.maxDistance);
             source.clip = clip;
             source.pitch = pitch;
             source.loop = loop;
@@ -280,9 +304,13 @@ namespace CurtainCall.Sound
 
         Voice AddVoice()
         {
-            var source = gameObject.AddComponent<AudioSource>();
+            var host = new GameObject("Sound voice") { hideFlags = HideFlags.DontSave };
+            host.transform.SetParent(transform, false);
+            var source = host.AddComponent<AudioSource>();
             source.playOnAwake = false;
             source.spatialBlend = 0f;
+            source.dopplerLevel = 0f;
+            source.rolloffMode = AudioRolloffMode.Linear;
             source.ignoreListenerPause = true;
             var voice = new Voice { Source = source };
             voices.Add(voice);
@@ -305,6 +333,8 @@ namespace CurtainCall.Sound
             voice.Busy = false;
             voice.Loop = false;
             voice.CueId = null;
+            voice.Follow = null;
+            voice.Following = false;
         }
 
         void Update()
@@ -314,11 +344,13 @@ namespace CurtainCall.Sound
             {
                 if (!voice.Busy) continue;
                 var source = voice.Source;
-                if (source == null || now >= voice.EndAt || !voice.Loop && now > voice.StartedAt + 0.1f && !source.isPlaying)
+                if (source == null || voice.Following && (voice.Follow == null || !voice.Follow.gameObject.activeInHierarchy)
+                    || now >= voice.EndAt || !voice.Loop && now > voice.StartedAt + 0.1f && !source.isPlaying)
                 {
                     Release(voice);
                     continue;
                 }
+                if (voice.Following) source.transform.position = voice.Follow.position;
                 // 루프는 설정한 재생 구간만 반복한다(구간이 클립 전체면 AudioSource 루프가 처리).
                 if (voice.Loop && source.clip != null && (voice.LoopStart > 0.001f || voice.LoopEnd < source.clip.length - 0.01f)
                     && (source.time >= voice.LoopEnd || source.time < voice.LoopStart - 0.001f))

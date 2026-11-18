@@ -5,6 +5,7 @@ using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Sound;
 using CurtainCall.Tightrope;
 using Unity.Collections;
 using Unity.Netcode;
@@ -58,6 +59,9 @@ namespace CurtainCall.EscapeRoute
         bool[] initialSupports, initialVisuals;
         enum RopePhase { Visible, Flash, Hidden }
         RopePhase phase;
+        const float SoundRange = 8f;
+        SoundHandle ropeSound;
+        Vector3 ropeSoundPoint;
         ulong workerOwner = CannonSeatState.Nobody;
         uint pendingOverflow, firstOverflowRequest;
         bool initialGate, initialLowerGate;
@@ -167,10 +171,15 @@ namespace CurtainCall.EscapeRoute
 
         void Update()
         {
+            var listener = NetworkPlayer.Local;
+            if (ropeSound.IsPlaying && (!listener
+                || (listener.transform.position + Vector3.up * 1.2f - ropeSoundPoint).sqrMagnitude > SoundRange * SoundRange
+                || SoundBlocked(ropeSupports, listener.transform.position + Vector3.up * 1.2f, ropeSoundPoint, listener.transform)))
+                ropeSound.Stop();
             Attach();
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
-            SetPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible);
+            PresentPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible, timed);
             double cycle = timed ? hazards.Elapsed % (visibleSeconds + hiddenSeconds) : 0;
             UpdateDissolve(cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - Mathf.Min(1.05f, warningSeconds), visibleSeconds, (float)cycle) : 0);
             UpdateTransitionParticles(timed ? hazards.Elapsed : -1, cycle);
@@ -298,10 +307,28 @@ namespace CurtainCall.EscapeRoute
                     warningArcs[i].enabled = lit && !dissolving && i < initialSupports.Length && initialSupports[i];
         }
 
-        void SetPhase(RopePhase next)
+        void SetPhase(RopePhase next) => PresentPhase(next, true);
+
+        void PresentPhase(RopePhase next, bool sound)
         {
+            if (!sound) ropeSound.Stop();
             if (phase == next) return;
             bool changeSupport = (phase == RopePhase.Hidden) != (next == RopePhase.Hidden);
+            if (sound && IsReady && Application.isPlaying)
+            {
+                string cue = next == RopePhase.Hidden ? SoundCueIds.EscapeRopeDisappear
+                    : phase == RopePhase.Hidden ? SoundCueIds.EscapeRopeRestore
+                    : next == RopePhase.Flash ? SoundCueIds.EscapeRopeWarning : null;
+                if (cue != null)
+                {
+                    ropeSound.Stop();
+                    if (TryGetSoundPoint(out var point))
+                    {
+                        ropeSoundPoint = point;
+                        ropeSound = SoundManager.PlayAt(cue, point);
+                    }
+                }
+            }
             phase = next;
             if (session != null && session.IsHost) foreach(var support in ropeSupports) if(support!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,support,"VANISHING_ROPE",next.ToString(),support.transform.position,true);
             SetWarning(next == RopePhase.Flash);
@@ -309,6 +336,55 @@ namespace CurtainCall.EscapeRoute
             var local = NetworkPlayer.Local;
             var mover = local != null ? local.GetComponent<PlayerMover>() : null;
             if (ApplyRopeVisibility(next != RopePhase.Hidden, mover)) switcher?.ReleaseForAuthoredDrop();
+        }
+
+        bool TryGetSoundPoint(out Vector3 point)
+        {
+            point = default;
+            var player = NetworkPlayer.Local;
+            return player && TryFindAudibleSupport(ropeSupports, player.transform.position + Vector3.up * 1.2f,
+                SoundRange, player.transform, out point);
+        }
+
+        internal static bool TryFindAudibleSupport(Collider[] supports, Vector3 listener, float range,
+            Transform listenerRoot, out Vector3 point)
+        {
+            point = default;
+            float nearest = range * range;
+            bool found = false;
+            foreach (var support in supports)
+            {
+                if (!support || !support.gameObject.activeInHierarchy) continue;
+                Vector3 contact;
+                if (support is BoxCollider box)
+                {
+                    Vector3 local = box.transform.InverseTransformPoint(listener) - box.center;
+                    Vector3 half = box.size * .5f;
+                    contact = box.transform.TransformPoint(box.center + Vector3.Max(-half, Vector3.Min(half, local)));
+                }
+                else contact = support.enabled ? support.ClosestPoint(listener) : support.transform.position;
+                contact += Vector3.up * .12f;
+                Vector3 direction = contact - listener;
+                if (direction.sqrMagnitude > nearest) continue;
+                if (SoundBlocked(supports, listener, contact, listenerRoot)) continue;
+                nearest = direction.sqrMagnitude;
+                point = contact;
+                found = true;
+            }
+            return found;
+        }
+
+        static bool SoundBlocked(Collider[] supports, Vector3 listener, Vector3 point, Transform listenerRoot)
+        {
+            Vector3 direction = point - listener;
+            foreach (var hit in Physics.RaycastAll(listener, direction, direction.magnitude,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (Array.IndexOf(supports, hit.collider) >= 0 || hit.collider.GetComponentInParent<NetworkPlayer>() != null
+                    || listenerRoot && hit.transform.IsChildOf(listenerRoot)) continue;
+                return true;
+            }
+            return false;
         }
 
         bool ApplyRopeVisibility(bool present, PlayerMover mover)
@@ -518,12 +594,12 @@ namespace CurtainCall.EscapeRoute
             {
                 if (resetFrame == Time.frameCount) return;
                 resetFrame = Time.frameCount;
-                SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
+                SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
                 pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0; revision++; Publish();
             }
             else if (player.IsLocal)
             {
-                synchronized = false; SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
+                synchronized = false; SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
                 pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
                 SendRequest(0, 0, resetBarrier.Begin());
             }
@@ -539,11 +615,12 @@ namespace CurtainCall.EscapeRoute
             messaging = null; session = null; synchronized = false;
             revision = sequence = 0; requests.Clear(); resetBarrier.Clear();
             pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
-            SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
+            SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
         }
 
         void OnDisable()
         {
+            ropeSound.Stop();
             if (Current != this) return;
             UpdateDissolve(0);
             UpdateTransitionParticles(-1, 0);

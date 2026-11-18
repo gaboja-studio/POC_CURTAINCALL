@@ -81,6 +81,9 @@ namespace CurtainCall.EscapeRoute
         }
         bool usingBypass;
         double soundedAt = -1;
+        AttackPhase soundedPhase;
+        bool throwSounded;
+        CurtainCall.Sound.SoundHandle attackSound;
         float previousExtension, previousTorsoFlight;
         double nextAim;
         double attackRound = -1;
@@ -446,6 +449,10 @@ namespace CurtainCall.EscapeRoute
 
         void ClearAttack()
         {
+            attackSound.Stop();
+            soundedAt = -1;
+            soundedPhase = AttackPhase.None;
+            throwSounded = false;
             if (grabTarget) grabTarget.Hide();
             if (attackVolume) attackVolume.Hide();
             if (torsoLanding) torsoLanding.Hide();
@@ -521,6 +528,22 @@ namespace CurtainCall.EscapeRoute
         void PresentAttack(AttackCue cue, double clock)
         {
             float elapsed = Mathf.Max(0f, (float)(clock - cue.Started));
+            if (cue.Started != soundedAt || cue.Phase != soundedPhase)
+            {
+                soundedAt = cue.Started;
+                soundedPhase = cue.Phase;
+                throwSounded = false;
+                if (elapsed < .3f && cue.Phase == AttackPhase.Warning)
+                    attackSound = CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeArmWarning, transform);
+                else if (elapsed < .3f && cue.Phase == AttackPhase.Grab)
+                    attackSound = CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeGrab, cue.Aim);
+            }
+            if (cue.Phase == AttackPhase.Throw && !throwSounded && elapsed >= SwingTime)
+            {
+                throwSounded = true;
+                if (elapsed < SwingTime + .3f)
+                    attackSound = CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeThrow, cue.Release);
+            }
             bool aiming = cue.Phase == AttackPhase.Warning || cue.Phase == AttackPhase.Strike;
             bool stretching = cue.Phase == AttackPhase.Strike || cue.Phase == AttackPhase.Retract || cue.Phase == AttackPhase.Grab;
             bool volume = PresentAttackVolume(cue, elapsed);
@@ -554,7 +577,6 @@ namespace CurtainCall.EscapeRoute
             Vector3 hand = Hand;
             if (aiming)
             {
-                if (cue.Phase == AttackPhase.Warning && soundedAt != cue.Started) { soundedAt = cue.Started; PlayStep(.65f); }
                 if (captureCable && captureCable.enabled)
                 {
                     captureCable.SetPosition(0, cue.Origin);
