@@ -10,3 +10,5 @@
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출 전 origin/dev 86eeabe7을 반영했다. DEV에 먼저 등록된 탈출로 Task와 겹친 외줄 작업 번호를 162로 정리했다.
 - DEV 317ecfbf까지 동기화했다. 에디터 종료 때 갱신된 폰트·라벨 4개의 Git 객체가 최신 DEV와 모두 일치하는 것을 확인했다.
+
+- 2026-11-18 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/429 (feat/tightrope-dissolve-burn → dev)
