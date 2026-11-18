@@ -118,7 +118,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             EditorGUILayout.HelpBox("입력 후 Enter 또는 다른 칸을 누르면 WaitingRoomTexts.txt에 저장됩니다. 플레이 중이면 다음 표시부터 바로 반영됩니다.\n줄바꿈은 \\n 으로 씁니다. 칸을 비우면 코드 기본 문구로 돌아갑니다.", MessageType.None);
             TextRow(PursuitTexts.AlertTitleKey, "단계 알림 제목", "추격 경보");
             GUILayout.Label("추격 퀘스트 (추격 시간 동안 오른쪽)", EditorStyles.miniBoldLabel);
-            TextRow("pursuit.quest.title", "퀘스트 제목", "추격자를 피해 달아나세요.");
+            TextRow("pursuit.quest.title", "퀘스트 제목", "추격자를 피해 달아나기");
             TextRow("pursuit.quest.stage", "공연장 입구 줄", "- 모든 플레이어가 공연장 입구로 가서 공연 진행");
             TextRow("pursuit.quest.escape", "탈출로 줄", "- 모든 플레이어가 탈출로로 진입해 탈출 시도");
             EditorGUILayout.HelpBox("공연장 입구 줄은 공연이 없는 마지막 아침에는 빠집니다. 탈출로 줄은 이번 런에서 누구든 탈출로 입구(B1)에 들어간 뒤부터 모두에게 붙습니다.", MessageType.None);

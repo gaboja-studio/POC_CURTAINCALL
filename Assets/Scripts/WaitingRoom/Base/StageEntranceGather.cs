@@ -60,7 +60,8 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>이 플레이어가 무대 입구 통로 판정 상자 안에 있는지.</summary>
-        public bool IsInside(NetworkPlayer player) => player != null && area != null && Contains(player.transform.position);
+        public bool IsInside(NetworkPlayer player) => player != null && IsInsideAt(player.transform.position);
+        internal bool IsInsideAt(Vector3 feet) => area != null && Contains(feet);
 
         void OnValidate() => ApplyArea();
 

@@ -26,7 +26,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return WaitingRoomText.Get(StageKey(index), fallback);
         }
 
-        public static string QuestTitle => WaitingRoomText.Get("pursuit.quest.title", "추격자를 피해 달아나세요.");
+        public static string QuestTitle => WaitingRoomText.Get("pursuit.quest.title", "추격자를 피해 달아나기");
         public static string QuestTitleFor(CampaignPhase phase) => GameSettings.WaitingRoom.Presentation(phase).QuestTitle;
         public static string QuestStageLine => WaitingRoomText.Get("pursuit.quest.stage", "- 모든 플레이어가 공연장 입구로 가서 공연 진행");
         public static string QuestEscapeLine => WaitingRoomText.Get("pursuit.quest.escape", "- 모든 플레이어가 탈출로로 진입해 탈출 시도");

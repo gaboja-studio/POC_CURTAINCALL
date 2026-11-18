@@ -183,6 +183,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             climbing = false; climbPath = null;
             climbIk?.Clear();
             transform.position = climbTo;
+            RefreshCrouch(climbTo);
+            if (IsCrouched) SetMotion(PursuitMotion.Crouch);
             if (directTraversal) { directTraversal = false; Land(); return; }
             if (agent.enabled && agent.isOnOffMeshLink) agent.CompleteOffMeshLink();
             replanRequested = true; stuckFor = 0;
@@ -331,6 +333,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (distance < .45f) return false;
             var next = transform.position + delta / distance * Mathf.Min(distance - .4f, Mathf.Max(.5f, speed) * Time.deltaTime);
             if (!PursuitDirectClimb.SurfaceAt(next, transform.position.y, transform, out var hit)) return false;
+            RefreshCrouch(hit.point);
             var p = transform.position;
             // 앉아 있으면 앉은 머리 높이까지만 본다(환풍구 천장을 '막힘'으로 보지 않게).
             float head = IsCrouched ? Mathf.Min(1.3f, CrouchBodyHeight - .15f) : 1.3f;
@@ -384,6 +387,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void WalkLink(OffMeshLinkData link)
         {
             var next = Vector3.MoveTowards(transform.position, link.endPos, Mathf.Max(1, agent.speed) * Time.deltaTime);
+            RefreshCrouch(next);
             transform.position = next;
             if ((next - link.endPos).sqrMagnitude < .0004f) agent.CompleteOffMeshLink();
         }

@@ -81,7 +81,7 @@ namespace CurtainCall.Settings
                 minute = new(period + " 1분 남음", period + "이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.");
                 thirtySeconds = new(period + " 30초 남음", period + "이 30초 남았습니다. " + (maintenance ? "동료들과 숙소 침대에서 잠들거나 출구로 이동하세요." : "공연장 입구나 탈출로로 이동하세요."));
                 tenSeconds = new(period + " 10초 남음", period + "이 {seconds}초 남았습니다. 곧 추격이 시작됩니다.");
-                questTitle = maintenance ? "정비 종료 · 추격자를 피하세요" : "추격자를 피해 달아나세요.";
+                questTitle = "추격자를 피해 달아나기";
                 sleepObjective = maintenance ? "- 살아 있는 모든 플레이어가 숙소 침대에서 수면" : "";
             }
             public BreakNoticeSettings Notice(int seconds) => seconds > 30 ? minute : seconds > 10 ? thirtySeconds : tenSeconds;

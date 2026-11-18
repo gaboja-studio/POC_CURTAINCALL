@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -89,6 +90,29 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Box(new Vector3(0, 1.35f, 0), new Vector3(3, .3f, 3));
             Assert.IsTrue(PursuitDirectClimb.LandingRoom(Origin, null));
             Assert.IsFalse(PursuitDirectClimb.StandingRoom(Origin, null));
+        }
+        [Test] public void PursuerCrouchesBeforeMovingUnderVentAndStaysLowAcrossShortGaps()
+        {
+            var go = new GameObject("pursuer");
+            go.transform.SetParent(root.transform);
+            go.transform.position = Origin;
+            var actor = go.AddComponent<PursuitActor>();
+            var refresh = typeof(PursuitActor).GetMethod("RefreshCrouch", BindingFlags.Instance | BindingFlags.NonPublic);
+            var vent = Origin + Vector3.forward * .55f;
+            Box(new Vector3(0, 1.23f, .9f), new Vector3(2, .06f, .9f));
+            Box(new Vector3(0, .15f, 0), new Vector3(.3f, .3f, .2f)); // walkable step
+
+            refresh.Invoke(actor, new object[] { Origin, 0f });
+            Assert.IsFalse(actor.IsCrouched, "A low step doesn't require crouching");
+            refresh.Invoke(actor, new object[] { vent, 0f });
+            actor.SetMotion(PursuitMotion.Run);
+            Assert.AreEqual(PursuitMotion.CrouchWalk, actor.State, "Use the crouch gait before crossing the lip");
+
+            refresh.Invoke(actor, new object[] { Origin, .2f });
+            Assert.IsTrue(actor.IsCrouched);
+            refresh.Invoke(actor, new object[] { Origin, .2f });
+            actor.SetMotion(PursuitMotion.Run);
+            Assert.AreEqual(PursuitMotion.Run, actor.State, "Stand again once overhead clearance is stable");
         }
         [Test] public void CrouchPoseFitsVentAndDoesNotKeepStandingHitBounds()
         {

@@ -22,6 +22,7 @@ namespace CurtainCall.EscapeRoute
         public IReadOnlyList<ulong> Participants => EscapeSceneTransfer.EnsureExists().Participants;
         public bool Departed => snapshot.stage == (int)EscapeAssemblyState.Stage.Departed;
         public BoxCollider AssemblyArea => assemblyArea;
+        public bool IsPassageOpen => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(StructureAKeyRoute.EscapeDoor);
         // The destination owns this trigger after the loading transition.
         public BoxCollider FirstPersonArea => EscapeSceneArrival.Current != null ? EscapeSceneArrival.Current.FirstPersonArea : null;
         readonly Dictionary<ulong, float> assemblyVisits = new();
@@ -57,7 +58,7 @@ namespace CurtainCall.EscapeRoute
             if (run == null) return;
             if (run.HasAuthority && CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(run.State.Phase))
             {
-                bool doorOpen = ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(StructureAKeyRoute.EscapeDoor);
+                bool doorOpen = IsPassageOpen;
                 int occupants = 0, living = 0;
                 var allParticipants = new List<ulong>();
                 candidates.Clear();

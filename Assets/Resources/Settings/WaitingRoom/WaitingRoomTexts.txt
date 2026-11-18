@@ -388,7 +388,7 @@ pursuit.captured | 추격자에게 잡혔습니다. 다음 장소로 이동할 �
 # 추격 시간 동안 오른쪽 퀘스트(오늘 할 일과 같은 자리). 제목 아래 할 일 줄이 붙습니다.
 # quest.stage = 공연장 입구 줄(공연이 없는 마지막 아침에는 빠짐)
 # quest.escape = 탈출로 줄. 이번 런에서 누구든 탈출로 입구(B1)에 한 번이라도 들어간 뒤부터 모두에게 붙습니다.
-pursuit.quest.title | 추격자를 피해 달아나세요.
+pursuit.quest.title | 추격자를 피해 달아나기
 pursuit.quest.stage | - 모든 플레이어가 공연장 입구로 가서 공연 진행
 pursuit.quest.escape | - 모든 플레이어가 탈출로로 진입해 탈출 시도
 

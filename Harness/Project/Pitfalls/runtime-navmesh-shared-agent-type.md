@@ -1,7 +1,7 @@
 ---
 summary: 실행 중 굽는 임시 NavMesh를 기본 에이전트(0번)로 만들면 추격자 NavMesh와 겹쳐 추격 경로가 끊긴다. 전용 에이전트(NavMesh.CreateSettings)로 굽고 같은 필터로 조회한다.
 status: active
-updated: 2026-11-12
+updated: 2026-11-19
 source: Task-20261112-117
 ---
 
@@ -22,3 +22,4 @@ source: Task-20261112-117
 - `NavMesh.CreateSettings()`로 전용 에이전트를 만들고 `NavMeshQueryFilter{agentTypeID}`로만 조회한다. 정리 때 `NavMesh.RemoveSettings`.
 - 적용: `WaitingRoomTutorialCamera`(2026-11-04), `RehearsalPathGuide`(2026-11-12).
 - 추격자 오르기 통로(`PursuitClimbLinks`)는 반대로 추격자 에이전트에 붙이는 링크다. 내장 Jump 구역이며 단계 조건에서만 `agent.areaMask`에 넣는다.
+- `RuntimeNavMeshBuilder: Source mesh ... does not allow read access`는 에디터에서 경로가 나와도 플레이어 빌드에서는 해당 원본을 읽지 못할 수 있다는 뜻이다. 통합 대기실의 `StairModulePrepared`에는 실제 충돌에 쓰이는 계단 모델 한 개를 `NavigationStairMeshImport`에서 읽기 가능하게 가져온다.
