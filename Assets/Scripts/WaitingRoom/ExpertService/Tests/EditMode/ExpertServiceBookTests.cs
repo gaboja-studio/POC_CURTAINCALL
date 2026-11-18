@@ -170,6 +170,36 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
+        public void 예약자는_입장_전에_남은_팔다리를_예약_때_단가로_추가_예약한다()
+        {
+            var book = NewBook();
+            Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Buyer, true, true, 3, 1, MaxPerUse, () => true, 100));
+            Assert.AreEqual(2, book.SelectableParts(Buyer, 3, MaxPerUse));
+            Assert.AreEqual(0, book.SelectableParts(Other, 3, MaxPerUse));
+            Assert.AreEqual(0, book.PriceUses(Buyer), "추가분은 예약 때 단가를 쓴다.");
+            Assert.AreEqual(1, book.PriceUses(Other));
+            Assert.AreEqual(ExpertRefusal.BadChoice, book.BookMedical(Buyer, true, true, 3, 3, MaxPerUse, () => true, 300));
+            Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Buyer, true, true, 3, 2, MaxPerUse, () => true, 200));
+            Assert.AreEqual(3, book.BookedLimbs);
+            Assert.AreEqual(300, book.PaidCost);
+            Assert.AreEqual(1, book.TeamUses, "추가 예약은 팀 이용 횟수를 올리지 않는다.");
+            Assert.AreEqual(ExpertRoomPhase.Booked, book.Phase);
+            bool spent = false;
+            Assert.AreEqual(ExpertRefusal.AlreadyBooked, book.BookMedical(Buyer, true, true, 3, 1, MaxPerUse, () => spent = true));
+            Assert.IsFalse(spent);
+        }
+
+        [Test]
+        public void 입장한_뒤에는_추가_예약할_수_없다()
+        {
+            var book = NewBook();
+            book.BookMedical(Buyer, true, true, 3, 1, MaxPerUse, () => true, 100);
+            book.Enter(Buyer);
+            Assert.AreEqual(ExpertRefusal.AlreadyBooked, book.CanBuyMedical(Buyer, true, true, 3, 1, MaxPerUse));
+            Assert.AreEqual(0, book.SelectableParts(Buyer, 3, MaxPerUse));
+        }
+
+        [Test]
         public void 구매자가_다시_사면_이미_구매했다고_알리고_자금을_쓰지_않는다()
         {
             var book = NewBook();

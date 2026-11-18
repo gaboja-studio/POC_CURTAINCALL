@@ -42,6 +42,8 @@ MonoBehaviour:
   bookButton: "{n}\uAC1C \uC608\uC57D"
   countButton: "\uD314\xB7\uB2E4\uB9AC {n}/{max}"
   countSelected: "\uD314\xB7\uB2E4\uB9AC {n}\uAC1C \uC120\uD0DD"
+  addBookButton: "{n}\uAC1C \uCD94\uAC00 \uC608\uC57D"
+  medicalAddSubtitle: "\uC608\uC57D {booked}\uAC1C \xB7 \uCD94\uAC00 \uAC00\uB2A5 {max}\uAC1C"
   serviceLoading: "\uC11C\uBE44\uC2A4 \uC815\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294
     \uC911\uC785\uB2C8\uB2E4."
   serviceStatus: "{player} \xB7 {phase}"

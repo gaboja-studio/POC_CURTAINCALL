@@ -83,21 +83,42 @@ namespace CurtainCall.WaitingRoom
         /// <summary>고를 수 있는 최대 개수 = 잃은 수와 한 번 최대치 중 작은 값.</summary>
         public static int MaxParts(int lostLimbs, int maxPerUse) => Math.Max(0, Math.Min(lostLimbs, maxPerUse));
 
+        /// <summary>
+        /// 예약자가 입장 전(<see cref="ExpertRoomPhase.Booked"/>)에 팔다리를 더 예약하는 중인가(2026-11-18 사용자).
+        /// 추가분은 같은 이용 1회로 치므로 예약 때 단가를 쓰고 팀 이용 횟수를 올리지 않는다.
+        /// </summary>
+        public bool IsAddition(ulong buyer) => Phase == ExpertRoomPhase.Booked && Buyer == buyer;
+
+        /// <summary><paramref name="buyer"/>가 지금 고를 수 있는 최대 개수. 추가 예약이면 한 번 최대치에서 이미 예약한 수를 뺀다.</summary>
+        public int SelectableParts(ulong buyer, int lostLimbs, int maxPerUse)
+        {
+            if (!HasBuyer) return MaxParts(lostLimbs, maxPerUse);
+            return IsAddition(buyer) ? Math.Max(0, MaxParts(lostLimbs, maxPerUse) - BookedLimbs) : 0;
+        }
+
+        /// <summary><paramref name="buyer"/>에게 적용할 단가 기준 팀 이용 횟수. 추가 예약은 예약 때 단가(이용 횟수 -1)다.</summary>
+        public int PriceUses(ulong buyer) => IsAddition(buyer) ? Math.Max(0, TeamUses - 1) : TeamUses;
+
         /// <summary>신체 복구를 살 수 있는지. 자금 확인은 <see cref="BookMedical"/>의 spend가 한다.</summary>
         public ExpertRefusal CanBuyMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse)
         {
             var refusal = Availability(serviceTime);
             if (refusal != ExpertRefusal.None) return refusal;
-            if (HasBuyer) return Buyer == buyer ? ExpertRefusal.AlreadyBooked : ExpertRefusal.Busy;
+            if (HasBuyer)
+            {
+                if (Buyer != buyer) return ExpertRefusal.Busy;
+                // 입장 전이고 아직 더 고칠 팔다리가 있으면 추가 예약을 받는다. 그 밖에는 이미 구매한 상태다.
+                if (!IsAddition(buyer) || SelectableParts(buyer, lostLimbs, maxPerUse) <= 0) return ExpertRefusal.AlreadyBooked;
+            }
             if (!alive) return ExpertRefusal.NotAlive;
             if (lostLimbs <= 0) return ExpertRefusal.WholeBody;
-            if (parts < 1 || parts > MaxParts(lostLimbs, maxPerUse)) return ExpertRefusal.BadChoice;
+            if (parts < 1 || parts > SelectableParts(buyer, lostLimbs, maxPerUse)) return ExpertRefusal.BadChoice;
             return ExpertRefusal.None;
         }
 
         /// <summary>
         /// 신체 복구 구매. 조건을 모두 통과하면 <paramref name="spend"/>(공동 자금에서 지금 단가 × 개수 차감)를 부르고,
-        /// 성공하면 방을 예약하고 팀 이용 횟수를 한 번 올린다.
+        /// 성공하면 방을 예약하고 팀 이용 횟수를 한 번 올린다. 입장 전 예약자의 추가 예약이면 예약 수와 결제액만 늘린다.
         /// </summary>
         public ExpertRefusal BookMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse, Func<bool> spend)
             => BookMedical(buyer, serviceTime, alive, lostLimbs, parts, maxPerUse, spend, 0);
@@ -107,6 +128,13 @@ namespace CurtainCall.WaitingRoom
             var refusal = CanBuyMedical(buyer, serviceTime, alive, lostLimbs, parts, maxPerUse);
             if (refusal != ExpertRefusal.None) return refusal;
             if (spend == null || !spend()) return ExpertRefusal.NotEnoughFunds;
+            if (IsAddition(buyer))
+            {
+                BookedLimbs += parts;
+                PaidCost += Math.Max(0, paidCost);
+                Revision++;
+                return ExpertRefusal.None;
+            }
             Buyer = buyer;
             BookedLimbs = parts;
             PaidCost = Math.Max(0, paidCost);

@@ -129,6 +129,32 @@ namespace CurtainCall.WaitingRoom
             }
             channel.Update();
             WatchGeneration();
+            WatchCraftRooms();
+        }
+
+        // 작업실·소품실이 열리면(잠김 → 열림) 공연 기물이 상점 목록에 추가됐다고 모든 화면에 알린다(2026-11-18 사용자).
+        // 동기화 전 상태·다른 씬(소켓 없음)은 보지 않아, 늦게 들어온 사람이나 장소 전환 뒤에는 다시 뜨지 않는다.
+        bool? craftRoomsSeenOpen;
+        void WatchCraftRooms()
+        {
+            var state = ExplorationState.Instance;
+            if (state == null || !state.StateReady || ExplorationTargets.Find(CraftRoomsSocketId) == null) return;
+            bool open = state.IsOpen(CraftRoomsUnlockedId);
+            if (craftRoomsSeenOpen == false && open) AnnounceCraftItems();
+            craftRoomsSeenOpen = open;
+        }
+
+        void AnnounceCraftItems()
+        {
+            var names = new List<string>();
+            foreach (var item in catalog)
+                if (ItemCatalog.Get(item.Id)?.use == ItemUse.Performance) names.Add(item.Name);
+            if (names.Count == 0) return;
+            var profile = WaitingRoomHudProfile.Current;
+            WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("shop.items-added.title", "상점에 공연 기물 추가"),
+                WaitingRoomText.Format("shop.items-added.body", "작업실과 소품실이 개방되어 공연 기물을 상점에서 구매할 수 있습니다.\n추가된 기물: {items}",
+                    ("items", string.Join(", ", names))), 6f, profile != null ? profile.shopItemsAdded : RoomNotice.Reward);
+            NotifyChanged();
         }
 
         // 세대 교체(런 실패) 때 배송구를 비운다. 공동 자금은 공용 보상 시스템이 초기화한다.
@@ -322,6 +348,7 @@ namespace CurtainCall.WaitingRoom
             receivedWaiting.Clear();
             receivedReceipts.Clear();
             seenGeneration = 0;
+            craftRoomsSeenOpen = null;
             LastMessage = "";
             NotifyChanged();
         }
