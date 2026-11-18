@@ -89,12 +89,25 @@ namespace CurtainCall.Cameras
         readonly List<Renderer> sceneRenderers = new();
         readonly List<Renderer> nearbyRenderers = new();
         readonly List<Renderer> rootRenderers = new();
+        // 범위 상자에 걸린 메시를 실제 면으로 다시 확인한다. 맵 외곽 껍데기처럼 상자가 카메라를 품기만 하는 물체가 늘 점무늬로 비쳤다(2026-11-18 사용자: 배관 연결 통로 깜빡임).
+        readonly Dictionary<Renderer, CameraMeshCollision> meshChecks = new();
         float refreshSceneAt = float.NegativeInfinity;
         float refreshNearbyAt = float.NegativeInfinity;
         Vector3 lastCameraPosition, lastTargetPosition;
         const float NearPlaneRange = .35f;
+        CinemachineCamera followCamera;
 
-        void Awake() => director = GetComponent<CameraViewDirector>();
+        void Awake() { director = GetComponent<CameraViewDirector>(); followCamera = GetComponent<CinemachineCamera>(); }
+
+        /// <summary>
+        /// 내 캐릭터를 따라가는 카메라가 화면을 잡고 있는가. 연출 카메라(탈출로 문 열림·튜토리얼·침대 등)가 잡는 동안에는
+        /// 연출 카메라와 캐릭터 사이 벽이 점무늬로 비치지 않게 투명화하지 않는다(2026-11-18 사용자).
+        /// </summary>
+        bool Following(CinemachineBrain brain)
+        {
+            var live = brain != null ? brain.ActiveVirtualCamera : null;
+            return live == null || followCamera == null || ReferenceEquals(live, followCamera);
+        }
 
         void OnEnable()
         {
@@ -110,6 +123,7 @@ namespace CurtainCall.Cameras
         void InvalidateRenderers()
         {
             refreshSceneAt = float.NegativeInfinity;
+            meshChecks.Clear();
             foregroundOccluders.Clear();
             ClearForegroundFades();
         }
@@ -162,7 +176,7 @@ namespace CurtainCall.Cameras
             foreach (var entry in faded.Values) entry.Occluding = false;
 
             var local = director != null ? director.LocalPlayer : NetworkPlayer.Local;
-            bool trackLocal = local != null && !CameraSpectator.IsSpectating;
+            bool trackLocal = local != null && !CameraSpectator.IsSpectating && Following(brain);
             RefreshOccludedSubject(view, trackLocal ? local : null);
             // 관전 중에는 새 가림을 만들지 않고 기존 것만 점진적으로 복구한다.
             if (trackLocal)
@@ -389,7 +403,22 @@ namespace CurtainCall.Cameras
             lastTargetPosition = chest;
         }
 
-        static bool IntersectsView(Renderer renderer, Vector3 origin, Vector3 target, float radius, out float hit)
+        bool IntersectsView(Renderer renderer, Vector3 origin, Vector3 target, float radius, out float hit)
+        {
+            if (!IntersectsBounds(renderer, origin, target, radius, out hit)) return false;
+            if (renderer is SkinnedMeshRenderer || !renderer.TryGetComponent(out MeshFilter filter)
+                || filter.sharedMesh == null || !filter.sharedMesh.isReadable) return true;
+            if (renderer.TryGetComponent(out CameraCollisionSurface surface) && surface.isActiveAndEnabled && surface.UseMeshGeometry) return true;
+            if (!meshChecks.TryGetValue(renderer, out var check)) meshChecks[renderer] = check = new CameraMeshCollision();
+            Vector3 segment = target - origin;
+            float distance = segment.magnitude;
+            if (!check.Intersect(filter.sharedMesh, renderer.localToWorldMatrix, origin, segment / distance, radius, distance, out float meshHit)
+                || meshHit >= distance) { hit = float.PositiveInfinity; return false; }
+            hit = meshHit;
+            return true;
+        }
+
+        static bool IntersectsBounds(Renderer renderer, Vector3 origin, Vector3 target, float radius, out float hit)
         {
             hit = float.PositiveInfinity;
             Vector3 segment = target - origin;

@@ -20,3 +20,11 @@
   - 검사: 컴파일 PASS, 공통 설정 PASS, WaitingRoom EditMode 569/572. 실패 3건은 문구 파일 테스트(WaitingRoomTextTests: 미등록·미사용·씬 대상 키)로, 메시지에 이번에 추가한 키는 없음. dev 기준 재현 여부는 확인하지 않음. 플레이 확인 전.
 
 - 2026-11-18 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/421 (fix/bugs-20261118 → dev)
+- 2026-11-18 낡은 비디오 테이프 삽입 안 됨(사용자): 기물 목록 에셋(ItemCatalog.asset)에 video-tape-1·2가 없었음. `EnsureVideoTape`는 에셋 생성용(FillFromDraft)에서만 불려 실행 중에는 추가되지 않음 → 목록에 없는 기물은 내구도 무제한(-1)으로 생성 → 소켓이 넣을 때 기물이 '다 써서 사라짐'이어야 하는데 사라지지 않아 CARRY_REFUSED. 에셋에 두 항목(Tool, 내구도 1, 가격 0) 추가. 플레이 중 에셋을 고쳐 지금 플레이 세션에는 반영 안 됨(다시 시작 필요). 커밋 안 함(PR #421은 이미 병합됨).
+- 2026-11-18 테이프 삽입: 위 ItemCatalog.asset 수정 확인(video-tape-1·2 = Tool, 발견품 내구도 1). 플레이 확인 전.
+- 2026-11-18 벽 낙서 단서 오버뷰 기울어짐(사용자): 벽 글자 단서 12개(graffiti·hidden-graffiti·password-prefix·uv-1)는 정면(viewFace)이 비어 있어 `ClueInspectable.ViewRotation`이 플레이어 카메라의 마지막 방향(yaw)과 -18° 기울기로 돌려 보여 줬음. 정면이 비어 있고 TMP 글자가 세워져 있으면 글자 읽는 방향을 정면으로 씀(`WallFace`). 정면이 지정된 단서·글자 없는 단서·눕힌 글자(노트북 메모)는 그대로.
+- 2026-11-18 잠자기 때 침대 위에 뜸(사용자): 매트리스 윗면은 실측 0.65m로 코드 값과 같음(메시 충돌 레이 확인). 원인은 누운 몸의 가장 낮은 점을 모든 렌더러의 표시 범위(bounds)로 잰 것 — 스킨 메시 bounds는 엉덩이 뼈 기준의 넉넉한 상자이고 모델 아래 다른 표시물도 포함. 처음 누울 때 스킨 메시를 구워(BakeMesh) 실제 정점의 최저점으로 한 번 재고 그 높이를 유지. 캐릭터 프리팹 4종 정적 비교에서 0.04~0.13m 낮아짐(실행 중 추가 표시물 영향은 플레이로 확인 필요).
+- 검사: 컴파일 PASS, 공통 설정 PASS, 대기실 EditMode 568/572. 실패 4건: 문구 파일 테스트 3건(기존과 같음), RehearsalCannonSourceTests.W6(CC_GripArt 재질이 CC_PropSurface와 다름 — 대포 손잡이 재질, 이번 변경과 무관. 로컬에 수정된 GripYellow.mat 또는 dev의 공용 기구 아트 변경 영향으로 보임, 미확인). 플레이 확인 전. 커밋 안 함.
+- 2026-11-18 배관 연결 통로(PipeLink) 깜빡임·탈출로 문 열림 연출 점무늬(사용자): 구역에 겹친 같은 메시·같은 평면 얇은 판 없음(z-fighting 아님). 원인은 전경 투명화(`CameraOcclusionFade`) — (1) 맵 외곽 `ExteriorEnclosure/DarkOuterShell`(129×40×198m)의 범위 상자가 늘 카메라를 품어 항상 점무늬 대상, 벽 틈으로 보이는 곳에서 깜빡임. (2) 연출 카메라(탈출로 문 열림 등)가 화면을 잡는 동안에도 연출 카메라~내 캐릭터 사이 벽을 점무늬로 만듦.
+  - 수정: 범위 상자에 걸린 읽기 가능 메시는 실제 면(`CameraMeshCollision`)으로 다시 확인. 내 캐릭터를 따라가는 카메라(같은 오브젝트의 CinemachineCamera)가 화면을 잡지 않으면 투명화 안 함.
+  - 확인: 외곽 껍데기 판정 배관 연결 통로 12/12→0/12, 탈출로 문 앞 12/12→0/12(시점 12방향). 컴파일 PASS, 카메라 EditMode 31/31. 플레이 확인 전. 커밋 안 함.
