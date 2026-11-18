@@ -1,6 +1,7 @@
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Sound;
 using CurtainCall.Tightrope;
 using CurtainCall.WorldIndicators;
 using Unity.Netcode;
@@ -32,9 +33,11 @@ namespace CurtainCall.EscapeRoute
         readonly LineRenderer[] sideRings = new LineRenderer[2];
         readonly AreaIndicatorView[] sideLandings = new AreaIndicatorView[2];
         float previousFlight;
+        SoundHandle threatSound;
 
         void ResetThreat()
         {
+            threatSound.Stop();
             // Also reached by the chase's reset/inactive/OnDisable paths.
             HideChaseWorldUi();
             threat = default;
@@ -275,7 +278,8 @@ namespace CurtainCall.EscapeRoute
                 if (voicedAt != cue.Started && age < .3f)
                 {
                     voicedAt = cue.Started;
-                    if (threatAudio) threatAudio.PlayOneShot(cue.Phase == ThreatPhase.ChargeWarning ? chargeVoice : throwVoice);
+                    threatSound = SoundManager.PlayAt(cue.Phase == ThreatPhase.ChargeWarning
+                        ? SoundCueIds.EscapeRoar : SoundCueIds.EscapeArmWarning, transform);
                 }
             }
         }

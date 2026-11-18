@@ -24,7 +24,7 @@ namespace CurtainCall.Sound.Editor
         }
 
         static readonly Regex Constant = new(@"\b(SoundSituations|SoundCueIds)\.(\w+)", RegexOptions.Compiled);
-        static readonly Regex Literal = new("SoundManager\\.(?:Play|PlayLoop|Stop)\\(\\s*\"([^\"]+)\"", RegexOptions.Compiled);
+        static readonly Regex Literal = new("SoundManager\\.(?:Play|PlayAt|PlayLoop|Stop)\\(\\s*\"([^\"]+)\"", RegexOptions.Compiled);
         static readonly string[] Excluded = { "SoundSituations.cs", "SoundCueIds.cs", "SoundCuePreview.cs", "SoundManager.cs" };
         static Dictionary<string, List<Hit>> cache;
 

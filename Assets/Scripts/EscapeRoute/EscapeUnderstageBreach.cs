@@ -1,4 +1,5 @@
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Sound;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace CurtainCall.EscapeRoute
         // The first foot lands clear of the opening at 3.97 s in UnderstageEntrance.
         internal const float FirstHallPlant = 3.97f;
         float lastSample = -1f, turnYaw;
+        SoundHandle collapseSound;
         Vector3 impactPoint;
         EscapeUnderstageChase chase;
         struct EntranceClock : INetworkSerializeByMemcpy { public double Round, Started; }
@@ -109,11 +111,26 @@ namespace CurtainCall.EscapeRoute
             if (!entrance) return;
             time = Mathf.Clamp(time, 0f, entrance.length);
             if (time == lastSample) return;
-            if (time <= 0f || !sound) concreteAndFootsteps.Stop();
-            else if ((lastSample <= 0f || time < lastSample) && time < concreteAndFootsteps.clip.length)
+            if (SoundCatalog.Current != null && SoundCatalog.Current.Find(SoundCueIds.EscapeWallCollapse) != null)
             {
-                concreteAndFootsteps.time = time;
-                concreteAndFootsteps.Play();
+                if (concreteAndFootsteps) concreteAndFootsteps.Stop();
+                if (time <= 0f || !sound) collapseSound.Stop();
+                else
+                {
+                    if (lastSample < impactTime && time >= impactTime && time - impactTime < .3f)
+                        collapseSound = SoundManager.PlayAt(SoundCueIds.EscapeWallCollapse, impactPoint);
+                    if (lastSample < FirstHallPlant && time >= FirstHallPlant && time - FirstHallPlant < .3f)
+                        SoundManager.PlayAt(SoundCueIds.EscapeFootstep, pursuer.transform);
+                }
+            }
+            else if (concreteAndFootsteps && concreteAndFootsteps.clip)
+            {
+                if (time <= 0f || !sound) concreteAndFootsteps.Stop();
+                else if ((lastSample <= 0f || time < lastSample) && time < concreteAndFootsteps.clip.length)
+                {
+                    concreteAndFootsteps.time = time;
+                    concreteAndFootsteps.Play();
+                }
             }
             entrance.SampleAnimation(gameObject, time);
             if (time <= impactTime || lastSample < impactTime)

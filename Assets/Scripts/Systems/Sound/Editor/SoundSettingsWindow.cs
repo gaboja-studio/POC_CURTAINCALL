@@ -210,6 +210,8 @@ namespace CurtainCall.Sound.Editor
                 EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(SoundCue.delay)), new GUIContent("지연 (초)"));
                 EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(SoundCue.cooldown)), new GUIContent("재사용 간격 (초)"));
                 EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(SoundCue.output)), new GUIContent("믹서 그룹"));
+                EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(SoundCue.minDistance)), new GUIContent("3D 최대 음량 거리 (m)"));
+                EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(SoundCue.maxDistance)), new GUIContent("3D 가청 거리 (m)"));
 
                 var users = catalog.situations.Where(s => s != null && s.cueId == id.stringValue).ToArray();
                 EditorGUILayout.LabelField("쓰는 상황", users.Length == 0 ? "없음 (적용 상황 탭에서 연결)" : string.Join(", ", users.Select(s => s.label)), EditorStyles.wordWrappedMiniLabel);
@@ -309,6 +311,8 @@ namespace CurtainCall.Sound.Editor
             cue.FindPropertyRelative(nameof(SoundCue.delay)).floatValue = 0f;
             cue.FindPropertyRelative(nameof(SoundCue.cooldown)).floatValue = 0f;
             cue.FindPropertyRelative(nameof(SoundCue.output)).objectReferenceValue = null;
+            cue.FindPropertyRelative(nameof(SoundCue.minDistance)).floatValue = 2f;
+            cue.FindPropertyRelative(nameof(SoundCue.maxDistance)).floatValue = 45f;
             expanded.Add("cue:" + cue.FindPropertyRelative(nameof(SoundCue.id)).stringValue);
         }
 

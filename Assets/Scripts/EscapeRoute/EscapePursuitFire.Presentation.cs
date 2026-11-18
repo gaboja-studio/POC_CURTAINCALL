@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using CurtainCall.Sound;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -17,6 +18,7 @@ namespace CurtainCall.EscapeRoute
             public float[] intensities;
             public Color[] colors;
             public FirePhase phase;
+            public SoundHandle warningSound, burningSound, ignitionSound;
         }
         Presentation[] presentation;
         bool presentationHidden;
@@ -65,6 +67,9 @@ namespace CurtainCall.EscapeRoute
                 if (bay.ignitionSparks) bay.ignitionSparks.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                 foreach (var lamp in bay.lights) if (lamp != null) lamp.enabled = false;
                 if (bay.burstAudio != null && bay.burstAudio.isPlaying) bay.burstAudio.Stop();
+                view.warningSound.Stop();
+                view.burningSound.Stop();
+                view.ignitionSound.Stop();
                 view.phase = FirePhase.Dormant;
             }
             presentationHidden = true;
@@ -126,15 +131,22 @@ namespace CurtainCall.EscapeRoute
                     }
                     lamp.intensity = view.intensities[l] * pulse * (phase == FirePhase.Burst ? 1 : phase == FirePhase.Burning ? .28f : .2f);
                 }
-                if (bay.burstAudio != null && bay.burstAudio.clip != null)
+                if (bay.burstAudio && bay.burstAudio.isPlaying) bay.burstAudio.Stop();
+                var audioOrigin = bay.coverage ? bay.coverage.transform : transform;
+                if (phase == FirePhase.Warning)
                 {
-                    if (phase == FirePhase.Burst && view.phase != FirePhase.Burst && age < bay.burstAudio.clip.length)
-                    {
-                        bay.burstAudio.loop = false; bay.burstAudio.Play();
-                        bay.burstAudio.time = Mathf.Clamp((float)Math.Max(0, age), 0, Mathf.Max(0, bay.burstAudio.clip.length - .01f));
-                    }
-                    else if (!burning && bay.burstAudio.isPlaying) bay.burstAudio.Stop();
+                    if (view.phase != FirePhase.Warning)
+                        view.warningSound = SoundManager.PlayAt(SoundCueIds.EscapeFireWarning, audioOrigin);
                 }
+                else view.warningSound.Stop();
+                if (phase == FirePhase.Burst && view.phase != FirePhase.Burst && age < .3)
+                    view.ignitionSound = SoundManager.PlayAt(SoundCueIds.EscapeFireIgnition, audioOrigin);
+                if (burning)
+                {
+                    if (!view.burningSound.IsPlaying && SoundCatalog.Current?.Find(SoundCueIds.EscapeFireBurning) is { enabled: true, HasClip: true })
+                        view.burningSound = SoundManager.PlayAt(SoundCueIds.EscapeFireBurning, audioOrigin, SoundPlayOptions.Looping);
+                }
+                else view.burningSound.Stop();
                 view.phase = phase;
             }
         }

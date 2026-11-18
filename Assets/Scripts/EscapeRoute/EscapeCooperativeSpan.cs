@@ -1,5 +1,6 @@
 using UnityEngine;
 using CurtainCall.Network.Session;
+using CurtainCall.Sound;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -15,6 +16,8 @@ namespace CurtainCall.EscapeRoute
         float amount;
         float transitionAmount;
         double transitionAt;
+        SoundHandle driveSound;
+        float presentedAmount;
         double Clock => NetworkSessionManager.Instance != null && NetworkSessionManager.Instance.NetworkManager != null
             && NetworkSessionManager.Instance.NetworkManager.IsListening
             ? NetworkSessionManager.Instance.NetworkManager.ServerTime.Time : Time.unscaledTimeAsDouble;
@@ -43,17 +46,28 @@ namespace CurtainCall.EscapeRoute
         // Snapshot time is server time, so delayed arrival catches up instead of restarting the bridge.
         public void SynchronizeDeployment(bool value, float atSnapshot, double snapshotTime)
         {
+            bool wasDeploying = deployed && amount < 1;
             deployed = value; transitionAmount = atSnapshot; transitionAt = snapshotTime;
-            amount = AmountAt(Clock); Present();
+            amount = AmountAt(Clock); PresentState(wasDeploying);
         }
-        void OnEnable() { amount = transitionAmount = 0; transitionAt = Clock; Present(); }
+        void OnEnable() { amount = transitionAmount = 0; transitionAt = Clock; PresentState(false); }
+        void OnDisable() => driveSound.Stop();
         void Update()
         {
             amount = AmountAt(Clock);
             Present();
         }
-        void Present()
+        void Present() => PresentState(true);
+
+        void PresentState(bool sound)
         {
+            bool moving = deployed && amount < 1;
+            if (Application.isPlaying && sound && moving && !driveSound.IsPlaying)
+                driveSound = SoundManager.PlayAt(SoundCueIds.EscapeBridgeDrive, transform, SoundPlayOptions.Looping);
+            if (!moving) driveSound.Stop();
+            if (Application.isPlaying && sound && deployed && amount >= 1 && presentedAmount < 1)
+                SoundManager.PlayAt(SoundCueIds.EscapeBridgeReady, transform);
+            presentedAmount = amount;
             bool changed = Rotate(leftLeaf, raisedAngle * (1 - amount));
             changed |= Rotate(rightLeaf, -raisedAngle * (1 - amount));
             // 전개 여부는 통행 준비 상태다. 눈에 보이는 철판의 물리를 끄지 않는다.

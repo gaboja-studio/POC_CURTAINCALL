@@ -15,7 +15,7 @@ MonoBehaviour:
   uiVolume: 1
   sfxVolume: 1
   bgmVolume: 1
-  voices: 12
+  voices: 32
   cues:
   - id: UI-104
     situation: "\uBC29\uC1A1 \uBC30\uB108\uC74C"
@@ -38,6 +38,8 @@ MonoBehaviour:
     delay: 0
     cooldown: 1
     output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
   - id: UI-701
     situation: "\uAC1C\uC778 \uC0AC\uB9DD\uC74C"
     description: "\uB0B4 \uB2E8\uC6D0\uC774 \uC0AC\uB9DD\uD574 \uC0AC\uB9DD \uCE74\uB4DC\uAC00
@@ -56,6 +58,8 @@ MonoBehaviour:
     delay: 0
     cooldown: 0.5
     output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
   - id: UI-905
     situation: "\uD0C0\uC774\uBA38 30\uCD08 \uACBD\uACE0\uC74C"
     description: "\uD734\uC2DD\xB7\uC815\uBE44 \uD0C0\uC774\uBA38\uAC00 30\uCD08
@@ -76,6 +80,8 @@ MonoBehaviour:
     delay: 0
     cooldown: 1
     output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
   - id: UI-906
     situation: "\uB9C8\uC9C0\uB9C9 10\uCD08 \uD2F1"
     description: "\uD0C0\uC774\uBA38 \uB9C8\uC9C0\uB9C9 10\uCD08 \uB3D9\uC548 \uCD08\uB9C8\uB2E4
@@ -95,6 +101,352 @@ MonoBehaviour:
     delay: 0
     cooldown: 0.5
     output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-002
+    situation: "\uCD94\uACA9\uC790 \uB4F1\uC7A5\uBCBD \uBD95\uAD34"
+    description: "\uBCBD\uC774 \uBB34\uB108\uC9C0\uB294 \uC21C\uAC04. \uCF58\uD06C\uB9AC\uD2B8
+      \uD30C\uD3B8 \uC794\uD5A5 \uD3EC\uD568."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 9473e2423f2dd9c4cb1fd4d104c5c3a8, type: 3}
+    - {fileID: 8300000, guid: 3fb291ae42acbc14890d2606cac9aae9, type: 3}
+    - {fileID: 8300000, guid: 61bd18ff797293d409735467b2ef02a4, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-003
+    situation: "\uCD94\uACA9\uC790 \uAC77\uAE30 \uBC1C\uC18C\uB9AC"
+    description: "\uCD94\uACA9\uC790\uC758 \uBC1C\uC774 \uBC14\uB2E5\uC5D0 \uB2FF\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 195982d34191bd04cb07463ccc747771, type: 3}
+    - {fileID: 8300000, guid: 91f19f95286a766479a302fcd2124aa9, type: 3}
+    category: 1
+    volume: 0.65
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0.9
+    loop: 0
+    fadeOut: 0.1
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 4
+    maxDistance: 70
+  - id: ESC-005
+    situation: "\uCD94\uACA9\uC790 \uD3EC\uD6A8"
+    description: "\uCCAB \uB4F1\uC7A5 \uD6C4 \uB3CC\uC9C4\uC744 \uC608\uACE0\uD560
+      \uB54C."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 87b3f69e56c48e542bcadbcae00fa2fd, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0.1
+    maxDuration: 2.2
+    loop: 0
+    fadeOut: 0.18
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 85
+  - id: ESC-006
+    situation: "\uCD94\uACA9\uC790 \uB3C4\uC57D \uCC29\uC9C0"
+    description: "\uB3C4\uC57D \uD6C4 \uBC14\uB2E5\uC5D0 \uB0B4\uB824\uC549\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 36e2c5347283d4c4296f52a619c8d5cc, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 1.68
+    maxDuration: 1.8
+    loop: 0
+    fadeOut: 0.18
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-007
+    situation: "\uCD94\uACA9\uC790 \uD314 \uACF5\uACA9 \uC608\uACE0"
+    description: "\uD314 \uACF5\uACA9\uC758 \uB300\uC0C1\uACFC \uBC29\uD5A5\uC774
+      \uD45C\uC2DC\uB420 \uB54C."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: be9e901f7938235488d5f4806acf765f, type: 3}
+    - {fileID: 8300000, guid: 10ee5a0241e2ea84e884c8c49e068762, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-009
+    situation: "\uCD94\uACA9\uC790 \uD3EC\uD68D"
+    description: "\uBED7\uC740 \uC190\uC774 \uD50C\uB808\uC774\uC5B4\uB97C \uBD99\uC7A1\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 857eb6b4317ccc04a8b62b9cef3cddc3, type: 3}
+    - {fileID: 8300000, guid: 328403b7eb40cdf4c8f3ab2ad944369a, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0.4
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-010
+    situation: "\uCD94\uACA9\uC790 \uD22C\uCC99"
+    description: "\uC190\uC5D0\uC11C \uD50C\uB808\uC774\uC5B4\uAC00 \uB193\uC774\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 2ea2efc64f3f0844fad2b51fe6025e6d, type: 3}
+    - {fileID: 8300000, guid: 906a92da63fc24641b5a87674b0b095c, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0.3
+    maxDuration: 1.5
+    loop: 0
+    fadeOut: 0.18
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-011
+    situation: "\uC18C\uC2E4 \uC678\uC904 \uC804\uAE30 \uACBD\uACE0"
+    description: "\uC678\uC904 \uC18C\uC2E4 \uC608\uACE0\uC758 \uC804\uAE30 \uC810\uBA78\uB9C8\uB2E4."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 809275f8baf1915428389e7ea5a389f6, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0.25
+    loop: 0
+    fadeOut: 0.04
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 1.5
+    maxDistance: 14
+  - id: ESC-012
+    situation: "\uC678\uC904 \uC18C\uC2E4"
+    description: "\uC678\uC904\uC758 \uC9C0\uC9C0\uAC00 \uC0AC\uB77C\uC9C0\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: f5f7cf0d4fac2934396d7e98c0733d27, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 1.5
+    maxDistance: 14
+  - id: ESC-013
+    situation: "\uC678\uC904 \uBCF5\uC6D0"
+    description: "\uC0AC\uB77C\uC9C4 \uC678\uC904\uC774 \uB2E4\uC2DC \uB098\uD0C0\uB098\uB294
+      \uC21C\uAC04."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 844ba18443501ee44a54afa22729b284, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 1.5
+    maxDistance: 14
+  - id: ESC-014
+    situation: "\uD6C4\uBC18 \uCD94\uACA9\uBD88 \uC2DC\uC791 \uACBD\uACE0"
+    description: "\uD6C4\uBC18 \uCD94\uACA9\uBD88\uC758 \uC810\uD654 \uC608\uACE0
+      \uC911."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 04820e39aae9c0d4bb6bdb097b5a5a39, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-015
+    situation: "\uCD94\uACA9\uBD88 \uAD6C\uAC04 \uC810\uD654"
+    description: "\uAC01 \uD654\uC5FC\uBCBD \uAD6C\uAC04\uC774 \uC810\uD654\uB418\uB294
+      \uC21C\uAC04."
+    enabled: 0
+    clips:
+    - {fileID: 8300000, guid: cbd6e7774d789364090f22bb0271cf88, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-016
+    situation: "\uCD94\uACA9\uBD88 \uD654\uC5FC\uBCBD \uC5F0\uC18C"
+    description: "\uC810\uD654 \uD6C4 \uC774\uC5B4\uC9C0\uB294 \uACF5\uAC04 \uC5F0\uC18C
+      \uB8E8\uD504."
+    enabled: 0
+    clips:
+    - {fileID: 8300000, guid: ee4fb5086e439be408f21430424f8e5c, type: 3}
+    category: 1
+    volume: 0.3
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 1
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-018
+    situation: "\uC811\uC774\uAD50 \uC804\uAC1C \uAD6C\uB3D9"
+    description: "\uC811\uC774\uAD50\uAC00 \uD3BC\uCCD0\uC9C0\uB294 \uB3D9\uC548\uC758
+      \uAD6C\uB3D9 \uB8E8\uD504."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 932cbd149b4139e449899467db7056bd, type: 3}
+    category: 1
+    volume: 0.4
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 1
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-019
+    situation: "\uC811\uC774\uAD50 \uC804\uAC1C \uC644\uB8CC"
+    description: "\uC811\uC774\uAD50\uAC00 \uC644\uC804\uD788 \uD3BC\uCCD0\uC838
+      \uD1B5\uACFC \uAC00\uB2A5\uD574\uC9C8 \uB54C."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 40900a71ec987554f8dba42d11abd3c3, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-022
+    situation: "\uD734\uB300 \uD1B1 \uBC1C\uC0AC"
+    description: "\uC6D0\uD615 \uD1B1\uB0A0\uC774 \uBC1C\uC0AC\uB418\uB294 \uC21C\uAC04."
+    enabled: 0
+    clips:
+    - {fileID: 8300000, guid: 507c57759ce626849b96cbaf62adfa65, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: ESC-027
+    situation: "\uCD9C\uAD6C \uC154\uD130 \uAC1C\uBC29"
+    description: "\uCD5C\uC885 \uCD9C\uAD6C\uAC00 \uC2E4\uC81C\uB85C \uC5F4\uB9AC\uAE30
+      \uC2DC\uC791\uD560 \uB54C."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: cf22bf891828c574fbfe679b9c25c4cd, type: 3}
+    category: 1
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 0
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
   situations:
   - key: waiting-room.recall-broadcast
     label: "\uC18C\uC9D1 \uACBD\uBCF4 \uBC29\uC1A1"
