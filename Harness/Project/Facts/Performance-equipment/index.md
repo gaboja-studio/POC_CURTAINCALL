@@ -1,5 +1,7 @@
 # 공연 기물 표현
 
+- [placement-window.md](placement-window.md) — 공연·난이도별 배치, 저장/미리보기 경계와 동작 등록을 수정할 때
+
 - [rescue-pull.md](rescue-pull.md) — 구조 장갑 대상 표식·연속 이동·네트워크를 수정할 때
 
 - [use-effects.md](use-effects.md) — 기물 4종 월드 VFX와 실제 공연 녹화를 조정할 때

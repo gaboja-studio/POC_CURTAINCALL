@@ -139,34 +139,5 @@ namespace CurtainCall.MainStage.CheerPoints.Editor
         }
     }
 
-    public sealed class PerformanceCheerWindow : EditorWindow
-    {
-        bool equipment;
-        [MenuItem("CurtainCall/Performance/Cheer Point Placement")]
-        static void Open() => GetWindow<PerformanceCheerWindow>("환호 포인트");
-        void OnGUI()
-        {
-            var settings=AssetDatabase.LoadAssetAtPath<PerformanceEquipmentSettings>(PerformanceEquipmentAuthoring.SettingsPath);
-            if(!settings) { EditorGUILayout.HelpBox("공연 기물 설정 에셋이 없습니다.",MessageType.Warning); return; }
-            EditorGUI.BeginChangeCheck();
-            var style=(CheerPointStyle)EditorGUILayout.EnumPopup("외형",settings.cheerStyle);
-            if(EditorGUI.EndChangeCheck()) { Undo.RecordObject(settings,"Change cheer style"); settings.cheerStyle=style; EditorUtility.SetDirty(settings); }
-            if(GUILayout.Button("GameSettings 수치 열기")) Selection.activeObject=settings;
-            equipment=EditorGUILayout.Toggle("기물 활용 경로",equipment);
-            EditorGUILayout.HelpBox("고리의 파란 Z축이 통과 방향입니다. Scene 뷰에서 위치·회전을 조정하세요. 불꽃은 피해를 주지 않습니다.",MessageType.Info);
-            using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
-                if(GUILayout.Button("Scene 뷰 중심에 환호 고리 추가"))
-                {
-                    var scene=SceneManager.GetActiveScene(); string trick=scene.name;
-                    if(trick!="Tightrope" && trick!="HumanCannon") { ShowNotification(new GUIContent("공연 씬을 활성화하세요.")); return; }
-                    var parent=scene.GetRootGameObjects().FirstOrDefault(g=>g.name=="PerformanceCheerPoints");
-                    if(!parent) { parent=new GameObject("PerformanceCheerPoints"); Undo.RegisterCreatedObjectUndo(parent,"Create cheer root"); }
-                    var point=PerformanceEquipmentAuthoring.AddPoint(parent.transform,trick,parent.transform.childCount,SceneView.lastActiveSceneView ? SceneView.lastActiveSceneView.pivot : Vector3.zero,Quaternion.identity,equipment);
-                    Undo.RegisterCreatedObjectUndo(point.gameObject,"Add cheer point"); Selection.activeGameObject=point.gameObject; EditorSceneManager.MarkSceneDirty(scene);
-                }
-            foreach(var point in UnityEngine.Object.FindObjectsByType<PerformanceCheerPoint>(FindObjectsInactive.Include,FindObjectsSortMode.None))
-                if(point && GUILayout.Button($"{point.gameObject.scene.name} / {point.name}")) { Selection.activeGameObject=point.gameObject; SceneView.lastActiveSceneView?.FrameSelected(); }
-        }
-    }
 }
 #endif

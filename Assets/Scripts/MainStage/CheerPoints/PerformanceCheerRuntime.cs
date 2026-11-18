@@ -13,7 +13,7 @@ namespace CurtainCall.MainStage.CheerPoints
     /// <summary>Host-owned first-claim collection. Reuses reward replication and a reliable late-join snapshot.</summary>
     public sealed class PerformanceCheerRuntime : MonoBehaviour
     {
-        [Serializable] sealed class Snapshot { public string attempt; public string[] taken; public int style; }
+        [Serializable] sealed class Snapshot { public string attempt; public string[] taken; public int style; public bool enabled; }
         readonly HashSet<string> taken = new();
         readonly Dictionary<ulong,(Vector3 position,int restart)> previous = new();
         readonly Dictionary<ulong,double> suppressedUntil = new();
@@ -27,10 +27,11 @@ namespace CurtainCall.MainStage.CheerPoints
         ShopChannel channel;
         string attempt;
         CheerPointStyle style;
+        bool pointsEnabled;
         PerformanceRewards Rewards => PerformanceRewards.Instance;
         bool Active => Rewards != null && Rewards.State?.IsOpen == true;
         void Awake() { current=this; channel = new ShopChannel("CurtainCall.CheerPoints", (sender,_) => Publish(sender), Read, _=>{}, Reset, ()=>channel.Request("sync")); }
-        void Reset() { attempt=null; taken.Clear(); previous.Clear(); }
+        void Reset() { attempt=null; pointsEnabled=false; taken.Clear(); previous.Clear(); }
         void OnDestroy() { channel?.Dispose(); if(current==this) current=null; }
         void Update()
         {
@@ -39,15 +40,18 @@ namespace CurtainCall.MainStage.CheerPoints
             {
                 string next = Active ? Rewards.State.Performance.Id : null;
                 var nextStyle=GameSettings.PerformanceEquipment.cheerStyle;
-                if (attempt!=next || style!=nextStyle)
+                bool nextEnabled=GameSettings.PerformanceEquipment.cheerPointsEnabled;
+                if (attempt!=next || style!=nextStyle || pointsEnabled!=nextEnabled)
                 {
                     if(attempt!=next) { taken.Clear(); previous.Clear(); }
-                    attempt=next; style=nextStyle; Publish();
+                    // Do not score a path travelled while disabled; keep already claimed points.
+                    if(pointsEnabled!=nextEnabled) previous.Clear();
+                    attempt=next; style=nextStyle; pointsEnabled=nextEnabled; Publish();
                 }
-                if(Active) Collect(); else previous.Clear();
+                if(Active && pointsEnabled) Collect(); else previous.Clear();
             }
             foreach(var point in PerformanceCheerPoint.All)
-                if(point) point.Present(Active && point.trickId==Rewards.State.Performance.TrickId && attempt==Rewards.State.Performance.Id,
+                if(point) point.Present(pointsEnabled && Active && point.AppliesToDifficulty(Rewards.Difficulty) && point.trickId==Rewards.State.Performance.TrickId && attempt==Rewards.State.Performance.Id,
                     taken.Contains(point.pointId),style);
         }
         void Collect()
@@ -64,7 +68,7 @@ namespace CurtainCall.MainStage.CheerPoints
                 if(previous.TryGetValue(player.OwnerClientId,out var last) && last.restart==player.RestartVersion && Vector3.Distance(last.position,center)<30f)
                     foreach(var point in PerformanceCheerPoint.All)
                     {
-                        if(!point || point.trickId!=Rewards.State.Performance.TrickId || string.IsNullOrWhiteSpace(point.pointId) || taken.Contains(point.pointId) || !point.Crossed(last.position,center)) continue;
+                        if(!point || !point.AppliesToDifficulty(Rewards.Difficulty) || point.trickId!=Rewards.State.Performance.TrickId || string.IsNullOrWhiteSpace(point.pointId) || taken.Contains(point.pointId) || !point.Crossed(last.position,center)) continue;
                         // First claimant owns this point even if their personal applause is already capped.
                         taken.Add(point.pointId);
                         Rewards.AddAudienceReaction(participant.ParticipantId,GameSettings.PerformanceEquipment.cheerAmount);
@@ -76,14 +80,14 @@ namespace CurtainCall.MainStage.CheerPoints
         void Publish(ulong? target=null)
         {
             if(Rewards==null || !Rewards.HasAuthority) return;
-            channel.SendState(JsonUtility.ToJson(new Snapshot { attempt=attempt, taken=taken.ToArray(),style=(int)style }),target);
+            channel.SendState(JsonUtility.ToJson(new Snapshot { attempt=attempt, taken=taken.ToArray(),style=(int)style,enabled=pointsEnabled }),target);
         }
         void Read(string json)
         {
             if(Rewards != null && Rewards.HasAuthority) return;
             var data=JsonUtility.FromJson<Snapshot>(json);
             if(data==null || data.taken==null || data.taken.Length>512 || data.style<0 || data.style>2) return;
-            attempt=data.attempt; style=(CheerPointStyle)data.style; taken.Clear();
+            attempt=data.attempt; style=(CheerPointStyle)data.style; pointsEnabled=data.enabled; taken.Clear();
             foreach(var id in data.taken) if(!string.IsNullOrEmpty(id)) taken.Add(id);
         }
     }

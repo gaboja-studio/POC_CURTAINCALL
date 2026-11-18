@@ -12,6 +12,7 @@ source: Task-20261117-155, 사용자 확정, Confluence 44793873
 
 ## 구현
 - `GameSettings.PerformanceEquipment` → `Resources/Settings/GameSettings/Items/PerformanceEquipment.asset`. 점프 높이/구조 거리·각도/장갑 시간/벌룬 시간·하강속도·조작 배율/고리 외형·판정·환호량.
+- 환호 포인트 `cheerPointsEnabled`(‘환호 포인트 사용’) 기본 true. OFF는 고리 VFX 생성/표시와 통과 보상을 모두 중단한다. 호스트가 기존 스냅샷으로 ON/OFF를 보내 늦게 합류한 화면도 같은 값을 따른다. 전환 시 이전 이동 경로는 버리고 같은 공연의 획득 기록은 보존한다. 배치 창에도 같은 토글이 있다.
 - `NetworkPlayer.PerformanceEquipment`가 슬롯의 UID를 서버에 요청한다. 신발/벌룬은 소유자 효과 적용 확인 뒤 정확한 UID의 내구도를 1 소모한다. 처리 중 해당 아이템 버리기는 제한한다. 무효 조건·실패에는 소모 없음.
 - 신발: 일반 PlayerMover 및 대포/봉 비행 HumanCannonPilot 모두 상승 속도를 적용한다. 착지 전 1회, 기존 자동 착지 반동 호출은 폐기. 트램펄린 확정 접촉도 새 체공이다. 매달림 자체로 사용권을 초기화하지 않는다.
 - 구조 장갑: 전방 가까운 공중/매달림 동료, 화면 안·시야 차단 없음, 내 주변 안전 지지면/빈 캡슐 공간·이동 경로를 검사한다. 소지자 전용 대상 표식과 현재 사용키. 서버가 그 대상을 재검증·예약하고 소유자가 기본0.8초 동안 CharacterController.Move로 이동한다. Owner NetworkTransform이 중간 위치를 공유하며 Teleport를 호출하지 않는다. [구조 표식과 이동](rescue-pull.md).

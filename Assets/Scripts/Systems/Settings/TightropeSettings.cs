@@ -62,13 +62,42 @@ namespace CurtainCall.Settings
         public static int ClampStage(int stage) => Mathf.Clamp(stage, 1, StageCount);
 
         /// <summary>그 단계의 코스 값. 지금은 모든 단계가 1단계 코스를 쓴다(추가 배치는 기물만).</summary>
-        public CourseSettings CourseFor(int stage) => course;
+        public CourseSettings CourseFor(int stage) => PlacementFor(stage)?.course ?? course;
+
+        [Header("난이도별 배치 창에서 편집하는 독립 코스")]
+        [SerializeField] PlacementStage[] placementStages = new PlacementStage[StageCount];
+
+        [Serializable]
+        public sealed class PlacementStage
+        {
+            public bool enabled;
+            public CourseSettings course;
+            public Tightrope.Saws.SawSettings saws;
+        }
+
+        public PlacementStage PlacementFor(int stage)
+        {
+            var value=placementStages != null && placementStages.Length >= ClampStage(stage) ? placementStages[ClampStage(stage)-1] : null;
+            return value!=null && value.enabled ? value : null;
+        }
+
+        // Copy the effective layout, including existing stage additions, only when the designer edits it.
+        public PlacementStage CreatePlacement(int stage)
+        {
+            int index=ClampStage(stage)-1;
+            if(placementStages == null || placementStages.Length != StageCount) Array.Resize(ref placementStages,StageCount);
+            if(PlacementFor(stage) == null)
+                placementStages[index]=new PlacementStage { enabled=true,course=CourseFor(stage).Clone(),
+                    saws=JsonUtility.FromJson<Tightrope.Saws.SawSettings>(JsonUtility.ToJson(SawsFor(stage))) };
+            return placementStages[index];
+        }
 
         [NonSerialized] Tightrope.Saws.SawSettings[] stageSaws;
 
         /// <summary>그 단계의 톱날 값 = 1단계 톱날 + 그 단계 추가 톱날(+ 정면 톱날). 추가가 없으면 1단계 값 그대로.</summary>
         public Tightrope.Saws.SawSettings SawsFor(int stage)
         {
+            if(PlacementFor(stage)?.saws is { } authored) return authored;
             var later = LaterStage(stage);
             var extra = later?.extraHorizontalSaws;
             bool incoming = later != null && later.incomingSaw;

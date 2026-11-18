@@ -100,11 +100,10 @@ namespace CurtainCall.Tightrope.Saws
         bool verticalStoppedByTrapeze; // 호스트: 이 단계 공연에서 누군가 공중그네 첫 봉을 한 번이라도 잡아 수직 톱날 출현을 멈췄는지(판을 다시 해도 유지)
         // 얇은 가로 톱은 멀리서 화면 고정 두께 테두리에 묻히므로 거리에 따라 테두리를 줄여 없앤다.
         const float HorizontalOutlineWidth = 3f, HorizontalOutlineFullDistance = 5f, HorizontalOutlineHiddenDistance = 14f;
-        public int ActiveHorizontalCount => TrickSettings.SawCount(settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity)
-            + HorizontalCount - settings.BaseHorizontalCount;
+        public int ActiveHorizontalCount { get { int count=0; for(int i=0;i<HorizontalCount;i++) if(IsHorizontalEnabled(i)) count++; return count; } }
         /// <summary>플레이에 나오는 가로 톱날인지. 1단계 목록은 톱날 밀도로 고르고, 단계 추가 톱날은 항상 나온다.</summary>
-        public bool IsHorizontalEnabled(int index) => settings.IsStageExtra(index)
-            || TrickSettings.IncludesSaw(index, settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity);
+        public bool IsHorizontalEnabled(int index) => index>=0 && index<settings.HorizontalCount && !settings.horizontalSaws[index].excluded
+            && (settings.IsStageExtra(index) || TrickSettings.IncludesSaw(index, settings.BaseHorizontalCount, GameSettings.Tightrope.SawDensity));
 
         // 가로 톱날(모든 화면): 작동·정지 기록. 시각은 게임 경과 시간
         HorizontalSawTrack[] tracks = Array.Empty<HorizontalSawTrack>();

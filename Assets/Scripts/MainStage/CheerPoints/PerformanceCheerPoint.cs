@@ -10,30 +10,39 @@ namespace CurtainCall.MainStage.CheerPoints
         public string pointId;
         public string trickId = "Tightrope";
         public bool equipmentRoute;
+        [Tooltip("1=난이도1, 2=난이도2, 4=난이도3. 배치 창에서 편집합니다. 7은 모든 난이도.")]
+        public int difficultyMask = 7;
         public static readonly List<PerformanceCheerPoint> All = new();
         GameObject visual;
         GameObject source;
+        CheerPointPresentation presentation;
         bool collected;
         float collectedAt;
 
         void OnEnable() { if (!All.Contains(this)) All.Add(this); }
         void OnDisable() => All.Remove(this);
         public bool Collected => collected;
+        public bool AppliesToDifficulty(int level) => level >= 1 && level <= 3 && (difficultyMask & (1 << (level-1))) != 0;
 
         public void Present(bool active, bool taken, CheerPointStyle style)
         {
+            if (taken && !collected) collectedAt = Time.unscaledTime;
+            collected = taken;
+            // Inactive performances and the host's OFF setting need no visual instances.
+            if (!active)
+            {
+                if (visual) visual.SetActive(false);
+                return;
+            }
             var prefab = GameSettings.PerformanceEquipment.Visual(style);
             if (source != prefab)
             {
                 if (visual) Destroy(visual);
                 source = prefab; visual = prefab ? Instantiate(prefab,transform) : null;
+                presentation = visual ? visual.AddComponent<CheerPointPresentation>() : null;
             }
-            if (taken && !collected) collectedAt = Time.unscaledTime;
-            collected = taken;
             if (!visual) return;
-            float progress = taken ? Mathf.Clamp01((Time.unscaledTime-collectedAt)/.3f) : 0;
-            visual.SetActive(active && progress < 1);
-            visual.transform.localScale = Vector3.one * (1-progress);
+            presentation.Sample(taken ? Time.unscaledTime-collectedAt : 0,taken,Camera.main);
         }
 
         public bool Crossed(Vector3 previous, Vector3 current)

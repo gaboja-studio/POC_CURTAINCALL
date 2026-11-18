@@ -42,7 +42,7 @@ namespace CurtainCall.HumanCannon
         [Tooltip("구간 시작선. 불의 진행 방향으로 이 지점을 넘어 선 사람을 해당 구간 도착으로 본다. 배율과 같은 수.")]
         [SerializeField] Transform[] stageLines = System.Array.Empty<Transform>();
         double[] stageAt;
-        public bool Available => available;
+        public bool Available => available && isActiveAndEnabled;
         public int StageCount => Mathf.Min(stageSpeedMultipliers.Length, stageLines.Length);
         /// <summary>속도 단계가 오른 호스트 시각. 아직이면 -1.</summary>
         public double StageAt(int stage) => stage >= 0 && stage < StageCount && stageAt != null && stage < stageAt.Length ? stageAt[stage] : -1;
@@ -113,7 +113,7 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         public double AdvanceAt => StageAt(0) >= 0 ? System.Math.Min(ArmedAt + warningSeconds, StageAt(0)) : ArmedAt + warningSeconds;
         public double RemainingWarning(double now) => Armed && !Finished ? System.Math.Max(0, AdvanceAt - now) : 0;
-        public bool Advancing(double now) => available && double.IsFinite(now) && now >= 0 && Armed && !Finished && now >= AdvanceAt;
+        public bool Advancing(double now) => Available && double.IsFinite(now) && now >= 0 && Armed && !Finished && now >= AdvanceAt;
         public Vector3 Front(double now)
         {
             if (!IsConfigured) return transform.position;
@@ -142,14 +142,14 @@ namespace CurtainCall.HumanCannon
 
         public bool Arm(double now)
         {
-            if (!available || Armed || !IsConfigured || !double.IsFinite(now) || now < 0) return false;
+            if (!Available || Armed || !IsConfigured || !double.IsFinite(now) || now < 0) return false;
             ArmedAt = now;
             return true;
         }
 
         public bool Tick(double now)
         {
-            if (!available || !double.IsFinite(now) || now < 0 || !Armed || Finished || now < EndTime) return false;
+            if (!Available || !double.IsFinite(now) || now < 0 || !Armed || Finished || now < EndTime) return false;
             Finished = true;
             return true;
         }
@@ -167,7 +167,7 @@ namespace CurtainCall.HumanCannon
             => IsConfigured && Advancing(now) && ThreatensGeometry(feet, radius, now);
 
         internal bool HistoricalThreatens(Vector3 feet, float radius, double now)
-            => IsConfigured && available && Armed && double.IsFinite(now) && now >= AdvanceAt && now <= EndTime
+            => IsConfigured && Available && Armed && double.IsFinite(now) && now >= AdvanceAt && now <= EndTime
                 && ThreatensGeometry(feet, radius, now);
 
         bool ThreatensGeometry(Vector3 feet, float radius, double now)
@@ -186,7 +186,7 @@ namespace CurtainCall.HumanCannon
         public void Present(double now)
         {
             if (!IsConfigured) return;
-            bool shown = available && Armed && !Finished;
+            bool shown = Available && Armed && !Finished;
             visual.gameObject.SetActive(shown);
             visual.position = Front(now) + Vector3.up * (height * 0.5f);
             visual.rotation = start.rotation;

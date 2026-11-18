@@ -11,6 +11,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         const BindingFlags AnyInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        object cheerSettingsToRestore;
+        bool cheerEnabledToRestore;
+        [TearDown]
+        public void RestoreCheerSettingAfterInterruptedTest()
+        {
+            if(cheerSettingsToRestore==null) return;
+            cheerSettingsToRestore.GetType().GetField("cheerPointsEnabled").SetValue(cheerSettingsToRestore,cheerEnabledToRestore);
+            cheerSettingsToRestore=null;
+        }
         object CarryItem(object carry, ulong me, string id) => ((IEnumerable)Call(carry,"Held",me)).Cast<object>().FirstOrDefault(i=>(string)Get(i,"ItemId")==id);
         int UsesOf(object carry,ulong me,string id) { var item=CarryItem(carry,me,id); return item==null ? 0 : (int)Get(item,"Uses"); }
         void Give(object carry,ulong me,int uid,string id,int uses) => Assert.AreEqual("None",Call(carry,"Receive",me,Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"),uid,id,id,uses)).ToString());
@@ -190,31 +199,87 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(2,UsesOf(carry,me,"sticky-gloves"),"Same hold cannot spend again.");
         }
 
-        [UnityTest,Category("PerformanceEquipment")]
+        [UnityTest,Category("PerformanceEquipment"),Category("CheerPointToggle")]
         public IEnumerator Performance_HoopAwardsOnceOnlyThroughOpening()
+            => VerifyCheerPointToggle("Tightrope",0);
+
+        [UnityTest,Category("PerformanceEquipment"),Category("CheerPointToggle")]
+        public IEnumerator Performance_HumanCannonHoopToggleHidesAndBlocksRewards()
+            => VerifyCheerPointToggle("HumanCannon",1);
+
+        IEnumerator VerifyCheerPointToggle(string trick,int slot)
         {
-            yield return Launch(3,"Performance",0,"Tightrope","Tightrope");
+            var settings=Static("CurtainCall.Settings.GameSettings","PerformanceEquipment");
+            var enabled=settings.GetType().GetField("cheerPointsEnabled");
+            bool original=(bool)enabled.GetValue(settings);
+            cheerSettingsToRestore=settings; cheerEnabledToRestore=original;
+            Assert.IsTrue(original,"The hanging rings ship enabled.");
+            yield return Launch(3,"Performance",slot,trick,trick);
+            // Ring rewards are measured independently of obstacle reactions and the +10 limb-cut bonus.
+            var observers=UnityEngine.Object.FindObjectsByType(T("CurtainCall.Reward.PerformanceAudience"),FindObjectsSortMode.None).Cast<Behaviour>()
+                .Concat(UnityEngine.Object.FindObjectsByType(T("CurtainCall.Tightrope.Saws.TightropeSaws"),FindObjectsSortMode.None).Cast<Behaviour>()).ToArray();
+            var observerEnabled=observers.Select(a=>a.enabled).ToArray();
+            foreach(var observer in observers) observer.enabled=false;
             var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
             var mover=(Behaviour)player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             var points=UnityEngine.Object.FindObjectsByType(T("CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint"),FindObjectsSortMode.None).Cast<Component>().ToArray();
             Assert.AreEqual(5,points.Length);
             var point=points.First(p=>!(bool)Field(p,"equipmentRoute"));
+            var mask=point.GetType().GetField("difficultyMask"); int originalMask=(int)mask.GetValue(point);
             var body=player.GetComponent<CharacterController>();
             Call(mover,"SetStartPose",point.transform.position-player.transform.TransformVector(body.center)-point.transform.forward,Quaternion.identity,true);
             mover.enabled=false;
-            yield return new WaitForSecondsRealtime(.5f);
-            Assert.IsFalse((bool)Get(point,"Collected"));
-            T("CurtainCall.MainStage.CheerPoints.Editor.PerformanceEquipmentAuthoring").GetMethod("CaptureLive").Invoke(null,new object[]{"Tightrope"});
-            body.Move(point.transform.forward*2f);
-            yield return null; yield return null;
-            Assert.IsTrue((bool)Get(point,"Collected"),"Crossing inside claims the point.");
             var rewards=Static("CurtainCall.Reward.PerformanceRewards","Instance");
             long Amount()=>Convert.ToInt64(Get(((IEnumerable)Get(Get(rewards,"State"),"Segments")).Cast<object>().First(),"Amount"));
-            long after=Amount();
-            body.Move(-point.transform.forward*2f); yield return null;
-            Assert.AreEqual(after,Amount(),"A claimed point cannot reward twice.");
-            Assert.AreEqual(0,point.GetComponentsInChildren<Collider>(true).Length,"Fire has no damage or physical collision.");
-            mover.enabled=true;
+            try
+            {
+                enabled.SetValue(settings,false);
+                yield return new WaitForSecondsRealtime(.5f);
+                Assert.IsTrue(points.All(p=>p.GetComponentsInChildren<Renderer>().Length==0),"OFF hides all ring VFX.");
+                long before=Amount();
+                body.Move(point.transform.forward*2f);
+                yield return null; yield return null;
+                Assert.IsFalse((bool)Get(point,"Collected"),"An OFF crossing cannot claim a point.");
+                Assert.AreEqual(before,Amount(),"An OFF crossing cannot award applause.");
+
+                enabled.SetValue(settings,true);
+                body.Move(-point.transform.forward*2f);
+                yield return null; yield return null;
+                Assert.Greater(point.GetComponentsInChildren<Renderer>().Length,0,"ON restores the authored visual.");
+                Assert.IsFalse((bool)Get(point,"Collected"),"Enabling must not score the path travelled while OFF.");
+                Assert.AreEqual(before,Amount());
+
+                enabled.SetValue(settings,false);
+                yield return null; yield return null;
+                Assert.IsTrue(points.All(p=>p.GetComponentsInChildren<Renderer>().Length==0),"OFF hides existing visuals too.");
+                body.Move(point.transform.forward*2f);
+                yield return null; yield return null;
+                Assert.AreEqual(before,Amount());
+                enabled.SetValue(settings,true);
+                body.Move(-point.transform.forward*2f);
+                yield return null; yield return null;
+                Assert.IsFalse((bool)Get(point,"Collected"));
+                int level=(int)Get(rewards,"Difficulty");
+                mask.SetValue(point,1 << (level%3));
+                yield return null; yield return null;
+                Assert.AreEqual(0,point.GetComponentsInChildren<Renderer>().Length,"A different difficulty's ring stays hidden.");
+                body.Move(point.transform.forward*2f); yield return null; yield return null;
+                Assert.AreEqual(before,Amount(),"A different difficulty cannot award this ring.");
+                body.Move(-point.transform.forward*2f); yield return null; yield return null;
+                mask.SetValue(point,originalMask); yield return null; yield return null;
+                body.Move(point.transform.forward*2f);
+                yield return null; yield return null;
+                Assert.IsTrue((bool)Get(point,"Collected"),"A new ON crossing claims the point.");
+                Assert.Greater(Amount(),before,"ON restores the reward.");
+                long after=Amount();
+                enabled.SetValue(settings,false); yield return null; yield return null;
+                enabled.SetValue(settings,true); yield return null; yield return null;
+                body.Move(-point.transform.forward*2f); yield return null; yield return null;
+                Assert.IsTrue((bool)Get(point,"Collected"),"ON/OFF must preserve claims in the same attempt.");
+                Assert.AreEqual(after,Amount(),"Toggling cannot award a claimed point twice.");
+                Assert.AreEqual(0,point.GetComponentsInChildren<Collider>(true).Length,"Fire has no damage or physical collision.");
+            }
+            finally { enabled.SetValue(settings,original); mask.SetValue(point,originalMask); mover.enabled=true; for(int i=0;i<observers.Length;i++) if(observers[i]) observers[i].enabled=observerEnabled[i]; }
         }
     }
 }
