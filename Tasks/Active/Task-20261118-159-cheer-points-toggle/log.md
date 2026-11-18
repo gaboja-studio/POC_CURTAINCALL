@@ -41,3 +41,5 @@
 - 최신 dev 0b8f5e8f 통합 상태 check-work: 안전성·문서/규칙·컴파일·공통 설정 PASS. 기존 private dirty29/문서 길이 경고는 보존. PR25 검토자 RagSpirin(PM) 요청 확인, 에셋 목록 CI SUCCESS.
 - dev 통합 재검사에서 반복된 +10의 원인은 관객 반응뿐 아니라 톱날 접촉의 고정 절단 보상이었다(PerformanceRewardModel.Observe). 고리 보상 테스트 동안 실제 톱날 관찰만 함께 중지/복원하도록 분리했다. 제품의 장애물·절단 보상 규칙은 변경하지 않았다.
 - 최종 통합 상태: 톱날 절단 보상 분리 후 컴파일·공통 설정 PASS, PlayMode CheerPointToggle 2/2 PASS. new-pr DryRun 대상 dev/Task159 확인. 기존 무관한 로컬 변경을 보존하기 위해 명시 목록만 커밋하고 gh로 PR을 등록한다.
+- 메인 5b55768b 커밋 후 pre-push의 private-main 포함 조건으로 최초 push 중단. 사용자에게 PR25 병합을 구체적으로 확인받고 merge commit cfb0ea05로 병합했다. gitlink22e55ec1이 private main의 조상임을 확인한 뒤 push 통과.
+- 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/422 (dev 대상), 지정 검토자 RagSpirin 요청. 에셋 https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/25 는 사용자 승인 후 main 병합 완료. dev PR은 검토 대기이며 병합하지 않는다.
