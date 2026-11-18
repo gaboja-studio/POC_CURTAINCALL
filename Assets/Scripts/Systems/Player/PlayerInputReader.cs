@@ -165,6 +165,16 @@ namespace CurtainCall.Player
             if (actions != null) Destroy(actions);
         }
 
+        CurtainCall.Network.PlayerSync.NetworkPlayer networkPlayer;
+        bool networkPlayerChecked;
+        // 절단기·트램펄린 같은 운반 장치를 잡고 있는가(손이 장치에 묶여 기물·UV를 쓰지 못한다).
+        bool CarryingDevice()
+        {
+            if (!networkPlayerChecked) { networkPlayer = GetComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>(); networkPlayerChecked = true; }
+            return networkPlayer != null && networkPlayer.IsSpawned
+                && CurtainCall.HumanCannon.HumanCannonCarry.Held(networkPlayer.OwnerClientId) != null;
+        }
+
         void Update()
         {
             if (InputGate.IsBlocked)
@@ -198,8 +208,9 @@ namespace CurtainCall.Player
                 InteractHoldProgress = holdProgress,
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
+                // 2026-11-18 핫픽스: 절단기·트램펄린을 잡는 동안은 UV 등을 켜지 못한다(놓으면 다시 쓴다).
                 UvLightHeld = uvLight != null && uvLight.IsPressed() && !CurtainCall.WaitingRoom.ExplorationTargets.ToolsBlocked
-                    && (!onRope || !SharesRopeBinding(uvLight)),
+                    && (!onRope || !SharesRopeBinding(uvLight)) && !CarryingDevice(),
                 UseDevicePressed = ReadDeviceUse() && (!onRope || !SharesRopeBinding(useDevice)),
                 DropItemPressed = dropItem != null && dropItem.WasPressedThisFrame(),
                 UseSlotOnePressed = WasPressedThisFrame("UseSlotOne"),

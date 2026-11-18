@@ -286,7 +286,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (rise > -.5f && rise < 1.2f && delta.magnitude < 6) perchSeenAt = Time.time;
                 if (Time.time - perchSeenAt < .6f && perchIdleFor < 1.5f) {
                     EnterBehaviour(PursuitBehaviour.Chase);
-                    bool moved = StepOnSurface(target.position, rule.ResolvedChaseSpeed);
+                    bool moved = StepOnSurface(target.position, IsCrouched ? Mathf.Min(rule.ResolvedChaseSpeed, CrouchMoveSpeed) : rule.ResolvedChaseSpeed);
                     perchIdleFor = moved || WithinCaptureReach(target.position) ? 0 : perchIdleFor + Time.deltaTime;
                     SetMotion(moved ? PursuitMotion.Run : PursuitMotion.Awaken);
                     Face(target.position);
@@ -332,8 +332,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var next = transform.position + delta / distance * Mathf.Min(distance - .4f, Mathf.Max(.5f, speed) * Time.deltaTime);
             if (!PursuitDirectClimb.SurfaceAt(next, transform.position.y, transform, out var hit)) return false;
             var p = transform.position;
+            // 앉아 있으면 앉은 머리 높이까지만 본다(환풍구 천장을 '막힘'으로 보지 않게).
+            float head = IsCrouched ? Mathf.Min(1.3f, CrouchBodyHeight - .15f) : 1.3f;
             if (!PursuitDirectClimb.Open(p + Vector3.up * .5f, hit.point + Vector3.up * .5f, transform)
-                || !PursuitDirectClimb.Open(p + Vector3.up * 1.3f, hit.point + Vector3.up * 1.3f, transform)) return false;
+                || !PursuitDirectClimb.Open(p + Vector3.up * head, hit.point + Vector3.up * head, transform)) return false;
             transform.position = hit.point;
             return true;
         }

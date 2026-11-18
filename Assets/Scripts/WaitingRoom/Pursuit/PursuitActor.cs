@@ -97,6 +97,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void SetMotion(PursuitMotion next, bool force = false)
         {
+            next = CrouchAdjusted(next);
             bool advanced = IsActivated && director.CurrentStageIndex + 1 >= GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
             if (State == next && !force && advancedMotion == advanced) return;
             advancedMotion = advanced;
@@ -146,6 +147,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (IsAwakening) { SetMotion(PursuitMotion.Awaken); return; }
             if (agent == null) return;
             // NavMesh 밖 소품 위로 직접 오르내리는 중이거나 그 위에 서 있으면 길찾기 대신 직접 처리한다.
+            RefreshCrouch();
             if (TickDirect()) return;
             if (!EnsureOnNavMesh()) { SetMotion(PursuitMotion.Awaken); return; }
             ApplyClimbArea();
