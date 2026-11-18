@@ -11,6 +11,54 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        [UnityTest]
+        public IEnumerator PursuitStairDoor_OpeningAndReturningDoNotContinuouslyInvalidateNavigation()
+        {
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
+            const string bar = "final:stairs-bar";
+            var navigation = T("CurtainCall.WaitingRoom.Pursuit.PursuitNavigation");
+            var version = navigation.GetField("version", BindingFlags.NonPublic | BindingFlags.Static);
+            var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
+            var snapshot = Call(state, "CaptureDevSnapshot");
+            Assert.IsNotNull(snapshot);
+            var preserve = launcher.GetType().GetProperty("PreserveWaitingRoomUnlocks");
+            var previousPreserve = preserve.GetValue(launcher);
+            int rebuilds = 0;
+            Application.LogCallback countBuilds = (message, trace, type) => { if (message.StartsWith("[Pursuit] climb links=")) rebuilds++; };
+            Application.logMessageReceived += countBuilds;
+            try {
+                // Actual saved map: both leaves are in hiddenVisuals and hideOnOpen.
+                for (int cycle = 0; cycle < 3; cycle++) {
+                    state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
+                    if (cycle < 2) Call(state, "RequestDebugOpen", bar);
+                    Assert.IsTrue((bool)Call(state, "IsOpen", bar));
+                    yield return new WaitForSecondsRealtime(1f);
+                    var leaves = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.Pursuit.PursuitDoorObstacle"), FindObjectsInactive.Include, FindObjectsSortMode.None)
+                        .Cast<Component>().Where(x => x.name == "LockedDoorLeafL" || x.name == "LockedDoorLeafR").ToArray();
+                    Assert.AreEqual(2, leaves.Length);
+                    Assert.IsTrue(leaves.All(x => !x.gameObject.activeInHierarchy));
+                    int stableVersion = (int)version.GetValue(null), stableBuilds = rebuilds;
+                    for (int frame = 0; frame < 45; frame++) yield return null;
+                    Assert.AreEqual(stableVersion, version.GetValue(null), "Opened leaves must not toggle OnDisable every frame.");
+                    Assert.AreEqual(stableBuilds, rebuilds, "Stable geometry must not rebuild climb links.");
+                    if (cycle == 0) {
+                        Call(state, "RestoreDevSnapshot", snapshot, (int)Field(State, "Generation"));
+                        yield return new WaitForSecondsRealtime(.6f);
+                        Assert.IsTrue(leaves.All(x => x.gameObject.activeInHierarchy), "Closing must restore blocking leaves.");
+                    }
+                    else if (cycle == 1) {
+                        preserve.SetValue(launcher, true);
+                        yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
+                    }
+                }
+            }
+            finally {
+                Application.logMessageReceived -= countBuilds;
+                if (launcher != null) preserve.SetValue(launcher, previousPreserve);
+            }
+        }
+
         // Canonical IDs also exist in the saved map now. Isolated route fixtures own those IDs during their tests.
         static void DisablePlacedRoutesForFixture()
         {

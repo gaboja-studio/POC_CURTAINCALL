@@ -388,7 +388,13 @@ namespace CurtainCall.WaitingRoom
         {
             ShopReach.Pump();
             // 문을 고정하는 방법 안내는 배터리로 문이 열린 뒤 방 안으로 들어올 때 띄운다(EventGuides, 2026-11-15 사용자). 여기서는 띄우지 않는다.
-            if (hiddenVisuals != null) foreach (var visual in hiddenVisuals) if (visual != null && visual != gameObject) visual.SetActive(Visible);
+            // 같은 문짝이 표시 대상과 개방 시 숨김 대상 양쪽에 있을 수 있다(계단 문).
+            // 뒤 목록이 최종 상태를 정할 대상은 여기서 켜지 않는다. 켰다 끄면 매 프레임 OnDisable이
+            // 발생해 추격 NavMesh/오르기 링크 재계산을 끝없이 요청한다.
+            if (hiddenVisuals != null) foreach (var visual in hiddenVisuals)
+                if (visual != null && visual != gameObject
+                    && (hideOnOpen == null || !hideOnOpen.Contains(visual))
+                    && (showOnOpen == null || !showOnOpen.Contains(visual))) visual.SetActive(Visible);
             // 열리는 모습: 처음부터 열려 있던 문은 연출 없이 열린 채로 두고, 지금 열린 문만 밀려난 뒤 사라진다.
             bool opened = Opened;
             if (!slideReady) { slideReady = true; slideT = opened ? 1f : 0f; }
@@ -411,7 +417,9 @@ namespace CurtainCall.WaitingRoom
             else slideT = opened ? 1f : 0f;
             bool gone = opened && slideT >= 1f;
             if (blocker != null) blocker.enabled = !gone;
-            if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !gone && !Retired);
+            if (hideOnOpen != null) foreach (var visual in hideOnOpen)
+                if (visual != null && visual != gameObject && (showOnOpen == null || !showOnOpen.Contains(visual)))
+                    visual.SetActive(Visible && !gone && !Retired);
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
             // 문구 창을 보는 중에 나가는 길 개방 연출이 나오면 창을 잠시 내렸다가, 연출이 끝나면 다시 문구 창으로 돌아온다(2026-11-15 사용자).
