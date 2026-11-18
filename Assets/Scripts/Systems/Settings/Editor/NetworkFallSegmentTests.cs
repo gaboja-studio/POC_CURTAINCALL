@@ -3,6 +3,7 @@ using System.Reflection;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -258,6 +259,98 @@ namespace CurtainCall.Settings.EditorTools
                 "An accepted duplicate asks the RPC wrapper to resend ACK without applying damage or resetting the next fall.");
             Assert.AreEqual(5.5f, player.FallHeightAt(feet));
             Assert.IsFalse((bool)Call(player, "AcceptFallSupport", 1u, 0, 0, feet), "An old grounded segment cannot erase the newer jump.");
+        }
+
+        [TestCase(4.5f, 0, PlayerState.Normal)]
+        [TestCase(7f, 2, PlayerState.Normal)]
+        [TestCase(17f, 0, PlayerState.Fallen)]
+        [Category("FinalEscape164")]
+        public void CannonLandingUsesItsOwnPeakAfterAnOldHigherPose(float drop, int lostLimbs, PlayerState state)
+        {
+            var system = Make("Cannon runtime").AddComponent<CurtainCall.HumanCannon.HumanCannonSystem>();
+            const ulong actor = 2;
+            typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(player, actor);
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            all.Add(player);
+            try
+            {
+                Set(system, "stations", new CurtainCall.HumanCannon.HumanCannonStation[1]);
+                Call(system, "ResetSeats");
+                player.transform.position = feet + Vector3.up * 20f;
+                player.BeginFallAt(player.transform.position);
+                var muzzle = feet + Vector3.up * 1f;
+                Call(system, "Apply", 0, CurtainCall.HumanCannon.CannonAction.Launch, actor, muzzle, Quaternion.identity, Vector3.up);
+                Call(player, "LateUpdate");
+                Assert.AreEqual(1f, player.FallHeightAt(feet), "The host must neither retain nor sample the old 20m pose.");
+                player.transform.position = muzzle;
+                Call(player, "LateUpdate");
+                player.transform.position = feet + Vector3.up * drop;
+                Call(player, "LateUpdate");
+                player.transform.position = feet;
+                var missingSupport = feet + Vector3.right * 3f + Vector3.up;
+                Call(system, "HandleLanding", player, 0, 0u, 0u, missingSupport);
+                Assert.That(system.IsFlying(actor));
+                Assert.AreEqual(BodyPart.None, player.LostParts, "No damage from a surface the host cannot verify.");
+                Assert.AreEqual(drop, player.FallHeightAt(feet));
+                Call(system, "HandleLanding", player, 0, 0u, 0u, feet);
+                Assert.IsFalse(system.IsFlying(actor), "Actual support must finish the flight.");
+                Assert.AreEqual(lostLimbs, PlayerCondition.CountLimbs(player.LostParts));
+                Assert.AreEqual(state, player.State);
+            }
+            finally { all.Remove(player); }
+        }
+
+        [Test]
+        [Category("FinalEscape164")]
+        public void CannonOwnerRequiresSupportForBelowCollisionButReportsWorldDeath()
+        {
+            var pilot = typeof(CurtainCall.HumanCannon.HumanCannonPilot);
+            var report = pilot.GetMethod("ShouldReportLanding", BindingFlags.Static | BindingFlags.NonPublic);
+            bool Report(CollisionFlags flags, Vector3 point) => (bool)report.Invoke(null, new object[] { mover, flags, -2f, point });
+            Assert.IsFalse(Report(CollisionFlags.Sides, feet));
+            Assert.IsFalse(Report(CollisionFlags.Below | CollisionFlags.Sides, feet + Vector3.up));
+            Assert.IsTrue(Report(CollisionFlags.Below, feet));
+            var death = new Vector3(feet.x, GameSettings.Base.BodyDamage.WorldDeathY, feet.z);
+            Assert.IsTrue(Report(CollisionFlags.None, death));
+        }
+
+        [Test]
+        [Category("FinalEscape164")]
+        public void RejectedLandingMessageResumesOnlyTheMatchingFlightSegment()
+        {
+            const ulong actor = 2;
+            typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(player, actor);
+            var system = Make("Cannon receiver").AddComponent<CurtainCall.HumanCannon.HumanCannonSystem>();
+            var pilot = player.gameObject.AddComponent<CurtainCall.HumanCannon.HumanCannonPilot>();
+            Set(system, "boundPlayer", player);
+            Set(system, "pilot", pilot);
+            var flights = (CurtainCall.HumanCannon.CannonFlightState)Get(system, "flying");
+            flights.Begin(actor, 0, 9u);
+            Assert.IsTrue(flights.TryRebound(actor, 0, 9u, 0u));
+            typeof(CurtainCall.HumanCannon.HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true);
+            Set(pilot, "flightStationIndex", 0);
+            Set(pilot, "launchRevision", 9u);
+            Set(pilot, "flightSegment", 1u);
+            Set(pilot, "awaitingLanding", true);
+
+            void Retry(ulong sender, uint segment)
+            {
+                using var writer = new FastBufferWriter(21, Allocator.Temp);
+                writer.WriteValueSafe(actor);
+                writer.WriteValueSafe(0);
+                writer.WriteValueSafe(9u);
+                writer.WriteValueSafe(segment);
+                writer.WriteValueSafe((byte)2);
+                using var reader = new FastBufferReader(writer, Allocator.Temp);
+                Call(system, "HandleLandingMessage", sender, reader);
+            }
+
+            Retry(3, 1);
+            Retry(NetworkManager.ServerClientId, 0);
+            Assert.IsTrue((bool)Get(pilot, "awaitingLanding"), "A non-host or stale segment must not resume the flight.");
+            Retry(NetworkManager.ServerClientId, 1);
+            Assert.IsFalse((bool)Get(pilot, "awaitingLanding"));
+            Assert.IsTrue(flights.Matches(actor, 0, 9u, 1u));
         }
 
         [TestCase(4.99f, 0, PlayerState.Normal), TestCase(5f, 2, PlayerState.Normal)]

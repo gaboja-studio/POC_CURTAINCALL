@@ -31,6 +31,7 @@ namespace CurtainCall.HumanCannon
             Vector3 position, Quaternion rotation, Vector3 velocity, float controlSpeed)
         {
             if (!flying.TryRebound(actor, station, launch, segment)) return;
+            FindPlayer(actor)?.BeginFlightFallAt(position);
             LocalPolePilot(actor)?.LeavePole(station, launch, segment + 1, position, rotation, velocity, controlSpeed);
         }
 

@@ -226,6 +226,34 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(saw, "Carrier"), Is.EqualTo(ulong.MaxValue)); Assert.That(device.position, Is.EqualTo(Origin + Vector3.forward * 1.1f));
         }
         [Test]
+        [Category("FinalEscape164")]
+        public void ClientStillActiveAcceptsNewSnapshotAfterHostTemporarilyDisablesLauncher()
+        {
+            Fixture(true);
+            var receiver = Root("Client replica").AddComponent(T(SawType));
+            var network = Root("Retained network manager").AddComponent(T("Unity.Netcode.NetworkManager"));
+            var transport = Activator.CreateInstance(T("Unity.Netcode.CustomMessagingManager"), Flags, null,
+                new object[] { network }, null);
+            Set(saw, "messaging", transport);
+            Set(saw, "stateRevision", 12u);
+            Set(saw, "courseEpoch", 4u);
+            Own(42);
+            uint receivedRevision = (uint)Get(Get(saw, "ownership"), "Revision");
+            Vector3 point = device.position;
+            var emptyShots = Array.CreateInstance(saw.GetType().GetNestedType("Shot", BindingFlags.NonPublic), 0);
+            bool Apply(uint revision, uint order, ulong carrier, uint course)
+                => (bool)Call(receiver, "ApplySnapshot", revision, order, carrier, point, Quaternion.identity,
+                    0f, (byte)0, 0, 0u, new Vector3[32], emptyShots, 0f, course);
+            Assert.IsTrue(Apply(12u, receivedRevision, 42UL, 4u));
+            Call(saw, "OnDisable");
+            Assert.AreSame(transport, Get(saw, "suspendedHostMessaging"));
+            Assert.IsTrue(Apply((uint)Get(saw, "stateRevision"), (uint)Get(Get(saw, "ownership"), "Revision"),
+                (ulong)Get(saw, "Carrier"), (uint)Get(saw, "courseEpoch")));
+            Assert.AreEqual(ulong.MaxValue, Get(receiver, "Carrier"));
+            Assert.IsFalse(Apply(12u, receivedRevision, 42UL, 4u), "A late snapshot cannot restore the old carrier after activation.");
+        }
+
+        [Test]
         public void LateJoinRestoresCutDoorAndRejectsOlderOrConflictingSnapshots()
         {
             Fixture(); Assert.That(Snapshot(10, 2, ulong.MaxValue, 3), Is.True); Assert.That(Get(saw, "DoorOpen"), Is.True);
