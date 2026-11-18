@@ -98,3 +98,5 @@
 - 비공개 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/24 에 두 메시 파일과 .meta만 제출했다. 게임 프로젝트에는 해당 private 버전 포인터를 사용한다. 다른 작업의 폰트와 공용 재질은 제외했다.
 
 - 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-18 비공개 에셋 PR #24 병합 후 게임 PR [#420](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/420)을 dev 대상으로 제출했다. PM 팀 리뷰와 사용자 플레이 확인이 남아 있다.
