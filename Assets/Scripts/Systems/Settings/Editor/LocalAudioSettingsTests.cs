@@ -75,5 +75,42 @@ namespace CurtainCall.Settings.EditorTests
         [TestCase(2f, 0)]
         public void ExistingVivoxGainContract_IsPreserved(float normalized, int expected) =>
             Assert.AreEqual(expected, VoiceChat.ToVivoxVolume(normalized));
+
+        // 2026-11-19 사용자: 내 마이크 예전 최대(Vivox 0)를 50%로, 100%는 +50 증폭.
+        [TestCase(0f, -50)]
+        [TestCase(.5f, 0)]
+        [TestCase(1f, 50)]
+        [TestCase(2f, 50)]
+        public void MicGain_HalfIsOldMaximumAndFullBoosts(float normalized, int expected) =>
+            Assert.AreEqual(expected, VoiceChat.ToVivoxMicVolume(normalized));
+
+        [TestCase(1f, .5f)]
+        [TestCase(.5f, .25f)]
+        [TestCase(0f, 0f)]
+        public void LegacyMicVolume_KeepsSameLoudness(float legacy, float migrated)
+        {
+            Assert.AreEqual(migrated, VoiceChat.MigrateLegacyMicVolume(legacy), 1e-5f);
+            Assert.AreEqual(VoiceChat.ToVivoxVolume(legacy), VoiceChat.ToVivoxMicVolume(VoiceChat.MigrateLegacyMicVolume(legacy)));
+        }
+
+        [Test]
+        public void MuteKey_OnlyBlockedByOwnersNotByInputGate()
+        {
+            var owner = new object();
+            try
+            {
+                CurtainCall.Player.InputGate.SetBlocking(this, true);
+                Assert.IsFalse(VoiceChat.IsMuteKeyBlocked, "카메라 안내·로딩의 입력 막힘은 마이크 키를 막지 않습니다.");
+                VoiceChat.SetMuteKeyBlocked(owner, true);
+                Assert.IsTrue(VoiceChat.IsMuteKeyBlocked);
+                VoiceChat.SetMuteKeyBlocked(owner, false);
+                Assert.IsFalse(VoiceChat.IsMuteKeyBlocked);
+            }
+            finally
+            {
+                VoiceChat.SetMuteKeyBlocked(owner, false);
+                CurtainCall.Player.InputGate.SetBlocking(this, false);
+            }
+        }
     }
 }
