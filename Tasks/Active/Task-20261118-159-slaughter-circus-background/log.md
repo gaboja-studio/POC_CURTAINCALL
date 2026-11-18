@@ -29,3 +29,7 @@
 - private 커밋28e0a6b3을 resource/slaughter-circus-lighting에 push 완료. 공개 PR에서 해당 gitlink를 참조하므로 씬·파생 재질을 함께 받을 수 있다.
 - 공개 push 훅이 private main 포함을 요구하여 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/28 생성. 최신 private main의 컨베이어 URP 변경을 충돌 없이 통합(1290bdf6), 에셋 규칙 CI PASS 후 Merge로 main에 반영했다. 공개 gitlink도1290bdf6으로 맞춘다. dev PR은 병합하지 않는다.
 - private 최신 통합 후 check-work-pr-final.txt: 안전성/문서/컴파일/공통 설정 PASS, 자동 테스트 SKIPPED. 공개 기능 커밋d5d6f525, 관련 없는 자동 변경6개는 unstaged 유지.
+- 제출 직전 추가 dev5b1f0904(탈출로 개선) 반영. 서브모듈 참조 충돌은424e899c와28e0a6b3 양쪽을 조상으로 포함하는1290bdf6으로 해결했다. merge 커밋2a93ea50, 실제 씬·코드 내용 충돌은 없었다.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/426 (fix/main-stage/background → dev). @RagSpirin 검토 요청, GitHub MERGEABLE 확인. dev 미병합.
+- 최신 dev의 Task155 log가131줄로 hard130 제한을 넘어 통합 검사의 문서 단계가 실패했다. compact-docs에 따라 초기41줄을 같은 Task의 History/001-architecture-iterations.md로 원문 보존하고 링크를 남겼다. 재구성 전후 원문 문자열 일치를 확인했다.
+- 2026-11-18 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함). 최종 dev5b1f0904 통합과 문서 정리 기준. 중간 실행은 로그 갱신으로 fingerprint가 바뀌어 무효 처리했고, 파일 변경 없이 재실행한 check-work-pr426-final.txt에서 정상 종료했다.
