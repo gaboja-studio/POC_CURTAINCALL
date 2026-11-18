@@ -114,6 +114,56 @@ namespace CurtainCall.Tightrope
             piece.transform.SetParent(parent, false);
         }
 
+        Transform CreateRopeSlice(Transform parent, Transform source, float from, float to)
+        {
+            var piece = new GameObject(source.name, typeof(MeshFilter), typeof(MeshRenderer));
+            var slice = piece.transform;
+            slice.SetParent(parent, false);
+            var position = source.localPosition;
+            slice.localPosition = new Vector3(position.x, position.y, (from + to) * .5f);
+            var scale = source.localScale;
+            slice.localScale = new Vector3(scale.x, scale.y, to - from);
+            piece.GetComponent<MeshFilter>().sharedMesh = source.GetComponent<MeshFilter>().sharedMesh;
+            piece.GetComponent<MeshRenderer>().sharedMaterial = source.GetComponent<MeshRenderer>().sharedMaterial;
+            ApplyPreparedArt(piece, source.name, ropeColor);
+            return slice;
+        }
+
+        // Split only the art crossing the warning boundary. ContinuousSupport is a separate sibling.
+        internal void CollectBurnSurfaces(int lane, List<Vector2> spans, Transform slices,
+            List<MeshRenderer> surfaces, List<Transform> hiddenPieces)
+        {
+            if (!laneGeometry.TryGetValue(lane, out var root) || !root) return;
+            for (int i = root.childCount - 1; i >= 0; i--)
+            {
+                var piece = root.GetChild(i);
+                if (!piece.gameObject.activeSelf || !piece.TryGetComponent<MeshRenderer>(out _)) continue;
+                float half = piece.localScale.z * .5f;
+                float from = piece.localPosition.z - half, to = piece.localPosition.z + half;
+                float cursor = from;
+                bool split = false;
+                foreach (var span in spans)
+                {
+                    float a = Mathf.Max(from, span.x), b = Mathf.Min(to, span.y);
+                    if (b - a <= .001f) continue;
+                    if (a <= from + .001f && b >= to - .001f)
+                    {
+                        surfaces.AddRange(piece.GetComponentsInChildren<MeshRenderer>());
+                        break;
+                    }
+                    split = true;
+                    if (a - cursor > .001f) CreateRopeSlice(slices, piece, cursor, a);
+                    var burning = CreateRopeSlice(slices, piece, a, b);
+                    surfaces.AddRange(burning.GetComponentsInChildren<MeshRenderer>());
+                    cursor = b;
+                }
+                if (!split) continue;
+                if (to - cursor > .001f) CreateRopeSlice(slices, piece, cursor, to);
+                piece.gameObject.SetActive(false);
+                hiddenPieces.Add(piece);
+            }
+        }
+
         public int GetSectionIndex(float distance)
         {
             var sections = Shape.Sections;
