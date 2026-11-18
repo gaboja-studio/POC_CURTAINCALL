@@ -24,3 +24,6 @@
 - 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/438 (feat/escape-route-sound → dev)
+- 공개 코드 81c07d42를 저장·push하고 dev 대상 PR #438을 제출했다. 검토자로 MoHoDu를 요청했다. 반복 배경음 제거·발소리 유지·외줄 8m 거리 및 벽 차폐, 현재 카탈로그 17개 항목·23개 클립과 최종 검사 결과를 PR에 기록했다.
