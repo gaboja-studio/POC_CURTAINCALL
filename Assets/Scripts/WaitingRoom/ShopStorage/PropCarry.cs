@@ -190,12 +190,19 @@ namespace CurtainCall.WaitingRoom
         /// <summary>빈손일 때 새로 받은 도구를 바로 손에 든다(2026-11-01 사용자). 장비는 슬롯에만 넣는다.</summary>
         void AutoHold(ulong player, PropItem item)
         {
-            if (item.Uid == 0 || !IsHoldable(item.ItemId) || InHand(player).Uid != 0 || IsDead(player)) return;
+            if (item.Uid == 0 || !IsHoldable(item.ItemId) || InHand(player).Uid != 0 || IsDead(player) || CarryingDevice(player)) return;
             selected[player] = item.Uid;
         }
 
+        /// <summary>
+        /// 절단기·트램펄린 같은 운반 장치를 잡고 있는가. 2026-11-18 핫픽스: 잡는 동안은 고른 기물을 모두 넣고(선택 해제)
+        /// 1·2로 들기·넣기를 막는다. 장치를 놓으면 다시 고를 수 있다.
+        /// </summary>
+        public static bool CarryingDevice(ulong player) => HumanCannon.HumanCannonCarry.Held(player) != null;
+
         public void RequestSelectSlot(int index)
         {
+            if (CarryingDevice(LocalClientId)) return;
             var items = Held(LocalClientId);
             if (index < 0 || index >= 5) return;
             if (index < items.Count && index >= Slots(LocalClientId)) return;
@@ -206,7 +213,7 @@ namespace CurtainCall.WaitingRoom
 
         void Select(ulong player, int uid)
         {
-            if (IsDead(player)) return;
+            if (IsDead(player) || CarryingDevice(player)) return;
             if (uid == 0) { selected[player] = -1; Publish(); return; }
             var items = book.Held(player);
             for (int i = 0; i < Mathf.Min(5, Mathf.Min(items.Count, Slots(player))); i++)
@@ -249,6 +256,11 @@ namespace CurtainCall.WaitingRoom
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Retired && book.Retire(player.OwnerClientId))
                 { selected.Remove(player.OwnerClientId); retired = true; }
+            // 운반 장치를 잡은 플레이어는 손에 든 기물을 넣는다(선택 해제).
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && CarryingDevice(player.OwnerClientId)
+                    && selected.TryGetValue(player.OwnerClientId, out int uid) && uid > 0)
+                { selected[player.OwnerClientId] = -1; retired = true; }
             if (retired) Publish();
             if (InWaitingRoom) TrimOverLimit();
         }

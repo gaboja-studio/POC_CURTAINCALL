@@ -136,6 +136,8 @@ namespace CurtainCall.EscapeRoute
             if (attackVolume) attackVolume.Hide();
             if (torsoLanding) torsoLanding.Hide();
             if (debrisLanding) debrisLanding.Hide();
+            foreach (var landing in sideLandings) if (landing) landing.Hide();
+            foreach (var ring in sideRings) if (ring) ring.enabled = false;
             HideRouteLandingWorldUi();
         }
     }

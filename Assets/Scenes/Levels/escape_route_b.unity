@@ -122265,7 +122265,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &249979464
@@ -490058,7 +490058,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &904795896
@@ -655636,7 +655636,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &1279170284
@@ -717770,7 +717770,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &1433800522
@@ -955144,7 +955144,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &1900010147
@@ -1014025,7 +1014025,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &2018756375
@@ -1039531,7 +1039531,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &2071664523
@@ -1080286,7 +1080286,7 @@ MonoBehaviour:
   radius: 1.1
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
-  rotationSpeed: 105
+  rotationSpeed: 210
   authoredPath: 0
   showRail: 1
 --- !u!114 &2142820620

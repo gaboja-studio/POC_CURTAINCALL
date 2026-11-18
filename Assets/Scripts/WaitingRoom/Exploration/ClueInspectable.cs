@@ -406,7 +406,7 @@ namespace CurtainCall.WaitingRoom
                 secretCopy.localPosition = source.InverseTransformPoint(secretMark.position);
                 secretCopy.localRotation = Quaternion.Inverse(source.rotation) * secretMark.rotation;
             }
-            copy.transform.localRotation = ViewRotation(source.rotation, viewFace != null ? viewFace.rotation : (Quaternion?)null, viewEuler, main.transform.eulerAngles.y);
+            copy.transform.localRotation = ViewRotation(source.rotation, viewFace != null ? viewFace.rotation : WallFace(source), viewEuler, main.transform.eulerAngles.y);
             float scale = viewSize / Mathf.Max(.001f, Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z)));
             copy.transform.localScale = source.lossyScale * scale;
             // 사본의 중심을 회전축에 맞춘다.
@@ -434,6 +434,19 @@ namespace CurtainCall.WaitingRoom
         /// 살펴보는 사본의 처음 방향(카메라 기준). 정면 면이 있으면 그 면의 -Z가 보는 사람을 향하고 +Y가 위가 된다.
         /// 없으면 놓인 모습 그대로(보는 사람의 좌우 방향만 맞춰) 살짝 위에서 본다.
         /// </summary>
+        /// <summary>
+        /// 정면(viewFace)을 따로 정하지 않은 벽 낙서(벽에 세운 글자)의 정면. 정면이 없으면 플레이어가 마지막으로 보던 각도로 돌려 보여 줘서
+        /// 비스듬히 기울어져 나왔다(2026-11-18 사용자). 글자를 읽는 방향(TMP의 앞쪽)이 화면 안쪽, 위가 화면 위가 되게 한다. 벽 글자가 아니면 null(기존대로).
+        /// </summary>
+        static Quaternion? WallFace(Transform source)
+        {
+            var text = source.GetComponentInChildren<TMPro.TMP_Text>();
+            if (text == null) return null;
+            Vector3 forward = text.transform.forward;
+            if (Mathf.Abs(forward.y) > .5f) return null; // 눕혀진 글자(노트북 화면 위 메모 등)
+            return Quaternion.LookRotation(forward, Vector3.up);
+        }
+
         public static Quaternion ViewRotation(Quaternion body, Quaternion? face, Vector3 extraEuler, float viewerYaw)
         {
             if (face is Quaternion f) return Quaternion.Euler(extraEuler) * Quaternion.Inverse(Quaternion.Inverse(body) * f);
