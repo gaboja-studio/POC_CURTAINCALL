@@ -18,3 +18,5 @@
   - 영상: `Assets/Resources/Videos/WaitingRoom/PerformerRecord1.mp4`(playmovie_record_1, 1920×1080 32.1초, 67MB), `PerformerRecord2.mp4`(record_2, 45.5초, 94MB). LFS 추적.
   - 배치(WaitingRoom.unity, `FinalLayout/Manual/DormTv` 아래 FoundItemSpot): 테이프1 이전 공연자 생활 공간 서쪽 침대 옆 바닥(-18.20, 0.02, 43.77, uidOffset 85), 테이프2 B1 관리실 안쪽 끝(-10.10, -4.98, 107.90, uidOffset 86). 바닥·빈자리(기물 반경 0.25, 캐릭터 캡슐 0.3) 확인.
   - 검사: 컴파일 PASS, 공통 설정 PASS, WaitingRoom EditMode 569/572. 실패 3건은 문구 파일 테스트(WaitingRoomTextTests: 미등록·미사용·씬 대상 키)로, 메시지에 이번에 추가한 키는 없음. dev 기준 재현 여부는 확인하지 않음. 플레이 확인 전.
+
+- 2026-11-18 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/421 (fix/bugs-20261118 → dev)
