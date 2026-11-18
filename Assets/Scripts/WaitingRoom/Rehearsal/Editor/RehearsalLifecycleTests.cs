@@ -611,7 +611,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
         {
             var oldFlow = Singleton<WaitingRoomFirstDayFlow>().GetValue(null);
             var hudSingleton = Singleton<CurtainCall.UI.SceneIntegration.HudUIManager>();
-            var oldHud = hudSingleton.GetValue(null);
+            // A reflection result typed as object bypasses Unity's destroyed-object null check.
+            var oldHud = (CurtainCall.UI.SceneIntegration.HudUIManager)hudSingleton.GetValue(null);
             var memoryOnly = typeof(WaitingRoomTutorial).GetField("memoryOnly", Static);
             var memoryEnabled = typeof(WaitingRoomTutorial).GetField("memoryEnabled", Static);
             var oldMemory = memoryOnly.GetValue(null); var oldEnabled = memoryEnabled.GetValue(null);

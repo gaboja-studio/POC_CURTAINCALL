@@ -370,6 +370,7 @@ namespace CurtainCall.WaitingRoom
             if (!TryDropPoint(player, out var point)) return Reject(player, "DROP", 0, "PLAYER_NOT_FOUND", WaitingRoomText.Get("carry.no-character", "캐릭터를 찾지 못했습니다."));
             int uid = Selected(player).Uid;
             if (uid == 0) return Reject(player, "DROP", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
+            if (FindPlayer(player)?.IsEquipmentReserved(uid)==true) return (false,"기물 사용 처리 중입니다.");
             var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid);
             if (refusal != CarryRefusal.None) return Reject(player, "DROP", uid, "CARRY_" + refusal, Explain(refusal));
             CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(FindPlayer(player),"EXPLORATION_TOOL",new(){["itemType"]=dropped.Item.ItemId,["uid"]=uid,["usesAfter"]=dropped.Item.Uses,["state"]="DROPPED",["objectPosition"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(point)},"HOST");

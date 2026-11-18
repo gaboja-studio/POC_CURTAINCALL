@@ -202,6 +202,8 @@ namespace CurtainCall.Player
                     && (!onRope || !SharesRopeBinding(uvLight)),
                 UseDevicePressed = ReadDeviceUse() && (!onRope || !SharesRopeBinding(useDevice)),
                 DropItemPressed = dropItem != null && dropItem.WasPressedThisFrame(),
+                UseSlotOnePressed = WasPressedThisFrame("UseSlotOne"),
+                UseSlotTwoPressed = WasPressedThisFrame("UseSlotTwo"),
             };
             CommonInteractionSelection.Selected(this);
         }

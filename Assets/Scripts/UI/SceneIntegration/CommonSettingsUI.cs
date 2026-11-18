@@ -177,6 +177,8 @@ namespace CurtainCall.UI.SceneIntegration
         static SettingsRow ActionRow(string id, string label, string button) => new() { id = id, label = label, kind = SettingsRowKind.Action, actionId = id, confirmationTitle = button, confirmationBody = label, confirmationButton = button };
         static string ActionLabel(string name, string part)
         {
+            if (name == "UseSlotOne") return "기물 사용 · 1번 슬롯";
+            if (name == "UseSlotTwo") return "기물 사용 · 2번 슬롯";
             if (name == InputBindingPreferences.DeviceUseAction) return "운반 장치 사용 / 톱날 한 발 발사";
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";

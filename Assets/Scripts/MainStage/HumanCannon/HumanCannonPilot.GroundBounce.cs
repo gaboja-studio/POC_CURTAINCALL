@@ -37,6 +37,7 @@ namespace CurtainCall.HumanCannon
         internal bool BeginGroundBounce(uint sequence, uint epoch, Vector3 contact, float speed, float controlSpeed)
         {
             if (!groundRequest.Matches(sequence, epoch)) return false;
+            player?.ResetEquipmentAirCycle();
             Launch(-1, sequence, contact + Vector3.up * 0.05f, transform.rotation, Vector3.up * speed);
             groundRequest.Cancel();
             airControlSpeed = controlSpeed;

@@ -128,6 +128,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                         mover.Teleported += buffer.Clear;
                     }
                     mover.SetMoveInput(input.Move * viewSign);
+                    if(mover.EquipmentGlide) mover.SetMoveInput(input.Posture*viewSign,input.Move*viewSign);
                     if (input.TurnAroundPressed)
                     {
                         buffer.Clear();

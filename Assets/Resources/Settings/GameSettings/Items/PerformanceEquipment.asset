@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2cd261766e1fd4a886895644118c3e, type: 3}
+  m_Name: PerformanceEquipment
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.PerformanceEquipmentSettings
+  cheerStyle: 0
+  cheerVisuals:
+  - {fileID: 3407589962199454504, guid: a20d3c49d8c831c4fa007981ef17589b, type: 3}
+  - {fileID: 7907346869076012337, guid: 17d7c2721dc7eda46bd83bc4d389f9ac, type: 3}
+  - {fileID: 8497692543893057442, guid: f1bc876ca97d17b4dbb98998e92a73ea, type: 3}
+  hoopRadius: 1.25
+  cheerAmount: 15
+  extraJumpHeight: 2
+  rescueRange: 4
+  rescueHalfAngle: 55
+  rescuePullSeconds: 0.8
+  stickySeconds: 3
+  balloonSeconds: 3
+  balloonFallSpeed: 2
+  balloonSteering: 1.5
+  useVisuals:
+  - {fileID: 6427437903251768833, guid: 0125317aa27d56746b6bf46c7f326748, type: 3}
+  - {fileID: 5011458467824981166, guid: c745d6d184f2de34b8dd69480225b658, type: 3}
+  - {fileID: 1244226626870285475, guid: 549bf967b5b04994eb6be069685891ee, type: 3}
+  - {fileID: 3308082926979778772, guid: 22625dab97b82e24692aead0feba224e, type: 3}
+  rescueTargetVisual: {fileID: 6201294101932856345, guid: c62b0f227abb1cf4f938e5b3c2687b78, type: 3}
+  rescueTargetOpacity: 0.75

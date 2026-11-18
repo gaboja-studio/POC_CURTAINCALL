@@ -70,6 +70,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
                 yield return new WaitForSecondsRealtime(1f);
                 Assert.AreEqual(3, played, "같은 사용으로 연출을 다시 띄우지 않는다");
+
+                Assert.AreEqual("None", carry.GetType().GetMethod("UseItem").Invoke(carry, new object[] { me, 9501, null, null }).ToString());
+                yield return null;
+                Assert.AreEqual(4, played); Assert.IsFalse(lastBroken);
+                Assert.AreEqual("None", carry.GetType().GetMethod("UseItem").Invoke(carry, new object[] { me, 9501, null, null }).ToString());
+                yield return null;
+                Assert.AreEqual(5, played); Assert.AreEqual(0, lastSlot);
+                Assert.IsTrue(lastBroken, "탐색 도구의 마지막 사용도 같은 파괴 연출");
             }
             finally { evt.RemoveEventHandler(inventory, onPlayed); }
         }

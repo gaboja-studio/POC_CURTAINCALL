@@ -105,7 +105,7 @@ namespace CurtainCall.Tightrope
         public void Clear() { hangs.Clear(); order.Clear(); }
 
         /// <summary>시간을 흘린다. 끝난 사람(구조·낙사)은 장부에서 빼고 결과로 돌려준다.</summary>
-        public List<(ulong id, Outcome outcome, Hang hang)> Tick(double deltaSeconds)
+        public List<(ulong id, Outcome outcome, Hang hang)> Tick(double deltaSeconds, Func<ulong,double> pausedSeconds = null)
         {
             var finished = new List<(ulong, Outcome, Hang)>();
             double step = Math.Max(0d, deltaSeconds);
@@ -119,7 +119,7 @@ namespace CurtainCall.Tightrope
                 }
                 else
                 {
-                    hang.Remaining -= step;
+                    hang.Remaining -= Math.Max(0,step-Math.Min(step,pausedSeconds?.Invoke(id) ?? 0));
                     if (hang.Remaining <= 0d) { hang.Remaining = 0d; finished.Add((id, Outcome.Dropped, hang)); }
                 }
             }

@@ -393,8 +393,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
             mover.FreeMovement = true;
             player.transform.position = course.GetLanePosition(0, 23f);
             string guide = (string)Call(rehearsal, "QuestFor", RehearsalStage.All[0], mover);
-            StringAssert.Contains("발판에서는", guide);
-            StringAssert.Contains("이동하며 Space", guide);
+            StringAssert.Contains("발판", guide);
+            // The editable text catalog and its code fallback phrase the same instruction differently.
+            StringAssert.IsMatch(@"(?:\{move\}|W/S)", guide);
+            StringAssert.IsMatch(@"(?:\{jump\}|Space)", guide);
+            StringAssert.Contains("점프", guide);
+            StringAssert.IsMatch(@"옆\s?줄", guide);
         }
 
         [Test]

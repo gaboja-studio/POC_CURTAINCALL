@@ -63,7 +63,7 @@ namespace CurtainCall.Settings.EditorTools
             else
             {
                 var data = new SerializedObject(settings);
-                foreach (string field in new[] { "baseSettings", "tightrope", "humanCannon", "poles", "trampoline", "waitingRoom", "exploration", "escapeRoute", "worldUi" })
+                foreach (string field in new[] { "baseSettings", "tightrope", "humanCannon", "poles", "trampoline", "waitingRoom", "exploration", "escapeRoute", "worldUi", "performanceEquipment" })
                 {
                     var reference = data.FindProperty(field)?.objectReferenceValue;
                     if (reference == null || !AssetDatabase.Contains(reference)) errors.Add("GameSettings 공통 연결 누락: " + field);

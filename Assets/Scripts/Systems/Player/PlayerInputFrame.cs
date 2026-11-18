@@ -49,5 +49,7 @@ namespace CurtainCall.Player
         public bool UseDevicePressed;
         /// <summary>소지 기물 내려놓기(기본 T, 2026-11-16 상호작용 고도화: F 길게에서 분리). 누른 프레임에 한 번.</summary>
         public bool DropItemPressed;
+        public bool UseSlotOnePressed;
+        public bool UseSlotTwoPressed;
     }
 }

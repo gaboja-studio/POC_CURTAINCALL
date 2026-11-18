@@ -7,11 +7,11 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 공연용 장비(구조 장갑·끈끈이 장갑·광대 벌룬 바지·스프링 신발, Task-092) 공통 판정.
-    /// - 장비는 1·2로 고르지 않아도 슬롯에 있으면 자동 적용한다(<see cref="Equipped"/>).
+    /// - 공연 장비는 Q/E 슬롯 입력으로 수동 발동한다. Equipped는 소지 여부 조회이며 자동 발동하지 않는다.
     /// - 실제 효과가 났을 때만 판정 화면이 <see cref="UseEquipment"/>로 1 소모한다. 0회인 장비는 새 효과를 내지 못한다.
     /// - 쿨타임은 기물 목록(ItemCatalog.cooldown)을 쓰고, 소지 상태와 함께 모든 화면에 공유한다.
     ///   2026-11-02 사용자: 공연 기물 쿨타임은 모두 0(없음). 값을 다시 넣으면 같은 경로로 되살아난다.
-    ///   효과를 소유자 화면이 계산하는 장비(벌룬 바지·구조 장갑의 착지 완화)도 같은 값으로 미리 판단한다.
+    ///   공중 효과는 NetworkPlayer의 소유자 적용 확인 뒤 정확한 UID를 소모한다.
     /// - 발동 문구·파괴 알림은 장비 주인 화면에만 띄운다.
     /// </summary>
     public sealed partial class PropCarry
@@ -53,9 +53,15 @@ namespace CurtainCall.WaitingRoom
         /// 지니지 않았거나 다 썼거나 쿨타임 중이면 아무것도 바꾸지 않고 false.
         /// </summary>
         public bool UseEquipment(ulong player, string itemId, bool cue = true, bool startCooldown = true)
+            => UseEquipmentUid(player, Equipped(player,itemId).Uid, cue, startCooldown);
+
+        public bool UseEquipmentUid(ulong player, int uid, bool cue = true, bool startCooldown = true)
         {
+            PropItem item = default;
+            foreach(var held in Held(player)) if(held.Uid==uid) { item=held; break; }
+            if(item.Uid==0 || item.Uses<=0 || ItemCatalog.Get(item.ItemId)?.kind != ItemKind.Equipment) return false;
+            string itemId=item.ItemId;
             if (!HasAuthority || !EquipmentReady(player, itemId)) return false;
-            var item = Equipped(player, itemId);
             if (book.Use(player, item.Uid, out var after, out bool destroyed) != CarryRefusal.None) return false;
             MarkUsed(player, item.Uid, destroyed);
             if (startCooldown) SetCooldown(player, itemId);

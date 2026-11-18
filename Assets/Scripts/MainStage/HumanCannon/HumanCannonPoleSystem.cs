@@ -21,6 +21,7 @@ namespace CurtainCall.HumanCannon
             public float Input;
             public double LastInput;
             public double GrabbedAt;
+            public double PauseSampleAt;
             public uint InputSequence;
             public uint JoinedRevision;
             public bool ReverseFacing;
@@ -122,6 +123,15 @@ namespace CurtainCall.HumanCannon
             if (actor == CannonSeatState.Nobody || states == null) return -1;
             for (int i = 0; i < states.Length; i++) if (states[i].State.SeatOf(actor) >= 0) return i;
             return -1;
+        }
+
+        public object EquipmentHoldToken(ulong actor)
+        {
+            int index=HeldBy(actor);
+            if(index<0) return null;
+            int seat=states[index].State.SeatOf(actor);
+            if(states[index].State.DeadlineAt(seat)<=Clock) return null;
+            return (GetInstanceID(),index,states[index].Riders[seat].JoinedRevision);
         }
 
         bool CanApproach(NetworkPlayer player)
@@ -299,6 +309,9 @@ namespace CurtainCall.HumanCannon
                 bool abandoned = !pole.isActiveAndEnabled || !pole.InteractionAvailable || player == null || player.State != PlayerState.Normal;
                 if (!abandoned)
                 {
+                    double pause=player.HoldPauseDelta(Math.Max(0,Clock-rider.PauseSampleAt));
+                    rider.PauseSampleAt=Clock;
+                    if(runtime.State.DelayHold(supportingSeat,pause)) rider.GrabbedAt+=pause;
                     float duration = HoldDuration(pole, player);
                     if (runtime.State.ShortenHold(supportingSeat, rider.GrabbedAt + duration))
                         Publish(index, PoleEvent.Sync, CannonSeatState.Nobody);
@@ -398,7 +411,7 @@ namespace CurtainCall.HumanCannon
                     runtime.ResetDrive();
                     runtime.Speed = poles[index].AddCatchMomentum(runtime.Angle, runtime.Speed, input);
                 }
-                runtime.Riders[seat] = new Rider { LastInput = grabbedAt, GrabbedAt = grabbedAt, Station = station, Launch = launch, Segment = segment,
+                runtime.Riders[seat] = new Rider { LastInput = grabbedAt, GrabbedAt = grabbedAt, PauseSampleAt = grabbedAt, Station = station, Launch = launch, Segment = segment,
                     JoinedRevision = runtime.State.Revision, ReverseFacing = sequence == ReverseGrab };
                 void CompleteCatch()
                 {

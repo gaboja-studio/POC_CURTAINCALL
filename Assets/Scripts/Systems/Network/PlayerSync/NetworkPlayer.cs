@@ -479,6 +479,7 @@ namespace CurtainCall.Network.PlayerSync
             if (IsOwner)
             {
                 Local = this;
+                if(!GetComponent<CurtainCall.MainStage.CheerPoints.RescueTargetIndicator>())gameObject.AddComponent<CurtainCall.MainStage.CheerPoints.RescueTargetIndicator>();
                 CurtainCall.Tightrope.PiggybackSystem.EnsureExists();
                 LocalSpawned?.Invoke(this);
             }
@@ -486,6 +487,7 @@ namespace CurtainCall.Network.PlayerSync
 
         public override void OnNetworkDespawn()
         {
+            EndLocalRescuePull();
             all.Remove(this);
             mover.Teleported -= ResetFallTracking;
             slot.OnValueChanged -= HandleSlotChanged;
@@ -507,6 +509,8 @@ namespace CurtainCall.Network.PlayerSync
         void Update()
         {
             if (!IsSpawned) return;
+            UpdateRescuePull();
+            UpdatePerformanceEquipment();
             if (IsOwner || IsServer) CurtainCall.Tightrope.PiggybackSystem.EnsureExists();
 
             if (!IsOwner)

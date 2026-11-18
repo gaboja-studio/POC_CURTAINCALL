@@ -183139,6 +183139,53 @@ Transform:
   - {fileID: 1659966955}
   m_Father: {fileID: 1496884786}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &432144038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 432144039}
+  - component: {fileID: 432144040}
+  m_Layer: 0
+  m_Name: Cheer_01_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &432144039
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432144038}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.06763497, z: -0, w: 0.99771017}
+  m_LocalPosition: {x: -2.219347, y: 13.3342, z: 8.7314005}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 597634583}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &432144040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432144038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: 53bab12de0794b2abc8f0c00b6e2fec7
+  trickId: HumanCannon
+  equipmentRoute: 0
 --- !u!1 &432554991
 GameObject:
   m_ObjectHideFlags: 0
@@ -201079,6 +201126,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1406884442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &451488586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 451488587}
+  - component: {fileID: 451488588}
+  m_Layer: 0
+  m_Name: Cheer_03_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &451488587
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451488586}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -3, y: 14.534199, z: 155.699}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 597634583}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &451488588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451488586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: f0c60b506c014944a3d8c6f4def1489a
+  trickId: HumanCannon
+  equipmentRoute: 0
 --- !u!1 &451881466
 GameObject:
   m_ObjectHideFlags: 0
@@ -292667,6 +292761,42 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2128499820}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &597634582
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 597634583}
+  m_Layer: 0
+  m_Name: PerformanceCheerPoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &597634583
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597634582}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 432144039}
+  - {fileID: 1088178592}
+  - {fileID: 451488587}
+  - {fileID: 1367241587}
+  - {fileID: 744403802}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &597882235
 GameObject:
@@ -399212,6 +399342,53 @@ Transform:
   - {fileID: 472024677}
   m_Father: {fileID: 927534651}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &744403801
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 744403802}
+  - component: {fileID: 744403803}
+  m_Layer: 0
+  m_Name: Cheer_05_Equipment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &744403802
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 744403801}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.06763498, z: -0, w: 0.99771017}
+  m_LocalPosition: {x: 1.6526614, y: 19.092236, z: 88.89189}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 597634583}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &744403803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 744403801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: 8fe9dc851bea46c090415b111cc83785
+  trickId: HumanCannon
+  equipmentRoute: 1
 --- !u!1 &744778851
 GameObject:
   m_ObjectHideFlags: 0
@@ -601951,6 +602128,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 382856515}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1088178591
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1088178592}
+  - component: {fileID: 1088178593}
+  m_Layer: 0
+  m_Name: Cheer_02_Regular
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1088178592
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088178591}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.06763498, z: -0, w: 0.99771017}
+  m_LocalPosition: {x: 2.143332, y: 14.3342, z: 85.28948}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 597634583}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1088178593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088178591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: 955e784a429c432986a786eb827289dc
+  trickId: HumanCannon
+  equipmentRoute: 0
 --- !u!1 &1089285879
 GameObject:
   m_ObjectHideFlags: 0
@@ -751885,6 +752109,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 293584098}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1367241586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1367241587}
+  - component: {fileID: 1367241588}
+  m_Layer: 0
+  m_Name: Cheer_04_Equipment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1367241587
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367241586}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.06763497, z: -0, w: 0.99771017}
+  m_LocalPosition: {x: -1.7856874, y: 18.092236, z: 11.915243}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 597634583}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1367241588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367241586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdc1a397f0b2e84f9794f982acdaf02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.MainStage.CheerPoints.PerformanceCheerPoint
+  pointId: c18b21f7e1a944a48d01a74441ca63cf
+  trickId: HumanCannon
+  equipmentRoute: 1
 --- !u!1 &1368140548
 GameObject:
   m_ObjectHideFlags: 0
@@ -841224,6 +841495,8 @@ MonoBehaviour:
   appearStartScale: 0.1
   warningSeconds: 30
   speed: 0.7
+  tierTwoSpeedIncrease: 0
+  tierThreeSpeedIncrease: 0
   halfWidth: 25
   height: 24
   available: 0
@@ -1102794,9 +1103067,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29cc5e41c44209e4bb8aad1bd370c8d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonGroundMarkers
+  markerMaterial: {fileID: 2100000, guid: 31afdf118c123ba4f94ce0cc60661227, type: 2}
+  radius: 0.65
+  maxDistance: 100
   showSafeLandingFeedback: 0
   feedbackRopes: []
-  markerMaterial: {fileID: 2100000, guid: 31afdf118c123ba4f94ce0cc60661227, type: 2}
   courseFloors:
   - {fileID: 891066382}
   - {fileID: 878763294}
@@ -1102818,8 +1103093,6 @@ MonoBehaviour:
   - {fileID: 1149526651}
   - {fileID: 562929047}
   - {fileID: 1611787353}
-  radius: 0.65
-  maxDistance: 100
 --- !u!1001 &2055429859
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1143008,3 +1143281,4 @@ SceneRoots:
   - {fileID: 1546929022}
   - {fileID: 441438780}
   - {fileID: 927534651}
+  - {fileID: 597634583}
