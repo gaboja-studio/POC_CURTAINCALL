@@ -10,3 +10,4 @@
 - 다음: 사람 플레이 확인(추가 예약 흐름, 작업실 개방 시 알림·목록 추가).
 - 제출 전 origin/dev(e5f772c3) 반영. dev에서 159번을 먼저 써서 Task 번호를 160으로 변경.
 - 작업 트리의 에디터 재저장 변경(폰트 SDF·머티리얼·_ThirdParty)은 이 작업과 무관해 커밋하지 않음.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/425 (→ dev, Squash, 지정 팀원 검토 대기)
