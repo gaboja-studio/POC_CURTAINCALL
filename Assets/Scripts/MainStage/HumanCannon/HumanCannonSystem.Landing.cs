@@ -15,7 +15,8 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonSystem
     {
         const string LandingMessage = "CurtainCall.HumanCannon.Landing";
-        const int LandingSize = 21; // actor + station + launch + segment + safe
+        const int LandingSize = 21; // actor + station + launch + segment + result
+        enum LandingResult : byte { Unsuccessful, Supported, RetryFlight }
         const string SpringReboundMessage = "CurtainCall.HumanCannon.SpringRebound";
         const int SpringReboundSize = 36; // actor + station + launch + segment + contact + speed
         struct PendingLanding { public int Station; public uint Revision, Segment; public Vector3 Position; }
@@ -167,8 +168,16 @@ namespace CurtainCall.HumanCannon
             if (CommonDamageRules.IsBelowWorldDeathY(position.y))
             {
                 ApplyLanding(player.OwnerClientId, index, revision, segment, false);
-                PublishLanding(player.OwnerClientId, index, revision, segment, false);
+                PublishLanding(player.OwnerClientId, index, revision, segment, LandingResult.Unsuccessful);
                 ServerFallDeath(player);
+                return;
+            }
+            // A moving support may have left the reported point while the request was in transit.
+            // Resume the same flight and retain its peak for the eventual landing.
+            if (!safe)
+            {
+                ResumeRejectedLanding(player.OwnerClientId, index, revision, segment);
+                PublishLanding(player.OwnerClientId, index, revision, segment, LandingResult.RetryFlight);
                 return;
             }
             float height = player.FallHeightAt(position);
@@ -177,10 +186,10 @@ namespace CurtainCall.HumanCannon
                 () => ApplyLanding(player.OwnerClientId, index, revision, segment, safe))) return;
             // 지지면에 닿아 비행이 끝났어도 사망한 착지를 교육 성공/통과로 알리지 않는다.
             NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe && player.State == PlayerState.Normal);
-            PublishLanding(player.OwnerClientId, index, revision, segment, safe);
+            PublishLanding(player.OwnerClientId, index, revision, segment, LandingResult.Supported);
         }
 
-        void PublishLanding(ulong actor, int index, uint revision, uint segment, bool safe)
+        void PublishLanding(ulong actor, int index, uint revision, uint segment, LandingResult result)
         {
             if (messaging == null || session == null || !session.IsHost) return;
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
@@ -191,7 +200,7 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe(index);
                 writer.WriteValueSafe(revision);
                 writer.WriteValueSafe(segment);
-                writer.WriteValueSafe((byte)(safe ? 1 : 0));
+                writer.WriteValueSafe((byte)result);
                 messaging.SendNamedMessage(LandingMessage, client, writer, NetworkDelivery.ReliableSequenced);
             }
         }
@@ -205,9 +214,17 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out int index);
             reader.ReadValueSafe(out uint revision);
             reader.ReadValueSafe(out uint segment);
-            reader.ReadValueSafe(out byte safe);
-            if (safe > 1) return;
-            ApplyLanding(actor, index, revision, segment, safe == 1);
+            reader.ReadValueSafe(out byte rawResult);
+            if (rawResult > (byte)LandingResult.RetryFlight) return;
+            var result = (LandingResult)rawResult;
+            if (result == LandingResult.RetryFlight) ResumeRejectedLanding(actor, index, revision, segment);
+            else ApplyLanding(actor, index, revision, segment, result == LandingResult.Supported);
+        }
+
+        void ResumeRejectedLanding(ulong actor, int index, uint revision, uint segment)
+        {
+            if (boundPlayer != null && actor == boundPlayer.OwnerClientId && flying.Matches(actor, index, revision, segment))
+                pilot?.ResumeAfterRejectedLanding(index, revision, segment);
         }
 
         void ApplyLanding(ulong actor, int index, uint revision, uint segment, bool safe)

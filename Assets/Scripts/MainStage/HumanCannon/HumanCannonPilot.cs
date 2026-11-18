@@ -197,6 +197,11 @@ namespace CurtainCall.HumanCannon
             if (mover != null) mover.ResetExternalMotion(false);
         }
 
+        internal void ResumeAfterRejectedLanding(int index, uint revision, uint segment)
+        {
+            if (MatchesFlight(index, revision, segment)) awaitingLanding = false;
+        }
+
         internal void ResetAfterRestart()
         {
             ReleaseMovement();
@@ -294,14 +299,18 @@ namespace CurtainCall.HumanCannon
             var collision = mover.Body.Move(displacement);
             if ((collision & CollisionFlags.Above) != 0 && velocity.y > 0f) velocity.y = 0f;
             // 운반자의 정상 몸 점프는 여기로 들어오지 않는다. 코스 밖으로 떨어진 비행도 종료한다.
-            if (((collision & CollisionFlags.Below) != 0 && velocity.y <= 0f)
-                || transform.position.y <= GameSettings.Base.BodyDamage.WorldDeathY)
+            if (ShouldReportLanding(mover, collision, velocity.y, transform.position))
             {
                 // 호스트가 쿠션/일반 바닥을 확정할 때까지 착지 위치와 비행 식별자를 유지한다.
                 awaitingLanding = true;
                 system.RequestLanding(flightStationIndex, launchRevision, flightSegment, transform.position);
             }
         }
+
+        internal static bool ShouldReportLanding(PlayerMover mover, CollisionFlags collision, float verticalSpeed, Vector3 feet)
+            => CurtainCall.Damage.CommonDamageRules.IsBelowWorldDeathY(feet.y)
+                || (collision & CollisionFlags.Below) != 0 && verticalSpeed <= 0f
+                    && HumanCannonSystem.IsSafeLandingSurface(mover, feet);
 
         void LateUpdate()
         {

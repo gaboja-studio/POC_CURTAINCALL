@@ -20,7 +20,7 @@ namespace CurtainCall.EscapeRoute
         const double RemoteGrabGrace = .35;
         readonly List<(ulong Actor, uint Revision, double Expires)> pendingGrabs = new();
         Vector3 pendingBossAim;
-        CustomMessagingManager messaging;
+        CustomMessagingManager messaging, suspendedHostMessaging;
         void RequestAction(byte action)
         {
             var player = NetworkPlayer.Local;
@@ -112,10 +112,18 @@ namespace CurtainCall.EscapeRoute
                 && (next.ConnectionState == SessionConnectionState.Host || next.ConnectionState == SessionConnectionState.Client)
                 ? next.NetworkManager.CustomMessagingManager : null;
             if (manager == messaging) return;
-            Detach(); session = next; messaging = manager;
+            bool resumingHost = manager != null && manager == suspendedHostMessaging && next.IsHost;
+            if (!resumingHost) Detach();
+            suspendedHostMessaging = null;
+            session = next; messaging = manager;
             if (manager == null) return;
             attachedRequestName = RequestName; attachedStateName = StateName;
-            if (session.IsHost) { synchronized = true; manager.RegisterNamedMessageHandler(attachedRequestName, ReadRequest); }
+            if (session.IsHost)
+            {
+                synchronized = true;
+                manager.RegisterNamedMessageHandler(attachedRequestName, ReadRequest);
+                if (resumingHost) Publish();
+            }
             else { manager.RegisterNamedMessageHandler(attachedStateName, ReadState); SendRequest(0, 0); }
         }
         void SendRequest(byte action, int token)
@@ -298,8 +306,22 @@ namespace CurtainCall.EscapeRoute
                 ResetProjectileCourse(); Recover(); Present(0, true); SendRequest(0, resetBarrier.Begin());
             }
         }
-        void Detach()
+        void Detach(bool suspendHost = false)
         {
+            // Additive scene activation can disable the host root before the client root.
+            // That client must see a newer empty snapshot when this channel is enabled again.
+            suspendedHostMessaging = suspendHost && session != null && session.IsHost ? messaging : null;
+            if (suspendedHostMessaging != null)
+            {
+                ownership.Reset();
+                stateRevision++;
+                courseEpoch++;
+            }
+            else
+            {
+                ownership = new CannonSeatState();
+                stateRevision = courseEpoch = 0;
+            }
             if (messaging != null)
             {
                 if (attachedRequestName != null) messaging.UnregisterNamedMessageHandler(attachedRequestName);
@@ -309,7 +331,7 @@ namespace CurtainCall.EscapeRoute
             pendingGrabs.Clear();
             messaging = null; session = null; synchronized = false;
             TeamReachedExitZone = false;
-            ownership = new CannonSeatState(); stateRevision = courseEpoch = 0; cutProgress = 0; cutting = false;
+            cutProgress = 0; cutting = false;
             resetBarrier.Clear(); ResetProjectileCourse(); Recover(); Present(0, true);
         }
     }

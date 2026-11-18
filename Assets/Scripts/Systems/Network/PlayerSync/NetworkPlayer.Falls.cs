@@ -51,6 +51,8 @@ namespace CurtainCall.Network.PlayerSync
             fallPeak = reportedPeak = feet.y;
         }
 
+        internal void BeginFlightFallAt(Vector3 origin) => WaitForFallTeleport(origin);
+
         [Rpc(SendTo.Server, RequireOwnership = true)]
         void ReportFallPeakRpc(float peak, int restart, int revive, uint sequence)
             => AcceptFallPeak(peak, restart, revive, sequence);

@@ -389,7 +389,7 @@ namespace CurtainCall.EscapeRoute
         {
             RestoreCarrierCollision();
             DisposeProjectiles();
-            NetworkPlayer.Restarted -= Restart; HumanCannonCarry.Unregister(this); Detach();
+            NetworkPlayer.Restarted -= Restart; HumanCannonCarry.Unregister(this); Detach(suspendHost: true);
             devices.Remove(this);
             if (Current == this) Current = devices.Count > 0 ? devices[0] : null;
             if (sparks != null) sparks.Stop(true, ParticleSystemStopBehavior.StopEmitting);

@@ -97,7 +97,7 @@ namespace CurtainCall.HumanCannon
             if (RejectUnavailableLocalMotion(actor)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
-            FindPlayer(actor)?.BeginFallAt(position);
+            FindPlayer(actor)?.BeginFlightFallAt(position);
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
                 pilot.Rebound(index, revision, segment, position, upwardSpeed, fromTrampoline);
             return true;
@@ -118,7 +118,7 @@ namespace CurtainCall.HumanCannon
             }
             // -1은 대포 좌석 없이 지상 점프로 시작한 비행이다. 이후 반동/착지는 같은 식별자로 검증한다.
             flying.Begin(actor, -1, sequence);
-            FindPlayer(actor)?.BeginFallAt(contact);
+            FindPlayer(actor)?.BeginFlightFallAt(contact);
             return true;
         }
 
@@ -410,7 +410,12 @@ namespace CurtainCall.HumanCannon
                 if(station!=null && (action!=CannonAction.Launch || CurtainCall.Telemetry.Pipeline.TelemetryRuntime.SceneType(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)=="EXITROUTE"))
                     CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(boundPlayer,station,"CANNON",action==CannonAction.Board?"BOARDED":"FIRED",station.Seat.position);
             }
-            if (action == CannonAction.Launch) flying.Begin(actor, index, seats[index].State.Revision);
+            if (action == CannonAction.Launch)
+            {
+                flying.Begin(actor, index, seats[index].State.Revision);
+                // The host may still see the seated pose or a sample from earlier movement.
+                FindPlayer(actor)?.BeginFlightFallAt(position);
+            }
             if (action == CannonAction.Release) flying.Remove(actor);
             if (boundPlayer != null && !RejectUnavailableLocalMotion(boundPlayer.OwnerClientId) && pilot != null)
             {
