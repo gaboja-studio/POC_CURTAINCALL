@@ -235,10 +235,7 @@ namespace CurtainCall.Presentation
                 {
                     var focus=target.transform.position+Vector3.up*s.focusHeight;var direction=focus-fixture.head.position;
                     if(direction.sqrMagnitude>.01f)
-                    {
-                        var rotation=Quaternion.LookRotation(direction);
-                        fixture.head.rotation=fixture.fade<.05f?rotation:Quaternion.Slerp(fixture.head.rotation,rotation,1-Mathf.Exp(-s.trackingSpeed*Time.unscaledDeltaTime));
-                    }
+                        fixture.head.rotation=Quaternion.LookRotation(direction);
                     float distance=Mathf.Max(1,Vector3.Distance(spot.transform.position,focus));
                     spot.spotAngle=Mathf.Clamp(2*Mathf.Atan(Mathf.Max(.3f,s.spotRadius)/distance)*Mathf.Rad2Deg,1,90);
                     spot.innerSpotAngle=spot.spotAngle*Mathf.Clamp(s.innerConeRatio,.1f,.98f);spot.range=distance*1.7f+Mathf.Max(4,s.spotRadius*2);

@@ -118,6 +118,7 @@ namespace CurtainCall.Campaign
         public bool EndPerformance()
         {
             if (s.Phase != CampaignPhase.Performance) return false;
+            s.CompletedScheduleSlots |= CampaignSnapshot.ScheduleSlotBit(s.Day, s.PerformanceIndex);
             int next = s.PerformanceIndex + 1;
             if (next >= Rules.PerformancesPerDay)
                 EnterNight();
@@ -176,8 +177,7 @@ namespace CurtainCall.Campaign
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
-                // The final morning ends the run immediately, even with pursuit enabled.
-                if (s.IsFinalMorning) { FailRun(RunEndReason.Deadline); return true; }
+                if (s.IsFinalMorning && !pursuitEnabled) { FailRun(RunEndReason.Deadline); return true; }
                 // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
                 if (pursuitEnabled) s.Timer = RestTimerState.Pursuit;
                 if (onExpired != null)

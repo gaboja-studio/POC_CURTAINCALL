@@ -42,7 +42,8 @@ namespace CurtainCall.WaitingRoom
             Blocked,
         }
 
-        static bool WaitingRoomScene => CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        static bool WaitingRoomScene => CurtainCall.Campaign.CampaignRun.Instance?.State.Phase is not (CurtainCall.Campaign.CampaignPhase.Escape or CurtainCall.Campaign.CampaignPhase.Performance)
+            && CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
         /// <summary>발 위치 기준 공연 기물 장소. 대기실이면 지역명 "연습실" 구역만 연습으로 허용한다.</summary>
         public static EquipmentPlace PlaceAt(Vector3 feet) =>

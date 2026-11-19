@@ -48,7 +48,10 @@ namespace CurtainCall.EscapeRoute
         public static EscapeUnderstageChase Current { get; private set; }
         internal bool RunnerIsOnRoute(NetworkPlayer player) => fullRoute && fullRoute.IsRouteRunner(player);
 
-        void OnEnable() => Current = this;
+        void OnEnable()
+        {
+            if (!boss || !boss.IsReinforcement) Current = this;
+        }
 
         void Awake()
         {
@@ -96,7 +99,8 @@ namespace CurtainCall.EscapeRoute
                 StopChase();
                 return;
             }
-            if (!breach.EntranceComplete) StopChase();
+            bool finale = !InShowcase && boss && boss.TakesOverChase;
+            if (!finale && !breach.EntranceComplete) StopChase();
             if (!net.IsServer)
             {
                 PresentRemote(timer);
@@ -104,12 +108,17 @@ namespace CurtainCall.EscapeRoute
                 PresentWallStrike();
                 return;
             }
-            if (breach.EntranceComplete)
+            if (finale)
+            {
+                FinishStalledCapture(timer.Clock);
+                boss.AdvanceHost();
+            }
+            else if (breach.EntranceComplete)
             {
                 FinishStalledCapture(timer.Clock);
                 AdvanceHost();
             }
-            if (bypass) bypass.SetShutter(usingBypass, transform.position, body);
+            if (bypass && (!boss || !boss.IsReinforcement)) bypass.SetShutter(usingBypass, transform.position, body);
             PresentAttack(attack, timer.Clock);
             PresentThreat(threat, timer.Clock);
             PresentWallStrike();
@@ -609,7 +618,7 @@ namespace CurtainCall.EscapeRoute
             ResetEncounters();
             threatRound = -1;
             usingBypass = false;
-            if (bypass) bypass.SetShutter(false, transform.position);
+            if (bypass && (!boss || !boss.IsReinforcement)) bypass.SetShutter(false, transform.position);
             Listen(null);
             StopChase();
             target = null;

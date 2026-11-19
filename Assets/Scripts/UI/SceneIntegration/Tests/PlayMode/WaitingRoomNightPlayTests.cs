@@ -44,6 +44,28 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
    } finally {JsonUtility.FromJsonOverwrite(saved,settings);zones.enabled=zoneEnabled;}
   }
 
+  [UnityTest]
+  public IEnumerator PursuitClosingFailurePlacesTheNextGenerationAtItsLobbySlot()
+  {
+   yield return Launch(4, "Morning", 0, "", "WaitingRoomPursuit");
+   var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+   var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+   var spawns = Find("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
+   object[] pose = { Get(LocalPlayer, "Slot"), Vector3.zero, Quaternion.identity };
+   Assert.IsTrue((bool)spawns.GetType().GetMethod("TryGetSlotPose").Invoke(spawns, pose));
+   var spawn = (Vector3)pose[1];
+   Assert.IsTrue((bool)Call(run, "DebugBeginPursuit"));
+   Call(mover, "Relocate", spawn + Vector3.right * 6f, Quaternion.identity);
+   Call(LocalPlayer, "ServerRetireFromPursuit");
+   Assert.IsTrue((bool)Call(run, "NotifyAllPursuitCaught"));
+   Assert.AreEqual("Ending", Field(State, "Phase").ToString());
+   Assert.IsTrue((bool)Call(run, "RestartAfterFailure"));
+   yield return CannonWait(() => Get(LocalPlayer, "State").ToString() == "Normal"
+       && Vector3.Distance(spawn, LocalPlayer.transform.position) < 1.5f, 30, "Next run must restore the lobby slot");
+   Assert.AreEqual(1, Field(State, "Day"));
+   Assert.AreEqual("Morning", Field(State, "Rest").ToString());
+  }
+
   [UnityTest] [Category("BreakFlow")] public IEnumerator PursuitMaintenance_SleepProtectionAndMorningInjuredReturn() {
    FreshTutorial(); T(TutorialType).GetProperty("Enabled").SetValue(null,false);
    yield return Launch(1,"Night",0,"","WaitingRoomPursuit");

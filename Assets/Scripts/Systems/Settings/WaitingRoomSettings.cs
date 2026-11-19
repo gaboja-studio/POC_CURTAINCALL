@@ -87,6 +87,9 @@ namespace CurtainCall.Settings
             public BreakNoticeSettings Notice(int seconds) => seconds > 30 ? minute : seconds > 10 ? thirtySeconds : tenSeconds;
             public string PursuitAlertTitle => pursuitAlertTitle ?? "";
             public string StageAnnouncement(int index) => stageAnnouncements != null && index >= 0 && index < stageAnnouncements.Length ? stageAnnouncements[index] : "";
+            [SerializeField] string closingChase = "추격자를 피해 달아나세요.";
+            [SerializeField] string closingEscape = "탈출로 입구로 모여 서커스를 탈출하세요.";
+            public string ClosingObjective(bool visited) => visited ? closingEscape : closingChase;
             public string QuestTitle => questTitle ?? "";
             public string QuestBody(bool stage, bool escape, bool sleep)
             {

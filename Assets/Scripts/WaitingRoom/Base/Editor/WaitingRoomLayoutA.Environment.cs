@@ -382,7 +382,7 @@ namespace CurtainCall.WaitingRoom.Editor
             var clock = new Vector3(b.max.x + .95f, b.max.y - .35f, 60.95f); // on the south wall face (z 60.9)
             Box(g, "LedClockCase", clock, new Vector3(1f, .34f, .1f), Mat("V4_Black"));
             var label = Copy(Required("S01_Lobby/Sign_② 숙소"), g, "LedClockDigits", false);
-            label.gameObject.SetActive(true); label.SetPositionAndRotation(clock + Vector3.forward * .055f, Quaternion.Euler(0, 180, 0));
+            label.gameObject.SetActive(false); label.SetPositionAndRotation(clock + Vector3.forward * .055f, Quaternion.Euler(0, 180, 0));
             var text = label.GetComponent<TextMesh>(); text.text = "00:00:00"; text.anchor = TextAnchor.MiddleCenter; text.alignment = TextAlignment.Center;
             text.fontSize = 64; text.characterSize = .045f; text.color = new Color(1f, .16f, .1f);
             Point(g, "LedSpill", clock + Vector3.forward * .4f, new Color(1f, .2f, .12f), .4f, 1.6f);

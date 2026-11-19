@@ -12,6 +12,7 @@ namespace CurtainCall.UI.SceneIntegration
         public Button slotButton, previousButton, nextButton;
         public TextMeshProUGUI performanceName, slotLabel, hint, tierLabel, rewards, feedback;
         public Image hoverOutline, lockIcon, successIcon;
+        public GameObject completionStamp;
         bool hovered;
         float feedbackUntil;
         string idleFeedback;
@@ -19,12 +20,13 @@ namespace CurtainCall.UI.SceneIntegration
         static readonly Color Ink = new Color32(62, 24, 23, 255);
         static readonly Color[] TierColors = { new Color32(25, 76, 70, 255), new Color32(128, 88, 24, 255), new Color32(126, 37, 43, 255) };
 
-        public void Present(int slot, string name, int tier, int maximum, bool canChangeShow, bool canChangeTier, bool host, bool focused)
+        public void Present(int slot, string name, int tier, int maximum, bool canChangeShow, bool canChangeTier, bool host, bool focused, bool completed = false)
         {
             var rect = (RectTransform)transform;
             rect.sizeDelta = new Vector2(524, 280);
             rect.anchoredPosition = new Vector2(0, -304 * slot);
             ((RectTransform)transform.parent).sizeDelta = new Vector2(524, 584);
+            if (completionStamp != null) completionStamp.SetActive(completed);
             performanceName.text = name;
             performanceName.color = Ink;
             slotLabel.text = $"공연 {slot + 1}";

@@ -96,9 +96,11 @@ namespace CurtainCall.HumanCannon
         float CarryCheckDiameter => UsesTraversalCarryClearance(gameObject.scene.name)
             ? CurtainCall.Settings.GameSettings.WaitingRoom.TrampolineCarryCheckDiameter : 0f;
 
-        static bool UsesTraversalCarryClearance(string sceneName) =>
-            sceneName != null && (sceneName.StartsWith("WaitingRoom", System.StringComparison.Ordinal)
-                || sceneName.StartsWith("escape_route", System.StringComparison.OrdinalIgnoreCase));
+        static bool IsWaitingRoom(string sceneName) => sceneName != null
+            && sceneName.StartsWith("WaitingRoom", System.StringComparison.Ordinal);
+
+        static bool UsesTraversalCarryClearance(string sceneName) => IsWaitingRoom(sceneName)
+            || (sceneName?.StartsWith("escape_route", System.StringComparison.OrdinalIgnoreCase) ?? false);
 
         BoxCollider carryCheckBody;
         internal bool IsCarryCheckBody(Collider body) => carryCheckBody != null && body == carryCheckBody;
@@ -572,7 +574,10 @@ namespace CurtainCall.HumanCannon
                     ReleaseAt(actor, revision, position, rotation, ground);
                 else if (UsesTraversalCarryClearance(gameObject.scene.name))
                 {
-                    if (TryFindNearbySidePlacement(position, rotation, player, out ground, avoidRope: false, fullWidth: true))
+                    bool placed = IsWaitingRoom(gameObject.scene.name)
+                        ? TryFindWaitingRoomDrop(position, rotation, player, out ground)
+                        : TryFindNearbySidePlacement(position, rotation, player, out ground, avoidRope: false, fullWidth: true);
+                    if (placed)
                         ReleaseAt(actor, revision, new Vector3(ground.x, position.y, ground.z), rotation, ground);
                 }
                 else ReleaseCarrierToGround(player);

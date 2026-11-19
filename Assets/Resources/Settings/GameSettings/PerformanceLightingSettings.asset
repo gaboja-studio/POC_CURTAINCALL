@@ -46,10 +46,9 @@ MonoBehaviour:
   spotColor: {r: 0.92, g: 0.94, b: 1, a: 1}
   secondarySpotColor: {r: 0.76, g: 0.8, b: 1, a: 1}
   colorTint: 0.18
-  trackingSpeed: 12
   handoffSeconds: 0.4
   fixtureHysteresis: 8
-  focusHeight: 0.9
+  focusHeight: 0
   spotShadows: 0
   shadowStrength: 0.8
   beamOpacity: 0.065

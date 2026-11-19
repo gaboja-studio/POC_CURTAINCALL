@@ -50,7 +50,8 @@ namespace CurtainCall.WaitingRoom
 
         Vector3 leafClosed, standPosition; Quaternion standRotation;
         float closedAmount, cutSeenAt = -1f;
-        bool seen, wasJammed, playing, falling;
+        const string CameraGuideSeen = "cutscene:dorm-entry-seen";
+        bool seen, wasJammed, wasGuided, playing, falling;
         CurtainCall.EscapeRoute.EscapeCuttableCable[] wires;
 
         /// <summary>숙소 입구 문이 다 열리지 않았다(대기실 튜토리얼 전 봉인, 오작동 연출 중, 배선을 끊기 전, 열리는 중). 잠자기 안내를 미루고 문 열기 안내를 띄우는 데 쓴다.</summary>
@@ -93,11 +94,11 @@ namespace CurtainCall.WaitingRoom
         }
         public void Interact() { }
 
-        // 한 번만 나오는 이벤트: 세대가 바뀌어도 닫힘·배선 절단 기록은 남긴다(문은 열린 채, 절단기는 사라진 채).
+        // 카메라 안내만 물려준다. 새 런에서는 문과 배선을 다시 작동시킨다.
         void OnEnable()
         {
-            ExplorationState.KeepAcrossGenerations(jammedId, cableId);
             active = this;
+            ExplorationState.KeepAcrossGenerations(CameraGuideSeen);
             ShopReach.Add(this);
         }
 
@@ -151,9 +152,18 @@ namespace CurtainCall.WaitingRoom
             }
 
             // 들어왔을 때 이미 닫혀 있었다면 연출 없이 그 상태로 둔다.
-            if (seen && jammed && !wasJammed && !cut && !playing) StartCoroutine(Play());
+            if (jammed && !cut) state.MarkVisited(CameraGuideSeen);
+            bool guided = state.IsOpen(CameraGuideSeen);
+            if (seen && jammed && !wasJammed && !cut) MoveOutside();
+            if (seen && guided && !wasGuided && jammed && !cut && !playing) StartCoroutine(Play());
+            if (!jammed && wasJammed)
+            {
+                cutSeenAt = -1f;
+                announceBroken = false;
+                if (standingSaw != null) standingSaw.SetPositionAndRotation(standPosition, standRotation);
+            }
             if (!seen) closedAmount = sealedBefore || (jammed && !cut) ? 1f : 0f;
-            seen = true; wasJammed = jammed;
+            seen = true; wasJammed = jammed; wasGuided = guided;
 
             // 장부에는 끊김으로 남았는데 배선 모습만 처음으로 돌아온 경우(씬을 다시 불러온 뒤)를 맞춘다.
             if (cut)
@@ -192,17 +202,19 @@ namespace CurtainCall.WaitingRoom
             if (blocker != null) blocker.enabled = closedAmount > .1f;
         }
 
+        void MoveOutside()
+        {
+            var local = NetworkPlayer.Local;
+            if (local != null && exitPoints.Length > 0 && inside.Contains(local.transform.position + Vector3.up * .5f) && local.TryGetComponent(out PlayerMover mover))
+                mover.SetStartPose(exitPoints[(int)(local.OwnerClientId % (ulong)exitPoints.Length)], Quaternion.Euler(0f, exitYaw, 0f), true);
+        }
+
         IEnumerator Play()
         {
             playing = true; falling = true;
             float total = wideSeconds + fallSeconds + closeSeconds + wireSeconds;
             InputGate.SetBlocking(this, true);
             PursuitDirector.HoldForCutscene(total + .5f);
-            // 문 안쪽(입구 통로 안·숙소 안)에 있던 내 캐릭터는 문 밖으로.
-            var local = NetworkPlayer.Local;
-            if (local != null && exitPoints.Length > 0 && inside.Contains(local.transform.position + Vector3.up * .5f) && local.TryGetComponent(out PlayerMover mover))
-                mover.SetStartPose(exitPoints[(int)(local.OwnerClientId % (ulong)exitPoints.Length)], Quaternion.Euler(0f, exitYaw, 0f), true);
-
             // 들어갈 때는 빠르게 당겨 보고, 돌아올 때는 조금 천천히 내 시점으로 옮겨 간다. 끝나면 원래 전환 설정으로 되돌린다.
             var brain = Camera.main != null ? Camera.main.GetComponent<CinemachineBrain>() : null;
             var blend = brain != null ? brain.DefaultBlend : default;

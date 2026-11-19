@@ -217,10 +217,17 @@ namespace CurtainCall.Tightrope
         {
             bool changed = false;
             List<ulong> gone = null;
+            List<NetworkPlayer> unsupported = null;
             foreach (var hang in book.All)
             {
                 var player = Find(hang.Id);
                 if (player == null || player.State != PlayerState.Normal) { Debug.Log($"[RescueDiag] remove target={hang.Id} reason=missing-or-state"); (gone ??= new List<ulong>()).Add(hang.Id); continue; }
+                if (!course.IsLaneUsable(hang.Lane, hang.Distance))
+                {
+                    (gone ??= new List<ulong>()).Add(hang.Id);
+                    (unsupported ??= new List<NetworkPlayer>()).Add(player);
+                    continue;
+                }
                 changed |= hang.ShortenBaseTime(HoldSecondsFor(player));
                 if (!hang.IsPulling) continue;
                 var rescuer = Find(hang.Rescuer);
@@ -239,6 +246,8 @@ namespace CurtainCall.Tightrope
                 }
                 changed = true;
             }
+            if (unsupported != null)
+                foreach (var player in unsupported) player.ServerReleaseIntoFall();
             foreach (var (id, outcome, hang) in book.Tick(deltaTime,id=>Find(id)?.HoldPauseDelta(deltaTime) ?? 0))
             {
                 changed = true;

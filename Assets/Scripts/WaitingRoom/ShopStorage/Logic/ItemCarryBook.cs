@@ -64,13 +64,15 @@ namespace CurtainCall.WaitingRoom
         public float X { get; }
         public float Y { get; }
         public float Z { get; }
+        public string Space { get; }
 
-        public FloorProp(PropItem item, float x, float y, float z)
+        public FloorProp(PropItem item, float x, float y, float z, string space = null)
         {
             Item = item;
             X = x;
             Y = y;
             Z = z;
+            Space = space;
         }
     }
 
@@ -254,12 +256,12 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>판정 화면이 바닥에 기물을 놓는다(탐색 발견품 배치). 같은 UID가 이미 있으면 무시한다.</summary>
-        public CarryRefusal Place(PropItem item, float x, float y, float z)
+        public CarryRefusal Place(PropItem item, float x, float y, float z, string space = null)
         {
             if (IsEmpty(item) || Exists(item.Uid)) return CarryRefusal.NotFound;
             if (!IsCarryable(item)) return CarryRefusal.NotCarryable;
             if (floor.Count >= FloorCapacity) return CarryRefusal.FloorFull;
-            floor.Add(new FloorProp(item, x, y, z));
+            floor.Add(new FloorProp(item, x, y, z, space));
             Revision++;
             return CarryRefusal.None;
         }
@@ -273,7 +275,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>마지막에 든 기물을 그 자리 바닥에 내려놓는다.</summary>
-        public CarryRefusal Drop(ulong player, float x, float y, float z, out FloorProp dropped, int selectedUid = 0)
+        public CarryRefusal Drop(ulong player, float x, float y, float z, out FloorProp dropped, int selectedUid = 0, string space = null)
         {
             dropped = default;
             if (Count(player) == 0) return CarryRefusal.NothingHeld;
@@ -283,7 +285,7 @@ namespace CurtainCall.WaitingRoom
             if (index < 0) return CarryRefusal.NothingHeld;
             var item = list[index];
             list.RemoveAt(index);
-            dropped = new FloorProp(item, x, y, z);
+            dropped = new FloorProp(item, x, y, z, space);
             floor.Add(dropped);
             Revision++;
             return CarryRefusal.None;

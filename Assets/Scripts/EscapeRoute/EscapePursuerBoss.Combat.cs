@@ -25,22 +25,42 @@ namespace CurtainCall.EscapeRoute
         public bool TryHitSaw(Vector3 from, Vector3 to, Vector3 normal, float radius, float thickness, out Vector3 contact)
         {
             contact = to;
-            if (!CombatStarted || Defeated || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return false;
-            int selected = -1; float first = float.PositiveInfinity;
+            if (!NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return false;
+            EscapePursuerBoss target = null;
+            int selected = -1;
+            float first = float.PositiveInfinity;
+            ConsiderSawHit(from, to, normal, radius, thickness, ref target, ref selected, ref first);
+            foreach (var boss in reinforcements)
+                if (boss) boss.ConsiderSawHit(from, to, normal, radius, thickness, ref target, ref selected, ref first);
+            if (!target) return false;
+            contact = Vector3.Lerp(from, to, first);
+            target.ApplySawHit(selected, contact);
+            return true;
+        }
+
+        void ConsiderSawHit(Vector3 from, Vector3 to, Vector3 normal, float radius, float thickness,
+            ref EscapePursuerBoss target, ref int selected, ref float first)
+        {
+            if (!CombatStarted || Defeated) return;
             for (int i = 0; i < parts.Length && i < 8; i++)
             {
-                if ((state.Mask & (1 << i)) != 0 || !parts[i].hitbox) continue;
-                if (IntersectPart(parts[i].hitbox, from, to, normal, radius, thickness, out float t) && t < first)
-                { first = t; selected = i; }
+                var hitbox = parts[i].hitbox;
+                if (!Exposed(state.Mask, i) || !hitbox) continue;
+                // A horizontal saw can sever a limb at its horizontal footprint even if the
+                // creature's current pose raises the limb above the fixed firing plane.
+                float offset = hitbox.transform.TransformPoint(hitbox.center).y - from.y;
+                var lift = Vector3.up * offset;
+                if (IntersectPart(hitbox, from + lift, to + lift, normal, radius, thickness, out float t) && t < first)
+                { first = t; selected = i; target = this; }
             }
-            if (selected < 0) return false;
-            contact = Vector3.Lerp(from, to, first);
-            // A hand/foot is severed before the attached arm/leg. Markers make the next cut explicit.
-            if (!Exposed(state.Mask, selected) || state.Phase == Phase.Leaping || state.Phase == Phase.LeapWarning) return true;
+        }
+
+        void ApplySawHit(int selected, Vector3 contact)
+        {
+            if (state.Phase == Phase.Leaping || state.Phase == Phase.LeapWarning) return;
             state.Mask |= (byte)(1 << selected); state.HitPoint = contact;
             chase.CancelBossAttack();
             Enter(state.Mask == byte.MaxValue ? Phase.Dying : Phase.Hit, EscapeRouteTimer.Current.Clock);
-            return true;
         }
 
         internal static bool IntersectPart(BoxCollider box, Vector3 from, Vector3 to, Vector3 normal,

@@ -91,6 +91,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                         ticket.rewards = Text(card, "Rewards", "호응 상한 100   |   완주 보너스 100", 25, 232, 474, 32, 23, Ink);
                         ticket.hoverOutline = Picture(card, "HoverOutline", "ticket-focus", -2, -2, 528, 284);
                         ticket.hoverOutline.enabled = false;
+                        BindCompletionStamp(ticket);
                         // Legacy read-only view keeps the existing public Open/Close/presentation contract.
                         var hidden = Rect(card, "LegacyPresentation", 0, 0, 1, 1); hidden.gameObject.SetActive(false);
                         var unusedImage = hidden.gameObject.AddComponent<Image>(); unusedImage.raycastTarget = false;
@@ -140,6 +141,24 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Schedule scene save failed.");
             if (opened) EditorSceneManager.CloseScene(scene, true);
             Debug.Log("[ScheduleV2] Replaced schedule prefab and rebound tooltip adapter.");
+        }
+
+        public static void BindCompletionStamp(ScheduleTicketCard ticket)
+        {
+            if (ticket.completionStamp != null) return;
+            const string path = "Assets/Resources/Prefabs/UIs/Roles/Retained/ScheduleUi/";
+            var stamp = Rect(ticket.transform, "CompletionStamp", 340, 9, 152, 52);
+            stamp.localRotation = Quaternion.Euler(0, 0, 6);
+            foreach (var layer in new[] { "StampInk", "StampStars" })
+            {
+                var image = Rect(stamp, layer, 0, 0, 152, 52).gameObject.AddComponent<Image>();
+                image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path + layer + ".png");
+                if (image.sprite == null) throw new InvalidOperationException("Missing stamp layer " + layer);
+                image.preserveAspect = true;
+                image.raycastTarget = false;
+            }
+            ticket.completionStamp = stamp.gameObject;
+            stamp.gameObject.SetActive(false);
         }
 
         static Sprite S(string name) => sprites[name];

@@ -10,7 +10,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
         {
             var run=new RunState(false,false,true);
             run.DebugStartAt(new RunStartPoint(deadline?4:3,deadline?RunStartPhase.Morning:RunStartPhase.Escape,0,CampaignSnapshot.TightropeId),true,(2,1));
-            if(deadline){run.DebugSetRemaining(.01f);run.Tick(1);}else run.EndEscape(false);
+            if (deadline)
+            {
+                run.DebugSetRemaining(.01f);
+                run.Tick(1);
+                Assert.IsTrue(run.NotifyAllPursuitCaught());
+            }
+            else run.EndEscape(false);
             var failed=run.Snapshot;
             Assert.IsTrue(run.RestartAfterFailure());
             var next=run.Snapshot;
@@ -47,14 +53,19 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Assert.IsFalse(run.EndEscape(success));
         }
         [TestCase(false)] [TestCase(true)]
-        public void DeadlineKeepsFinalDayAndNeverStartsPursuit(bool pursuit)
+        public void FinalMorningResolvesAfterConfiguredPursuit(bool pursuit)
         {
             var run=new RunState(false,false,pursuit);
             Assert.IsTrue(run.DebugStartAt(new RunStartPoint(4,RunStartPhase.Morning,0,CampaignSnapshot.TightropeId)));
             run.DebugSetRemaining(.01f);
             bool pursuitStarted=false;
             Assert.IsTrue(run.Tick(1,_=>pursuitStarted=true));
-            Assert.IsFalse(pursuitStarted);
+            Assert.AreEqual(pursuit, pursuitStarted);
+            if (pursuit)
+            {
+                Assert.AreEqual(RestTimerState.Pursuit, run.Snapshot.Timer);
+                Assert.IsTrue(run.NotifyAllPursuitCaught());
+            }
             Assert.IsTrue(FailureEndingPresentation.IsFailureEnding(run.Snapshot));
             Assert.AreEqual(4,run.Snapshot.Day); Assert.AreEqual(1,run.Snapshot.Generation);
             Assert.AreEqual(RestTimerState.None,run.Snapshot.Timer);

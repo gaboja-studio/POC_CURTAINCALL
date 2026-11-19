@@ -200,7 +200,7 @@ namespace CurtainCall.Player
                     {
                         if (boardable >= 0) Add(cannon.Station(boardable), cannon.Station(boardable).transform,
                             cannon.Station(boardable).BoardingPoint.position, device, "piggyback-to-cannon");
-                        if (!ShopReach.Locked && !WaitingRoomRehearsal.IsPreTutorialRestricted)
+                        if (waitingRoom && !ShopReach.RoomInteractionsLocked)
                             foreach (var target in ShopReach.Targets)
                                 if (target is ExpertRoomView room && room.CanBoard(player))
                                     Add(room, room.VisualRoot, room.PresentationPoint, Rank(InteractionCategory.Service), "piggyback-to-medical");
@@ -240,9 +240,11 @@ namespace CurtainCall.Player
                 if (ropes != null && ropes.CanUseButton(player))
                     Add(ropes, ropes.Button, ropes.ButtonPoint, mounted ? MountedButtonPriority : device, "rope-button");
             }
-            if (!ShopReach.Locked && !WaitingRoomRehearsal.IsPreTutorialRestricted)
+            bool floorOnly = !string.IsNullOrEmpty(FloorPropsView.CurrentSpace);
+            if (!ShopReach.RoomInteractionsLocked)
                 foreach (var target in ShopReach.Targets)
                 {
+                    if (floorOnly && target is not FloorPropsView.Item) continue;
                     float distance = PlayerInteraction.RestrictReach(target.Reach(actor.transform.position, actor), actor);
                     if (distance < 0f) continue;
                     var view = target as IShopPresentation;

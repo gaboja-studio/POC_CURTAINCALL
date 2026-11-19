@@ -84,7 +84,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Assert.AreEqual(1, run.Snapshot.Generation);
         }
         [Test]
-        public void FinalMorningTimeoutEndsTheRunBeforePursuit()
+        public void FinalMorningPursuitEndsOnlyWhenEveryoneIsCaught()
         {
             var run = Start(4);
             Assert.IsTrue(run.Snapshot.IsFinalMorning);
@@ -92,12 +92,33 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             run.DebugSetRemaining(.01f); run.Tick(1);
             Assert.AreEqual(1, run.Snapshot.Generation);
             Assert.IsFalse(run.NotifyAllAtStageEntrance());
-            Assert.IsFalse(run.NotifyAllPursuitCaught());
+            Assert.AreEqual(RestTimerState.Pursuit, run.Snapshot.Timer);
+            Assert.IsTrue(run.NotifyAllPursuitCaught());
             Assert.AreEqual(CampaignPhase.Ending, run.Snapshot.Phase);
             Assert.AreEqual(4, run.Snapshot.Day);
             Assert.AreEqual(1, run.Snapshot.Generation);
             Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
         }
+        [Test]
+        public void FinalPursuitAllowsEscapeAndNewRunClearsCompletedTickets()
+        {
+            var closing = Start(4);
+            closing.DebugSetRemaining(.01f);
+            closing.Tick(1);
+            Assert.IsTrue(closing.StartEscape());
+            Assert.AreEqual(CampaignPhase.Escape, closing.Snapshot.Phase);
+
+            var run = Start();
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.IsTrue(run.EndPerformance());
+            Assert.IsTrue(run.Snapshot.CompletedSlot(2, 0));
+            Assert.IsFalse(run.Snapshot.CompletedSlot(2, 1));
+            Assert.IsTrue(run.StartEscape());
+            Assert.IsTrue(run.EndEscape(false));
+            Assert.IsTrue(run.RestartAfterFailure());
+            Assert.AreEqual(0, run.Snapshot.CompletedScheduleSlots);
+        }
+
         [Test]
         public void StageThresholdsAndSpeedSettingsAreIndependent()
         {

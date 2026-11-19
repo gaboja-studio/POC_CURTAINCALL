@@ -176,9 +176,9 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 AssetDatabase.CreateAsset(sky, path);
             }
             Undo.RecordObject(sky, "Sunny escape exterior");
-            sky.SetColor("_SkyTint", new Color(.48f, .55f, .65f));
-            sky.SetColor("_GroundColor", new Color(.38f, .42f, .35f));
-            sky.SetFloat("_Exposure", 1.2f);
+            sky.SetColor("_SkyTint", new Color(.52f, .61f, .75f));
+            sky.SetColor("_GroundColor", new Color(.67f, .65f, .57f));
+            sky.SetFloat("_Exposure", 1.65f);
             sky.SetFloat("_AtmosphereThickness", 1f);
             sky.SetFloat("_SunSize", .035f);
             SaveLookMaterial(sky);

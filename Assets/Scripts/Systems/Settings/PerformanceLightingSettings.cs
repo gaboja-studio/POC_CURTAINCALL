@@ -42,10 +42,9 @@ namespace CurtainCall.Settings
         [Tooltip("주 추적등 색상. 캐릭터 색을 읽기 위한 옅은 백색입니다.")] public Color spotColor=new(.92f,.94f,1);
         [Tooltip("일부 등기구에 섞을 보조 색상.")] public Color secondarySpotColor=new(.76f,.80f,1);
         [Range(0,1),Tooltip("보조 색상 혼합 비율. 0은 주 색상만 사용합니다.")] public float colorTint=.18f;
-        [Min(.1f),Tooltip("플레이어 추적 회전 반응 속도(1/초). 높으면 즉시 따라갑니다.")] public float trackingSpeed=12;
         [Min(.05f),Tooltip("등기구 점등·소등 전환 시간(초). 갑작스러운 점멸을 막습니다.")] public float handoffSeconds=.4f;
         [Min(0),Tooltip("등기구를 교체하기 위해 필요한 거리 이득(m). 높이면 잦은 교대가 줄어듭니다.")] public float fixtureHysteresis=8;
-        [Min(0),Tooltip("플레이어 원점에서 위로 겨냥할 높이(m). 보통 가슴을 향합니다.")] public float focusHeight=.9f;
+        [Min(0),Tooltip("발 중앙 기준 조준 높이(m).")] public float focusHeight=0f;
         [Tooltip("추적 스폿 그림자 사용. 켜면 천장과 플레이어 사이의 구조물이 빛을 가릴 수 있으며 다인원 성능 비용이 증가합니다.")] public bool spotShadows=false;
         [Range(0,1),Tooltip("추적 그림자의 진하기.")] public float shadowStrength=.8f;
         [Header("원뿔 빛 · 번짐 억제")]
