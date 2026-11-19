@@ -135,7 +135,7 @@ namespace CurtainCall.Tightrope.Fire
             var main = particles.main;
             main.startColor = new ParticleSystem.MinMaxGradient(
                 Color.Lerp(WeakCool, FullCool, intensity), Color.Lerp(WeakWarm, FullHot, intensity));
-            float size = segmentRopeBurn != null ? .3f : 1f;
+            float size = segmentRopeBurn != null ? .65f : 1f;
             main.startSize = new ParticleSystem.MinMaxCurve(size * Mathf.Lerp(0.08f, 0.55f, t), size * Mathf.Lerp(0.16f, 1.1f, t));
             main.startLifetime = new ParticleSystem.MinMaxCurve(Mathf.Lerp(0.25f, 0.55f, t), Mathf.Lerp(0.4f, 0.95f, t));
             var velocity = particles.velocityOverLifetime;
@@ -144,7 +144,7 @@ namespace CurtainCall.Tightrope.Fire
             var shape = particles.shape;
             shape.scale = new Vector3(course.Shape.RopeWalkWidth * Mathf.Lerp(0.6f, 1.6f, t), 0.05f, Mathf.Max(0.1f, length));
             var emission = particles.emission;
-            float rate = segmentRopeBurn != null ? .12f : 1f;
+            float rate = segmentRopeBurn != null ? .55f : 1f;
             emission.rateOverTime = rate * Mathf.Max(0.1f, length) * Mathf.Lerp(3f, 45f, t);
             if (!particles.isPlaying) particles.Play();
         }

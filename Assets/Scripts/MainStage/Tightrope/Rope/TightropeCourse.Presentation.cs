@@ -211,4 +211,20 @@ namespace CurtainCall.Tightrope
             courseMaterials.Clear();
         }
     }
+
+    internal static class RopeDissolve
+    {
+        public const float WindowSeconds = 1.05f;
+        static readonly int Amount = Shader.PropertyToID("_DissolveAmount");
+        static readonly int Width = Shader.PropertyToID("_DissolveWidth");
+
+        public static float AtOffset(float progress, float offset)
+            => Mathf.Clamp01((progress - .80f * offset) / .20f);
+
+        public static void Apply(MaterialPropertyBlock properties, float amount)
+        {
+            properties.SetFloat(Amount, amount);
+            properties.SetFloat(Width, .065f);
+        }
+    }
 }

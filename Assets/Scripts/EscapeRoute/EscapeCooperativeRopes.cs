@@ -34,7 +34,6 @@ namespace CurtainCall.EscapeRoute
         float[] burnOffsets;
         MaterialPropertyBlock ropeBlock;
         bool dissolving, contactsLive, filamentsLive, seamLive;
-        static readonly int DissolveAmount = Shader.PropertyToID("_DissolveAmount");
         [SerializeField] LineRenderer[] warningArcs = Array.Empty<LineRenderer>();
         [Min(.1f), SerializeField] float warningSeconds = 2f;
         [SerializeField] Transform button;
@@ -181,7 +180,7 @@ namespace CurtainCall.EscapeRoute
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
             PresentPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible, timed);
             double cycle = timed ? hazards.Elapsed % (visibleSeconds + hiddenSeconds) : 0;
-            UpdateDissolve(cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - Mathf.Min(1.05f, warningSeconds), visibleSeconds, (float)cycle) : 0);
+            UpdateDissolve(cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds), visibleSeconds, (float)cycle) : 0);
             UpdateTransitionParticles(timed ? hazards.Elapsed : -1, cycle);
             UpdateTraversal(NetworkPlayer.Local);
             if (session != null && session.IsHost && synchronized && !resetBarrier.Waiting
@@ -234,7 +233,7 @@ namespace CurtainCall.EscapeRoute
                     visual.SetPropertyBlock(originalBlocks[i]);
                     continue;
                 }
-                float burn = Mathf.Clamp01((amount - .80f * burnOffsets[i]) / .20f);
+                float burn = RopeDissolve.AtOffset(amount, burnOffsets[i]);
                 if (burn <= 0f)
                 {
                     if (visual.sharedMaterial == dissolveBurn)
@@ -248,8 +247,7 @@ namespace CurtainCall.EscapeRoute
                 visual.GetPropertyBlock(ropeBlock);
                 var cable = ropeMaterials[i];
                 if (cable && cable.mainTexture) ropeBlock.SetTexture("_Base_Tex", cable.mainTexture);
-                ropeBlock.SetFloat(DissolveAmount, burn);
-                ropeBlock.SetFloat("_DissolveWidth", .065f);
+                RopeDissolve.Apply(ropeBlock, burn);
                 visual.SetPropertyBlock(ropeBlock);
             }
             foreach (var run in burnRuns)
