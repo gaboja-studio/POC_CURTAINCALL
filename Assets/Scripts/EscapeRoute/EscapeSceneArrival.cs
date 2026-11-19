@@ -44,6 +44,7 @@ namespace CurtainCall.EscapeRoute
             if (!transfer.PlacementAuthorized) { ReleaseCamera(); return; }
             if (!transfer.PlaceLocal(this)) { ReleaseCamera(); return; }
             var player = NetworkPlayer.Local;
+            if (player == null || player.State != PlayerState.Normal) { ReleaseCamera(); return; }
             if (transfer.Ready) ObserveApproachExit(player);
             if (reachedStairEnd) { ReleaseCamera(); return; }
             var director = CameraViewDirector.Current;

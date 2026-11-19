@@ -3,11 +3,13 @@
 - **Title:** 탈출로 기물 피드백과 추격자 등장 개선
 - **Type:** fix
 - **Assignee:** @RagSpirin
-- **Branch:** fix/escape-device-feedback-and-intros
+- **Branch:** fix/escape-transfer-spectator-arrival
 - **Base:** dev
 
 ## Context
 운영 탈출로의 최종전 문구·보스 등장·스위치·배선 앞 난간과 공용 대포·톱날·트램펄린·인간대포 튜토리얼 피드백을 개선한다.
+
+PR #451 병합 후속에서는 탈출 확정 전 전환 패킷과 사망한 참가자의 도착 확인을 수정한다.
 
 ## 계획
 최신 DEV에서 출발한다. 스위치의 상호작용 위치·상태와 대포 포구를 보존한다. 트램펄린 테두리는 호스트의 수동 배치 검사와 같은 함수를 사용한다. 톱날은 서버에서 1.5초 발사 간격을 유지하고, 보스 증원은 공유 서버 시각으로 순서를 맞춘다.

@@ -1165,7 +1165,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
 
         [TestCase(CampaignPhase.RestTime)]
         [TestCase(CampaignPhase.Night)]
-        public void PendingDepartureSurvivesUntilTheEscapePhaseArrives(CampaignPhase precedingPhase)
+        public void DeparturePacketsCannotStartAnUnconfirmedEscape(CampaignPhase precedingPhase)
         {
             var root = new GameObject("Pending escape transfer");
             root.SetActive(false);
@@ -1179,12 +1179,15 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 runProperty.SetValue(null, run);
                 var channel = CreateChannel(transfer);
                 channel.GetType().GetProperty("Session").SetValue(channel, session);
-                var snapshot = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
-                snapshot.GetType().GetField("generation").SetValue(snapshot, 5);
-                snapshot.GetType().GetField("phase").SetValue(snapshot, 1);
+                const string snapshot = "{\"generation\":5,\"phase\":1,\"participants\":[1],\"positions\":[{}],\"rotations\":[{\"w\":1}]}";
 
                 Set(run, "state", new CampaignSnapshot { Generation = 5, Phase = precedingPhase });
+                Call(transfer, "Receive", snapshot);
                 Call(transfer, "Update");
+                Assert.That(transfer.HasDeparture, Is.False, "The host has not committed the escape phase yet.");
+
+                Set(run, "state", new CampaignSnapshot { Generation = 5, Phase = CampaignPhase.Escape });
+                Call(transfer, "Receive", snapshot);
                 Assert.That(transfer.Pending, Is.True);
 
                 Set(run, "state", new CampaignSnapshot { Generation = 5, Phase = CampaignPhase.Performance });
@@ -1194,6 +1197,70 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             finally
             {
                 runProperty.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase(PlayerState.Normal, false)]
+        [TestCase(PlayerState.Fallen, true)]
+        [TestCase(PlayerState.Retired, true)]
+        public void DepartureCameraIsRequiredOnlyForPlayersWhoStillHaveToRun(PlayerState state, bool expected)
+        {
+            var root = new GameObject("Escape arrival without a local camera");
+            var platform = new GameObject("Escape assembly floor");
+            root.SetActive(false);
+            var director = CameraViewDirector.Current;
+            var previousContent = EscapeCampaignContent.Current;
+            var previousPlayer = NetworkPlayer.Local;
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var player = root.AddComponent<NetworkPlayer>();
+            try
+            {
+                SetCurrent<CameraViewDirector>(null);
+                platform.transform.position = new Vector3(9200, 400, 9200);
+                var floor = platform.AddComponent<BoxCollider>();
+                floor.size = new Vector3(8, .25f, 8);
+                floor.center = Vector3.down * .125f;
+                var area = platform.AddComponent<BoxCollider>();
+                area.isTrigger = true;
+                area.size = new Vector3(8, 3, 8);
+                area.center = Vector3.up * 1.5f;
+                var arrival = root.AddComponent<EscapeSceneArrival>();
+                Set(arrival, "assemblyArea", area);
+                var content = root.AddComponent<EscapeCampaignContent>();
+                Set(content, "content", platform);
+                SetCurrent(content);
+
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                CreateChannel(transfer);
+                var snapshot = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
+                snapshot.GetType().GetField("phase").SetValue(snapshot, 1);
+                snapshot.GetType().GetField("placementAuthorized").SetValue(snapshot, true);
+                snapshot.GetType().GetField("participants").SetValue(snapshot, new[] { player.OwnerClientId });
+                snapshot.GetType().GetField("positions").SetValue(snapshot, new[] { Vector3.zero });
+                snapshot.GetType().GetField("rotations").SetValue(snapshot, new[] { Quaternion.identity });
+                Set(transfer, "localCaptured", true);
+                Set(transfer, "capturedOwner", player.OwnerClientId);
+                Set(transfer, "localRotation", Quaternion.identity);
+                local.SetValue(null, player);
+                spawned.SetValue(player, true);
+                ((NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", Private).GetValue(player)).Value = state;
+                var mover = player.GetComponent<PlayerMover>();
+                Set(mover, "controller", mover.GetComponent<CharacterController>());
+                Physics.SyncTransforms();
+
+                Assert.That(transfer.PlaceLocal(arrival), Is.EqualTo(expected));
+                Assert.That(root.transform.position, Is.EqualTo(expected ? platform.transform.position : Vector3.zero));
+                Assert.That(player.State, Is.EqualTo(state));
+            }
+            finally
+            {
+                spawned.SetValue(player, false);
+                local.SetValue(null, previousPlayer);
+                SetCurrent(previousContent);
+                SetCurrent(director);
+                Object.DestroyImmediate(platform);
                 Object.DestroyImmediate(root);
             }
         }
