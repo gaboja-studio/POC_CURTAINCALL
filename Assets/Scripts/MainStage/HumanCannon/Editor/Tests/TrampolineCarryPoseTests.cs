@@ -3,6 +3,7 @@ using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.WaitingRoom.Pursuit;
 using NUnit.Framework;
 using Unity.Collections;
@@ -85,6 +86,54 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             finally
             {
                 Object.DestroyImmediate(root); Object.DestroyImmediate(floor); Object.DestroyImmediate(pillar);
+                Physics.SyncTransforms();
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void WaitingRoomDropFindsADiagonalLandingButCannotSlideThroughAWall(bool wall)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var root = new GameObject("Trampoline diagonal drop");
+            var floor = new GameObject("Diagonal landing support");
+            var barrier = new GameObject("Blocked carry path");
+            try
+            {
+                var origin = new Vector3(13200, 100, 13200);
+                root.SetActive(false);
+                root.transform.position = origin + Vector3.up;
+                var body = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                var type = typeof(HumanCannonTrampoline);
+                root.SetActive(true);
+                body.center = Vector3.up * .2f;
+                body.size = new Vector3(.4f, .4f, .4f);
+                type.GetField("carryBody", members).SetValue(trampoline, body);
+
+                Vector3 offset = (Vector3.right + Vector3.forward).normalized * (GameSettings.Trampoline.GrabDistance / 2f);
+                floor.transform.position = origin + offset - Vector3.up * .25f;
+                floor.AddComponent<BoxCollider>().size = new Vector3(.5f, .5f, .5f);
+                if (wall)
+                {
+                    barrier.transform.position = origin + Vector3.right * (offset.x * .5f) + Vector3.up;
+                    barrier.AddComponent<BoxCollider>().size = new Vector3(.1f, 4f, 6f);
+                }
+                Physics.SyncTransforms();
+
+                var oldSearch = type.GetMethod("TryFindNearbySidePlacement", members);
+                var oldArgs = new object[] { root.transform.position, root.transform.rotation, null, Vector3.zero, false, true };
+                Assert.That(oldSearch.Invoke(trampoline, oldArgs), Is.False);
+                var search = type.GetMethod("TryFindWaitingRoomDrop", members);
+                var args = new object[] { root.transform.position, root.transform.rotation, null, Vector3.zero };
+                Assert.That(search.Invoke(trampoline, args), Is.EqualTo(!wall));
+                if (!wall) Assert.That(Vector3.Distance((Vector3)args[3], origin + offset), Is.LessThan(.02f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(floor);
+                Object.DestroyImmediate(barrier);
                 Physics.SyncTransforms();
             }
         }

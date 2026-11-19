@@ -161,6 +161,29 @@ namespace CurtainCall.HumanCannon
                 && (!avoidRope || candidate.y - ground.y <= GameSettings.Trampoline.GrabDistance)
                 && HumanCannonCarry.CanMoveFromPose(transform, fullWidth ? carryBody : MoveCheckBody, from, candidate, rotation, carrier);
 
+        bool TryFindWaitingRoomDrop(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground)
+        {
+            float reach = GameSettings.Trampoline.GrabDistance;
+            // Search near the carried pose first. The narrow carry probe may slide past a corner,
+            // but the lowered trampoline still needs room for its full body.
+            for (int ring = 1; ring <= 4; ring++)
+            {
+                float distance = reach * ring / 4f;
+                for (int direction = 0; direction < 8; direction++)
+                {
+                    float angle = direction * Mathf.PI / 4f;
+                    var offset = rotation * new Vector3(Mathf.Sin(angle), 0f, -Mathf.Cos(angle)) * distance;
+                    var candidate = position + offset;
+                    if (TryFindDropPath(candidate, rotation, null, out ground, avoidRope: true)
+                        && candidate.y - ground.y <= reach
+                        && HumanCannonCarry.CanMoveFromPose(transform, MoveCheckBody, position, candidate, rotation, carrier))
+                        return true;
+                }
+            }
+            ground = default;
+            return false;
+        }
+
         bool TryParkBelow(Vector3 from, NetworkPlayer carrier, float reach, out Vector3 ground) =>
             TryFindDropPath(from, transform.rotation, carrier, out ground, avoidRope: true) && from.y - ground.y <= reach;
 
