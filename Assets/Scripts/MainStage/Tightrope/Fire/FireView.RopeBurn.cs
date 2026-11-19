@@ -8,17 +8,11 @@ namespace CurtainCall.Tightrope.Fire
         [Tooltip("구간 예고에 사용할 밧줄 표면 소실 머티리얼")]
         [SerializeField] Material segmentRopeBurn;
 
-        static readonly int BurnAmount = Shader.PropertyToID("_burnAmount");
         static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
-        static readonly int Direction = Shader.PropertyToID("_Direction");
-        static readonly int ProjectionMin = Shader.PropertyToID("_ProjectionMin");
-        static readonly int ProjectionMax = Shader.PropertyToID("_ProjectionMax");
-        static readonly Color IgnitionGlow = new(2.4f, .33f, .025f);
+        static readonly Color IgnitionGlow = new(1.3f, .18f, .025f);
         readonly MaterialPropertyBlock burnProperties = new();
         readonly Dictionary<Material, Material> burnMaterials = new();
-        readonly List<(MeshRenderer renderer, Material[] originals, MaterialPropertyBlock originalBlock,
-            Vector3 direction, float min, float max, float offset)> burningSurfaces = new();
-        readonly List<Vector2> burnSections = new();
+        readonly List<(MeshRenderer renderer, Material[] originals, MaterialPropertyBlock originalBlock, float offset)> burningSurfaces = new();
         readonly List<MeshRenderer> ropeRenderers = new();
         readonly List<Vector2> burningSpans = new();
         readonly List<Transform> hiddenPieces = new();
@@ -43,30 +37,21 @@ namespace CurtainCall.Tightrope.Fire
                 burningSpans.AddRange(segmentSpans);
                 slices = new GameObject("Burning rope visuals").transform;
                 slices.SetParent(root, false);
-                foreach (var span in burningSpans)
-                {
-                    if (span.y - span.x < 3f) { burnSections.Add(span); continue; }
-                    float first = Mathf.Lerp(span.x, span.y, .29f);
-                    float second = Mathf.Lerp(span.x, span.y, .66f);
-                    burnSections.Add(new Vector2(span.x, first));
-                    burnSections.Add(new Vector2(first, second));
-                    burnSections.Add(new Vector2(second, span.y));
-                }
-                course.CollectBurnSurfaces(lane, burnSections, slices, ropeRenderers, hiddenPieces);
+                course.CollectBurnSurfaces(lane, burningSpans, slices, ropeRenderers, hiddenPieces);
                 foreach (var renderer in ropeRenderers)
                 {
-                    if (!renderer.enabled || !renderer.TryGetComponent(out MeshFilter filter) || filter.sharedMesh == null) continue;
-                    var direction = renderer.transform.InverseTransformVector(course.Forward).normalized;
-                    var bounds = filter.sharedMesh.bounds;
-                    float center = Vector3.Dot(bounds.center, direction);
+                    if (!renderer.enabled) continue;
+                    var bounds = renderer.bounds;
+                    var forward = course.Forward;
+                    float center = course.GetDistance(bounds.center);
                     float extent = Vector3.Dot(bounds.extents,
-                        new Vector3(Mathf.Abs(direction.x), Mathf.Abs(direction.y), Mathf.Abs(direction.z)));
-                    float distance = course.GetDistance(renderer.bounds.center);
+                        new Vector3(Mathf.Abs(forward.x), Mathf.Abs(forward.y), Mathf.Abs(forward.z)));
                     float offset = 0;
                     foreach (var span in burningSpans)
                     {
-                        if (distance < span.x - .01f || distance > span.y + .01f) continue;
-                        offset = Mathf.InverseLerp(span.x, span.y, distance);
+                        if (center < span.x - .01f || center > span.y + .01f) continue;
+                        // Keep the tail of each span legible until close to its support cutoff.
+                        offset = Mathf.InverseLerp(span.x, span.y, center + extent);
                         break;
                     }
                     var originalBlock = new MaterialPropertyBlock();
@@ -76,31 +61,25 @@ namespace CurtainCall.Tightrope.Fire
                     for (int i = 0; i < originals.Length; i++)
                         if (originals[i] != null) replacements[i] = BurnMaterial(originals[i]);
                     renderer.sharedMaterials = replacements;
-                    burningSurfaces.Add((renderer, originals, originalBlock, direction,
-                        center - extent, center + Mathf.Max(.001f, extent), offset));
+                    burningSurfaces.Add((renderer, originals, originalBlock, offset));
                 }
                 ropeRenderers.Clear();
             }
-            ApplyRopeBurnProgress(progress);
+            ApplyRopeBurnProgress(progress, fire.WarningRemaining(index), fire.Settings.warningSeconds);
         }
 
-        void ApplyRopeBurnProgress(float progress)
+        void ApplyRopeBurnProgress(float progress, float remaining, float warningSeconds)
         {
-            float flicker = .88f + .12f * Mathf.Sin(Time.time * 17f);
+            float window = Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds);
+            float dissolve = window > 0f ? Mathf.Clamp01(1f - remaining / window) : 1f;
+            float pulse = .75f + .25f * Mathf.Sin(Time.time * 13f);
+            float warning = Mathf.Lerp(.38f, 1f, progress) * (1f - dissolve) * pulse;
             foreach (var surface in burningSurfaces)
             {
                 if (surface.renderer == null) continue;
-                float ignite = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(progress * 4f - surface.offset));
-                // Keep most of the silhouette during the warning and sweep the last portion just before support is removed.
-                float sweep = Mathf.InverseLerp(.58f + surface.offset * .17f, 1f, progress);
-                float amount = Mathf.Lerp(-.025f, .79f, sweep * sweep);
                 surface.renderer.GetPropertyBlock(burnProperties);
-                burnProperties.SetVector(Direction, surface.direction);
-                burnProperties.SetFloat(ProjectionMin, surface.min);
-                burnProperties.SetFloat(ProjectionMax, surface.max);
-                burnProperties.SetFloat(BurnAmount, amount);
-                float glow = Mathf.Lerp(.20f, 1f, ignite) * Mathf.Lerp(1f, .1f, sweep) * flicker;
-                burnProperties.SetColor(EmissionColor, IgnitionGlow * glow);
+                RopeDissolve.Apply(burnProperties, RopeDissolve.AtOffset(dissolve, surface.offset));
+                burnProperties.SetColor(EmissionColor, IgnitionGlow * warning);
                 surface.renderer.SetPropertyBlock(burnProperties);
             }
         }
@@ -121,13 +100,8 @@ namespace CurtainCall.Tightrope.Fire
             burn.SetColor("_BaseColor", rope.color);
             var tiling = rope.mainTextureScale;
             burn.SetVector("_Tiling", new Vector4(tiling.x, tiling.y, 0f, 0f));
-            // Use the rope's atlas and the package's directional burn, with little noise at the glowing edge.
+            // The shared dissolve preset uses a demo emission map. The warning lights the rope itself.
             burn.SetTexture("_Emission_Tex", Texture2D.whiteTexture);
-            burn.SetFloat("_NoiseStrength", .045f);
-            burn.SetFloat("_BurnEdgeWidth", .095f);
-            burn.SetFloat("_CharredWidth", .17f);
-            burn.SetColor("_CharredColor", new Color(.09f, .036f, .02f));
-            burn.SetColor("_BurnColor", new Color(9f, 1.65f, .14f, 1f));
             burn.SetFloat("_NormalStrength", 0f);
             burn.SetFloat("_AO_Strength", 0f);
             burn.SetTexture("_MetallicSmooth", Texture2D.blackTexture);
@@ -153,7 +127,6 @@ namespace CurtainCall.Tightrope.Fire
                 if (original != null) original.gameObject.SetActive(true);
             hiddenPieces.Clear();
             burningSpans.Clear();
-            burnSections.Clear();
             burningRoot = null;
             burningSegment = -1;
         }
