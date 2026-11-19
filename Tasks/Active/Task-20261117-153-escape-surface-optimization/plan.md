@@ -3,7 +3,7 @@
 - **Title:** 탈출로 겹침 면 및 불필요 렌더링 최적화
 - **Type:** fix
 - **Assignee:** @RagSpirin
-- **Branch:** fix/escape-surface-optimization
+- **Branch:** fix/escape-shaft-and-surface-polish
 - **Base:** dev
 
 ## Context
@@ -16,3 +16,5 @@
 origin/dev 843f085d에서 전용 브랜치를 만들었다(PR #410 반영). 기존 폰트·재질 14개와 ThirdParty 변경은 보존한다. 과거 원본 복구/정적 배치 도구는 이전 맵용이므로 현행 리메이크 씬에 그대로 실행하지 않는다. 과거 겹침 제거가 벽 뒷면 누락을 만든 이력이 있어 표면 차폐를 실제 체적으로 검증한다. doctor의 기존 ThirdParty HEAD/Task 번호 중복은 별도 기록한다.
 
 제출 전 origin/dev b34664aa를 fast-forward 반영했다. 원격에서 Task151 번호가 먼저 사용되어 이 작업을 Task153으로 정리했다. 로컬 검사 증거 폴더 escape-optimization-151은 그대로 유지한다.
+
+2026-11-20 후속은 DEV 79171de9의 운영 탈출로에 남은 표면 겹침과 낭떠러지 깊이 표현을 정리한다. 공용 대포의 발사 연출은 공용 포구 프리팹에서 강화한다.

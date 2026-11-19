@@ -26,14 +26,14 @@ namespace CurtainCall.EscapeRoute.Tests
                 {
                     Place(new Vector3(-200, y, 118.3f), new Vector3(0, 180, 0));
                     view.GetPropertyBlock(block);
-                    Assert.That(block.GetVector("_ShaftFade"), Is.EqualTo(new Vector4(y - 48, y - 19, 1, 0)));
+                    Assert.That(block.GetVector("_ShaftFade"), Is.EqualTo(new Vector4(y - 56, y - 33, 1, 0)));
                     Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(Color.red));
                     Assert.That(material.GetVector("_ShaftFade"), Is.EqualTo(initial), "다른 씬/프리팹의 공유 재질을 런타임에 변경하지 않는다.");
                 }
                 root.transform.position += Vector3.up * 10;
                 content.GetType().GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(content, null);
                 view.GetPropertyBlock(block);
-                Assert.That(block.GetVector("_ShaftFade"), Is.EqualTo(new Vector4(-13, 16, 1, 0)), "직접 루트 이동도 다음 갱신에 반영");
+                Assert.That(block.GetVector("_ShaftFade"), Is.EqualTo(new Vector4(-21, 2, 1, 0)), "직접 루트 이동도 다음 갱신에 반영");
             }
             finally { Object.DestroyImmediate(material); }
         }
