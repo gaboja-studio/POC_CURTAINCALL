@@ -37,8 +37,8 @@ MonoBehaviour:
   endingCameraDistance: 6.5
   endingCameraExtraPerPlayer: 1.6
   shaftFade:
-    bottom: -48
-    top: -19
+    bottom: -56
+    top: -33
     strength: 1
   pursuer:
     walkSpeed: 2.7

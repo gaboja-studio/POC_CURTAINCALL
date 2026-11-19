@@ -19,6 +19,27 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         const string Art = "Assets/Resources/Models/Objects/HumanCannonProps";
 
         [Test]
+        public void ShaftAtmosphereStaysBelowTheLowestSwingAndHasNoCollision()
+        {
+            var scene = Open(out bool opened);
+            try
+            {
+                var frame = scene.GetRootGameObjects().Single().transform;
+                var volume = frame.Find("EscapeBackground/Shaft atmosphere");
+                Assert.That(volume, Is.Not.Null);
+                Assert.That(volume.GetComponents<Collider>(), Is.Empty);
+                var renderer = volume.GetComponent<MeshRenderer>();
+                Assert.That(renderer.sharedMaterial.shader.name, Is.EqualTo("CurtainCall/Escape/Shaft Atmosphere"));
+                Assert.That(ShaderUtil.ShaderHasError(renderer.sharedMaterial.shader), Is.False);
+                var lowestGrip = frame.GetComponentsInChildren<HumanCannonPole>()
+                    .Where(pole => pole.name.StartsWith("Labyrinth lower inspection swing"))
+                    .Min(pole => pole.transform.position.y);
+                Assert.That(renderer.bounds.max.y, Is.LessThan(lowestGrip));
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test]
         public void FinalApproachSawsAreStaggeredAndLeaveTheLaunchersClear()
         {
             var scene = Open(out bool opened);
