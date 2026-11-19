@@ -33,7 +33,7 @@ namespace CurtainCall.EscapeRoute
         Transform source;
         ulong capturedOwner;
         NetworkPlayer placedPlayer;
-        bool localCaptured, localPlaced, holding, capturedView;
+        bool localCaptured, localPlaced, holding, capturedView, arrivalViewPlaced;
         Vector3 localPosition;
         Quaternion localRotation, localLook, arrivalLook;
         Quaternion departureRotation = Quaternion.identity;
@@ -114,8 +114,8 @@ namespace CurtainCall.EscapeRoute
             RecordTransfer("TRANSFER_STARTED", source.position, true);
             retryAt = Time.unscaledTime + 10;
             CaptureLocal();
-            nextSnapshot = Time.unscaledTime + .5f;
-            Publish();
+            // Update publishes only after the campaign accepts the phase change.
+            nextSnapshot = Time.unscaledTime;
             return true;
         }
         void Update()
@@ -125,9 +125,6 @@ namespace CurtainCall.EscapeRoute
             var run = CampaignRun.Instance;
             if (run == null || run.State.Generation != snapshot.generation || run.State.Phase != CampaignPhase.Escape)
             {
-                // The transfer can arrive before the campaign step in either departure phase.
-                if (Pending && run != null && run.State.Generation == snapshot.generation
-                    && PursuitDirector.IsPursuitPhase(run.State.Phase)) return;
                 Cancel(); return;
             }
             if (!localCaptured) CaptureLocal();
@@ -156,7 +153,7 @@ namespace CurtainCall.EscapeRoute
             }
         }
 
-        // Another client can receive the departure before its campaign generation.
+        // Another client can receive the departure before its campaign phase or generation.
         // Repeat while waiting for ACKs so a dropped initial snapshot cannot stall the team.
         bool ShouldRepeatPendingSnapshot(float now, bool host) => host && Pending && now >= nextSnapshot;
         void CaptureLocal()
@@ -209,17 +206,15 @@ namespace CurtainCall.EscapeRoute
             var content = EscapeCampaignContent.Current;
             if (content == null || !content.IsActive || !content.IsSceneryReady) return false;
             int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
-            if (index < 0 || !TryGetArrivalView()) return false;
+            if (index < 0) return false;
             var scene = destination.gameObject.scene;
             var localPose = new Pose(localPosition, localRotation);
             var hostPose = new Pose(snapshot.positions[index], snapshot.rotations[index]);
             if (!TryResolveArrivalPose(scene, destination.AssemblyArea, localPose, hostPose, index, snapshot.participants.Length, out var pose)) return false;
 
-            MoveCamera(sourceCamera.transform, capturedScene, scene);
-            MoveCamera(sourceDirector.transform, capturedScene, scene);
+            if (!TryPlaceArrivalView(player.State, destination.AssemblyAnchor, scene)) return false;
             mover.SetStartPose(pose.position, pose.rotation);
-            arrivalLook = destination.AssemblyAnchor.rotation * localLook;
-            sourceDirector.SetLookRotation(arrivalLook);
+            if (arrivalViewPlaced) sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
             placedPlayer = player;
             RecordTransfer("TRANSFER_PLACED", pose.position, false);
@@ -254,6 +249,18 @@ namespace CurtainCall.EscapeRoute
                 localLook = Quaternion.Inverse(basis) * sourceCamera.transform.rotation;
                 capturedView = true;
             }
+            return true;
+        }
+
+        bool TryPlaceArrivalView(PlayerState state, Transform anchor, Scene destination)
+        {
+            bool hasView = TryGetArrivalView();
+            // A spectator may not have an active gameplay camera. Their avatar still has to be placed.
+            if (!hasView && state is not (PlayerState.Fallen or PlayerState.Retired)) return false;
+            if (sourceCamera != null) MoveCamera(sourceCamera.transform, capturedScene, destination);
+            if (sourceDirector != null) MoveCamera(sourceDirector.transform, capturedScene, destination);
+            arrivalViewPlaced = hasView;
+            if (hasView) arrivalLook = anchor.rotation * localLook;
             return true;
         }
 
@@ -312,7 +319,8 @@ namespace CurtainCall.EscapeRoute
         {
             var value = JsonUtility.FromJson<Snapshot>(json);
             var run = CampaignRun.Instance;
-            if (run == null || value == null || value.generation != run.State.Generation) return;
+            if (run == null || run.State.Phase != CampaignPhase.Escape
+                || value == null || value.generation != run.State.Generation) return;
             ApplySnapshot(value);
         }
         bool ApplySnapshot(Snapshot value)
@@ -364,7 +372,7 @@ namespace CurtainCall.EscapeRoute
         public void Cancel()
         {
             Release(); snapshot = new(); captured.Clear(); placed.Clear();
-            localCaptured = localPlaced = capturedView = false;
+            localCaptured = localPlaced = capturedView = arrivalViewPlaced = false;
             placedPlayer = null; capturedScene = default; departureRotation = Quaternion.identity;
             nextAck = nextSnapshot = 0;
             sourceCamera = null; sourceDirector = null;
@@ -373,7 +381,7 @@ namespace CurtainCall.EscapeRoute
         {
             if (!holding) return;
             holding = false;
-            if (localPlaced && sourceDirector != null) sourceDirector.SetLookRotation(arrivalLook);
+            if (localPlaced && arrivalViewPlaced && sourceDirector != null) sourceDirector.SetLookRotation(arrivalLook);
             InputGate.SetBlocking(this, false);
         }
         void OnDestroy()
