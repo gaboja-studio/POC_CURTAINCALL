@@ -78,6 +78,10 @@ namespace CurtainCall.HumanCannon
         public bool IsFlying(ulong playerId) => flying.Contains(playerId);
         public bool TryGetFlight(ulong playerId, out CannonFlightState.Flight flight) => flying.TryGet(playerId, out flight);
 
+        internal HumanCannonPole RequiredTransferPole(int stationIndex, uint segment)
+            => segment == 0 && stationIndex >= 0 && stationIndex < stations.Length
+                ? stations[stationIndex]?.RequiredTransferPole : null;
+
         public HumanCannonStation SeatedStation(ulong playerId)
         {
             if (seats == null) return null;
@@ -95,6 +99,7 @@ namespace CurtainCall.HumanCannon
         internal bool ApplyRebound(ulong actor, int index, uint revision, uint segment, Vector3 position, float upwardSpeed, bool fromTrampoline = false)
         {
             if (RejectUnavailableLocalMotion(actor)) return false;
+            if (RequiredTransferPole(index, segment) != null) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
             FindPlayer(actor)?.BeginFlightFallAt(position);

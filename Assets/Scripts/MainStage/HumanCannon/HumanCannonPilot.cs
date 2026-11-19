@@ -284,10 +284,13 @@ namespace CurtainCall.HumanCannon
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);
             displacement = ApplyBalloonPants(displacement);
+            if (flightStationIndex >= 0 && system.Station(flightStationIndex) is { } launchStation && launchStation)
+                displacement = launchStation.ConstrainTransferFlight(transform.position, displacement, mover.BodyRadius);
             if (HumanCannonPoleSystem.Current != null)
                 displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
             var trampoline = HumanCannonTrampoline.Current;
-            if (!rejectedSurface && trampoline != null && !trampoline.GrabPending(player) &&
+            if (!rejectedSurface && system.RequiredTransferPole(flightStationIndex, flightSegment) == null &&
+                trampoline != null && !trampoline.GrabPending(player) &&
                 trampoline.TryContact(transform.position, transform.position + displacement, mover.BodyRadius, mover.BodyHeight, out var contact))
             {
                 // 호스트 반동 응답 전에는 바닥 사망을 요청하지 않는다. R/사망은 이 대기도 해제한다.

@@ -86,9 +86,9 @@ namespace CurtainCall.Settings
         public sealed class ShaftFadeTuning
         {
             [Tooltip("탈출로 루트보다 이 높이(m) 아래부터 완전히 어둡게 표시합니다. 맵의 월드 위치를 옮겨도 같은 구간에 적용됩니다.")]
-            [SerializeField] float bottom = -73f;
+            [SerializeField] float bottom = -48f;
             [Tooltip("탈출로 루트 기준 이 높이(m) 위에는 심부 어둠을 적용하지 않습니다. 아래로 내려갈수록 어두워집니다.")]
-            [SerializeField] float top = -29f;
+            [SerializeField] float top = -19f;
             [Tooltip("심부 어둠 강도. 0은 끄기, 1은 기존의 검은 심부 표현입니다. 충돌·낙사 판정에는 영향을 주지 않습니다.")]
             [SerializeField, Range(0f, 1f)] float strength = 1f;
             public float Bottom => bottom;

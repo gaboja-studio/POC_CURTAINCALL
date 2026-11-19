@@ -15,6 +15,10 @@ namespace CurtainCall.HumanCannon
         [Min(0f), SerializeField] float forwardSpeed = 8f;
         [Tooltip("임시 위쪽 발사 속도(m/s). 최종 밸런스 값이 아니다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
+        [Tooltip("이 봉을 공중에서 먼저 잡아야 진행할 수 있는 발사 구간. 비우면 일반 대포.")]
+        [SerializeField] HumanCannonPole requiredTransferPole;
+        [SerializeField] BoxCollider flightExclusion;
+        [SerializeField] Collider transferLanding;
 
         public const float BarrelLowerSeconds = 1.2f;
         public const float BarrelRecoverySeconds = 2.8f;
@@ -24,6 +28,29 @@ namespace CurtainCall.HumanCannon
         public Transform BoardingPoint => boardingPoint != null ? boardingPoint : transform;
         public Transform Seat => seat != null ? seat : transform;
         public Transform Muzzle => muzzle != null ? muzzle : Seat;
+        public HumanCannonPole RequiredTransferPole => requiredTransferPole;
+        public Collider TransferLanding => transferLanding;
+
+        public Vector3 ConstrainTransferFlight(Vector3 feet, Vector3 displacement, float radius)
+        {
+            if (flightExclusion == null) return displacement;
+            Transform frame = flightExclusion.transform;
+            Vector3 start = frame.InverseTransformPoint(feet);
+            Vector3 delta = frame.InverseTransformVector(displacement);
+            Vector3 center = flightExclusion.center;
+            start.y = center.y = delta.y = 0f;
+            float distance = delta.magnitude;
+            if (distance < .0001f) return displacement;
+            Vector3 scale = frame.lossyScale;
+            Vector3 size = flightExclusion.size;
+            size.x += 2f * radius / Mathf.Abs(scale.x);
+            size.z += 2f * radius / Mathf.Abs(scale.z);
+            var bounds = new Bounds(center, size);
+            if (bounds.Contains(start) || !bounds.IntersectRay(new Ray(start, delta / distance), out float enter)
+                || enter > distance) return displacement;
+            float fraction = Mathf.Clamp01((enter - .02f) / distance);
+            return new Vector3(displacement.x * fraction, displacement.y, displacement.z * fraction);
+        }
         public float BoardingDistance => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         public float AirControlSpeed => CurtainCall.Settings.GameSettings.Base.AirControl.Speed;
         // Scene machinery may interlock boarding/launch without disabling an in-flight station or Cancel.
