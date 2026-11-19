@@ -73,6 +73,32 @@ namespace CurtainCall.WaitingRoom
             corridorExtra = extra.ToArray();
             corridorExtraOriginal = new bool[corridorExtra.Length];
             for (int i = 0; i < corridorExtra.Length; i++) corridorExtraOriginal[i] = corridorExtra[i].enabled;
+            // 정전·깜빡임은 회로 밖 조명도 함께 끈다(2026-11-19 사용자: 특정 위치에서 정전이 안 보임).
+            // 회로는 밤 정비용이라 숙소·상점·전문가실·휴게 공간과 문 알림등·숨은 방 조명이 빠져 있다. 밤 동작은 그대로 회로만 쓴다.
+            var outside = new List<Light>();
+            foreach (var root in gameObject.scene.GetRootGameObjects())
+                foreach (var light in root.GetComponentsInChildren<Light>(true))
+                    if (light.type != LightType.Directional && !inCircuit.Contains(light) && !corridor.Contains(light)) outside.Add(light);
+            blackoutExtra = outside.ToArray();
+            blackoutExtraBefore = new bool[blackoutExtra.Length];
+        }
+        Light[] blackoutExtra = System.Array.Empty<Light>();
+        bool[] blackoutExtraBefore = System.Array.Empty<bool>();
+        bool extraDark;
+        // 정전이 시작될 때 회로 밖 조명의 켜짐 상태를 기억했다가 끝나면 그대로 돌린다(다른 연출이 켜고 끄는 조명도 있다).
+        void SetExtraDark(bool on)
+        {
+            if (on != extraDark)
+            {
+                extraDark = on;
+                for (int i = 0; i < blackoutExtra.Length; i++)
+                {
+                    if (blackoutExtra[i] == null) continue;
+                    if (on) blackoutExtraBefore[i] = blackoutExtra[i].enabled;
+                    else blackoutExtra[i].enabled = blackoutExtraBefore[i];
+                }
+            }
+            if (on) for (int i = 0; i < blackoutExtra.Length; i++) if (blackoutExtra[i] != null) blackoutExtra[i].enabled = false;
         }
         void Start() => StageCorridorClosure.InstallGate(transform);
         void LateUpdate()
@@ -109,6 +135,7 @@ namespace CurtainCall.WaitingRoom
             bool flickerOff = Time.time < flickerUntil && Mathf.PerlinNoise(Time.time * 11f, 2.3f) < .5f;
             // 조명만 꺼서는 주변광 때문에 거의 티가 나지 않는다(기계실). 정전·깜빡임 동안에는 주변광도 함께 낮춘다(2026-11-14 사용자: 탈출로 배선 정전이 안 보임).
             SetAmbientDimmed(Time.time < blackoutUntil || flickerOff);
+            SetExtraDark(Time.time < blackoutUntil || flickerOff);
             bool dark = (cut && !dim) || Time.time < blackoutUntil || flickerOff;
             bool corridorDark = dark || IsStageCorridorDark;
             for (int i = 0; i < circuit.Length; i++)
@@ -154,6 +181,7 @@ namespace CurtainCall.WaitingRoom
         void OnDisable()
         {
             SetAmbientDimmed(false);
+            SetExtraDark(false);
             if (original == null) return;
             if (dimmed) SetDimmed(false);
             for (int i = 0; i < circuit.Length; i++) if (circuit[i] != null) circuit[i].enabled = original[i];

@@ -724,6 +724,10 @@ target.final:torn-note-3.name | 찢겨진 노트 낱장
 target.final:torn-note-3.desc | 누군가 쓴 일기. 글자가 마구잡이로 적혀 있다.
 target.final:torn-note-4.name | 찢겨진 노트 낱장
 target.final:torn-note-4.desc | 누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.
+target.final:torn-note-5.name | 찢겨진 노트 낱장
+target.final:torn-note-5.desc | 그림이 그려진 노트 낱장이다.
+target.final:torn-note-6.name | 찢겨진 노트 낱장
+target.final:torn-note-6.desc | 누군가가 남긴 메모이다.
 gate.terminal-feed-title | cam_exit.feed
 gate.terminal-feed-locked | > 잠금 해제 완료
 gate.monitor-help | ESC·F·마우스 우클릭: 나가기

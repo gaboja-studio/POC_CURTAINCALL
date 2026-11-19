@@ -18,7 +18,9 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class ExplorationState : MonoBehaviour
     {
-        const int SyncRequest = 0, HitRequest = 1, DebugOpenRequest = 2;
+        const int SyncRequest = 0, HitRequest = 1, DebugOpenRequest = 2, SeenRequest = 3;
+        /// <summary>참가자 화면에서만 알 수 있는 "봤다" 기록(시선 연출)의 키 접두어. 이 접두어만 요청으로 기록할 수 있다.</summary>
+        public const string SeenPrefix = "seen:";
         const float MinHitGap = .08f;
 
         public static ExplorationState Instance { get; private set; }
@@ -72,6 +74,14 @@ namespace CurtainCall.WaitingRoom
             book.Attempt(place, true, out _, out _);
             Debug.Log($"[Exploration] 방문 기록: {place}");
             Publish();
+        }
+
+        /// <summary>내 화면에서 본 것(시선 판정)을 판정 화면에 기록해 달라고 한다. 키는 <see cref="SeenPrefix"/>로 시작해야 한다.</summary>
+        public void RequestSeen(string place)
+        {
+            if (string.IsNullOrEmpty(place) || !place.StartsWith(SeenPrefix) || book.IsOpen(place)) return;
+            if (HasAuthority) MarkVisited(place);
+            else channel.Request(JsonUtility.ToJson(new RequestData { kind = SeenRequest, target = place }));
         }
 
         readonly ExplorationBook book = new();
@@ -509,6 +519,7 @@ namespace CurtainCall.WaitingRoom
             if (request == null) return;
             if (request.kind == SyncRequest) channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender);
             else if (request.kind == HitRequest) Answer(sender, Use(sender, request.target, request.password));
+            else if (request.kind == SeenRequest && request.target != null && request.target.StartsWith(SeenPrefix)) MarkVisited(request.target);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             else if (request.kind == DebugOpenRequest) DebugOpen(request.target, sender);
 #endif

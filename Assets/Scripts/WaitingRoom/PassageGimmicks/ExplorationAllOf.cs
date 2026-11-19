@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 여러 탐색 대상이 모두 열리면 대상 하나를 장부에 연다(대기실 최종본: 관리실 컴퓨터 + 탈출로 배선 → 탈출로 길).
+    /// 여러 탐색 대상이 모두 열리면 대상 하나를 장부에 연다(대기실 최종본: 기계실 배선 4가닥 → 관리실 문의 배선 끊기, 관리실 컴퓨터 → 탈출로 길).
     /// 문·슬라이드는 이 대상 하나만 보면 된다. 기록은 판정 화면에서만 된다(<see cref="ExplorationState.MarkVisited"/>).
     /// </summary>
     public sealed class ExplorationAllOf : MonoBehaviour
