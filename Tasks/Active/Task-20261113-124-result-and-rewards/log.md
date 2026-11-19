@@ -21,3 +21,5 @@
 - 2026-11-19 외줄 씬 콘솔 오류. `FireView` 필드가 씬 역직렬화 중 `MaterialPropertyBlock`을 만들면서 초기화가 끊겼다. 불타는 줄의 첫 렌더링에서 블록을 만들고 재사용하도록 수정했다. 별도 경로에서 Unity C# 컴파일 통과. 사용자가 진행 중인 Play Mode 세션 때문에 씬 재실행은 확인하지 못했다.
 
 - 2026-11-19 사용자 플레이에서 외줄 씬의 화재 연출 수정 확인. 수정본 Unity 컴파일·공통 설정 검사와 외줄 도착 PlayMode 회귀 테스트 통과.
+
+- 2026-11-19 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/444 (fix/main-stage/result-and-rewards → dev)
