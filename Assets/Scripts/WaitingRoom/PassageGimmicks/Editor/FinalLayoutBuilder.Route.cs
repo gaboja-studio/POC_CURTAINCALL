@@ -10,14 +10,16 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
     // 5단계: 최종본 동선 연결(2026-11-12 사용자). 4단계(기계실 배선) 뒤에 실행한다. 다시 실행할 수 있다.
     // - 삭제: 열쇠 6종·배관함·비밀번호 패드·공연 기록. 열쇠가 들어 있던 보관함은 빈 채로 남기고, 강철 상자는 열리지 않는 장식.
     // - 계단 문: 계단 쪽에 쌓인 상자(맨몸 3 / 뽑개 1)를 부수면 열린다. 로비 쪽에서는 문에 막혀 닿지 않는다.
-    // - 관리실 문: 녹슨 벽 안 배선을 자르면 열린다. 톱날 발사기는 작업실에 둔다.
-    // - 탈출로: 관리실 컴퓨터(종말 날짜 + RUN)와 기계실 탈출로 배선 절단을 둘 다 마치면 숨겨진 문·탈출로 문이 함께 열린다.
+    // - 관리실 문(2026-11-19 사용자): 기계실 배선 4가닥을 모두 끊기·안쪽 빗장·키 카드 중 하나로 열린다. 열리면 빗장·단말기는 사라지고, 배선은 계속 자를 수 있다(정전 연출).
+    //   녹슨 벽과 그 뒤 숨은 배선은 없앴다.
+    // - 탈출로: 관리실 컴퓨터(종말 날짜 + RUN) 암호만으로 숨겨진 문(탈출로로 가는 문)·탈출로 문이 함께 열린다. 배선과 무관하다.
     public static partial class FinalLayoutBuilder
     {
         const string StairsBarId = "final:stairs-bar", CargoBarId = "final:cargo-door-bar", ManagementCableId = "final:management-cable";
         const string QuartersDoorId = "final:quarters-door";
         const float SawProjectileRadius = .35f;
-        const float RustWallWidth = 2f;
+        // 기계실 바닥 높이(배선이 서는 높이). 예전에는 녹슨 벽 위치에서 읽었다.
+        const float MachineFloorY = -9.997f;
         // 배선 굵기와 벽에서 띄우는 거리(배선 중심 기준).
         const float CableRadius = .06f, CableStandoff = .2f, EscapeCableStart = 1.4f;
         const string ManagementOpenId = "final:management-open", ManagementLatchId = "final:management-latch", ManagementKeycardId = "final:management-keycard";
@@ -51,11 +53,12 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             var layout = GameObject.Find(LayoutPath)?.transform;
             if (layout == null) return "WaitingRoom 씬을 여세요.";
             var saw = layout.GetComponentsInChildren<EscapeExitSaw>(true).FirstOrDefault(s => s.name == "PortableSaw");
-            var hidden = layout.Find(RootName + "/MachineWiring/HiddenCable")?.GetComponent<EscapeCuttableCable>();
-                        var keyboard = layout.Find("B1_Office/SecurityRoom/Console/Keyboard");
-            if (saw == null || hidden == null || keyboard == null) return "4단계(기계실 배선)를 먼저 실행하세요. 또는 톱날 발사기·관리실 자판을 찾지 못했습니다.";
+            var keyboard = layout.Find("B1_Office/SecurityRoom/Console/Keyboard");
+            if (saw == null || keyboard == null) return "톱날 발사기·관리실 자판을 찾지 못했습니다.";
             int undo = Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Final layout: connect route");
             var notes = new List<string>();
+            // 녹슨 벽·숨은 배선이 남아 있으면 지운다(2026-11-19 사용자).
+            if (layout.Find(RootName + "/MachineWiring") is Transform oldWiring) Undo.DestroyObjectImmediate(oldWiring.gameObject);
 
             // 경로 참조 비우기 → 삭제.
             foreach (var route in layout.GetComponentsInChildren<MonoBehaviour>(true))
@@ -141,28 +144,8 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 notes.Add("생활 장소 문(맨몸 6 / 뽑개 1)");
             }
 
-            // 관리실 문: 녹슨 벽 안 배선이 잘리면 열린다(문에 직접 F하지 않는다).
-            // 위치는 사용자 구조도(2026-11-12)대로 기계실 남서 모서리: 녹슨 벽을 남벽 서쪽 끝에 붙이고 배선은 그 안쪽 남벽을 탄다.
-            var rust = layout.Find(RootName + "/MachineWiring/RustWall");
-            // 배선이 든 상자 틈이 1.15m라 톱날(지름 0.7m)을 정면에서 정확히 쏴야만 맞았다(2026-11-13 사용자: 넓혀 달라).
-            // 녹슨 벽과 그 뒤 상자를 폭 2m로 넓힌다. 다시 실행해도 같은 폭이 되게 지금 폭을 재서 맞춘다.
-            {
-                Undo.RecordObject(rust, "Widen rust wall"); rust.rotation = Quaternion.identity;
-                float nowWidth = Bounds(rust).size.x;
-                if (nowWidth > .01f) { var widened = rust.localScale; widened.x *= RustWallWidth / nowWidth; rust.localScale = widened; }
-            }
-            var rb = Bounds(rust); float rustWidth = Mathf.Max(rb.size.x, rb.size.z);
-            var corner = new Vector3(MachineWestX + .05f + rustWidth * .5f, rust.position.y, MachineSouthZ);
-            Undo.RecordObject(rust, "Move rust wall"); rust.SetPositionAndRotation(corner, Quaternion.identity);
-            // 배선은 벽에서 조금 띄워 건다. 톱날 판정은 네모 상자로 벽에 막히기 때문에 비스듬히 쏘면 날 끝이 벽에 닿기 전에 멈춰
-            // 벽에 바짝 붙은 배선에는 닿지 않았다(2026-11-13 플레이: 배선 절단 안 됨). 45도로 쏴도 닿는 거리까지 띄운다.
-            Undo.RecordObject(hidden.transform, "Move cable"); hidden.transform.position = new Vector3(corner.x, corner.y, MachineSouthZ + CableStandoff);
-            Set(hidden, "openTarget", ManagementCableId);
-            { var hso = new SerializedObject(hidden); hso.FindProperty("radius").floatValue = CableRadius; hso.ApplyModifiedPropertiesWithoutUndo(); hidden.Rebuild(); }
-            // 녹슨 벽의 옆·윗 테두리 충돌체는 비스듬히 쏜 톱날을 먼저 막으므로 끈다(벽을 막는 충돌체는 따로 있다).
-            foreach (var frameName in new[] { "BoxSideL", "BoxSideR", "BoxTop" })
-                if (rust.Find(frameName)?.GetComponent<Collider>() is Collider frameCollider && frameCollider.enabled) { Undo.RecordObject(frameCollider, "Rust wall frame"); frameCollider.enabled = false; }
-            // 관리실 문(2026-11-13 사용자): 배선 절단 말고도 안쪽 빗장(맨몸·도구 1회)이나 키 카드로 열린다. 셋 중 하나면 된다.
+            // 관리실 문(2026-11-13·11-19 사용자): 기계실 배선 4가닥 모두 절단·안쪽 빗장(맨몸·도구 1회)·키 카드 중 하나면 열린다(문에 직접 F하지 않는다).
+            // 배선 4가닥이 모두 잘리면 ManagementCableId가 열린다(아래 배선 만드는 곳). 하나로 열리면 빗장·단말기는 사라진다(retiredBy). 배선은 그 뒤에도 자를 수 있다.
             var officeDoor = layout.Find("B1_Office/Exploration_A/management-door");
             Rewire(officeDoor, ManagementOpenId);
             if (officeDoor != null)
@@ -196,9 +179,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 notes.Add($"관리실 문: 배선·안쪽 빗장·키 카드 단말기 {readerAt:F1}");
             }
 
-            // 탈출로 배선 4가닥: 배관함이 있던 벽면을 타고 올라가 숨겨진 문 위 틀로 들어간다. 처음부터 드러나 있고 모두 잘라야 한다.
+            // 기계실 배선 4가닥(관리실 문용, 이름·ID는 예전 그대로 EscapeCable·escape-cable): 처음부터 드러나 있고 모두 잘라야 관리실 문이 열린다.
             var hiddenDoor = layout.Find("B1_MachineRoom/Exploration_A/machineDoor");
-            float wallX = MachineWestX, floorY = rust.position.y, doorEdgeZ = hiddenDoor.position.z + 1.05f;
+            float wallX = MachineWestX, floorY = MachineFloorY, doorEdgeZ = hiddenDoor.position.z + 1.05f;
             var colors = new[] { "cable-red", "cable-yellow", "cable-green", "cable-cyan" };
             var escapeCables = new EscapeCuttableCable[colors.Length]; var cableIds = new string[colors.Length];
             for (int n = 0; n < colors.Length; n++)
@@ -216,15 +199,24 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 var points = cso.FindProperty("localPoints"); points.arraySize = path.Length;
                 for (int i = 0; i < path.Length; i++) points.GetArrayElementAtIndex(i).vector3Value = path[i];
                 cableIds[n] = EscapeCableId + "-" + (n + 1);
+                // 관리실 문이 빗장·키 카드로 먼저 열렸어도 배선은 계속 자를 수 있고, 다 끊으면 정전 연출도 난다(2026-11-19 사용자).
                 cso.FindProperty("radius").floatValue = CableRadius; cso.FindProperty("openTarget").stringValue = cableIds[n];
                 cso.FindProperty("insulationMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(CableMaterials + colors[n] + ".mat");
                 cso.FindProperty("copperMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(CableMaterials + "cable-copper-core.mat");
                 cso.ApplyModifiedPropertiesWithoutUndo(); cable.Rebuild(); escapeCables[n] = cable;
             }
 
-            // 톱날 발사기: 관리실 배선과 탈출로 배선 4가닥을 모두 자를 수 있게 연결하고 작업실 남쪽 벽 앞 바닥으로 옮긴다. 문은 배선마다 따로 열린다.
+            // 배선 4가닥이 모두 잘리면 관리실 문의 '배선 끊기' 방법이 충족된다.
+            {
+                var allCables = root.gameObject.AddComponent<ExplorationAllOf>(); var acso = new SerializedObject(allCables);
+                var cut = acso.FindProperty("required"); cut.arraySize = cableIds.Length;
+                for (int n = 0; n < cableIds.Length; n++) cut.GetArrayElementAtIndex(n).stringValue = cableIds[n];
+                acso.FindProperty("openTarget").stringValue = ManagementCableId; acso.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            // 톱날 발사기: 기계실 배선 4가닥을 자를 수 있게 연결한다.
             var sso = new SerializedObject(saw);
-            Refs(sso.FindProperty("cables"), new Object[] { hidden }.Concat(escapeCables).ToArray()); sso.FindProperty("openTarget").stringValue = "";
+            Refs(sso.FindProperty("cables"), escapeCables.Cast<Object>().ToArray()); sso.FindProperty("openTarget").stringValue = "";
             // 톱날 판정 반지름: 탈출로 씬 기준값(1.1m, 지름 2.2m)은 대기실에서 발사 순간 옆 벽·드럼통·녹슨 벽 상자에 닿아 바로 사라졌다
             // (2026-11-13 플레이: 발사도 절단도 안 됨). 장치 크기(0.7배)에 맞는 0.35m로 줄인다. 이 씬의 발사기에만 적용.
             sso.FindProperty("projectileRadius").floatValue = SawProjectileRadius;
@@ -300,13 +292,10 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             }
             pso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(computer);
 
-            // 컴퓨터 + 탈출로 배선 + 녹슨 벽 안 배선 → 숨겨진 문·탈출로 문이 함께 열린다.
-            // 2026-11-16 버그 리포트: 기계실 배선은 녹슨 벽 안의 것까지 모두 끊어야 문이 열린다(밖 배선만 끊어도 열리던 문제).
+            // 관리실 컴퓨터 암호 → 숨겨진 문(탈출로로 가는 문)·탈출로 문이 함께 열린다. 배선은 관리실 문 쪽이라 여기에 넣지 않는다(2026-11-19 사용자).
             var both = root.gameObject.AddComponent<ExplorationAllOf>(); var bso = new SerializedObject(both);
-            var required = bso.FindProperty("required"); required.arraySize = 2 + cableIds.Length;
+            var required = bso.FindProperty("required"); required.arraySize = 1;
             required.GetArrayElementAtIndex(0).stringValue = ComputerId;
-            for (int n = 0; n < cableIds.Length; n++) required.GetArrayElementAtIndex(n + 1).stringValue = cableIds[n];
-            required.GetArrayElementAtIndex(1 + cableIds.Length).stringValue = ManagementCableId;
             bso.FindProperty("openTarget").stringValue = EscapeRouteId; bso.ApplyModifiedPropertiesWithoutUndo();
             // 탈출로 진입 판정(EscapeEntrance)은 탈출로 문 대상(structure-a:escape-door)이 장부에서 열렸는지를 본다.
             // 문은 이제 EscapeRouteId로 함께 열리므로, 길이 열리면 문 대상도 같이 기록해 탈출로로 넘어갈 수 있게 한다.
@@ -346,9 +335,9 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
                 int addedLights = 0;
                 foreach (var light in extra.Where(l => !have.Contains(l)).Distinct())
                 { circuit.InsertArrayElementAtIndex(circuit.arraySize); circuit.GetArrayElementAtIndex(circuit.arraySize - 1).objectReferenceValue = light; addedLights++; }
-                Refs(nso.FindProperty("blackoutCables"), new Object[] { hidden }.Concat(escapeCables).ToArray());
+                Refs(nso.FindProperty("blackoutCables"), escapeCables.Cast<Object>().ToArray());
                 nso.ApplyModifiedProperties(); PrefabUtility.RecordPrefabInstancePropertyModifications(power);
-                notes.Add($"조명 회로 +{addedLights}, 정전 배선 {1 + escapeCables.Length}가닥");
+                notes.Add($"조명 회로 +{addedLights}, 정전 배선 {escapeCables.Length}가닥");
             }
             var panel = layout.Find("B1_MachineRoom/Exploration_A/HiddenPanel")?.GetComponent<ExplorationSlide>();
             if (panel != null) { Set(panel, "openedBy", EscapeRouteId); PrefabUtility.RecordPrefabInstancePropertyModifications(panel); }
