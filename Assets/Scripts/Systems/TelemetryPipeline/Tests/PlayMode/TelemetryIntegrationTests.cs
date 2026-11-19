@@ -244,7 +244,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         [UnityTest]
         public IEnumerator WaitingRoom_RecordsTypedFailuresAndActualDeliveryStages()
         {
-            yield return SceneManager.LoadSceneAsync("WaitingRoomBase", LoadSceneMode.Single); yield return null;
+            yield return SceneManager.LoadSceneAsync("WaitingRoom", LoadSceneMode.Single); yield return null;
             // Keep the fixture in this actual scene while exercising production public request methods.
             yield return RemoveAutomaticSceneRouting();
             Capture();

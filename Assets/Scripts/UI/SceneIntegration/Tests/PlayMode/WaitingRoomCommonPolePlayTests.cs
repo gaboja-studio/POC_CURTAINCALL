@@ -11,7 +11,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest, Category("TutorialCommonRulesRegression")]
         public IEnumerator TutorialCommonPoles_VisualRootFollowsDisableAndIsDestroyedWithCourse()
         {
-            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
             yield return JumpStage(3);
             var gate = RelayGate;
             yield return CannonWait(() => (bool)Get(gate, "IsActive"), 5f, "튜토리얼 스위치 봉 준비");
@@ -70,7 +70,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 JsonUtility.FromJsonOverwrite("{\"capacity\":2,\"preventReleaseWithPassengers\":true}", settings);
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return JumpStage(3);
                 var course = (Component)Priv(Rehearsal, "course");
                 var gate = RelayGate;

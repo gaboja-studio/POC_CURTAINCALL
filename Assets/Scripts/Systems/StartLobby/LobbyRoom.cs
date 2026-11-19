@@ -244,7 +244,7 @@ namespace CurtainCall.StartLobby
                 title = s.IsGenerationChangeIntro ? "새 세대가 무대에 섭니다" : "막이 오릅니다";
                 sub = s.IsGenerationChangeIntro ? $"세대 {s.Generation}  ·  1일차" : "첫 공연을 준비하세요";
             }
-            else if (s.Phase == CampaignPhase.Ending)
+            else if (s.Phase == CampaignPhase.Ending && session.GameState == GameSessionState.Ended)
             {
                 title = "커튼 콜!";
                 string outcome = s.LastEnd == RunEndReason.EscapeSucceeded ? "탈출 성공" : "탈출 실패";

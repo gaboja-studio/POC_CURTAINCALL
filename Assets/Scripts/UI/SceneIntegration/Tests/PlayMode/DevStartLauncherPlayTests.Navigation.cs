@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator NavigationObjectEndpoints_OutlineRealPhoneAndPlayerKeepWaveAndRestorePositionMarker()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
             var phone=Find("CurtainCall.WaitingRoom.ShopPhone");Assert.IsNotNull(phone);
             var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
@@ -56,7 +56,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator NavigationAfterRehearsal_UsesPulsePrefabAndHidesAtGather()
         {
-            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
             var rehearsal = Find("CurtainCall.WaitingRoom.WaitingRoomRehearsal");
             float clearDeadline = Time.realtimeSinceStartup + 60;
             while (!(bool)Static("CurtainCall.WaitingRoom.WaitingRoomRehearsal", "IsCompleted") && Time.realtimeSinceStartup < clearDeadline)

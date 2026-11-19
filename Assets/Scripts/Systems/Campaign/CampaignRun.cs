@@ -43,6 +43,7 @@ namespace CurtainCall.Campaign
         RunState host;
         CampaignSnapshot state;
         bool offlineRun;
+        bool preparingAfterSuccess;
         bool localReady;
         float nextBroadcastAt;
 
@@ -456,6 +457,7 @@ namespace CurtainCall.Campaign
         void ClearRun()
         {
             host = null;
+            preparingAfterSuccess = false;
             offlineRun = false;
             localReady = false;
             Apply(default);
@@ -547,7 +549,12 @@ namespace CurtainCall.Campaign
         {
             if (session == null || !session.IsHost) return;
 
-            if (gameState == GameSessionState.Playing && host == null)
+            if (gameState == GameSessionState.Playing && preparingAfterSuccess)
+            {
+                preparingAfterSuccess = false;
+                if (host.RestartAfterSuccess()) Apply(host.Snapshot);
+            }
+            else if (gameState == GameSessionState.Playing && host == null)
             {
                 host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled, true);
                 host.StartSession(true);
@@ -555,6 +562,12 @@ namespace CurtainCall.Campaign
             }
             else if (gameState == GameSessionState.Waiting && host != null)
             {
+                // 로비에서 서명을 받는 동안 같은 방의 세대·가판대·교육 기록을 유지한다.
+                if (state.Phase == CampaignPhase.Ending && state.LastEnd == RunEndReason.EscapeSucceeded)
+                {
+                    preparingAfterSuccess = true;
+                    return;
+                }
                 ClearRun();
                 Broadcast();
             }

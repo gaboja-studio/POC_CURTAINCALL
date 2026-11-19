@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Review_DebugSuppliesTwelveUniqueAndFCollectible()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return new WaitForSecondsRealtime(1);
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var spots = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.FoundItemSpot"), FindObjectsSortMode.None).Cast<Component>().ToArray();
@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Review_PropDoorwayVisualFloorAndInputWalkBothWays()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var patch = GameObject.Find("WaitingRoom_LayoutA").transform.Find("S04_PropRoom/Shell/DoorwayFloorInfill");
             Assert.IsNotNull(patch); Assert.IsNull(patch.GetComponent<Collider>(), "Reuse existing continuous collision");
             var bounds = patch.GetComponent<Renderer>().bounds;

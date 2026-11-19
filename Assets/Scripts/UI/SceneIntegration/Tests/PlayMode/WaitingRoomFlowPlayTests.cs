@@ -68,7 +68,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Flow_InputWalkWorkshopToRestroomBreach()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var audit = T("CurtainCall.WaitingRoom.Editor.StructureARouteAudit"); audit.GetMethod("BeginRuntime").Invoke(null, null);
             float auditUntil = Time.realtimeSinceStartup + 90;
             while ((string)audit.GetProperty("Status").GetValue(null) != "completed" && Time.realtimeSinceStartup < auditUntil) yield return null;
@@ -99,7 +99,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Flow_FInputAndAuthorityRejectPartitionWithoutToolLoss()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return PickPlaced("stake-puller", "S10_Workshop");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"); var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             var at = new Vector3(1000, 1000, 1000); Call(mover, "SetStartPose", at + Vector3.back, Quaternion.identity);
@@ -133,13 +133,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Flow_SceneReloadKeepsOpeningAndDoesNotReseedConsumedSpot()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return PickPlaced("stake-puller", "S10_Workshop");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance"); ulong me = (ulong)Get(carry, "LocalClientId");
             int uid = (int)Get(Call(carry, "Selected", me), "Uid");
             yield return UsePlaced("dormitory-box-1"); Assert.AreEqual(true, Get(Placed("dormitory-box-1"), "Opened"));
             int generation = (int)Field(State, "Generation");
-            yield return SceneManager.LoadSceneAsync("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity", LoadSceneMode.Single);
+            yield return SceneManager.LoadSceneAsync("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity", LoadSceneMode.Single);
             yield return new WaitForSecondsRealtime(.6f);
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.AreEqual(generation, Field(State, "Generation")); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:dormitory-box-1"));
@@ -150,7 +150,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest, Timeout(600000)]
         public IEnumerator M2_Flow_AllRoomsInputWalkWithOpenedPuzzleFixture()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var audit = T("CurtainCall.WaitingRoom.Editor.StructureARouteAudit"); audit.GetMethod("BeginRuntime").Invoke(null, null);
             float until = Time.realtimeSinceStartup + 90;
             while ((string)audit.GetProperty("Status").GetValue(null) != "completed" && Time.realtimeSinceStartup < until) yield return null;
@@ -200,7 +200,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Flow_DoorBlockersSealDoorwayWidthAndReleaseOnSnapshot()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var ids = new[] { "stairs-door", "management-door", "machine-hidden-door", "escape-door" };
             foreach (var id in ids)
             {

@@ -27,7 +27,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest, Category("ScheduleTicketV2")]
         public IEnumerator ScheduleTicket_RealPointerArrowsSlotsOcclusionAndRestore()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             int startFrame = Time.frameCount;
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Call(run, "RecordClear", "Tightrope", 1);

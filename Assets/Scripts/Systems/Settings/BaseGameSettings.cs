@@ -864,15 +864,11 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float performancePlacementGraceSeconds = 8f;
 
 
-            [Tooltip("실제 플레이·Dev 시작·탐색 대기실. 변경 후 런을 다시 시작하세요.")]
-            [SerializeField] WaitingRoomSceneVariant waitingRoomVariant = WaitingRoomSceneVariant.Integrated;
-            [HideInInspector, SerializeField] string waitingRoomScene = "WaitingRoomBase";
-
             [Tooltip("퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다.")]
             [SerializeField] bool keepWaitingRoomOnExit = true;
 
             [Tooltip("퇴장 시 같은 씬 유지가 꺼져 있을 때 이동할 공간 씬(백스테이지 탐색).")]
-            [SerializeField] string explorationScene = "WaitingRoomBase";
+            [SerializeField] string explorationScene = WaitingRoomScenes.Name;
 
             [Tooltip("탈출 개시 뒤의 공간 씬(탈출로).")]
             [SerializeField] string escapeRouteScene = "DummyEscapeRoute";
@@ -883,10 +879,9 @@ namespace CurtainCall.Settings
             public string TightropeScene => tightropeScene;
             public string HumanCannonScene => humanCannonScene;
             public float PerformancePlacementGraceSeconds => Mathf.Max(0f, performancePlacementGraceSeconds);
-            public WaitingRoomSceneVariant WaitingRoomVariant => waitingRoomVariant;
-            public string WaitingRoomScene => WaitingRoomScenes.Resolve(waitingRoomScene, waitingRoomVariant);
+            public string WaitingRoomScene => WaitingRoomScenes.Name;
             public bool KeepWaitingRoomOnExit => keepWaitingRoomOnExit;
-            public string ExplorationScene => WaitingRoomScenes.Resolve(explorationScene, waitingRoomVariant);
+            public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;
         }
 
@@ -904,7 +899,7 @@ namespace CurtainCall.Settings
             [SerializeField] bool useOnLan = true;
 
             [Tooltip("음성을 쓰는 씬 이름. Start 씬부터 실행해 이어진 흐름에서, 지금 씬이 이 목록에 있을 때만 동작한다. 백스테이지·탈출로 씬이 확정되면 추가.")]
-            [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoomBase", "Tightrope", "HumanCannon" };
+            [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoom", "Tightrope", "HumanCannon" };
 
             [Tooltip("생존자: 이 거리(m) 안에서는 최대 음량. 정수.")]
             [SerializeField, Min(1)] int conversationalDistance = 2;

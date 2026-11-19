@@ -21,9 +21,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 float until = Time.realtimeSinceStartup + 75;
                 while ((bool)Get(launcher, "IsBusy") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Get(launcher, "LastLaunchSucceeded"), (string)Get(launcher, "Status"));
-                Assert.IsTrue(SceneManager.GetSceneByName("WaitingRoomPursuit").isLoaded);
+                Assert.IsTrue(SceneManager.GetSceneByName("WaitingRoom").isLoaded);
                 yield return MenuReady();
-                Assert.AreEqual("WaitingRoomPursuit", ((Scene)Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "CurrentScene")).name);
+                Assert.AreEqual("WaitingRoom", ((Scene)Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "CurrentScene")).name);
                 var inventory = Find("CurtainCall.UI.SceneIntegration.CommonInventoryUI");
                 Assert.IsNotNull(inventory);
                 Assert.AreEqual(1f, ((CanvasGroup)Field(inventory, "group")).alpha);

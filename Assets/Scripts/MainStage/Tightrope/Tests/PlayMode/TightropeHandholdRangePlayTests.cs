@@ -90,54 +90,37 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator HandholdRangeMatchesPassiveReachFollowsRemoteAndHidesBlockedOrRemovedHelpers()
+        public IEnumerator HandholdLandingFollowsRemoteHelperWithoutDrawingRange()
         {
             yield return BeginPerformance();
             ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
             ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
             yield return StandOnRopeForSawTest(1, 4f);
             var rules = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.RopeLaneJumpRules"));
-            var view = rules.GetComponent(GameType("CurtainCall.Tightrope.TightropeHandholdRangeView"));
-            Assert.IsNotNull(view, "저장된 씬에서 범위 표시를 설치한다.");
-            Call(view, "LateUpdate");
-            Assert.AreEqual(0, Get(view, "VisibleRangeCount"), "혼자일 때 자기 범위는 그리지 않는다.");
             var helper = SpawnHandholdHelper(2, 5f);
             try
             {
                 yield return null;
-                Call(view, "LateUpdate");
-                Assert.AreEqual(1, Get(view, "VisibleRangeCount"));
+                Assert.IsFalse(rules.GetComponentsInChildren<MeshFilter>(true).Any(m => m.name == "HandholdRange"));
                 Assert.IsTrue((bool)Call(rules, "IsHandholdLanding", 2, 4.001f));
                 Assert.IsTrue((bool)Call(rules, "IsHandholdLanding", 2, 5.999f));
                 Assert.IsFalse((bool)Call(rules, "IsHandholdLanding", 2, 3.999f));
                 Assert.IsFalse((bool)Call(rules, "IsHandholdLanding", 2, 6.001f));
                 Assert.IsFalse((bool)Call(rules, "IsHandholdLanding", 1, 5f));
-                CheckHandholdMesh(view, 4f, 6f);
 
                 PositionHandholdHelper(helper, 2, 7f);
                 yield return null;
-                Call(view, "LateUpdate");
-                CheckHandholdMesh(view, 6f, 8f);
                 Assert.IsFalse((bool)Call(rules, "IsHandholdLanding", 2, 4f));
                 Assert.IsTrue((bool)Call(rules, "IsHandholdLanding", 2, 6.5f));
-                Call(course, "SetLaneBlocked", 2, true);
-                Call(view, "LateUpdate");
-                Assert.AreEqual(0, Get(view, "VisibleRangeCount"), "불타거나 막힌 줄에 착지 보조를 표시하지 않는다.");
-                Call(course, "SetLaneBlocked", 2, false);
-                Call(view, "LateUpdate");
-                Assert.AreEqual(1, Get(view, "VisibleRangeCount"));
 
                 Call(helper, "Despawn", true);
                 helper = null;
                 yield return null;
-                Call(view, "LateUpdate");
-                Assert.AreEqual(0, Get(view, "VisibleRangeCount"));
                 Assert.IsFalse((bool)Call(rules, "IsHandholdLanding", 2, 7f));
             }
             finally
             {
                 if (helper != null) Call(helper, "Despawn", true);
-                Call(course, "SetLaneBlocked", 2, false);
             }
         }
 
@@ -192,17 +175,5 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Physics.SyncTransforms();
         }
 
-        void CheckHandholdMesh(Component view, float from, float to)
-        {
-            var meshes = view.GetComponentsInChildren<MeshFilter>().Where(m => m.gameObject.activeInHierarchy
-                && m.gameObject.name == "HandholdRange").ToArray();
-            Assert.AreEqual(1, meshes.Length);
-            var mesh = meshes[0];
-            var distances = mesh.sharedMesh.vertices.Select(v => (float)Call(course, "GetDistance", mesh.transform.TransformPoint(v))).ToArray();
-            Assert.That(distances.Min(), Is.EqualTo(from).Within(.01f));
-            Assert.That(distances.Max(), Is.EqualTo(to).Within(.01f));
-            Assert.AreEqual(0, mesh.GetComponentsInChildren<Collider>(true).Length, "범위 표시는 이동·충돌을 바꾸지 않는다.");
-            Assert.Greater(mesh.sharedMesh.triangles.Length, 0);
-        }
     }
 }

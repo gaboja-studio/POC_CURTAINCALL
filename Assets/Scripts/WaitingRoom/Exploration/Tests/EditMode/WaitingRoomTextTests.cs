@@ -74,7 +74,7 @@ namespace CurtainCall.WaitingRoom.Tests
 
         [Test] public void TargetKeysMatchSceneTargets()
         {
-            const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+            const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
             var file = WaitingRoomText.Parse(File.ReadAllText(FilePath));
             // 방은 공간 프리팹 인스턴스라 대상 id가 프리팹 파일과 씬의 오버라이드 값에 나뉘어 있다.
             const string SpacesPath = "Assets/Resources/Prefabs/Spaces/WaitingRoom";

@@ -28,7 +28,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator PursuitCoverage_StairsVentAndRailCornersReachTarget()
         {
             // 실제 게임이 쓰는 통합 대기실(굽힌 NavMesh 포함). 옛 추격 테스트 씬에는 NavMesh가 없다.
-            WaitingVariantField.SetValue(WaitingSpaces, System.Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             yield return PursuitHost();
             Assert.IsTrue(SceneManager.GetSceneByPath("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity").isLoaded);
             // The upper wall guards the drop, but must stop where the south deck meets the east deck.
@@ -240,7 +239,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         IEnumerator EnterIntegratedPursuitRoom()
         {
             Assert.IsFalse(Application.isBatchMode, "The curtain requires rendered frames in an interactive Game View.");
-            WaitingVariantField.SetValue(WaitingSpaces, System.Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             yield return PursuitHost();
             Assert.IsTrue(SceneManager.GetSceneByPath("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity").isLoaded);
             Assert.IsFalse((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive"));

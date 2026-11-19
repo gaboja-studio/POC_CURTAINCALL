@@ -28,8 +28,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         IEnumerator OpenCannonWaitingRoom(int day, string phase)
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
-            yield return Launch(day, phase, 0, phase == "Night" ? "" : "HumanCannon", "WaitingRoomBase");
+            yield return Launch(day, phase, 0, phase == "Night" ? "" : "HumanCannon", "WaitingRoom");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Call(run, "DiscoverTrick", "HumanCannon");
             yield return CannonWait(() => (bool)Field(State, "CannonUnlocked"), 3, "The original discovery unlock must propagate.");
@@ -154,8 +153,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         [Category("BreakFlow"), Category("BreakFollowup")] public IEnumerator W6_CannonRehearsal_AcquireWithFAndSelectWithPointer()
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
-            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
             yield return WaitQuestReady("gather");
             var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
             Assert.IsFalse((bool)Field(State, "CannonUnlocked"), "Start this path before discovery, not with a HumanCannon dev launch.");
@@ -220,22 +218,32 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Initial placement");
             Assert.IsFalse(CannonFlag("HasMastered"));
             Assert.IsFalse(CannonFlag("IsEnding"));
-            var panel = Priv(CannonLesson, "votePanel");
+            UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
             var buttons = CannonVoteButtons();
-            Assert.AreEqual(2, buttons.Count(b => b.gameObject.activeInHierarchy && b.IsInteractable()));
+            Assert.AreEqual(1, buttons.Count(b => b.gameObject.activeInHierarchy && b.IsInteractable()));
             Canvas.ForceUpdateCanvases();
             var label = buttons[0].GetComponentInChildren<TMPro.TMP_Text>();
             label.ForceMeshUpdate(true);
             StringAssert.EndsWith("리허설 넘기기", label.text);
             Assert.IsFalse(label.isTextTruncated, "넘기기 버튼은 생략 없이 표시");
             Assert.AreEqual(label.text.Length, label.textInfo.characterCount);
-            CursorTestKey("Escape"); yield return null; yield return null; CursorTestKey(null);
-            yield return CursorState(true);
+            // Hold a UI cursor throughout the synthetic click. ESC opens the pause menu over the vote.
+            var setBlocking = T("CurtainCall.Player.InputGate").GetMethod("SetBlocking");
             var pointer = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Mouse>();
             int clicks = 0; buttons[0].onClick.AddListener(() => clicks++);
-            try { yield return ClickScheduleButtonWithMouse(pointer, buttons[0]); }
-            finally { UnityEngine.InputSystem.InputSystem.RemoveDevice(pointer); }
-            Assert.AreEqual(1, clicks);
+            try
+            {
+                setBlocking.Invoke(null, new object[] { this, true });
+                yield return CursorState(true);
+                yield return new WaitForSecondsRealtime(.4f);
+                yield return ClickScheduleButtonWithMouse(pointer, buttons[0]);
+                Assert.AreEqual(1, clicks, $"Expected a vote click with {UnityEngine.EventSystems.EventSystem.current.currentInputModule}, cursor {Cursor.lockState}, position {pointer.position.ReadValue()}");
+            }
+            finally
+            {
+                setBlocking.Invoke(null, new object[] { this, false });
+                UnityEngine.InputSystem.InputSystem.RemoveDevice(pointer);
+            }
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Skip returns control");
             Assert.IsTrue(CannonFlag("HasMastered"));
             yield return null;
@@ -272,7 +280,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(4, Get(cannon, "StationCount"));
             Assert.IsFalse((bool)Get(transport, "OverloadTrap"), "Latest actual performance rejects overload without dropping the floor.");
             Assert.AreEqual(new Vector2(2.75f, 2f), Get(transport, "HalfSize"), "Do not replace the actual scene footprint with the prepared prefab default.");
-            Assert.AreEqual("WaitingRoomBase", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            Assert.AreEqual("WaitingRoom", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             var station = (Component)Call(cannon, "Station", 0);
             var boarding = (Transform)Get(station, "BoardingPoint");
             var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
@@ -440,9 +448,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(CannonFlag("HasMastered"));
             var panel = Priv(CannonLesson, "votePanel");
             Assert.IsTrue((bool)Get(panel, "IsVisible"), "The vote must remain usable while dead.");
-            var button = CannonVoteButtons()[skip ? 0 : 1];
-            Assert.IsTrue(button.IsInteractable());
-            button.onClick.Invoke();
+            if (skip)
+            {
+                var button = CannonVoteButtons()[0];
+                Assert.IsTrue(button.IsInteractable());
+                button.onClick.Invoke();
+            }
+            else CannonStatic("VoteToAbandon", true);
             yield return CannonWait(() => !CannonFlag("IsActive")
                 && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7f, "A dead owner must finish the return and release the ending lock.");
             Assert.AreEqual(skip, CannonFlag("HasMastered"), "Keep the established majority skip/abandon result.");

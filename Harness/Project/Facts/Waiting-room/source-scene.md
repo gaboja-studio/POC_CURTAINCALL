@@ -1,11 +1,13 @@
 ---
 summary: 기존 대기실 복제는 WaitingRoomBase의 WaitingRoomGreybox와 분산 Mood·Walls·기능 묶음을 기준으로 한다
-status: active
+status: historical
 updated: 2026-10-28
 source: Task-20261027-075, 사용자 기준 정정 및 Editor 계층 조사
 ---
 
 # 대기실 복제 원본 씬
+
+현재 편집 경로는 [통합 대기실](unified-scene.md)을 참고한다. 아래는 기존 대기실을 복제할 당시의 기록이다.
 
 ## 언제 읽나
 기존 대기실을 복제·재배치하거나 Levels/waiting_room과 그레이박스 중 원본을 고를 때.

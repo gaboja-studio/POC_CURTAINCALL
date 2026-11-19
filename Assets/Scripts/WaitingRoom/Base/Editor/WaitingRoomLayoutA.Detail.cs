@@ -40,7 +40,7 @@ namespace CurtainCall.WaitingRoom.Editor
             var inside=Group(g,"ServiceInside",W(LobbyW+1.65f,HallDoorZ));
             var outside=Group(g,"ServiceOutside",W(LobbyW-1.4f,HallDoorZ));
             Point(g,"ServiceGlow",W(LobbyW+1.6f,HallDoorZ,2.8f),new Color(1,.67f,.35f),0,4);
-            FacilityLabel(g,"⑧  전문가",W(LobbyW-.08f,HallDoorZ,4.05f),Quaternion.Euler(0,90,0),.055f);
+            FacilityLabel(g,"서비스",W(LobbyW-.08f,HallDoorZ,4.05f),Quaternion.Euler(0,90,0),.055f);
             var so=new SerializedObject(view);
             so.FindProperty("curtainLeft").objectReferenceValue=left;so.FindProperty("curtainRight").objectReferenceValue=right;
             so.FindProperty("inside").objectReferenceValue=inside;so.FindProperty("outside").objectReferenceValue=outside;

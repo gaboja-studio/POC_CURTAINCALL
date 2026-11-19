@@ -19,7 +19,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         static void Begin(string generatedName)
         {
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity") throw new InvalidOperationException("WaitingRoomBase 편집 모드 전용입니다.");
+            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity") throw new InvalidOperationException("WaitingRoom 편집 모드 전용입니다.");
             g = scene.GetRootGameObjects().Single(o => o.name == "WaitingRoomGreybox").transform;
             source = scene.GetRootGameObjects().Single(o => o.name == "대기실").transform;
             kit = scene.GetRootGameObjects().Single(o => o.name == "WaitingRoom").transform;

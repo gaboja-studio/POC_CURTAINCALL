@@ -11,7 +11,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_DebugLobbyMoney_GrantsThousandOncePerPress()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             var prop = Find("CurtainCall.WaitingRoom.DebugMoneyProp");
             Assert.IsNotNull(prop, "로비에 디버그 돈 기물이 있어야 한다");
             Assert.AreEqual("S01_Lobby", prop.transform.parent.name);

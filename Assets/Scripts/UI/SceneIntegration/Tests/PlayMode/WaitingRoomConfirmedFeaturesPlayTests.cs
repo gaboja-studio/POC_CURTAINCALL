@@ -25,7 +25,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Confirmed_TimerRunsOnlyWhileSomeoneIsInRunningZone()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             var zones = Find("CurtainCall.WaitingRoom.ExplorationTimerZones"); Assert.IsNotNull(zones);
@@ -54,7 +54,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Confirmed_UvFlashlightRevealsMarkWhileHeldAndDiscoversOnce()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var flashlight = Find("CurtainCall.WaitingRoom.UvFlashlight"); Assert.IsNotNull(flashlight);
@@ -120,7 +120,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Confirmed_MirrorsMonitorGratingAndPropShapesArePresent()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var layout = GameObject.Find("WaitingRoom_LayoutA").transform;
             Assert.AreEqual(6, Object.FindObjectsByType(T("CurtainCall.WaitingRoom.PlanarMirror"), FindObjectsSortMode.None).Length, "화장실 2·탈의 방 1·소품실 3");
             var monitor = layout.Find("S09_PracticeRoom/PracticeMonitor"); Assert.IsNotNull(monitor);
@@ -143,7 +143,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Confirmed_NotebookBackEngravingRevealsHintWhenFaced()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var clue = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.ClueInspectable"), FindObjectsInactive.Include, FindObjectsSortMode.None).Cast<Component>()
                 .Single(c => (string)Get(c, "TargetId") == "structure-a:confiscated-notebook");

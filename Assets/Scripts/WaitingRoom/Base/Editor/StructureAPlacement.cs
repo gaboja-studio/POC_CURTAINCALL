@@ -13,7 +13,7 @@ namespace CurtainCall.WaitingRoom.Editor
     /// <summary>2026-10-30 사용자 배치도/목록. 실제 LayoutA 좌표로 배치하며 방 셸과 기존 에셋은 재생성하지 않는다.</summary>
     public static class StructureAPlacement
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string Marker = "StructureAExploration";
         static Transform layout, registry;
         static Material metal, wood, paper, gold;
@@ -28,7 +28,7 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var scene = SceneManager.GetActiveScene();
             if (EditorApplication.isPlaying || scene.path != ScenePath || scene.isDirty)
-                throw new InvalidOperationException("WaitingRoomBase must be open, stopped and saved before installing.");
+                throw new InvalidOperationException("WaitingRoom must be open, stopped and saved before installing.");
             layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             if (layout.Find(Marker) != null) return "Already installed; existing placement was preserved.";
             foreach (var name in new[] { "S02_Dormitory/Restroom", "S10_Workshop", "S05_JunkStorage", "P05_PipeZone", "S12_CargoBay", "S11_StageGear", "LG_Lounge", "ST_Stairwell", "B1_Office", "B1_MachineRoom", "B1_EscapeEntrance" })
@@ -130,7 +130,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 registry.gameObject.SetActive(true);
                 Physics.SyncTransforms(); Undo.CollapseUndoOperations(undo); EditorSceneManager.MarkSceneDirty(scene);
                 System.IO.File.WriteAllLines(Report, new[] { "# 구조 A 실제 맵 배치 기록", "", "2026-10-30 사용자 배치도·최신 목록 기준. 방 셸/기존 에셋 재생성 없음. 좌표는 현재 맵 월드 좌표.", "", "| 대상 | 좌표(x,y,z) |", "|---|---|" }.Concat(manifest));
-                return $"Installed: {refs.Count} bound references; original UV/tool/catalog/breach rules retained. Save only WaitingRoomBase after validation.";
+                return $"Installed: {refs.Count} bound references; original UV/tool/catalog/breach rules retained. Save only WaitingRoom after validation.";
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }

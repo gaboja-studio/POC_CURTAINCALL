@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed class WaitingRoomHudPlayTests
     {
-        const string Room = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string Room = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string Common = "Assets/Scenes/UI/CommonWaitingRoomUI.unity";
         Component campaign, ui, actor, other;
         Behaviour director;

@@ -24,7 +24,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator RoleHudInRehearsalShowsGuideAndObjectiveBeforeVote()
         {
-            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoomBase");
+            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoom");
             yield return WaitStage(0,10f);
             RectTransform FindRole(string role)
             {
@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 var rehearsal = Rehearsal;
                 var course = (Component)Priv(rehearsal, "course");

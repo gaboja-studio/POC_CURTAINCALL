@@ -23,8 +23,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var setup = EditorSceneManager.GetSceneManagerSetup();
             Assert.IsFalse(Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty));
             try {
-                var scene = EditorSceneManager.OpenScene(WaitingRoomScenes.IntegratedPath);
-                Assert.AreEqual(WaitingRoomScenes.IntegratedPath, PursuitAuthoring.ScenePath);
+                var scene = EditorSceneManager.OpenScene(WaitingRoomScenes.Path);
+                Assert.AreEqual(WaitingRoomScenes.Path, PursuitAuthoring.ScenePath);
                 var director = All<PursuitDirector>(scene).Single();
                 Assert.IsNotNull(director.BehaviourGraph);
                 Assert.IsNotNull(director.CaptureBloodPrefab);

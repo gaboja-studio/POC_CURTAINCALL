@@ -16,7 +16,7 @@ namespace CurtainCall.EscapeRoute.Editor
 {
     public static class EscapeWaitingRoomLinkBuilder
     {
-        public const string WaitingPath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        public const string WaitingPath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         public const string EscapePath = "Assets/Scenes/Levels/escape_route.unity";
         static Material concrete, metal;
         static TMP_FontAsset font;

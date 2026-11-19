@@ -32,7 +32,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
         [UnityTest] public IEnumerator StageHud_VoteHotkeysApplyWithoutCursor()
         {
-            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoomBase");
+            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoom");
             var prefs=T("CurtainCall.Player.InputBindingPreferences");
             string prefsKey=(string)prefs.GetField("PlayerPrefsKey").GetRawConstantValue();
             bool had=PlayerPrefs.HasKey(prefsKey);string saved=PlayerPrefs.GetString(prefsKey);

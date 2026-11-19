@@ -14,7 +14,7 @@ namespace CurtainCall.HumanCannon.EditorTools
         public const string Art = "Assets/Resources/Models/Objects/HumanCannonProps";
         public const string VisualName = "CC_PropArt";
         public const string GripName = "CC_GripArt";
-        const string Waiting = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string Waiting = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
 
         [MenuItem("Tools/CurtainCall/인간 대포/Blender 소품 프리팹 갱신")]
         public static void BuildPrefabs()
@@ -99,7 +99,7 @@ namespace CurtainCall.HumanCannon.EditorTools
             if (EditorApplication.isPlayingOrWillChangePlaymode || scene.isDirty)
                 throw new InvalidOperationException("Apply only to a saved scene outside Play mode.");
             if (scene.path != HumanCannonTestSceneBuilder.ScenePath && scene.path != Waiting)
-                throw new InvalidOperationException("Only HumanCannon and WaitingRoomBase are supported.");
+                throw new InvalidOperationException("Only HumanCannon and WaitingRoom are supported.");
             var cannon = AssetDatabase.LoadAssetAtPath<GameObject>(Art + "/Prefabs/CC_Cannon.prefab");
             var trampoline = CurtainCall.Settings.GameSettings.Trampoline.VisualPrefab;
             if (!cannon || !trampoline) throw new InvalidOperationException("Build prop prefabs first.");

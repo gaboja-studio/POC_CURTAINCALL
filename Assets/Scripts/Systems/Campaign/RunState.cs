@@ -76,9 +76,14 @@ namespace CurtainCall.Campaign
 
         /// <summary>실패 결과 확인 후 새 세대의 1일차 아침. 공연 해금/클리어는 새 런에서 다시 얻는다.</summary>
         public bool RestartAfterFailure()
+            => s.LastEnd is (RunEndReason.Deadline or RunEndReason.EscapeAllRetired) && RestartAfterEnding();
+
+        public bool RestartAfterSuccess()
+            => s.LastEnd == RunEndReason.EscapeSucceeded && RestartAfterEnding();
+
+        bool RestartAfterEnding()
         {
-            if (s.Phase != CampaignPhase.Ending || s.Generation == int.MaxValue
-                || s.LastEnd is not (RunEndReason.Deadline or RunEndReason.EscapeAllRetired)) return false;
+            if (s.Phase != CampaignPhase.Ending || s.Generation == int.MaxValue) return false;
             StartRun(s.Generation + 1, s.LastEnd);
             EnterRest(RestKind.Morning, 0);
             return true;

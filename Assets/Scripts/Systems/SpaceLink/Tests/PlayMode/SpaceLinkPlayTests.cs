@@ -59,8 +59,7 @@ namespace CurtainCall.SpaceLink.Tests
         {
             SetMode("Single");
             var spaces = Get(Settings("Base"), "SpaceTransition");
-            Override(spaces, "waitingRoomScene", "WaitingRoomBase");
-            Override(spaces, "explorationScene", "WaitingRoomBase");
+            Override(spaces, "explorationScene", "WaitingRoom");
             Override(spaces, "performanceScene", "Tightrope");
             Override(spaces, "tightropeScene", "Tightrope");
             Override(spaces, "humanCannonScene", "HumanCannon");
@@ -176,7 +175,7 @@ namespace CurtainCall.SpaceLink.Tests
             var first = Actor("퇴장자", new Vector3(-2, .1f, 67));
             var second = Actor("잔류자", new Vector3(2, .1f, 67));
             yield return Signal("EndPerformance");
-            Assert.AreEqual("WaitingRoomBase", Active);
+            Assert.AreEqual("WaitingRoom", Active);
             var scene = SceneManager.GetActiveScene();
             Assert.IsFalse(scene.GetRootGameObjects().Any(g => g.name == "WaitingRoom" || g.name == "대기실"));
             Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
@@ -348,11 +347,11 @@ namespace CurtainCall.SpaceLink.Tests
             yield return null;
             Assert.IsTrue((bool)Call(director, "LeaveWaitingRoom"));
             yield return WaitIdle();
-            Assert.AreEqual("WaitingRoomBase", Active, "API 퇴장 경로도 같은 씬 유지");
+            Assert.AreEqual("WaitingRoom", Active, "API 퇴장 경로도 같은 씬 유지");
             yield return Signal("NotifyAllAtStageEntrance");
             yield return Signal("EndPerformance");
             Assert.AreEqual("Night", Phase);
-            Assert.AreEqual("WaitingRoomBase", Active);
+            Assert.AreEqual("WaitingRoom", Active);
             Assert.AreNotEqual("Running", Get(State, "Timer").ToString());
             var door = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.NightDoorLock"));
             Assert.IsTrue((bool)Get(door, "IsLocked"));

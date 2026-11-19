@@ -21,8 +21,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public static void ApplyCurrent()
         {
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity")
-                throw new InvalidOperationException("WaitingRoomBase 편집 씬에서만 실행합니다.");
+            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity")
+                throw new InvalidOperationException("WaitingRoom 편집 씬에서만 실행합니다.");
             g = scene.GetRootGameObjects().Single(o => o.name == "WaitingRoomGreybox").transform;
             src = scene.GetRootGameObjects().Single(o => o.name == "대기실").transform;
             kit = scene.GetRootGameObjects().Single(o => o.name == "WaitingRoom").transform;
@@ -216,7 +216,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("편집 모드에서만 가능합니다.");
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (scene.path != "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity") throw new InvalidOperationException("대상 씬이 아닙니다.");
+            if (scene.path != "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity") throw new InvalidOperationException("대상 씬이 아닙니다.");
             g = scene.GetRootGameObjects().Single(o => o.name == "WaitingRoomGreybox").transform;
             src = scene.GetRootGameObjects().Single(o => o.name == "대기실").transform;
             output = g.Find("Mood/InteriorArt/Stage01_Dormitory");

@@ -27,8 +27,8 @@ namespace CurtainCall.WaitingRoom.Editor
         public static void Apply()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || !scene.path.EndsWith("/WaitingRoomBase.unity"))
-                throw new InvalidOperationException("WaitingRoomBase EditMode required.");
+            if (EditorApplication.isPlaying || !scene.path.EndsWith("/WaitingRoom.unity"))
+                throw new InvalidOperationException("WaitingRoom EditMode required.");
             var layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             RestroomWall(layout.Find("S02_Dormitory/Restroom"));
             PipeBox(layout.Find("B1_MachineRoom/Exploration_A/PipeBox"));

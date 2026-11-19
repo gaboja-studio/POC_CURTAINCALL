@@ -19,7 +19,7 @@ namespace CurtainCall.Tightrope
     /// </summary>
     [DefaultExecutionOrder(-40)]
     [RequireComponent(typeof(TightropeCatchSystem))]
-    [RequireComponent(typeof(TightropeHandholdRangeView), typeof(TightropeBalancePoseView))]
+    [RequireComponent(typeof(TightropeBalancePoseView))]
     public sealed class RopeLaneJumpRules : MonoBehaviour
     {
         PlayerMover mover;
@@ -238,7 +238,7 @@ namespace CurtainCall.Tightrope
             return false;
         }
 
-        /// <summary>손잡기 판정과 화면 표시가 함께 쓰는 동료의 앞뒤 범위. 줄의 사용 가능 여부는 코스가 판정한다.</summary>
+        /// <summary>손잡기 착지 판정에 쓰는 동료의 앞뒤 범위. 줄의 사용 가능 여부는 코스가 판정한다.</summary>
         public bool TryGetHandholdRange(PlayerMover other, out int lane, out float from, out float to)
         {
             lane = TightropeCourse.NoLane;

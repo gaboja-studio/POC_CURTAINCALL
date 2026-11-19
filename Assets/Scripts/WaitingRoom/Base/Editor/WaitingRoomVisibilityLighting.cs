@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// <summary>기존 전구·강조광은 유지하고 그레이박스에만 공간 확인용 반사광을 보충한다.</summary>
     public static class WaitingRoomVisibilityLighting
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string GroupName = "VisibilityLighting";
 
         [MenuItem("Tools/CurtainCall/대기실/공간 확인용 보조 조명 적용")]
@@ -19,7 +19,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public static GameObject Apply(Scene scene)
         {
             if (EditorApplication.isPlaying || scene.path != ScenePath)
-                throw new InvalidOperationException("WaitingRoomBase 편집 씬에서만 실행합니다.");
+                throw new InvalidOperationException("WaitingRoom 편집 씬에서만 실행합니다.");
             var root = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
             var mood = root.Find("Mood");
             if (mood == null) throw new InvalidOperationException("먼저 대기실 분위기를 적용해야 합니다.");

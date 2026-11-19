@@ -474,12 +474,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(practiceLanes.activeSelf, Is.False, "집결 경로에 옛 연습 기물을 되돌리지 않는다.");
         }
 
-        [TestCase(WaitingRoomSceneVariant.Base)]
-        [TestCase(WaitingRoomSceneVariant.Pursuit)]
-        [TestCase(WaitingRoomSceneVariant.Integrated)]
-        public void ActualPracticeRoomSuppliesTheDeckAndFitsEveryLesson(WaitingRoomSceneVariant variant)
+        [Test]
+        public void ActualPracticeRoomSuppliesTheDeckAndFitsEveryLesson()
         {
-            var scene = EditorSceneManager.OpenPreviewScene(WaitingRoomScenes.Path(variant));
+            var scene = EditorSceneManager.OpenPreviewScene(WaitingRoomScenes.Path);
             try
             {
                 var room = WaitingRoomScenes.FindPracticeRoom(scene);

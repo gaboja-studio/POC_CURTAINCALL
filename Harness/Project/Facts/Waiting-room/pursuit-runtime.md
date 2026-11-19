@@ -10,7 +10,7 @@ source: Task-20261102-094 제작/플레이 확인, Task-20261103-099 복귀 시�
 ## 언제 읽나
 추격 배치/설정/모션을 조절하거나, 문을 연 뒤에도 추격자가 통과하지 못하는 문제를 조사할 때.
 
-- 추격 씬은 `Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity`. `Tools/Dev Mode/대기실 씬 설정` 또는 BaseGameSettings/SpaceTransition/Waiting Room Variant로 Base/Pursuit 선택(기본 Base). 런 재시작 후 호스트가 실제 로드, Dev 시작·탐색도 동일 설정을 사용. 두 씬 모두 빌드 유지, 로그/카메라/공통 UI/음성은 두 씬을 대기실로 인식한다.
+- 추격은 통합 대기실의 PursuitDirector와 배치를 사용한다. 씬 경로와 편집 절차는 [통합 대기실](unified-scene.md)을 참고한다.
 - `WaitingRoomSettings.asset`의 Pursuit/Stages: 단계 시작 초·시야·순찰 속도·추격 배율·벽 투시·최인접 상시 추격·문구. Pursuit 씬 선택과 Enabled가 런 생성 시 새 만료 흐름을 선택하며, 나머지 값은 실행 중 읽는다.
 - Hierarchy `PursuitSystem`: 26개 영역 중 탐색 영역 11곳 기본 1체. 현재 씬은 PursuitRoom.UsePlacements/Placements → PursuitPlacement의 타입/Transform/개별 PatrolPoints를 사용한다. 이전 Count/SpawnPoints/PatrolPoints는 이전 씬 호환용으로 보존한다.
 - 코드: `Assets/Scripts/WaitingRoom/Pursuit/`. Director는 호스트 AI/포획·NGO 주기 스냅샷, Actor는 내비게이션/모션/상체 방향, VictimPose는 피해자 연출/입력 잠금/가림.

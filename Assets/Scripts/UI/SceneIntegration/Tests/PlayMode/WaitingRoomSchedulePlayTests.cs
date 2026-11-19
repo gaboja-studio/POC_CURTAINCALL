@@ -14,7 +14,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest, Category("BreakFollowup"), Category("BreakFollowupRetry")]
         public IEnumerator ScheduleBetweenRest_AllUpcomingCardsCanChange()
         {
-            yield return Launch(2, "Between", 1, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Between", 1, "Tightrope", "WaitingRoom");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Call(run, "RecordClear", "Tightrope", 1);
             yield return OpenSchedule();
@@ -91,7 +91,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         [Category("BreakFlow"), Category("BreakFollowup")] public IEnumerator W7_FirstDayWorldScheduleChangesImmediatelyAndEntersWithoutConfirm()
         {
-            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
             yield return WaitQuestReady("gather");
             var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             var guide = T("CurtainCall.WaitingRoom.WaitingRoomGuidePanel");
@@ -133,7 +133,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             object panel = null;
             try
             {
-                yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+                yield return Launch(1, "Night", 0, "", "WaitingRoom");
                 yield return new WaitForSecondsRealtime(.5f);
                 tutorialToggle = Find(TutorialType) as Behaviour;
                 wasEnabled = tutorialToggle != null && tutorialToggle.enabled;
@@ -193,7 +193,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         [Category("BreakFlow")] public IEnumerator W3_TierButtons_NightChoiceAndRestTimeAdjust()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 1));
             yield return OpenSchedule();
@@ -219,7 +219,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator HumanCannonTierThreeUnlocksAndReachesThePerformanceScene()
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             var rehearsal = Find("CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal");
@@ -261,7 +260,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             for (int day = 1; day <= 3; day++)
             {
-                yield return Launch(day, "Night", 0, "", "WaitingRoomBase");
+                yield return Launch(day, "Night", 0, "", "WaitingRoom");
                 yield return OpenSchedule();
                 var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
                 var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
@@ -284,7 +283,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W3_HumanCannonSet_FAcquireUnlocksAndMovesToPractice()
         {
             // 2026-10-30: 무대 장치 보관실의 인간 대포·트램펄린 세트를 F로 획득하면 공연이 열리고 기물이 연습실로 옮겨진다.
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return null;
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             var set = Find("CurtainCall.WaitingRoom.PerformancePropDiscovery");

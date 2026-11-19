@@ -189,7 +189,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return null; yield return null;
                 Assert.IsTrue((bool)Get(originalView.GetComponent(T("CurtainCall.UI.SceneIntegration.BalanceRiskBlink")), "IsBlinking"));
 
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 for (int stage = 0; stage < 5; stage++)
                 {

@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom.Editor
     // PR #194 통합: 아트 배치는 유지하고 실제 플레이 기능을 그레이박스에 모은다.
     public static class WaitingRoomArtIntegration
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
 
         public static void Integrate()
         {

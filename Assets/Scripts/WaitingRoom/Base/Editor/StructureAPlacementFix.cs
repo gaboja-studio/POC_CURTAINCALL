@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom.Editor
     /// </summary>
     public static class StructureAPlacementFix
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const float Gap = .003f;
         static Transform layout;
         static readonly List<string> report = new();
@@ -26,7 +26,7 @@ namespace CurtainCall.WaitingRoom.Editor
         public static string Fix()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoomBase in EditMode.");
+            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoom in EditMode.");
             layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             report.Clear();
             Undo.IncrementCurrentGroup(); int undo = Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Fix Structure A placement");

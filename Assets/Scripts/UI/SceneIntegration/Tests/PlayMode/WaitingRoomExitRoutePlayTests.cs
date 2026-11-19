@@ -20,7 +20,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExitRoute_PendingValuesKeysPadAndSoloCooperation()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             DisablePlacedRoutesForFixture();
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
@@ -101,7 +101,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExitRoute_OpenedSnapshotRestoresCollisionWithoutEnding()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             DisablePlacedRoutesForFixture();
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");

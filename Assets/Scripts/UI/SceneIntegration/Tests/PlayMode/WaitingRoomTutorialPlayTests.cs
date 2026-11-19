@@ -76,7 +76,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 current.SetValue(null,profile);book.SetValue(null,null);
                 if(originalRunner)chain.SetValue(originalRunner,Call(profile,"Sequence",false));
                 FreshTutorial();
-                yield return Launch(1,"Between",1,"Tightrope","WaitingRoomBase");
+                yield return Launch(1,"Between",1,"Tightrope","WaitingRoom");
                 yield return WaitGuide(TutorialTitle("G01"),12);
                 yield return WaitGuide("공연표 안내",15);
                 Assert.IsTrue((bool)Static(TutorialType,"IsSequenceActive"));
@@ -104,7 +104,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 string g01 = TutorialTitle("G01"), g03 = TutorialTitle("G03");
-                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
                 Assert.AreEqual("Guide", Field(State, "Rest").ToString());
                 yield return WaitGuide(g01, 10f);
                 Assert.AreNotEqual(g01, Static("CurtainCall.WaitingRoom.WaitingRoomGuidePanel", "CurrentTitle"), "가이드는 나레이션 패널을 쓰지 않는다");
@@ -144,7 +144,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
                 // 사용자 2026-10-31: 앱을 다시 켤 때만 처음부터. 새 런(세대가 바뀜)을 시작해도 본 안내는 다시 뜨지 않는다.
                 int generation = (int)Field(State, "Generation");
-                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
                 Assert.AreNotEqual(generation, Field(State, "Generation"), "다시 시작하면 새 런");
                 float watchUntil = Time.realtimeSinceStartup + 10f;
                 while (Time.realtimeSinceStartup < watchUntil)
@@ -165,7 +165,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             {
                 string n01 = (string)T("CurtainCall.WaitingRoom.WaitingRoomText").GetMethod("Get").Invoke(null, new object[] { "first-day.quest.night-schedule.title", "" });
                 T(TutorialType).GetProperty("Enabled").SetValue(null, false);
-                yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+                yield return Launch(1, "Night", 0, "", "WaitingRoom");
                 yield return new WaitForSecondsRealtime(4f);
                 Assert.AreEqual(true, Static(FirstDayFlowType, "FirstDayQuestVisible"), "임시 퀘스트는 튜토리얼 끄기와 독립적이다");
                 T(TutorialType).GetProperty("Enabled").SetValue(null, true);
@@ -207,7 +207,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return WaitGuide(TutorialTitle("N05"), 12f);
                 Assert.IsNotNull(GameObject.Find("TutorialCloseUpCamera"), "잠자기는 숙소를 클로즈업한다");
                 T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 var tutorial = T(TutorialType).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) as Component;
                 Assert.IsFalse(tutorial.gameObject.activeSelf, "리허설 동안 원본 안내와 자식 패널 모두 잠시 양보한다");
                 var flow = Find(FirstDayFlowType) as Behaviour;
@@ -226,7 +226,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             FreshTutorial();
             try
             {
-                yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+                yield return Launch(1, "Night", 0, "", "WaitingRoom");
                 int generation = (int)Field(State, "Generation");
                 yield return WaitGuide(TutorialTitle("N03"), 30f);
                 float until = Time.realtimeSinceStartup + 10f;
@@ -271,7 +271,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 T(TutorialType).GetProperty("Enabled").SetValue(null, false);
-                yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
                 var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
                 var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
                 const string Notice = "CurtainCall.WaitingRoom.WaitingRoomItemBrokenNotice";
@@ -304,7 +304,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 T(TutorialType).GetProperty("Enabled").SetValue(null, false);
-                yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
                 var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
                 var keys = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.DebugEscapeKeyProp"), FindObjectsSortMode.None);
                 Assert.AreEqual(2, keys.Length, "디버그 탈출로 열쇠 2개");

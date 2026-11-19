@@ -28,7 +28,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator PursuitBreakables_PathsRecomputeBeforeAndAfterOpening()
         {
-            WaitingVariantField.SetValue(WaitingSpaces, System.Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             yield return PursuitHost();
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance"); Call(run, "DebugSetRemaining", .01f);
             var director = Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");

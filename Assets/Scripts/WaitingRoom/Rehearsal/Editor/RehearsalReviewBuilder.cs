@@ -31,9 +31,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             const string folder = ".harness/local/rehearsal/Player";
             Directory.CreateDirectory(folder);
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled
-                && !s.path.EndsWith("/escape_route.unity", StringComparison.OrdinalIgnoreCase)
-                && !s.path.EndsWith("/WaitingRoomPursuit.unity", StringComparison.OrdinalIgnoreCase)
-                && !s.path.EndsWith("/WaitingRoomBase.unity", StringComparison.OrdinalIgnoreCase)).Select(s => s.path).ToArray();
+                && !s.path.EndsWith("/escape_route.unity", StringComparison.OrdinalIgnoreCase)).Select(s => s.path).ToArray();
             try
             {
                 var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = scenes,

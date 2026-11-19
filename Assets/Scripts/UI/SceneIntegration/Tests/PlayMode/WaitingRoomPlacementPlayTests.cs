@@ -92,7 +92,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_KeysPasswordPanelAndSoloExit()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var layout = GameObject.Find("WaitingRoom_LayoutA").transform;
             var sealedDoor = layout.Find("B1_EscapeEntrance/SealedDoor");
@@ -158,7 +158,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_RealToolsUvContainersAndKey2()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             ulong me = (ulong)Get(carry, "LocalClientId");
@@ -184,7 +184,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_DrawerEscapeKeyAndSuccessOnlyDurability()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return PickPlaced("stake-puller", "S10_Workshop");
             yield return UsePlaced("management-drawer", -5);
             Assert.AreEqual(true, Call(Static("CurtainCall.WaitingRoom.ExplorationState", "Instance"), "IsOpen", "structure-a:management-drawer"));
@@ -196,7 +196,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_LobbyUvThreeMarksAndMachineMonitor()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return PickPlaced("uv-lamp", "S02_Dormitory", "dormitory-uv-lamp-1");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             yield return UsePlaced("uv-3"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-3"));

@@ -78,7 +78,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             // The legacy Pursuit test scene no longer has a baked NavMesh. Exercise
             // the integrated scene used by the game, preserving the user's settings.
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             behaviourRules = Get(Static("CurtainCall.Settings.GameSettings", "WaitingRoom"), "Pursuit");
             behaviourRulesBefore = JsonUtility.ToJson(behaviourRules);
             yield return PursuitHost();

@@ -14,7 +14,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             FreshTutorial();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 yield return new WaitForSecondsRealtime(.5f);
                 var course = (Component)Priv(Rehearsal, "course");
@@ -37,7 +37,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             FreshTutorial();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 yield return new WaitForSecondsRealtime(.5f);
                 var course = (Component)Priv(Rehearsal, "course");

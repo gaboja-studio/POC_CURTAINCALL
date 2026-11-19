@@ -47,7 +47,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator Open()
         {
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
-                "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity", new LoadSceneParameters(LoadSceneMode.Single));
+                "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity", new LoadSceneParameters(LoadSceneMode.Single));
             var director = Find("CurtainCall.SpaceLink.SpaceLinkDirector") as Behaviour;
             if (director != null) director.enabled = false;
             actor = New("InteractionTestPlayer").AddComponent(T("CurtainCall.Player.PlayerMover"));

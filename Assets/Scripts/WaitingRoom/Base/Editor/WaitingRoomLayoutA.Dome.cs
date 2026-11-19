@@ -54,13 +54,13 @@ namespace CurtainCall.WaitingRoom.Editor
         static List<Passage> LobbyPassages() => new()
         {
             new() { Name = "Stage", Label = "", O = new(-6f, 70.5f), U = Vector2.right, W = 9f, H = 9.2f, StartC = DomeC, StartR = DomeR, EndT = 20.75f, Lamp = false },
-            new() { Name = "Logistics11", Label = "11 무대 장치", O = new(-8.65f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
+            new() { Name = "Logistics11", Label = "무대 장치", O = new(-8.65f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
             // Narrower than the hall opening (x -1.5..6.4) so its east wall clears the prop room passage; the rest is infilled.
-            new() { Name = "Logistics12", Label = "12 화물 적재", O = new(1.8f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
-            new() { Name = "Stairs", Label = "계단 · B1", O = new(-6f, 79.95f), U = Vector2.left, W = 3.6f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.8f },
-            new() { Name = "Workshop", Label = "10 작업실", O = new(-6f, 71f), U = Vector2.left, W = 4.2f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 28.55f },
-            new() { Name = "PropRoom", Label = "04 소품실", O = new(-6f, 70f + PropDoorZ), U = Vector2.right, W = PropDoorWidth, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 18.45f },
-            new() { Name = "Practice", Label = "09 연습실", O = new(-20.5f, 77.4f), U = Vector2.up, W = 3.6f, H = 5f, StartC = DomeC, StartR = DomeR, EndC = PracC, EndR = PracR },
+            new() { Name = "Logistics12", Label = "화물 적재", O = new(1.8f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
+            new() { Name = "Stairs", Label = "계단 · 지하", O = new(-6f, 79.95f), U = Vector2.left, W = 3.6f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.8f },
+            new() { Name = "Workshop", Label = "작업실", O = new(-6f, 71f), U = Vector2.left, W = 4.2f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 28.55f },
+            new() { Name = "PropRoom", Label = "소품실", O = new(-6f, 70f + PropDoorZ), U = Vector2.right, W = PropDoorWidth, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 18.45f },
+            new() { Name = "Practice", Label = "연습실", O = new(-20.5f, 77.4f), U = Vector2.up, W = 3.6f, H = 5f, StartC = DomeC, StartR = DomeR, EndC = PracC, EndR = PracR },
             // Behind the restroom's breakable wall: a low pipe crawl through the drum to the pipe zone.
             HiddenPipePassage(),
         };
@@ -107,7 +107,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 foreach (var path in new[] { "S02_Dormitory/Dormitory", "S02_Dormitory/Restroom" }) SkinRoomExterior(target.Find(path), Group(g, "Skin_" + path.Split('/')[1], g.position));
                 PlaceLobbyShop(target, g);
                 // The dorm door faces the plaza; its sign replaces the old lobby portal sign. The schedule board already hangs on that wall.
-                FacilityLabel(g, "02 숙소 · 화장실", new Vector3(DormDoorX + DormShift.x, 4.75f, W(0, DormZ0).z + DormShift.z - .56f), Quaternion.identity, .06f);
+                FacilityLabel(g, "숙소 · 화장실", new Vector3(DormDoorX + DormShift.x, 4.75f, W(0, DormZ0).z + DormShift.z - .56f), Quaternion.identity, .06f);
                 // Lighting: a ring of caged lamps under the ribs plus a key light over the plaza.
                 for (int i = 0; i < 4; i++)
                 {

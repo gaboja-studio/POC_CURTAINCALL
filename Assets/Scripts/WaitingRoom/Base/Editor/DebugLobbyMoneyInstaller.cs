@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom.Editor
     /// <summary>로비 디버그 보급품 옆에 디버그 돈 기물(<see cref="DebugMoneyProp"/>, F마다 공동 자금 +1000)을 둔다. 다시 실행해도 하나만 남는다.</summary>
     public static class DebugLobbyMoneyInstaller
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string Name = "DebugLobbyMoney";
         const string MaterialPath = "Assets/Resources/Models/Materials/PerformanceArtKit/GripYellow.mat";
 
@@ -18,7 +18,7 @@ namespace CurtainCall.WaitingRoom.Editor
         public static void Install()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoomBase in EditMode.");
+            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoom in EditMode.");
             var lobby = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform.Find("S01_Lobby");
             var root = lobby.Find(Name);
             if (root == null)

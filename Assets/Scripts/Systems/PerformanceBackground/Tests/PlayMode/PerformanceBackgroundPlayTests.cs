@@ -56,7 +56,7 @@ namespace CurtainCall.PerformanceBackground.Tests
         }
 
         [TestCase("Lobby")]
-        [TestCase("WaitingRoomBase")]
+        [TestCase("WaitingRoom")]
         [TestCase("DummyPerformance")]
         public void NonPerformanceScenesAreExcluded(string name)
         {

@@ -21,7 +21,7 @@ namespace CurtainCall.UI.SceneIntegration
         static readonly string[] SpacePaths = {
             "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity",
             "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
-            "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
+            "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity",
             "Assets/Scenes/Levels/escape_route.unity",
             "Assets/Scenes/InGame/Lobby.unity", "Assets/Scenes/InGame/Start.unity" };
         public static CommonMenuUI Current { get; private set; }

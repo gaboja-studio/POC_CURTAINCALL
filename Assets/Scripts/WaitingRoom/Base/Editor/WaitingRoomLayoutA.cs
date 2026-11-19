@@ -19,7 +19,7 @@ namespace CurtainCall.WaitingRoom.Editor
     // The preserved WaitingRoomGreybox is only read and copied. Only generated LayoutA roots are replaced.
     public static partial class WaitingRoomLayoutA
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string AssetDir = "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA";
         const string FactoryPrefabs = "Assets/_ThirdParty/LeartesStudios/AbandonedFactory/HDRP/Art/Prefabs/";
         const string FactoryTextures = "Assets/_ThirdParty/LeartesStudios/AbandonedFactory/HDRP/Art/Textures/";
@@ -1197,7 +1197,7 @@ namespace CurtainCall.WaitingRoom.Editor
             }
             var lampCollider = new GameObject("LampStandsCollider"); lampCollider.transform.SetParent(z11, false); lampCollider.transform.position = W(-1.2f, -21.1f, 1.2f);
             lampCollider.AddComponent<BoxCollider>().size = new Vector3(1f, 2.4f, 3.4f);
-            ZoneBoard(z11, "11  무대 장치 보관", new Vector2(-8.5f, -17.2f), 6.2f);
+            ZoneBoard(z11, "무대 장치 보관", new Vector2(-8.5f, -17.2f), 6.2f);
             Box(z11, "ZoneFloorCode", W(-8.5f, -21.4f, .011f), new Vector3(3.2f, .004f, .9f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             SpawnCandidate(z11, "PerformanceObjectCandidate_11_A", WhCandidates[0], 2.6f);
             SpawnCandidate(z11, "PerformanceObjectCandidate_11_B", WhCandidates[1], 2.6f);
@@ -1253,7 +1253,7 @@ namespace CurtainCall.WaitingRoom.Editor
             Box(z12, "CraneTrolley", W(14f, -37.5f, 9.2f), new Vector3(1.2f, .6f, 1f), Mat("V4_Iron_Dark"));
             Rope(z12, W(14f, -37.5f, 8.9f), W(14f, -37.5f, 6.1f), .03f);
             Box(z12, "CraneHook", W(14f, -37.5f, 5.9f), new Vector3(.14f, .45f, .35f), Mat("V4_RustyMetal"));
-            ZoneBoard(z12, "12  화물 적재", new Vector2(13f, -17.2f), 6.2f);
+            ZoneBoard(z12, "화물 적재", new Vector2(13f, -17.2f), 6.2f);
             Box(z12, "ZoneFloorCode", W(4.2f, -21.4f, .011f), new Vector3(3f, .004f, .9f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             Box(z12, "CrossAisleLine", W(15.5f, -29.6f, .011f), new Vector3(WhX1 - WhDivideX - 2f, .004f, .1f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             Box(z12, "CrossAisleLine", W(15.5f, -34.4f, .011f), new Vector3(WhX1 - WhDivideX - 2f, .004f, .1f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
@@ -3919,7 +3919,7 @@ namespace CurtainCall.WaitingRoom.Editor
         static (Scene, Transform) Begin(bool allowFrame8 = false)
         {
             var scene = SceneManager.GetActiveScene();
-            if (scene.path != ScenePath || EditorApplication.isPlaying) throw new InvalidOperationException("Open WaitingRoomBase in Edit mode.");
+            if (scene.path != ScenePath || EditorApplication.isPlaying) throw new InvalidOperationException("Open WaitingRoom in Edit mode.");
             source = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
             if (source.gameObject.activeSelf) throw new InvalidOperationException("Original Greybox must stay inactive.");
             Copies.Clear(); Manifest.Clear(); Materials.Clear(); LevelY = 0;

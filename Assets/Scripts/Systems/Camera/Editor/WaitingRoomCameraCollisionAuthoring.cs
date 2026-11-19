@@ -9,10 +9,10 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Cameras.Editor
 {
-    /// <summary>Shared coverage rules for the authored Base/Pursuit map. Does not rebuild room geometry.</summary>
+    /// <summary>Coverage rules for the waiting room. Does not rebuild room geometry.</summary>
     public static class WaitingRoomCameraCollisionAuthoring
     {
-        // Reviewed against all active mesh renderers in both scenes. Exact names deliberately exclude
+        // Reviewed against active mesh renderers in the waiting room. Exact names deliberately exclude
         // signs, light housings, pipes, furniture and effects (e.g. GoldenLightWall).
         internal static readonly HashSet<string> StructureNames = new(StringComparer.Ordinal) {
             "WallSurfaces", "OuterWall", "DrumWall", "DomeCap", "Ceiling", "CeilingPanel",
@@ -57,7 +57,7 @@ namespace CurtainCall.Cameras.Editor
         public static string Apply(Scene scene)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Stop Play mode before authoring camera collision.");
-            if (!WaitingRoomScenes.IsWaitingRoom(scene)) throw new InvalidOperationException("Select a Base or Pursuit waiting room scene.");
+            if (!WaitingRoomScenes.IsWaitingRoom(scene)) throw new InvalidOperationException("Open the WaitingRoom scene.");
             var targets = Collect(scene);
             var unreadable = targets.Where(f => f.sharedMesh.name != "Cube" && !f.sharedMesh.isReadable).ToArray();
             if (unreadable.Length != 0) throw new InvalidOperationException("Unreadable camera geometry: " + string.Join(", ", unreadable.Select(f => f.name)));

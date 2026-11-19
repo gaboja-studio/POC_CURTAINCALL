@@ -38,7 +38,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
             yield return IsolatedMenuHost();
-            yield return Launch(2,"Morning",0,"Tightrope","WaitingRoomBase"); yield return MenuReady();
+            yield return Launch(2,"Morning",0,"Tightrope","WaitingRoom"); yield return MenuReady();
             var mouse = InputSystem.AddDevice<Mouse>();
             var voice = Find("CurtainCall.Voice.VoiceChat"); bool muted = (bool)Get(voice,"IsMicMuted");
             try

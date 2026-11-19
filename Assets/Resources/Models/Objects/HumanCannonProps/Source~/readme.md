@@ -22,7 +22,7 @@ Task-20261030-082. 사용자 제공 2장 컨셉, 봉제인형 캐릭터와 붉�
 
 ## Unity 재적용
 
-메뉴 `Tools/CurtainCall/인간 대포/Blender 소품 프리팹 갱신`, 이어서 저장된 HumanCannon 또는 WaitingRoomBase 씬에서 `현재 씬에 Blender 소품 적용`.
+메뉴 `Tools/CurtainCall/인간 대포/Blender 소품 프리팹 갱신`, 이어서 저장된 HumanCannon 또는 WaitingRoom 씬에서 `현재 씬에 Blender 소품 적용`.
 도구는 `Assets/Scripts/MainStage/HumanCannon/Editor/HumanCannonPropArtBuilder.cs`. 기존 기능·앵커·충돌체는 보존하고 옛 Renderer를 숨긴다. 원본 프리팹과 숨겨진 모델은 삭제하지 않는다. FBX 변환 결과에 Y=180° 보정 부모를 두며 FBX 자체 root scale/rotation을 보존한다.
 
 ## 계약

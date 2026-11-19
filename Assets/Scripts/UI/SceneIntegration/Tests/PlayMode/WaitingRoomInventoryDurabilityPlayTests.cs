@@ -16,7 +16,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_InventoryDurabilityBarAndUseEffect()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
             var player = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             ulong me = (ulong)Get(player, "OwnerClientId");

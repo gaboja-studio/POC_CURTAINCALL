@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
   [UnityTest, Category("BreakFollowup")] public IEnumerator NightGuide_CountdownStartsAfterLastCameraReturns() {
    FreshTutorial();
    try {
-    yield return Launch(1,"Night",0,"","WaitingRoomBase");
+    yield return Launch(1,"Night",0,"","WaitingRoom");
     yield return WaitGuide(TutorialTitle("N01"),10);
     Assert.AreEqual("WaitingForExit",Field(State,"Timer").ToString());
     Assert.AreEqual(300f,Field(State,"TimeRemaining"));
@@ -21,7 +21,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
   }
 
   [UnityTest, Category("BreakFollowup"), Category("BreakFollowupRetry")] public IEnumerator PursuitMaintenance_TimeSpecificWarningsAndCheats() {
-   yield return Launch(2,"Night",0,"","WaitingRoomPursuit");
+   yield return Launch(2,"Night",0,"","WaitingRoom");
    var run=Static("CurtainCall.Campaign.CampaignRun","Instance");
    var director=Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");
    var cheats=T("CurtainCall.Dev.DevCheatPanel").GetMethod("EnsureExists").Invoke(null,null);
@@ -47,7 +47,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
   [UnityTest]
   public IEnumerator PursuitClosingFailurePlacesTheNextGenerationAtItsLobbySlot()
   {
-   yield return Launch(4, "Morning", 0, "", "WaitingRoomPursuit");
+   yield return Launch(4, "Morning", 0, "", "WaitingRoom");
    var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
    var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
    var spawns = Find("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
@@ -68,7 +68,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
 
   [UnityTest] [Category("BreakFlow")] public IEnumerator PursuitMaintenance_SleepProtectionAndMorningInjuredReturn() {
    FreshTutorial(); T(TutorialType).GetProperty("Enabled").SetValue(null,false);
-   yield return Launch(1,"Night",0,"","WaitingRoomPursuit");
+   yield return Launch(1,"Night",0,"","WaitingRoom");
    var run=Static("CurtainCall.Campaign.CampaignRun","Instance");
    var director=Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");
    var gate=T("CurtainCall.Campaign.RunState").GetProperty("NightEndGate");
@@ -101,7 +101,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
   [UnityTest] [Category("BreakFlow")] public IEnumerator M2_NightPowerGatesAndBedWake() {
    // 밤 연계 튜토리얼(조작 잠금·클로즈업)은 따로 확인한다. 여기서는 끄고 메모리 전용으로 둔다(PC 설정 보존).
    FreshTutorial();T(TutorialType).GetProperty("Enabled").SetValue(null,false);
-   yield return Launch(1,"Night",0,"","WaitingRoomBase");
+   yield return Launch(1,"Night",0,"","WaitingRoom");
    var power=Find("CurtainCall.WaitingRoom.NightPower");
    Assert.IsNotNull(power);yield return new WaitForSecondsRealtime(.2f);
    Assert.AreEqual(false,Get(power,"IsCut"));

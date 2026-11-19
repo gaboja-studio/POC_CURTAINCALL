@@ -27,7 +27,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         {
             var window = ScriptableObject.CreateInstance<PursuitDesignerWindow>();
             try {
-                var pursuit = EditorSceneManager.OpenScene(WaitingRoomScenes.PursuitPath);
+                var pursuit = EditorSceneManager.OpenScene(WaitingRoomScenes.Path);
                 string dataBefore = string.Join("|", Object.FindObjectsByType<PursuitPlacement>(FindObjectsSortMode.None).OrderBy(p => p.GetInstanceID()).Select(JsonUtility.ToJson));
                 Prepare(window);
                 var camera = (Camera)Field(window, "previewCamera");
@@ -51,7 +51,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     Assert.AreEqual(dataBefore, dataAfter);
                     Assert.IsFalse(pursuit.isDirty);
                     SceneManager.SetActiveScene(pursuit);
-                } else EditorSceneManager.OpenScene(WaitingRoomScenes.PursuitPath);
+                } else EditorSceneManager.OpenScene(WaitingRoomScenes.Path);
                 Call(window, "OnBecameVisible"); Prepare(window);
                 Assert.IsNotNull((Camera)Field(window, "previewCamera"), "Re-entry must recreate previews.");
             } finally { Object.DestroyImmediate(window); }

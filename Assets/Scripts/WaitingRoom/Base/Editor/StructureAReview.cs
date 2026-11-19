@@ -12,11 +12,11 @@ namespace CurtainCall.WaitingRoom.Editor
     /// <summary>실제 씬 검토용 좌표 추출과 사용자 요청 디버그 보급품 배치.</summary>
     public static class StructureAReview
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         static Transform Layout()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoomBase in EditMode.");
+            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoom in EditMode.");
             return scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
         }
         static float[] V(Vector3 p) => new[] { p.x, p.y, p.z };

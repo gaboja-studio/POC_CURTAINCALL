@@ -13,7 +13,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// <summary>프로토타입은 읽기 전용으로 두고, 그레이박스 가구 외형과 방별 소품만 복제한다.</summary>
     public static class WaitingRoomFurnisher
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string BundlePath = "Assets/Scenes/Tests/WaitingRoom/Base/Prefabs/WaitingRoomFurnishingMeshes.asset";
         const string GeneratedName = "Furnishings";
         static Transform greybox, prototype, kitPrototype, output;
@@ -26,7 +26,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public static GameObject Apply(Scene scene)
         {
             if (EditorApplication.isPlaying || scene.path != ScenePath)
-                throw new InvalidOperationException("저장된 WaitingRoomBase 편집 씬에서만 실행합니다.");
+                throw new InvalidOperationException("저장된 WaitingRoom 편집 씬에서만 실행합니다.");
             greybox = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
             if (greybox.Find("Mood/InteriorArt") != null)
                 throw new InvalidOperationException("실내 고도화가 적용된 씬입니다. 기존 가구 전체 재생성을 중지합니다.");

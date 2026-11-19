@@ -121,6 +121,9 @@ namespace CurtainCall.Campaign
         /// <summary>그 공연을 지금 고를 수 있는지. 인간 대포만 발견이 필요하다.</summary>
         public bool IsTrickUnlocked(string trickId) => trickId != HumanCannonId || CannonUnlocked;
 
+        public bool IsFirstMorningAfterEnding => Generation > 1 && Day == 1 && Phase == CampaignPhase.RestTime
+            && Rest == RestKind.Morning && LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired or RunEndReason.EscapeSucceeded;
+
         public bool IsRunning => Phase != CampaignPhase.None;
 
         /// <summary>세대 교체 연출(세대 2부터의 도입) 중인지.</summary>

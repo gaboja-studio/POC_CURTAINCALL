@@ -76,7 +76,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator WaitingRoomZoneLabel_FollowsLocalActorAcrossAuthoredRooms()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var zones=Find("CurtainCall.WaitingRoom.ExplorationTimerZones");
             var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
             var mover=player ? player.GetComponent(T("CurtainCall.Player.PlayerMover")) : Find("CurtainCall.Player.PlayerMover");
@@ -102,7 +102,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator ExplorationWarnings_UseTopBannerAboveAllUi()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var ui = Find("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI");
             var notifications = Private(ui, "notifications");
             var banner = (Component)Get(notifications, "Banner");
@@ -342,12 +342,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 while (Time.realtimeSinceStartup < until)
                 {
                     covered |= (bool)Get(Get(ending, "Curtain"), "IsFullyCovered");
-                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "WaitingRoomBase"
+                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "WaitingRoom"
                         && !(bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive")) break;
                     yield return null;
                 }
                 Assert.IsTrue(covered, "Curtain must render a fully closed frame before loading.");
-                Assert.AreEqual("WaitingRoomBase", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                Assert.AreEqual("WaitingRoom", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
                 Assert.IsFalse(UnityEngine.SceneManagement.SceneManager.GetSceneByName("performance_background").isLoaded);
                 Assert.IsFalse((bool)Get(Get(ending, "Curtain"), "IsBusy"));
             }

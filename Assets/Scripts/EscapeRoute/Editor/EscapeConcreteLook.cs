@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using CurtainCall.Settings;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -111,20 +112,21 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 light.shadows = LightShadows.None;
             }
 
+            var dawn = GameSettings.EscapeRoute.EndingLightingFor(EscapeRouteSettings.EndingTimeOfDay.Day);
             var sun = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Light>())
                 .FirstOrDefault(l => l.type == LightType.Directional && l.name == "Directional Light");
             if (sun != null)
             {
-                Undo.RecordObject(sun, "Neutral escape daylight");
-                sun.color = new Color(1f, .99f, .95f);
-                sun.intensity = 1.65f;
+                Undo.RecordObject(sun, "Escape exterior dawn");
+                sun.color = dawn.lightColor;
+                sun.intensity = dawn.lightIntensity;
                 sun.shadows = LightShadows.Soft;
                 sun.shadowStrength = .9f;
             }
             // Ambient is deliberately close to neutral; blue tint must not replace the orange cast.
             RenderSettings.ambientMode = AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(.21f, .22f, .23f);
-            ApplySunnyExteriorSky();
+            ApplyExteriorSky(dawn);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogColor = new Color(.43f, .48f, .50f);
@@ -166,21 +168,20 @@ namespace CurtainCall.EscapeRoute.EditorTools
         }
 
         // Enclosed halls keep the dim neutral fill above; the open reed field gets direct sun.
-        static void ApplySunnyExteriorSky()
+        static void ApplyExteriorSky(EscapeRouteSettings.EndingLighting dawn)
         {
             const string path = Materials + "escape-sunny-exterior.mat";
             var sky = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var shader = Shader.Find("CurtainCall/Endings/Success Overcast Sky");
             if (sky == null)
             {
-                sky = new Material(Shader.Find("Skybox/Procedural")) { name = "escape-sunny-exterior" };
+                sky = new Material(shader) { name = "escape-sunny-exterior" };
                 AssetDatabase.CreateAsset(sky, path);
             }
-            Undo.RecordObject(sky, "Sunny escape exterior");
-            sky.SetColor("_SkyTint", new Color(.52f, .61f, .75f));
-            sky.SetColor("_GroundColor", new Color(.67f, .65f, .57f));
-            sky.SetFloat("_Exposure", 1.65f);
-            sky.SetFloat("_AtmosphereThickness", 1f);
-            sky.SetFloat("_SunSize", .035f);
+            Undo.RecordObject(sky, "Escape exterior dawn");
+            sky.shader = shader;
+            sky.SetColor("_SkyColor", dawn.skyColor);
+            sky.SetColor("_HorizonColor", dawn.fogColor);
             SaveLookMaterial(sky);
             RenderSettings.skybox = sky;
             RenderSettings.reflectionIntensity = .25f;

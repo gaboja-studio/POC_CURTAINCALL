@@ -2,7 +2,7 @@
 
 ## 목적
 
-Start에서 시작해 이어지는 흐름의 확정 씬(`Start`·`Lobby`·`WaitingRoomBase`·`Tightrope`·`HumanCannon`)에서 상시 마이크 음성 채팅을 제공한다. 생존자끼리는 거리에 따라, 사망자(추락·리타이어)끼리는 거리와 무관하게 들리고, 두 무리는 서로 들리지 않는다. 결정: [voice-chat.md](../../Harness/Project/Decisions/voice-chat.md).
+Start에서 시작해 이어지는 흐름의 확정 씬(`Start`·`Lobby`·`WaitingRoom`·`Tightrope`·`HumanCannon`)에서 상시 마이크 음성 채팅을 제공한다. 생존자끼리는 거리에 따라, 사망자(추락·리타이어)끼리는 거리와 무관하게 들리고, 두 무리는 서로 들리지 않는다. 결정: [voice-chat.md](../../Harness/Project/Decisions/voice-chat.md).
 
 ## 담당 파일 (2026-10-20, Task-20261020-063)
 

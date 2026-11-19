@@ -395,7 +395,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator SettingsUpgrade_HostAbandonCancelConfirmAndClientRejection()
         {
             yield return IsolatedMenuHost();
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase"); yield return MenuReady();
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom"); yield return MenuReady();
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
             var run = Find("CurtainCall.Campaign.CampaignRun");
             Assert.IsTrue((bool)Get(run, "CanAbandonRun"));

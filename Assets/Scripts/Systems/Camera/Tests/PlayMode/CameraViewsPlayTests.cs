@@ -34,7 +34,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest, Category("November11CommonFix")]
         public IEnumerator FreeThirdPersonCrouchLowersViewAndStaysInsideLowPassage()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(new Vector3(1000, 30, 1000));
             var preset = Resources.Load("Settings/Camera/FreeThirdPerson");
@@ -112,7 +112,7 @@ namespace CurtainCall.Cameras.Tests
             const string key = "CurtainCall.Settings.HideNearbyCharacter";
             bool existed = PlayerPrefs.HasKey(key);
             int saved = PlayerPrefs.GetInt(key, 1);
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var visibility = director.GetComponent(GameType("CurtainCall.Cameras.CameraModelVisibility"));
             var slot = local.GetComponent(GameType("CurtainCall.Player.PlayerModelSlot"));
             var model = (GameObject)Get(slot, "CurrentModel");
@@ -154,11 +154,7 @@ namespace CurtainCall.Cameras.Tests
 
         [UnityTest]
         public IEnumerator WaitingRoom_WallShortensCameraArmAndRemovalRestoresItGradually()
-            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
-
-        [UnityTest]
-        public IEnumerator WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually()
-            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            => WallShortensCameraArm("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
 
         IEnumerator WallShortensCameraArm(string scene)
         {
@@ -204,9 +200,9 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest, Category("November11CommonFix")]
-        public IEnumerator WaitingRoomPursuit_PhysicalCeilingBlocksPlayerAndCamera()
+        public IEnumerator WaitingRoom_PhysicalCeilingBlocksPlayerAndCamera()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var roof = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Shell/Ceiling");
             Assert.IsNotNull(roof);
             Assert.IsNotNull(roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface")));
@@ -239,9 +235,9 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
-        public IEnumerator WaitingRoomPursuit_RoundLobbyCeilingRetractsArm()
+        public IEnumerator WaitingRoom_RoundLobbyCeilingRetractsArm()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(new Vector3(-6, 9, 77.4f));
@@ -263,12 +259,8 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
-        public IEnumerator WaitingRooms_Architecture_BaseRoomCeilings()
-            => InspectRoomCeilings("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
-
-        [UnityTest]
-        public IEnumerator WaitingRooms_Architecture_PursuitRoomCeilings()
-            => InspectRoomCeilings("Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity");
+        public IEnumerator WaitingRoom_Architecture_RoomCeilings()
+            => InspectRoomCeilings("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
 
         IEnumerator InspectRoomCeilings(string scene)
         {
@@ -362,7 +354,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator WaitingRoom_ReentryBlendsFromRoomWithoutChangingViewKind()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(new Vector3(12, .08f, 70));
@@ -398,7 +390,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator WaitingRoom_StagePassageRetainsViewUntilPastEntrance()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             var zone = GameObject.Find("Zone_StageApproach");
             Assert.IsNotNull(zone, "현재 통로에 시점 구역이 있어야 한다");
@@ -416,7 +408,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator DeathView_FinalizeDropsOnlyThenHoldsDespiteTargetAndPresetChanges()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(local.transform.position + Vector3.up * 12f);
@@ -470,7 +462,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator DeathView_GroundDeathStaysAboveFloorAndLooksAtCorpseLocation()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             try
             {
@@ -508,7 +500,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator DeathView_AirborneDropStopsBeforeCameraTouchesFloor()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             try
             {
@@ -535,7 +527,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator DeathView_SurvivorSelectionWaitsThenReturnsToExistingSpectating()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             // 다른 PC 연결 검증이 아니라 대상 선택 회귀다. 미생성 플레이어를 생존자 목록에만 넣는다.
             var survivorObject = new GameObject("Camera test survivor");
             var survivor = survivorObject.AddComponent(GameType(PlayerType));
@@ -572,7 +564,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator DeathView_DisableAndActiveSceneChangeDiscardPreviousAnchor()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var camera = director.GetComponent<CinemachineCamera>();
             SetDead();
             camera.InternalUpdateCameraState(Vector3.up, -1f);
@@ -615,7 +607,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator Spectator_RetiredAndFallenOrbitSurvivorAndRespectWalls()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var other = new GameObject("Spectator surviving target fixture");
             var survivor = other.AddComponent(GameType(PlayerType));
             var players = (IList)Get(GameType(PlayerType), "All"); players.Add(survivor);
@@ -653,7 +645,7 @@ namespace CurtainCall.Cameras.Tests
         [UnityTest]
         public IEnumerator EscapeCapture_UsesStablePursuerCenterWithWiderFramingAndWorldCollision()
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host("Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity");
             var spectatorType = GameType("CurtainCall.Cameras.CameraSpectator");
             var spectator = (Behaviour)director.GetComponent(spectatorType);
             spectator.enabled = false;
@@ -708,8 +700,6 @@ namespace CurtainCall.Cameras.Tests
         IEnumerator Host(string scene)
         {
 #if UNITY_EDITOR
-            if (scene.EndsWith("/WaitingRoomPursuit.unity", StringComparison.Ordinal))
-                scene = UnityEditor.AssetDatabase.GUIDToAssetPath("9d8832c4cb77f9343a74c3dc35c1d3a3");
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(scene,
                 new LoadSceneParameters(LoadSceneMode.Single));
 #else

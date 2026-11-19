@@ -17,11 +17,11 @@ namespace CurtainCall.Voice.EditorTools.Tests
             Assert.AreEqual(dead, VoiceRoomRules.IsDead(state));
         }
 
-        static readonly string[] FlowScenes = { "Start", "Lobby", "WaitingRoomBase", "Tightrope", "HumanCannon" };
+        static readonly string[] FlowScenes = { "Start", "Lobby", "WaitingRoom", "Tightrope", "HumanCannon" };
 
         [TestCase("Start")]
         [TestCase("Lobby")]
-        [TestCase("WaitingRoomBase")]
+        [TestCase("WaitingRoom")]
         [TestCase("Tightrope")]
         [TestCase("HumanCannon")]
         public void IsVoiceScene_StartFlowConfirmedScenes_True(string scene)

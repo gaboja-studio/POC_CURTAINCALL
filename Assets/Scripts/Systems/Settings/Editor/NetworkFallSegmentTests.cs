@@ -66,9 +66,7 @@ namespace CurtainCall.Settings.EditorTools
         }
 
         [TestCase("WaitingRoom", 5f)] [TestCase("WaitingRoom", 15f)]
-        [TestCase("WaitingRoomBase", 5f)] [TestCase("WaitingRoomBase", 15f)]
-        [TestCase("WaitingRoomPursuit", 5f)] [TestCase("WaitingRoomPursuit", 15f)]
-        public void WaitingRoomLandingSafetyAppliesToEveryVariant(string sceneName, float height)
+        public void WaitingRoomLandingSafetyApplies(string sceneName, float height)
         {
             var settings = GameSettings.WaitingRoom;
             string saved = JsonUtility.ToJson(settings);

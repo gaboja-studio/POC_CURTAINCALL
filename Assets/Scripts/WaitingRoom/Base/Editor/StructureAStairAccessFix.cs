@@ -14,8 +14,8 @@ namespace CurtainCall.WaitingRoom.Editor
         public static void Apply()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.isDirty || !scene.path.EndsWith("/WaitingRoomBase.unity"))
-                throw new InvalidOperationException("Saved WaitingRoomBase EditMode required.");
+            if (EditorApplication.isPlaying || scene.isDirty || !scene.path.EndsWith("/WaitingRoom.unity"))
+                throw new InvalidOperationException("Saved WaitingRoom EditMode required.");
             var layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             int undo = Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Fix bed pickup and stair access");
             try
