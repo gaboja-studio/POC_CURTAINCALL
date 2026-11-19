@@ -22,3 +22,4 @@
 - 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=FAIL; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 재검사에서 컴파일 통과 직후 Unity Pipeline의 공통 설정 호출이 HTTP 400을 반환했다. 같은 최종 파일로 verify-unity를 다시 실행해 컴파일과 공통 설정 모두 PASS를 확인했다.
+- dev 검토용 [PR #452](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/452) 제출. 동적 폰트 3개와 외부 에셋의 로컬 수정은 제출 범위에서 제외했다.
