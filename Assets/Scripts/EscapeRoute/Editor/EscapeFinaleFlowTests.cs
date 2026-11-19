@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using CurtainCall.Network.PlayerSync;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -113,6 +114,57 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Assert.That(boss.Defeated, Is.False);
             }
             finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void ARemotePlayersLateRestartDoesNotWipeTheNewPack()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(ScenePath);
+            var guest = new GameObject("Delayed remote player restart");
+            guest.SetActive(false);
+            try
+            {
+                var boss = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EscapePursuerBoss>(true)).Single();
+                var type = typeof(EscapePursuerBoss);
+                Assert.That(Apply(boss, 20, 1, EscapePursuerBoss.Phase.Battle, count: 1), Is.True);
+                type.GetMethod("EnsureReinforcements", Instance).Invoke(boss, new object[] { 1 });
+                var pack = (IList)type.GetField("reinforcements", Instance).GetValue(boss);
+                var player = guest.AddComponent<NetworkPlayer>();
+                Assert.That(player.IsLocal || player.IsServer, Is.False);
+                type.GetMethod("OnPlayerRestarted", Instance).Invoke(boss, new object[] { player });
+                Assert.That(boss.EncounterSize, Is.EqualTo(2));
+                Assert.That(pack.Count, Is.EqualTo(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(guest);
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
+
+        [Test]
+        public void NewBossEpochRemovesDetachedVisualsFromThePreviousPack()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(ScenePath);
+            var dropped = new GameObject("Detached reinforcement effect");
+            try
+            {
+                var boss = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EscapePursuerBoss>(true)).Single();
+                var type = typeof(EscapePursuerBoss);
+                Assert.That(Apply(boss, 10, 1, EscapePursuerBoss.Phase.Battle, count: 1), Is.True);
+                type.GetMethod("EnsureReinforcements", Instance).Invoke(boss, new object[] { 1 });
+                var pack = (IList)type.GetField("reinforcements", Instance).GetValue(boss);
+                var detached = (IList)type.GetField("severedVisuals", Instance).GetValue(pack[0]);
+                detached.Add(dropped);
+                Assert.That(Apply(boss, 20, 1, EscapePursuerBoss.Phase.Waiting), Is.True);
+                Assert.That(dropped == null, Is.True);
+                Assert.That(pack.Count, Is.Zero);
+            }
+            finally
+            {
+                if (dropped) UnityEngine.Object.DestroyImmediate(dropped);
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
         }
 
         [Test]

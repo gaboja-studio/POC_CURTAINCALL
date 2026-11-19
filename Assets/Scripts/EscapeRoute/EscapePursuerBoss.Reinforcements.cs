@@ -93,6 +93,8 @@ namespace CurtainCall.EscapeRoute
 
         void ClearReinforcements()
         {
+            foreach (var boss in reinforcements)
+                if (boss) boss.ClearSeveredVisuals();
             reinforcements.Clear();
             if (!reinforcementRoot) return;
             reinforcementRoot.gameObject.SetActive(false);

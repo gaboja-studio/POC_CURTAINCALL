@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -36,8 +37,11 @@ namespace CurtainCall.EscapeRoute
                     tint.SetColor("_BaseColor", color); tint.SetColor("_Color", color); mesh.SetPropertyBlock(tint);
                 }
             }
-            // Delayed destruction may otherwise leave last round's severed pieces
-            // beside a restored body. Only remove visuals created by this boss.
+            ClearSeveredVisuals();
+        }
+
+        void ClearSeveredVisuals()
+        {
             foreach (var visual in severedVisuals)
                 if (visual)
                 {
@@ -149,6 +153,7 @@ namespace CurtainCall.EscapeRoute
                 else if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh) detached = filter.sharedMesh;
                 else continue;
                 var go = new GameObject("Severed " + part.label, typeof(MeshFilter), typeof(MeshRenderer), typeof(BoxCollider), typeof(Rigidbody));
+                SceneManager.MoveGameObjectToScene(go, gameObject.scene);
                 severedVisuals.RemoveAll(visual => !visual);
                 severedVisuals.Add(go);
                 go.layer = 2;

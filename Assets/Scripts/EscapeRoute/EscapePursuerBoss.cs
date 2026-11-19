@@ -54,17 +54,23 @@ namespace CurtainCall.EscapeRoute
         void OnEnable()
         {
             if (!IsReinforcement) Current = this;
-            NetworkPlayer.Restarted += Restart;
+            NetworkPlayer.Restarted += OnPlayerRestarted;
             EscapeExitSaw.ShotObserved += ObserveShot;
         }
         void OnDisable()
         {
             ClearReinforcements();
+            ClearSeveredVisuals();
             HideBossWorldUi();
-            NetworkPlayer.Restarted -= Restart;
+            NetworkPlayer.Restarted -= OnPlayerRestarted;
             EscapeExitSaw.ShotObserved -= ObserveShot;
             Detach();
             if (Current == this) Current = null;
+        }
+        void OnPlayerRestarted(NetworkPlayer player)
+        {
+            // Replicated restart values for other guests can arrive after our new encounter snapshot.
+            if (player && (player.IsServer || player.IsLocal)) Restart(player);
         }
         void Restart(NetworkPlayer _)
         {
