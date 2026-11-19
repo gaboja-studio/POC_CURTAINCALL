@@ -115,10 +115,12 @@ namespace CurtainCall.EscapeRoute
         }
         // The visible cable, objective count, and physical shared door use the same newest-round verdict.
         // A lagging door-owning launcher must use cuts already received by its peers.
-        bool SharedCableCut(int i, out Vector3 point)
+        bool SharedCableCut(int i, out Vector3 point) => SharedCableCut(i, out point, out _);
+
+        bool SharedCableCut(int i, out Vector3 point, out uint newestCourse)
         {
             bool cut = (cutMask & (1u << i)) != 0;
-            uint newestCourse = courseEpoch;
+            newestCourse = courseEpoch;
             point = cutPoints[i];
             foreach (var peer in devices)
             {
@@ -327,7 +329,8 @@ namespace CurtainCall.EscapeRoute
             {
                 var cable = cables[i];
                 uint bit = 1u << i;
-                if (cable == null || !cable.isActiveAndEnabled || (cutMask & bit) != 0) continue;
+                if (cable == null || !cable.isActiveAndEnabled
+                    || SharedCableCut(i, out _, out uint latest) || latest != courseEpoch) continue;
                 if (!cable.TryIntersectDisk(from, to, normal, projectileRadius, projectileHalfThickness, out _, out var hit)) continue;
                 cutMask |= bit; cutPoints[i] = hit; cable.SetCut(true, hit, true);
                 if (shot != null) {
@@ -346,7 +349,7 @@ namespace CurtainCall.EscapeRoute
         {
             foreach (var device in devices)
             {
-                if (device == null || device == this || !device.ProjectileMode) continue;
+                if (device == null || device == this || !device.ProjectileMode || device.courseEpoch != courseEpoch) continue;
                 int index = Array.IndexOf(device.cables, cable);
                 if (index < 0 || index >= 32 || (device.cutMask & (1u << index)) != 0) continue;
                 device.cutMask |= 1u << index; device.cutPoints[index] = point;

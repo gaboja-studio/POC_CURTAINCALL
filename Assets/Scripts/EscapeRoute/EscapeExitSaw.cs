@@ -91,7 +91,7 @@ namespace CurtainCall.EscapeRoute
                 for (int i = 0; i < cables.Length && i < 32; i++)
                 {
                     uint bit = 1u << i;
-                    if ((required & bit) == 0 || (cutMask & bit) != 0) continue;
+                    if ((required & bit) == 0 || SharedCableCut(i, out _, out uint latest) || latest != courseEpoch) continue;
                     cables[i].SetCut(true);
                     cutMask |= bit;
                     cutPoints[i] = cables[i].CutPoint;

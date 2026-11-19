@@ -350,6 +350,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var netRoot = new GameObject("Matrix roster"); netRoot.SetActive(false); netRoot.transform.SetParent(root.transform);
                 var session = netRoot.AddComponent<NetworkSessionManager>();
                 var manager = netRoot.GetComponent<NetworkManager>(); Set(session, "_networkManager", manager);
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
                 channel.GetType().GetProperty("Session").SetValue(channel, session);
                 var connected = (IDictionary<ulong, NetworkClient>)manager.ConnectedClients;
                 var content = root.AddComponent<EscapeCampaignContent>();
@@ -380,11 +381,12 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                             int kind = (combination >> (i * 3)) & 7;
                             // 0 outside, 1 inside, 2 arrived, 3 fallen, 4 retired,
                             // 5 captured, 6 disconnected, 7 connected but avatar pending.
-                            spawned.SetValue(actors[i], kind < 6);
+                            // A disconnected avatar may still be present at the exit until NGO despawns it.
+                            spawned.SetValue(actors[i], kind != 7);
                             if (kind != 6) connected.Add(ids[i], new NetworkClient());
                             states[i].Value = kind == 2 ? PlayerState.Arrived : kind == 3 ? PlayerState.Fallen
                                 : kind == 4 ? PlayerState.Retired : kind == 5 ? PlayerState.EscapeCaptured : PlayerState.Normal;
-                            actors[i].transform.position = floor.transform.position + (kind == 1 ? Vector3.zero : Vector3.forward * 10);
+                            actors[i].transform.position = floor.transform.position + (kind is 1 or 6 ? Vector3.zero : Vector3.forward * 10);
                             pending |= kind == 0 || kind == 1 && door == 0 || kind == 5 || kind == 7;
                             success |= kind == 2 || kind == 1 && door == 1;
                         }
@@ -658,6 +660,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var session = networkRoot.AddComponent<NetworkSessionManager>();
                 var manager = networkRoot.GetComponent<Unity.Netcode.NetworkManager>();
                 Set(session, "_networkManager", manager);
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
                 channel.GetType().GetProperty("Session").SetValue(channel, session);
                 var connected = (IDictionary<ulong, Unity.Netcode.NetworkClient>)manager.ConnectedClients;
                 foreach (ulong id in ids.Take(count - 1)) connected.Add(id, new Unity.Netcode.NetworkClient());
