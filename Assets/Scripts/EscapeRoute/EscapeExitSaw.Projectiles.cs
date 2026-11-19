@@ -42,6 +42,7 @@ namespace CurtainCall.EscapeRoute
         readonly RaycastHit[] shotHits = new RaycastHit[64];
         readonly Collider[] shotOverlaps = new Collider[64];
         uint cutMask, shotSerial, lastPresentedShot, courseEpoch;
+        bool finaleDoorReported;
         float shotWait, recoilTime;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
@@ -98,6 +99,7 @@ namespace CurtainCall.EscapeRoute
         void ResetProjectileCourse()
         {
             ClearShots(); cutMask = shotSerial = lastPresentedShot = 0;
+            finaleDoorReported = false;
             Array.Clear(cutPoints, 0, cutPoints.Length);
             PresentCables(false);
         }
@@ -171,6 +173,13 @@ namespace CurtainCall.EscapeRoute
             uint beforeMask = cutMask;
             int beforeCount = shots.Count;
             StepProjectiles(deltaTime, true);
+            if (TryConsumeFinaleDoorOpened())
+            {
+                CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null, this, "EXIT_DOOR", "OPEN",
+                    CableSocket ? CableSocket.position : transform.position, true);
+                if (!string.IsNullOrEmpty(openTarget))
+                    CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+            }
             shotWait = Mathf.Max(0, shotWait - deltaTime);
             if (cutting || beforeMask != cutMask || beforeCount != shots.Count)
             {
@@ -179,6 +188,12 @@ namespace CurtainCall.EscapeRoute
             }
             else if (Time.unscaledTimeAsDouble >= nextPublish)
             { nextPublish = Time.unscaledTimeAsDouble + .1; stateRevision++; Publish(); }
+        }
+        bool TryConsumeFinaleDoorOpened()
+        {
+            if (!finaleBoss || finaleDoorReported || (!doorPanel && (!leftDoorHinge || !rightDoorHinge)) || !DoorOpen) return false;
+            finaleDoorReported = true;
+            return true;
         }
         bool TryFire(NetworkPlayer carrier)
         {
@@ -339,8 +354,13 @@ namespace CurtainCall.EscapeRoute
                     ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "CABLE_CUT", hit, shot.Direction,
                         CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
                 }
-                if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
-                if (DoorOpen && !string.IsNullOrEmpty(openTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                if (!finaleBoss && DoorOpen)
+                {
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null, this, "EXIT_DOOR", "OPEN",
+                        CableSocket ? CableSocket.position : hit, true);
+                    if (!string.IsNullOrEmpty(openTarget))
+                        CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                }
                 if (!string.IsNullOrEmpty(cable.OpenTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cable.OpenTarget);
                 ShareCut(cable, hit);
             }

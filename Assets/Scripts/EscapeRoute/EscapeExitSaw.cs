@@ -103,7 +103,7 @@ namespace CurtainCall.EscapeRoute
             }
             else cutProgress = cutSeconds;
             cutting = false;
-            if (DoorOpen && !string.IsNullOrEmpty(openTarget))
+            if (!finaleBoss && DoorOpen && !string.IsNullOrEmpty(openTarget))
                 CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
             Changed(); // Use the normal revision/snapshot path; presentation animates the door.
             return DoorOpen;
@@ -125,7 +125,7 @@ namespace CurtainCall.EscapeRoute
                 break;
             }
         }
-        public string Guidance => DoorOpen ? "추격자 제압 및 배선 절단 완료 · 출구로 이동하세요"
+        public string Guidance => DoorOpen ? (finaleBoss ? "추격자 제압 및 배선 절단 완료 · 출구로 이동하세요" : "배선 절단 완료 · 출구로 이동하세요")
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
             : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.EncounterDefeated ? $"{UseKey} 발사 · 남은 추격자 {finaleBoss.RemainingEnemies}명 · 배선 {CutCableCount}/{RequiredCableCount}"
             : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용"

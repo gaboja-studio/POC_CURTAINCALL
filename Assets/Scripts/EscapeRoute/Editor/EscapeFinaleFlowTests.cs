@@ -142,6 +142,48 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             finally { EditorSceneManager.ClosePreviewScene(scene); }
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void OnlyThePhysicalExitRecordsOpeningOnceInEitherCompletionOrder(bool cutWiresFirst)
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(ScenePath);
+            try
+            {
+                var roots = scene.GetRootGameObjects();
+                var boss = roots.SelectMany(r => r.GetComponentsInChildren<EscapePursuerBoss>(true)).Single();
+                var launchers = roots.SelectMany(r => r.GetComponentsInChildren<EscapeExitSaw>(true))
+                    .Where(s => s.FinaleBoss == boss && s.RequiredCableCount > 0).ToArray();
+                var sawType = typeof(EscapeExitSaw);
+                var record = sawType.GetMethod("TryConsumeFinaleDoorOpened", Instance);
+                var required = sawType.GetProperty("RequiredMask", Instance);
+                var cuts = sawType.GetField("cutMask", Instance);
+                var owner = launchers.Single(s => s.name == "40_AExitCableSaw");
+                Assert.That(launchers.Length, Is.GreaterThan(1));
+                bool Record(EscapeExitSaw launcher) => (bool)record.Invoke(launcher, null);
+                void CutAll()
+                {
+                    foreach (var launcher in launchers) cuts.SetValue(launcher, required.GetValue(launcher));
+                }
+                void Defeat() => Assert.That(Apply(boss, 10, 2, EscapePursuerBoss.Phase.Dead, byte.MaxValue), Is.True);
+
+                Assert.That(Apply(boss, 10, 1, EscapePursuerBoss.Phase.Battle), Is.True);
+                if (cutWiresFirst) CutAll(); else Defeat();
+                Assert.That(launchers.Any(Record), Is.False);
+                if (cutWiresFirst) Defeat(); else CutAll();
+                Assert.That(launchers.Where(s => s != owner).Any(Record), Is.False);
+                Assert.That(Record(owner), Is.True);
+                Assert.That(Record(owner), Is.False);
+
+                Assert.That(Apply(boss, 20, 1, EscapePursuerBoss.Phase.Waiting), Is.True);
+                foreach (var launcher in launchers) sawType.GetMethod("ResetProjectileCourse", Instance).Invoke(launcher, null);
+                Assert.That(Record(owner), Is.False);
+                Assert.That(Apply(boss, 20, 2, EscapePursuerBoss.Phase.Dead, byte.MaxValue), Is.True);
+                CutAll();
+                Assert.That(Record(owner), Is.True);
+            }
+            finally { EditorSceneManager.ClosePreviewScene(scene); }
+        }
+
         [TestCase(1)]
         [TestCase(4)]
         public void FinaleSnapshotKeepsIndependentPursuersAndResetsTheNextRound(int participants)
