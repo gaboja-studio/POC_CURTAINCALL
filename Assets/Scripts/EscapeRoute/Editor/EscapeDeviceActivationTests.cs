@@ -997,7 +997,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     }
                 }
                 CheckRegistry<HumanCannonStation>(frame, frame.GetComponentInChildren<HumanCannonSystem>(true), "stations", 10);
-                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 36);
+                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 37);
             }
             finally { EditorSceneManager.ClosePreviewScene(scene); }
         }
