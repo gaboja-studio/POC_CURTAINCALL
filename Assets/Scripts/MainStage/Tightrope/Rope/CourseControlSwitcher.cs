@@ -26,6 +26,7 @@ namespace CurtainCall.Tightrope
         [SerializeField] PlayerControlScheme platformScheme;
 
         TightropeCourse course;
+        TightropeRun run;
         NetworkPlayer player;
         PlayerController controller;
         PlayerMover mover;
@@ -74,6 +75,7 @@ namespace CurtainCall.Tightrope
         void Awake()
         {
             course = GetComponent<TightropeCourse>();
+            run = GetComponent<TightropeRun>();
             if (ropeScheme == null) ropeScheme = generatedRopeScheme = CreateDefault<TightropeControlScheme>();
         }
 
@@ -214,7 +216,14 @@ namespace CurtainCall.Tightrope
                 return;
             }
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
-                || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
+                || (balance != null && balance.HasFallen)) return;
+            if (player.State == PlayerState.Arrived)
+            {
+                ApplyPlatformMode();
+                return;
+            }
+            // 호스트가 발판으로 옮길 때까지 이동축을 유지한다. 카메라 기준 플랫폼 입력이 줄로 되돌리지 않게 한다.
+            if (onRope == true && run != null && run.IsApproachingCampaignFinish(player)) return;
 
             var stack = PiggybackSystem.Current;
             if (HumanCannonTrampoline.IsCarriedBy(player))

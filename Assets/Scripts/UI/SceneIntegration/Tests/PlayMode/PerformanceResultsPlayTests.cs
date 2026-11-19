@@ -167,6 +167,66 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator CurtainBarrier_PausesMotionAndRefreshesGroundAfterPlacement()
+        {
+            UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            var transition = T("CurtainCall.UI.SceneIntegration.SceneCurtainTransition");
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var actor = new GameObject("Curtain transition player");
+            var origin = new Vector3(1000f, 50f, 1000f);
+            floor.transform.position = origin - Vector3.up * .5f;
+            floor.transform.localScale = new Vector3(4f, 1f, 4f);
+            actor.transform.position = origin;
+            var mover = actor.AddComponent(T("CurtainCall.Player.PlayerMover"));
+            var body = actor.GetComponent<CharacterController>();
+            Physics.SyncTransforms();
+
+            int airborneStarts = 0;
+            Action<bool> onAirborne = airborne => { if (airborne) airborneStarts++; };
+            var airborneChanged = mover.GetType().GetEvent("AirborneChanged");
+            try
+            {
+                float until = Time.realtimeSinceStartup + 2f;
+                while (!body.isGrounded && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsTrue(body.isGrounded);
+                Assert.AreEqual("None", Get(mover, "CurrentJump").ToString());
+                airborneChanged.AddEventHandler(mover, onAirborne);
+
+                yield return (IEnumerator)transition.GetMethod("Cover").Invoke(null, null);
+                Assert.IsTrue((bool)Static(transition.FullName, "CanTransition"));
+                var heldPosition = actor.transform.position;
+                floor.transform.position += Vector3.right * 8f;
+                Physics.SyncTransforms();
+                yield return null;
+                Assert.AreEqual(heldPosition, actor.transform.position);
+                Assert.AreEqual("None", Get(mover, "CurrentJump").ToString());
+
+                Call(mover, "Relocate", origin + Vector3.right * 8f + Vector3.up * .05f, Quaternion.identity);
+                transition.GetMethod("Complete").Invoke(null, null);
+                until = Time.realtimeSinceStartup + 10f;
+                while ((bool)Static(transition.FullName, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsFalse((bool)Static(transition.FullName, "IsActive"));
+                yield return null;
+                yield return null;
+                Assert.IsTrue(body.isGrounded);
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+                Assert.AreEqual(0, airborneStarts, "Neither covering nor reopening the curtain should start a fall.");
+
+                floor.SetActive(false);
+                until = Time.realtimeSinceStartup + 2f;
+                while (!(bool)Get(mover, "IsAirborne") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreEqual("Fall", Get(mover, "CurrentJump").ToString(), "Actual loss of support must still start a fall.");
+            }
+            finally
+            {
+                airborneChanged.RemoveEventHandler(mover, onAirborne);
+                transition.GetMethod("Complete").Invoke(null, null);
+                UnityEngine.Object.Destroy(actor);
+                UnityEngine.Object.Destroy(floor);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator CurtainBarrier_NewCoverCancelsPreviousReveal()
         {
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();

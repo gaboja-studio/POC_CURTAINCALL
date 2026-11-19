@@ -47,6 +47,7 @@ namespace CurtainCall.Player
 
         CharacterController controller;
         ConveyorSurface conveyorSupport;
+        bool refreshGroundAfterTransition;
         float moveInput;
         float sideInput; // 일반 이동의 옆 입력(+1 오른쪽)
         bool sprintInput;
@@ -180,15 +181,25 @@ namespace CurtainCall.Player
         /// </summary>
         public bool PassThrough
         {
-            get => passThrough;
+            get => passThrough || ParkedAtPerformanceFinish;
             set
             {
                 passThrough = value;
-                if (controller != null) controller.detectCollisions = !value;
+                if (controller != null) controller.detectCollisions = !PassThrough;
             }
         }
 
         bool passThrough;
+        bool parkedAtPerformanceFinish;
+        internal bool ParkedAtPerformanceFinish
+        {
+            get => parkedAtPerformanceFinish;
+            set
+            {
+                parkedAtPerformanceFinish = value;
+                if (controller != null) controller.detectCollisions = !PassThrough;
+            }
+        }
 
         /// <summary>
         /// 이동 속도 배율(×, 0 이상). 줄 위·플랫폼 걷기 속도에 곱한다. 기본 1.
@@ -612,17 +623,28 @@ namespace CurtainCall.Player
             // 부상 높이·배율은 부상 기능이 따로 넣고(자세와 독립), 여기서 자세를 정한 뒤 둘을 합쳐 몸통 크기를 맞추고 이동한다.
             UpdatePosture();
             ApplyBodySize(!Simulated);
-            if (!Simulated || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
-                || CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement
+            if (CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive || CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement)
+            {
+                ResetExternalMotion(false);
+                refreshGroundAfterTransition = true;
+                return;
+            }
+            if (!Simulated || ParkedAtPerformanceFinish
                 || CurtainCall.EscapeRoute.EscapeSceneTransfer.HoldingForDeparture
                 || CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
             {
                 IsMoving = false;
                 ClearPendingInput();
                 unsupportedSlideVelocity = Vector3.zero;
-                if (CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive)
-                    ResetExternalMotion(true);
                 return;
+            }
+
+            if (refreshGroundAfterTransition)
+            {
+                refreshGroundAfterTransition = false;
+                // Placement toggles the controller, invalidating its last ground contact.
+                if (!controller.isGrounded && WalkableSupport.Contains(this, transform.position))
+                    SnapToGround(0f);
             }
 
             Vector3 forward = CourseForward;

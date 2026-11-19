@@ -18,10 +18,7 @@ namespace CurtainCall.Network.PlayerSync
         internal bool TryGetDevCheckpointFeet(out Vector3 feet)
         {
             // Use the newest replicated owner position on the host, without interpolating across gaps.
-            feet = IsOwner || networkTransform == null
-                ? transform.position : networkTransform.GetSpaceRelativePosition(true);
-            if (!IsOwner && networkTransform != null && networkTransform.InLocalSpace && transform.parent != null)
-                feet = transform.parent.TransformPoint(feet);
+            feet = LatestOwnerPosition;
             if (checkpointRecoveryPending is not { } target) return true;
             if (checkpointRecoveryRestart == RestartVersion && (feet - target).sqrMagnitude > 1f) return false;
             checkpointRecoveryPending = null;

@@ -497,8 +497,27 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
-        /// <summary>위치가 도착 거리에 닿았는지.</summary>
-        public bool HasReachedFinish(Vector3 position) => GetDistance(position) >= FinishDistance;
+        internal Pose GetFinishWaitingPose(int rank, int participantCount)
+        {
+            if (!TryGetFinishPlatformBounds(out var floor)) return GetFinishPose(rank);
+            float side = floor.center.x + CurtainCall.Reward.PerformanceRewards.FinishWaitingSide(rank, participantCount, floor.size.x);
+            float distance = floor.center.z + floor.extents.z * .5f;
+            return new Pose(transform.position + Right * side + Forward * distance, Quaternion.LookRotation(Forward, Vector3.up));
+        }
+
+        /// <summary>캐릭터 앞쪽이 최종 도착대 입구에 닿았는지 확인한다.</summary>
+        public bool HasReachedFinish(Vector3 position)
+        {
+            float distance = GetDistance(position);
+            if (useSceneGeometry) return distance >= FinishDistance;
+            float radius = GameSettings.Base.Character.CapsuleRadius;
+            if (!(distance >= FinishDistance - radius && position.y >= transform.position.y - RopeHeightTolerance)
+                || !TryGetFinishPlatformBounds(out var floor) || distance > floor.max.z + radius) return false;
+            float side = GetSide(position);
+            if (!(side >= floor.min.x && side <= floor.max.x)) return false;
+            if (distance >= FinishDistance) return true;
+            return Layout.GetLaneEnd(Layout.GetLaneSlotAt(side)) >= FinishDistance;
+        }
 
         // ── 생성 ────────────────────────────────────────────
 

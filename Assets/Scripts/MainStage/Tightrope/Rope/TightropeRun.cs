@@ -348,26 +348,21 @@ namespace CurtainCall.Tightrope
                         if (InProgressCount > 0 && !IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
                         break;
                     }
-                    ServerMarkArrivals();
-                    // 공용 런: 첫 도착은 공용 정산의 종료 여유 시간을 연다. 그동안 남은 사람의 장애물은 계속 돌리고 시간 초과·전원 판정은 미룬다(2026-11-13).
-                    if (ArrivedCount > 0 && UsesCampaign && campaignBridge.ReportExternalArrivals())
+                    bool campaignReporting = UsesCampaign && campaignBridge.ReportExternalArrivals();
+                    if (State != TightropeRunState.Running) break;
+                    if (!campaignReporting)
                     {
-                        if (State == TightropeRunState.Running && InProgressCount > 0)
-                        {
-                            if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
-                            ServerHazardCheck?.Invoke();
-                        }
+                        ServerMarkArrivals();
+                        if (ArrivedCount > 0) { ServerSucceed(); break; }
                     }
-                    else if (ArrivedCount > 0) ServerSucceed(); // 도착이 이번 위험 판정보다 우선
-                    else
+                    bool waitingForFinishers = campaignReporting && campaignBridge.FinishGraceActive;
+                    if (InProgressCount > 0 && (waitingForFinishers || TimeRemaining > 0f))
                     {
-                        if (InProgressCount > 0 && TimeRemaining > 0f)
-                        {
-                            if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
-                            ServerHazardCheck?.Invoke();
-                        }
-                        if (TimeRemaining <= 0f || InProgressCount == 0 && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe()) ServerFail();
+                        if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
+                        ServerHazardCheck?.Invoke();
                     }
+                    if (!waitingForFinishers && (TimeRemaining <= 0f
+                        || InProgressCount == 0 && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe())) ServerFail();
                     break;
 
                 case TightropeRunState.Failed:
@@ -412,7 +407,7 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void RequestLocalArrival()
         {
-            if (BridgeManagesPerformance || practiceMode || (externallyManaged && !externalStarted)) return;
+            if (UsesCampaign && campaignBridge.PerformanceOpen || practiceMode || (externallyManaged && !externalStarted)) return;
             var player = NetworkPlayer.Local;
             if (State != TightropeRunState.Running || player == null || player.State != PlayerState.Normal) return;
             if (!course.HasReachedFinish(player.transform.position)) return;
@@ -478,6 +473,7 @@ namespace CurtainCall.Tightrope
             if (externallyManaged && !externalStarted
                 && (next == PlayerState.Fallen || next == PlayerState.Arrived)) return false;
             if (practiceMode) return next != PlayerState.Arrived;
+            if (next == PlayerState.Arrived && UsesCampaign && campaignBridge.PerformanceOpen) return false;
             if (BridgeManagesPerformance)
             {
                 if (!campaignBridge.IsTightropePerformance) return true;
@@ -783,9 +779,20 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
-        internal bool HasCampaignArrival(NetworkPlayer player) => player != null && player.IsSpawned
-            && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player)
-            && course.HasReachedFinish(player.transform.position);
+        internal bool HasCampaignArrival(NetworkPlayer player)
+        {
+            if (player == null || player.State != PlayerState.Normal || !IsParticipantReady(player)
+                || (!externallyManaged && !seenAtStart.Contains(player))) return false;
+
+            // A mounted rider shares the carrier's arrival even if their owner update comes in a later tick.
+            var stack = PiggybackSystem.Current;
+            var carrier = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : player;
+            return carrier != null && course.HasReachedFinish(carrier.LatestOwnerPosition);
+        }
+
+        internal bool IsApproachingCampaignFinish(NetworkPlayer local) => State == TightropeRunState.Running
+            && !practiceMode && UsesCampaign && campaignBridge.PerformanceOpen
+            && course.HasReachedFinish(local.transform.position);
 
         internal bool HasCompletionProgress(NetworkPlayer player) => player != null && player.IsSpawned
             && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player)

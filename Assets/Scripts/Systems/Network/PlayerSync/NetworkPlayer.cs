@@ -30,6 +30,46 @@ namespace CurtainCall.Network.PlayerSync
 
         static readonly List<NetworkPlayer> all = new();
 
+        struct PerformanceFinishPlacement : INetworkSerializeByMemcpy
+        {
+            public bool Active;
+            public Vector3 Position;
+            public Quaternion Rotation;
+        }
+
+        readonly NetworkVariable<PerformanceFinishPlacement> performanceFinishPlacement = new();
+
+        internal Pose? PerformanceFinishPose => performanceFinishPlacement.Value.Active
+            ? new Pose(performanceFinishPlacement.Value.Position, performanceFinishPlacement.Value.Rotation) : null;
+
+        internal Vector3 LatestOwnerPosition
+        {
+            get
+            {
+                if (IsOwner || networkTransform == null) return transform.position;
+                var position = networkTransform.GetSpaceRelativePosition(true);
+                return networkTransform.InLocalSpace && transform.parent != null
+                    ? transform.parent.TransformPoint(position) : position;
+            }
+        }
+
+        internal void ServerPlacePerformanceFinisher(Pose pose)
+        {
+            if (!IsServer || !IsSpawned || State != PlayerState.Normal) return;
+            CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForRelocation(OwnerClientId);
+            ServerSetState(PlayerState.Arrived);
+            performanceFinishPlacement.Value = new PerformanceFinishPlacement
+                { Active = true, Position = pose.position, Rotation = pose.rotation };
+        }
+
+        void ApplyPerformanceFinishPlacement(PerformanceFinishPlacement previous, PerformanceFinishPlacement current)
+        {
+            mover.ParkedAtPerformanceFinish = current.Active;
+            if (!current.Active || !IsOwner) return;
+            if (balance != null) balance.SetBalanceActive(false);
+            mover.Relocate(current.Position, current.Rotation);
+        }
+
         readonly NetworkVariable<int> slot = new(NoSlot);
         readonly NetworkVariable<int> appearanceModel = new(-1);
         readonly NetworkVariable<int> appearanceOutfit = new(-1);
@@ -439,6 +479,7 @@ namespace CurtainCall.Network.PlayerSync
             slot.OnValueChanged += HandleSlotChanged;
             jump.OnValueChanged += HandleJumpChanged;
             state.OnValueChanged += HandleStateChanged;
+            performanceFinishPlacement.OnValueChanged += ApplyPerformanceFinishPlacement;
             restartCount.OnValueChanged += HandleRestart;
             reviveCount.OnValueChanged += HandleRevive;
             lostParts.OnValueChanged += HandleLostPartsChanged;
@@ -476,6 +517,9 @@ namespace CurtainCall.Network.PlayerSync
             else if (Slot != NoSlot)
                 PlaceAtStart();
 
+            if (performanceFinishPlacement.Value.Active)
+                ApplyPerformanceFinishPlacement(default, performanceFinishPlacement.Value);
+
             if (IsOwner)
             {
                 Local = this;
@@ -493,6 +537,8 @@ namespace CurtainCall.Network.PlayerSync
             slot.OnValueChanged -= HandleSlotChanged;
             jump.OnValueChanged -= HandleJumpChanged;
             state.OnValueChanged -= HandleStateChanged;
+            performanceFinishPlacement.OnValueChanged -= ApplyPerformanceFinishPlacement;
+            mover.ParkedAtPerformanceFinish = false;
             restartCount.OnValueChanged -= HandleRestart;
             reviveCount.OnValueChanged -= HandleRevive;
             lostParts.OnValueChanged -= HandleLostPartsChanged;
@@ -570,6 +616,8 @@ namespace CurtainCall.Network.PlayerSync
                 mover.Simulated = true;
                 if (balance != null) balance.IsSuspended = false;
             }
+            if (IsServer && current != PlayerState.Arrived && performanceFinishPlacement.Value.Active)
+                performanceFinishPlacement.Value = default;
             ApplyState(current);
             StateChanged?.Invoke(previous, current);
         }

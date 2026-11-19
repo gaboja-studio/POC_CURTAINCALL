@@ -17,6 +17,7 @@ namespace CurtainCall.Tightrope
     {
         [SerializeField, Range(1, 3)] int difficulty = 1;
         TightropeRun run;
+        TightropeCourse course;
         bool observing;
 
         public static TightropeCampaignBridge Current { get; private set; }
@@ -39,6 +40,7 @@ namespace CurtainCall.Tightrope
             if (Current != null && Current != this) { enabled = false; return; }
             Current = this;
             run = GetComponent<TightropeRun>();
+            course = GetComponent<TightropeCourse>();
             Campaign = CampaignRun.EnsureExists();
             Rewards = PerformanceRewards.EnsureExists();
             // Changed는 공용 정산의 스냅샷 송신 직후, 시간대 전환·외팔 부활보다 먼저 온다.
@@ -109,15 +111,15 @@ namespace CurtainCall.Tightrope
 
         internal bool TryFinishAtDestination()
         {
-            if (run.ExternallyManaged || !PerformanceOpen || NetworkSessionManager.Instance?.IsHost != true) return false;
+            if (!PerformanceOpen || run.CampaignPerformanceId != PerformanceId
+                || NetworkSessionManager.Instance?.IsHost != true) return false;
             var arrived = Collect(run.HasCampaignArrival);
-            if (arrived.Count == 0) return false;
-            // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
-            return Rewards.ReportArrivals(arrived, Collect(run.HasCompletionProgress));
+            if (arrived.Count == 0 && !FinishGraceActive) return false;
+            return Rewards.ReportArrivals(arrived, Collect(run.HasCompletionProgress), course.GetFinishWaitingPose);
         }
 
         /// <summary>
-        /// 공용 런(SpaceLink 외부 관리)에서 도착 완료자가 생겼을 때 호스트가 부른다. 같은 공연이 열려 있으면 도착 완료자와 완주 인정자를
+        /// 공용 런(SpaceLink 외부 관리)에서 호스트가 부른다. 같은 공연이 열려 있으면 도착자와 완주 인정자를
         /// 공용 정산의 종료 여유 시간에 보고하고 true(정산은 공용 정산이 하고 결과는 <see cref="TightropeRun.AcceptCampaignResult"/>로 돌아온다).
         /// 공용 공연이 아니면 false(묘기 자체 성공 판정을 쓴다).
         /// </summary>
@@ -125,8 +127,7 @@ namespace CurtainCall.Tightrope
         {
             if (!run.ExternallyManaged || !PerformanceOpen || run.CampaignPerformanceId != PerformanceId
                 || NetworkSessionManager.Instance?.IsHost != true) return false;
-            var arrived = Collect(player => player.State == PlayerState.Arrived);
-            if (arrived.Count > 0) Rewards.ReportArrivals(arrived, Collect(run.HasCompletionProgress));
+            TryFinishAtDestination();
             return true;
         }
 

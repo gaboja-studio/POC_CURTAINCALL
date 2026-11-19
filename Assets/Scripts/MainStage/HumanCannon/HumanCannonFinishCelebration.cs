@@ -5,7 +5,7 @@ using UnityEngine;
 namespace CurtainCall.HumanCannon
 {
     /// <summary>
-    /// 도착지점 폭죽의 색종이·불꽃 연출. 각 화면이 동기화된 플레이어 위치로 첫 도착을 보고 한 번 터뜨린다.
+    /// 도착지점 폭죽의 색종이·불꽃 연출. 각 화면이 첫 도착을 보고 한 번 터뜨린다.
     /// 판정·정산은 HumanCannonDestination이 맡으며 여기서는 바꾸지 않는다.
     /// </summary>
     public sealed class HumanCannonFinishCelebration : MonoBehaviour
@@ -38,7 +38,7 @@ namespace CurtainCall.HumanCannon
             if (destination == null) return;
             bool arrived = false;
             foreach (var player in NetworkPlayer.All)
-                if (destination.HasArrived(player)) { arrived = true; break; }
+                if (player.PerformanceFinishPose.HasValue || destination.HasArrived(player)) { arrived = true; break; }
             if (state.TryCelebrate(destination.PerformanceId, arrived)) Play();
         }
 

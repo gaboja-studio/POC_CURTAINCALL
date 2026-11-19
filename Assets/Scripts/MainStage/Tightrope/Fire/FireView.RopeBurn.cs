@@ -10,7 +10,7 @@ namespace CurtainCall.Tightrope.Fire
 
         static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         static readonly Color IgnitionGlow = new(1.3f, .18f, .025f);
-        readonly MaterialPropertyBlock burnProperties = new();
+        MaterialPropertyBlock burnProperties;
         readonly Dictionary<Material, Material> burnMaterials = new();
         readonly List<(MeshRenderer renderer, Material[] originals, MaterialPropertyBlock originalBlock, float offset)> burningSurfaces = new();
         readonly List<MeshRenderer> ropeRenderers = new();
@@ -77,10 +77,11 @@ namespace CurtainCall.Tightrope.Fire
             foreach (var surface in burningSurfaces)
             {
                 if (surface.renderer == null) continue;
-                surface.renderer.GetPropertyBlock(burnProperties);
-                RopeDissolve.Apply(burnProperties, RopeDissolve.AtOffset(dissolve, surface.offset));
-                burnProperties.SetColor(EmissionColor, IgnitionGlow * warning);
-                surface.renderer.SetPropertyBlock(burnProperties);
+                var properties = burnProperties ??= new MaterialPropertyBlock();
+                surface.renderer.GetPropertyBlock(properties);
+                RopeDissolve.Apply(properties, RopeDissolve.AtOffset(dissolve, surface.offset));
+                properties.SetColor(EmissionColor, IgnitionGlow * warning);
+                surface.renderer.SetPropertyBlock(properties);
             }
         }
 

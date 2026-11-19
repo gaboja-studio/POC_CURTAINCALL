@@ -597,10 +597,39 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.IsTrue((bool)Call(run, "HasCompletionProgress", player));
             Assert.IsFalse((bool)Call(bridge, "TryFinishAtDestination"), "80%만으로 공연을 조기 종료하지 않는다.");
             Assert.IsNull(Get(bridge, "Result"));
-            var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
-            Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-            // 첫 생존 도착은 종료 여유 시간을 열지만, 더 기다릴 생존자가 없으면(혼자 출연) 바로 정산한다(2026-11-13).
+            var character = Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Character");
+            float radius = (float)Get(character, "CapsuleRadius");
+            for (int lane = 0; lane < (int)Get(course, "LaneCount"); lane++)
+            {
+                var before = (Vector3)Call(course, "GetLanePosition", lane, length - radius * 1.5f);
+                var contact = (Vector3)Call(course, "GetLanePosition", lane, length - radius * .5f);
+                Assert.IsFalse((bool)Call(course, "HasReachedFinish", before));
+                Assert.IsTrue((bool)Call(course, "HasReachedFinish", contact));
+                Assert.IsFalse((bool)Call(course, "HasReachedFinish", contact - Vector3.up));
+            }
+
+            var right = (Vector3)Get(course, "Right");
+            for (int count = 2; count <= 4; count++)
+            {
+                var first = (Pose)Call(course, "GetFinishWaitingPose", 0, count);
+                var previous = first;
+                for (int rank = 1; rank < count; rank++)
+                {
+                    var next = (Pose)Call(course, "GetFinishWaitingPose", rank, count);
+                    Assert.That(Vector3.Dot(next.position - previous.position, right), Is.GreaterThan(radius * 2f));
+                    previous = next;
+                }
+                Assert.That(Vector3.Dot((first.position + previous.position) * .5f - ((Pose)Call(course, "GetFinishWaitingPose", 0, 1)).position, right),
+                    Is.EqualTo(0f).Within(.01f));
+            }
+
+            var finishContact = (Vector3)Call(course, "GetLanePosition", 0, length - radius * .5f);
+            Call(mover, "SetStartPose", finishContact, Quaternion.LookRotation(Vector3.back), true);
             Assert.IsTrue((bool)Call(bridge, "TryFinishAtDestination"), "기다릴 사람이 없으면 여유 시간 없이 바로 정산한다.");
+            Assert.AreEqual("Arrived", Get(player, "State").ToString());
+            Assert.IsTrue((bool)Get(mover, "PassThrough"));
+            var waiting = (Pose)Call(course, "GetFinishWaitingPose", 0, 1);
+            Assert.That(Vector3.Distance(player.transform.position, waiting.position), Is.LessThan(.01f));
             Assert.IsFalse((bool)Get(rewards, "FinishGraceActive"));
             Assert.IsTrue((bool)Get(Get(bridge, "Result"), "Succeeded"));
         }
