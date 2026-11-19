@@ -59,15 +59,25 @@ namespace CurtainCall.Reward
             var next = PerformanceRewards.Instance;
             if (rewards != next)
             {
-                if (rewards != null) rewards.BeforeSettlement -= BeforeSettlement;
+                UnbindRewards();
                 rewards = next;
-                if (rewards != null) rewards.BeforeSettlement += BeforeSettlement;
+                if (rewards != null)
+                {
+                    rewards.BeforeSettlement += BeforeSettlement;
+                    rewards.BeforeFinisherPlacement += BeforeFinisherPlacement;
+                }
             }
             EnsureAttempt();
             if (piggyback == PiggybackSystem.Current) return;
             if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
             piggyback = PiggybackSystem.Current;
             if (piggyback != null) piggyback.HandholdConfirmed += Handhold;
+        }
+        void UnbindRewards()
+        {
+            if (rewards == null) return;
+            rewards.BeforeSettlement -= BeforeSettlement;
+            rewards.BeforeFinisherPlacement -= BeforeFinisherPlacement;
         }
         void ResetAttempt()
         {
@@ -136,6 +146,13 @@ namespace CurtainCall.Reward
             Bind();
             if (humanCannon || !Active || Settings == null || source == null || !milestones.Add((client, source.GetInstanceID()))) return;
             React(client, Settings.swingLanding);
+        }
+        void BeforeFinisherPlacement(NetworkPlayer player)
+        {
+            EnsureAttempt();
+            if (!Active || Settings == null || !Eligible(player)) return;
+            if (humanCannon) ObserveCannon(player);
+            else ObserveRope(player);
         }
         void BeforeSettlement(IReadOnlyDictionary<string, string> judgements)
         {
@@ -299,7 +316,8 @@ namespace CurtainCall.Reward
             TightropeCatchSystem.ServerCatchSucceeded -= Cooperation;
             TightropeSwingPole.ServerCrossed -= SwingCrossed;
             TightropeTrapeze.ServerCrossed -= TrapezeCrossed;
-            if (rewards != null) rewards.BeforeSettlement -= BeforeSettlement;
+            UnbindRewards();
+            rewards = null;
             if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
             piggyback = null;
             rewards = null; identity = null; ResetAttempt();

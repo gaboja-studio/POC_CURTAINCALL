@@ -91,6 +91,7 @@ namespace CurtainCall.Reward
                 try { handler(); } catch (Exception error) { Debug.LogException(error); }
         }
         public event Action<PerformanceResult> ResultConfirmed;
+        internal event Action<NetworkPlayer> BeforeFinisherPlacement;
         /// <summary>정산 직전 호스트 관찰. 도착 환호를 같은 공연의 정산에 포함한다.</summary>
         public event Action<IReadOnlyDictionary<string, string>> BeforeSettlement;
 
@@ -149,7 +150,7 @@ namespace CurtainCall.Reward
             foreach (var player in NetworkPlayer.All)
                 if (player.IsSpawned)
                 {
-                    var pose = new Pose(player.transform.position, player.transform.rotation);
+                    var pose = player.PerformanceFinishPose ?? new Pose(player.transform.position, player.transform.rotation);
                     remoteFinalPoses[player.OwnerClientId] = pose;
                     poses.Add(new RewardFinalPoseData { client = player.OwnerClientId, position = pose.position, rotation = pose.rotation });
                 }
@@ -389,38 +390,65 @@ namespace CurtainCall.Reward
         /// <summary>
         /// 호스트: 묘기가 살아 있는 도착자를 확인할 때마다 부른다(외줄·인간대포 공통, 2026-11-13).
         /// <paramref name="arrived"/>는 실제 도착자(여유 시간 동안 관전), <paramref name="nearFinish"/>는 완주로 인정할 사람(계속 플레이)이다.
+        /// <paramref name="finishPose"/>는 도착 순번과 공연 참가 인원에 해당하는 대기 위치를 반환한다.
         /// 첫 도착에 종료 여유 시간(<see cref="BaseGameSettings.RunSettings.FinishGraceSeconds"/>)을 시작하고, 그동안 보고된 사람을 모은다.
         /// 여유 시간이 끝나면 아직 살아 있는 사람만 도착으로 성공 정산한다. 정산을 마쳤으면 true.
         /// </summary>
-        public bool ReportArrivals(IReadOnlyCollection<string> arrived, IReadOnlyCollection<string> nearFinish = null)
+        public bool ReportArrivals(IReadOnlyCollection<string> arrived, IReadOnlyCollection<string> nearFinish = null,
+            Func<int, int, Pose> finishPose = null)
         {
-            if (arrived == null || arrived.Count == 0 || !CanMutate()
-                || campaign.State.Phase != CampaignPhase.Performance || !SamePerformance()) return false;
+            if (arrived == null || !CanMutate() || campaign.State.Phase != CampaignPhase.Performance
+                || !SamePerformance()) return false;
             bool start = gracePerformance != model.Performance.Id;
+            if (start && arrived.Count == 0) return false;
             if (start) ClearGrace();
-            bool added = false;
+
+            var roster = model.Snapshot().Segments;
+            var placements = new List<(ulong client, int rank)>();
             foreach (string id in arrived)
             {
-                graceArrivals[id] = "Arrived";
-                foreach (var person in model.Snapshot().Segments)
-                    if (person.ParticipantId == id) { added |= graceClients.Add(person.ClientId); break; }
+                foreach (var person in roster)
+                {
+                    if (person.ParticipantId != id || !person.Connected || person.Dead) continue;
+                    graceArrivals[id] = "Arrived";
+                    if (graceClients.Add(person.ClientId)) placements.Add((person.ClientId, graceClients.Count - 1));
+                    break;
+                }
             }
+            if (start && placements.Count == 0) return false;
             if (nearFinish != null) foreach (string id in nearFinish) graceArrivals[id] = "Arrived";
-            if (!start)
-            {
-                // 새 도착자는 화면마다 관전으로 넘어가도록 바로 알린다.
-                if (added) { model.Touch(); Publish(); }
-                return false;
-            }
-            gracePerformance = model.Performance.Id;
+
             float seconds = GameSettings.Base.Run.FinishGraceSeconds;
-            graceEndsAt = Time.unscaledTime + seconds;
+            if (start)
+            {
+                gracePerformance = model.Performance.Id;
+                graceEndsAt = Time.unscaledTime + seconds;
+            }
+            if (finishPose != null)
+                foreach (var (client, rank) in placements)
+                {
+                    var player = FindPlayer(client);
+                    if (player == null) continue;
+                    // 마지막 장애물·착지 관찰은 순간이동 전 위치에서 처리한다.
+                    if (BeforeFinisherPlacement != null)
+                        foreach (Action<NetworkPlayer> observer in BeforeFinisherPlacement.GetInvocationList())
+                            try { observer(player); } catch (Exception error) { Debug.LogException(error); }
+                    player.ServerPlacePerformanceFinisher(finishPose(rank, roster.Count));
+                }
+
             // 기다릴 사람이 없으면(나머지가 이미 도착했거나 사망·이탈) 여유 시간 없이 바로 정산한다.
             if (seconds <= 0f || NobodyLeftToWait()) return FinishGrace();
-            Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
-            model.Touch();
-            Publish();
+            if (start) Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
+            if (placements.Count > 0) { model.Touch(); Publish(); }
             return false;
+        }
+
+        internal static float FinishWaitingSide(int rank, int participantCount, float width)
+        {
+            if (participantCount <= 1) return 0f;
+            float radius = GameSettings.Base.Character.CapsuleRadius;
+            float spacing = Mathf.Min(radius * 4f, Mathf.Max(0f, width - 2f * radius) / (participantCount - 1));
+            return (rank - (participantCount - 1) * .5f) * spacing;
         }
 
         /// <summary>여유 시간 중 실제로 도착한 사람인지(모든 화면). 도착자는 탈락자처럼 관전한다.</summary>

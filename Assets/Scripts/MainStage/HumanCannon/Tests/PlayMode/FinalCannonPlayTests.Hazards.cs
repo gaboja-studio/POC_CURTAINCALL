@@ -72,6 +72,18 @@ namespace CurtainCall.HumanCannon.Tests
                 Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 1));
                 Assert.AreEqual(1, Get(hazards, "Difficulty"));
                 Assert.AreEqual(1, Get(rewards, "difficulty"));
+
+                var zone = (Component)Get(destination, "Zone");
+                var floor = zone.GetComponent<BoxCollider>().bounds;
+                Vector3 landing = new(floor.center.x, floor.max.y, floor.center.z);
+                Call(mover, "Relocate", landing, Quaternion.identity);
+                yield return WaitUntil(() => Get(destination, "Result") != null, 5, "인간 대포 도착 정산");
+
+                var waiting = (Pose)Call(destination, "GetFinishWaitingPose", 0, 1);
+                Assert.AreEqual("Arrived", Get(player, "State").ToString());
+                Assert.IsTrue((bool)Get(mover, "PassThrough"));
+                Assert.That(Vector3.Distance(player.transform.position, waiting.position), Is.LessThan(.01f));
+                Assert.IsTrue((bool)Call(zone, "SupportsLanding", waiting.position));
             }
             finally { devCache.SetValue(null, previousDevMode); }
         }

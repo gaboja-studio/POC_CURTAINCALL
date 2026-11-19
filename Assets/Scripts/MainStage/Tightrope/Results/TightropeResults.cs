@@ -164,7 +164,7 @@ namespace CurtainCall.Tightrope.Results
         public void Confirm(bool succeeded, TightropeEndReason reason, float elapsed, float remaining, float performanceElapsed) =>
             ConfirmWithFinishers(succeeded, reason, elapsed, remaining, performanceElapsed, null);
 
-        /// <summary>공용 공연에서는 플레이어를 Arrived로 잠그지 않고 도착자 명부만 기록한다.</summary>
+        /// <summary>실제 도착 상태와 공용 정산의 추가 완주 인정자를 결과에 반영한다.</summary>
         public void ConfirmWithFinishers(bool succeeded, TightropeEndReason reason, float elapsed, float remaining,
             float performanceElapsed, ISet<ulong> directFinishers)
         {

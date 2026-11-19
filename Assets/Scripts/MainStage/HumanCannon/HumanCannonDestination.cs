@@ -84,13 +84,13 @@ namespace CurtainCall.HumanCannon
                     if (!landed && !HasCompletionProgress(player)) continue;
                     foreach (var participant in rewards.State.Segments)
                         if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
+                        {
                             (landed ? arrived : nearFinish).Add(participant.ParticipantId);
+                            break;
+                        }
                 }
-                if (arrived.Count > 0)
-                {
-                    // 첫 도착은 종료 여유 시간을 열고, 정산은 여유 시간이 끝날 때 공용 정산이 한다(2026-11-13).
-                    rewards.ReportArrivals(arrived, nearFinish); return;
-                }
+                if (arrived.Count > 0 || rewards.FinishGraceActive)
+                    rewards.ReportArrivals(arrived, nearFinish, GetFinishWaitingPose);
                 // 전멸·이탈 실패는 공용 명부 관찰이 처리한다. 자체 정산/시간대 전환을 중복 호출하지 않는다.
             }
             else if (Application.isEditor && session.GameState == GameSessionState.Waiting
@@ -122,8 +122,18 @@ namespace CurtainCall.HumanCannon
         {
             var cannon = HumanCannonSystem.Current;
             return player != null && player.IsSpawned && player.State == PlayerState.Normal && !player.IsAirborne
-                && destination != null && destination.SupportsLanding(player.transform.position)
+                && destination != null && destination.SupportsLanding(player.LatestOwnerPosition)
                 && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId);
+        }
+
+        Pose GetFinishWaitingPose(int rank, int participantCount)
+        {
+            var surface = destination.GetComponent<BoxCollider>();
+            var floor = surface.transform;
+            float widthScale = floor.TransformVector(Vector3.right).magnitude;
+            float side = PerformanceRewards.FinishWaitingSide(rank, participantCount, surface.size.x * widthScale);
+            var feet = surface.center + new Vector3(side / widthScale, surface.size.y * .5f, surface.size.z * .25f);
+            return new Pose(floor.TransformPoint(feet), Quaternion.LookRotation(floor.forward, Vector3.up));
         }
 
         public bool HasCompletionProgress(NetworkPlayer player)
