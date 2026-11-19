@@ -25,7 +25,7 @@ namespace CurtainCall.EscapeRoute
         {
             var player = NetworkPlayer.Local;
             if (!Ready || !Alive(player) || InputGate.IsBlocked) return;
-            if (action == 3 && finaleBoss && finaleBoss.CombatStarted && Camera.main)
+            if (action == 3 && finaleBoss && finaleBoss.InBattle && Camera.main)
             {
                 var ray = Camera.main.ViewportPointToRay(new Vector3(.5f, .5f, 0));
                 var origin = muzzle ? muzzle.position : CarryRoot.position;
@@ -54,11 +54,9 @@ namespace CurtainCall.EscapeRoute
         }
         void HandleAimedShot(ulong actor, uint expected, Vector3 direction)
         {
-            if (!Ready || session == null || !session.IsHost || !finaleBoss || !finaleBoss.CombatStarted
+            if (!Ready || session == null || !session.IsHost || !finaleBoss
                 || expected != ownership.Revision || Carrier != actor || !Finite(direction)
-                || Mathf.Abs(direction.sqrMagnitude - 1) > .01f || Mathf.Abs(direction.y) > .95f) return;
-            Vector3 flat = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
-            if (Vector3.Dot(flat, Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized) < .25f) return;
+                || Mathf.Abs(direction.sqrMagnitude - 1) > .01f) return;
             pendingBossAim = direction;
             try { HandleAction(actor, 3, expected); }
             finally { pendingBossAim = Vector3.zero; }
@@ -67,7 +65,7 @@ namespace CurtainCall.EscapeRoute
         {
             if (!Ready || session == null || !session.IsHost || expected != ownership.Revision) return;
             var player = FindPlayer(actor);
-            if (!Alive(player)) return;
+            if (!Alive(player) || !CanUseCampaignLauncher(actor)) return;
             if (action == 1)
             {
                 if (!TryGetGrabPose(player, out var position, out var rotation)) return;

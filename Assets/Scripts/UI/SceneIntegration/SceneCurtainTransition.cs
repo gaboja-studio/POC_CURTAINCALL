@@ -96,7 +96,10 @@ namespace CurtainCall.UI.SceneIntegration
             // 진행 중인 UI 로드는 끝내되, 전환 UI를 동시에 중복 로드하지 않는다.
             using (CommonUiSceneLoader.DeferSceneChanges())
             {
-                while (CommonUiSceneLoader.IsLoading) yield return null;
+                double uiDeadline = Time.unscaledTimeAsDouble + 30d;
+                while (CommonUiSceneLoader.IsLoading && requested && sequence == version
+                    && (!escapeCover || Time.unscaledTimeAsDouble < uiDeadline)) yield return null;
+                if (!requested || sequence != version || CommonUiSceneLoader.IsLoading) yield break;
                 if (PerformanceEndingPresentation.Current == null)
                 {
                     AsyncOperation operation = null;

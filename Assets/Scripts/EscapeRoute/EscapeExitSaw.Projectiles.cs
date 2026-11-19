@@ -115,10 +115,12 @@ namespace CurtainCall.EscapeRoute
         }
         // The visible cable, objective count, and physical shared door use the same newest-round verdict.
         // A lagging door-owning launcher must use cuts already received by its peers.
-        bool SharedCableCut(int i, out Vector3 point)
+        bool SharedCableCut(int i, out Vector3 point) => SharedCableCut(i, out point, out _);
+
+        bool SharedCableCut(int i, out Vector3 point, out uint newestCourse)
         {
             bool cut = (cutMask & (1u << i)) != 0;
-            uint newestCourse = courseEpoch;
+            newestCourse = courseEpoch;
             point = cutPoints[i];
             foreach (var peer in devices)
             {
@@ -204,8 +206,13 @@ namespace CurtainCall.EscapeRoute
         {
             if (shots.Count >= MaxProjectiles) return false;
             var origin = muzzle != null ? muzzle : blade != null ? blade : CarryRoot;
-            Vector3 direction = pendingBossAim.sqrMagnitude > .99f ? pendingBossAim
-                : Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
+            Vector3 direction = Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
+            // A guest can still be looking at the boss as the host changes phase or
+            // updates the held pose. A valid click still fires along the launcher.
+            if (finaleBoss && finaleBoss.InBattle && pendingBossAim.sqrMagnitude > .99f
+                && Mathf.Abs(pendingBossAim.y) <= .95f
+                && Vector3.Dot(Vector3.ProjectOnPlane(pendingBossAim, Vector3.up).normalized, direction) >= .25f)
+                direction = pendingBossAim;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return false;
             // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
             // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
@@ -327,7 +334,8 @@ namespace CurtainCall.EscapeRoute
             {
                 var cable = cables[i];
                 uint bit = 1u << i;
-                if (cable == null || !cable.isActiveAndEnabled || (cutMask & bit) != 0) continue;
+                if (cable == null || !cable.isActiveAndEnabled
+                    || SharedCableCut(i, out _, out uint latest) || latest != courseEpoch) continue;
                 if (!cable.TryIntersectDisk(from, to, normal, projectileRadius, projectileHalfThickness, out _, out var hit)) continue;
                 cutMask |= bit; cutPoints[i] = hit; cable.SetCut(true, hit, true);
                 if (shot != null) {
@@ -346,7 +354,7 @@ namespace CurtainCall.EscapeRoute
         {
             foreach (var device in devices)
             {
-                if (device == null || device == this || !device.ProjectileMode) continue;
+                if (device == null || device == this || !device.ProjectileMode || device.courseEpoch != courseEpoch) continue;
                 int index = Array.IndexOf(device.cables, cable);
                 if (index < 0 || index >= 32 || (device.cutMask & (1u << index)) != 0) continue;
                 device.cutMask |= 1u << index; device.cutPoints[index] = point;

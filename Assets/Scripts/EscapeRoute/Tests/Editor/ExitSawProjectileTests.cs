@@ -83,6 +83,39 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(load.enabled, Is.True);
         }
 
+        [TestCase("Waiting", 0, 0, 1, false)]
+        [TestCase("Dying", 1, 0, 0, false)]
+        [TestCase("Battle", 0, 1, 0, false)]
+        [TestCase("Battle", 1, 0, 0, true)]
+        [TestCase("Battle", 1, 0, 0, false)]
+        public void ValidGuestClickFiresWhenBossPhaseOrReplicatedAimChanges(string phase,
+            int x, int y, int z, bool guestTurned)
+        {
+            Fixture(true);
+            var guest = Player(41);
+            Set(guest, "IsOwner", false);
+            Set(saw, "fireWithoutCables", true);
+            var boss = Root("Finale boss replica").AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerBoss"));
+            Isolate("CurtainCall.EscapeRoute.EscapeRouteTimer");
+            var state = Get(boss, "state");
+            Set(state, "Phase", Enum.Parse(boss.GetType().GetNestedType("Phase"), phase));
+            Set(boss, "state", state);
+            Set(saw, "finaleBoss", boss);
+            Own(41);
+            Assert.That(device.forward, Is.EqualTo(Vector3.forward));
+            if (guestTurned) guest.transform.rotation = Quaternion.LookRotation(Vector3.right);
+            Physics.SyncTransforms();
+            Call(saw, "HandleAimedShot", 41UL, 1U, new Vector3(x, y, z));
+            var shots = (IList)Get(saw, "shots");
+            Assert.That(shots.Count, Is.EqualTo(1));
+            Assert.That(Vector3.Dot((Vector3)Get(shots[0], "Direction"), guestTurned ? Vector3.right : Vector3.forward),
+                Is.GreaterThan(.999f));
+            Call(saw, "HandleAimedShot", 42UL, 1U, Vector3.forward);
+            Call(saw, "HandleAimedShot", 41UL, 0U, Vector3.forward);
+            Call(saw, "HandleAimedShot", 41UL, 1U, Vector3.zero);
+            Assert.That(shots.Count, Is.EqualTo(1));
+        }
+
         [Test]
         public void AClearMuzzleBeyondAThinWallCannotSpawnABladeThroughIt()
         {
@@ -384,6 +417,39 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(saw, "StepProjectiles", .25f, true);
             Assert.That(Get(centered, "IsCut"), Is.True); Assert.That(Get(beside, "IsCut"), Is.False);
         }
+        [TestCase(0U, 1U, false, false)]
+        [TestCase(1U, 0U, true, false)]
+        [TestCase(1U, 1U, true, true)]
+        public void CutPropagationKeepsNewAndOldLauncherCoursesIsolated(uint sourceCourse, uint peerCourse,
+            bool sourceCuts, bool peerReceivesCut)
+        {
+            Fixture(true);
+            Call(saw, "OnEnable");
+            var strand = Strand(ShotStart + Vector3.forward * 3);
+            SetCables(strand);
+            Set(saw, "courseEpoch", sourceCourse);
+            var peer = Root("Shared cable peer with independent round").AddComponent(T(SawType));
+            Set(peer, "deviceId", 1);
+            Set(peer, "cables", Get(saw, "cables"));
+            Set(peer, "courseEpoch", peerCourse);
+            peer.gameObject.SetActive(true);
+            Call(peer, "OnEnable");
+            try
+            {
+                Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 5, Vector3.up, null);
+                Assert.That(Get(saw, "cutMask"), Is.EqualTo(sourceCuts ? 1U : 0U));
+                Assert.That(Get(peer, "cutMask"), Is.EqualTo(peerReceivesCut ? 1U : 0U));
+                Assert.That(Get(strand, "IsCut"), Is.EqualTo(sourceCuts));
+                if (sourceCourse > peerCourse)
+                {
+                    Call(peer, "RestoreSharedCableState");
+                    Assert.That(Get(peer, "courseEpoch"), Is.EqualTo(sourceCourse));
+                    Assert.That(Get(peer, "cutMask"), Is.EqualTo(1U));
+                }
+            }
+            finally { Call(peer, "OnDisable"); }
+        }
+
         [Test]
         public void IndependentLaunchersShareCableCutsWithoutSharingTheirCarrier()
         {

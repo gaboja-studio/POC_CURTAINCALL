@@ -306,6 +306,16 @@ namespace CurtainCall.EscapeRoute
             return previousStateRule == null || previousStateRule(player, next);
         }
 
+        internal static bool CanUseRouteDevice(Scene scene, ulong owner)
+        {
+            var content = Current;
+            return content == null || !content.IsCampaign || content.gameObject.scene != scene
+                || EscapeSceneTransfer.Current?.CanParticipate(owner) == true;
+        }
+
+        internal static bool IsUnresolvedParticipant(bool connected, PlayerState? state) =>
+            connected && state is null or PlayerState.Normal or PlayerState.EscapeCaptured;
+
         void Update()
         {
             RefreshShaftFade();
@@ -335,9 +345,11 @@ namespace CurtainCall.EscapeRoute
             int pending = 0;
             foreach (ulong id in participants)
             {
-                NetworkPlayer player = null;
-                foreach (var candidate in NetworkPlayer.All)
-                    if (candidate != null && candidate.IsSpawned && candidate.OwnerClientId == id) { player = candidate; break; }
+                // A disconnected owner can still have a spawned avatar for a frame.
+                // Leave previously confirmed arrivals in the result, and ignore the stale avatar.
+                bool connected = !IsCampaign || transfer.IsParticipantConnected(id);
+                if (!connected) continue;
+                var player = EscapeSceneTransfer.FindSpawnedParticipant(id);
                 if (arrived.Contains(id))
                 {
                     if (IsCampaign || player == null || player.State != PlayerState.Normal) continue;
@@ -346,7 +358,7 @@ namespace CurtainCall.EscapeRoute
                 // Avatar availability is not a disconnect verdict. Wait for a connected member's state.
                 if (player == null)
                 {
-                    if (IsCampaign && transfer.IsParticipantConnected(id)) pending++;
+                    if (IsCampaign) pending++;
                     continue;
                 }
                 if (player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
@@ -358,7 +370,7 @@ namespace CurtainCall.EscapeRoute
                     player.ServerSetState(PlayerState.Arrived);
                     CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.SubmitEscapeArrival();
                 }
-                else pending++;
+                else if (IsUnresolvedParticipant(connected, player.State)) pending++;
             }
             if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
             reported = true;

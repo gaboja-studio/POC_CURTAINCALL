@@ -141,7 +141,8 @@ namespace CurtainCall.EscapeRoute
         public bool CanUseControl(NetworkPlayer player, int index)
         {
             if (!Ready || !Valid(index) || (armed & (1u << index)) != 0 || !Alive(player)) return false;
-            return EscapeSwitchInteraction.InRange(player, Control(index));
+            return EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
+                && EscapeSwitchInteraction.InRange(player, Control(index));
         }
 
         static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
@@ -149,6 +150,19 @@ namespace CurtainCall.EscapeRoute
         static bool HasOneUnresolvedRunner()
         {
             int remaining = 0;
+            if (EscapeCampaignContent.Current != null && EscapeCampaignContent.Current.IsCampaign)
+            {
+                var transfer = EscapeSceneTransfer.Current;
+                if (transfer == null || !transfer.Ready) return false;
+                foreach (ulong id in transfer.Participants)
+                {
+                    if (!transfer.IsParticipantConnected(id)) continue;
+                    var player = EscapeSceneTransfer.FindSpawnedParticipant(id);
+                    if (EscapeCampaignContent.IsUnresolvedParticipant(true, player != null ? player.State : null)
+                        && ++remaining > 1) return false;
+                }
+                return remaining == 1;
+            }
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && (player.State == PlayerState.Normal || player.State == PlayerState.EscapeCaptured)
                     && ++remaining > 1) return false;
@@ -171,24 +185,27 @@ namespace CurtainCall.EscapeRoute
             if (poleIndex < 0) return 0;
             int count = 0;
             foreach (var player in NetworkPlayer.All)
-                if (Alive(player) && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) == poleIndex) count++;
+                if (Alive(player) && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
+                    && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) == poleIndex) count++;
             return count;
         }
 
-        static bool UpperHolderAlive(int index)
+        bool UpperHolderAlive(int index)
         {
             var poles = HumanCannonPoleSystem.Current;
             if (poles == null || index < 0) return false;
             ulong actor = poles.Occupant(index, 0);
-            foreach (var player in NetworkPlayer.All)
-                if (player.OwnerClientId == actor && Alive(player)) return true;
-            return false;
+            return EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, actor)
+                && Alive(EscapeSceneTransfer.FindSpawnedParticipant(actor));
         }
+
+        readonly RaycastHit[] arrivalHits = new RaycastHit[32];
 
         bool AtArrival(NetworkPlayer player, int index)
         {
             var zone = checkpoints[index].arrival;
-            if (!Alive(player) || player.IsAirborne || zone == null || !zone.enabled || !zone.gameObject.activeInHierarchy
+            if (!Alive(player) || !EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
+                || player.IsAirborne || zone == null || !zone.enabled || !zone.gameObject.activeInHierarchy
                 || !player.TryGetComponent(out PlayerMover mover)
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
@@ -197,7 +214,16 @@ namespace CurtainCall.EscapeRoute
             if (Mathf.Abs(point.x) > zone.size.x * .5f || Mathf.Abs(point.y) > zone.size.y * .5f
                 || Mathf.Abs(point.z) > zone.size.z * .5f) return false;
             if (TightropeCourse.Current != null && TightropeCourse.Current.TryGetSupportingRopeAt(mover, player.transform.position, out _)) return true;
-            return Physics.Raycast(player.transform.position + Vector3.up * .12f, Vector3.down, .3f, ~0, QueryTriggerInteraction.Ignore);
+            int hits = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .12f, Vector3.down,
+                arrivalHits, .3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits; i++)
+            {
+                var support = arrivalHits[i];
+                if (support.normal.y > .5f && support.collider.gameObject.scene == gameObject.scene
+                    && support.collider.GetComponentInParent<NetworkPlayer>() == null
+                    && !CurtainCall.Damage.DismemberedLimb.Contains(support.collider)) return true;
+            }
+            return false;
         }
 
         void HostStep()

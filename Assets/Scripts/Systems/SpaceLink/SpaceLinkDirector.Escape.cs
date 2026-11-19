@@ -22,6 +22,7 @@ namespace CurtainCall.SpaceLink
             stepFailed = false;
             // Give the replicated rear seal a frame before the existing loading curtain covers it.
             yield return new WaitForSecondsRealtime(.25f);
+            if (!IsCurrent(request) || !transfer.Coordinating) yield break;
             yield return SceneCurtainTransition.CoverFor(version => curtainVersion = version, true);
             try
             {
@@ -35,16 +36,28 @@ namespace CurtainCall.SpaceLink
 
                 using (CommonUiSceneLoader.DeferSceneChanges())
                 {
-                    while (CommonUiSceneLoader.IsLoading) yield return null;
-                    // Keep W until every owner has a valid pose, camera and prepared floor in A.
-                    // Both scenes coexist only behind the loading screen, not during play.
-                    if (!IsLoaded(request.SceneName)) yield return Load(request.SceneName, LoadSceneMode.Additive);
-                    if (stepFailed || !IsCurrent(request))
+                    double uiDeadline = Time.unscaledTimeAsDouble + MinimumEscapeAckTimeoutSeconds;
+                    while (CommonUiSceneLoader.IsLoading && IsCurrent(request) && transfer.Coordinating
+                        && Time.unscaledTimeAsDouble < uiDeadline) yield return null;
+                    if (!IsCurrent(request) || !transfer.Coordinating) yield break;
+                    if (CommonUiSceneLoader.IsLoading)
                     {
-                        if (IsCurrent(request)) transfer.Failed("탈출로 씬 로드 실패");
+                        transfer.Failed("공통 UI 정리 시간 초과");
                         yield break;
                     }
+                    // An already-loaded host scene is only reusable after NGO confirmed the crew's load.
+                    // Before that point no owner can move into it, so a partial copy can be unloaded safely.
+                    if (!transfer.PlacementAuthorized)
+                    {
+                        yield return LoadEscapeDestination(request, transfer);
+                        if (!IsCurrent(request) || !transfer.Coordinating || !transfer.PlacementAuthorized) yield break;
+                    }
                     var destination = SceneManager.GetSceneByName(request.SceneName);
+                    if (!destination.isLoaded)
+                    {
+                        transfer.Failed("탈출로 씬을 찾을 수 없음");
+                        yield break;
+                    }
                     SceneManager.SetActiveScene(destination);
                     yield return WaitForEscapeAcknowledgements(request, transfer, true);
                     if (!IsCurrent(request) || !transfer.Coordinating || !transfer.AllPlaced) yield break;
@@ -64,6 +77,32 @@ namespace CurtainCall.SpaceLink
                 SpaceChanged?.Invoke(SpaceId.EscapeRoute);
             }
             finally { SceneCurtainTransition.CompleteFor(curtainVersion); }
+        }
+
+        IEnumerator LoadEscapeDestination(TransitionRequest request, EscapeSceneTransfer transfer)
+        {
+            var partial = SceneManager.GetSceneByName(request.SceneName);
+            if (partial.isLoaded)
+            {
+                var departure = transfer.DepartureScene;
+                if (departure.isLoaded) SceneManager.SetActiveScene(departure);
+                yield return Unload(partial);
+                if (!IsCurrent(request) || !transfer.Coordinating) yield break;
+                if (stepFailed)
+                {
+                    transfer.Failed("이전 탈출로 부분 로드 정리 실패");
+                    yield break;
+                }
+            }
+
+            yield return Load(request.SceneName, LoadSceneMode.Additive);
+            if (!IsCurrent(request) || !transfer.Coordinating) yield break;
+            if (stepFailed)
+            {
+                transfer.Failed("탈출로 씬 로드 실패");
+                yield break;
+            }
+            transfer.AuthorizePlacement();
         }
 
         IEnumerator WaitForEscapeAcknowledgements(TransitionRequest request, EscapeSceneTransfer transfer, bool placement)

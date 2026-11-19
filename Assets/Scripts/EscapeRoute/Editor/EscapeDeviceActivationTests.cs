@@ -3,11 +3,13 @@ using System.Linq;
 using System.Reflection;
 using CurtainCall.Campaign;
 using CurtainCall.Cameras;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.Survival;
 using CurtainCall.Tightrope;
 using CurtainCall.WaitingRoom;
@@ -30,6 +32,153 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Set(object instance, string name, object value) => instance.GetType().GetField(name, Private).SetValue(instance, value);
         static void Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
+
+        [Test]
+        public void LiveEscapeLauncherWaitsForCampaignMembershipWithoutBlockingOutgoingScene()
+        {
+            var previous = EscapeCampaignContent.Current;
+            var previousTransfer = EscapeSceneTransfer.Current;
+            var root = new GameObject("Escape launcher transfer gate");
+            root.SetActive(false);
+            var departure = EditorSceneManager.NewPreviewScene();
+            var oldRoot = new GameObject("Waiting room launcher");
+            oldRoot.SetActive(false);
+            SceneManager.MoveGameObjectToScene(oldRoot, departure);
+            try
+            {
+                var content = root.AddComponent<EscapeCampaignContent>();
+                SetCurrent(content);
+                SetCurrent<EscapeSceneTransfer>(null);
+                var launcher = root.AddComponent<EscapeExitSaw>();
+                var oldLauncher = oldRoot.AddComponent<EscapeExitSaw>();
+                var ready = typeof(EscapeExitSaw).GetMethod("CanUseCampaignLauncher", Private);
+                Assert.That(ready.Invoke(launcher, new object[] { 3UL }), Is.True);
+                typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
+                Assert.That(ready.Invoke(launcher, new object[] { 3UL }), Is.False);
+                Assert.That(ready.Invoke(oldLauncher, new object[] { 3UL }), Is.True);
+            }
+            finally
+            {
+                SetCurrent(previous);
+                SetCurrent(previousTransfer);
+                Object.DestroyImmediate(root);
+                EditorSceneManager.ClosePreviewScene(departure);
+            }
+        }
+
+        [TestCase(false, null, false)]
+        [TestCase(true, null, true)]
+        [TestCase(false, PlayerState.Normal, false)]
+        [TestCase(false, PlayerState.EscapeCaptured, false)]
+        [TestCase(true, PlayerState.Normal, true)]
+        [TestCase(true, PlayerState.EscapeCaptured, true)]
+        [TestCase(true, PlayerState.Arrived, false)]
+        [TestCase(true, PlayerState.Fallen, false)]
+        [TestCase(true, PlayerState.Retired, false)]
+        public void LiveEscapeCountsOnlyConnectedUnresolvedParticipants(bool connected, PlayerState? state, bool pending)
+        {
+            var method = typeof(EscapeCampaignContent).GetMethod("IsUnresolvedParticipant", Static);
+            Assert.That(method.Invoke(null, new object[] { connected, state }), Is.EqualTo(pending));
+        }
+
+        [TestCase(CampaignPhase.RestTime, RestTimerState.WaitingForExit, false)]
+        [TestCase(CampaignPhase.Night, RestTimerState.WaitingForExit, false)]
+        [TestCase(CampaignPhase.RestTime, RestTimerState.Stopped, true)]
+        [TestCase(CampaignPhase.Night, RestTimerState.Stopped, true)]
+        [TestCase(CampaignPhase.Performance, RestTimerState.Stopped, false)]
+        public void NormalEscapeDepartureFollowsCampaignAdmission(CampaignPhase phase, RestTimerState timer, bool allowed)
+        {
+            var state = new CampaignSnapshot { Phase = phase, Timer = timer };
+            var admission = typeof(RunState).GetMethod("CanStartEscape", Static);
+            Assert.That(admission.Invoke(null, new object[] { state }), Is.EqualTo(allowed));
+        }
+
+        [TestCase(3UL, true, true)]
+        [TestCase(2UL, true, false)]
+        [TestCase(3UL, false, false)]
+        public void NormalEscapePlacementResolvesOnlyTheCurrentSpawnOfTheCapturedOwner(ulong owner, bool spawned, bool allowed)
+        {
+            var root = new GameObject("Transfer avatar replacement");
+            root.SetActive(false);
+            var original = new GameObject("Old avatar"); original.SetActive(false);
+            try
+            {
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                var oldPlayer = original.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(oldPlayer, 3UL);
+                var oldMover = original.GetComponent<PlayerMover>();
+                Object.DestroyImmediate(original);
+
+                var replacement = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(replacement, owner);
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, spawned);
+                Set(transfer, "localCaptured", true);
+                Set(transfer, "capturedOwner", 3UL);
+                var resolve = typeof(EscapeSceneTransfer).GetMethod("TryResolveCapturedMover", Private);
+                object[] args = { replacement, null };
+                Assert.That(resolve.Invoke(transfer, args), Is.EqualTo(allowed));
+                if (allowed)
+                {
+                    Assert.That(args[1], Is.SameAs(root.GetComponent<PlayerMover>()));
+                    Assert.That((PlayerMover)args[1] == oldMover, Is.False);
+                }
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, false);
+            }
+            finally
+            {
+                if (original != null) Object.DestroyImmediate(original);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase(2)]
+        [TestCase(4)]
+        public void PartialLoadCannotMovePlayersOrAcceptPlacementAcksBeforeApproval(int count)
+        {
+            var root = new GameObject("Partial escape load");
+            root.SetActive(false);
+            try
+            {
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                var arrival = root.AddComponent<EscapeSceneArrival>();
+                var type = typeof(EscapeSceneTransfer).GetNestedType("Snapshot", BindingFlags.NonPublic);
+                object Snapshot(int generation, bool approved)
+                {
+                    return JsonUtility.FromJson(
+                        "{\"phase\":1,\"generation\":" + generation
+                        + ",\"placementAuthorized\":" + (approved ? "true" : "false")
+                        + ",\"participants\":[" + string.Join(",", Enumerable.Range(1, count))
+                        + "],\"positions\":[" + string.Join(",", Enumerable.Repeat("{}", count))
+                        + "],\"rotations\":[" + string.Join(",", Enumerable.Repeat("{\"w\":1}", count)) + "]}", type);
+                }
+
+                bool Apply(object snapshot) => (bool)typeof(EscapeSceneTransfer).GetMethod("ApplySnapshot", Private)
+                    .Invoke(transfer, new[] { snapshot });
+                var placed = (HashSet<ulong>)typeof(EscapeSceneTransfer).GetField("placed", Private).GetValue(transfer);
+                var captured = (HashSet<ulong>)typeof(EscapeSceneTransfer).GetField("captured", Private).GetValue(transfer);
+
+                Assert.That(Apply(Snapshot(2, false)), Is.True);
+                Set(transfer, "localPlaced", true); // Exercise the fast path without a network avatar.
+                Assert.That(transfer.PlaceLocal(arrival), Is.False);
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"captured\"}");
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
+                Assert.That(captured, Does.Contain(2UL));
+                Assert.That(placed, Is.Empty);
+
+                Assert.That(Apply(Snapshot(2, true)), Is.True);
+                Assert.That(Apply(Snapshot(2, false)), Is.False, "A delayed failure state cannot withdraw approval.");
+                Assert.That(transfer.PlaceLocal(arrival), Is.True);
+                Call(transfer, "Request", 2UL, "{\"generation\":1,\"kind\":\"placed\"}");
+                Assert.That(placed, Is.Empty);
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
+                Assert.That(placed, Does.Contain(2UL));
+
+                Assert.That(Apply(Snapshot(3, false)), Is.True);
+                Assert.That(transfer.PlaceLocal(arrival), Is.False);
+                Assert.That(placed, Is.Empty);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
 
         [Test, Category("EscapeFullCombinationAudit")]
         public void AuthoredStaticPolesClearBothPassengersAndRetainSupportedInjuredAccess()
@@ -68,6 +217,141 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 }
             }
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test, Category("EscapeFullCombinationAudit")]
+        public void AuthoredSwingReleasesReachTheirNextPlatforms()
+        {
+            const string path = "Assets/Scenes/Levels/escape_route.unity";
+            var scene = SceneManager.GetSceneByPath(path);
+            bool opened = !scene.IsValid() || !scene.isLoaded;
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try
+            {
+                var roots = scene.GetRootGameObjects();
+                var poles = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>()).ToLookup(p => p.name);
+                var supports = roots.SelectMany(r => r.GetComponentsInChildren<Collider>()).Where(c => c.enabled && !c.isTrigger)
+                    .ToLookup(c => c.name);
+                var cushions = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonLandingZone>()).ToArray();
+                var links = new (string pole, string[] targets)[]
+                {
+                    ("A04A_03_PumpEntry", new[] { "대포 포획 준비대" }),
+                    ("Labyrinth Inspection swing 03", new[] { "02 inspection relay apron" }),
+                    ("Labyrinth lower inspection swing 7", new[] { "Inspection receiving island" }),
+                    ("Labyrinth processing swing 2", new[] { "Processing receiving island" }),
+                    ("Labyrinth Return north swing", new[] { "Return north receiving balcony" }),
+                    ("Labyrinth Return direct swing", new[] { "Return direct cable departure" }),
+                    ("A06_FlameExitSwing", new[] { "코어 끝 짧은 대포대" }),
+                    ("A06_WireExitSwing", new[] { "반출동 착지 측면 이음", "A07 접합 발판" }),
+                    ("Labyrinth Extraction swing 03", new[] { "06 extraction turn island" }),
+                    ("Labyrinth Extraction swing 04", new[] { "06 extraction south join", "06 flush western return" }),
+                    ("Labyrinth Transfer swing 03", new[] { "06 second transfer pier" })
+                };
+                Physics.SyncTransforms();
+                var failures = new List<string>();
+                foreach (var (name, names) in links)
+                {
+                    var targets = names.SelectMany(n => supports[n]).ToHashSet();
+                    var pole = poles[name].SingleOrDefault();
+                    if (!pole || targets.Count == 0)
+                    {
+                        failures.Add($"{name}: saved pole or platform missing ({string.Join(", ", names)}).");
+                        continue;
+                    }
+                    foreach (int fps in new[] { 30, 60, 120 })
+                        for (int seat = 0; seat < pole.RiderCapacity; seat++)
+                        {
+                            string result = MeasureSwingLanding(pole, targets, cushions, seat, fps, out bool reachable);
+                            TestContext.WriteLine(result);
+                            if (!reachable) failures.Add(result);
+                        }
+                }
+                Assert.That(failures, Is.Empty, string.Join("\n", failures));
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        static string MeasureSwingLanding(HumanCannonPole pole, HashSet<Collider> targets,
+            HumanCannonLandingZone[] cushions, int seat, int fps, out bool reachable)
+        {
+            var character = GameSettings.Base.Character;
+            float dt = 1f / fps;
+            float nearest = float.PositiveInfinity;
+            var origin = pole.HangingPosition(0, seat);
+            var target = targets.OrderBy(c => (c.bounds.ClosestPoint(origin) - origin).sqrMagnitude).First();
+            string prefix = $"{pole.name} -> {target.name} | {fps} Hz seat {seat + 1}";
+            string closest = "";
+            var successes = new List<(float time, float angle, Vector3 launch, float flight, Vector3 point, string name, float drop, bool cushioned)>();
+            Vector3 side = Vector3.Cross(Vector3.up, pole.Forward);
+            var air = new CannonAirControl();
+            for (int strategy = 0; strategy < 3 && successes.Count == 0; strategy++)
+            {
+                float angle = 0f, speed = 0f;
+                for (int tick = 1; tick <= fps * 8; tick++)
+                {
+                    float drive = strategy == 0 || speed >= 0 ? 1f : -1f;
+                    pole.Step(ref angle, ref speed, drive, dt, character.Gravity);
+                    if (drive < 0 || angle < -5f || tick % Mathf.Max(1, fps / 30) != 0) continue;
+                    Vector3 launch = pole.ReleaseVelocity(angle, speed, seat, drive);
+                    Vector3 start = pole.HangingPosition(angle, seat);
+                    if (Vector3.Dot(launch, pole.Forward) < 1f) continue;
+                    Vector3 feet = start, velocity = launch;
+                    float peak = start.y;
+                    Vector3 lower = Vector3.up * (character.CapsuleRadius + .015f);
+                    Vector3 upper = Vector3.up * (character.CapsuleHeight - character.CapsuleRadius + .015f);
+                    float steering = strategy == 0 ? 0f : strategy == 1
+                        ? Mathf.Clamp(Vector3.Dot(target.bounds.center - start, side), -1, 1) : 1f;
+                    air.BeginPoleFlight(drive);
+                    for (int step = 1; step <= fps * 3; step++)
+                    {
+                        air.SetInput(new Vector2(steering, 0), step);
+                        var correction = air.ConsumePoleVelocity(step, false, pole.Forward, pole.AirControlSpeed,
+                            velocity, GameSettings.Poles.HorizontalSpeedLimit, dt);
+                        Vector3 delta = BallisticMotion.Step(ref velocity, correction, character.Gravity, dt);
+                        var hit = Physics.CapsuleCastAll(feet + lower, feet + upper, character.CapsuleRadius,
+                            delta.normalized, delta.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                            .Where(h => h.distance > 0 && h.collider.gameObject.scene == pole.gameObject.scene
+                                && !h.collider.transform.IsChildOf(pole.transform)).OrderBy(h => h.distance).FirstOrDefault();
+                        feet += hit.collider ? delta.normalized * hit.distance : delta;
+                        peak = Mathf.Max(peak, feet.y);
+                        var top = target.bounds.ClosestPoint(feet);
+                        top.y = target.bounds.max.y;
+                        float gap = Vector3.Distance(feet, top);
+                        if (gap < nearest)
+                        {
+                            nearest = gap;
+                            closest = $"({angle:F1}°, {launch.magnitude:F2} m/s, {hit.collider?.name ?? "air"}, feet {feet:F2}, platform {top:F2})";
+                        }
+                        if (!hit.collider) continue;
+                        if (targets.Contains(hit.collider) && hit.normal.y > .9f && velocity.y < 0
+                            && hit.collider.Raycast(new Ray(feet + Vector3.up * .1f, Vector3.down), out var support, .2f))
+                        {
+                            // Require unobstructed foot support and the same fall threshold or
+                            // authored landing-zone exemption used by the common game rules.
+                            float drop = peak - support.point.y;
+                            bool cushioned = GameSettings.Base.BodyDamage.SafeLandingZones
+                                && cushions.Any(zone => zone.SupportsLanding(support.point));
+                            if (cushioned || CommonDamageRules.Fall(drop) == FallOutcome.Safe)
+                                successes.Add((tick * dt, angle, launch, step * dt, support.point, hit.collider.name, drop, cushioned));
+                        }
+                        if (hit.normal.y < -.9f && velocity.y > 0)
+                        {
+                            velocity.y = 0f;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+            reachable = successes.Count > 0;
+            float edgeDistance = Vector3.Distance(Vector3.ProjectOnPlane(target.bounds.ClosestPoint(origin) - origin, Vector3.up), Vector3.zero);
+            if (!reachable) return $"{prefix}: FAIL edge {edgeDistance:F2} m, closest {nearest:F2} m {closest}";
+            var first = successes[0];
+            float travelled = (first.point - pole.HangingPosition(first.angle, seat)).magnitude;
+            return $"{prefix}: {successes.Count} release samples, edge {edgeDistance:F2} m; "
+                + $"first {first.time:F2} s, {first.angle:F1}°, {first.launch:F2} m/s, "
+                + $"flight {first.flight:F2} s / {travelled:F2} m to {first.name} {first.point:F2}; "
+                + $"drop {first.drop:F2} m{(first.cushioned ? " (landing zone)" : "")}";
         }
 
         static bool HasSupportedPoleAccess(HumanCannonPole pole, string support, bool injured)
@@ -203,6 +487,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var netRoot = new GameObject("Matrix roster"); netRoot.SetActive(false); netRoot.transform.SetParent(root.transform);
                 var session = netRoot.AddComponent<NetworkSessionManager>();
                 var manager = netRoot.GetComponent<NetworkManager>(); Set(session, "_networkManager", manager);
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
                 channel.GetType().GetProperty("Session").SetValue(channel, session);
                 var connected = (IDictionary<ulong, NetworkClient>)manager.ConnectedClients;
                 var content = root.AddComponent<EscapeCampaignContent>();
@@ -233,11 +518,12 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                             int kind = (combination >> (i * 3)) & 7;
                             // 0 outside, 1 inside, 2 arrived, 3 fallen, 4 retired,
                             // 5 captured, 6 disconnected, 7 connected but avatar pending.
-                            spawned.SetValue(actors[i], kind < 6);
+                            // A disconnected avatar may still be present at the exit until NGO despawns it.
+                            spawned.SetValue(actors[i], kind != 7);
                             if (kind != 6) connected.Add(ids[i], new NetworkClient());
                             states[i].Value = kind == 2 ? PlayerState.Arrived : kind == 3 ? PlayerState.Fallen
                                 : kind == 4 ? PlayerState.Retired : kind == 5 ? PlayerState.EscapeCaptured : PlayerState.Normal;
-                            actors[i].transform.position = floor.transform.position + (kind == 1 ? Vector3.zero : Vector3.forward * 10);
+                            actors[i].transform.position = floor.transform.position + (kind is 1 or 6 ? Vector3.zero : Vector3.forward * 10);
                             pending |= kind == 0 || kind == 1 && door == 0 || kind == 5 || kind == 7;
                             success |= kind == 2 || kind == 1 && door == 1;
                         }
@@ -511,6 +797,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var session = networkRoot.AddComponent<NetworkSessionManager>();
                 var manager = networkRoot.GetComponent<Unity.Netcode.NetworkManager>();
                 Set(session, "_networkManager", manager);
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
                 channel.GetType().GetProperty("Session").SetValue(channel, session);
                 var connected = (IDictionary<ulong, Unity.Netcode.NetworkClient>)manager.ConnectedClients;
                 foreach (ulong id in ids.Take(count - 1)) connected.Add(id, new Unity.Netcode.NetworkClient());
@@ -723,6 +1010,9 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             var localPlayer = typeof(NetworkPlayer).GetProperty("Local");
             var previousPlayer = NetworkPlayer.Local;
             var previousTransfer = EscapeSceneTransfer.Current;
+            var gateFields = new[] { "rearming", "checkedFrame", "blockedFrame" }
+                .Select(name => typeof(InputGate).GetField(name, Static)).ToArray();
+            var gateBefore = gateFields.Select(field => field.GetValue(null)).ToArray();
             var player = root.AddComponent<NetworkPlayer>();
             var transfer = root.AddComponent<EscapeSceneTransfer>();
             try
@@ -755,6 +1045,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 localPlayer.SetValue(null, previousPlayer);
                 SetCurrent(previousTransfer);
                 Object.DestroyImmediate(root);
+                for (int i = 0; i < gateFields.Length; i++) gateFields[i].SetValue(null, gateBefore[i]);
             }
         }
 

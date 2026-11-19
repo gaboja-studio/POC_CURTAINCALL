@@ -215,6 +215,17 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             return faces;
         }
+        internal static bool HasRenderableArea(Vector3 a, Vector3 b, Vector3 c, Matrix4x4 toWorld)
+        {
+            Vector3 ab = b - a, ac = c - a;
+            if (Vector3.Cross(ab, ac).sqrMagnitude > 1e-16f) return true;
+            // A thin local triangle can still have area on a highly scaled wall.
+            // Verify its world-space altitude before discarding a clipping sliver.
+            ab = toWorld.MultiplyVector(ab);
+            ac = toWorld.MultiplyVector(ac);
+            return Vector3.Cross(ab, ac).magnitude > .00001f * Mathf.Max(ab.magnitude, ac.magnitude, (ab - ac).magnitude);
+        }
+
         static Mesh Build(Box box, List<Rect>[] faces)
         {
             var vertices = new List<Vector3>(); var triangles = new List<int>();
@@ -241,13 +252,17 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     Vector3 Point(float x, float y) { var p = Vector3.zero; p[axis] = plane; p[u] = x; p[v] = y; return p; }
                     var points = new[] { Point(rect.xMin, rect.yMin), Point(rect.xMax, rect.yMin), Point(rect.xMax, rect.yMax), Point(rect.xMin, rect.yMax) };
                     if (sign < 0) Array.Reverse(points);
+                    var local = points.Select(box.filter.transform.InverseTransformPoint).ToArray();
+                    var world = box.filter.transform.localToWorldMatrix;
+                    if (!HasRenderableArea(local[0], local[1], local[2], world)
+                        || !HasRenderableArea(local[0], local[2], local[3], world)) continue;
                     int first = vertices.Count;
-                    foreach (var point in points)
+                    for (int vertex = 0; vertex < points.Length; vertex++)
                     {
-                        var d = point - box.points[a];
+                        var d = points[vertex] - box.points[a];
                         float beta = (float)(((double)d[u] * f[v] - (double)d[v] * f[u]) / divisor);
                         float gamma = (float)(((double)e[u] * d[v] - (double)e[v] * d[u]) / divisor), alpha = 1 - beta - gamma;
-                        vertices.Add(box.filter.transform.InverseTransformPoint(point));
+                        vertices.Add(local[vertex]);
                         for (int ch = 0; ch < 8; ch++) if (originalUv[ch].Count == box.mesh.vertexCount)
                             uv[ch].Add(originalUv[ch][a] * alpha + originalUv[ch][b] * beta + originalUv[ch][c] * gamma);
                         if (colors.Length == box.mesh.vertexCount) outputColors.Add(colors[a] * alpha + colors[b] * beta + colors[c] * gamma);
@@ -255,6 +270,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                     triangles.AddRange(new[] { first, first + 1, first + 2, first, first + 2, first + 3 });
                 }
             }
+            if (triangles.Count == 0) return null;
             var mesh = new Mesh { name = "Optimized solid " + box.renderer.name, indexFormat = vertices.Count > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0);
             for (int ch = 0; ch < 8; ch++) if (uv[ch].Count == vertices.Count) mesh.SetUVs(ch, uv[ch]);
@@ -309,8 +325,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 }
                 else
                 {
+                    var mesh = Build(source, faces);
+                    if (!mesh) continue; // Keep the source when no remaining face survived conversion.
                     if (!library) { library = new Mesh { name = "Escape optimized solid surfaces" }; AssetDatabase.CreateAsset(library, LibraryPath); }
-                    var mesh = Build(source, faces); AssetDatabase.AddObjectToAsset(mesh, library);
+                    AssetDatabase.AddObjectToAsset(mesh, library);
                     Undo.RecordObject(source.filter, "Trim internal and duplicate escape faces"); source.filter.sharedMesh = mesh;
                     PrefabUtility.RecordPrefabInstancePropertyModifications(source.filter);
                 }

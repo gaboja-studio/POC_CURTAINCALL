@@ -34,6 +34,7 @@ namespace CurtainCall.EscapeRoute
             if (!campaign) { ReleaseCamera(); return; }
             if (returnBarrier != null) returnBarrier.SetActive(true);
             if (forwardBarrier != null) forwardBarrier.SetActive(!transfer.Ready);
+            if (!transfer.PlacementAuthorized) { ReleaseCamera(); return; }
             transfer.PlaceLocal(this);
             var player = NetworkPlayer.Local;
             if (transfer.Ready) ObserveApproachExit(player);
