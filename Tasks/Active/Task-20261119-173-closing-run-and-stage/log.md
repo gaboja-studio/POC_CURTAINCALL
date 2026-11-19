@@ -16,3 +16,5 @@
 - 최종 dev 반영 후 외줄 공연장과 탈출로 플레이 회귀 2건 통과. 두 씬에서 스프링 신발 드랍·재습득·내구도를 확인했고, 외줄 공연장에서 발 조명도 검사했다. 항목별 캡처 9장과 엔딩 GIF를 검토했다.
 
 - 2026-11-19 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/448 (fix/closing-run-and-stage → dev)
