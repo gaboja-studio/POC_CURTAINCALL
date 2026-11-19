@@ -190,7 +190,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
                             int first = Append(piece[0], a, b, c, axis);
                             for (int i = 1; i + 1 < piece.Count; i++)
                                 if (Area(new[] { piece[0], piece[i], piece[i + 1] }, axis) > 1e-8)
-                                    output.AddRange(new[] { first, Append(piece[i], a, b, c, axis), Append(piece[i + 1], a, b, c, axis) });
+                                {
+                                    int second = Append(piece[i], a, b, c, axis);
+                                    int third = Append(piece[i + 1], a, b, c, axis);
+                                    if (EscapeStaticSurfaceOptimization.HasRenderableArea(vertices[first], vertices[second],
+                                        vertices[third], source.filter.transform.localToWorldMatrix))
+                                        output.AddRange(new[] { first, second, third });
+                                }
                         }
                     }
                 }

@@ -3,11 +3,13 @@ using System.Linq;
 using System.Reflection;
 using CurtainCall.Campaign;
 using CurtainCall.Cameras;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.Survival;
 using CurtainCall.Tightrope;
 using CurtainCall.WaitingRoom;
@@ -215,6 +217,141 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 }
             }
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test, Category("EscapeFullCombinationAudit")]
+        public void AuthoredSwingReleasesReachTheirNextPlatforms()
+        {
+            const string path = "Assets/Scenes/Levels/escape_route.unity";
+            var scene = SceneManager.GetSceneByPath(path);
+            bool opened = !scene.IsValid() || !scene.isLoaded;
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try
+            {
+                var roots = scene.GetRootGameObjects();
+                var poles = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>()).ToLookup(p => p.name);
+                var supports = roots.SelectMany(r => r.GetComponentsInChildren<Collider>()).Where(c => c.enabled && !c.isTrigger)
+                    .ToLookup(c => c.name);
+                var cushions = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonLandingZone>()).ToArray();
+                var links = new (string pole, string[] targets)[]
+                {
+                    ("A04A_03_PumpEntry", new[] { "대포 포획 준비대" }),
+                    ("Labyrinth Inspection swing 03", new[] { "02 inspection relay apron" }),
+                    ("Labyrinth lower inspection swing 7", new[] { "Inspection receiving island" }),
+                    ("Labyrinth processing swing 2", new[] { "Processing receiving island" }),
+                    ("Labyrinth Return north swing", new[] { "Return north receiving balcony" }),
+                    ("Labyrinth Return direct swing", new[] { "Return direct cable departure" }),
+                    ("A06_FlameExitSwing", new[] { "코어 끝 짧은 대포대" }),
+                    ("A06_WireExitSwing", new[] { "반출동 착지 측면 이음", "A07 접합 발판" }),
+                    ("Labyrinth Extraction swing 03", new[] { "06 extraction turn island" }),
+                    ("Labyrinth Extraction swing 04", new[] { "06 extraction south join", "06 flush western return" }),
+                    ("Labyrinth Transfer swing 03", new[] { "06 second transfer pier" })
+                };
+                Physics.SyncTransforms();
+                var failures = new List<string>();
+                foreach (var (name, names) in links)
+                {
+                    var targets = names.SelectMany(n => supports[n]).ToHashSet();
+                    var pole = poles[name].SingleOrDefault();
+                    if (!pole || targets.Count == 0)
+                    {
+                        failures.Add($"{name}: saved pole or platform missing ({string.Join(", ", names)}).");
+                        continue;
+                    }
+                    foreach (int fps in new[] { 30, 60, 120 })
+                        for (int seat = 0; seat < pole.RiderCapacity; seat++)
+                        {
+                            string result = MeasureSwingLanding(pole, targets, cushions, seat, fps, out bool reachable);
+                            TestContext.WriteLine(result);
+                            if (!reachable) failures.Add(result);
+                        }
+                }
+                Assert.That(failures, Is.Empty, string.Join("\n", failures));
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        static string MeasureSwingLanding(HumanCannonPole pole, HashSet<Collider> targets,
+            HumanCannonLandingZone[] cushions, int seat, int fps, out bool reachable)
+        {
+            var character = GameSettings.Base.Character;
+            float dt = 1f / fps;
+            float nearest = float.PositiveInfinity;
+            var origin = pole.HangingPosition(0, seat);
+            var target = targets.OrderBy(c => (c.bounds.ClosestPoint(origin) - origin).sqrMagnitude).First();
+            string prefix = $"{pole.name} -> {target.name} | {fps} Hz seat {seat + 1}";
+            string closest = "";
+            var successes = new List<(float time, float angle, Vector3 launch, float flight, Vector3 point, string name, float drop, bool cushioned)>();
+            Vector3 side = Vector3.Cross(Vector3.up, pole.Forward);
+            var air = new CannonAirControl();
+            for (int strategy = 0; strategy < 3 && successes.Count == 0; strategy++)
+            {
+                float angle = 0f, speed = 0f;
+                for (int tick = 1; tick <= fps * 8; tick++)
+                {
+                    float drive = strategy == 0 || speed >= 0 ? 1f : -1f;
+                    pole.Step(ref angle, ref speed, drive, dt, character.Gravity);
+                    if (drive < 0 || angle < -5f || tick % Mathf.Max(1, fps / 30) != 0) continue;
+                    Vector3 launch = pole.ReleaseVelocity(angle, speed, seat, drive);
+                    Vector3 start = pole.HangingPosition(angle, seat);
+                    if (Vector3.Dot(launch, pole.Forward) < 1f) continue;
+                    Vector3 feet = start, velocity = launch;
+                    float peak = start.y;
+                    Vector3 lower = Vector3.up * (character.CapsuleRadius + .015f);
+                    Vector3 upper = Vector3.up * (character.CapsuleHeight - character.CapsuleRadius + .015f);
+                    float steering = strategy == 0 ? 0f : strategy == 1
+                        ? Mathf.Clamp(Vector3.Dot(target.bounds.center - start, side), -1, 1) : 1f;
+                    air.BeginPoleFlight(drive);
+                    for (int step = 1; step <= fps * 3; step++)
+                    {
+                        air.SetInput(new Vector2(steering, 0), step);
+                        var correction = air.ConsumePoleVelocity(step, false, pole.Forward, pole.AirControlSpeed,
+                            velocity, GameSettings.Poles.HorizontalSpeedLimit, dt);
+                        Vector3 delta = BallisticMotion.Step(ref velocity, correction, character.Gravity, dt);
+                        var hit = Physics.CapsuleCastAll(feet + lower, feet + upper, character.CapsuleRadius,
+                            delta.normalized, delta.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                            .Where(h => h.distance > 0 && h.collider.gameObject.scene == pole.gameObject.scene
+                                && !h.collider.transform.IsChildOf(pole.transform)).OrderBy(h => h.distance).FirstOrDefault();
+                        feet += hit.collider ? delta.normalized * hit.distance : delta;
+                        peak = Mathf.Max(peak, feet.y);
+                        var top = target.bounds.ClosestPoint(feet);
+                        top.y = target.bounds.max.y;
+                        float gap = Vector3.Distance(feet, top);
+                        if (gap < nearest)
+                        {
+                            nearest = gap;
+                            closest = $"({angle:F1}°, {launch.magnitude:F2} m/s, {hit.collider?.name ?? "air"}, feet {feet:F2}, platform {top:F2})";
+                        }
+                        if (!hit.collider) continue;
+                        if (targets.Contains(hit.collider) && hit.normal.y > .9f && velocity.y < 0
+                            && hit.collider.Raycast(new Ray(feet + Vector3.up * .1f, Vector3.down), out var support, .2f))
+                        {
+                            // Require unobstructed foot support and the same fall threshold or
+                            // authored landing-zone exemption used by the common game rules.
+                            float drop = peak - support.point.y;
+                            bool cushioned = GameSettings.Base.BodyDamage.SafeLandingZones
+                                && cushions.Any(zone => zone.SupportsLanding(support.point));
+                            if (cushioned || CommonDamageRules.Fall(drop) == FallOutcome.Safe)
+                                successes.Add((tick * dt, angle, launch, step * dt, support.point, hit.collider.name, drop, cushioned));
+                        }
+                        if (hit.normal.y < -.9f && velocity.y > 0)
+                        {
+                            velocity.y = 0f;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+            reachable = successes.Count > 0;
+            float edgeDistance = Vector3.Distance(Vector3.ProjectOnPlane(target.bounds.ClosestPoint(origin) - origin, Vector3.up), Vector3.zero);
+            if (!reachable) return $"{prefix}: FAIL edge {edgeDistance:F2} m, closest {nearest:F2} m {closest}";
+            var first = successes[0];
+            float travelled = (first.point - pole.HangingPosition(first.angle, seat)).magnitude;
+            return $"{prefix}: {successes.Count} release samples, edge {edgeDistance:F2} m; "
+                + $"first {first.time:F2} s, {first.angle:F1}°, {first.launch:F2} m/s, "
+                + $"flight {first.flight:F2} s / {travelled:F2} m to {first.name} {first.point:F2}; "
+                + $"drop {first.drop:F2} m{(first.cushioned ? " (landing zone)" : "")}";
         }
 
         static bool HasSupportedPoleAccess(HumanCannonPole pole, string support, bool injured)

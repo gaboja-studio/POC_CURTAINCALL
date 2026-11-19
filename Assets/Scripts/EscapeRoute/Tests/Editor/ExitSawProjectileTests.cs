@@ -83,6 +83,39 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(load.enabled, Is.True);
         }
 
+        [TestCase("Waiting", 0, 0, 1, false)]
+        [TestCase("Dying", 1, 0, 0, false)]
+        [TestCase("Battle", 0, 1, 0, false)]
+        [TestCase("Battle", 1, 0, 0, true)]
+        [TestCase("Battle", 1, 0, 0, false)]
+        public void ValidGuestClickFiresWhenBossPhaseOrReplicatedAimChanges(string phase,
+            int x, int y, int z, bool guestTurned)
+        {
+            Fixture(true);
+            var guest = Player(41);
+            Set(guest, "IsOwner", false);
+            Set(saw, "fireWithoutCables", true);
+            var boss = Root("Finale boss replica").AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerBoss"));
+            Isolate("CurtainCall.EscapeRoute.EscapeRouteTimer");
+            var state = Get(boss, "state");
+            Set(state, "Phase", Enum.Parse(boss.GetType().GetNestedType("Phase"), phase));
+            Set(boss, "state", state);
+            Set(saw, "finaleBoss", boss);
+            Own(41);
+            Assert.That(device.forward, Is.EqualTo(Vector3.forward));
+            if (guestTurned) guest.transform.rotation = Quaternion.LookRotation(Vector3.right);
+            Physics.SyncTransforms();
+            Call(saw, "HandleAimedShot", 41UL, 1U, new Vector3(x, y, z));
+            var shots = (IList)Get(saw, "shots");
+            Assert.That(shots.Count, Is.EqualTo(1));
+            Assert.That(Vector3.Dot((Vector3)Get(shots[0], "Direction"), guestTurned ? Vector3.right : Vector3.forward),
+                Is.GreaterThan(.999f));
+            Call(saw, "HandleAimedShot", 42UL, 1U, Vector3.forward);
+            Call(saw, "HandleAimedShot", 41UL, 0U, Vector3.forward);
+            Call(saw, "HandleAimedShot", 41UL, 1U, Vector3.zero);
+            Assert.That(shots.Count, Is.EqualTo(1));
+        }
+
         [Test]
         public void AClearMuzzleBeyondAThinWallCannotSpawnABladeThroughIt()
         {
