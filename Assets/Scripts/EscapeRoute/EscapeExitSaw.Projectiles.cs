@@ -305,9 +305,12 @@ namespace CurtainCall.EscapeRoute
                 // 막혀서 못 나아간 자리에서도 날에 닿은 배선은 끊는다(벽에 붙은 배선을 가까이서 쏜 경우).
                 if (host) CutAlong(from, to, normal, shot);
                 shot.Position = to; shot.Age += step;
-                if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
+                bool outsideEncounter = !blocked && UnlimitedProjectiles && finaleBoss
+                    && finaleBoss.SawHasLeftEncounter(to, shot.Direction);
+                if (blocked || outsideEncounter || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
                     if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
-                        (shot.CutAny ? "CABLE_HIT/" : "NO_CABLE_HIT/") + (blocked ? "OBSTRUCTION" : "LIFETIME"));
+                        (shot.CutAny ? "CABLE_HIT/" : "NO_CABLE_HIT/")
+                        + (blocked ? "OBSTRUCTION" : outsideEncounter ? "OUTSIDE_ARENA" : "LIFETIME"));
                     shots.RemoveAt(i);
                 }
             }
