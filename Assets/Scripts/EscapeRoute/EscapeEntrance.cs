@@ -134,7 +134,8 @@ namespace CurtainCall.EscapeRoute
             var transfer = EscapeSceneTransfer.Current;
             string message = escaping ? (string.IsNullOrEmpty(transfer?.Failure) ? "모두 합류했습니다\n탈출로로 이동 중" : "이동을 다시 준비하고 있습니다")
                 : $"탈출 준비 {snapshot.eligible}/{snapshot.required}\n플레이 중인 전원이 모이면 출발";
-            if (worldLabel != null) worldLabel.text = message;
+            // 벽 글자는 탈출 준비 안내를 띄우지 않는다(2026-11-19 사용자: 화면 가운데 시스템 알림만 남긴다).
+            if (worldLabel != null) worldLabel.text = escaping ? message : "";
             if (hudLabel != null) hudLabel.text = message;
             // 화면 표시는 대기실의 다른 시스템 안내와 같은 시스템 알림 카드로 띄운다(2026-11-16 버그 리포트: 탈출 준비 UI 통일). 예전 전용 판은 끈다.
             if (hudRoot != null) hudRoot.SetActive(false);
