@@ -1,0 +1,656 @@
+{
+  "scene": "Assets/Scenes/Levels/escape_route.unity",
+  "items": [
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-805931807-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/16_VerticalFacility/02_Route_0_to_minus6_to_plus2/진입 캔틸레버",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1719965978-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/17_BrutalistRoute/02_CompressionGallery/진입 보행면",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-633707889-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/19_RunnerEscape/01_RunUp_140_164/06에서 이어지는 가속 바닥",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-246150136-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/19_RunnerEscape/03_OverheadLoads_226_276/낙하 설비 아래 주행면",
+      "materials": [
+        "GlobalObjectId_V1-3-480adc97116586e43bab5a70b4a1ce86-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-633409740-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/19_RunnerEscape/06_Exit_366_400/마지막 34m 가속과 외벽 통과",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2114593954-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/19_RunnerEscape/07_WearRepairsAndServices/비켜난 설비 정비대",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-383872910-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/26_DeepServiceExtension_A/06_NorthServiceLoop/A05 하부 연결",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-64111282-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/26_DeepServiceExtension_A/07_ServiceFinish/A07 접합 발판",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1860628687-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/32_A_CooperativeRopes/상부 도착 정비대",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1582856612-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/34_AFusedRoute/03_04A_CannonWireDescent/대포 포획 준비대",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-344335051-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/34_AFusedRoute/06_FlamesSwingCannonAndUpperWire/화염 사이 하부 갤러리",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1825148990-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/34_AFusedRoute/06_FlamesSwingCannonAndUpperWire/코어 끝 짧은 대포대",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1030600929-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/37_ACooperativeFusion/06_OpenCannonRelay/유지봉 측면 정비턱",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1119259222-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/38_ACooperativeWorks/07A_ShoulderDrawbridge/협동교 이후 기존 함정 주행면",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-830037835-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/38_ACooperativeWorks/07B_CrewSwingHoist/공동 탑승 대기턱",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-137573988-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/38_ACooperativeWorks/07C_BuddyReturnBridge/복귀 고정 후 마지막 질주면",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-98334565-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/40_AExitCableSaw/47_GrandSunlitExit/탈출문 남측 착지 바닥",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-112555136-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/40_AExitCableSaw/47_GrandSunlitExit/탈출문 북측 착지 바닥",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1527562768-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/02_OneWayDisembark/대포로 이어지는 정비교",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-258483820-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/02_OneWayDisembark/다음 구간 발사대",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-850998292-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/03_IslandRescueAndDescent/운반 점프 작업섬 1",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1957621001-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/03_IslandRescueAndDescent/운반 점프 작업섬 2",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-968245822-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/03_IslandRescueAndDescent/운반 점프 작업섬 3",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1843636870-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/41_AReadableRoute/03_IslandRescueAndDescent/상부 협동 완료 합류대",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1528342570-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/43_AConveyorRecovery/노란 하차장 수신 발판",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1398041082-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/43_AConveyorRecovery/하차장 낮은 연결단 0",
+      "materials": [
+        "GlobalObjectId_V1-3-5611b0e6a02d58c4dba226cb84f41fc4-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-930043006-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/02 inspection decision apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1965173103-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/02 inspection relay apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1366251573-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Inspection concealed room floor",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1265181441-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Inspection breakable concrete bay",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1434183167-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Fork concealed floor",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1000710259-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Fork breakable concrete bay",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-180349484-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/04 processing east choice apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-800207946-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/06 extraction corner apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2082575694-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/06 extraction south join",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-94356178-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/06 flush western return",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1903190510-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/06 western transfer apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-628922820-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/06 eastern transfer apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1500125860-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Central concealed room floor",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1746508177-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Central breakable concrete bay",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1753780145-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/03 conveyor eastern decision apron",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-306782530-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Labyrinth finale South production approach",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-511597108-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Labyrinth finale North production approach",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-801312694-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Labyrinth finale South cable workshop aisle",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1439298722-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/Labyrinth finale North cable workshop aisle",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-440951343-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/81_ParallelLaunchBays/Parallel launch cross passage",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1184925665-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/81_ParallelLaunchBays/Parallel launch supported berth 2",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1565675864-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/81_ParallelLaunchBays/Entry four cannon northern berth",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-523622484-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/81_ParallelLaunchBays/Parallel rear passing aisle",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1113780505-0",
+      "path": "EscapeCampaignFrame/EscapeBackground/70_LabyrinthRemake/82_IndependentTransferRoutes/Processing launch receiving balcony",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2799389663088574005-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Corridor departure concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1759062135173874944-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/First wire concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-8077882871694492981-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Second wire concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1689419974563519076-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Lower wire concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-4565320736273725073-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Pump concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-4726893439832416030-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Conveyor concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-3235145913279518514-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Switch wire concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-7202659575681324502-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Return cannon concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-6914071477032167049-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Cooperative concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2925320363060897360-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Button concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-115864119992679494-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concrete wall routes/Flame corridor concrete breach",
+      "materials": [
+        "GlobalObjectId_V1-3-a4d833806d53bdf4e84222196e969e32-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-657941627-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Concrete remainder",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1265473347-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 0",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-562531211-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 1",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-510032535-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 2",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1600376852-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 3",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1388779747-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 4",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1371397231-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 5",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-569115919-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 6",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-376662869-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 7",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-692410255-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 8",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2004935732-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 9",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1074717911-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 10",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1728778329-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 11",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-434695805-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 1",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-737380679-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 7",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-456622763-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 17",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-756703474-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 29",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-448070557-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 30",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-236444776-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 36",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1291799688-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 37",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1092538567-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Isolated jump abutment 57",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-305184970-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 101",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1689572303-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 102",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1210624139-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 103",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1447081902-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 104",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1033465203-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 105",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-710986262-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 106",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1273672603-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 107",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1032505114-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 108",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-2043528310-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 109",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1123316720-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Continuous gallery 110",
+      "materials": [
+        "GlobalObjectId_V1-3-99aa0caf725b7244fa44ec152b365e22-2100000-0"
+      ]
+    },
+    {
+      "renderer": "GlobalObjectId_V1-2-c9bc27ef66a57414e8bd36141ad746b2-1385941633-0",
+      "path": "EscapeCampaignFrame/EscapePursuer_A/Concealed pursuit structure/Concrete remainder",
+      "materials": [
+        "GlobalObjectId_V1-3-480adc97116586e43bab5a70b4a1ce86-2100000-0"
+      ]
+    }
+  ]
+}
