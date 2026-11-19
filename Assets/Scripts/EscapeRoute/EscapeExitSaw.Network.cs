@@ -67,7 +67,7 @@ namespace CurtainCall.EscapeRoute
         {
             if (!Ready || session == null || !session.IsHost || expected != ownership.Revision) return;
             var player = FindPlayer(actor);
-            if (!Alive(player)) return;
+            if (!Alive(player) || !CanUseCampaignLauncher(actor)) return;
             if (action == 1)
             {
                 if (!TryGetGrabPose(player, out var position, out var rotation)) return;

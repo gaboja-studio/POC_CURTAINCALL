@@ -211,7 +211,7 @@ namespace CurtainCall.EscapeRoute
         {
             position = default; rotation = Quaternion.identity;
             if (Suppressed || !Ready) return "device unavailable";
-            if (!Alive(player)) return "actor unavailable";
+            if (!Alive(player) || !CanUseCampaignLauncher(player.OwnerClientId)) return "actor unavailable";
             if (ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null) return "already carrying";
             bool remoteOnHost = session.IsHost && !player.IsLocal;
             Vector3 feet = player.transform.position;
@@ -311,9 +311,12 @@ namespace CurtainCall.EscapeRoute
             if (wasOpen != DoorOpen || wasCutting != cutting || Time.unscaledTimeAsDouble >= nextPublish)
             { nextPublish = Time.unscaledTimeAsDouble + .1; Publish(); }
         }
+        bool CanUseCampaignLauncher(ulong owner) => EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, owner);
+
         void ReleaseUnavailableCarrier()
         {
             if (!ownership.IsOccupied || !Suppressed && Alive(FindPlayer(Carrier))
+                && CanUseCampaignLauncher(Carrier)
                 && !(inspection != null && inspection.IsInspecting(Carrier))) return;
             ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
             Recover(); Changed();

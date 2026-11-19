@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -531,6 +532,48 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(locks, "AtArrival", player, 0), Is.True, "The host does not simulate a remote owner's grounded mover.");
             pad.enabled = false; Physics.SyncTransforms();
             Assert.That(Call(locks, "AtArrival", player, 0), Is.False, "A remote actor still needs real support, not just trigger overlap.");
+        }
+
+        [Test]
+        public void LiveEscapeCheckpointRejectsOtherSceneColliderAndTeammateBody()
+        {
+            var locks = LocksFixture();
+            var runner = Player(27);
+            var teammate = Player(28);
+            teammate.transform.position = runner.transform.position - Vector3.up * .45f;
+            var body = teammate.gameObject.AddComponent<BoxCollider>();
+            body.center = Vector3.up * .25f;
+            body.size = new Vector3(1f, .4f, 1f);
+            var checkpoints = (Array)Get(locks, "checkpoints");
+            var zone = Root("Campaign checkpoint volume").AddComponent<BoxCollider>();
+            zone.isTrigger = true;
+            zone.transform.position = runner.transform.position + Vector3.up * .5f;
+            zone.size = Vector3.one * 2;
+            Set(checkpoints.GetValue(0), "arrival", zone);
+
+            var destination = locks.gameObject.scene;
+            var departure = EditorSceneManager.NewPreviewScene();
+            var floor = Root("Floor within the default physics scene").AddComponent<BoxCollider>();
+            floor.transform.position = runner.transform.position - Vector3.up * .12f;
+            floor.size = new Vector3(3f, .24f, 3f);
+            try
+            {
+                Physics.SyncTransforms();
+                Assert.That(Call(locks, "AtArrival", runner, 0), Is.True);
+                SceneManager.MoveGameObjectToScene(locks.gameObject, departure);
+                Assert.That(Call(locks, "AtArrival", runner, 0), Is.False);
+
+                SceneManager.MoveGameObjectToScene(locks.gameObject, destination);
+                floor.enabled = false;
+                Physics.SyncTransforms();
+                Assert.That(Call(locks, "AtArrival", runner, 0), Is.False);
+            }
+            finally
+            {
+                if (locks != null && locks.gameObject.scene == departure)
+                    SceneManager.MoveGameObjectToScene(locks.gameObject, destination);
+                EditorSceneManager.ClosePreviewScene(departure);
+            }
         }
 
         Component SurfaceFixture()

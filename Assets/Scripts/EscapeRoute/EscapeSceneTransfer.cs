@@ -20,6 +20,7 @@ namespace CurtainCall.EscapeRoute
         [Serializable] sealed class Snapshot
         {
             public int generation = -1, phase;
+            public bool placementAuthorized;
             public ulong[] participants = Array.Empty<ulong>();
             public Vector3[] positions = Array.Empty<Vector3>();
             public Quaternion[] rotations = Array.Empty<Quaternion>();
@@ -30,7 +31,7 @@ namespace CurtainCall.EscapeRoute
         readonly HashSet<ulong> captured = new(), placed = new();
         ShopChannel channel;
         Transform source;
-        PlayerMover heldMover;
+        ulong capturedOwner;
         bool localCaptured, localPlaced, holding, capturedView;
         Vector3 localPosition;
         Quaternion localRotation, localLook, arrivalLook;
@@ -41,11 +42,30 @@ namespace CurtainCall.EscapeRoute
         public bool HasDeparture => snapshot.phase > 0;
         public bool Ready => snapshot.phase == 2;
         public bool Pending => snapshot.phase == 1;
+        internal bool PlacementAuthorized => Ready || snapshot.placementAuthorized;
+        internal Scene DepartureScene => source != null ? source.gameObject.scene : default;
         public bool Coordinating => Pending && channel.IsHost;
         public static bool HoldingForDeparture => Current != null && Current.holding;
         public string Failure => snapshot.failure;
         public IReadOnlyList<ulong> Participants => snapshot.participants;
-        internal bool IsParticipantConnected(ulong id) => channel != null && channel.IsConnected(id);
+        internal bool IsParticipantConnected(ulong id)
+        {
+            if (channel == null) return false;
+            if (channel.IsHost) return channel.IsConnected(id);
+            var network = channel.Session?.NetworkManager;
+            if (network == null || !network.IsConnectedClient) return false;
+            foreach (ulong peer in network.ConnectedClientsIds) if (peer == id) return true;
+            return false;
+        }
+        internal bool CanParticipate(ulong id) => Ready && Array.IndexOf(snapshot.participants, id) >= 0
+            && IsParticipantConnected(id);
+
+        internal static NetworkPlayer FindSpawnedParticipant(ulong id)
+        {
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.OwnerClientId == id) return player;
+            return null;
+        }
         public bool AllCaptured => AllConnectedAcknowledged(captured);
         public bool AllPlaced => AllConnectedAcknowledged(placed);
 
@@ -147,19 +167,27 @@ namespace CurtainCall.EscapeRoute
             if (capturedView) localLook = Quaternion.Inverse(source.rotation) * sourceCamera.transform.rotation;
             // PlayerMover checks HoldingForDeparture. Its simulation flag belongs to the
             // device or piggyback link currently controlling the player.
-            heldMover = mover;
-            heldMover.ClearPendingInput();
+            capturedOwner = player.OwnerClientId;
+            mover.ClearPendingInput();
             holding = true;
             InputGate.SetBlocking(this, true);
             localCaptured = true;
             Acknowledge("captured");
         }
+        internal void AuthorizePlacement()
+        {
+            if (!Coordinating || PlacementAuthorized) return;
+            snapshot.placementAuthorized = true;
+            snapshot.failure = "";
+            Publish();
+        }
+
         public bool PlaceLocal(EscapeSceneArrival destination)
         {
-            if (!HasDeparture || destination == null) return false;
+            if (!PlacementAuthorized || destination == null) return false;
             if (localPlaced) return true;
             var player = NetworkPlayer.Local;
-            if (!localCaptured || source == null || heldMover == null || player == null || !player.IsSpawned) return false;
+            if (source == null || !TryResolveCapturedMover(player, out var mover)) return false;
             var content = EscapeCampaignContent.Current;
             if (content == null || !content.IsActive || !content.IsSceneryReady) return false;
             int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
@@ -171,13 +199,21 @@ namespace CurtainCall.EscapeRoute
 
             MoveCamera(sourceCamera.transform, source.gameObject.scene, scene);
             MoveCamera(sourceDirector.transform, source.gameObject.scene, scene);
-            heldMover.SetStartPose(pose.position, pose.rotation);
+            mover.SetStartPose(pose.position, pose.rotation);
             arrivalLook = destination.AssemblyAnchor.rotation * localLook;
             sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
             RecordTransfer("TRANSFER_PLACED", pose.position, false);
             Acknowledge("placed");
             return true;
+        }
+
+        bool TryResolveCapturedMover(NetworkPlayer player, out PlayerMover mover)
+        {
+            mover = null;
+            // The local avatar can be replaced after its pose was captured. The captured pose belongs to its owner.
+            return localCaptured && player != null && player.IsSpawned && player.OwnerClientId == capturedOwner
+                && player.TryGetComponent(out mover);
         }
 
         bool TryGetArrivalView()
@@ -245,7 +281,7 @@ namespace CurtainCall.EscapeRoute
             var ack = JsonUtility.FromJson<Ack>(json);
             if (ack == null || ack.generation != snapshot.generation) return;
             if (ack.kind == "captured") captured.Add(sender);
-            else if (ack.kind == "placed") { captured.Add(sender); placed.Add(sender); }
+            else if (ack.kind == "placed" && PlacementAuthorized) { captured.Add(sender); placed.Add(sender); }
         }
         void Publish() { if (channel.IsHost) channel.SendState(JsonUtility.ToJson(snapshot)); }
         void Receive(string json)
@@ -262,7 +298,8 @@ namespace CurtainCall.EscapeRoute
                 || value.positions == null || value.positions.Length != value.participants.Length
                 || value.rotations == null || value.rotations.Length != value.participants.Length) return false;
             // A delayed sync reply must not return a released player to the pending phase.
-            if (snapshot.generation == value.generation && value.phase < snapshot.phase) return false;
+            if (snapshot.generation == value.generation && (value.phase < snapshot.phase
+                || PlacementAuthorized && value.phase == 1 && !value.placementAuthorized)) return false;
             if (new HashSet<ulong>(value.participants).Count != value.participants.Length) return false;
             if (snapshot.generation == value.generation && HasDeparture)
             {
@@ -285,7 +322,7 @@ namespace CurtainCall.EscapeRoute
         }
         public void Complete()
         {
-            if (!channel.IsHost || !AllPlaced) return;
+            if (!PlacementAuthorized || !channel.IsHost || !AllPlaced) return;
             if (snapshot.phase != 2 && EscapeSceneArrival.Current != null) RecordTransfer("TRANSFER_COMPLETE", EscapeSceneArrival.Current.AssemblyAnchor.position, true);
             snapshot.phase = 2; snapshot.failure = "";
             Publish();
@@ -304,7 +341,7 @@ namespace CurtainCall.EscapeRoute
         {
             Release(); snapshot = new(); captured.Clear(); placed.Clear();
             localCaptured = localPlaced = capturedView = false;
-            heldMover = null; sourceCamera = null; sourceDirector = null;
+            sourceCamera = null; sourceDirector = null;
         }
         void Release()
         {

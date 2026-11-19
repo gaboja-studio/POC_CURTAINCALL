@@ -202,7 +202,8 @@ namespace CurtainCall.EscapeRoute
                 || !button.gameObject.activeInHierarchy || player == null || !player.IsSpawned
                 || player.State != PlayerState.Normal || session == null
                 || session.GameState != GameSessionState.Playing) return false;
-            return EscapeSwitchInteraction.InRange(player, button);
+            return EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
+                && EscapeSwitchInteraction.InRange(player, button);
         }
 
         RopePhase PhaseAt(double elapsed)
@@ -411,7 +412,8 @@ namespace CurtainCall.EscapeRoute
 
         bool IsInsideLower(NetworkPlayer player) => lowerWorkerBounds != null && lowerWorkerBounds.enabled
             && lowerWorkerBounds.gameObject.activeInHierarchy && player != null && player.IsSpawned
-            && player.State == PlayerState.Normal && lowerWorkerBounds.bounds.Contains(player.transform.position);
+            && player.State == PlayerState.Normal && lowerWorkerBounds.bounds.Contains(player.transform.position)
+            && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId);
 
         readonly RaycastHit[] lowerFloorHits = new RaycastHit[16];
         bool IsStandingInLower(NetworkPlayer player)
@@ -421,8 +423,9 @@ namespace CurtainCall.EscapeRoute
             int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .12f,
                 Vector3.down, lowerFloorHits, .3f, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
-                if (lowerFloorHits[i].normal.y > .5f
-                    && lowerFloorHits[i].collider.GetComponentInParent<NetworkPlayer>() == null) return true;
+                if (lowerFloorHits[i].normal.y > .5f && lowerFloorHits[i].collider.gameObject.scene == gameObject.scene
+                    && lowerFloorHits[i].collider.GetComponentInParent<NetworkPlayer>() == null
+                    && !CurtainCall.Damage.DismemberedLimb.Contains(lowerFloorHits[i].collider)) return true;
             return false;
         }
 

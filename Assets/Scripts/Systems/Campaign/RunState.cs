@@ -251,10 +251,13 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>쉬는 시간 중 탈출 개시(전원 입구 집결) → 탈출로. 쉬는 시간 타이머는 멈춘다.</summary>
+        internal static bool CanStartEscape(in CampaignSnapshot state) =>
+            (state.Phase == CampaignPhase.RestTime || state.Phase == CampaignPhase.Night)
+            && state.Timer != RestTimerState.WaitingForExit;
+
         public bool StartEscape()
         {
-            if (IsGuideRestWaiting) return false;
-            if (s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) return false;
+            if (!CanStartEscape(s)) return false;
             EnterEscape();
             return true;
         }

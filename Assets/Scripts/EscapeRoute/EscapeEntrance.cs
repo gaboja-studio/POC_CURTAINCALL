@@ -87,7 +87,7 @@ namespace CurtainCall.EscapeRoute
                     if (player.State == PlayerState.Normal) candidates.Add(player.OwnerClientId);
                 }
                 assembly.Tick(occupants, doorOpen ? candidates.Count : 0, living);
-                if (doorOpen && living > 0 && assembly.CanDepart)
+                if (doorOpen && living > 0 && assembly.CanDepart && RunState.CanStartEscape(run.State))
                 {
                     var transfer = EscapeSceneTransfer.EnsureExists();
                     if (transfer.Begin(allParticipants, run.State.Generation))

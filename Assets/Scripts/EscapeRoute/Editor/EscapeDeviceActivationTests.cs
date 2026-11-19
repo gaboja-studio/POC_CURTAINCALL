@@ -31,6 +31,153 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
 
+        [Test]
+        public void LiveEscapeLauncherWaitsForCampaignMembershipWithoutBlockingOutgoingScene()
+        {
+            var previous = EscapeCampaignContent.Current;
+            var previousTransfer = EscapeSceneTransfer.Current;
+            var root = new GameObject("Escape launcher transfer gate");
+            root.SetActive(false);
+            var departure = EditorSceneManager.NewPreviewScene();
+            var oldRoot = new GameObject("Waiting room launcher");
+            oldRoot.SetActive(false);
+            SceneManager.MoveGameObjectToScene(oldRoot, departure);
+            try
+            {
+                var content = root.AddComponent<EscapeCampaignContent>();
+                SetCurrent(content);
+                SetCurrent<EscapeSceneTransfer>(null);
+                var launcher = root.AddComponent<EscapeExitSaw>();
+                var oldLauncher = oldRoot.AddComponent<EscapeExitSaw>();
+                var ready = typeof(EscapeExitSaw).GetMethod("CanUseCampaignLauncher", Private);
+                Assert.That(ready.Invoke(launcher, new object[] { 3UL }), Is.True);
+                typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
+                Assert.That(ready.Invoke(launcher, new object[] { 3UL }), Is.False);
+                Assert.That(ready.Invoke(oldLauncher, new object[] { 3UL }), Is.True);
+            }
+            finally
+            {
+                SetCurrent(previous);
+                SetCurrent(previousTransfer);
+                Object.DestroyImmediate(root);
+                EditorSceneManager.ClosePreviewScene(departure);
+            }
+        }
+
+        [TestCase(false, null, false)]
+        [TestCase(true, null, true)]
+        [TestCase(false, PlayerState.Normal, false)]
+        [TestCase(false, PlayerState.EscapeCaptured, false)]
+        [TestCase(true, PlayerState.Normal, true)]
+        [TestCase(true, PlayerState.EscapeCaptured, true)]
+        [TestCase(true, PlayerState.Arrived, false)]
+        [TestCase(true, PlayerState.Fallen, false)]
+        [TestCase(true, PlayerState.Retired, false)]
+        public void LiveEscapeCountsOnlyConnectedUnresolvedParticipants(bool connected, PlayerState? state, bool pending)
+        {
+            var method = typeof(EscapeCampaignContent).GetMethod("IsUnresolvedParticipant", Static);
+            Assert.That(method.Invoke(null, new object[] { connected, state }), Is.EqualTo(pending));
+        }
+
+        [TestCase(CampaignPhase.RestTime, RestTimerState.WaitingForExit, false)]
+        [TestCase(CampaignPhase.Night, RestTimerState.WaitingForExit, false)]
+        [TestCase(CampaignPhase.RestTime, RestTimerState.Stopped, true)]
+        [TestCase(CampaignPhase.Night, RestTimerState.Stopped, true)]
+        [TestCase(CampaignPhase.Performance, RestTimerState.Stopped, false)]
+        public void NormalEscapeDepartureFollowsCampaignAdmission(CampaignPhase phase, RestTimerState timer, bool allowed)
+        {
+            var state = new CampaignSnapshot { Phase = phase, Timer = timer };
+            var admission = typeof(RunState).GetMethod("CanStartEscape", Static);
+            Assert.That(admission.Invoke(null, new object[] { state }), Is.EqualTo(allowed));
+        }
+
+        [TestCase(3UL, true, true)]
+        [TestCase(2UL, true, false)]
+        [TestCase(3UL, false, false)]
+        public void NormalEscapePlacementResolvesOnlyTheCurrentSpawnOfTheCapturedOwner(ulong owner, bool spawned, bool allowed)
+        {
+            var root = new GameObject("Transfer avatar replacement");
+            root.SetActive(false);
+            var original = new GameObject("Old avatar"); original.SetActive(false);
+            try
+            {
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                var oldPlayer = original.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(oldPlayer, 3UL);
+                var oldMover = original.GetComponent<PlayerMover>();
+                Object.DestroyImmediate(original);
+
+                var replacement = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(replacement, owner);
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, spawned);
+                Set(transfer, "localCaptured", true);
+                Set(transfer, "capturedOwner", 3UL);
+                var resolve = typeof(EscapeSceneTransfer).GetMethod("TryResolveCapturedMover", Private);
+                object[] args = { replacement, null };
+                Assert.That(resolve.Invoke(transfer, args), Is.EqualTo(allowed));
+                if (allowed)
+                {
+                    Assert.That(args[1], Is.SameAs(root.GetComponent<PlayerMover>()));
+                    Assert.That((PlayerMover)args[1] == oldMover, Is.False);
+                }
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, false);
+            }
+            finally
+            {
+                if (original != null) Object.DestroyImmediate(original);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase(2)]
+        [TestCase(4)]
+        public void PartialLoadCannotMovePlayersOrAcceptPlacementAcksBeforeApproval(int count)
+        {
+            var root = new GameObject("Partial escape load");
+            root.SetActive(false);
+            try
+            {
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                var arrival = root.AddComponent<EscapeSceneArrival>();
+                var type = typeof(EscapeSceneTransfer).GetNestedType("Snapshot", BindingFlags.NonPublic);
+                object Snapshot(int generation, bool approved)
+                {
+                    return JsonUtility.FromJson(
+                        "{\"phase\":1,\"generation\":" + generation
+                        + ",\"placementAuthorized\":" + (approved ? "true" : "false")
+                        + ",\"participants\":[" + string.Join(",", Enumerable.Range(1, count))
+                        + "],\"positions\":[" + string.Join(",", Enumerable.Repeat("{}", count))
+                        + "],\"rotations\":[" + string.Join(",", Enumerable.Repeat("{\"w\":1}", count)) + "]}", type);
+                }
+
+                bool Apply(object snapshot) => (bool)typeof(EscapeSceneTransfer).GetMethod("ApplySnapshot", Private)
+                    .Invoke(transfer, new[] { snapshot });
+                var placed = (HashSet<ulong>)typeof(EscapeSceneTransfer).GetField("placed", Private).GetValue(transfer);
+                var captured = (HashSet<ulong>)typeof(EscapeSceneTransfer).GetField("captured", Private).GetValue(transfer);
+
+                Assert.That(Apply(Snapshot(2, false)), Is.True);
+                Set(transfer, "localPlaced", true); // Exercise the fast path without a network avatar.
+                Assert.That(transfer.PlaceLocal(arrival), Is.False);
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"captured\"}");
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
+                Assert.That(captured, Does.Contain(2UL));
+                Assert.That(placed, Is.Empty);
+
+                Assert.That(Apply(Snapshot(2, true)), Is.True);
+                Assert.That(Apply(Snapshot(2, false)), Is.False, "A delayed failure state cannot withdraw approval.");
+                Assert.That(transfer.PlaceLocal(arrival), Is.True);
+                Call(transfer, "Request", 2UL, "{\"generation\":1,\"kind\":\"placed\"}");
+                Assert.That(placed, Is.Empty);
+                Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
+                Assert.That(placed, Does.Contain(2UL));
+
+                Assert.That(Apply(Snapshot(3, false)), Is.True);
+                Assert.That(transfer.PlaceLocal(arrival), Is.False);
+                Assert.That(placed, Is.Empty);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test, Category("EscapeFullCombinationAudit")]
         public void AuthoredStaticPolesClearBothPassengersAndRetainSupportedInjuredAccess()
         {
@@ -723,6 +870,9 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             var localPlayer = typeof(NetworkPlayer).GetProperty("Local");
             var previousPlayer = NetworkPlayer.Local;
             var previousTransfer = EscapeSceneTransfer.Current;
+            var gateFields = new[] { "rearming", "checkedFrame", "blockedFrame" }
+                .Select(name => typeof(InputGate).GetField(name, Static)).ToArray();
+            var gateBefore = gateFields.Select(field => field.GetValue(null)).ToArray();
             var player = root.AddComponent<NetworkPlayer>();
             var transfer = root.AddComponent<EscapeSceneTransfer>();
             try
@@ -755,6 +905,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 localPlayer.SetValue(null, previousPlayer);
                 SetCurrent(previousTransfer);
                 Object.DestroyImmediate(root);
+                for (int i = 0; i < gateFields.Length; i++) gateFields[i].SetValue(null, gateBefore[i]);
             }
         }
 
