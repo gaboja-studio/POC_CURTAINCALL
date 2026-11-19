@@ -29,7 +29,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             return state;
         }
 
-        static bool Apply(EscapePursuerBoss boss, double round, uint revision, EscapePursuerBoss.Phase phase,
+        internal static bool Apply(EscapePursuerBoss boss, double round, uint revision, EscapePursuerBoss.Phase phase,
             byte mask = 0, byte count = 0) => (bool)typeof(EscapePursuerBoss).GetMethod("AcceptSnapshot", Instance)
                 .Invoke(boss, new[] { Snapshot(round, revision, phase, mask, count), (object)round });
 

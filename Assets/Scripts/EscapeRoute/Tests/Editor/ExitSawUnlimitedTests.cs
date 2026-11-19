@@ -104,6 +104,35 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That((uint)Get(saw,"stateRevision"),Is.GreaterThan(before),
                 "Predicted client obstruction must be recoverable from a newer authoritative snapshot.");
         }
+        [Test] public void FinaleBladesMovingAwayFreeThePool() => CheckFinaleVolley(towardArena: false);
+        [Test] public void FinaleBladesReturningStayInFlight() => CheckFinaleVolley(towardArena: true);
+
+        void CheckFinaleVolley(bool towardArena)
+        {
+            Fixture(true);
+            var player = Player(41);
+            Own(41);
+            Set(saw, "projectileLifetime", 0f);
+            Set(saw, "projectileSpeed", 36f);
+            SetCables(Strand(ShotStart + Vector3.right * 5));
+            var arena = Root("Finale arena bounds", true).AddComponent<BoxCollider>();
+            arena.isTrigger = true;
+            arena.center = ShotStart - arena.transform.position;
+            arena.size = new Vector3(30, 10, 30);
+            var boss = Root("Finale boss").AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerBoss"));
+            Set(boss, "arena", arena);
+            Set(saw, "finaleBoss", boss);
+            var shots = (IList)Get(saw, "shots");
+            for (uint id = 1; id <= 64; id++)
+                shots.Add(Shot(id, 1, ShotStart + Vector3.forward * 100, towardArena ? Vector3.back : Vector3.forward));
+            Physics.SyncTransforms();
+
+            Call(saw, "HostProjectileStep", .25f, player);
+
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(towardArena ? 64 : 0));
+            Assert.That(Call(saw, "TryFire", player), Is.EqualTo(!towardArena));
+        }
+
         [Test] public void UnlimitedShotTravelsBeyondOldRangeAndStopsAtADistantThinWall()
         {
             Fixture(true);Own(41);Set(saw,"projectileLifetime",0f);Set(saw,"projectileSpeed",36f);

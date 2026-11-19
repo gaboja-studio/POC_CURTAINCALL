@@ -846,6 +846,110 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         [TestCase(false, false)]
         [TestCase(true, false)]
         [TestCase(true, true)]
+        public void SoleGuestCanOpenThePhysicalGateAndFinishTheEscape(bool thirdPlayer, bool thirdDisconnected)
+        {
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Levels/escape_route.unity", OpenSceneMode.Additive);
+            var fixture = new GameObject("Guest-only escape verdict");
+            fixture.SetActive(false);
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", Static).GetValue(null);
+            var actors = new List<NetworkPlayer>();
+            var previousRun = CampaignRun.Instance;
+            var previousTransfer = EscapeSceneTransfer.Current;
+            var previousGuard = NetworkPlayer.ServerCanChangeState;
+            var previousPlace = SurvivalRules.ServerPlace;
+            var spawned = typeof(NetworkBehaviour).GetProperty("IsSpawned");
+            var server = typeof(NetworkBehaviour).GetProperty("IsServer");
+            var owner = typeof(NetworkBehaviour).GetProperty("OwnerClientId");
+            try
+            {
+                var frame = scene.GetRootGameObjects().Single().transform;
+                var content = frame.GetComponentInChildren<EscapeCampaignContent>(true);
+                var saw = (EscapeExitSaw)new SerializedObject(content).FindProperty("exitSaw").objectReferenceValue;
+                var boss = saw.FinaleBoss;
+                var hostRun = new RunState();
+                hostRun.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                var run = fixture.AddComponent<CampaignRun>();
+                Set(run, "host", hostRun); Set(run, "state", hostRun.Snapshot); Set(run, "offlineRun", true);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                NetworkPlayer.ServerCanChangeState = null;
+                SurvivalRules.ServerPlace = SurvivalPlace.EscapeRoute;
+                var transfer = fixture.AddComponent<EscapeSceneTransfer>();
+                ulong[] ids = thirdPlayer ? new[] { 0UL, 8201UL, 8202UL } : new[] { 0UL, 8201UL };
+                var snapshot = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
+                snapshot.GetType().GetField("phase").SetValue(snapshot, 2);
+                snapshot.GetType().GetField("participants").SetValue(snapshot, ids);
+                SetCurrent(transfer);
+                var channel = CreateChannel(transfer);
+                var session = fixture.AddComponent<NetworkSessionManager>();
+                var manager = fixture.GetComponent<NetworkManager>();
+                Set(session, "_networkManager", manager);
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+                channel.GetType().GetProperty("Session").SetValue(channel, session);
+                var connected = (IDictionary<ulong, NetworkClient>)manager.ConnectedClients;
+                foreach (ulong id in ids)
+                {
+                    var root = new GameObject("Escape actor " + id);
+                    root.transform.SetParent(fixture.transform, false);
+                    var actor = root.AddComponent<NetworkPlayer>();
+                    spawned.SetValue(actor, true); server.SetValue(actor, true); owner.SetValue(actor, id);
+                    var state = typeof(NetworkPlayer).GetField("state", Private).GetValue(actor);
+                    state.GetType().GetProperty("Value").SetValue(state, id == ids[1] || thirdDisconnected && id == ids[2]
+                        ? PlayerState.Normal : PlayerState.Retired);
+                    if (!thirdDisconnected || id != ids[2]) connected.Add(id, new NetworkClient());
+                    actors.Add(actor);
+                    all.Add(actor);
+                }
+                var guest = actors[1];
+                typeof(EscapeCampaignContent).GetProperty("IsCampaign").SetValue(content, true);
+                Set(content, "run", run);
+                Call(saw, "InitializePose");
+                var arrival = (BoxCollider)new SerializedObject(content).FindProperty("arrivalArea").objectReferenceValue;
+                guest.transform.position = arrival.transform.TransformPoint(arrival.center);
+                Physics.SyncTransforms();
+
+                int extras = ids.Length;
+                Assert.That(EscapeFinaleFlowTests.Apply(boss, 10, 1, EscapePursuerBoss.Phase.Battle, count: (byte)extras), Is.True);
+                Call(boss, "EnsureReinforcements", extras);
+                var pack = (System.Collections.IEnumerable)typeof(EscapePursuerBoss).GetField("reinforcements", Private).GetValue(boss);
+                var reinforcements = pack.Cast<EscapePursuerBoss>().ToArray();
+                Assert.That(reinforcements.Length, Is.EqualTo(extras));
+                var required = typeof(EscapeExitSaw).GetProperty("RequiredMask", Private);
+                Set(saw, "cutMask", required.GetValue(saw));
+                Assert.That(EscapeFinaleFlowTests.Apply(boss, 10, 2, EscapePursuerBoss.Phase.Dead, byte.MaxValue, (byte)extras), Is.True);
+                foreach (var enemy in reinforcements.Take(extras - 1))
+                    Assert.That(EscapeFinaleFlowTests.Apply(enemy, 10, 1, EscapePursuerBoss.Phase.Dead, byte.MaxValue), Is.True);
+                Call(content, "Update");
+                Assert.That(guest.State, Is.EqualTo(PlayerState.Normal));
+                Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.Escape));
+
+                Assert.That(EscapeFinaleFlowTests.Apply(reinforcements.Last(), 10, 1, EscapePursuerBoss.Phase.Dead, byte.MaxValue), Is.True);
+                Call(saw, "Present", 0f, true);
+                Physics.SyncTransforms();
+                var from = frame.TransformPoint(new Vector3(398, 0, 78));
+                var step = frame.TransformPoint(new Vector3(403.9f, 0, 78)) - from;
+                Assert.That(Physics.CapsuleCastAll(from + Vector3.up * .4f, from + Vector3.up * 1.2f, .30f,
+                    step.normalized, step.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore), Is.Empty);
+                Call(content, "Update");
+                Assert.That(guest.State, Is.EqualTo(PlayerState.Arrived));
+                Assert.That(EscapeEndingPresentation.IsSuccessfulEnding(run.State), Is.True);
+                Assert.That(content.HasArrived(0UL), Is.False);
+                Assert.That(content.HasArrived(ids[1]), Is.True);
+            }
+            finally
+            {
+                foreach (var actor in actors) { all.Remove(actor); spawned.SetValue(actor, false); server.SetValue(actor, false); }
+                NetworkPlayer.ServerCanChangeState = previousGuard;
+                SurvivalRules.ServerPlace = previousPlace;
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
+                SetCurrent(previousTransfer);
+                Object.DestroyImmediate(fixture);
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
         public void AdditiveDepartureHandsOffDeviceRootsAndDoesNotRecreateWaitingRoomCannon(bool practiceLaneOpen, bool unloadBeforeArrival)
         {
             var departure = EditorSceneManager.NewPreviewScene();
