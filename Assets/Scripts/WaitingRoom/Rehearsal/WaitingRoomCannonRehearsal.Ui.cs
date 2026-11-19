@@ -137,13 +137,11 @@ namespace CurtainCall.WaitingRoom
             }
             placementBlock.SetOpen(shared.active && !shared.ending && local != null && !shared.placed.Contains(local.OwnerClientId));
             if (!shared.active || shared.ending || local == null) { votePanel.Hide(); return; }
-            bool yes = shared.votes.Contains(local.OwnerClientId);
             bool skip = shared.skipVotes.Contains(local.OwnerClientId);
-            string body = WaitingRoomText.Format("cannon-rehearsal.vote-body", "과반수 동의 시 넘기기는 이수 처리, 포기는 미이수로 종료합니다.\n넘기기 {skip}/{required} · 포기 {abandon}/{required}",
-                ("skip", shared.skipVotes.Count), ("abandon", shared.votes.Count), ("required", shared.participants.Count / 2 + 1));
-            votePanel.Show(T("vote-title", "리허설 넘기기 / 포기"), body,
-                new HudVoteChoice(skip ? T("cancel-skip", "넘기기 취소") : T("skip", "리허설 넘기기"), true, () => VoteToSkip(!skip)),
-                new HudVoteChoice(yes ? T("cancel-abandon", "포기 취소") : T("abandon", "리허설 포기"), true, () => VoteToAbandon(!yes)));
+            string body = WaitingRoomText.Format("cannon-rehearsal.vote-body", "과반수가 동의하면 리허설을 이수합니다.\n넘기기 {skip}/{required}",
+                ("skip", shared.skipVotes.Count), ("required", shared.participants.Count / 2 + 1));
+            votePanel.Show(T("vote-title", "리허설 넘기기"), body,
+                new HudVoteChoice(skip ? T("cancel-skip", "넘기기 취소") : T("skip", "리허설 넘기기"), true, () => VoteToSkip(!skip)));
             if (course != null) course.DeviceUi.PracticeTooltipExclusion = votePanel.VisibleSurface;
         }
 

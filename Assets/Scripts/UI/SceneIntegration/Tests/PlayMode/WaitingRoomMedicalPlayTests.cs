@@ -5,7 +5,7 @@ using UnityEngine.TestTools;
 namespace CurtainCall.UI.SceneIntegration.Tests {
  public sealed partial class DevStartLauncherPlayTests {
   [UnityTest] public IEnumerator M2_BodyRestore_ElevatorRoundTripAndAbort() {
-   yield return Launch(1,"Night",0,"","WaitingRoomBase");SeedShopFunds(1000);
+   yield return Launch(1,"Night",0,"","WaitingRoom");SeedShopFunds(1000);
    var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
    Call(player,"ServerSetOneArm");yield return null;
    var service=Find("CurtainCall.WaitingRoom.ExpertService");var room=Find("CurtainCall.WaitingRoom.ExpertRoomView");

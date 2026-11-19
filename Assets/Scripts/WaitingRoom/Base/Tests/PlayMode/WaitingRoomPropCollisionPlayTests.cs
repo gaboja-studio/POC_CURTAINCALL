@@ -11,7 +11,7 @@ namespace CurtainCall.WaitingRoom.Tests
 {
     public sealed class WaitingRoomPropCollisionPlayTests
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         Transform room;
         GameObject actor, isolated, floor;
 

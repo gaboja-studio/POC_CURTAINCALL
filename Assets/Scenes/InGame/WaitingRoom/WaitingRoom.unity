@@ -642281,7 +642281,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1725288314}
-  m_Text: "11  \uBB34\uB300 \uC7A5\uCE58 \uBCF4\uAD00"
+  m_Text: "\uBB34\uB300 \uC7A5\uCE58 \uBCF4\uAD00"
   m_OffsetZ: 0
   m_CharacterSize: 0.07
   m_LineSpacing: 1
@@ -823950,6 +823950,10 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 0.975
       objectReference: {fileID: 0}
+    - target: {fileID: 1982623744571566739, guid: 2366c2097727e0b4da80180355cacd2a, type: 3}
+      propertyPath: m_Text
+      value: "\uBB34\uB300 \uC7A5\uCE58 \uBCF4\uAD00"
+      objectReference: {fileID: 0}
     - target: {fileID: 2247578769154452414, guid: 2366c2097727e0b4da80180355cacd2a, type: 3}
       propertyPath: openTarget
       value: 
@@ -830054,6 +830058,10 @@ PrefabInstance:
     - target: {fileID: 4957935689589916464, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990714980815059779, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
+      propertyPath: m_Text
+      value: "\uD654\uBB3C \uC801\uC7AC"
       objectReference: {fileID: 0}
     - target: {fileID: 5082449638231972478, guid: b443046e1f8b6754bbc7d346ec3f9a34, type: 3}
       propertyPath: m_LocalPosition.x

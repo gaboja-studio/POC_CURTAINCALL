@@ -18,7 +18,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_ShopDescriptionScrollsWithFeedbackAndDeliveryShowsItemModel()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(500);
             // 실제 설명은 단답형이라 넘치지 않는다(2026-11-02). 스크롤 동작은 긴 설명으로 확인한다(플레이 중 기물 목록은 복사본).
             var springShoes = T("CurtainCall.WaitingRoom.ItemCatalog").GetMethod("Get").Invoke(null, new object[] { "spring-shoes" });

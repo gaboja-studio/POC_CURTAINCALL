@@ -27,7 +27,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var helpers = new System.Collections.Generic.List<Component>();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 Assert.IsFalse((bool)Static("CurtainCall.Tightrope.PiggybackSystem", "Suppressed"), "공연처럼 목마 연결 가능");
                 yield return JumpStage(3);
@@ -132,7 +132,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var helpers = new System.Collections.Generic.List<Component>();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 var questPanel = Priv(Rehearsal, "quest");
                 float panelDeadline = Time.realtimeSinceStartup + 3f;
@@ -223,7 +223,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 var network = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
                 var prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");
@@ -286,7 +286,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 for (int i = 0; i < 5 && !(bool)Static(RehearsalType, "IsCompleted"); i++)
                 {
@@ -335,7 +335,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return new WaitForEndOfFrame();
                 ScreenCapture.CaptureScreenshot(".harness/local/rehearsal/skip-button.png");
                 yield return null;
@@ -370,7 +370,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             System.IO.Directory.CreateDirectory(".harness/local/rehearsal/corrected");
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
                 var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsNotNull(Get(course, "ArtProfile"), "공연 준비 프리팹의 아트 연결");
@@ -478,7 +478,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             FreshTutorial();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 Assert.AreEqual("Rehearsal", Field(State, "Phase").ToString());
                 Assert.AreEqual("None", Field(State, "Timer").ToString(), "리허설 중 타이머 없음");
                 yield return WaitStage(0, 10f);
@@ -590,7 +590,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 // 첫 공연 패널은 별도 재현에서 확보했다. 이 검사는 미완료인 공연 사이부터 아침까지만 좁혀 실행한다.
-                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
                 var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
                 yield return WaitQuestReady("tutorial");
                 yield return QuestFlowCapture("01-tutorial");

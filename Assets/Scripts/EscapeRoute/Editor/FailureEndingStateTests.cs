@@ -34,6 +34,11 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var run=new RunState();run.DebugStartAt(new RunStartPoint(3,RunStartPhase.Escape,0,CampaignSnapshot.TightropeId));
             Assert.IsFalse(run.RestartAfterFailure());run.EndEscape(true);
             Assert.IsFalse(run.RestartAfterFailure());Assert.AreEqual(1,run.Snapshot.Generation);
+            Assert.IsTrue(run.RestartAfterSuccess());
+            Assert.AreEqual(2, run.Snapshot.Generation);
+            Assert.IsTrue(run.Snapshot.IsFirstMorningAfterEnding);
+            Assert.AreEqual(RunEndReason.EscapeSucceeded, run.Snapshot.LastEnd);
+            Assert.IsFalse(run.RestartAfterSuccess());
         }
         [TestCase(1,false)] [TestCase(2,false)] [TestCase(3,false)] [TestCase(4,false)]
         [TestCase(1,true)] [TestCase(2,true)] [TestCase(3,true)] [TestCase(4,true)]

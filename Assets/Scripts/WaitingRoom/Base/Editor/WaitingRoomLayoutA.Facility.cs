@@ -132,8 +132,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 Box(g,"LoadingApron",W(mid,-14.3f,-.1f),new Vector3(width,.2f,1.5f),Mat("LA_FloorConcrete"),true);
                 OpenSpan(g,new(span.Item1,-14),new(span.Item2,-14),9);
             }
-            FacilityLabel(g,"11  무대 장치",W(-8.5f,-13.9f,6.3f),Quaternion.Euler(0,180,0));
-            FacilityLabel(g,"12  화물 적재",W(2.7f,-13.9f,6.3f),Quaternion.Euler(0,180,0));
+            FacilityLabel(g,"무대 장치",W(-8.5f,-13.9f,6.3f),Quaternion.Euler(0,180,0));
+            FacilityLabel(g,"화물 적재",W(2.7f,-13.9f,6.3f),Quaternion.Euler(0,180,0));
             var hall=target.Find("S11_StageGear/LogisticsHall");if(hall==null)return;
             MuteShellWalls(hall);
             FacilityWall(g,"LogisticsWest",new(WhX0,WhZ0),new(WhX0,WhZ1),WhHeight);
@@ -147,8 +147,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 Box(g,"LowLogisticsDivider",W(3f,(run.Item1+run.Item2)*.5f,.55f),new Vector3(.12f,1.1f,run.Item2-run.Item1),Mat("LA_WallRust"),true);
                 Box(g,"DividerCoping",W(3f,(run.Item1+run.Item2)*.5f,1.15f),new Vector3(.2f,.1f,run.Item2-run.Item1),Mat("V4_Iron_Dark"));
             }
-            FacilityLabel(g,"11  SCENERY / RIGGING",W(-10,-20,6.4f),Quaternion.Euler(0,180,0),.07f);
-            FacilityLabel(g,"12  CARGO / DISPATCH",W(13,-20,6.4f),Quaternion.Euler(0,180,0),.07f);
+            FacilityLabel(g,"SCENERY / RIGGING",W(-10,-20,6.4f),Quaternion.Euler(0,180,0),.07f);
+            FacilityLabel(g,"CARGO / DISPATCH",W(13,-20,6.4f),Quaternion.Euler(0,180,0),.07f);
             foreach(var x in new[]{-8.5f,2.7f})Box(g,"TransportLane",W(x,-17,.013f),new Vector3(.13f,.008f,9),Mat("LA_HazardPaint"));
         }
 

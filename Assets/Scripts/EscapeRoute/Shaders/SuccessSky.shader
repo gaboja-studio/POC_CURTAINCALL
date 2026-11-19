@@ -4,7 +4,7 @@ Shader "CurtainCall/Endings/Success Overcast Sky"
     SubShader
     {
         Tags {"RenderPipeline"="UniversalPipeline" "Queue"="Background" "RenderType"="Opaque"}
-        Cull Front ZWrite Off
+        Cull Off ZWrite Off
         Pass
         {
             HLSLPROGRAM

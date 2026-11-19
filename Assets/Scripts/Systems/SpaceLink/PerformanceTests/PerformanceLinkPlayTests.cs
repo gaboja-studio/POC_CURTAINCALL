@@ -148,7 +148,6 @@ namespace CurtainCall.SpaceLink.Tests
         public void TryFindRecognizesFallbackAndBothPerformanceScenes_ForAdditiveCleanup()
         {
             // 기본 대기실/탐색은 같은 실제 씬을 공유한다. 이 순수 검사는 장소별 독립 이름으로 역매핑을 확인한다.
-            Set("waitingRoomScene", "RouteWaitingRoom");
             Set("explorationScene", "RouteExploration");
             Set("performanceScene", "Fallback");
             Set("tightropeScene", "Tightrope");

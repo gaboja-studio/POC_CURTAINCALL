@@ -11,7 +11,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ClueOverview_OpensLocallyAndReturnsToPlay()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var clue = Find("CurtainCall.WaitingRoom.ClueInspectable");
             Assert.IsNotNull(clue, "구조 A에 조사 가능한 단서가 있어야 한다");
             var original = clue.transform.position; var originalRotation = clue.transform.rotation;

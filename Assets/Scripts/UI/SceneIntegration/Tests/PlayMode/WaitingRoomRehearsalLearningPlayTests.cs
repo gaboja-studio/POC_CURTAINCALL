@@ -33,7 +33,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         [UnityTest] public IEnumerator RehearsalHud_TightropeApproachShowsEditedGuide()
         {
-            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoomBase");
+            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoom");
             using var edits=new LessonCopyScope("rehearsal.quest.pole-grab","테스트 그네 안내");
             yield return JumpStage(1);
             PlaceOnRope((Component)Priv(Rehearsal,"course"),0,7f);
@@ -61,7 +61,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Behaviour reader = null;
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 reader = (Behaviour)LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerInputReader"));
                 var input = reader.GetType().GetProperty("Current");
                 var frameType = T("CurtainCall.Player.PlayerInputFrame");
@@ -120,7 +120,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Component helper = null;
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 var course = (Component)Priv(Rehearsal, "course");
                 var hangs = Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
                 yield return CannonWait(() => (bool)Priv(Rehearsal, "courseStarted")
@@ -173,8 +173,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var original = Find("CurtainCall.Tightrope.TightropeTrapeze");
             Assert.AreEqual(2, Get(original, "PoleCount"), "일반 공연은 출발 봉과 낮은 복귀 봉 두 개(2026-11-11 가운데 교대 봉 제거)");
             Assert.IsTrue(((Behaviour)Find("CurtainCall.Tightrope.RopeLaneJumpRules")).isActiveAndEnabled);
-            Assert.IsTrue(((Behaviour)Find("CurtainCall.Tightrope.TightropeHandholdRangeView")).isActiveAndEnabled);
-            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
             Assert.AreEqual(38f, Get(Priv(Rehearsal, "course"), "FinishDistance"));
             Assert.AreEqual(2, Get(Priv(Rehearsal, "course"), "LaneCount"));
             // 1단계는 기획상 전원 도착으로 완료한다. 기물 학습을 요구하는 2-1 이후만 검사한다.
@@ -230,7 +229,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 var course = (Component)Priv(Rehearsal, "course");
                 var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
                 var camera = Static("CurtainCall.Cameras.CameraViewDirector", "Current");
@@ -262,7 +261,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 for (int stage = 1; stage <= 2; stage++)
                 {
                     yield return JumpStage(stage);

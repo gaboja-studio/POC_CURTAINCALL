@@ -18,7 +18,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 throw new InvalidOperationException("Editor must be idle.");
             var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByPath(WaitingRoomUiInstaller.RoomPath);
-            if (!scene.isLoaded || scene.isDirty) throw new InvalidOperationException("Open the saved WaitingRoomBase first.");
+            if (!scene.isLoaded || scene.isDirty) throw new InvalidOperationException("Open the saved WaitingRoom first.");
             if (scene.GetRootGameObjects().Any(g => g.GetComponentInChildren<WaitingRoomWorldLabels>(true) != null))
                 throw new InvalidOperationException("Already installed. Adjust existing UI/WorldLabels instances.");
             var ui = scene.GetRootGameObjects().First(g => g.name == "UI");

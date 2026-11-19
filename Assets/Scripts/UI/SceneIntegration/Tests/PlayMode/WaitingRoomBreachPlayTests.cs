@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_CrowbarBreaksRestroomWallOnSixthHit()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             const string target = "restroom-breach";
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.IsNotNull(state, "탐색 진행 상태가 있어야 한다");

@@ -143,7 +143,7 @@ namespace CurtainCall.WaitingRoom.Editor
             }
             var floor=MeshObject(branch,"BranchFloorCeiling",Vector3.zero,SaveMesh(mesh.Build()),Mat("LA_FloorConcrete"));floor.gameObject.AddComponent<MeshCollider>().sharedMesh=floor.GetComponent<MeshFilter>().sharedMesh;floor.GetComponent<MeshRenderer>().shadowCastingMode=ShadowCastingMode.TwoSided;
             TrimCord(CagedLamp(branch,new Vector3(-13.38f,3.1f,96),.7f,WhiteLight),h);
-            FacilityLabel(branch,"10 작업실",new Vector3(-10.2f,3.2f,93.4f),Quaternion.Euler(0,90,0),.045f);
+            FacilityLabel(branch,"작업실",new Vector3(-10.2f,3.2f,93.4f),Quaternion.Euler(0,90,0),.045f);
         }
 
         static void Frame8CorridorPipes(Transform g,System.Collections.Generic.List<Passage> ps)

@@ -106,7 +106,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             System.IO.Directory.CreateDirectory(".harness/local/rehearsal/overview");
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 for (int stage = 0; stage < 5; stage++)
                 {
                     if (stage > 0) yield return JumpStage(stage);
@@ -175,7 +175,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             System.IO.Directory.CreateDirectory(AuditDirectory);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return WaitStage(0, 10f);
                 var ids = new[] { "1", "2-1", "2-2", "2-3", "3" };
                 var kinds = new[] { "LaneChange", "SinglePole", "ConsecutivePoles", "Relay", "Trapeze" };
@@ -223,7 +223,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             System.IO.Directory.CreateDirectory(AuditDirectory);
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return JumpStage(3);
                 var course = (Component)Priv(Rehearsal, "course");
                 AssertRehearsalRelay(course);
@@ -253,14 +253,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W6_Rehearsal_ExitRouteSmoke()
         {
             FreshTutorial();
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
             System.IO.Directory.CreateDirectory(AuditDirectory);
             var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
             bool maximized = gameView.maximized; gameView.maximized = true; gameView.Focus();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
                 yield return JumpStage(4);
                 // 출구 길안내 검사를 위한 완료 준비. 이후 이동은 실제 입력이다.
                 Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));

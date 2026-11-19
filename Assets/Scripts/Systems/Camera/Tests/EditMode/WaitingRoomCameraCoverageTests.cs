@@ -13,17 +13,14 @@ namespace CurtainCall.Cameras.Tests
     [Category("November11CommonFix")]
     public sealed class WaitingRoomCameraCoverageTests
     {
-        const string BaseGuid = "0ce9037bd7c44c8b9d57785c26620388";
-        const string PursuitGuid = "9d8832c4cb77f9343a74c3dc35c1d3a3";
         static Type TypeOf(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static Type Surface => TypeOf("CurtainCall.Cameras.CameraCollisionSurface");
         static Type Authoring => TypeOf("CurtainCall.Cameras.Editor.WaitingRoomCameraCollisionAuthoring");
 
-        [TestCase(BaseGuid)]
-        [TestCase(PursuitGuid)]
-        public void SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow(string guid)
+        [Test]
+        public void SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow()
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
+            const string path = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
             var scene = SceneManager.GetSceneByPath(path);
             bool opened = !scene.IsValid() || !scene.isLoaded;
             if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);

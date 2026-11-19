@@ -21,7 +21,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ClueRoute_NotesUvMonitorAndPendingHint()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             DisablePlacedRoutesForFixture();
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");

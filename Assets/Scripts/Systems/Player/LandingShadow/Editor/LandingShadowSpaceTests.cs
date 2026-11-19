@@ -18,7 +18,7 @@ namespace CurtainCall.Player.LandingShadowTests
             Assert.AreEqual(Space.Lobby, LandingShadowMarkers.SpaceOf(transition.HubScene, ""));
             Assert.AreEqual(Space.Lobby, LandingShadowMarkers.SpaceOf("Start", "Assets/Scenes/InGame/Start.unity"));
             Assert.AreEqual(Space.WaitingRoom, LandingShadowMarkers.SpaceOf("WaitingRoom", "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity"));
-            Assert.AreEqual(Space.WaitingRoom, LandingShadowMarkers.SpaceOf("WaitingRoomBase", "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity"));
+            Assert.AreEqual(Space.WaitingRoom, LandingShadowMarkers.SpaceOf("WaitingRoom", "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity"));
             Assert.AreEqual(Space.EscapeRoute, LandingShadowMarkers.SpaceOf("escape_route_b", "Assets/Scenes/Levels/escape_route_b.unity"));
             Assert.AreEqual(Space.EscapeRoute, LandingShadowMarkers.SpaceOf("UnderstagePursuerPlaytest", "Assets/Scenes/Tests/EscapeRoute/Pursuer/UnderstagePursuerPlaytest.unity"));
             Assert.AreEqual(Space.Other, LandingShadowMarkers.SpaceOf("SampleScene", "Assets/Scenes/Levels/SampleScene.unity"));

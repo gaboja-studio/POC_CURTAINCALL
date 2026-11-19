@@ -14,7 +14,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator PursuitStairDoor_OpeningAndReturningDoNotContinuouslyInvalidateNavigation()
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             const string bar = "final:stairs-bar";
             var navigation = T("CurtainCall.WaitingRoom.Pursuit.PursuitNavigation");
@@ -85,7 +84,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExplorationFramework_ConditionsCodeMonitorAndDrops()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
@@ -156,7 +155,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExplorationRoute_TwoKeysAndPadInEitherOrder()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             for (int order = 0; order < 2; order++)
@@ -197,7 +196,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExplorationBreakable_MultipleDropsOnlyAfterLastHit()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
@@ -244,7 +243,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_StructureAKeyRoute_UnlockPickupAndToolChain()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             DisablePlacedRoutesForFixture();
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");

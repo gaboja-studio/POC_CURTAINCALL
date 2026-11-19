@@ -10,14 +10,14 @@ namespace CurtainCall.WaitingRoom.Editor
     /// <summary>로비 디버그 돈 기물 옆에 디버그 탈출로 열쇠 1·2(<see cref="DebugEscapeKeyProp"/>)를 둔다. 다시 실행해도 하나씩만 남는다.</summary>
     public static class DebugLobbyEscapeKeyInstaller
     {
-        const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        const string ScenePath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         const string MaterialPath = "Assets/Resources/Models/Materials/PerformanceArtKit/GripYellow.mat";
 
         [MenuItem("CurtainCall/Waiting Room/Install Debug Lobby Escape Keys")]
         public static void Install()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoomBase in EditMode.");
+            if (EditorApplication.isPlaying || scene.path != ScenePath) throw new InvalidOperationException("Open WaitingRoom in EditMode.");
             var lobby = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform.Find("S01_Lobby");
             var material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
             // 디버그 돈 기물(-4.2, 0, 74.4) 뒤로 한 줄. 디버그 보급품(x -8~-5.3, z 74.4~76.2) 오른쪽.

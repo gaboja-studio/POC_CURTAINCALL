@@ -59,9 +59,7 @@ namespace CurtainCall.WaitingRoom
             if (run != null && player != null && player.IsSpawned && !PracticeOwnsPlacement)
             {
                 var state = run.State;
-                if (state.Generation > 1 && state.Generation != placedRun && state.Day == 1
-                    && state.Phase == CampaignPhase.RestTime && state.Rest == RestKind.Morning
-                    && state.LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired
+                if (state.Generation != placedRun && state.IsFirstMorningAfterEnding
                     && player.State == PlayerState.Normal && player.Slot != NetworkPlayer.NoSlot)
                 {
                     morningRevival = player;

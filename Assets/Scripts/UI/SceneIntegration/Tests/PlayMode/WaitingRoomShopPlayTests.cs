@@ -62,7 +62,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_CarrySlots_KeepTwoAfterInjuryAndRejectFullDelivery()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(100);
             var shop = Find("CurtainCall.WaitingRoom.WaitingRoomShop");
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
@@ -105,7 +105,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_MorningPurchase_UsesConfiguredPermissionForUiAndDirectRequest()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             SeedShopFunds(100);
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
@@ -143,7 +143,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_PurchaseDeliveryLedger_RefusalAndCloseReopen()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(100);
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
@@ -195,7 +195,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_BodyRestore_QuantityRemainsUsableWhenFundsAreShort()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             Call(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "ServerSetOneArm");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
             long unit = (long)Get(service, "MedicalPrice");
@@ -242,7 +242,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_BodyRestore_ChoosesPartsAndRaisesTeamPrice()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(1000);
             Call(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "ServerSetOneArm");
             yield return OpenShop();
@@ -277,7 +277,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W2_BodyRestore_IsAvailableDuringRestTimeWithoutExpertSchedule()
         {
             // M2: 전문가 일정 삭제. 2일차(옛 시설 담당자 날) 아침 쉬는 시간에도 신체 복구를 쓴다.
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             SeedShopFunds(1000);
             var local = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             Call(local, "ServerCutPart", Enum.Parse(T("CurtainCall.Player.BodyPart"), "LeftLeg"));

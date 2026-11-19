@@ -49,8 +49,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 
         static PursuitPerformanceProbe()
         {
-            foreach (string name in new[] {WaitingRoomScenes.BaseName, WaitingRoomScenes.PursuitName, WaitingRoomScenes.IntegratedName})
-                if (SceneManager.GetSceneByName(name).isLoaded) SessionState.SetBool(SceneSeenKey(name), true);
+            MarkSeen(SceneManager.GetSceneByName(WaitingRoomScenes.Name));
             EditorSceneManager.sceneOpened += (scene, mode) => MarkSeen(scene);
             SceneManager.sceneLoaded += (scene, mode) => MarkSeen(scene);
             EditorApplication.playModeStateChanged += state => {

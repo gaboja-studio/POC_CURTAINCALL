@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator WaitingRoomDeathShowsOneUpperRightWarning()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
             yield return new WaitForSecondsRealtime(.5f);
             var kill = player.GetType().GetMethod("ServerKill");
@@ -36,7 +36,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Access_BedHairpinEdgeCollectsThroughF()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return new WaitForSecondsRealtime(.8f);
             var layout = GameObject.Find("WaitingRoom_LayoutA").transform;
             var spot = layout.Find("S02_Dormitory/Exploration_A/bed-hairpin").GetComponent(T("CurtainCall.WaitingRoom.FoundItemSpot"));
@@ -54,7 +54,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Access_StairClosedLeavesLockPointAndKeyFRelease()
         {
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var layout = GameObject.Find("WaitingRoom_LayoutA").transform;
             var door = Placed("stairs-door"); var blocker = door.GetComponent<BoxCollider>();
             var assembly = layout.Find("ST_Stairwell/StairwellDoorway");

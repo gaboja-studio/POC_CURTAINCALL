@@ -22,7 +22,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W2_ShopWordingComesFromSettingsAndShowsPriceOnly()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(500);
             yield return OpenShop();
             var adapter = (Component)Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");

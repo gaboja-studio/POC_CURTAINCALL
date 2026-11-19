@@ -10,12 +10,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        void SelectUnifiedRoom() => WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
 
         [UnityTest]
         public IEnumerator UnifiedWaitingRoom_RehearsalStagesAndPursuitStaySeparate()
         {
-            SelectUnifiedRoom();
             yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
             yield return WaitStage(0, 10f);
             var director = Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");
@@ -39,7 +37,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator UnifiedWaitingRoom_CameraMenuInventoryAndPursuitCheats()
         {
-            SelectUnifiedRoom();
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             yield return MenuReady();
             Assert.AreEqual("WaitingRoom", ((Scene)Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "CurrentScene")).name);
@@ -72,7 +69,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator UnifiedWaitingRoom_MaintenanceClosesStageCorridor()
         {
-            SelectUnifiedRoom();
             var closure = T("CurtainCall.WaitingRoom.StageCorridorClosure");
             Component Gate() => SceneManager.GetSceneByName("WaitingRoom").GetRootGameObjects()
                 .SelectMany(r => r.GetComponentsInChildren(T("CurtainCall.WaitingRoom.NightDoorLock"), true))

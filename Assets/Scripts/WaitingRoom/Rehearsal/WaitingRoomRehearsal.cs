@@ -356,7 +356,6 @@ namespace CurtainCall.WaitingRoom
             }
             if (TightropeCatchSystem.Current == null) courseRoot.AddComponent<TightropeCatchSystem>();
             if (courseRoot.GetComponent<TightropeBalancePoseView>() == null) courseRoot.AddComponent<TightropeBalancePoseView>();
-            if (courseRoot.GetComponent<TightropeHandholdRangeView>() == null) courseRoot.AddComponent<TightropeHandholdRangeView>();
             BuildPerformanceUi();
             courseRoot.SetActive(true);
             if (s.Kind == RehearsalStageKind.LaneChange) course.SetIntermediatePlatformLanes(new[] { 0 });

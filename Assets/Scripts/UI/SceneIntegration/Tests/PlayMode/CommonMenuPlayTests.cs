@@ -138,9 +138,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
             yield return IsolatedMenuHost();
-            foreach (var scene in new[] { "WaitingRoomBase", "Tightrope", "HumanCannon" })
+            foreach (var scene in new[] { "WaitingRoom", "Tightrope", "HumanCannon" })
             {
-                yield return Launch(2, scene == "WaitingRoomBase" ? "Morning" : "Performance", 0,
+                yield return Launch(2, scene == "WaitingRoom" ? "Morning" : "Performance", 0,
                     scene == "HumanCannon" ? "HumanCannon" : "Tightrope", scene);
                 yield return MenuReady();
                 var owner = Find("CurtainCall.UI.SceneIntegration.CommonMenuUI"); var menu = Get(owner, "Menu");

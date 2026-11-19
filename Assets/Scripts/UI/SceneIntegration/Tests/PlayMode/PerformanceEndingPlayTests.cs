@@ -74,7 +74,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var ending = (Component)type.GetProperty("Current").GetValue(null);
             Assert.IsNotNull(ending);
             Assert.AreEqual("DontDestroyOnLoad", ending.gameObject.scene.name);
-            destination = SceneManager.CreateScene("WaitingRoomBase");
+            destination = SceneManager.CreateScene("WaitingRoom");
             int generation = 0;
             foreach (bool succeeded in new[] { true, false })
             {

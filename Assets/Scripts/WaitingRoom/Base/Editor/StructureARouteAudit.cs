@@ -48,8 +48,8 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             if (baking != null) return Status;
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying != runtime || scene.path != "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity" || (!runtime && scene.isDirty))
-                throw new InvalidOperationException("Open saved WaitingRoomBase in Edit Mode.");
+            if (EditorApplication.isPlaying != runtime || scene.path != "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity" || (!runtime && scene.isDirty))
+                throw new InvalidOperationException("Open saved WaitingRoom in Edit Mode.");
             originalDirty = scene.isDirty;
             layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             start = runtime && CurtainCall.Network.PlayerSync.NetworkPlayer.Local != null

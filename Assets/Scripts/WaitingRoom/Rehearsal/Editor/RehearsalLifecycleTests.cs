@@ -747,6 +747,31 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Call(rewards, "ReadState", NetworkManager.ServerClientId, reader, false);
         }
 
+        [Test]
+        public void SuccessfulLobbyRestartKeepsEducationAndResetsRunOnDeparture()
+        {
+            var session = Make("Lobby restart host").AddComponent<NetworkSessionManager>();
+            typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+            Set(run, "session", session);
+            var state = (RunState)Get(run, "host");
+            state.SetTutorialDone(0);
+            state.RefreshGuideRest(new ulong[] { 0 });
+            Assert.IsTrue(state.UnlockTrick(CampaignSnapshot.HumanCannonId));
+            Assert.IsTrue(state.StartEscape());
+            Assert.IsTrue(state.EndEscape(true));
+            Call(run, "Apply", state.Snapshot);
+            var generation = run.State.Generation;
+            Call(run, "HandleGameState", GameSessionState.Waiting);
+            Assert.AreEqual(CampaignPhase.Ending, run.State.Phase);
+            Assert.IsTrue(run.State.CannonUnlocked);
+            Call(run, "HandleGameState", GameSessionState.Playing);
+            Call(run, "HandleGameState", GameSessionState.Playing);
+            Assert.AreEqual(generation + 1, run.State.Generation);
+            Assert.IsTrue(run.State.IsFirstMorningAfterEnding);
+            Assert.IsFalse(run.State.CannonUnlocked);
+            Assert.IsTrue(WaitingRoomRehearsal.HasMastered);
+        }
+
         [TestCase(0), TestCase(1), TestCase(2), Category("RewardLobbyBoundaryRegression")]
         public void LobbyRewardResetUsesCampaignBoundaryOnceAcrossSessionMessageOrders(int order)
         {

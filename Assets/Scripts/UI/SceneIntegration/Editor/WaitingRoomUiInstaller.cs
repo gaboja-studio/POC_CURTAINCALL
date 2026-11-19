@@ -16,7 +16,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
 {
     public static class WaitingRoomUiInstaller
     {
-        public const string RoomPath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+        public const string RoomPath = "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity";
         [MenuItem("Tools/Curtain Call UI/Install waiting room HUD")]
         public static void Apply()
         {

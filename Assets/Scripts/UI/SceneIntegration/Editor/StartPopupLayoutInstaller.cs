@@ -15,7 +15,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
     {
         const string StartPath = "Assets/Scenes/Start_Lobby/Start.unity";
         static readonly string[] Spaces = { StartPath, "Assets/Scenes/Start_Lobby/Lobby.unity",
-            "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
+            "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity",
             "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity",
             "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity" };
 

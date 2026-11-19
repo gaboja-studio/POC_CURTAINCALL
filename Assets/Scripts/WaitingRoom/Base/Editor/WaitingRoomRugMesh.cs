@@ -30,7 +30,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public static void ReplaceStagedCopies()
         {
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity") throw new System.InvalidOperationException("대상 씬 편집 모드에서만 실행합니다.");
+            if (EditorApplication.isPlaying || scene.path != "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity") throw new System.InvalidOperationException("대상 씬 편집 모드에서만 실행합니다.");
             var replaced = new System.Collections.Generic.HashSet<Mesh>();
             foreach (var mf in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<MeshFilter>(true)))
             {

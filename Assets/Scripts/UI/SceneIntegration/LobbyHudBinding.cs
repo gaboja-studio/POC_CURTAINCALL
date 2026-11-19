@@ -80,7 +80,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
             var state=campaign.State;
             bool blocked=InputGate.IsBlocked;
-            bool intro=state.Phase==CampaignPhase.Intro, ending=state.Phase==CampaignPhase.Ending;
+            bool intro=state.Phase==CampaignPhase.Intro, ending=state.Phase==CampaignPhase.Ending && session.GameState==GameSessionState.Ended;
             if(!blocked && announcedPhase!=state.Phase)
             {
                 announcedPhase=state.Phase;

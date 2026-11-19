@@ -24,8 +24,8 @@ namespace CurtainCall.WaitingRoom.Editor
         public static void Apply()
         {
             var scene = SceneManager.GetActiveScene();
-            if (EditorApplication.isPlaying || scene.isDirty || !scene.path.EndsWith("/WaitingRoomBase.unity"))
-                throw new InvalidOperationException("Saved WaitingRoomBase EditMode required.");
+            if (EditorApplication.isPlaying || scene.isDirty || !scene.path.EndsWith("/WaitingRoom.unity"))
+                throw new InvalidOperationException("Saved WaitingRoom EditMode required.");
             StructureADoorVisualFix.Apply(); // 배관함 철창 포함. 저장까지 한다.
             var layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             int undo = Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Install confirmed features");

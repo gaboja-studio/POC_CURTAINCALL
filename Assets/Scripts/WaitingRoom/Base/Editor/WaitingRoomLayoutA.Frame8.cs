@@ -16,11 +16,11 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static List<Passage> Frame8Passages() => new()
         {
-            new() { Name="F8_Practice", Label="09 연습실", O=DomeC, U=(Frame8Practice-DomeC).normalized, W=6f, H=5.5f, StartC=DomeC, StartR=Frame8LobbyR, EndC=Frame8Practice, EndR=PracR },
-            new() { Name="F8_PropRoom", Label="04 소품실 · 10 작업실", O=new(-8.2f,77.4f), U=Vector2.up, W=3.4f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=18f, WallGapSide=1, WallGapA=14.3f, WallGapB=17.7f },
-            new() { Name="F8_Cargo", Label="12 화물 · 11 무대 장치", O=new(-6f,68.65f), U=Vector2.left, W=3.6f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=20.85f },
-            new() { Name="F8_Dorm", Label="02 숙소 · 화장실", O=new(-6f,72.55f), U=Vector2.right, W=3.8f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=17.15f },
-            new() { Name="F8_Stage", Label="06 무대 입구 통로", O=DomeC, U=Vector2.down, W=9f, H=9.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=14.35f, Lamp=false },
+            new() { Name="F8_Practice", Label="연습실", O=DomeC, U=(Frame8Practice-DomeC).normalized, W=6f, H=5.5f, StartC=DomeC, StartR=Frame8LobbyR, EndC=Frame8Practice, EndR=PracR },
+            new() { Name="F8_PropRoom", Label="소품실 · 작업실", O=new(-8.2f,77.4f), U=Vector2.up, W=3.4f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=18f, WallGapSide=1, WallGapA=14.3f, WallGapB=17.7f },
+            new() { Name="F8_Cargo", Label="화물 · 무대 장치", O=new(-6f,68.65f), U=Vector2.left, W=3.6f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=20.85f },
+            new() { Name="F8_Dorm", Label="숙소 · 화장실", O=new(-6f,72.55f), U=Vector2.right, W=3.8f, H=4.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=17.15f },
+            new() { Name="F8_Stage", Label="무대 입구 통로", O=DomeC, U=Vector2.down, W=9f, H=9.2f, StartC=DomeC, StartR=Frame8LobbyR, EndT=14.35f, Lamp=false },
             // This is a mask for the shared lobby gallery, not a tunnel with interior side walls.
             new() { Name="F8_GalleryMask", Label="", O=new(5.6f,84.3f), U=Vector2.up, W=18.2f, H=10f, StartT=0, EndT=17.55f, Lamp=false, OpeningMask=Frame8InGallery },
             new() { Name="F8_PipeCrawl", Label="", O=new(16.05f,62.65f), U=Vector2.down, W=1.9f, H=2.4f, StartT=0, EndT=3.1f, Lamp=false },
@@ -213,7 +213,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 if(Frame8InGallery((p+q)*.5f))Wall(p,q,DomeWallH,Frame8GalleryH);
             }
             foreach(var z in new[]{89f,98f})TrimCord(CagedLamp(hall,new Vector3(3.5f,7,z),1.4f,WhiteLight),Frame8GalleryH);
-            FacilityLabel(hall,"계단 · B1",new Vector3(5.25f,4.8f,101.6f),Quaternion.identity,.055f);
+            FacilityLabel(hall,"계단 · 지하",new Vector3(5.25f,4.8f,101.6f),Quaternion.identity,.055f);
         }
 
         static void Frame8WaitingAreas(Transform target)

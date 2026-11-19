@@ -21,7 +21,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W3_BedRestCamera_KeepsYawWithoutRollThroughMorning()
         {
             // 시선과 침대 방향이 달라도 눕기·일어나기 카메라는 위아래로만 움직인다(밤 → 아침 전환 때 화면이 돌던 문제).
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             yield return new WaitForSecondsRealtime(.5f);
             ConfirmTonight();
             var bed = Find("CurtainCall.WaitingRoom.NightBed");

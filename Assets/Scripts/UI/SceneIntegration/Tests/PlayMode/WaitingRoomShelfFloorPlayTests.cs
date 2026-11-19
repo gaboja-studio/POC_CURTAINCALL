@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W4_ShelfIgnoresOtherFloorAndItemsUnderShelfArePickable()
         {
             // 2026-10-31: 지하 관리실 문 앞 F가 바로 위층 소품실 선반에 보관되던 문제, 선반 밑에 버린 물건을 못 줍던 문제.
-            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoom");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             ulong me = (ulong)Get(carry, "LocalClientId");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");

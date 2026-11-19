@@ -13,7 +13,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_ExplorationToolsChain_PryLockAndUv()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(1, "Night", 0, "", "WaitingRoom");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");

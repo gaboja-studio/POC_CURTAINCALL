@@ -103,8 +103,6 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
             try {
                 foreach (var path in new[] {
                     "Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity",
-                    "Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity",
-                    "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
                     "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity" }) {
                     var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
                     var rooms = UnityEngine.Object.FindObjectsByType<PursuitRoom>(FindObjectsSortMode.None)
