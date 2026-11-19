@@ -5,3 +5,5 @@
 - Unity 편집 모드에서 예고 중 실루엣, 소실 후반의 잔여 줄, 최종 소실, 원래 재질 복귀를 확인했다.
 - 안전성·문서·Unity 컴파일·공통 설정 단계는 통과했다. 묶음 검사는 작업 중 검사 지문이 바뀌어 완료 증빙을 남기지 못했다. 마지막 수정 이후 전체 게임 C# 재컴파일은 통과했다. PlayMode는 실행하지 않았다.
 - 제출 직전 origin/dev 0af36a65와 비공개 에셋 기준 edc4b497을 확인했다. 최종 변경 범위 및 공백 검사 통과.
+
+- 2026-11-19 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/440 (fix/tightrope-escape-dissolve → dev)
