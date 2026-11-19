@@ -19,6 +19,48 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         const string Art = "Assets/Resources/Models/Objects/HumanCannonProps";
 
         [Test]
+        public void FinalApproachSawsAreStaggeredAndLeaveTheLaunchersClear()
+        {
+            var scene = Open(out bool opened);
+            try
+            {
+                Physics.SyncTransforms();
+                var roots = scene.GetRootGameObjects();
+                var course = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonHazardCourse>(true)).Single();
+                var registry = new SerializedObject(course).FindProperty("hazards");
+                var sweeps = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonHazard>(true))
+                    .Where(h => h.transform.parent.name.StartsWith("11_FinalApproachSaw_")).ToArray();
+                var launchers = roots.SelectMany(r => r.GetComponentsInChildren<EscapeExitSaw>(true))
+                    .Where(s => s.FinaleBoss).ToArray();
+                Assert.That(sweeps.Length, Is.EqualTo(2));
+                Assert.That(launchers, Is.Not.Empty);
+                var cues = sweeps.Select(s => s.GetComponent<HumanCannonHazardCue>()).ToArray();
+                foreach (var saw in sweeps)
+                {
+                    Assert.That(Enumerable.Range(0, registry.arraySize)
+                        .Count(i => registry.GetArrayElementAtIndex(i).objectReferenceValue == saw), Is.EqualTo(1));
+                    Assert.That(saw.UsesAuthoredPath && saw.WorldUiVisual, Is.True);
+                    var cue = saw.GetComponent<HumanCannonHazardCue>();
+                    Assert.That(cue.warning && cue.warningSeconds > 1f, Is.True);
+                    for (int sample = 0; sample <= 48; sample++)
+                    {
+                        var center = Vector3.Lerp(cue.origin, cue.destination, sample / 48f);
+                        Assert.That(Physics.Raycast(center, Vector3.down, 2f, Physics.DefaultRaycastLayers,
+                            QueryTriggerInteraction.Ignore), Is.True, $"No walkable surface at {center}");
+                        var extents = new Vector3(saw.Radius, saw.Radius, .1f);
+                        Assert.That(Physics.OverlapBox(center, extents, saw.BladeRotation, Physics.DefaultRaycastLayers,
+                            QueryTriggerInteraction.Ignore), Is.Empty, $"Saw collides with scene geometry at {center}");
+                        Assert.That(launchers.All(launcher => Vector3.Distance(center, launcher.GrabPoint) > 4f), Is.True);
+                    }
+                }
+                for (int sample = 0; sample < 710; sample++)
+                    Assert.That(cues.Count(cue => cue.Live(sample * .01)), Is.LessThanOrEqualTo(1));
+                Assert.That(launchers.All(s => s.FinaleBoss.BeyondFireBoundary(s.GrabPoint)), Is.True);
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test]
         public void AllSavedStationsUseTheSharedTouringMeshesAndFireBurst()
         {
             var scene = EditorSceneManager.OpenPreviewScene(Path);
