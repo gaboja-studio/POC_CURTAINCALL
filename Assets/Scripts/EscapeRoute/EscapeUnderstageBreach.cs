@@ -26,10 +26,11 @@ namespace CurtainCall.EscapeRoute
         SoundHandle collapseSound;
         Vector3 impactPoint;
         EscapeUnderstageChase chase;
-        struct EntranceClock : INetworkSerializeByMemcpy { public double Round, Started; }
-        const string EntranceMessage = "CurtainCall.Escape.CorridorEntrance.v1";
+        struct EntranceClock : INetworkSerializeByMemcpy { public double Round, Started; public bool ArenaHandoff; }
+        const string EntranceMessage = "CurtainCall.Escape.CorridorEntrance.v2";
         CustomMessagingManager receiver;
         double round = -1, started = -1, nextPublish;
+        bool arenaHandoff;
 
         public bool EntranceComplete => entrance && lastSample >= entrance.length;
         internal float ImpactTime => impactTime;
@@ -47,6 +48,8 @@ namespace CurtainCall.EscapeRoute
             var timer = EscapeRouteTimer.Current;
             bool running = timer != null && timer.gameObject.scene == gameObject.scene
                 && EscapeCampaignContent.IsTraversalActive && timer.HasStarted;
+            bool arenaOwnsActor = running && pursuer && pursuer.TryGetComponent<EscapePursuerBoss>(out var boss)
+                && boss.TakesOverChase;
             var net = NetworkManager.Singleton;
             var messaging = net && net.IsListening && !net.IsServer ? net.CustomMessagingManager : null;
             if (receiver != messaging)
@@ -55,18 +58,25 @@ namespace CurtainCall.EscapeRoute
                 receiver = messaging;
                 receiver?.RegisterNamedMessageHandler(EntranceMessage, ReadEntrance);
             }
-            if (!running) { round = started = -1; nextPublish = 0; }
+            if (!running) { round = started = -1; arenaHandoff = false; nextPublish = 0; }
             else
             {
-                if (round != timer.StartedAt) { round = timer.StartedAt; started = -1; nextPublish = 0; }
+                if (round != timer.StartedAt) { round = timer.StartedAt; started = -1; arenaHandoff = false; nextPublish = 0; }
                 if (net && net.IsServer)
                 {
-                    if (started < 0 && (!encounterArea || HasRunnerInCorridor())) { started = timer.Clock; nextPublish = 0; }
+                    if (arenaOwnsActor && !arenaHandoff)
+                    {
+                        // Keep publishing the open wall for peers who missed the pickup or joined later.
+                        arenaHandoff = true;
+                        nextPublish = 0;
+                    }
+                    else if (!arenaHandoff && started < 0 && (!encounterArea || HasRunnerInCorridor()))
+                    { started = timer.Clock; nextPublish = 0; }
                     if (timer.Clock >= nextPublish)
                     {
                         nextPublish = timer.Clock + .5;
                         using var writer = new FastBufferWriter(FastBufferWriter.GetWriteSize<EntranceClock>(), Allocator.Temp);
-                        writer.WriteValueSafe(new EntranceClock { Round = round, Started = started });
+                        writer.WriteValueSafe(new EntranceClock { Round = round, Started = started, ArenaHandoff = arenaHandoff });
                         foreach (var id in net.ConnectedClientsIds)
                             if (id != NetworkManager.ServerClientId)
                                 net.CustomMessagingManager.SendNamedMessage(EntranceMessage, id, writer, NetworkDelivery.ReliableSequenced);
@@ -74,7 +84,17 @@ namespace CurtainCall.EscapeRoute
                 }
             }
             float time = running && started >= 0 ? (float)(timer.Clock - started) : 0f;
-            Sample(time);
+            if ((arenaOwnsActor || arenaHandoff) && entrance) CompleteArenaHandoff();
+            else Sample(time);
+        }
+
+        void CompleteArenaHandoff()
+        {
+            // Sampling the entrance clip here would overwrite the arena actor's pose and position.
+            if (closedPanel) closedPanel.enabled = false;
+            if (fragments && fragments.activeSelf) fragments.SetActive(false);
+            if (!pursuer.activeSelf) pursuer.SetActive(true);
+            lastSample = entrance.length;
         }
 
         bool HasRunnerInCorridor()
@@ -92,10 +112,17 @@ namespace CurtainCall.EscapeRoute
             if (sender != NetworkManager.ServerClientId || !timer || !timer.HasStarted
                 || reader.Length - reader.Position != FastBufferWriter.GetWriteSize<EntranceClock>()) return;
             reader.ReadValueSafe(out EntranceClock state);
-            if (state.Round != timer.StartedAt || !double.IsFinite(state.Started)
-                || (state.Started != -1 && (state.Started < state.Round || state.Started > timer.Clock + 1))) return;
-            if (round == state.Round && started >= 0 && state.Started < 0) return;
+            AcceptEntrance(state, timer.StartedAt, timer.Clock);
+        }
+
+        bool AcceptEntrance(EntranceClock state, double epoch, double clock)
+        {
+            if (state.Round != epoch || !double.IsFinite(state.Started)
+                || (state.Started != -1 && (state.Started < state.Round || state.Started > clock + 1))) return false;
+            if (round == state.Round && (arenaHandoff && !state.ArenaHandoff || started >= 0 && state.Started < 0)) return false;
             round = state.Round; started = state.Started;
+            arenaHandoff = state.ArenaHandoff;
+            return true;
         }
 
         void OnDisable()
@@ -104,6 +131,7 @@ namespace CurtainCall.EscapeRoute
             receiver = null;
             if (Application.isPlaying) Sample(0f);
             lastSample = -1f;
+            arenaHandoff = false;
         }
 
         internal void Sample(float time, bool sound = true)

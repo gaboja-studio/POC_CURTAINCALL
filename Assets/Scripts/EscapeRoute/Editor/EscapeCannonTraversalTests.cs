@@ -25,7 +25,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             try
             {
                 var stations = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonStation>()).ToArray();
-                Assert.That(stations.Length, Is.EqualTo(10));
+                Assert.That(stations.Length, Is.EqualTo(7));
                 var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_ThirdParty/Task158/TouringCannon.fbx");
                 var meshes = model.GetComponentsInChildren<MeshFilter>().Select(f => f.sharedMesh).ToArray();
                 var paint = AssetDatabase.LoadAssetAtPath<Material>(Art + "/Materials/TouringCannonPaint.mat");
@@ -53,108 +53,37 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         }
 
         [Test]
-        public void InspectionRelayAimsThroughItsRequiredMidairSwing()
-        {
-            var scene = Open(out bool opened);
-            var probe = new GameObject("Inspection relay flight fixture");
-            SceneManager.MoveGameObjectToScene(probe, scene);
-            try
-            {
-                var station = Find<HumanCannonStation>(scene, "Labyrinth_02_InspectionRelay");
-                var swing = Find<HumanCannonPole>(scene, "Inspection cannon midair transfer swing");
-                Assert.That(station.RequiredTransferPole, Is.SameAs(swing));
-                Assert.That(scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>(true))
-                    .Any(p => p.name == "Inspection flight recovery swing"), Is.False);
-                var system = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonPoleSystem>()).Single();
-                var registrations = new SerializedObject(system).FindProperty("poles");
-                Assert.That(Enumerable.Range(0, registrations.arraySize)
-                    .Count(i => registrations.GetArrayElementAtIndex(i).objectReferenceValue == swing), Is.EqualTo(1));
-
-                var mover = probe.AddComponent<PlayerMover>();
-                typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
-                probe.transform.position = station.Muzzle.position;
-                Physics.SyncTransforms();
-                var velocity = station.LaunchVelocity;
-                const float dt = 1f / 60f;
-                int reachableFrames = 0;
-                for (int i = 0; i < 240; i++)
-                {
-                    var flags = mover.Body.Move(BallisticMotion.Step(ref velocity, Vector3.zero, GameSettings.Base.Character.Gravity, dt));
-                    if ((flags & CollisionFlags.Above) != 0 && velocity.y > 0) velocity.y = 0;
-                    if ((flags & CollisionFlags.Below) != 0 && velocity.y <= 0) break;
-                    var center = PlayerInteraction.Center(mover);
-                    if (Vector3.Distance(center, swing.Grip.position) < GameSettings.Poles.GrabRadius
-                        && PlayerInteraction.ClearPathFrom(center, swing.Grip.position, swing.transform, mover.transform, true))
-                        reachableFrames++;
-                }
-                Assert.That(reachableFrames, Is.GreaterThanOrEqualTo(12), "The normal shot needs a usable airborne grab window.");
-            }
-            finally
-            {
-                Object.DestroyImmediate(probe);
-                if (opened) EditorSceneManager.CloseScene(scene, true);
-            }
-        }
-        [Test]
-        public void InspectionRelaySteeringCannotLandOnTheDisappearingWires()
-        {
-            var scene = Open(out bool opened);
-            var probe = new GameObject("Inspection relay shortcut fixture");
-            SceneManager.MoveGameObjectToScene(probe, scene);
-            try
-            {
-                var mover = probe.AddComponent<PlayerMover>();
-                typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
-                var station = Find<HumanCannonStation>(scene, "Labyrinth_02_InspectionRelay");
-                var timedRopes = scene.GetRootGameObjects()
-                    .SelectMany(r => r.GetComponentsInChildren<EscapeCooperativeRopes>(true)).Single();
-                for (int i = 0; i < 16; i++)
-                {
-                    float angle = i * Mathf.PI / 8f;
-                    var input = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                    foreach (float reverseAt in new[] { .6f, 1.2f, 1.8f, 2.4f, 3f, float.PositiveInfinity })
-                    {
-                        var hit = Simulate(mover, station, input, 10f, reverseAt, out _, out _);
-                        if (hit.collider != null)
-                            Assert.That(timedRopes.IsTimedSupport(hit.collider), Is.False,
-                                $"Steering {input} with reversal at {reverseAt:F1}s reached {hit.collider.name}.");
-                    }
-                }
-            }
-            finally
-            {
-                Object.DestroyImmediate(probe);
-                if (opened) EditorSceneManager.CloseScene(scene, true);
-            }
-        }
-
-        [Test]
-        public void InspectionRelayAirBoundaryBlocksTheTimedWireApproachAtAnyHeight()
+        public void BypassRoutesUseRegisteredRopesAndSwingsInsteadOfCannons()
         {
             var scene = Open(out bool opened);
             try
             {
-                var station = Find<HumanCannonStation>(scene, "Labyrinth_02_InspectionRelay");
-                var receiver = Find<BoxCollider>(scene, "03 conveyor eastern decision apron");
-                Assert.That(station.TransferLanding, Is.SameAs(receiver));
-                var frame = scene.GetRootGameObjects().Single().transform;
-                foreach (float y in new[] { -12f, 0f, 25f })
+                var roots = scene.GetRootGameObjects();
+                var stations = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonStation>(true));
+                Assert.That(stations.Select(s => s.name), Has.None.EqualTo("Labyrinth_02_InspectionRelay"));
+                Assert.That(stations.Select(s => s.name), Has.None.EqualTo("Labyrinth_03_ProcessingLaunch"));
+                Assert.That(stations.Select(s => s.name), Has.None.EqualTo("Labyrinth_04_ExtractionLaunch"));
+                var system = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonPoleSystem>()).Single();
+                var poles = new SerializedObject(system).FindProperty("poles");
+                foreach (string name in new[] { "Inspection service swing", "Extraction service swing", "Labyrinth lower inspection swing 1" })
                 {
-                    var start = frame.TransformPoint(new Vector3(78f, y, 25f));
-                    var approach = frame.TransformVector(new Vector3(30f, -2f, 0f));
-                    var step = station.ConstrainTransferFlight(start, approach, .45f);
-                    Assert.That(frame.InverseTransformPoint(start + step).x, Is.LessThan(85f));
-                    Assert.That(step.y, Is.EqualTo(approach.y));
+                    var pole = Find<HumanCannonPole>(scene, name);
+                    Assert.That(Enumerable.Range(0, poles.arraySize)
+                        .Count(i => poles.GetArrayElementAtIndex(i).objectReferenceValue == pole), Is.EqualTo(1), name);
                 }
-                var release = station.RequiredTransferPole.Grip.position;
-                var intended = receiver.bounds.center - release;
-                Assert.That(station.ConstrainTransferFlight(release, intended, .45f), Is.EqualTo(intended));
+                var course = roots.SelectMany(r => r.GetComponentsInChildren<CurtainCall.Tightrope.TightropeCourse>()).Single();
+                var ropes = new SerializedObject(course).FindProperty("sceneRopes");
+                foreach (string name in new[] { "Inspection service entry wire", "Extraction service entry wire", "Inspection lower access cable" })
+                {
+                    var rope = Find<BoxCollider>(scene, name);
+                    Assert.That(Enumerable.Range(0, ropes.arraySize)
+                        .Count(i => ropes.GetArrayElementAtIndex(i).objectReferenceValue == rope), Is.EqualTo(1), name);
+                }
             }
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
         }
-
         [Test]
-        public void FirstCannonLandsUnderNeutralSteeringAndRecoveryInputs()
+        public void FirstCannonLandsWithoutSteeringAndReportsOffCourseFalls()
         {
             var scene = Open(out bool opened);
             var probe = new GameObject("Edit-mode cannon collision fixture");
@@ -166,28 +95,25 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Physics.SyncTransforms();
                 var seat = Find<HumanCannonStation>(scene, "03_Cannon");
                 var zones = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonLandingZone>()).ToArray();
-                var tested = new[] { Vector2.zero, Vector2.left, Vector2.right, Vector2.down, Vector2.up, new Vector2(-1,-1), new Vector2(1,-1) };
-                foreach (var input in tested)
-                {
-                    Check(seat, input, .75f, "A03_CannonLandingWire", "Entry wire short-shot recovery", "Entry wire west recovery", "Entry wire east recovery");
-                }
-                Check(seat, Vector2.down, 10f, "Entry wire short-shot recovery");
-                foreach (var input in new[] { Vector2.left, Vector2.right, Vector2.down })
-                {
-                    Inspect(seat, input, .8f, .4f, new[] { "A03_CannonLandingWire", "Entry wire short-shot recovery",
-                        "Entry wire west recovery", "Entry wire east recovery" });
-                }
+                Inspect(Vector2.zero, 0f, false);
+                foreach (var input in new[] { Vector2.left, Vector2.right })
+                    Inspect(input, .75f, true);
 
-                void Check(HumanCannonStation station, Vector2 input, float held, params string[] surfaces)
-                    => Inspect(station, input, held, float.PositiveInfinity, surfaces);
-
-                void Inspect(HumanCannonStation station, Vector2 input, float held, float reverseAt, string[] surfaces)
+                void Inspect(Vector2 input, float held, bool allowFall)
                 {
-                    var hit = Simulate(mover, station, input, held, reverseAt, out float elapsed, out float drop);
-                    string label = $"{station.name}: input {input}, {held:F2}s, reverse {reverseAt:F2}s, hit {hit.collider?.name}, t={elapsed:F2}s, drop={drop:F2}m";
+                    var hit = Simulate(mover, seat, input, held, out float elapsed, out float drop);
+                    string label = $"{seat.name}: input {input}, {held:F2}s, hit {hit.collider?.name}, t={elapsed:F2}s, drop={drop:F2}m";
                     TestContext.WriteLine(label);
+                    if (allowFall && !hit.collider)
+                    {
+                        var feet = mover.transform.position;
+                        Assert.That(CommonDamageRules.IsBelowWorldDeathY(feet.y), Is.True, label);
+                        var report = typeof(HumanCannonPilot).GetMethod("ShouldReportLanding", BindingFlags.Static | BindingFlags.NonPublic);
+                        Assert.That(report.Invoke(null, new object[] { mover, CollisionFlags.None, -1f, feet }), Is.True, label);
+                        return;
+                    }
                     Assert.That(hit.collider, Is.Not.Null, label);
-                    Assert.That(surfaces, Does.Contain(hit.collider.name), label);
+                    Assert.That(hit.collider.name, Is.EqualTo("A03_CannonLandingWire"), label);
                     Assert.That(CommonDamageRules.Fall(drop) == FallOutcome.Safe ||
                         GameSettings.Base.BodyDamage.SafeLandingZones && zones.Any(z => z.SupportsLanding(hit.point)), Is.True, label);
                 }
@@ -211,15 +137,17 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
                 var second = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 02");
                 var third = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 03");
-                var relay = Find<HumanCannonPole>(scene, "Inspection cannon midair transfer swing");
+                var relay = Find<HumanCannonPole>(scene, "Inspection service swing");
                 var apron = Find<BoxCollider>(scene, "02 inspection relay apron");
-                var receiver = Find<BoxCollider>(scene, "03 conveyor eastern decision apron");
+                var receiver = Find<BoxCollider>(scene, "Inspection service swing receiver");
                 Physics.SyncTransforms();
                 foreach (int seat in Enumerable.Range(0, GameSettings.Poles.Capacity))
                 {
                     Measure(second, third, null, seat);
                     Measure(third, null, apron, seat);
                     Measure(relay, null, receiver, seat);
+                    Measure(Find<HumanCannonPole>(scene, "Extraction service swing"), null,
+                        Find<BoxCollider>(scene, "Extraction service swing receiver"), seat);
                 }
 
                 void Measure(HumanCannonPole source, HumanCannonPole target, Collider landing, int seat)
@@ -274,7 +202,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             }
         }
 
-        static RaycastHit Simulate(PlayerMover mover, HumanCannonStation station, Vector2 input, float held, float reverseAt,
+        static RaycastHit Simulate(PlayerMover mover, HumanCannonStation station, Vector2 input, float held,
             out float elapsed, out float drop)
         {
             const float dt = 1f / 60f;
@@ -291,8 +219,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             for (int tick = 1; tick <= 360; tick++)
             {
                 elapsed = tick * dt;
-                Vector2 direction = elapsed < reverseAt ? input : -input;
-                air.SetInput(elapsed < held ? direction : Vector2.zero, tick);
+                air.SetInput(elapsed < held ? input : Vector2.zero, tick);
                 var correction = air.ConsumePoleVelocity(tick, false, forward, station.AirControlSpeed, velocity, limit, dt);
                 var flags = mover.Body.Move(BallisticMotion.Step(ref velocity, correction, GameSettings.Base.Character.Gravity, dt));
                 if ((flags & CollisionFlags.Above) != 0 && velocity.y > 0f) velocity.y = 0f;

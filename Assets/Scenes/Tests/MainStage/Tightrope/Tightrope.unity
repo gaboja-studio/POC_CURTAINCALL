@@ -16650,6 +16650,18 @@ PrefabInstance:
       propertyPath: chaseEffect
       value: 
       objectReference: {fileID: 1774701085}
+    - target: {fileID: 3242728770163890023, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: ropeFuseEmbers
+      value: 
+      objectReference: {fileID: 9153664236808721885, guid: 3b6afcf6a8d2fba4b975319edac69a72, type: 3}
+    - target: {fileID: 3242728770163890023, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: segmentRopeBurn
+      value: 
+      objectReference: {fileID: 2100000, guid: d6ee7b82a8fd5d5439b9f044ae34adcb, type: 2}
+    - target: {fileID: 3242728770163890023, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: ropeAnchorSparks
+      value: 
+      objectReference: {fileID: 5256889276336835217, guid: fe05c8ced4112674aa8f11f6ef38a818, type: 3}
     - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -16690,10 +16702,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3242728770163890023, guid: f0f55abe05d7341079412a875384e580, type: 3}
-      propertyPath: segmentRopeBurn
-      value: 
-      objectReference: {fileID: 2100000, guid: d6ee7b82a8fd5d5439b9f044ae34adcb, type: 2}
     - target: {fileID: 8413489186545113913, guid: f0f55abe05d7341079412a875384e580, type: 3}
       propertyPath: m_Name
       value: TightropeFire

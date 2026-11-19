@@ -6,10 +6,10 @@ namespace CurtainCall.EscapeRoute
 {
     public sealed partial class EscapeUnderstageChase
     {
-        // v11 adds the locked debris spread and per-projectile impact bits.
-        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v11";
+        const string StateMessage = "CurtainCall.Escape.Understage.Pursuer.v12";
+        string ChaseMessage => boss && boss.IsReinforcement ? StateMessage + "." + boss.EncounterIndex : StateMessage;
         const double SendInterval = .1;
-        enum Stage : byte { Entrance, Idle, Pursuit, CartJump, ServiceRoute }
+        enum Stage : byte { Entrance, Idle, Pursuit, CartJump, ServiceRoute, Arena }
 
         struct Snapshot : INetworkSerializeByMemcpy
         {
@@ -36,13 +36,14 @@ namespace CurtainCall.EscapeRoute
         ulong lastSentLookActor = ulong.MaxValue;
         bool lastSentJumping;
         uint lastSentJumpRevision;
+        Stage lastSentStage;
 
         void Listen(CustomMessagingManager next)
         {
             if (receiver == next) return;
-            receiver?.UnregisterNamedMessageHandler(StateMessage);
+            receiver?.UnregisterNamedMessageHandler(ChaseMessage);
             receiver = next;
-            receiver?.RegisterNamedMessageHandler(StateMessage, ReadSnapshot);
+            receiver?.RegisterNamedMessageHandler(ChaseMessage, ReadSnapshot);
             hasSnapshot = false;
             HideChaseWorldUi();
         }
@@ -51,7 +52,8 @@ namespace CurtainCall.EscapeRoute
         {
             double now = timer.Clock;
             ulong lookActor = HostLookActor;
-            bool transition = attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started || attack.Stopped != lastSentAttack.Stopped || attack.Release != lastSentAttack.Release
+            var state = CaptureSnapshot(timer.StartedAt, now, lookActor);
+            bool transition = state.Stage != lastSentStage || attack.Phase != lastSentAttack.Phase || attack.Started != lastSentAttack.Started || attack.Stopped != lastSentAttack.Stopped || attack.Release != lastSentAttack.Release
                 || threat.Stopped != lastSentThreat.Stopped || threat.Phase != lastSentThreat.Phase || threat.Started != lastSentThreat.Started || lookActor != lastSentLookActor
                 || jumping != lastSentJumping || jumping && jumpRevision != lastSentJumpRevision;
             if (net.ConnectedClientsIds.Count < 2 || now < nextSend && !transition) return;
@@ -60,13 +62,13 @@ namespace CurtainCall.EscapeRoute
             lastSentLookActor = lookActor;
             lastSentJumping = jumping;
             lastSentJumpRevision = jumpRevision;
+            lastSentStage = state.Stage;
             nextSend = now + SendInterval;
-            var state = CaptureSnapshot(timer.StartedAt, now, lookActor);
             using var writer = new FastBufferWriter(FastBufferWriter.GetWriteSize<Snapshot>(), Allocator.Temp);
             writer.WriteValueSafe(state);
             foreach (var id in net.ConnectedClientsIds)
                 if (id != NetworkManager.ServerClientId)
-                    net.CustomMessagingManager.SendNamedMessage(StateMessage, id, writer,
+                    net.CustomMessagingManager.SendNamedMessage(ChaseMessage, id, writer,
                         transition ? NetworkDelivery.ReliableSequenced : NetworkDelivery.UnreliableSequenced);
         }
 
@@ -79,7 +81,8 @@ namespace CurtainCall.EscapeRoute
                 Stride = stride, Duck = duckWeight, Run = runWeight, Step = stepNumber,
                 JumpTime = jumping ? jumpTime : 0f, Landing = landingNumber,
                 Takeoff = jumping ? takeoff : default, Touchdown = jumping ? touchdown : default, JumpRevision = jumpRevision,
-                Stage = jumping ? Stage.CartJump : !breach.EntranceComplete ? Stage.Entrance : body.enabled ? Stage.Pursuit : Stage.Idle
+                Stage = boss && boss.CombatStarted ? Stage.Arena : jumping ? Stage.CartJump : !breach.EntranceComplete
+                    ? Stage.Entrance : body.enabled ? Stage.Pursuit : Stage.Idle
             };
             if (state.Stage == Stage.Pursuit && usingBypass)
                 state.Stage = Stage.ServiceRoute;
@@ -99,7 +102,7 @@ namespace CurtainCall.EscapeRoute
             if (state.Round != round || !double.IsFinite(state.Time) || state.Time < round ||
                 !float.IsFinite(state.Position.sqrMagnitude) || !(Quaternion.Dot(state.Rotation, state.Rotation) is > .99f and < 1.01f) ||
                 !(state.Stride is >= 0f and <= 1f) || !(state.Duck is >= 0f and <= 1f) ||
-                !(state.Run is >= 0f and <= 1f) || (byte)state.Stage > (byte)Stage.ServiceRoute ||
+                !(state.Run is >= 0f and <= 1f) || (byte)state.Stage > (byte)Stage.Arena ||
                 (byte)state.Attack.Phase > (byte)AttackPhase.Preparing || (byte)state.Attack.Reach > (byte)Reach.Wire ||
                 !double.IsFinite(state.Attack.Started) || !float.IsFinite(state.Attack.Aim.sqrMagnitude) || !float.IsFinite(state.Attack.Origin.sqrMagnitude) ||
                 !float.IsFinite(state.Attack.MarkedFeet.sqrMagnitude) || !float.IsFinite(state.Attack.Release.sqrMagnitude) || !float.IsFinite(state.Attack.Drop.sqrMagnitude) ||
@@ -132,7 +135,7 @@ namespace CurtainCall.EscapeRoute
             float t = span > 0 ? Mathf.Clamp01((float)((timer.Clock - SendInterval - previous.Time) / span)) : 1f;
             var rotation = Quaternion.Slerp(previous.Rotation, latest.Rotation, t);
             // The shared hall clock already animates the wall and the entering body on each peer.
-            if (!breach.EntranceComplete)
+            if (!breach.EntranceComplete && latest.Stage != Stage.Arena)
             {
                 HideRouteLandingWorldUi();
                 if (latest.Stage == Stage.Entrance) transform.rotation = rotation;
@@ -144,7 +147,7 @@ namespace CurtainCall.EscapeRoute
             if (latest.Stage == Stage.Idle) StopChase();
             else
             {
-                body.enabled = true;
+                body.enabled = latest.Stage != Stage.Arena || !boss || !boss.Defeated;
                 if (latest.Stage == Stage.CartJump)
                 {
                     gait.Stop();
@@ -162,13 +165,13 @@ namespace CurtainCall.EscapeRoute
                     SampleGait(Mathf.Repeat(phase, 1f), duck, displayedRun);
                 }
             }
-            if (bypass) bypass.SetShutter(latest.Stage == Stage.ServiceRoute, transform.position, body);
+            if (bypass && (!boss || !boss.IsReinforcement)) bypass.SetShutter(latest.Stage == Stage.ServiceRoute, transform.position, body);
             uint landing = latest.Landing;
             if (latest.Stage == Stage.CartJump && Mathf.Lerp(previous.JumpTime, latest.JumpTime, t) < ContactTime)
                 landing = previous.Landing;
             uint step = t < .5f ? previous.Step : latest.Step;
             if (landing > heardLanding) { heardLanding = landing; PlayStep(.8f); }
-            else if (step > heardStep && (latest.Stage == Stage.Pursuit || latest.Stage == Stage.ServiceRoute)) PlayStep();
+            else if (step > heardStep && (latest.Stage == Stage.Pursuit || latest.Stage == Stage.ServiceRoute || latest.Stage == Stage.Arena)) PlayStep();
             if (step > heardStep) heardStep = step;
         }
     }

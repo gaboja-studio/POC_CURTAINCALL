@@ -16,50 +16,15 @@ namespace CurtainCall.EscapeRoute
         string StateName => "CurtainCall.Escape.ExitSaw." + gameObject.scene.name + ".State." + deviceId;
         string attachedRequestName, attachedStateName;
         const int RequestSize = 9, StateSize = 66, ShotSize = 36;
-        const int AimedRequestSize = RequestSize + 12;
         const double RemoteGrabGrace = .35;
         readonly List<(ulong Actor, uint Revision, double Expires)> pendingGrabs = new();
-        Vector3 pendingBossAim;
         CustomMessagingManager messaging, suspendedHostMessaging;
         void RequestAction(byte action)
         {
             var player = NetworkPlayer.Local;
             if (!Ready || !Alive(player) || InputGate.IsBlocked) return;
-            if (action == 3 && finaleBoss && finaleBoss.InBattle && Camera.main)
-            {
-                var ray = Camera.main.ViewportPointToRay(new Vector3(.5f, .5f, 0));
-                var origin = muzzle ? muzzle.position : CarryRoot.position;
-                Vector3 point = ray.GetPoint(60);
-                float closest = 60;
-                foreach (var hit in Physics.RaycastAll(ray, 60, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
-                {
-                    if (hit.distance >= closest || hit.transform.IsChildOf(CarryRoot)
-                        || hit.transform.GetComponentInParent<NetworkPlayer>()) continue;
-                    if (hit.collider.isTrigger && !hit.transform.GetComponentInParent<EscapeCuttableCable>()
-                        && !finaleBoss.IsPart(hit.collider)) continue;
-                    closest = hit.distance; point = hit.point;
-                }
-                Vector3 direction = (point - origin).normalized;
-                if (session.IsHost) HandleAimedShot(player.OwnerClientId, ownership.Revision, direction);
-                else
-                {
-                    using var writer = new FastBufferWriter(AimedRequestSize, Allocator.Temp);
-                    writer.WriteValueSafe((byte)4); writer.WriteValueSafe(ownership.Revision); writer.WriteValueSafe(0); writer.WriteValueSafe(direction);
-                    messaging.SendNamedMessage(RequestName, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
-                }
-                return;
-            }
             if (session.IsHost) HandleAction(player.OwnerClientId, action, ownership.Revision);
             else SendRequest(action, 0);
-        }
-        void HandleAimedShot(ulong actor, uint expected, Vector3 direction)
-        {
-            if (!Ready || session == null || !session.IsHost || !finaleBoss
-                || expected != ownership.Revision || Carrier != actor || !Finite(direction)
-                || Mathf.Abs(direction.sqrMagnitude - 1) > .01f) return;
-            pendingBossAim = direction;
-            try { HandleAction(actor, 3, expected); }
-            finally { pendingBossAim = Vector3.zero; }
         }
         void HandleAction(ulong actor, byte action, uint expected, bool interactionReady = false)
         {
@@ -80,6 +45,7 @@ namespace CurtainCall.EscapeRoute
                 lastSafeFeet = player.transform.position;
                 CarryRoot.SetPositionAndRotation(position, rotation);
                 followedCarrier = actor;
+                if (finaleBoss) finaleBoss.StartFromLauncher();
                 CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawGrab, Handle.position, CarryRoot);
             }
             else if (action == 2)
@@ -143,14 +109,8 @@ namespace CurtainCall.EscapeRoute
         void ReadRequest(ulong sender, FastBufferReader reader)
         {
             int bytes = reader.Length - reader.Position;
-            if (session == null || !session.IsHost || (bytes != RequestSize && bytes != AimedRequestSize)) return;
+            if (session == null || !session.IsHost || bytes != RequestSize) return;
             reader.ReadValueSafe(out byte action); reader.ReadValueSafe(out uint expected); reader.ReadValueSafe(out int token);
-            if (bytes == AimedRequestSize)
-            {
-                reader.ReadValueSafe(out Vector3 direction);
-                if (action == 4 && token == 0) { HandleAimedShot(sender, expected, direction); SendState(sender, 0); }
-                return;
-            }
             if (action == 0 && token >= 0) SendState(sender, token);
             else if ((action == 1 || action == 2 || action == 3) && token == 0)
             {

@@ -16,7 +16,7 @@ namespace CurtainCall.HumanCannon
     {
         const string LandingMessage = "CurtainCall.HumanCannon.Landing";
         const int LandingSize = 21; // actor + station + launch + segment + result
-        enum LandingResult : byte { Unsuccessful, Supported, RetryFlight, MissedTransfer }
+        enum LandingResult : byte { Unsuccessful, Supported, RetryFlight }
         const string SpringReboundMessage = "CurtainCall.HumanCannon.SpringRebound";
         const int SpringReboundSize = 36; // actor + station + launch + segment + contact + speed
         struct PendingLanding { public int Station; public uint Revision, Segment; public Vector3 Position; }
@@ -164,19 +164,8 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             pendingLandingReports.Remove(player.OwnerClientId);
-            var mover = player.GetComponent<PlayerMover>();
-            bool safe = IsSafeLandingSurface(mover, position);
-            bool below = CommonDamageRules.IsBelowWorldDeathY(position.y);
-            var receiver = index >= 0 && index < stations.Length ? stations[index]?.TransferLanding : null;
-            bool wrongReceiver = receiver != null && (below ||
-                safe && (!WalkableSupport.TryGetSupport(mover, position, out var support) || support.collider != receiver));
-            if (wrongReceiver || RequiredTransferPole(index, segment) != null && (safe || below))
-            {
-                ReturnToTransferCannon(player.OwnerClientId, index, revision, segment);
-                PublishLanding(player.OwnerClientId, index, revision, segment, LandingResult.MissedTransfer);
-                return;
-            }
-            if (below)
+            bool safe = IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
+            if (CommonDamageRules.IsBelowWorldDeathY(position.y))
             {
                 ApplyLanding(player.OwnerClientId, index, revision, segment, false);
                 PublishLanding(player.OwnerClientId, index, revision, segment, LandingResult.Unsuccessful);
@@ -226,20 +215,10 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out uint revision);
             reader.ReadValueSafe(out uint segment);
             reader.ReadValueSafe(out byte rawResult);
-            if (rawResult > (byte)LandingResult.MissedTransfer) return;
+            if (rawResult > (byte)LandingResult.RetryFlight) return;
             var result = (LandingResult)rawResult;
             if (result == LandingResult.RetryFlight) ResumeRejectedLanding(actor, index, revision, segment);
-            else if (result == LandingResult.MissedTransfer) ReturnToTransferCannon(actor, index, revision, segment);
             else ApplyLanding(actor, index, revision, segment, result == LandingResult.Supported);
-        }
-
-        void ReturnToTransferCannon(ulong actor, int index, uint revision, uint segment)
-        {
-            var station = Station(index);
-            if (station == null || !flying.TryComplete(actor, index, revision, segment)) return;
-            FindPlayer(actor)?.ResetFallTracking();
-            if (boundPlayer != null && actor == boundPlayer.OwnerClientId)
-                pilot?.Cancel(station.BoardingPoint.position, station.Seat.rotation);
         }
 
         void ResumeRejectedLanding(ulong actor, int index, uint revision, uint segment)
