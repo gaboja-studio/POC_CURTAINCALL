@@ -8,13 +8,13 @@ namespace CurtainCall.EscapeRoute
     {
         struct BossState : INetworkSerializeByMemcpy
         {
-            public double Round, Started;
+            public double Round, Started, EncounterStarted;
             public uint Revision;
             public Phase Phase;
             public byte Mask, Reinforcements;
             public Vector3 From, Goal, HitPoint;
         }
-        string Message => "CurtainCall.Escape.PursuerBoss.v2." + EncounterIndex;
+        string Message => "CurtainCall.Escape.PursuerBoss.v3." + EncounterIndex;
         BossState state;
         CustomMessagingManager messaging;
         double nextSend;
@@ -51,6 +51,7 @@ namespace CurtainCall.EscapeRoute
         bool AcceptSnapshot(BossState next, double round)
         {
             if (next.Round != round || !double.IsFinite(next.Started) || next.Started < 0
+                || !double.IsFinite(next.EncounterStarted) || next.EncounterStarted < 0
                 || (byte)next.Phase > (byte)Phase.Dead || next.Reinforcements > MaxReinforcements
                 || IsReinforcement && next.Reinforcements != 0 || !float.IsFinite(next.From.sqrMagnitude)
                 || !float.IsFinite(next.Goal.sqrMagnitude) || !float.IsFinite(next.HitPoint.sqrMagnitude)
@@ -58,10 +59,13 @@ namespace CurtainCall.EscapeRoute
                 || state.Round == next.Round && (next.Revision < state.Revision || (next.Mask & state.Mask) != state.Mask
                     || state.Phase >= Phase.Dying && next.Phase < state.Phase
                     || next.Revision == state.Revision && (next.Phase != state.Phase || next.Mask != state.Mask
-                        || next.Reinforcements != state.Reinforcements)
-                    || state.Reinforcements > 0 && next.Reinforcements != state.Reinforcements)) return false;
+                        || next.Reinforcements != state.Reinforcements || next.EncounterStarted != state.EncounterStarted)
+                    || state.Reinforcements > 0 && (next.Reinforcements != state.Reinforcements
+                        || next.EncounterStarted != state.EncounterStarted))) return false;
             if (!IsReinforcement && state.Round != next.Round) ClearReinforcements();
             state = next;
+            if (IsReinforcement && CombatStarted && !reinforcementVisible)
+                transform.position = next.From;
             return true;
         }
     }

@@ -39,7 +39,7 @@ namespace CurtainCall.EscapeRoute
         public bool Defeated => State == Phase.Dying || State == Phase.Dead;
         public bool InBattle => State >= Phase.LeapWarning && !Defeated;
         public bool CombatStarted => State >= Phase.LeapWarning;
-        internal bool TakesOverChase => CombatStarted || LauncherTaken();
+        internal bool TakesOverChase => IsReinforcement || CombatStarted;
         public bool LimitsFinalFire => arena != null;
         public Transform ArenaFrame => arena ? arena.transform : transform;
         public float SpeedScale => MovementScale(CurrentMask, Tuning.bossSlowPerCut);
@@ -122,7 +122,8 @@ namespace CurtainCall.EscapeRoute
 
         // The leap commits this actor to arena navigation. Keep the service route
         // available while a living runner still needs to reach the final stretch.
-        internal bool HasRunnerBehindFinale => State == Phase.Chasing && FindRunnerBehindFinale();
+        internal bool HasRunnerBehindFinale => State == Phase.Chasing && route
+            && route.Progress < leapRoutePoint - 1f && FindRunnerBehindFinale();
 
         bool FindRunnerBehindFinale()
         {
@@ -142,9 +143,24 @@ namespace CurtainCall.EscapeRoute
         }
         internal void StartFromLauncher()
         {
-            if (CombatStarted || !landing || !arena) return;
-            if (!gameObject.activeSelf) gameObject.SetActive(true);
-            AdvanceHost();
+            if (!CombatStarted) fireRequested = true;
+        }
+
+        internal bool GuideFinalApproach()
+        {
+            if (State != Phase.Chasing || !route) return false;
+            if (route.Progress < leapRoutePoint && !RunnerInArena()) return false;
+            route.ApproachEncounter(leapRoutePoint);
+            return true;
+        }
+
+        bool RunnerInArena()
+        {
+            foreach (var player in NetworkPlayer.All)
+                if (player && player.IsSpawned && player.State == PlayerState.Normal
+                    && InsideArena(route.PlayerFeet(player)))
+                    return true;
+            return false;
         }
         void Enter(Phase phase, double now, Vector3 goal = default)
         {
@@ -156,26 +172,20 @@ namespace CurtainCall.EscapeRoute
             if (!timer || !timer.HasStarted || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return false;
             if (state.Round != timer.StartedAt) { Restart(null); state.Round = timer.StartedAt; }
             double now = timer.Clock;
-            if (!IsReinforcement && !CombatStarted && LauncherTaken())
-            {
-                chase.CancelBossAttack();
-                transform.position = landing.position;
-                Enter(Phase.Battle, now, transform.position);
-                nextDash = now + 2;
-                BeginReinforcements(now);
-            }
+            if (IsReinforcement && state.Phase == Phase.Waiting) return true;
             float age = Mathf.Max(0, (float)(now - state.Started));
             if (state.Phase == Phase.Waiting)
             {
-                fireRequested |= FinaleReached();
+                fireRequested |= LauncherTaken() || FinaleReached();
                 if (!fireRequested || !route.Following || route.Progress < ignitionRoutePoint - .1f) return false;
                 chase.CancelBossAttack(); Enter(Phase.Ignition, now); age = 0;
             }
             if (state.Phase == Phase.Chasing)
             {
-                if (FindRunnerBehindFinale() || !LauncherTaken() || route.Progress < leapRoutePoint
-                    || Vector3.Distance(transform.position, landing.position) > 65) return false;
-                chase.CancelBossAttack(); Enter(Phase.LeapWarning, now, landing.position); age = 0;
+                if (route.Progress < leapRoutePoint || !RunnerInArena() || !landing) return false;
+                chase.CancelBossAttack();
+                Enter(Phase.LeapWarning, now, landing.position);
+                age = 0;
             }
             chase.BossBody(!Defeated);
             var before = transform.position;
@@ -192,8 +202,12 @@ namespace CurtainCall.EscapeRoute
                     break;
                 case Phase.Leaping:
                     float t = Mathf.Clamp01(age / Tuning.bossLeapSeconds);
-                    transform.position = Vector3.Lerp(state.From, state.Goal, t) + Vector3.up * (4 * Tuning.bossLeapHeight * t * (1-t));
-                    if (t >= 1) { Enter(Phase.Landing, now); chase.PlayStep(.6f); }
+                    transform.position = LeapPosition(state.From, state.Goal, t);
+                    if (t >= 1)
+                    {
+                        Enter(Phase.Landing, now);
+                        if (!IsReinforcement) BeginReinforcements(now);
+                    }
                     break;
                 case Phase.Landing:
                     if (age >= Tuning.bossLandingRecovery) { Enter(Phase.Battle, now); nextDash = now + 2; }
@@ -202,7 +216,9 @@ namespace CurtainCall.EscapeRoute
                     if (age >= Tuning.bossDashWarning) Enter(Phase.Dashing, now, state.Goal);
                     break;
                 case Phase.Dashing:
-                    transform.position = Vector3.Lerp(state.From, state.Goal, Mathf.SmoothStep(0, 1, age / Tuning.bossDashSeconds));
+                    var dashNext = Vector3.Lerp(state.From, state.Goal, Mathf.SmoothStep(0, 1, age / Tuning.bossDashSeconds));
+                    if (CrowdsEncounter(dashNext)) { Enter(Phase.Battle, now); break; }
+                    transform.position = dashNext;
                     if (age >= Tuning.bossDashSeconds) Enter(Phase.Battle, now);
                     break;
                 case Phase.Hit:
@@ -222,8 +238,9 @@ namespace CurtainCall.EscapeRoute
                             Face(toward);
                             if (toward.magnitude > 2.8f)
                             {
-                                transform.position = navigation.Step(transform, arena, target.transform.position,
+                                var next = navigation.Step(transform, arena, target.transform.position,
                                     Tuning.bossMoveSpeed * SpeedScale * chase.PressureSpeed(target) * Time.deltaTime);
+                                if (!CrowdsEncounter(next)) transform.position = next;
                             }
                         }
                     }
@@ -232,6 +249,9 @@ namespace CurtainCall.EscapeRoute
             AdvanceGroundedGait(travelPhase, before, Time.deltaTime);
             return true;
         }
+        Vector3 LeapPosition(Vector3 from, Vector3 to, float t) =>
+            Vector3.Lerp(from, to, t) + Vector3.up * (4 * (IsReinforcement ? 4f : Tuning.bossLeapHeight) * t * (1 - t));
+
         void AdvanceGroundedGait(Phase travelPhase, Vector3 before, float dt)
         {
             // Test the phase that moved, including a leap's final landing frame.
@@ -289,10 +309,16 @@ namespace CurtainCall.EscapeRoute
                 if (!IsReinforcement) ClearReinforcements();
                 HideBossWorldUi();
                 if (presentedRound >= 0 || presentedMask != 0) ResetPresentation();
+                if (IsReinforcement) SetReinforcementVisible(false);
                 return;
             }
+            if (!IsReinforcement && CombatStarted) EnsureReinforcements(ReinforcementsDue(timer.Clock));
             if (NetworkManager.Singleton && NetworkManager.Singleton.IsServer) Publish(timer.Clock);
-            if (!IsReinforcement && CombatStarted) EnsureReinforcements(state.Reinforcements);
+            if (IsReinforcement)
+            {
+                SetReinforcementVisible(CombatStarted);
+                if (!CombatStarted) return;
+            }
             Present(timer.Clock);
         }
     }

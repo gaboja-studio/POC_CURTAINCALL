@@ -102,6 +102,62 @@ namespace CurtainCall.HumanCannon
         bool TryDropHere(NetworkPlayer carrier, out Vector3 ground)
             => TryFindDropPath(transform.position, transform.rotation, carrier, out ground);
 
+        bool TryManualDrop(Vector3 position, Quaternion rotation, NetworkPlayer player, out Vector3 ground, out Vector3 origin)
+        {
+            origin = position;
+            if (TryFindDropPath(position, rotation, player, out ground)) return true;
+            bool side = IsWaitingRoom(gameObject.scene.name)
+                ? TryFindWaitingRoomDrop(position, rotation, player, out ground)
+                : TryFindNearbySidePlacement(position, rotation, player, out ground, false, UsesTraversalCarryClearance(gameObject.scene.name));
+            if (side) origin = new Vector3(ground.x, position.y, ground.z);
+            return side;
+        }
+
+        HumanCannonOutline placementOutline;
+        Material placementOutlineMaterial;
+        float nextPlacementPreview;
+
+        void PresentPlacementOutline(NetworkPlayer carrier)
+        {
+            if (!Application.isPlaying) return;
+            if (carrier == null || !carrier.IsLocal || carrier.State != PlayerState.Normal)
+            {
+                ClearPlacementOutline();
+                return;
+            }
+            if (Time.unscaledTime < nextPlacementPreview) return;
+            nextPlacementPreview = Time.unscaledTime + .08f;
+            if (!placementOutline)
+            {
+                placementOutline = GetComponentInChildren<HumanCannonOutline>(true);
+                if (!placementOutline)
+                {
+                    var shader = Resources.Load<Shader>("TightropeOutline");
+                    if (!shader) return;
+                    placementOutlineMaterial = new Material(shader) { hideFlags = HideFlags.DontSave };
+                    placementOutline = HumanCannonOutline.AttachToHierarchy(gameObject, placementOutlineMaterial);
+                }
+            }
+            bool fits = carryBody && !HasRopeSupport(carrier)
+                && TryManualDrop(transform.position, transform.rotation, carrier, out _, out _);
+            placementOutline.SetColorOverride(fits ? new Color(.08f, 1f, .25f) : new Color(1f, .12f, .13f));
+        }
+
+        void ClearPlacementOutline()
+        {
+            nextPlacementPreview = 0f;
+            if (placementOutline) placementOutline.SetColorOverride(null);
+            if (!placementOutlineMaterial) return;
+            if (placementOutline)
+            {
+                placementOutline.Configure(null);
+                Destroy(placementOutline);
+            }
+            Destroy(placementOutlineMaterial);
+            placementOutlineMaterial = null;
+            placementOutline = null;
+        }
+
         bool CanSettleAt(Vector3 ground, Quaternion rotation, NetworkPlayer carrier)
         {
             if (!HumanCannonCarry.CanMove(transform, carryBody, ground, rotation, carrier, sweep: false)) return false;

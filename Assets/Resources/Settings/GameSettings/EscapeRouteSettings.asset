@@ -79,7 +79,7 @@ MonoBehaviour:
     entranceRoarDelay: 1.8
     entranceRoarDuration: 0.95
     finaleRunSpeed: 6.6
-    finalChaseLeadSeconds: 4
+    finalChaseLeadSeconds: 1.2
     contactRange: 3.6
     closeCaptureDistance: 0.6
     armRange: 36

@@ -43,7 +43,6 @@ namespace CurtainCall.WaitingRoom
         PlayerState previousState;
         bool localRecoveryPending;
         bool placingAfterRecovery;
-        Pose? lastSafePose;
         float nextPlacement, nextPublish;
 
         public static bool IsActive => instance != null && instance.shared.active;
@@ -173,7 +172,7 @@ namespace CurtainCall.WaitingRoom
             r.promptBlock.SetOpen(false); r.votePanel.Hide();
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
             r.fallen.Clear(); r.fallenAt.Clear(); r.priorConditions.Clear(); r.recoveringPlacement.Clear();
-            r.localRecoveryPending = r.placingAfterRecovery = false; r.lastSafePose = null; r.lastCarrier = CannonSeatState.Nobody;
+            r.localRecoveryPending = r.placingAfterRecovery = false; r.lastCarrier = CannonSeatState.Nobody;
             if (NetworkPlayer.Local is { IsSpawned: true } owner) r.CaptureReturnPose(owner);
             WaitingRoomStageDevices.ReserveCarrierForRehearsal();
             PropCarry.Instance?.SaveRehearsalSelection();
@@ -251,11 +250,11 @@ namespace CurtainCall.WaitingRoom
             course.Trampoline.PracticeGrabAllowed = () => !shared.restoringCarrier;
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
-            lastSafePose = null; placingAfterRecovery = false;
+            placingAfterRecovery = false;
             quest.Show(T("first-title", "공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
             ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"),
                 GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
-                    ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막으로 안전하게 서 있던 위치에서 다시 시작합니다.")
+                    ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 인간대포 튜토리얼 출발지에서 다시 시작합니다.")
                     : T("intro-no-recovery", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다."), 10f);
         }
 
@@ -378,9 +377,6 @@ namespace CurtainCall.WaitingRoom
             if (!p.TryGetComponent(out PlayerMover mover) || p.Slot == NetworkPlayer.NoSlot
                 || (placedRound != shared.round && HumanCannonCarry.Held(p.OwnerClientId) != null)) return;
             PlaceLocalAtCheckpoint(p, mover);
-            if (shared.placed.Contains(p.OwnerClientId) && !mover.IsAirborne && mover.Simulated
-                && course.IsRecoveryDeck(p.transform.position) && WalkableSupport.Contains(mover, p.transform.position))
-                lastSafePose = new Pose(p.transform.position, p.transform.rotation);
             if (shared.placed.Contains(p.OwnerClientId)) placingAfterRecovery = false;
             if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
             { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
@@ -411,15 +407,14 @@ namespace CurtainCall.WaitingRoom
         {
             if (ExpertService.IsTreating(p.OwnerClientId) || Pursuit.PursuitDirector.IsCaptured(p)) return;
             CaptureReturnPose(p);
-            var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
-            bool validPosition = placingAfterRecovery ? course.IsRecoveryDeck(p.transform.position)
-                : RehearsalCannonCourse.Contains(checkpointFloor, p.transform.position);
+            int checkpoint = placingAfterRecovery ? 0 : Checkpoint(p.OwnerClientId);
+            var checkpointFloor = checkpoint > 0 ? course.MiddleFloor : course.StartFloor;
+            bool validPosition = RehearsalCannonCourse.Contains(checkpointFloor, p.transform.position);
             bool displacedBeforePlacement = !shared.placed.Contains(p.OwnerClientId)
                 && !validPosition;
             if (placedRound != shared.round || displacedBeforePlacement)
             {
-                var pose = placingAfterRecovery && lastSafePose is Pose safe && course.IsRecoveryDeck(safe.position)
-                    ? safe : course.CheckpointPose(Checkpoint(p.OwnerClientId), Mathf.Max(0, p.Slot));
+                var pose = course.CheckpointPose(checkpoint, Mathf.Max(0, p.Slot));
                 if (p.TryGetComponent(out HumanoidPlayerPresentation presentation)) presentation.CancelItemAction();
                 CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForDevice(p);
                 if (p.TryGetComponent(out HumanCannonPilot pilot)) pilot.ClearMotionForInspection();

@@ -33,8 +33,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             LGuard("Labyrinth finale north approach edge", new Vector3(338, 0, 91), new Vector3(365.8f, 0, 91));
             LGuard("Labyrinth finale south west return", new Vector3(338, 0, 65), new Vector3(338, 0, 70.8f));
             LGuard("Labyrinth finale north west return", new Vector3(338, 0, 85.2f), new Vector3(338, 0, 91));
-            LGuard("Labyrinth workshop south outer edge", new Vector3(366, 0, 61), new Vector3(395.4f, 0, 61));
-            LGuard("Labyrinth workshop north outer edge", new Vector3(366, 0, 95), new Vector3(395.4f, 0, 95));
             // Both work aisles turn inward before the existing gate jambs at X396..400.
             // No new floor or alternate passage crosses the locked-door plane at X400.
             LBox("Labyrinth workshop south terminal return", new Vector3(395.5f, 3, 63), new Vector3(1, 6, 4), bConcrete);

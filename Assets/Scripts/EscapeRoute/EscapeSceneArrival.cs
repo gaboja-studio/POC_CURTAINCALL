@@ -25,17 +25,24 @@ namespace CurtainCall.EscapeRoute
         public BoxCollider FirstPersonArea => firstPersonArea;
         CameraViewDirector cameraRequest;
         bool reachedStairEnd;
+        int approachGeneration = -1;
         void Awake() => Current = this;
         void Update()
         {
             var transfer = EscapeSceneTransfer.Current;
-            bool campaign = CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Escape
+            var run = CampaignRun.Instance;
+            bool campaign = run != null && run.State.Phase == CampaignPhase.Escape
                 && transfer != null && transfer.HasDeparture;
             if (!campaign) { ReleaseCamera(); return; }
+            if (approachGeneration != run.State.Generation)
+            {
+                approachGeneration = run.State.Generation;
+                reachedStairEnd = false;
+            }
             if (returnBarrier != null) returnBarrier.SetActive(true);
             if (forwardBarrier != null) forwardBarrier.SetActive(!transfer.Ready);
             if (!transfer.PlacementAuthorized) { ReleaseCamera(); return; }
-            transfer.PlaceLocal(this);
+            if (!transfer.PlaceLocal(this)) { ReleaseCamera(); return; }
             var player = NetworkPlayer.Local;
             if (transfer.Ready) ObserveApproachExit(player);
             if (reachedStairEnd) { ReleaseCamera(); return; }

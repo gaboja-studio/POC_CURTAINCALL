@@ -46,6 +46,7 @@ namespace CurtainCall.EscapeRoute
         bool synchronized;
         int resetFrame = -1;
         double nextSnapshot, nextSync;
+        bool waitForBridgeReset;
 
         public static EscapePursuitFire Current { get; private set; }
         public double ArmedAt => armedAt;
@@ -174,7 +175,7 @@ namespace CurtainCall.EscapeRoute
             double now = Clock;
             if (session.IsHost && resetFrame != Time.frameCount)
             {
-                if (!IsArmed && !pursuerIgnition && ignitionBridge != null && ignitionBridge.DeploymentRequested) Arm(now);
+                TryArmBridge(now);
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (!Alive(player)) continue;
@@ -183,7 +184,7 @@ namespace CurtainCall.EscapeRoute
                         if ((player.transform.position - spawn).sqrMagnitude > 9) continue;
                         awaitingSpawn.Remove(player.OwnerClientId);
                     }
-                    if (!IsArmed && !pursuerIgnition && ignitionBridge == null && CanArm(player)) Arm(now);
+                    if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);
                     if (IsArmed && DamageAllowed(player) && player.TryGetComponent(out PlayerMover mover)
                         && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(this,"OB_"));
                 }
@@ -196,15 +197,17 @@ namespace CurtainCall.EscapeRoute
         {
             armedAt = now; revision++; Publish();
         }
+
+        void TryArmBridge(double now)
+        {
+            if (!ignitionBridge || IsArmed) return;
+            if (!ignitionBridge.DeploymentRequested) { waitForBridgeReset = false; return; }
+            if (!waitForBridgeReset) Arm(now);
+        }
         public bool ServerIgniteFromPursuer(EscapePursuerBoss source)
         {
-            if (source != pursuerIgnition || !Ready || !Configured || session == null || !session.IsHost || IsArmed) return false;
-            float rear = float.PositiveInfinity;
-            foreach (var player in NetworkPlayer.All) if (Alive(player)) rear = Mathf.Min(rear, RouteX(player.transform.position));
-            int first = 0;
-            for (int i = 0; i < bays.Length; i++)
-                if (bays[i]?.coverage && RouteX(bays[i].coverage.bounds.center) <= rear - 10f) first = i;
-            firstBay = first;
+            if (ignitionBridge || !source || source != pursuerIgnition || !Ready || !Configured
+                || session == null || !session.IsHost || IsArmed) return false;
             Arm(Clock);
             return true;
         }

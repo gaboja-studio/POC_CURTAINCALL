@@ -20,6 +20,8 @@ namespace CurtainCall.HumanCannon
         public const float BarrelRecoverySeconds = 2.8f;
         readonly CannonBarrelCycle barrel = new();
         bool interactionAvailable = true;
+        double presentedShot = -1;
+        const string LaunchEffectPath = "Models/Objects/HumanCannonProps/Prefabs/MuzzleBurst";
 
         public Transform BoardingPoint => boardingPoint != null ? boardingPoint : transform;
         public Transform Seat => seat != null ? seat : transform;
@@ -53,6 +55,25 @@ namespace CurtainCall.HumanCannon
         internal void ResetBarrel() => barrel.Reset();
         void OnEnable() => barrel.SetAvailable(InteractionAvailable, MotionTime);
         void OnDisable() => barrel.SetAvailable(false, MotionTime);
+        void LateUpdate()
+        {
+            double fired = barrel.FiredAt;
+            if (presentedShot == fired) return;
+            double age = MotionTime - fired;
+            if (age < 0) return;
+            presentedShot = fired;
+            if (fired < 0 || age > .46) return;
+            var visual = GetComponentInChildren<CannonBarrelPresentation>();
+            // The Touring clip drives its authored burst. Older and bare stations
+            // use the same effect from the launch anchor on the shared clock.
+            if (visual && visual.BarrelPivot && visual.BarrelPivot.Find("MuzzleBurst")) return;
+            var prefab = Resources.Load<GameObject>(LaunchEffectPath);
+            if (!prefab) return;
+            var burst = Instantiate(prefab, Muzzle.position, Muzzle.rotation);
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(burst, gameObject.scene);
+            burst.SetActive(true);
+            Destroy(burst, 1.4f);
+        }
         public Vector3 LaunchVelocity
         {
             get

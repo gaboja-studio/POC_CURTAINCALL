@@ -44,6 +44,9 @@ namespace CurtainCall.EscapeRoute
         uint cutMask, shotSerial, lastPresentedShot, courseEpoch;
         bool finaleDoorReported;
         float shotWait, recoilTime;
+        static readonly int RechargeAmount = Shader.PropertyToID("_DissolveAmount");
+        readonly List<(Renderer renderer, Material[] materials, MaterialPropertyBlock properties)> rechargeRenderers = new();
+        MaterialPropertyBlock rechargeProperties;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
         Vector3 recoilRest;
@@ -85,6 +88,7 @@ namespace CurtainCall.EscapeRoute
         void ClearShots()
         {
             shots.Clear(); shotWait = 0; recoilTime = 0;
+            ClearRechargeVisual();
             for (int i = 0; i < projectilePool.Length; i++) if (projectilePool[i] != null) projectilePool[i].SetActive(false);
             if (recoilVisual != null) recoilVisual.localPosition = recoilRest;
             if (launchAudio != null) launchAudio.Stop();
@@ -93,8 +97,13 @@ namespace CurtainCall.EscapeRoute
         void CarrierChanged()
         {
             // 발사된 무제한 톱날은 장치를 내려놓거나 다른 사람이 들어도 계속 이동한다.
-            if (!UnlimitedProjectiles) { ClearShots(); return; }
-            shotWait = 0; recoilTime = 0;
+            if (!UnlimitedProjectiles)
+            {
+                float remaining = shotWait;
+                ClearShots();
+                shotWait = remaining;
+            }
+            recoilTime = 0;
         }
         void ResetProjectileCourse()
         {
@@ -221,24 +230,33 @@ namespace CurtainCall.EscapeRoute
         {
             if (shots.Count >= MaxProjectiles) return false;
             var origin = muzzle != null ? muzzle : blade != null ? blade : CarryRoot;
-            Vector3 direction = Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
+            Vector3 direction = Vector3.Cross(CarryRoot.right, Vector3.up).normalized;
             // A guest can still be looking at the boss as the host changes phase or
             // updates the held pose. A valid click still fires along the launcher.
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return false;
             // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
             // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
             Vector3 start = origin.position;
+            var carrier = FindPlayer(Carrier);
+            float level = start.y;
+            if (carrier)
+            {
+                float muzzleAboveHand = (CarryRoot.InverseTransformPoint(origin.position).y
+                    - CarryRoot.InverseTransformPoint(Handle.position).y) * Mathf.Abs(CarryRoot.lossyScale.y);
+                level = carrier.transform.position.y + Mathf.Max(0, carryHandleHeight) + muzzleAboveHand;
+                if (finaleBoss && Mathf.Abs(start.y - level) > .25f) start.y = level;
+            }
+            Vector3 alignedOrigin = start;
             float back = Vector3.Dot(start - CarryRoot.position, direction);
             for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
-                start = origin.position - direction * (back * (step + 1) / 6f);
-            var carrier = FindPlayer(Carrier);
+                start = alignedOrigin - direction * (back * (step + 1) / 6f);
             if (ObstructionDistance(start, direction, 0, out _)
                 || carrier != null && LaunchPathObstructed(carrier.transform.position, start))
             {
                 // The held body can cross a rail or wall, but the blade must start on
                 // the bearer's side. Do not discard a click just because the muzzle
                 // protrudes through scenery; launch from a clear point near the hand.
-                if (carrier == null || !TryFindNearHandLaunch(carrier, origin.position.y, direction, out start)) return false;
+                if (carrier == null || !TryFindNearHandLaunch(carrier, level, direction, out start)) return false;
             }
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
@@ -254,13 +272,18 @@ namespace CurtainCall.EscapeRoute
             var anchor = carrier.transform.position;
             anchor.y = height;
             start = anchor;
+            Vector3 side = Vector3.Cross(Vector3.up, direction);
             for (int step = 0; step <= 8; step++)
             {
-                var candidate = anchor - direction * (projectileRadius * step / 8f);
-                if (ObstructionDistance(candidate, direction, 0, out _)
-                    || LaunchPathObstructed(carrier.transform.position, candidate)) continue;
-                start = candidate;
-                return true;
+                var back = anchor - direction * (projectileRadius * step / 8f);
+                for (int lane = 0; lane < 3; lane++)
+                {
+                    var candidate = back + side * ((lane == 2 ? -1 : lane) * .20f);
+                    if (ObstructionDistance(candidate, direction, 0, out _)
+                        || LaunchPathObstructed(carrier.transform.position, candidate)) continue;
+                    start = candidate;
+                    return true;
+                }
             }
             return false;
         }
@@ -389,6 +412,7 @@ namespace CurtainCall.EscapeRoute
         }
         void PresentProjectiles(float deltaTime)
         {
+            PresentRecharge(deltaTime);
             for (int i = 0; i < projectilePool.Length; i++)
             {
                 bool show = ProjectileSessionReady && ProjectileMode && i < shots.Count;
@@ -417,6 +441,46 @@ namespace CurtainCall.EscapeRoute
                 recoilTime = Mathf.Max(0, recoilTime - Mathf.Max(0, deltaTime));
                 recoilVisual.localPosition = recoilRest - Vector3.forward * (recoilDistance * recoilTime / .15f);
             }
+        }
+        void PresentRecharge(float deltaTime)
+        {
+            if (!Application.isPlaying || !ProjectileMode) return;
+            if (session != null && !session.IsHost) shotWait = Mathf.Max(0f, shotWait - deltaTime);
+            var material = CurtainCall.Settings.GameSettings.Base.CarryDevices.SawRechargeMaterial;
+            if (!blade || !material || shotWait <= 0f || !CarryRoot.gameObject.activeInHierarchy)
+            {
+                ClearRechargeVisual();
+                return;
+            }
+            rechargeProperties ??= new MaterialPropertyBlock();
+            if (rechargeRenderers.Count == 0)
+                foreach (var renderer in blade.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (renderer is not MeshRenderer && renderer is not SkinnedMeshRenderer) continue;
+                    if (renderer.name.StartsWith("__", StringComparison.Ordinal)) continue;
+                    var original = renderer.sharedMaterials;
+                    if (original.Length == 0) continue;
+                    var properties = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(properties);
+                    rechargeRenderers.Add((renderer, original, properties));
+                    var temporary = new Material[original.Length];
+                    Array.Fill(temporary, material);
+                    renderer.sharedMaterials = temporary;
+                }
+            rechargeProperties.SetFloat(RechargeAmount, Mathf.Clamp01(shotWait / Mathf.Max(.01f, shotInterval - .25f)));
+            foreach (var item in rechargeRenderers)
+                if (item.renderer) item.renderer.SetPropertyBlock(rechargeProperties);
+        }
+
+        void ClearRechargeVisual()
+        {
+            foreach (var item in rechargeRenderers)
+                if (item.renderer)
+                {
+                    item.renderer.sharedMaterials = item.materials;
+                    item.renderer.SetPropertyBlock(item.properties);
+                }
+            rechargeRenderers.Clear();
         }
         void DisposeProjectiles()
         {

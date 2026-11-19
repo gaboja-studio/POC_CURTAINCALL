@@ -80,8 +80,10 @@ namespace CurtainCall.EscapeRoute
             if (remote && state.Phase == Phase.Leaping)
             {
                 float t = Mathf.Clamp01(age / Tuning.bossLeapSeconds);
-                transform.position = Vector3.Lerp(state.From, state.Goal, t) + Vector3.up * (4 * Tuning.bossLeapHeight * t * (1-t));
+                transform.position = LeapPosition(state.From, state.Goal, t);
             }
+            if (remote && state.Phase == Phase.Landing)
+                transform.position = state.From;
             if (remote && state.Phase == Phase.Dashing)
                 transform.position = Vector3.Lerp(state.From, state.Goal, Mathf.SmoothStep(0, 1, age / Tuning.bossDashSeconds));
             if (state.Phase == Phase.LeapWarning) chase.SampleJump(age / Tuning.bossLeapWarning * chase.ContactTime * .4f, state.From, state.From);
@@ -107,7 +109,11 @@ namespace CurtainCall.EscapeRoute
             {
                 landedAt = state.Started;
                 if (landingDust) { landingDust.transform.position = transform.position; landingDust.Play(); }
-                if (remote) chase.PlayStep(.6f);
+                if (age < 1f)
+                {
+                    chase.PlayStep(.6f);
+                    CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeRoar, transform);
+                }
             }
             bool sameRound = presentedRound == state.Round;
             if (tint == null) tint = new MaterialPropertyBlock();
@@ -182,11 +188,6 @@ namespace CurtainCall.EscapeRoute
             var local = NetworkPlayer.Local;
             if (IsReinforcement || !CombatStarted || !local || !InsideArena(local.transform.position) || chase.InShowcase) return;
             if (statusStyle == null) statusStyle = new GUIStyle(GUI.skin.label) { font = labelFont, fontSize = 18, alignment = TextAnchor.MiddleCenter };
-            string text = EscapeCampaignContent.Current && EscapeCampaignContent.Current.ExitOpen
-                ? "출구 개방 · 갈대밭으로 이동하세요"
-                : EncounterDefeated ? "추격자 제압 · 배선을 끊어 출구를 여세요"
-                : $"남은 추격자 {RemainingEnemies}명 · 추격자와 배선 모두 처리";
-            GUI.Label(new Rect(Screen.width * .5f - 280, 58, 560, 52), text, statusStyle);
             foreach (var saw in EscapeExitSaw.Devices)
                 if (saw && saw.FinaleBoss == this && saw.Carrier == local.OwnerClientId)
                 {

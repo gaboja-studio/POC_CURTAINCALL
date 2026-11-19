@@ -53,7 +53,8 @@ MonoBehaviour:
   carryDevices:
     sawScale: 0.7
     sawCarrySpeed: 3
-    sawShotInterval: 0
+    sawShotInterval: 1.5
+    sawRechargeMaterial: {fileID: 2100000, guid: 6e6dbc0f3882b2b43bcb435ed1ef3581, type: 2}
     blockPiggybackOnSawCarrier: 1
     blockRopeWithSaw: 1
     blockExplorationToolsDuringPerformance: 1

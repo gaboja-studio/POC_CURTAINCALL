@@ -38,9 +38,9 @@ namespace CurtainCall.EscapeRoute.Tests
             Physics.SyncTransforms();
             bool expected = state == "Normal" && action != "BodyDisabled"
                 && !(local && action is "ControlLocked" or "SimulationPaused");
-            for (int click = 0; click < 2; click++)
-                Assert.That(Call(saw, "TryFire", player), Is.EqualTo(expected), "Each click must obey the same current authoritative eligibility.");
-            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(expected ? 2 : 0));
+            Assert.That(Call(saw, "TryFire", player), Is.EqualTo(expected));
+            Assert.That(Call(saw, "TryFire", player), Is.False, "The second click cannot bypass the cooldown.");
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(expected ? 1 : 0));
         }
 
         [TestCase(false), TestCase(true), Category("EscapeNovember16Followup")]
@@ -82,12 +82,12 @@ namespace CurtainCall.EscapeRoute.Tests
         {
             Fixture(true); var player = Player(41); Own(41); Set(saw, "projectileLifetime", 0f);
             SetCables(Strand(ShotStart + Vector3.right * 20));
-            for (int i = 0; i < 64; i++) Assert.That(Call(saw, "TryFire", player), Is.True);
+            for (int i = 0; i < 64; i++) Assert.That(Call(saw, "SpawnProjectile"), Is.True);
             Assert.That(Call(saw, "TryFire", player), Is.False);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(64));
             var wall = Root("Volley impact wall", true).AddComponent<BoxCollider>();
             wall.transform.position = ShotStart + Vector3.forward * 4; wall.size = new Vector3(6, 6, .05f);
-            Physics.SyncTransforms(); Call(saw, "HostProjectileStep", 1f, player);
+            Physics.SyncTransforms(); Call(saw, "HostProjectileStep", 1.5f, player);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.Zero);
             Assert.That(Call(saw, "TryFire", player), Is.True);
         }

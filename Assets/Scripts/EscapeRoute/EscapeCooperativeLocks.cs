@@ -45,7 +45,7 @@ namespace CurtainCall.EscapeRoute
         readonly Dictionary<ulong, uint> requests = new();
         NetworkSessionManager session;
         CustomMessagingManager messaging;
-        uint armed, latched, held, revision, sequence;
+        uint armed, latched, held, revision, sequence, roundStartRevision;
         bool synchronized;
         int resetFrame = -1;
         double nextSnapshot, nextSync;
@@ -291,7 +291,7 @@ namespace CurtainCall.EscapeRoute
 
         void Arm(ulong actor, int index, uint expected, uint request)
         {
-            if (session == null || !session.IsHost || expected != revision || request == 0
+            if (session == null || !session.IsHost || !IsCurrentRoundRevision(expected) || request == 0
                 || requests.TryGetValue(actor, out uint last) && request <= last) return;
             requests[actor] = request;
             foreach (var player in NetworkPlayer.All)
@@ -303,6 +303,10 @@ namespace CurtainCall.EscapeRoute
                     revision++; Publish(); break;
                 }
         }
+
+        // Other controls and pole occupancy can advance the revision while this request is in flight.
+        // The host still validates each requested control against its current state below.
+        bool IsCurrentRoundRevision(uint expected) => expected >= roundStartRevision && expected <= revision;
 
         void Attach()
         {
@@ -391,7 +395,9 @@ namespace CurtainCall.EscapeRoute
             if (session.IsHost)
             {
                 if (resetFrame == Time.frameCount) return;
-                resetFrame = Time.frameCount; armed = latched = held = 0; requests.Clear(); revision++; Publish();
+                resetFrame = Time.frameCount; armed = latched = held = 0; requests.Clear();
+                roundStartRevision = ++revision;
+                Publish();
             }
             else if (player.IsLocal)
             { synchronized = false; armed = latched = held = 0; Present(); SendRequest(0, -1, 0, resetBarrier.Begin()); }
@@ -400,7 +406,8 @@ namespace CurtainCall.EscapeRoute
         {
             if (messaging != null)
             { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
-            messaging = null; session = null; synchronized = false; armed = latched = held = revision = sequence = 0;
+            messaging = null; session = null; synchronized = false;
+            armed = latched = held = revision = sequence = roundStartRevision = 0;
             spanSnapshotTime = double.NegativeInfinity;
             requests.Clear(); resetBarrier.Clear(); Present();
         }

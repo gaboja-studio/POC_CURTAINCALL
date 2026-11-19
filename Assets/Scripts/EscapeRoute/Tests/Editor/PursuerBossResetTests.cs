@@ -57,6 +57,28 @@ namespace CurtainCall.EscapeRoute.Tests
             Object.DestroyImmediate(root); timerCurrent.SetValue(null, originalTimer);
         }
 
+        [Test]
+        public void ReinforcementsAreScheduledOneAtATimeAgainstTheOriginalEncounterClock()
+        {
+            var state = Get(boss, "state");
+            Set(state, "EncounterStarted", 10d);
+            Set(state, "Started", 15d);
+            Set(state, "Reinforcements", (byte)4);
+            Set(boss, "state", state);
+            Assert.That(Call(boss, "ReinforcementsDue", 12.19d), Is.EqualTo(0));
+            Assert.That(Call(boss, "ReinforcementsDue", 12.21d), Is.EqualTo(1));
+            Assert.That(Call(boss, "ReinforcementsDue", 14.41d), Is.EqualTo(2));
+            Assert.That(Call(boss, "ReinforcementsDue", 16.61d), Is.EqualTo(3));
+            Assert.That(Call(boss, "ReinforcementsDue", 18.81d), Is.EqualTo(4));
+            Assert.That(Call(boss, "ReinforcementsDue", 40d), Is.EqualTo(4));
+            Call(boss, "SetReinforcementVisible", false);
+            Assert.That(meshes.All(m => m.forceRenderingOff), Is.True);
+            Assert.That(hitboxes.All(h => !h.enabled), Is.True);
+            Call(boss, "SetReinforcementVisible", true);
+            Assert.That(meshes.All(m => !m.forceRenderingOff), Is.True);
+            Assert.That(hitboxes.All(h => h.enabled), Is.True);
+        }
+
         [Test] public void RestartRestoresCutBodyBeforeANewEncounterClockCanPresentIt()
         {
             var state = Get(boss, "state");

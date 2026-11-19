@@ -236,10 +236,10 @@ namespace CurtainCall.HumanCannon
             PresentHandleOwnership();
             previousSurface = Surface;
             previousRotation = transform.rotation;
-            if (!ownership.IsOccupied) return;
-            var carrier = FindPlayer(Carrier);
+            var carrier = ownership.IsOccupied ? FindPlayer(Carrier) : null;
             if (carrier != null && carrier.State == PlayerState.Normal)
                 FollowCarrier(carrier);
+            PresentPlacementOutline(carrier);
         }
 
         void PresentHandleOwnership()
@@ -570,17 +570,8 @@ namespace CurtainCall.HumanCannon
                     position = transform.position;
                     rotation = transform.rotation;
                 }
-                if (TryFindDropPath(position, rotation, player, out var ground))
-                    ReleaseAt(actor, revision, position, rotation, ground);
-                else if (UsesTraversalCarryClearance(gameObject.scene.name))
-                {
-                    bool placed = IsWaitingRoom(gameObject.scene.name)
-                        ? TryFindWaitingRoomDrop(position, rotation, player, out ground)
-                        : TryFindNearbySidePlacement(position, rotation, player, out ground, avoidRope: false, fullWidth: true);
-                    if (placed)
-                        ReleaseAt(actor, revision, new Vector3(ground.x, position.y, ground.z), rotation, ground);
-                }
-                else ReleaseCarrierToGround(player);
+                if (TryManualDrop(position, rotation, player, out var ground, out var origin))
+                    ReleaseAt(actor, revision, origin, rotation, ground);
                 return;
             }
             else return;
@@ -645,6 +636,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            ClearPlacementOutline();
             if (carryBody != null && ignoredCarrierBody != null) Physics.IgnoreCollision(ignoredCarrierBody, carryBody, previousCarrierIgnored);
             if (carryBody != null) carryBody.isTrigger = originalCarryBodyTrigger;
             ignoredCarrierBody = null;

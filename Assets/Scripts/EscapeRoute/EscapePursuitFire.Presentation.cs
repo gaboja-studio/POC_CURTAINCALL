@@ -80,10 +80,17 @@ namespace CurtainCall.EscapeRoute
             CachePresentation();
             if (!IsArmed) { HidePresentation(); return; }
             presentationHidden = false;
+            var camera = Camera.main;
+            float viewX = camera ? RouteX(camera.transform.position) : float.NaN;
             for (int i = 0; i < bays.Length; i++)
             {
                 var bay = bays[i]; var view = presentation[i]; if (bay == null || view == null) continue;
                 FirePhase phase = PhaseAt(i, now);
+                // Presentation only. The host's fire clock and occupied volumes are
+                // unchanged when a client, spectator or camera leaves the area.
+                if (bay.coverage && float.IsFinite(viewX)
+                    && !ShowBay(viewX, RouteX(bay.coverage.bounds.center), view.phase != FirePhase.Dormant))
+                    phase = FirePhase.Dormant;
                 if (phase == FirePhase.Dormant && phase == view.phase) continue;
                 double age = now - armedAt - startDelay - (i - firstBay) * (double)stepSeconds;
                 bool burning = phase == FirePhase.Burst || phase == FirePhase.Burning;
@@ -115,7 +122,7 @@ namespace CurtainCall.EscapeRoute
                             // The whole authored bay is lethal at ignition. Fill at least one particle lifetime
                             // immediately so a 42m nozzle never damages the far wall before visible flame reaches it.
                             float fill = Mathf.Clamp(main.startLifetime.constantMax, .05f, 6);
-                            system.Simulate(Mathf.Max(fill, (float)Math.Min(6, Math.Max(0, age))), false, true, false);
+                            system.Simulate(fill, false, true, false);
                             system.Play(false);
                         }
                     }
@@ -150,6 +157,9 @@ namespace CurtainCall.EscapeRoute
                 view.phase = phase;
             }
         }
+
+        static bool ShowBay(float viewX, float bayX, bool alreadyVisible) =>
+            Mathf.Abs(viewX - bayX) <= (alreadyVisible ? 68f : 56f);
 
         void RestorePresentation()
         {

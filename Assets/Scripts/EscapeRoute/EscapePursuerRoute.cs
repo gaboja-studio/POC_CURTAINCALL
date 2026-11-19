@@ -336,6 +336,9 @@ namespace CurtainCall.EscapeRoute
         {
             float progress = Mathf.Clamp(projectedProgress, 0, points.Length - 1);
             int next = Mathf.Min(points.Length - 1, Mathf.FloorToInt(progress) + 1);
+            // The visible final leap must touch down after the runner has passed the landing.
+            if (points[next].jump && points[next].finalSprint && progress < next)
+                return Mathf.Floor(progress);
             // A gap has two supported ends. Never reverse toward a point in mid-air.
             return points[next].jump ? Mathf.Round(progress) : progress;
         }
@@ -372,8 +375,20 @@ namespace CurtainCall.EscapeRoute
             int next = i + direction;
             if (!entered || Mathf.Abs(cursor - i) > .001f || Mathf.Abs(desired - cursor) < .001f
                 || next < 0 || next >= points.Length || !points[Mathf.Max(i, next)].jump) return false;
+            if (direction > 0 && points[next].finalSprint && next + 1 < points.Length
+                && !HasRunnerPastLanding(points[next].feet.position, points[next + 1].feet.position)) return false;
             jumpDestination = next;
             start = points[i].feet.position; end = points[next].feet.position; return true;
+        }
+
+        bool HasRunnerPastLanding(Vector3 landing, Vector3 forwardAnchor)
+        {
+            Vector3 forward = Vector3.ProjectOnPlane(forwardAnchor - landing, Vector3.up).normalized;
+            foreach (var player in NetworkPlayer.All)
+                if (player && player.IsSpawned && player.State == PlayerState.Normal
+                    && Vector3.Dot(PlayerFeet(player) - landing, forward) >= 2f)
+                    return true;
+            return false;
         }
         public void CompleteJump()
         {

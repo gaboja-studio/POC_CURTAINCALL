@@ -32,12 +32,15 @@ namespace CurtainCall.EscapeRoute
         ShopChannel channel;
         Transform source;
         ulong capturedOwner;
+        NetworkPlayer placedPlayer;
         bool localCaptured, localPlaced, holding, capturedView;
         Vector3 localPosition;
         Quaternion localRotation, localLook, arrivalLook;
+        Quaternion departureRotation = Quaternion.identity;
+        Scene capturedScene;
         Camera sourceCamera;
         CameraViewDirector sourceDirector;
-        float nextAck, retryAt;
+        float nextAck, retryAt, nextSnapshot;
         public static EscapeSceneTransfer Current { get; private set; }
         public bool HasDeparture => snapshot.phase > 0;
         public bool Ready => snapshot.phase == 2;
@@ -54,6 +57,7 @@ namespace CurtainCall.EscapeRoute
             if (channel.IsHost) return channel.IsConnected(id);
             var network = channel.Session?.NetworkManager;
             if (network == null || !network.IsConnectedClient) return false;
+            if (id == network.LocalClientId) return true;
             foreach (ulong peer in network.ConnectedClientsIds) if (peer == id) return true;
             return false;
         }
@@ -110,6 +114,7 @@ namespace CurtainCall.EscapeRoute
             RecordTransfer("TRANSFER_STARTED", source.position, true);
             retryAt = Time.unscaledTime + 10;
             CaptureLocal();
+            nextSnapshot = Time.unscaledTime + .5f;
             Publish();
             return true;
         }
@@ -126,14 +131,20 @@ namespace CurtainCall.EscapeRoute
                 Cancel(); return;
             }
             if (!localCaptured) CaptureLocal();
+            bool placedForCurrentAvatar = IsLocalPlacementCurrent(NetworkPlayer.Local);
             if (Pending && Time.unscaledTime >= nextAck)
             {
                 nextAck = Time.unscaledTime + .5f;
                 // ShopChannel rate-limits requests; send only the most advanced acknowledgement.
-                if (localPlaced) Acknowledge("placed");
+                if (placedForCurrentAvatar) Acknowledge("placed");
                 else if (localCaptured) Acknowledge("captured");
             }
-            if (Ready && localPlaced) Release();
+            if (Ready && placedForCurrentAvatar) Release();
+            if (ShouldRepeatPendingSnapshot(Time.unscaledTime, channel.IsHost))
+            {
+                nextSnapshot = Time.unscaledTime + .5f;
+                Publish();
+            }
             if (Pending && channel.IsHost && Time.unscaledTime >= retryAt)
             {
                 var director = SpaceLinkDirector.Instance;
@@ -144,6 +155,10 @@ namespace CurtainCall.EscapeRoute
                 }
             }
         }
+
+        // Another client can receive the departure before its campaign generation.
+        // Repeat while waiting for ACKs so a dropped initial snapshot cannot stall the team.
+        bool ShouldRepeatPendingSnapshot(float now, bool host) => host && Pending && now >= nextSnapshot;
         void CaptureLocal()
         {
             var player = NetworkPlayer.Local;
@@ -152,7 +167,9 @@ namespace CurtainCall.EscapeRoute
             int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
             if (index < 0) return;
             localPosition = source.InverseTransformPoint(player.transform.position);
-            localRotation = Quaternion.Inverse(source.rotation) * player.transform.rotation;
+            departureRotation = source.rotation;
+            capturedScene = source.gameObject.scene;
+            localRotation = Quaternion.Inverse(departureRotation) * player.transform.rotation;
             // A client can cross the rear doorway during network delay. Keep that player inside
             // using the host's already accepted assembly pose instead of spawning outside A.
             var area = source.GetComponent<BoxCollider>();
@@ -164,7 +181,7 @@ namespace CurtainCall.EscapeRoute
             sourceCamera = Camera.main;
             sourceDirector = CameraViewDirector.Current;
             capturedView = sourceCamera != null;
-            if (capturedView) localLook = Quaternion.Inverse(source.rotation) * sourceCamera.transform.rotation;
+            if (capturedView) localLook = Quaternion.Inverse(departureRotation) * sourceCamera.transform.rotation;
             // PlayerMover checks HoldingForDeparture. Its simulation flag belongs to the
             // device or piggyback link currently controlling the player.
             capturedOwner = player.OwnerClientId;
@@ -185,9 +202,10 @@ namespace CurtainCall.EscapeRoute
         public bool PlaceLocal(EscapeSceneArrival destination)
         {
             if (!PlacementAuthorized || destination == null) return false;
-            if (localPlaced) return true;
+            if (Ready && localPlaced && !holding) return true;
             var player = NetworkPlayer.Local;
-            if (source == null || !TryResolveCapturedMover(player, out var mover)) return false;
+            if (IsLocalPlacementCurrent(player)) return true;
+            if (!TryResolveCapturedMover(player, out var mover)) return false;
             var content = EscapeCampaignContent.Current;
             if (content == null || !content.IsActive || !content.IsSceneryReady) return false;
             int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
@@ -197,16 +215,20 @@ namespace CurtainCall.EscapeRoute
             var hostPose = new Pose(snapshot.positions[index], snapshot.rotations[index]);
             if (!TryResolveArrivalPose(scene, destination.AssemblyArea, localPose, hostPose, index, snapshot.participants.Length, out var pose)) return false;
 
-            MoveCamera(sourceCamera.transform, source.gameObject.scene, scene);
-            MoveCamera(sourceDirector.transform, source.gameObject.scene, scene);
+            MoveCamera(sourceCamera.transform, capturedScene, scene);
+            MoveCamera(sourceDirector.transform, capturedScene, scene);
             mover.SetStartPose(pose.position, pose.rotation);
             arrivalLook = destination.AssemblyAnchor.rotation * localLook;
             sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
+            placedPlayer = player;
             RecordTransfer("TRANSFER_PLACED", pose.position, false);
             Acknowledge("placed");
             return true;
         }
+
+        bool IsLocalPlacementCurrent(NetworkPlayer player) =>
+            localPlaced && player != null && player.IsSpawned && player == placedPlayer && player.OwnerClientId == capturedOwner;
 
         bool TryResolveCapturedMover(NetworkPlayer player, out PlayerMover mover)
         {
@@ -227,7 +249,9 @@ namespace CurtainCall.EscapeRoute
             if (sourceCamera == null || sourceDirector == null || !sourceDirector.isActiveAndEnabled) return false;
             if (!capturedView)
             {
-                localLook = Quaternion.Inverse(source.rotation) * sourceCamera.transform.rotation;
+                // An already captured participant may need a replacement camera after the lobby unloads.
+                var basis = localCaptured || source == null ? departureRotation : source.rotation;
+                localLook = Quaternion.Inverse(basis) * sourceCamera.transform.rotation;
                 capturedView = true;
             }
             return true;
@@ -293,7 +317,7 @@ namespace CurtainCall.EscapeRoute
         }
         bool ApplySnapshot(Snapshot value)
         {
-            if (value == null || value.generation < 0 || value.phase < 1 || value.phase > 2
+            if (value == null || value.generation < snapshot.generation || value.phase < 1 || value.phase > 2
                 || value.participants == null || value.participants.Length < 1
                 || value.positions == null || value.positions.Length != value.participants.Length
                 || value.rotations == null || value.rotations.Length != value.participants.Length) return false;
@@ -327,7 +351,7 @@ namespace CurtainCall.EscapeRoute
             snapshot.phase = 2; snapshot.failure = "";
             Publish();
             // The curtain still blocks input until its reveal animation completes.
-            Release();
+            if (IsLocalPlacementCurrent(NetworkPlayer.Local)) Release();
         }
         public void Failed(string reason)
         {
@@ -341,6 +365,8 @@ namespace CurtainCall.EscapeRoute
         {
             Release(); snapshot = new(); captured.Clear(); placed.Clear();
             localCaptured = localPlaced = capturedView = false;
+            placedPlayer = null; capturedScene = default; departureRotation = Quaternion.identity;
+            nextAck = nextSnapshot = 0;
             sourceCamera = null; sourceDirector = null;
         }
         void Release()
