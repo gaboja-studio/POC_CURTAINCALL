@@ -1,5 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEditor.SceneManagement;
+using CurtainCall.EscapeRoute;
+using System.Reflection;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
@@ -9,6 +13,29 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         static bool Drop(float x,float z,out Vector3 contact) => TrampolineOutline.TryTouch(
             new Vector3(x,5,z),new Vector3(x,-4,z),Vector3.zero,Vector3.zero,
             Quaternion.identity,Quaternion.identity,Shape,.25f,1.7f,out contact);
+
+        [Test]
+        public void PlacementColourIsExcludedOnlyInTheEscapeScene()
+        {
+            var escape = EditorSceneManager.NewPreviewScene();
+            var previous = EscapeCampaignContent.Current;
+            var current = typeof(EscapeCampaignContent).GetProperty(nameof(EscapeCampaignContent.Current));
+            var root = new GameObject("Escape placement visibility");
+            root.SetActive(false);
+            try
+            {
+                SceneManager.MoveGameObjectToScene(root, escape);
+                current.SetValue(null, root.AddComponent<EscapeCampaignContent>());
+                var allowed = typeof(HumanCannonTrampoline).GetMethod("AllowsPlacementOutline", BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(allowed.Invoke(null, new object[] { escape }), Is.False);
+                Assert.That(allowed.Invoke(null, new object[] { SceneManager.GetActiveScene() }), Is.True);
+            }
+            finally
+            {
+                current.SetValue(null, previous);
+                EditorSceneManager.ClosePreviewScene(escape);
+            }
+        }
 
         [TestCase(0f,0f,true)]
         [TestCase(2.5f,0f,true)]

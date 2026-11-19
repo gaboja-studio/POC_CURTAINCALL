@@ -97,7 +97,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [TestCase(false), TestCase(true), Category("WaitingRoomCommonRecovery")]
-        public void CannonRevivalWithoutAnObservedFallenFrameKeepsCheckpointAndClearsArrival(bool middle)
+        public void CannonRevivalWithoutAnObservedFallenFrameReturnsToStartAndClearsArrival(bool middle)
         {
             var player = Player(940);
             typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
@@ -115,6 +115,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var midway = Make("Middle floor").AddComponent<BoxCollider>();
             midway.transform.position = new Vector3(9200, 9004, 9000); midway.size = start.size;
             course.StartFloor = start; course.MiddleFloor = midway; Set(cannon, "course", course);
+            Physics.SyncTransforms();
             var pilot = player.gameObject.AddComponent<HumanCannonPilot>();
             Set(pilot, "mover", mover); Set(pilot, "player", player);
             Set(pilot, "previousSimulation", true);
@@ -126,10 +127,63 @@ namespace CurtainCall.WaitingRoom.EditorTools
             foreach (string name in new[] { "placed", "arrived", "votes", "skipVotes" }) Assert.IsEmpty(List(name), name);
             Assert.AreEqual(middle, List("middle").Contains(player.OwnerClientId), "Recovery must keep the last acquired checkpoint.");
             Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
-            Assert.That(Vector3.Distance(player.transform.position, course.CheckpointPose(middle ? 1 : 0, 0).position), Is.LessThan(.001f));
+            Assert.That(Vector3.Distance(player.transform.position, course.CheckpointPose(0, 0).position), Is.LessThan(.001f));
             Assert.IsFalse(pilot.IsDriving, "A stale flight must not move the player away from the recovered checkpoint.");
             Assert.IsTrue(mover.Simulated);
             Set(cannon, "course", null); // EditMode fixture owns immediate destruction.
+        }
+
+        [Test]
+        public void CannonRecoverySnapshotOverridesDelayedPlacementAndRequiresTheStartFloor()
+        {
+            var player = Player(951);
+            var mover = player.GetComponent<PlayerMover>();
+            var course = Make("Snapshot recovery course").AddComponent<RehearsalCannonCourse>();
+            var start = Make("Recovery start").AddComponent<BoxCollider>();
+            start.transform.position = new Vector3(9300, 9000, 9000); start.size = new Vector3(12, .4f, 8);
+            var middle = Make("Recovery checkpoint").AddComponent<BoxCollider>();
+            middle.transform.position = new Vector3(9400, 9000, 9000); middle.size = start.size;
+            course.StartFloor = start; course.MiddleFloor = middle;
+            Set(cannon, "course", course);
+            try
+            {
+                Physics.SyncTransforms();
+                var oldPosition = course.CheckpointPose(1, 0);
+                var startPosition = course.CheckpointPose(0, 0);
+                Assert.That(oldPosition.position, Is.Not.EqualTo(startPosition.position));
+                player.transform.position = oldPosition.position;
+                Set(cannon, "placedRound", 8);
+                const string roster = ",\"active\":true,\"participants\":[951],\"middle\":[951],\"bounced\":[],\"arrived\":[],\"votes\":[],\"skipVotes\":[]}";
+                const string stale = "{\"round\":8,\"version\":20,\"placed\":[951],\"recovering\":[]" + roster;
+                const string recovery = "{\"round\":8,\"version\":21,\"placed\":[],\"recovering\":[951]" + roster;
+                Call(cannon, "Receive", stale);
+                Call(cannon, "ResetLocalRecovery", player);
+                Call(cannon, "Receive", stale);
+                var localSnapshot = Get(cannon, "shared");
+                Assert.That(localSnapshot.GetType().GetField("placed").GetValue(localSnapshot), Is.Empty,
+                    "A duplicate copy of the last state cannot confirm an earlier placement again.");
+                Set(cannon, "placingAfterRecovery", false);
+                Call(cannon, "Receive", recovery);
+                Call(cannon, "Receive", stale);
+                Call(cannon, "AcceptPlacement", player.OwnerClientId, 8, oldPosition.position);
+                var snapshot = Get(cannon, "shared");
+                List<ulong> List(string name) => (List<ulong>)snapshot.GetType().GetField(name).GetValue(snapshot);
+                Assert.That(List("placed"), Is.Empty);
+                Assert.That(List("recovering"), Does.Contain(player.OwnerClientId));
+
+                Call(cannon, "SynchronizeLocalRecovery", player);
+                Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
+                Assert.That(player.transform.position, Is.EqualTo(startPosition.position));
+                var departed = Player(952);
+                departed.transform.position = startPosition.position;
+                Call(cannon, "AcceptPlacement", departed.OwnerClientId, 8, departed.transform.position);
+                Assert.That(List("placed"), Is.Empty, "An avatar still present after removal from the roster cannot confirm placement.");
+                Call(cannon, "AcceptPlacement", player.OwnerClientId, 8, player.transform.position);
+                Assert.That(List("placed"), Does.Contain(player.OwnerClientId));
+                Assert.That(List("recovering"), Is.Empty);
+                Assert.That(List("middle"), Does.Contain(player.OwnerClientId));
+            }
+            finally { Set(cannon, "course", null); }
         }
 
         [Test]

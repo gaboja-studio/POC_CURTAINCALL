@@ -3,12 +3,14 @@
 - **Title:** 대기실 트램펄린 내려놓기 판정 개선
 - **Type:** fix
 - **Assignee:** @RagSpirin
-- **Branch:** fix/waiting-room-trampoline-placement
+- **Branch:** fix/cannon-recovery-and-trampoline-preview
 - **Base:** dev
 
 ## Context
 
 대기실에서 트램펄린을 손으로 내려놓을 때 주변에 빈 곳이 있는데도 놓을 수 없는 상황을 줄인다.
+
+2026-11-20 후속에서는 탈출로에서 배치 가능 색이 뜨는 문제와 인간대포 튜토리얼 부활 직후 옛 배치 확인이 복귀를 방해하는 문제를 수정한다.
 
 ## 계획
 

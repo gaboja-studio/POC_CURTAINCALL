@@ -38,7 +38,7 @@ namespace CurtainCall.WaitingRoom
             fader?.Cancel();
             fallen.Clear();
             fallenAt.Clear();
-            priorConditions.Clear(); recoveringPlacement.Clear();
+            priorConditions.Clear();
             lastCarrier = CurtainCall.HumanCannon.CannonSeatState.Nobody;
             local = null; previousState = default;
             localRecoveryPending = placingAfterRecovery = false;
@@ -74,8 +74,9 @@ namespace CurtainCall.WaitingRoom
         void Receive(string json)
         {
             var next = JsonUtility.FromJson<Shared>(json);
-            if (next == null || next.version < shared.version || next.round < 0 || next.participants == null
-                || next.placed == null || next.middle == null || next.bounced == null || next.arrived == null || next.votes == null || next.skipVotes == null) return;
+            if (next == null || next.version <= shared.version || next.round < shared.round || next.participants == null
+                || next.placed == null || next.middle == null || next.bounced == null || next.arrived == null
+                || next.votes == null || next.skipVotes == null || next.recovering == null) return;
             shared = next;
         }
 
@@ -146,14 +147,15 @@ namespace CurtainCall.WaitingRoom
 
         void AcceptPlacement(ulong actor, int round, Vector3 position)
         {
-            if (!Host || !shared.active || shared.ending || course == null || round != shared.round || shared.placed.Contains(actor)) return;
+            if (!Host || !shared.active || shared.ending || course == null || round != shared.round
+                || !shared.participants.Contains(actor) || shared.placed.Contains(actor)) return;
             var player = NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == actor && p.State == PlayerState.Normal);
-            bool recovery = recoveringPlacement.Contains(actor);
+            bool recovery = shared.recovering.Contains(actor);
             var floor = !recovery && Checkpoint(actor) > 0 ? course.MiddleFloor : course.StartFloor;
             if (player == null || Vector3.Distance(position, player.transform.position) > .75f) return;
             bool OnExpectedDeck(Vector3 feet) => RehearsalCannonCourse.Contains(floor, feet);
             if (!OnExpectedDeck(position) || !OnExpectedDeck(player.transform.position)) return;
-            recoveringPlacement.Remove(actor);
+            shared.recovering.Remove(actor);
             if (recovery && shared.restoringCarrier && shared.previousCarrier == actor)
             {
                 course.Trampoline?.ServerRestoreRehearsalCarrier(player);
