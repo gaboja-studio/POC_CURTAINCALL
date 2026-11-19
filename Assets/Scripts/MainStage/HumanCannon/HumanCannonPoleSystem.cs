@@ -164,12 +164,6 @@ namespace CurtainCall.HumanCannon
         {
             var state = states[index].State;
             if (player == null || !state.HasFreeSeat) return -1;
-            var cannon = HumanCannonSystem.Current;
-            if (cannon != null && cannon.TryGetFlight(player.OwnerClientId, out var flight))
-            {
-                var required = cannon.RequiredTransferPole(flight.StationIndex, flight.Segment);
-                if (required != null && required != poles[index]) return -1;
-            }
             int closest = -1;
             float distance = float.PositiveInfinity;
             for (int seat = 0; seat < state.Capacity; seat++)

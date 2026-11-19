@@ -42,6 +42,7 @@ namespace CurtainCall.EscapeRoute
         readonly RaycastHit[] shotHits = new RaycastHit[64];
         readonly Collider[] shotOverlaps = new Collider[64];
         uint cutMask, shotSerial, lastPresentedShot, courseEpoch;
+        bool finaleDoorReported;
         float shotWait, recoilTime;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
@@ -98,6 +99,7 @@ namespace CurtainCall.EscapeRoute
         void ResetProjectileCourse()
         {
             ClearShots(); cutMask = shotSerial = lastPresentedShot = 0;
+            finaleDoorReported = false;
             Array.Clear(cutPoints, 0, cutPoints.Length);
             PresentCables(false);
         }
@@ -171,6 +173,13 @@ namespace CurtainCall.EscapeRoute
             uint beforeMask = cutMask;
             int beforeCount = shots.Count;
             StepProjectiles(deltaTime, true);
+            if (TryConsumeFinaleDoorOpened())
+            {
+                CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null, this, "EXIT_DOOR", "OPEN",
+                    CableSocket ? CableSocket.position : transform.position, true);
+                if (!string.IsNullOrEmpty(openTarget))
+                    CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+            }
             shotWait = Mathf.Max(0, shotWait - deltaTime);
             if (cutting || beforeMask != cutMask || beforeCount != shots.Count)
             {
@@ -179,6 +188,12 @@ namespace CurtainCall.EscapeRoute
             }
             else if (Time.unscaledTimeAsDouble >= nextPublish)
             { nextPublish = Time.unscaledTimeAsDouble + .1; stateRevision++; Publish(); }
+        }
+        bool TryConsumeFinaleDoorOpened()
+        {
+            if (!finaleBoss || finaleDoorReported || (!doorPanel && (!leftDoorHinge || !rightDoorHinge)) || !DoorOpen) return false;
+            finaleDoorReported = true;
+            return true;
         }
         bool TryFire(NetworkPlayer carrier)
         {
@@ -209,10 +224,6 @@ namespace CurtainCall.EscapeRoute
             Vector3 direction = Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
             // A guest can still be looking at the boss as the host changes phase or
             // updates the held pose. A valid click still fires along the launcher.
-            if (finaleBoss && finaleBoss.InBattle && pendingBossAim.sqrMagnitude > .99f
-                && Mathf.Abs(pendingBossAim.y) <= .95f
-                && Vector3.Dot(Vector3.ProjectOnPlane(pendingBossAim, Vector3.up).normalized, direction) >= .25f)
-                direction = pendingBossAim;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return false;
             // 벽·설비에 바짝 붙어 쏘면 발사구가 이미 물체에 닿아 있어 톱날이 나오자마자 사라졌다(2026-11-13 대기실 플레이: 간헐적으로 발사 안 됨).
             // 발사구가 막혀 있으면 든 사람 쪽으로 조금씩 당겨, 막히지 않은 가장 앞 지점에서 내보낸다.
@@ -327,7 +338,7 @@ namespace CurtainCall.EscapeRoute
             && collider.GetComponentInParent<CurtainCall.WaitingRoom.Pursuit.PursuitActor>() == null
             && !collider.GetComponent<EscapePursuerDebris>()
             && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null
-            && (!finaleBoss || collider.GetComponentInParent<EscapePursuerBoss>() != finaleBoss);
+            && (!finaleBoss || collider.GetComponentInParent<EscapePursuerBoss>() is not { } boss || !boss.BelongsTo(finaleBoss));
         void CutAlong(Vector3 from, Vector3 to, Vector3 normal, Shot shot = null)
         {
             for (int i = 0; cables != null && i < cables.Length && i < 32; i++)
@@ -343,8 +354,13 @@ namespace CurtainCall.EscapeRoute
                     ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "CABLE_CUT", hit, shot.Direction,
                         CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
                 }
-                if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
-                if (DoorOpen && !string.IsNullOrEmpty(openTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                if (!finaleBoss && DoorOpen)
+                {
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null, this, "EXIT_DOOR", "OPEN",
+                        CableSocket ? CableSocket.position : hit, true);
+                    if (!string.IsNullOrEmpty(openTarget))
+                        CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
+                }
                 if (!string.IsNullOrEmpty(cable.OpenTarget)) CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(cable.OpenTarget);
                 ShareCut(cable, hit);
             }
@@ -432,7 +448,7 @@ namespace CurtainCall.EscapeRoute
             {
                 var shot = incoming[i];
                 if (shot == null || shot.Id == 0 || (UnlimitedProjectiles ? shot.Epoch > epoch : shot.Epoch != epoch) || !Finite(shot.Position) || !Finite(shot.Direction)
-                    || Mathf.Abs(shot.Direction.y) > (finaleBoss ? .95f : .001f) || Mathf.Abs(shot.Direction.sqrMagnitude - 1) > .01f
+                    || Mathf.Abs(shot.Direction.y) > .001f || Mathf.Abs(shot.Direction.sqrMagnitude - 1) > .01f
                     || !float.IsFinite(shot.Age) || shot.Age < 0 || !UnlimitedProjectiles && shot.Age >= projectileLifetime) return false;
                 for (int j = 0; j < i; j++) if (incoming[j].Id == shot.Id) return false;
             }

@@ -76,7 +76,8 @@ namespace CurtainCall.EscapeRoute
             get
             {
                 if (!ProjectileMode) return cutProgress >= cutSeconds;
-                return RequiredCableCount > 0 && CutCableCount == RequiredCableCount;
+                return RequiredCableCount > 0 && CutCableCount == RequiredCableCount
+                    && (!finaleBoss || finaleBoss.EncounterDefeated);
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
@@ -102,7 +103,7 @@ namespace CurtainCall.EscapeRoute
             }
             else cutProgress = cutSeconds;
             cutting = false;
-            if (DoorOpen && !string.IsNullOrEmpty(openTarget))
+            if (!finaleBoss && DoorOpen && !string.IsNullOrEmpty(openTarget))
                 CurtainCall.WaitingRoom.ExplorationState.Instance?.MarkVisited(openTarget);
             Changed(); // Use the normal revision/snapshot path; presentation animates the door.
             return DoorOpen;
@@ -124,9 +125,9 @@ namespace CurtainCall.EscapeRoute
                 break;
             }
         }
-        public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
+        public string Guidance => DoorOpen ? (finaleBoss ? "추격자 제압 및 배선 절단 완료 · 출구로 이동하세요" : "배선 절단 완료 · 출구로 이동하세요")
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
-            : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.Defeated ? $"{UseKey} 발사 · 추격자 절단 {finaleBoss.Cuts}/8 · 배선 {CutCableCount}/{RequiredCableCount}"
+            : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.EncounterDefeated ? $"{UseKey} 발사 · 남은 추격자 {finaleBoss.RemainingEnemies}명 · 배선 {CutCableCount}/{RequiredCableCount}"
             : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용"
             : ProjectileMode ? $"색 전선을 조준하고 {UseKey}로 발사" // 끊은 횟수는 보여 주지 않는다(2026-11-13 사용자)
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"

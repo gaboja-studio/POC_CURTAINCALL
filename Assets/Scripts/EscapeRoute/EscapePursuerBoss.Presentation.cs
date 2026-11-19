@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -36,8 +37,11 @@ namespace CurtainCall.EscapeRoute
                     tint.SetColor("_BaseColor", color); tint.SetColor("_Color", color); mesh.SetPropertyBlock(tint);
                 }
             }
-            // Delayed destruction may otherwise leave last round's severed pieces
-            // beside a restored body. Only remove visuals created by this boss.
+            ClearSeveredVisuals();
+        }
+
+        void ClearSeveredVisuals()
+        {
             foreach (var visual in severedVisuals)
                 if (visual)
                 {
@@ -149,6 +153,7 @@ namespace CurtainCall.EscapeRoute
                 else if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh) detached = filter.sharedMesh;
                 else continue;
                 var go = new GameObject("Severed " + part.label, typeof(MeshFilter), typeof(MeshRenderer), typeof(BoxCollider), typeof(Rigidbody));
+                SceneManager.MoveGameObjectToScene(go, gameObject.scene);
                 severedVisuals.RemoveAll(visual => !visual);
                 severedVisuals.Add(go);
                 go.layer = 2;
@@ -175,9 +180,12 @@ namespace CurtainCall.EscapeRoute
         void OnGUI()
         {
             var local = NetworkPlayer.Local;
-            if (!CombatStarted || !local || !InsideArena(local.transform.position) || chase.InShowcase) return;
+            if (IsReinforcement || !CombatStarted || !local || !InsideArena(local.transform.position) || chase.InShowcase) return;
             if (statusStyle == null) statusStyle = new GUIStyle(GUI.skin.label) { font = labelFont, fontSize = 18, alignment = TextAnchor.MiddleCenter };
-            string text = Defeated ? "추격자 제압 · 배선을 끊어 출구를 여세요" : $"추격자 절단 {Cuts}/8  ·  붉은 손·발 → 팔·다리\n쓰러뜨리지 않아도 배선 절단 가능";
+            string text = EscapeCampaignContent.Current && EscapeCampaignContent.Current.ExitOpen
+                ? "출구 개방 · 갈대밭으로 이동하세요"
+                : EncounterDefeated ? "추격자 제압 · 배선을 끊어 출구를 여세요"
+                : $"남은 추격자 {RemainingEnemies}명 · 추격자와 배선 모두 처리";
             GUI.Label(new Rect(Screen.width * .5f - 280, 58, 560, 52), text, statusStyle);
             foreach (var saw in EscapeExitSaw.Devices)
                 if (saw && saw.FinaleBoss == this && saw.Carrier == local.OwnerClientId)

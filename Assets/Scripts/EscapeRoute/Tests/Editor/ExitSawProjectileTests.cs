@@ -83,13 +83,11 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(load.enabled, Is.True);
         }
 
-        [TestCase("Waiting", 0, 0, 1, false)]
-        [TestCase("Dying", 1, 0, 0, false)]
-        [TestCase("Battle", 0, 1, 0, false)]
-        [TestCase("Battle", 1, 0, 0, true)]
-        [TestCase("Battle", 1, 0, 0, false)]
-        public void ValidGuestClickFiresWhenBossPhaseOrReplicatedAimChanges(string phase,
-            int x, int y, int z, bool guestTurned)
+        [TestCase("Waiting", false)]
+        [TestCase("Dying", false)]
+        [TestCase("Battle", true)]
+        [TestCase("Battle", false)]
+        public void GuestShotUsesHorizontalToolHeading(string phase, bool guestTurned)
         {
             Fixture(true);
             var guest = Player(41);
@@ -105,14 +103,15 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(device.forward, Is.EqualTo(Vector3.forward));
             if (guestTurned) guest.transform.rotation = Quaternion.LookRotation(Vector3.right);
             Physics.SyncTransforms();
-            Call(saw, "HandleAimedShot", 41UL, 1U, new Vector3(x, y, z));
+            Call(saw, "HandleAction", 41UL, (byte)3, 1U, false);
             var shots = (IList)Get(saw, "shots");
             Assert.That(shots.Count, Is.EqualTo(1));
             Assert.That(Vector3.Dot((Vector3)Get(shots[0], "Direction"), guestTurned ? Vector3.right : Vector3.forward),
                 Is.GreaterThan(.999f));
-            Call(saw, "HandleAimedShot", 42UL, 1U, Vector3.forward);
-            Call(saw, "HandleAimedShot", 41UL, 0U, Vector3.forward);
-            Call(saw, "HandleAimedShot", 41UL, 1U, Vector3.zero);
+            Assert.That(((Vector3)Get(shots[0], "Direction")).y, Is.Zero);
+            Call(saw, "HandleAction", 42UL, (byte)3, 1U, false);
+            Call(saw, "HandleAction", 41UL, (byte)3, 0U, false);
+
             Assert.That(shots.Count, Is.EqualTo(1));
         }
 

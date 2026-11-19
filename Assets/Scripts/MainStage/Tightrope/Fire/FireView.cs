@@ -85,6 +85,7 @@ namespace CurtainCall.Tightrope.Fire
             if (!available) { Hide(); return; }
             if (shown != settings || shownRound != fire.Round) Rebuild(settings);
             if (segmentRopeBurn != null) UpdateRopeBurn();
+            if (HasRopeSparks) PresentRopeSparks();
             chase.gameObject.SetActive(fire.IsChasing);
             if (fire.IsChasing && !chaseShown)
                 foreach (var particles in chaseParticles) { particles.Clear(true); particles.Play(true); }
@@ -160,9 +161,10 @@ namespace CurtainCall.Tightrope.Fire
         void Rebuild(FireSettings settings)
         {
             ClearRopeBurn();
+            HideRopeSparks(true);
             foreach (var pieces in segments) foreach (var piece in pieces) Destroy(piece.gameObject);
             segments.Clear();
-            for (int i = 0; i < settings.segments.Length; i++)
+            for (int i = 0; !HasRopeSparks && i < settings.segments.Length; i++)
             {
                 var pieces = new ParticleSystem[FireCourseSpans.MaximumPieces];
                 for (int piece = 0; piece < pieces.Length; piece++) pieces[piece] = Flames($"SegmentFire{i + 1}Part{piece + 1}");
@@ -241,6 +243,7 @@ namespace CurtainCall.Tightrope.Fire
         void Hide()
         {
             ClearRopeBurn();
+            HideRopeSparks(true);
             if (chase != null) chase.gameObject.SetActive(false);
             chaseShown = false;
             foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);

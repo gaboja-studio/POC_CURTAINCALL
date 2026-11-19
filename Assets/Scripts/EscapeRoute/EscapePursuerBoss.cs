@@ -39,6 +39,7 @@ namespace CurtainCall.EscapeRoute
         public bool Defeated => State == Phase.Dying || State == Phase.Dead;
         public bool InBattle => State >= Phase.LeapWarning && !Defeated;
         public bool CombatStarted => State >= Phase.LeapWarning;
+        internal bool TakesOverChase => CombatStarted || LauncherTaken();
         public bool LimitsFinalFire => arena != null;
         public Transform ArenaFrame => arena ? arena.transform : transform;
         public float SpeedScale => MovementScale(CurrentMask, Tuning.bossSlowPerCut);
@@ -52,20 +53,28 @@ namespace CurtainCall.EscapeRoute
         void Awake() { if (rig) { rigRest = rig.localPosition; rigRotation = rig.localRotation; } }
         void OnEnable()
         {
-            Current = this;
-            NetworkPlayer.Restarted += Restart;
+            if (!IsReinforcement) Current = this;
+            NetworkPlayer.Restarted += OnPlayerRestarted;
             EscapeExitSaw.ShotObserved += ObserveShot;
         }
         void OnDisable()
         {
+            ClearReinforcements();
+            ClearSeveredVisuals();
             HideBossWorldUi();
-            NetworkPlayer.Restarted -= Restart;
+            NetworkPlayer.Restarted -= OnPlayerRestarted;
             EscapeExitSaw.ShotObserved -= ObserveShot;
             Detach();
             if (Current == this) Current = null;
         }
+        void OnPlayerRestarted(NetworkPlayer player)
+        {
+            // Replicated restart values for other guests can arrive after our new encounter snapshot.
+            if (player && (player.IsServer || player.IsLocal)) Restart(player);
+        }
         void Restart(NetworkPlayer _)
         {
+            ClearReinforcements();
             state = default; state.Round = -1; fireRequested = false; nextDash = 0; observedShots = 0; navigation.Reset();
             // The new encounter clock is not accepted until after the entrance. Restore
             // the body now, while LateUpdate/Present are intentionally waiting for it.
@@ -125,11 +134,17 @@ namespace CurtainCall.EscapeRoute
                     return true;
             return false;
         }
-        bool LauncherTaken()
+        internal bool LauncherTaken()
         {
             foreach (var saw in EscapeExitSaw.Devices)
                 if (saw && saw.FinaleBoss == this && saw.Carrier != CannonSeatState.Nobody) return true;
             return false;
+        }
+        internal void StartFromLauncher()
+        {
+            if (CombatStarted || !landing || !arena) return;
+            if (!gameObject.activeSelf) gameObject.SetActive(true);
+            AdvanceHost();
         }
         void Enter(Phase phase, double now, Vector3 goal = default)
         {
@@ -141,6 +156,14 @@ namespace CurtainCall.EscapeRoute
             if (!timer || !timer.HasStarted || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return false;
             if (state.Round != timer.StartedAt) { Restart(null); state.Round = timer.StartedAt; }
             double now = timer.Clock;
+            if (!IsReinforcement && !CombatStarted && LauncherTaken())
+            {
+                chase.CancelBossAttack();
+                transform.position = landing.position;
+                Enter(Phase.Battle, now, transform.position);
+                nextDash = now + 2;
+                BeginReinforcements(now);
+            }
             float age = Mathf.Max(0, (float)(now - state.Started));
             if (state.Phase == Phase.Waiting)
             {
@@ -150,7 +173,7 @@ namespace CurtainCall.EscapeRoute
             }
             if (state.Phase == Phase.Chasing)
             {
-                if (FindRunnerBehindFinale() || !(LauncherTaken() || Nearest()) || route.Progress < leapRoutePoint
+                if (FindRunnerBehindFinale() || !LauncherTaken() || route.Progress < leapRoutePoint
                     || Vector3.Distance(transform.position, landing.position) > 65) return false;
                 chase.CancelBossAttack(); Enter(Phase.LeapWarning, now, landing.position); age = 0;
             }
@@ -225,7 +248,7 @@ namespace CurtainCall.EscapeRoute
 
         void ObserveShot(EscapeExitSaw saw, ulong actor, string key, string kind, Vector3 origin, Vector3 direction, string result)
         {
-            if (!HasCurrentRoundState || kind != "FIRED" || saw.FinaleBoss != this || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return;
+            if (!HasCurrentRoundState || kind != "FIRED" || saw.FinaleBoss != EncounterLeader || !NetworkManager.Singleton || !NetworkManager.Singleton.IsServer) return;
             observedShots++;
             double now = EscapeRouteTimer.Current.Clock;
             if (state.Phase != Phase.Battle || chase.Capturing || now < nextDash || observedShots % 3 != 0) return;
@@ -263,11 +286,13 @@ namespace CurtainCall.EscapeRoute
             var timer = EscapeRouteTimer.Current;
             if (!timer || !timer.HasStarted || state.Round != timer.StartedAt)
             {
+                if (!IsReinforcement) ClearReinforcements();
                 HideBossWorldUi();
                 if (presentedRound >= 0 || presentedMask != 0) ResetPresentation();
                 return;
             }
             if (NetworkManager.Singleton && NetworkManager.Singleton.IsServer) Publish(timer.Clock);
+            if (!IsReinforcement && CombatStarted) EnsureReinforcements(state.Reinforcements);
             Present(timer.Clock);
         }
     }
