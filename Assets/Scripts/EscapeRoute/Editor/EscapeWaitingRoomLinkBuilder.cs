@@ -112,7 +112,7 @@ namespace CurtainCall.EscapeRoute.Editor
             Zone("FirstPersonAtStairEnd", new Vector3(-38, -14, 98.8f), new Vector3(3.2f, 4.3f, 3.3f));
             Box("Assembly sign backing",new Vector3(-20.72f,-5.8f,93.35f),new Vector3(.08f,1.3f,4.3f),metal);
             var label = Label("Assembly sign", new Vector3(-20.64f, -5.8f, 93.35f), Quaternion.Euler(0,-90,0), new Vector2(4.1f, 1.1f), 2.4f);
-            label.text = "탈출 준비\n플레이 중인 전원이 모이면 출발";
+            label.gameObject.SetActive(false);
             label.enableAutoSizing=true; label.fontSizeMin=1.4f; label.fontSizeMax=2.4f;
             var hud = BuildHud(out var hudText); hud.SetActive(false);
             Set(entrance, "assemblyArea", area);

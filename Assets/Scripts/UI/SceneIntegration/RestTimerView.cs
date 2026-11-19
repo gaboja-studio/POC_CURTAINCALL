@@ -10,6 +10,14 @@ namespace CurtainCall.UI.SceneIntegration
     public sealed class RestTimerView : MonoBehaviour
     {
         public const string PrefabPath = "Prefabs/UIs/Roles/Retained/RestTimerV28/W1_RestTimer_v2_8";
+        [SerializeField] TMPro.TMP_Text closingDay;
+        public void BindClosingDay(TMPro.TMP_Text label) => closingDay = label;
+        public static string FormatDay(int day)
+        {
+            if (day < 1) return "폐막일 미정";
+            int remaining = CurtainCall.Settings.GameSettings.Base.Run.DayCount + 1 - day;
+            return remaining > 0 ? $"폐막까지 {remaining}일" : "폐막 당일";
+        }
         PackageView view;
         readonly RestTimerSoundCues soundCues = new();
         public PackageView View => view != null ? view : view = GetComponent<PackageView>();
@@ -21,6 +29,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var snapshot = RestTimer.Read(state, durationSeconds);
             View.SetSnapshot(snapshot);
+            if (closingDay != null) closingDay.text = FormatDay(state.Day);
             // 30초 경고·마지막 10초 틱(UI-905·906). 소리는 사운드 설정 창의 큐에서 고친다.
             string cue = soundCues.Step(snapshot);
             if (cue != null) SoundManager.Play(cue);

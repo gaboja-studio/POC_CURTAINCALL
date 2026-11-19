@@ -12,14 +12,38 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
     public sealed class RestTimerTests
     {
-        [TestCase(1, "D-3")]
-        [TestCase(2, "D-2")]
-        [TestCase(3, "D-1")]
-        [TestCase(4, "D-0")]
-        [TestCase(0, "D-?")]
-        [TestCase(5, "D-?")]
+        [TestCase(1, "폐막까지 3일")]
+        [TestCase(2, "폐막까지 2일")]
+        [TestCase(3, "폐막까지 1일")]
+        [TestCase(4, "폐막 당일")]
+        [TestCase(0, "폐막일 미정")]
+        [TestCase(5, "폐막 당일")]
         public void ActualDayMapsToApprovedCountdownLabel(int day, string label)
-            => Assert.AreEqual(label, RestTimerPresentation.FormatDay(day));
+            => Assert.AreEqual(label, RestTimerView.FormatDay(day));
+
+        [Test]
+        public void SchedulePrefabTogglesBothStampLayersForEachCompletedTicket()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CurtainCall.UI.SceneIntegration.Editor.ScheduleTicketKitBuilder.PrefabPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var tickets = instance.GetComponentsInChildren<ScheduleTicketCard>(true);
+                Assert.AreEqual(6, tickets.Length);
+                foreach (var ticket in tickets)
+                {
+                    var layers = ticket.completionStamp.GetComponentsInChildren<Image>(true);
+                    Assert.AreEqual(2, layers.Length);
+                    Assert.IsTrue(layers.All(layer => layer.sprite != null && !layer.raycastTarget));
+                    foreach (bool completed in new[] { true, false })
+                    {
+                        ticket.Present(0, "외줄 타기", 1, 1, false, false, true, false, completed);
+                        Assert.AreEqual(completed, ticket.completionStamp.activeSelf);
+                    }
+                }
+            }
+            finally { Object.DestroyImmediate(instance); }
+        }
 
         [Test]
         public void CampaignTimerDistinguishesZeroUnlimitedAndMissingData()
@@ -81,7 +105,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                     Timer = RestTimerState.Running, TimeRemaining = 135 };
                 instance.Show(state, 180);
                 Assert.AreEqual("2:15", instance.RemainingText);
-                Assert.AreEqual("D-3", instance.DayText);
+                Assert.AreEqual("폐막까지 3일", instance.DayText);
                 Assert.AreEqual(.75f, instance.View.FillAmount);
                 Assert.AreEqual(RestTimeOfDay.Day, instance.Snapshot.timeOfDay);
                 state.Timer = RestTimerState.Unlimited;
@@ -93,7 +117,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 instance.Show(state, 60);
                 Assert.IsFalse(instance.View.InfinityVisible);
                 Assert.AreEqual("1:00", instance.RemainingText);
-                Assert.AreEqual("D-2", instance.DayText);
+                Assert.AreEqual("폐막까지 2일", instance.DayText);
                 Assert.AreEqual(1, instance.View.FillAmount);
                 var fill = instance.GetComponentsInChildren<Image>(true).Single(x => x.name == "30_Fill");
                 Assert.AreEqual(Image.FillMethod.Radial360, fill.fillMethod);

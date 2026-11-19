@@ -31,7 +31,18 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools
             var root = PrefabUtility.LoadPrefabContents(Prefab);
             try
             {
-                root.AddComponent<RestTimerView>();
+                var day = root.GetComponentsInChildren<TMP_Text>(true).Single(t => t.name == "80_DayTMP");
+                root.AddComponent<RestTimerView>().BindClosingDay(day);
+                day.rectTransform.sizeDelta = new Vector2(105, 28);
+                day.fontSize = 17;
+                day.enableAutoSizing = true;
+                day.fontSizeMin = 12;
+                day.fontSizeMax = 17;
+                day.text = RestTimerView.FormatDay(1);
+                var icon = root.GetComponentsInChildren<RectTransform>(true).Single(t => t.name == "81_TimeOfDayIcon");
+                icon.anchoredPosition += Vector2.right * 13;
+                var plate = root.GetComponentsInChildren<RectTransform>(true).Single(t => t.name == "70_FooterPlate");
+                plate.sizeDelta = new Vector2(164, 32);
                 var rect = root.GetComponent<RectTransform>();
                 rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
                 // 이전 W1 다이얼 중심 (144,-156)을 유지한다.

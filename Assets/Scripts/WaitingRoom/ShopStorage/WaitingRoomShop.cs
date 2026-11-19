@@ -151,7 +151,6 @@ namespace CurtainCall.WaitingRoom
         public static void RecordAcquired(string itemId)
         {
             if (!ShopLocked(itemId) || ExplorationState.Instance == null || !ExplorationState.Instance.HasAuthority) return;
-            ExplorationState.KeepAcrossGenerations(UnlockPrefix + itemId);
             ExplorationState.Instance.MarkVisited(UnlockPrefix + itemId);
             Debug.Log($"[Shop] 첫 습득으로 상점 해금: {itemId}");
         }

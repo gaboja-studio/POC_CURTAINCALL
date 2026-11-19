@@ -28,11 +28,11 @@ namespace CurtainCall.Settings
         public enum EndingTimeOfDay { Night, Day }
 
         [Header("탈출 엔딩 연출 배경")]
-        [Tooltip("탈출 엔딩(갈대밭 질주)의 시간대. 낮에도 먼 지면은 어두운 안개로 가립니다.")]
-        [SerializeField] EndingTimeOfDay endingTimeOfDay = EndingTimeOfDay.Night;
+        [Tooltip("탈출 엔딩(갈대밭 질주)의 시간대. 낮 프리셋은 밝은 새벽을 표현합니다.")]
+        [SerializeField] EndingTimeOfDay endingTimeOfDay = EndingTimeOfDay.Day;
         [Tooltip("밤 배경의 조명·안개 값.")]
         [SerializeField] EndingLighting endingNight = EndingLighting.NightDefault();
-        [Tooltip("낮 배경의 조명·안개 값.")]
+        [Tooltip("밝은 새벽 배경의 조명·안개 값.")]
         [SerializeField] EndingLighting endingDay = EndingLighting.DayDefault();
         [Tooltip("1~2인 엔딩에서 카메라와 실제 플레이어 사이 거리(m).")]
         [SerializeField, Min(3)] float endingCameraDistance = 6.5f;
@@ -52,7 +52,7 @@ namespace CurtainCall.Settings
         {
             [Tooltip("엔딩 하늘의 상부 색. 먼 지면의 어둠은 fogColor로 별도 설정합니다.")]
             public Color skyColor = new(.027f, .043f, .075f);
-            [Tooltip("캐릭터 뒤 먼 지면·서커스가 묻히는 어두운 안개 색.")]
+            [Tooltip("먼 지면과 수평선에 적용할 안개 색.")]
             public Color fogColor = new(.018f, .025f, .038f);
             [Min(0)] public float fogStartDistance = 18f;
             [Min(1)] public float fogEndDistance = 150f;
@@ -68,12 +68,12 @@ namespace CurtainCall.Settings
             public static EndingLighting NightDefault() => new();
             public static EndingLighting DayDefault() => new()
             {
-                skyColor = new Color(.42f, .46f, .50f),
-                fogColor = new Color(.035f, .045f, .055f),
+                skyColor = new Color(.64f, .80f, .95f),
+                fogColor = new Color(.97f, .85f, .72f),
                 fogDensity = .0025f,
-                ambientColor = new Color(.35f, .37f, .38f),
-                lightColor = new Color(.88f, .91f, 1f),
-                lightIntensity = 1.25f
+                ambientColor = new Color(.66f, .73f, .81f),
+                lightColor = new Color(1f, .92f, .80f),
+                lightIntensity = 1.85f
             };
         }
 

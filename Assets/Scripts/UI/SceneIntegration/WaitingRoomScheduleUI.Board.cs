@@ -38,7 +38,7 @@ namespace CurtainCall.UI.SceneIntegration
             worldCanvas.worldCamera = Camera.main;
             bool editing = boardView.IsOpen;
             SetFocusOverlay(editing);
-            string key = $"{schedule.Book.Revision}|{schedule.HasAuthority}|{CampaignRun.Instance?.State.Day}|{CampaignRun.Instance?.State.Phase}|{CampaignRun.Instance?.State.PerformanceIndex}|{CampaignRun.Instance?.State.ReadyCount}|{CampaignRun.Instance?.State.RequiredCount}|{CampaignRun.Instance?.State.TrickId}|{CampaignRun.Instance?.State.Difficulty}|{schedule.MaxTier("Tightrope")}|{schedule.MaxTier("HumanCannon")}|{message}|{editing}|{session}";
+            string key = $"{schedule.Book.Revision}|{schedule.HasAuthority}|{CampaignRun.Instance?.State.Generation}|{CampaignRun.Instance?.State.CompletedScheduleSlots}|{CampaignRun.Instance?.State.Day}|{CampaignRun.Instance?.State.Phase}|{CampaignRun.Instance?.State.PerformanceIndex}|{CampaignRun.Instance?.State.ReadyCount}|{CampaignRun.Instance?.State.RequiredCount}|{CampaignRun.Instance?.State.TrickId}|{CampaignRun.Instance?.State.Difficulty}|{schedule.MaxTier("Tightrope")}|{schedule.MaxTier("HumanCannon")}|{message}|{editing}|{session}";
             if (lastBoardKey != key || !view.IsVisible)
             {
                 nextRefresh = Time.unscaledTime + .15f;

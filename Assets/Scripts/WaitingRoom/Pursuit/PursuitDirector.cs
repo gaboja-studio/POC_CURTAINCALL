@@ -191,9 +191,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 TickLighting();
                 int living = candidates.Count(IsAvailable);
                 bool pending = victims.Values.Any(v => !v.Retired && v.Object != null);
-                // Final morning fails as soon as everyone is secured. Earlier days wait for the sequence.
                 bool sleeping = candidates.Any(IsSleeping);
-                if (living == 0 && !sleeping && victims.Count > 0 && (s.IsFinalMorning || !pending)
+                if (living == 0 && !sleeping && victims.Count > 0 && !pending
                     && !CurtainCall.Dev.DevCheats.ShouldHoldCheckpointWipe()) run.NotifyAllPursuitCaught();
             }
             TickPoseBroadcast();

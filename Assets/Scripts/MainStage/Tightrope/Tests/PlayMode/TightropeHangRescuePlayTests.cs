@@ -24,6 +24,20 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return StandOnRopeForSawTest(1, 4f);
         }
 
+        [UnityTest]
+        public IEnumerator BurnedGripReleasesWithoutWaitingForTheHoldTimer()
+        {
+            yield return PrepareHangRescue();
+            var hangs = (Component)Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
+            var grip = (Vector3)Call(course, "GetLanePosition", 1, 6.2f);
+            Call(mover, "SetStartPose", grip, Quaternion.identity, true);
+            Assert.IsTrue((bool)Call(hangs, "ServerTryHang", player, 6.2f, 1));
+            Call(course, "BlockSegment", 1, 5f, 8f, false);
+            Call(hangs, "ServerTick", 0f);
+            Assert.IsFalse((bool)Call(hangs, "IsHanging", player));
+            Assert.IsTrue((bool)Get(player, "IsDroppingFromSupport"));
+        }
+
         [UnityTest, Category("CommonRulesFollowup")]
         public IEnumerator HangFailureAndTimeoutReleaseIntoOrdinaryFallWithoutImmediateDeath()
         {

@@ -47,6 +47,71 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(((IEnumerable)Call(carry, "Held", me)).Cast<object>().Any(o => (int)Get(o, "Uid") == 980001));
         }
 
+        [UnityTest]
+        public IEnumerator StageEquipmentCanBeDroppedAndRecovered()
+        {
+            yield return Launch(1, "Performance", 0, "Tightrope", "Tightrope");
+            yield return CheckEquipmentOnFloor("Tightrope");
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var fixtureType = T("CurtainCall.Presentation.PerformanceSpotlightFixture");
+            float deadline = Time.realtimeSinceStartup + 15;
+            float offset = float.PositiveInfinity;
+            do
+            {
+                yield return new WaitForEndOfFrame();
+                var floor = new Plane(Vector3.up, player.transform.position);
+                foreach (var fixture in UnityEngine.Object.FindObjectsByType(fixtureType, FindObjectsSortMode.None))
+                {
+                    var light = (Light)Field(fixture, "spot");
+                    if (light == null || !light.enabled || light.intensity <= 0f) continue;
+                    var ray = new Ray(light.transform.position, light.transform.forward);
+                    if (floor.Raycast(ray, out float distance))
+                        offset = Mathf.Min(offset, Vector3.Distance(player.transform.position, ray.GetPoint(distance)));
+                }
+            } while (offset > .05f && Time.realtimeSinceStartup < deadline);
+            Assert.LessOrEqual(offset, .05f, "Spotlight axis must meet the foot plane at the performer.");
+        }
+
+        [UnityTest]
+        public IEnumerator EscapeEquipmentCanBeDroppedAndRecovered()
+        {
+            Assert.IsTrue((bool)Call(launcher, "TryLaunch", Point(2, "Escape", 0, "")));
+            float until = Time.realtimeSinceStartup + 150;
+            while ((bool)Get(launcher, "IsBusy") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue((bool)Get(launcher, "LastLaunchSucceeded"), (string)Get(launcher, "Status"));
+            yield return CheckEquipmentOnFloor("escape_route");
+        }
+
+        IEnumerator CheckEquipmentOnFloor(string scene)
+        {
+            Assert.AreEqual(scene, UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
+            ulong me = (ulong)Get(player, "OwnerClientId");
+            const int uid = 980027;
+            const string item = "spring-shoes";
+            Give(carry, me, uid, item, 2);
+            int slot = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().TakeWhile(i => (int)Get(i, "Uid") != uid).Count();
+            if ((int)Get(Call(carry, "Selected", me), "Uid") != uid) Call(carry, "RequestSelectSlot", slot);
+            Call(carry, "RequestDrop");
+            yield return null;
+            var floor = ((IEnumerable)Get(carry, "Floor")).Cast<object>().Single(f => (int)Get(Get(f, "Item"), "Uid") == uid);
+            Assert.AreEqual(scene, Get(floor, "Space"));
+            Assert.IsTrue((bool)Static2("CurtainCall.WaitingRoom.FloorPropsView", "CanPickUp", uid, player.transform.position, player));
+            Call(carry, "RequestPickUp", uid);
+            Assert.AreEqual(2, UsesOf(carry, me, item));
+
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            float readyBy = Time.realtimeSinceStartup + 20;
+            while (((bool)Static("CurtainCall.Player.InputGate", "IsBlocked") || !(bool)Get(mover, "ControlEnabled")
+                || !(bool)Get(mover, "Simulated")) && Time.realtimeSinceStartup < readyBy) yield return null;
+            Call(mover, "LaunchBounce", 4.5f);
+            Assert.IsTrue((bool)Call(player, "TryUseEquipmentSlot", slot), "Airborne owner activates spring shoes in " + scene);
+            float spentBy = Time.realtimeSinceStartup + 2;
+            while (UsesOf(carry, me, item) == 2 && Time.realtimeSinceStartup < spentBy) yield return null;
+            Assert.AreEqual(1, UsesOf(carry, me, item));
+        }
+
         static object TestHairpin(int uid) => System.Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), uid, "magician-hairpin", "시험 머리핀", 5);
         static object Static2(string type, string method, params object[] args) => T(type).GetMethods().Single(m => m.Name == method && m.IsStatic && m.GetParameters().Length == args.Length).Invoke(null, args);
     }
