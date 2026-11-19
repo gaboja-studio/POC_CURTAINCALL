@@ -479,6 +479,19 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void CooperativeLocksAcceptConcurrentRequestsFromTheSameRound()
+        {
+            var locks = LocksFixture();
+            Set(locks, "roundStartRevision", 5U);
+            Set(locks, "revision", 8U);
+            Assert.That(Call(locks, "IsCurrentRoundRevision", 5U), Is.True);
+            Assert.That(Call(locks, "IsCurrentRoundRevision", 7U), Is.True);
+            Assert.That(Call(locks, "IsCurrentRoundRevision", 8U), Is.True);
+            Assert.That(Call(locks, "IsCurrentRoundRevision", 4U), Is.False);
+            Assert.That(Call(locks, "IsCurrentRoundRevision", 9U), Is.False);
+        }
+
+        [Test]
         public void CooperativeLocksRestartRejectsDelayedSnapshotUntilMatchingReply()
         {
             var locks = LocksFixture();

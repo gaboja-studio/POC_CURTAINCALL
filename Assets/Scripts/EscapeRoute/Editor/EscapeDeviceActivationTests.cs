@@ -30,7 +30,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         const BindingFlags Static = BindingFlags.Static | BindingFlags.NonPublic;
 
         static void Set(object instance, string name, object value) => instance.GetType().GetField(name, Private).SetValue(instance, value);
-        static void Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
+        static object Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
 
         [Test]
@@ -106,6 +106,8 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var transfer = root.AddComponent<EscapeSceneTransfer>();
                 var oldPlayer = original.AddComponent<NetworkPlayer>();
                 typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(oldPlayer, 3UL);
+                Set(transfer, "localPlaced", true);
+                Set(transfer, "placedPlayer", oldPlayer);
                 var oldMover = original.GetComponent<PlayerMover>();
                 Object.DestroyImmediate(original);
 
@@ -114,6 +116,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, spawned);
                 Set(transfer, "localCaptured", true);
                 Set(transfer, "capturedOwner", 3UL);
+                Assert.That(Call(transfer, "IsLocalPlacementCurrent", replacement), Is.False);
                 var resolve = typeof(EscapeSceneTransfer).GetMethod("TryResolveCapturedMover", Private);
                 object[] args = { replacement, null };
                 Assert.That(resolve.Invoke(transfer, args), Is.EqualTo(allowed));
@@ -121,6 +124,8 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 {
                     Assert.That(args[1], Is.SameAs(root.GetComponent<PlayerMover>()));
                     Assert.That((PlayerMover)args[1] == oldMover, Is.False);
+                    Set(transfer, "placedPlayer", replacement);
+                    Assert.That(Call(transfer, "IsLocalPlacementCurrent", replacement), Is.True);
                 }
                 typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, false);
             }
@@ -158,7 +163,11 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var captured = (HashSet<ulong>)typeof(EscapeSceneTransfer).GetField("captured", Private).GetValue(transfer);
 
                 Assert.That(Apply(Snapshot(2, false)), Is.True);
-                Set(transfer, "localPlaced", true); // Exercise the fast path without a network avatar.
+                Set(transfer, "localPlaced", true);
+                Set(transfer, "nextSnapshot", 10.5f);
+                Assert.That(Call(transfer, "ShouldRepeatPendingSnapshot", 10.49f, true), Is.False);
+                Assert.That(Call(transfer, "ShouldRepeatPendingSnapshot", 10.5f, false), Is.False);
+                Assert.That(Call(transfer, "ShouldRepeatPendingSnapshot", 10.5f, true), Is.True);
                 Assert.That(transfer.PlaceLocal(arrival), Is.False);
                 Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"captured\"}");
                 Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
@@ -167,13 +176,14 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
 
                 Assert.That(Apply(Snapshot(2, true)), Is.True);
                 Assert.That(Apply(Snapshot(2, false)), Is.False, "A delayed failure state cannot withdraw approval.");
-                Assert.That(transfer.PlaceLocal(arrival), Is.True);
+                Assert.That(transfer.PlaceLocal(arrival), Is.False, "A cached placement cannot replace the current avatar.");
                 Call(transfer, "Request", 2UL, "{\"generation\":1,\"kind\":\"placed\"}");
                 Assert.That(placed, Is.Empty);
                 Call(transfer, "Request", 2UL, "{\"generation\":2,\"kind\":\"placed\"}");
                 Assert.That(placed, Does.Contain(2UL));
 
                 Assert.That(Apply(Snapshot(3, false)), Is.True);
+                Assert.That(Apply(Snapshot(2, true)), Is.False, "A previous round cannot authorize the current transfer.");
                 Assert.That(transfer.PlaceLocal(arrival), Is.False);
                 Assert.That(placed, Is.Empty);
             }

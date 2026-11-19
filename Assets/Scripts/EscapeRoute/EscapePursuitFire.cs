@@ -46,6 +46,7 @@ namespace CurtainCall.EscapeRoute
         bool synchronized;
         int resetFrame = -1;
         double nextSnapshot, nextSync;
+        bool waitForBridgeReset;
 
         public static EscapePursuitFire Current { get; private set; }
         public double ArmedAt => armedAt;
@@ -174,7 +175,7 @@ namespace CurtainCall.EscapeRoute
             double now = Clock;
             if (session.IsHost && resetFrame != Time.frameCount)
             {
-                if (!IsArmed && ignitionBridge != null && ignitionBridge.DeploymentRequested) Arm(now);
+                TryArmBridge(now);
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (!Alive(player)) continue;
@@ -195,6 +196,13 @@ namespace CurtainCall.EscapeRoute
         void Arm(double now)
         {
             armedAt = now; revision++; Publish();
+        }
+
+        void TryArmBridge(double now)
+        {
+            if (!ignitionBridge || IsArmed) return;
+            if (!ignitionBridge.DeploymentRequested) { waitForBridgeReset = false; return; }
+            if (!waitForBridgeReset) Arm(now);
         }
         public bool ServerIgniteFromPursuer(EscapePursuerBoss source)
         {

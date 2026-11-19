@@ -87,6 +87,29 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void RestartWaitsForOldBridgeToRetractBeforeStartingTheNewClock()
+        {
+            var fire = Fire(1);
+            var bridge = Root("Ignition bridge").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Set(fire, "ignitionBridge", bridge);
+            Set(fire, "startDelay", 3f);
+            Set(fire, "waitForBridgeReset", true);
+            Set(bridge, "deployed", true);
+            Call(fire, "TryArmBridge", 100d);
+            Assert.That(Get(fire, "IsArmed"), Is.False);
+
+            Set(bridge, "deployed", false);
+            Call(fire, "TryArmBridge", 101d);
+            Assert.That(Get(fire, "IsArmed"), Is.False);
+
+            Set(bridge, "deployed", true);
+            Call(fire, "TryArmBridge", 102d);
+            Assert.That(Get(fire, "ArmedAt"), Is.EqualTo(102d));
+            Assert.That(Call(fire, "PhaseAt", 0, 104.999d).ToString(), Is.EqualTo("Warning"));
+            Assert.That(Call(fire, "PhaseAt", 0, 105d).ToString(), Is.EqualTo("Burst"));
+        }
+
+        [Test]
         public void InvalidAndFutureClocksNeverConsumeBays()
         {
             foreach (double now in new[] { -1d, 99d, double.NaN, double.PositiveInfinity })

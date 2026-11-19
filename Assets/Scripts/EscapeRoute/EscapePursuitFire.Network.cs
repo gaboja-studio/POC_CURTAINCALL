@@ -96,6 +96,7 @@ namespace CurtainCall.EscapeRoute
                     awaitingSpawn[player.OwnerClientId] = spawn;
                 }
                 if (resetFrame == Time.frameCount) return;
+                waitForBridgeReset = ignitionBridge && ignitionBridge.DeploymentRequested;
                 resetFrame = Time.frameCount; armedAt = -1; firstBay = 0; revision++; HidePresentation(); Publish();
             }
             else if (player.IsLocal)
@@ -110,6 +111,7 @@ namespace CurtainCall.EscapeRoute
             if (messaging != null)
             { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
             messaging = null; session = null; synchronized = false; armedAt = -1; firstBay = 0; revision = 0;
+            waitForBridgeReset = false;
             awaitingSpawn.Clear(); resetBarrier.Clear(); HidePresentation();
         }
     }

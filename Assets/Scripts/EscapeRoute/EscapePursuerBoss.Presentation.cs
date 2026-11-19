@@ -82,6 +82,8 @@ namespace CurtainCall.EscapeRoute
                 float t = Mathf.Clamp01(age / Tuning.bossLeapSeconds);
                 transform.position = LeapPosition(state.From, state.Goal, t);
             }
+            if (remote && state.Phase == Phase.Landing)
+                transform.position = state.From;
             if (remote && state.Phase == Phase.Dashing)
                 transform.position = Vector3.Lerp(state.From, state.Goal, Mathf.SmoothStep(0, 1, age / Tuning.bossDashSeconds));
             if (state.Phase == Phase.LeapWarning) chase.SampleJump(age / Tuning.bossLeapWarning * chase.ContactTime * .4f, state.From, state.From);
