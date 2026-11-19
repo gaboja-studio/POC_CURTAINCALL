@@ -68,11 +68,12 @@ namespace CurtainCall.EscapeRoute
                 boss.ignitionLever = null;
                 boss.fire = null;
                 if (boss.landingRing && !boss.landingRing.transform.IsChildOf(clone.transform)) boss.landingRing = null;
-                clone.transform.SetPositionAndRotation(SpawnReinforcement(index), transform.rotation);
+                ReinforcementLeap(index, out var launch, out var destination);
+                clone.transform.SetPositionAndRotation(launch, Quaternion.LookRotation(destination - launch));
                 if (Unity.Netcode.NetworkManager.Singleton && Unity.Netcode.NetworkManager.Singleton.IsServer)
                 {
                     boss.state.Round = state.Round;
-                    boss.Enter(Phase.Landing, state.EncounterStarted + index * ReinforcementSpacing, clone.transform.position);
+                    boss.Enter(Phase.LeapWarning, state.EncounterStarted + index * ReinforcementSpacing, destination);
                 }
                 else boss.SetReinforcementVisible(false);
                 reinforcements.Add(boss);
@@ -112,20 +113,40 @@ namespace CurtainCall.EscapeRoute
             hiddenReinforcementHitboxes.Clear();
         }
 
-        Vector3 SpawnReinforcement(int index)
+        void ReinforcementLeap(int index, out Vector3 from, out Vector3 to)
         {
-            float firstAngle = (index - 1) * Mathf.PI * .5f;
-            for (int ring = 1; ring <= 4; ring++)
-                for (int turn = 0; turn < 8; turn++)
-                {
-                    float angle = firstAngle + turn * Mathf.PI * .25f;
-                    Vector3 offset = arena.transform.right * Mathf.Cos(angle) + arena.transform.forward * Mathf.Sin(angle);
-                    Vector3 feet = ClampArena(landing.position + offset * (4f * ring));
-                    if ((feet - landing.position).sqrMagnitude < 12f || !EscapePursuerNavigation.Supported(feet)) continue;
-                    if (reinforcements.Exists(boss => boss && (boss.transform.position - feet).sqrMagnitude < 12f)) continue;
-                    if (EscapePursuerNavigation.Clear(transform, feet, feet)) return feet;
-                }
-            return landing.position + arena.transform.right * (index % 2 == 0 ? -4f : 4f) * ((index + 1) / 2);
+            // Four side entries pair distinct takeoffs with distinct landing pads.
+            bool far = index > 2;
+            float side = (index & 1) == 0 ? 1f : -1f;
+            from = arena.transform.TransformPoint(new Vector3(far ? 11.5f : -12.5f, 0f, side * 11f));
+            to = arena.transform.TransformPoint(new Vector3(far ? 6.5f : -7.5f, 0f, side * 8f));
+        }
+
+        bool CrowdsEncounter(Vector3 next)
+        {
+            var main = EncounterLeader;
+            if (Crowds(main)) return true;
+            foreach (var other in main.reinforcements)
+                if (Crowds(other)) return true;
+            for (int index = main.reinforcements.Count + 1; index <= main.state.Reinforcements; index++)
+            {
+                main.ReinforcementLeap(index, out var takeoff, out var landing);
+                if (NearerWithoutRoom(takeoff) || NearerWithoutRoom(landing)) return true;
+            }
+            return false;
+
+            bool Crowds(EscapePursuerBoss other)
+            {
+                if (!other || other == this || !other.CombatStarted || other.Defeated) return false;
+                if (NearerWithoutRoom(other.transform.position)) return true;
+                return (other.State == Phase.LeapWarning || other.State == Phase.Leaping)
+                    && NearerWithoutRoom(other.state.Goal);
+            }
+            bool NearerWithoutRoom(Vector3 occupied)
+            {
+                float nextDistance = (next - occupied).sqrMagnitude;
+                return nextDistance < 3.2f * 3.2f && nextDistance < (transform.position - occupied).sqrMagnitude;
+            }
         }
 
         void ClearReinforcements()

@@ -274,7 +274,17 @@ namespace CurtainCall.EscapeRoute
             }
             RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
-                out var position, out var rotation, out var carrierRotation)) return false;
+                out var position, out var rotation, out var carrierRotation))
+            {
+                if (!ProjectileMode) return false;
+                // The bearing of a level tool is still defined when a replicated
+                // carrier pose looks straight down and its projected forward is zero.
+                var bearing = Vector3.Cross(carrier.transform.right, Vector3.up);
+                var hand = carrier.transform.position + Vector3.up * Mathf.Max(0, carryHandleHeight);
+                var offset = Vector3.Scale(CarryRoot.InverseTransformPoint(Handle.position), CarryRoot.lossyScale);
+                if (!TrampolineCarryPose.TryCalculate(hand, bearing, offset, out position, out rotation)) return false;
+                carrierRotation = Quaternion.LookRotation(bearing);
+            }
             // A held launcher follows the hand; the player's controller owns world movement.
             carryBlocked = (align || !ProjectileMode)
                 && !HumanCannonCarry.CanMove(CarryRoot, loadCollider, position, rotation, carrier, !align, 0f, null, allowExistingOverlap: !align);

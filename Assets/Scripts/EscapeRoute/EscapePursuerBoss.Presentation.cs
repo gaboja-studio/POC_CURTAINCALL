@@ -80,7 +80,7 @@ namespace CurtainCall.EscapeRoute
             if (remote && state.Phase == Phase.Leaping)
             {
                 float t = Mathf.Clamp01(age / Tuning.bossLeapSeconds);
-                transform.position = Vector3.Lerp(state.From, state.Goal, t) + Vector3.up * (4 * Tuning.bossLeapHeight * t * (1-t));
+                transform.position = LeapPosition(state.From, state.Goal, t);
             }
             if (remote && state.Phase == Phase.Dashing)
                 transform.position = Vector3.Lerp(state.From, state.Goal, Mathf.SmoothStep(0, 1, age / Tuning.bossDashSeconds));

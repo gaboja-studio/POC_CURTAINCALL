@@ -116,6 +116,33 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void GuestLookingDownStillLaunchesLevelAndCutsTheCable()
+        {
+            Fixture(true);
+            var guest = Player(41);
+            Set(guest, "IsOwner", false);
+            Own(41);
+            var boss = Root("Finale aiming fixture").AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerBoss"));
+            Set(saw, "finaleBoss", boss);
+            var strand = Strand(ShotStart + Vector3.right * 5f);
+            SetCables(strand);
+            var ground = Root("Floor below aimed launcher", true).AddComponent<BoxCollider>();
+            ground.size = new Vector3(20f, .5f, 20f);
+            ground.transform.position = Origin - Vector3.up * .25f;
+            guest.transform.rotation = Quaternion.Euler(90f, 90f, 0f);
+            Physics.SyncTransforms();
+
+            Call(saw, "HandleAction", 41UL, (byte)3, 1U, false);
+
+            var fired = (IList)Get(saw, "shots");
+            Assert.That(fired.Count, Is.EqualTo(1));
+            Assert.That(Vector3.Dot((Vector3)Get(fired[0], "Direction"), Vector3.right), Is.GreaterThan(.999f));
+            Assert.That(((Vector3)Get(fired[0], "Direction")).y, Is.Zero);
+            Call(saw, "StepProjectiles", .5f, true);
+            Assert.That(Get(strand, "IsCut"), Is.True);
+        }
+
+        [Test]
         public void AClearMuzzleBeyondAThinWallCannotSpawnABladeThroughIt()
         {
             Fixture(true);

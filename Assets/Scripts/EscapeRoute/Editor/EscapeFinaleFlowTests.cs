@@ -34,6 +34,76 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 .Invoke(boss, new[] { Snapshot(round, revision, phase, mask, count), (object)round });
 
         [Test]
+        public void FirstBridgeStartsTheThreeSecondFireAndFinaleLeapsKeepSeparateLanes()
+        {
+            var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+            try
+            {
+                Physics.SyncTransforms();
+                var frame = scene.GetRootGameObjects().Single().transform;
+                var boss = frame.GetComponentInChildren<EscapePursuerBoss>(true);
+                var route = frame.GetComponentInChildren<EscapePursuerRoute>(true);
+                var fire = frame.GetComponentInChildren<EscapePursuitFire>(true);
+                var fireData = new SerializedObject(fire);
+                var bridge = (EscapeCooperativeSpan)fireData.FindProperty("ignitionBridge").objectReferenceValue;
+                Assert.That(bridge.name, Is.EqualTo("목마 반출교"));
+                Assert.That(fireData.FindProperty("startDelay").floatValue, Is.EqualTo(3f));
+                typeof(EscapePursuitFire).GetField("armedAt", Instance).SetValue(fire, 100d);
+                Assert.That(fire.PhaseAt(0, 102.9), Is.EqualTo(EscapePursuitFire.FirePhase.Warning));
+                Assert.That(fire.PhaseAt(0, 103), Is.EqualTo(EscapePursuitFire.FirePhase.Burst));
+                Assert.That(fire.PhaseAt(1, 103), Is.EqualTo(EscapePursuitFire.FirePhase.Dormant));
+                var filter = typeof(EscapePursuitFire).GetMethod("ShowBay", BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(filter.Invoke(null, new object[] { 354f, 350f, false }), Is.True);
+                Assert.That(filter.Invoke(null, new object[] { 354f, 150f, true }), Is.False);
+
+                var bossData = new SerializedObject(boss);
+                int point = bossData.FindProperty("leapRoutePoint").intValue;
+                var takeoff = route.Points[point];
+                Assert.That(takeoff.jump && takeoff.exposed && takeoff.finalSprint, Is.True);
+                Assert.That(EscapePursuerNavigation.ClearJump(boss.transform,
+                    route.Points[point - 1].feet.position, takeoff.feet.position), Is.True);
+                var center = (Transform)bossData.FindProperty("landing").objectReferenceValue;
+                Assert.That(frame.InverseTransformPoint(center.position).z, Is.EqualTo(78f).Within(.01f));
+                Assert.That(boss.InsideArena(center.position), Is.True);
+                var fixture = typeof(EscapePursuerBoss).GetMethod("ReinforcementLeap", Instance);
+                var starts = new System.Collections.Generic.List<Vector3> { takeoff.feet.position };
+                var ends = new System.Collections.Generic.List<Vector3> { center.position };
+                for (int index = 1; index <= 4; ++index)
+                {
+                    object[] args = { index, Vector3.zero, Vector3.zero };
+                    fixture.Invoke(boss, args);
+                    starts.Add((Vector3)args[1]);
+                    ends.Add((Vector3)args[2]);
+                }
+                for (int lane = 0; lane < starts.Count; ++lane)
+                {
+                    Assert.That(EscapePursuerNavigation.Supported(starts[lane]), Is.True);
+                    Assert.That(EscapePursuerNavigation.Supported(ends[lane]), Is.True);
+                    Vector3 last = starts[lane];
+                    for (int i = 1; i <= 80; ++i)
+                    {
+                        float t = i / 80f;
+                        Vector3 next = Vector3.Lerp(starts[lane], ends[lane], t)
+                            + Vector3.up * (4 * (lane == 0 ? Settings.GameSettings.EscapeRoute.Pursuer.bossLeapHeight : 4f) * t * (1 - t));
+                        Assert.That(EscapePursuerNavigation.Clear(boss.transform, last, next), Is.True,
+                            $"Lane {lane} blocked at {frame.InverseTransformPoint(next)}");
+                        last = next;
+                    }
+                    for (int previous = 0; previous < lane; ++previous)
+                    {
+                        Assert.That(Vector3.Distance(starts[previous], starts[lane]), Is.GreaterThan(5f));
+                        Assert.That(Vector3.Distance(ends[previous], ends[lane]), Is.GreaterThan(5f));
+                    }
+                }
+                var before = boss.transform.position;
+                typeof(EscapePursuerBoss).GetMethod("StartFromLauncher", Instance).Invoke(boss, null);
+                Assert.That(boss.transform.position, Is.EqualTo(before));
+                Assert.That(boss.CombatStarted, Is.False);
+            }
+            finally { EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test]
         public void LateJoinGetsTheOpenedBreachWithoutMovingTheArenaActor()
         {
             var scene = EditorSceneManager.OpenPreviewScene(ScenePath);

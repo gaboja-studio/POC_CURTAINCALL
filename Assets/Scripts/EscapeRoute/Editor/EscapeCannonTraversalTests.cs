@@ -132,13 +132,14 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Assert.That(stations.Select(s => s.name), Has.None.EqualTo("Labyrinth_04_ExtractionLaunch"));
                 var system = roots.SelectMany(r => r.GetComponentsInChildren<HumanCannonPoleSystem>()).Single();
                 var poles = new SerializedObject(system).FindProperty("poles");
-                foreach (string name in new[] { "Inspection service swing", "Extraction service swing", "Labyrinth lower inspection swing 1" })
+                foreach (string name in new[] { "Extraction service swing", "Labyrinth lower inspection swing 1" })
                 {
                     var pole = Find<HumanCannonPole>(scene, name);
                     Assert.That(Enumerable.Range(0, poles.arraySize)
                         .Count(i => poles.GetArrayElementAtIndex(i).objectReferenceValue == pole), Is.EqualTo(1), name);
                 }
                 var course = roots.SelectMany(r => r.GetComponentsInChildren<CurtainCall.Tightrope.TightropeCourse>()).Single();
+                Assert.That(FindAllPoles(scene).Any(p => p.name == "Inspection service swing"), Is.False);
                 var ropes = new SerializedObject(course).FindProperty("sceneRopes");
                 foreach (string name in new[] { "Inspection service entry wire", "Extraction service entry wire", "Inspection lower access cable" })
                 {
@@ -169,18 +170,14 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     CheckSegment(name, rope.transform.TransformPoint(top - end), rope.transform.TransformPoint(top + end));
                 }
 
-                CheckLocal("first landing wire onto the turning pad", new(57.85f,-6,75), new(60,-5.92f,75));
-                CheckLocal("turning pad onto the left fork", new(60,-5.92f,75), new(60.98f,-6,77.12f));
                 CheckLocal("fork to approach", new(64.3f,-6,84.3f), new(70,-6,84));
                 CheckLocal("approach to first swing", new(75.5f,-6,84), new(79.35f,-6,85.9f));
                 CheckLocal("relay apron to entry wire", new(101,-6,85), new(99,-6,76.05f));
                 CheckLocal("entry wire to service swing", new(96,-6,70.2f), new(95,-6,67.85f));
                 CheckLocal("receiver to descent wire", new(89,-9,63), new(89,-9,60.6f));
                 CheckLocal("last descent wire to conveyor apron", new(77,-22,16.95f), new(75,-22,14.5f));
-                CheckLocal("clear conveyor approach through the merge opening", new(75,-22,16.95f), new(75,-22,14.5f));
 
                 AssertReach("Labyrinth Inspection swing 01", new(79.35f,-6,85.9f));
-                AssertReach("Inspection service swing", new(95,-6,67.85f));
 
                 void AssertReach(string name, Vector3 localFeet)
                 {
@@ -205,6 +202,10 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
                             .Where(c => c.bounds.max.y > feet.y + .20f);
                         Assert.That(blocked.Select(c => c.name), Is.Empty, $"{label} blocked at {feet:F2}");
+                        if (label.StartsWith("Inspection service descent"))
+                            Assert.That(Physics.Raycast(feet + Vector3.up * .1f, Vector3.up, out var ceiling, 2.25f,
+                                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore), Is.False,
+                                $"{label} low ceiling at {frame.InverseTransformPoint(feet):F2}: {ceiling.collider?.name}");
                     }
                 }
             }
@@ -267,16 +268,13 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var first = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 01");
                 var second = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 02");
                 var third = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 03");
-                var relay = Find<HumanCannonPole>(scene, "Inspection service swing");
                 var apron = Find<BoxCollider>(scene, "02 inspection relay apron");
-                var receiver = Find<BoxCollider>(scene, "Inspection service swing receiver");
                 Physics.SyncTransforms();
                 foreach (int seat in Enumerable.Range(0, GameSettings.Poles.Capacity))
                 {
                     Measure(first, second, null, seat);
                     Measure(second, third, null, seat);
                     Measure(third, null, apron, seat);
-                    Measure(relay, null, receiver, seat);
                     Measure(Find<HumanCannonPole>(scene, "Extraction service swing"), null,
                         Find<BoxCollider>(scene, "Extraction service swing receiver"), seat);
                 }
@@ -332,6 +330,52 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 if (opened) EditorSceneManager.CloseScene(scene, true);
             }
         }
+
+        [Test]
+        public void InspectionServiceLandingIsReachableWithoutASwingOrSprinting()
+        {
+            var scene = Open(out bool opened);
+            var probe = new GameObject("Inspection service normal jump fixture");
+            SceneManager.MoveGameObjectToScene(probe, scene);
+            try
+            {
+                var mover = probe.AddComponent<PlayerMover>();
+                typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
+                var frame = scene.GetRootGameObjects().Single(t => t.name == "EscapeCampaignFrame").transform;
+                var landing = Find<BoxCollider>(scene, "Inspection service swing receiver");
+                var rules = GameSettings.Base.Character;
+                Physics.SyncTransforms();
+                foreach (float offset in new[] { 0f, .12f, .24f })
+                {
+                    const float dt = 1f / 60f;
+                    Vector3 start = frame.TransformPoint(new Vector3(94.58f + offset, -5.96f, 68.05f + offset));
+                    Vector3 aim = frame.TransformPoint(new Vector3(91.35f, -9, 65.15f));
+                    Vector3 velocity = Vector3.ProjectOnPlane(aim - start, Vector3.up).normalized * rules.FreeMoveSpeed;
+                    velocity += Vector3.up * Mathf.Sqrt(2f * rules.Gravity * rules.JumpHeight);
+                    mover.Body.enabled = false;
+                    mover.transform.position = start;
+                    mover.Body.enabled = true;
+                    Collider support = null;
+                    for (int tick = 0; tick < 180; ++tick)
+                    {
+                        var flags = mover.Body.Move(BallisticMotion.Step(ref velocity, Vector3.zero, rules.Gravity, dt));
+                        Assert.That(flags & CollisionFlags.Above, Is.EqualTo(CollisionFlags.None), "Jump hits the ceiling");
+                        if (velocity.y >= 0f || (flags & CollisionFlags.Below) == 0) continue;
+                        if (WalkableSupport.TryGetSupport(mover, mover.transform.position, out var hit)) support = hit.collider;
+                        break;
+                    }
+                    Assert.That(support, Is.EqualTo(landing), $"Unable to land from {start:F2}");
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(probe);
+                if (opened) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        static HumanCannonPole[] FindAllPoles(Scene scene) => scene.GetRootGameObjects()
+            .SelectMany(r => r.GetComponentsInChildren<HumanCannonPole>(true)).ToArray();
 
         static RaycastHit Simulate(PlayerMover mover, HumanCannonStation station, Vector2 input, float held,
             out float elapsed, out float drop)

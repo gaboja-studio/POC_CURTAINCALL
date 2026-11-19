@@ -305,9 +305,10 @@ namespace CurtainCall.EscapeRoute
             usingBypass = true;
             var runner = fullRoute.SelectTarget();
             target = runner;
-            bool returning = CanReturnToHall;
+            bool guided = boss && boss.GuideFinalApproach();
+            bool returning = !guided && CanReturnToHall;
             if (returning) fullRoute.ApproachEncounter(0);
-            if (AdvanceEncounter(runner, returning)) return;
+            if (!guided && AdvanceEncounter(runner, returning)) return;
             if (returning && TryResumeHall(runner)) return;
             if ((attack.Phase == AttackPhase.None || attack.Phase == AttackPhase.Grab) && fullRoute.TryJump(out var jumpFrom, out var jumpTo))
             {
@@ -317,7 +318,7 @@ namespace CurtainCall.EscapeRoute
                 return;
             }
             Vector3 goal = transform.position, watch = Vector3.zero;
-            if (!returning && CanAttackFromRoute && TryDebrisAttack(runner)) return;
+            if (!guided && !returning && CanAttackFromRoute && TryDebrisAttack(runner)) return;
             bool acting = !returning && UpdateAttack(true, runner && fullRoute.AtStation(runner), ref goal, ref watch);
             var before = transform.position;
             float run = 0;
@@ -326,7 +327,7 @@ namespace CurtainCall.EscapeRoute
                 fullRoute.CarryToNextBay(before, walkSpeed, 0, EscapeRouteTimer.Current.Clock);
                 transform.position = AdvanceGroundRoute(before, walkSpeed, dt, EscapeRouteTimer.Current.Clock, out run);
             }
-            else if (!acting && (runner || returning))
+            else if (!acting && (runner || returning || guided))
             {
                 bool concealed = ConcealedFromRunners();
                 float speed = concealed ? Mathf.Max(runSpeed, Tuning.concealedRunSpeed)

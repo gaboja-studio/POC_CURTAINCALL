@@ -296,8 +296,7 @@ namespace CurtainCall.EscapeRoute
             var costs = new float[positions.Length];
             var parents = new int[positions.Length];
             var valid = new sbyte[positions.Length];
-            int start = 0;
-            float startDistance = float.PositiveInfinity;
+            var candidates = new (float distance, int cell)[positions.Length];
             for (int z = 0; z < depth; z++)
                 for (int x = 0; x < width; x++)
                 {
@@ -309,14 +308,19 @@ namespace CurtainCall.EscapeRoute
                     positions[id] = Clamp(bounds, bounds.transform.TransformPoint(local));
                     costs[id] = float.PositiveInfinity;
                     parents[id] = -1;
-                    float d = (positions[id] - from).sqrMagnitude;
-                    if (d < startDistance && Walkable(actor, from, positions[id]))
-                    {
-                        startDistance = d;
-                        start = id;
-                    }
+                    candidates[id] = ((positions[id] - from).sqrMagnitude, id);
                 }
-            if (float.IsPositiveInfinity(startDistance)) return;
+            // Find the same closest reachable cell with nearby probes first. A
+            // distant grid corner should never incur a long cast before nearby cells.
+            System.Array.Sort(candidates);
+            int start = -1;
+            foreach (var candidate in candidates)
+                if (Walkable(actor, from, positions[candidate.cell]))
+                {
+                    start = candidate.cell;
+                    break;
+                }
+            if (start < 0) return;
             var open = new SortedSet<(float score, int id)>();
             costs[start] = 0;
             open.Add((Vector3.Distance(positions[start], goal), start));

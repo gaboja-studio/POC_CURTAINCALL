@@ -200,7 +200,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Assert.That(report.failures, Is.Empty, string.Join("\n", report.failures));
                 var supports = new Dictionary<string, string>
                 {
-                    ["A04A_01_CavernExit"] = "02 inspection fork turning landing",
+                    ["A04A_01_CavernExit"] = "A03_CannonLandingWire",
                     ["A04A_02_DeepTransfer"] = "A04A_UpperWire",
                     ["A04A_03_PumpEntry"] = "A04A_LowerWire",
                     ["A06_WireExitSwing"] = "A06_UpperReturnWire",
@@ -1101,7 +1101,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     }
                 }
                 CheckRegistry<HumanCannonStation>(frame, frame.GetComponentInChildren<HumanCannonSystem>(true), "stations", 7);
-                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 38);
+                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 37);
             }
             finally { EditorSceneManager.ClosePreviewScene(scene); }
         }

@@ -65,7 +65,7 @@ namespace CurtainCall.EscapeRoute
             if (!IsReinforcement && state.Round != next.Round) ClearReinforcements();
             state = next;
             if (IsReinforcement && CombatStarted && !reinforcementVisible)
-                transform.position = next.Phase >= Phase.Battle ? next.From : next.Goal;
+                transform.position = next.From;
             return true;
         }
     }
