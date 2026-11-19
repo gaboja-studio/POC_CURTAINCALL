@@ -22,6 +22,17 @@ namespace CurtainCall.EscapeRoute
         public static bool Exposed(byte mask, int index) => index >= 0 && index < 8 && (mask & (1 << index)) == 0
             && (index < 4 || (mask & (1 << (index - 4))) != 0);
 
+        internal bool SawHasLeftEncounter(Vector3 position, Vector3 direction)
+        {
+            if (!arena) return false;
+            var bounds = arena.bounds;
+            if (bounds.size.sqrMagnitude <= 0f) return false;
+            // Blades that miss all scenery can otherwise fill a launcher's pool forever.
+            // Keep blades that can still reach the arena, including from its approach.
+            bounds.Expand(bounds.size.magnitude * 2f);
+            return !bounds.Contains(position) && !bounds.IntersectRay(new Ray(position, direction));
+        }
+
         public bool TryHitSaw(Vector3 from, Vector3 to, Vector3 normal, float radius, float thickness, out Vector3 contact)
         {
             contact = to;
