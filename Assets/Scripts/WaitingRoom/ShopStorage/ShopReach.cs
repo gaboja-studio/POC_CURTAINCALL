@@ -58,6 +58,8 @@ namespace CurtainCall.WaitingRoom
         public static bool HasExternalPresentation { get; set; }
         /// <summary>대기실 상호작용을 모두 막는다(첫 공연 전 리허설 단계, 대기실 튜토리얼 때 해금 — Task-097).</summary>
         public static bool Locked { get; set; }
+        internal static bool RoomInteractionsLocked => string.IsNullOrEmpty(FloorPropsView.CurrentSpace)
+            && (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted);
         static PlayerInputReader offlineReader;
         static int pumpedFrame = -1;
 
@@ -106,7 +108,7 @@ namespace CurtainCall.WaitingRoom
             pumpedFrame = Time.frameCount;
             var previous = Focused;
             Focused = null;
-            if (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted) return;
+            if (RoomInteractionsLocked) return;
 
             var reader = LocalReader();
             if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked || !PlayerInteraction.CanInteract(reader)) return;

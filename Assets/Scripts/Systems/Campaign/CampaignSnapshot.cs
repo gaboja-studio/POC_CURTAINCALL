@@ -110,6 +110,11 @@ namespace CurtainCall.Campaign
         /// 이번 런에서 인간 대포·트램펄린 배치 기물을 발견해 '인간 대포' 공연이 열렸는지(기물 기획: 시야에 들어오면 즉시 해금, 런 초기화 시 다시 필요).
         /// </summary>
         public bool CannonUnlocked;
+        public int CompletedScheduleSlots;
+        // The paper schedule has three columns of two performance tickets.
+        internal static int ScheduleSlotBit(int day, int slot) =>
+            day >= 1 && day <= 3 && slot >= 0 && slot < 2 ? 1 << ((day - 1) * 2 + slot) : 0;
+        public bool CompletedSlot(int day, int slot) => (CompletedScheduleSlots & ScheduleSlotBit(day, slot)) != 0;
 
         public const string TightropeId = "Tightrope", HumanCannonId = "HumanCannon";
 
@@ -126,7 +131,7 @@ namespace CurtainCall.Campaign
             Generation == other.Generation && Day == other.Day && Phase == other.Phase && Rest == other.Rest
             && PerformanceIndex == other.PerformanceIndex && Timer == other.Timer && AlarmRaised == other.AlarmRaised
             && ReadyCount == other.ReadyCount && RequiredCount == other.RequiredCount && LastEnd == other.LastEnd
-            && TrickId == other.TrickId && Difficulty == other.Difficulty && CannonUnlocked == other.CannonUnlocked;
+            && TrickId == other.TrickId && Difficulty == other.Difficulty && CannonUnlocked == other.CannonUnlocked && CompletedScheduleSlots == other.CompletedScheduleSlots;
 
         internal void Write(FastBufferWriter writer)
         {
@@ -145,6 +150,7 @@ namespace CurtainCall.Campaign
             writer.WriteValueSafe((byte)LastEnd);
             writer.WriteValueSafe((byte)Difficulty);
             writer.WriteValueSafe(CannonUnlocked);
+            writer.WriteValueSafe(CompletedScheduleSlots);
         }
 
         internal static CampaignSnapshot Read(FastBufferReader reader)
@@ -165,6 +171,7 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out byte lastEnd);
             reader.ReadValueSafe(out byte difficulty);
             reader.ReadValueSafe(out s.CannonUnlocked);
+            reader.ReadValueSafe(out s.CompletedScheduleSlots);
             s.Phase = (CampaignPhase)phase;
             s.Rest = (RestKind)rest;
             s.Timer = (RestTimerState)timer;

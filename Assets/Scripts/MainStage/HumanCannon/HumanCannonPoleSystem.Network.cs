@@ -218,6 +218,8 @@ namespace CurtainCall.HumanCannon
         void Connection(SessionConnectionState connection)
         {
             Unregister();
+            // Scene teardown can disable the poles during the same connection notification.
+            if (states == null) return;
             if (connection == SessionConnectionState.Offline)
             {
                 for (int i = 0; i < states.Length; i++)

@@ -51,7 +51,26 @@ namespace CurtainCall.WaitingRoom
             TryPlaceMorningRevival();
         }
 
-        void Update() => TryPlaceMorningRevival();
+        int placedRun;
+        void Update()
+        {
+            var run = CampaignRun.Instance;
+            var player = NetworkPlayer.Local;
+            if (run != null && player != null && player.IsSpawned && !PracticeOwnsPlacement)
+            {
+                var state = run.State;
+                if (state.Generation > 1 && state.Generation != placedRun && state.Day == 1
+                    && state.Phase == CampaignPhase.RestTime && state.Rest == RestKind.Morning
+                    && state.LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired
+                    && player.State == PlayerState.Normal && player.Slot != NetworkPlayer.NoSlot)
+                {
+                    morningRevival = player;
+                    revivalGeneration = placedRun = state.Generation;
+                    revivalDay = state.Day;
+                }
+            }
+            TryPlaceMorningRevival();
+        }
 
         static bool PracticeOwnsPlacement => WaitingRoomRehearsal.IsActive || WaitingRoomCannonRehearsal.IsActive;
 
@@ -65,13 +84,18 @@ namespace CurtainCall.WaitingRoom
             if (state.Generation != revivalGeneration || state.Day > revivalDay
                 || (state.Phase != CampaignPhase.Dawn && !(state.Phase == CampaignPhase.RestTime && state.Rest == RestKind.Morning)))
             { morningRevival = null; return; }
-            if (state.Phase != CampaignPhase.RestTime || state.Day != revivalDay
+            if (gameObject.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene()
+                || state.Phase != CampaignPhase.RestTime || state.Day != revivalDay
                 || morningRevival.State != PlayerState.Normal || morningRevival.Slot == NetworkPlayer.NoSlot) return;
             var player = morningRevival;
             morningRevival = null;
             DisableBalance(player);
             var mover = player.GetComponent<PlayerMover>();
-            PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out Vector3 position, out Quaternion rotation);
+            Vector3 position; Quaternion rotation;
+            var spawn = System.Array.Find(FindObjectsByType<PlayerSpawnPoints>(FindObjectsSortMode.None),
+                points => points.gameObject.scene == gameObject.scene);
+            if (spawn == null || !spawn.TryGetSlotPose(player.Slot, out position, out rotation))
+                PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out position, out rotation);
             mover.SetStartPose(position, rotation);
             Placed(player);
         }

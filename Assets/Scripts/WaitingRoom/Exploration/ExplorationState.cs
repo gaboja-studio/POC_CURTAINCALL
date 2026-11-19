@@ -361,6 +361,7 @@ namespace CurtainCall.WaitingRoom
                     book.Clear();
                     foreach (var id in kept) book.Attempt(id, true, out _, out _);
                     cooperation.Clear();
+                    lastHit.Clear();
                     Debug.Log($"[Exploration] 세대 교체 {seenGeneration} → {generation}: 탐색 진행을 비웠습니다.");
                     Publish();
                 }

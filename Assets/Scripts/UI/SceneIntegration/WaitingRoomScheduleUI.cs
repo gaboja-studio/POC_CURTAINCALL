@@ -185,7 +185,7 @@ namespace CurtainCall.UI.SceneIntegration
                     entries[slot] = new ScheduleEntryPresentation($"{day}:{slot}", WaitingRoomText.Format("schedule.card-title", "공연 {n} · {title}", ("n", slot + 1), ("title", title)),
                         WaitingRoomText.Format("schedule.tier-reward-line", "{tier}단계 · {reward}", ("tier", book.Difficulty(day, slot)), ("reward", ScheduleBoard.TierRewardText(book.Difficulty(day, slot)))),
                         day == 1 && schedule.CanEdit(day, slot) ? (schedule.HasAuthority ? WaitingRoomText.Get("schedule.card-click", "클릭하여 변경") : "입장 전 변경 가능") : "",
-                        false, false);
+                        false, run != null && run.State.CompletedSlot(day, slot));
                 }
                 days[day - 1] = new ScheduleDayPresentation(day.ToString(), WaitingRoomText.Format("schedule.day-label", "{day}일차", ("day", day)), run != null && run.State.Day == day, "", entries);
             }
@@ -231,7 +231,8 @@ namespace CurtainCall.UI.SceneIntegration
                     int day = i / 2 + 1, slot = i % 2;
                     var trick = schedule.Book.Get(day, slot);
                     ticketCards[i].Present(slot, schedule.TrickName(trick), schedule.Book.Difficulty(day, slot), schedule.MaxTier(trick),
-                        schedule.HasAuthority && schedule.CanEdit(day, slot), CanEditTier(schedule, day, slot), schedule.HasAuthority, boardView != null && boardView.IsOpen);
+                        schedule.HasAuthority && schedule.CanEdit(day, slot), CanEditTier(schedule, day, slot), schedule.HasAuthority, boardView != null && boardView.IsOpen,
+                        CampaignRun.Instance != null && CampaignRun.Instance.State.CompletedSlot(day, slot));
                 }
                 return;
             }

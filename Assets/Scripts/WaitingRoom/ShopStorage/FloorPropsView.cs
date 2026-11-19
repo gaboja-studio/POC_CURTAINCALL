@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using CurtainCall.Settings;
 
 namespace CurtainCall.WaitingRoom
 {
@@ -25,20 +27,52 @@ namespace CurtainCall.WaitingRoom
         readonly List<int> stale = new();
         PropCarry carry;
         Material material;
+        // Empty is the existing waiting-room ledger, including authored exploration pickups.
+        static string Space(Scene scene)
+        {
+            if (!scene.IsValid()) return "";
+            var settings = GameSettings.Base.SpaceTransition;
+            return scene.name == settings.TightropeScene || scene.name == settings.HumanCannonScene
+                || scene.name == settings.EscapeRouteScene ? scene.name : "";
+        }
+        internal static string CurrentSpace => Space(SceneManager.GetActiveScene());
+        bool CurrentView => gameObject.scene == SceneManager.GetActiveScene();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void RegisterFloorViews()
+        {
+            SceneManager.sceneLoaded -= Install;
+            SceneManager.sceneLoaded += Install;
+        }
+        static void Install(Scene scene, LoadSceneMode mode)
+        {
+            if (string.IsNullOrEmpty(Space(scene))) return;
+            foreach (var root in scene.GetRootGameObjects())
+                if (root.GetComponentInChildren<FloorPropsView>(true) != null) return;
+            var rootView = new GameObject(nameof(FloorPropsView));
+            SceneManager.MoveGameObjectToScene(rootView, scene);
+            rootView.AddComponent<FloorPropsView>();
+        }
         static int activeCount;
         static readonly List<FloorPropsView> views = new();
         public static bool CanPickUp(int uid, Vector3 feet, Component actor = null)
         {
             foreach (var view in views)
-                if (view != null && view.shown.TryGetValue(uid, out var item)
+                if (view != null && view.CurrentView && view.shown.TryGetValue(uid, out var item)
                     && (actor == null ? item.Reach(feet, actor) : CurtainCall.Player.PlayerInteraction.RestrictReach(item.Reach(feet, actor), actor)) >= 0f) return true;
             return false;
         }
 
         /// <summary>대기실 씬의 기물 표시가 켜져 있다(소지 HUD·한도 초과 떨어뜨리기를 대기실에서만 하게 한다).</summary>
-        public static bool Active => activeCount > 0;
+        public static bool Active => activeCount > 0 && string.IsNullOrEmpty(CurrentSpace);
 
-        void OnEnable() { activeCount++; if (!views.Contains(this)) views.Add(this); }
+        void OnEnable()
+        {
+            activeCount++;
+            if (!views.Contains(this)) views.Add(this);
+            SceneManager.activeSceneChanged += ActiveSceneChanged;
+        }
+        void ActiveSceneChanged(Scene previous, Scene next) => Rebuild();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { activeCount = 0; views.Clear(); }
@@ -68,6 +102,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnDisable()
         {
+            SceneManager.activeSceneChanged -= ActiveSceneChanged;
             activeCount--; views.Remove(this);
             if (carry != null) carry.Changed -= Rebuild;
             carry = null;
@@ -88,7 +123,7 @@ namespace CurtainCall.WaitingRoom
                 carry.Changed += Rebuild;
                 Rebuild();
             }
-            ShopReach.Pump();
+            if (CurrentView) ShopReach.Pump();
         }
 
         void Rebuild()
@@ -97,13 +132,15 @@ namespace CurtainCall.WaitingRoom
             stale.Clear();
             stale.AddRange(shown.Keys);
             var placed = new List<Vector3>();
+            string space = CurrentView ? Space(gameObject.scene) : null;
             foreach (var prop in carry.Floor)
             {
-                if (!ExplorationKeys.ItemEnabled(prop.Item.ItemId)) continue;
+                if ((prop.Space ?? "") != space || !ExplorationKeys.ItemEnabled(prop.Item.ItemId)) continue;
                 stale.Remove(prop.Item.Uid);
                 if (!shown.TryGetValue(prop.Item.Uid, out var item))
                 {
                     item = new Item { View = this, Prop = prop, Shape = MakeShape(prop) };
+                    item.Shape.transform.SetParent(transform, true);
                     shown.Add(prop.Item.Uid, item);
                     ShopReach.Add(item);
                 }

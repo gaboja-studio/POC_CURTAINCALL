@@ -70,7 +70,7 @@ namespace CurtainCall.WaitingRoom
             book.Clear();
             foreach (var entry in snapshot.Held)
                 foreach (var item in entry.Value) book.Take(entry.Key, int.MaxValue, item);
-            foreach (var item in snapshot.Floor) book.Place(item.Item, item.X, item.Y, item.Z);
+            foreach (var item in snapshot.Floor) book.Place(item.Item, item.X, item.Y, item.Z, item.Space);
             book.LoadShelf(snapshot.Shelf);
             selected.Clear(); foreach (var entry in snapshot.Selected) selected[entry.Key] = entry.Value;
             seenGeneration = generation;
@@ -273,6 +273,9 @@ namespace CurtainCall.WaitingRoom
             if (seenGeneration > 0 && generation > seenGeneration)
             {
                 book.ResetGeneration();
+                cooldownUntil.Clear();
+                useMarks.Clear();
+                equipmentReceipts.Clear();
                 selected.Clear();
                 rehearsalSelection.Clear();
                 Debug.Log($"[Carry] 세대 교체 {seenGeneration} → {generation}: 물려줄 선반만 남기고 기물을 비웠습니다.");
@@ -383,7 +386,7 @@ namespace CurtainCall.WaitingRoom
             int uid = Selected(player).Uid;
             if (uid == 0) return Reject(player, "DROP", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
             if (FindPlayer(player)?.IsEquipmentReserved(uid)==true) return (false,"기물 사용 처리 중입니다.");
-            var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid);
+            var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid, FloorPropsView.CurrentSpace);
             if (refusal != CarryRefusal.None) return Reject(player, "DROP", uid, "CARRY_" + refusal, Explain(refusal));
             CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(FindPlayer(player),"EXPLORATION_TOOL",new(){["itemType"]=dropped.Item.ItemId,["uid"]=uid,["usesAfter"]=dropped.Item.Uses,["state"]="DROPPED",["objectPosition"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(point)},"HOST");
             Debug.Log($"[Carry] 내려놓음 #{dropped.Item.Uid} {dropped.Item.Name} ← {WaitingRoomShop.PlayerLabel(player)}");
@@ -397,7 +400,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var floor in book.Floor)
                 if (floor.Item.Uid == uid)
                 {
-                    if (!ExplorationKeys.ItemEnabled(floor.Item.ItemId))
+                    if ((floor.Space ?? "") != FloorPropsView.CurrentSpace || !ExplorationKeys.ItemEnabled(floor.Item.ItemId))
                         return Reject(player, "PICK_UP", uid, "CARRY_NotFound", Explain(CarryRefusal.NotFound));
                     var body = FindBody(player);
                     if (body == null || !FloorPropsView.CanPickUp(uid, body.position, body))
@@ -551,7 +554,7 @@ namespace CurtainCall.WaitingRoom
             ReadCooldowns(state.players);
             ReadUseMarks(state.players);
             receivedFloor.Clear();
-            foreach (var f in state.floor ?? Array.Empty<FloorData>()) receivedFloor.Add(new FloorProp(f.item.Read(), f.x, f.y, f.z));
+            foreach (var f in state.floor ?? Array.Empty<FloorData>()) receivedFloor.Add(new FloorProp(f.item.Read(), f.x, f.y, f.z, f.space));
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
             var shelf = state.shelf ?? Array.Empty<ItemData>();
             for (int i = 0; i < shelf.Length && i < receivedShelf.Length; i++) receivedShelf[i] = shelf[i].Read();
@@ -599,7 +602,7 @@ namespace CurtainCall.WaitingRoom
         [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; public CooldownData[] cooldowns; public int usedSerial; public int usedUid; public bool usedBroken; }
         /// <summary>서버 시각 기준 장비 쿨타임 종료 시각.</summary>
         [Serializable] sealed class CooldownData { public string id; public double until; }
-        [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; }
+        [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; public string space; }
 
         [Serializable]
         sealed class StateData
@@ -630,7 +633,7 @@ namespace CurtainCall.WaitingRoom
                 for (int i = 0; i < floor.Length; i++)
                 {
                     var f = book.Floor[i];
-                    floor[i] = new FloorData { item = ItemData.From(f.Item), x = f.X, y = f.Y, z = f.Z };
+                    floor[i] = new FloorData { item = ItemData.From(f.Item), x = f.X, y = f.Y, z = f.Z, space = f.Space };
                 }
                 var shelf = new ItemData[ItemCarryBook.ShelfSlots];
                 for (int i = 0; i < shelf.Length; i++) shelf[i] = ItemData.From(book.Shelf[i]);
