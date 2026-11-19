@@ -324,8 +324,14 @@ namespace CurtainCall.EscapeRoute.Tests
             Set(pilot, "system", T("CurtainCall.HumanCannon.HumanCannonSystem").GetProperty("Current", Static).GetValue(null));
             Set(pilot, "player", actor);
             var scheme = ScriptableObject.CreateInstance(T("CurtainCall.Player.PlatformControlScheme"));
+            var gate = T("CurtainCall.Player.InputGate");
+            var gateFields = new[] { "rearming", "checkedFrame", "blockedFrame" }.Select(n => gate.GetField(n, Static)).ToArray();
+            var gateValues = gateFields.Select(field => field.GetValue(null)).ToArray();
             try
             {
+                gateFields[0].SetValue(null, false);
+                gateFields[1].SetValue(null, -1);
+                gateFields[2].SetValue(null, -1);
                 var context = Activator.CreateInstance(T("CurtainCall.Player.PlayerControlContext"), new object[] { actor.gameObject });
                 var frame = Activator.CreateInstance(T("CurtainCall.Player.PlayerInputFrame"));
                 var reader = actor.GetComponent(T("CurtainCall.Player.PlayerInputReader"))
@@ -375,7 +381,11 @@ namespace CurtainCall.EscapeRoute.Tests
                 Call(scheme, "Tick", context, frame);
                 Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
             }
-            finally { Object.DestroyImmediate(scheme); }
+            finally
+            {
+                for (int i = 0; i < gateFields.Length; i++) gateFields[i].SetValue(null, gateValues[i]);
+                Object.DestroyImmediate(scheme);
+            }
         }
 
         [Test, Combinatorial]

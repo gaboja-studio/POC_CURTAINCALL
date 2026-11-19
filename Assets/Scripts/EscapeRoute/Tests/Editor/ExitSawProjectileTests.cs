@@ -139,6 +139,7 @@ namespace CurtainCall.EscapeRoute.Tests
 
             wall.enabled = false;
             Physics.SyncTransforms();
+            Call(saw, "HostProjectileStep", 1.5f, player);
             Assert.That(Call(saw, "TryFire", player), Is.True);
             Call(saw, "StepProjectiles", .2f, true);
             Assert.That(Get(strand, "IsCut"), Is.True);
@@ -311,7 +312,7 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void HeldLauncherNeverFiresAutomaticallyAndFiresForEveryClickWithoutCooldown()
+        public void HeldLauncherRequiresOnePointFiveSecondsBetweenClicksAndNeverQueuesAShot()
         {
             Fixture(true); var player = Player(41); Own(41);
             SetCables(Strand(ShotStart + Vector3.forward * 3)); Physics.SyncTransforms();
@@ -319,8 +320,11 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0));
             Assert.That(Call(saw, "TryFire", player), Is.True);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
-            for(int click=0;click<23;click++) Assert.That(Call(saw, "TryFire", player), Is.True);
-            Assert.That(Get(saw,"ActiveProjectileCount"),Is.EqualTo(24));
+            Assert.That(Get(saw, "SecondsUntilShot"), Is.EqualTo(1.5f));
+            Assert.That(Call(saw, "TryFire", player), Is.False);
+            Call(saw, "CarrierChanged");
+            Call(saw, "HostStep", 1.49f);
+            Assert.That(Call(saw, "TryFire", player), Is.False);
             Call(saw, "HostStep", 30f);
             Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(0), "Waiting never queues another shot.");
             Assert.That(Call(saw, "TryFire", player), Is.True);
@@ -363,7 +367,7 @@ namespace CurtainCall.EscapeRoute.Tests
             player.transform.position+=Vector3.up; device.position+=Vector3.up;
             Physics.SyncTransforms();
             Assert.That(Call(saw,"TryFire",player),Is.True);
-            Assert.That(Call(saw,"TryFire",player),Is.True,"A second click in the same jump also fires.");
+            Assert.That(Call(saw,"TryFire",player),Is.False,"A second click must wait for the shared cooldown.");
             Set(saw,"shotWait",0f);
             Set(Get(player,"state"),"Value",Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"),"Retired"));
             Assert.That(Call(saw,"TryFire",player),Is.False,"A dead carrier cannot fire.");

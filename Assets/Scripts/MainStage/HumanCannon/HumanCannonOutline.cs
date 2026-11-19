@@ -13,12 +13,14 @@ namespace CurtainCall.HumanCannon
         static readonly int SurfaceId = Shader.PropertyToID("_Surface");
         static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
         static readonly int WidthId = Shader.PropertyToID("_OutlinePixels");
+        static readonly int ColorId = Shader.PropertyToID("_OutlineColor");
         [SerializeField] Material outlineMaterial;
         [Tooltip("외줄타기 톱처럼 멀어질수록 외곽선을 줄인다. 작은 톱니가 고정 픽셀 외곽선에 덮여 검게 보이는 것을 막는다.")]
         [SerializeField] bool fadeWithDistance;
         [SerializeField, Min(0f)] float fadeFullDistance = 5f;
         [SerializeField, Min(0f)] float fadeHiddenDistance = 14f;
         MaterialPropertyBlock widthBlock;
+        Color? colorOverride;
         readonly List<OutlinePart> parts = new();
         readonly List<Material> sourceMaterials = new();
         static readonly Dictionary<Mesh, CachedMesh> meshes = new();
@@ -47,6 +49,7 @@ namespace CurtainCall.HumanCannon
         }
 
         public bool FadesWithDistance => fadeWithDistance;
+        public void SetColorOverride(Color? color) => colorOverride = color;
 
         public void SetDistanceFade(bool enabled, float fullDistance = 5f, float hiddenDistance = 14f)
         {
@@ -118,15 +121,19 @@ namespace CurtainCall.HumanCannon
                 if (part.Outline == null) continue;
                 part.Outline.enabled = part.Source != null && part.Source.enabled && HasOpaqueDepth(part.Source);
                 part.Outline.forceRenderingOff = part.Source == null || part.Source.forceRenderingOff;
-                if (!fadeWithDistance || part.Source == null) continue;
+                if (part.Source == null || (!fadeWithDistance && !colorOverride.HasValue && widthBlock == null)) continue;
                 // 넓은 톱벽도 각 날이 카메라에서 떨어진 만큼만 줄어들도록 렌더러별로 잰다.
                 var bounds = part.Source.bounds;
                 float distance = Vector3.Distance(camera.transform.position, bounds.ClosestPoint(camera.transform.position));
-                float faded = FadedWidth(width, distance, fadeFullDistance, fadeHiddenDistance);
-                if (faded <= 0.01f) { part.Outline.forceRenderingOff = true; continue; }
                 widthBlock ??= new MaterialPropertyBlock();
-                part.Outline.GetPropertyBlock(widthBlock);
-                widthBlock.SetFloat(WidthId, faded);
+                widthBlock.Clear();
+                if (colorOverride.HasValue) widthBlock.SetColor(ColorId, colorOverride.Value);
+                if (fadeWithDistance)
+                {
+                    float faded = FadedWidth(width, distance, fadeFullDistance, fadeHiddenDistance);
+                    if (faded <= 0.01f) { part.Outline.forceRenderingOff = true; continue; }
+                    widthBlock.SetFloat(WidthId, faded);
+                }
                 part.Outline.SetPropertyBlock(widthBlock);
             }
         }

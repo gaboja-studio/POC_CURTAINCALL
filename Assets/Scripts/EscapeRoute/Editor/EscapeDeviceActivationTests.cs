@@ -200,7 +200,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Assert.That(report.failures, Is.Empty, string.Join("\n", report.failures));
                 var supports = new Dictionary<string, string>
                 {
-                    ["A04A_01_CavernExit"] = "A03_CannonLandingWire",
+                    ["A04A_01_CavernExit"] = "02 inspection fork turning landing",
                     ["A04A_02_DeepTransfer"] = "A04A_UpperWire",
                     ["A04A_03_PumpEntry"] = "A04A_LowerWire",
                     ["A06_WireExitSwing"] = "A06_UpperReturnWire",
@@ -213,7 +213,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     var pole = poles.Single(p => p.name == entry.Key);
                     foreach (bool injured in new[] { false, true })
                         Assert.That(HasSupportedPoleAccess(pole, entry.Value, injured), Is.True,
-                            $"{entry.Key}: original support {entry.Value}, injured={injured}");
+                            $"{entry.Key}: support {entry.Value}, injured={injured}");
                 }
             }
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
@@ -1100,8 +1100,8 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                                 "The cannon input owner must activate before the deferred scenery reveal.");
                     }
                 }
-                CheckRegistry<HumanCannonStation>(frame, frame.GetComponentInChildren<HumanCannonSystem>(true), "stations", 10);
-                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 37);
+                CheckRegistry<HumanCannonStation>(frame, frame.GetComponentInChildren<HumanCannonSystem>(true), "stations", 7);
+                CheckRegistry<HumanCannonPole>(frame, frame.GetComponentInChildren<HumanCannonPoleSystem>(true), "poles", 38);
             }
             finally { EditorSceneManager.ClosePreviewScene(scene); }
         }

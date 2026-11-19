@@ -133,7 +133,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [Test]
-        public void CannonRecoveryUsesLastSafeDeckPoseAndTreatsThePracticeRoomFloorAsFatal()
+        public void CannonRecoveryReturnsToStartEvenAfterThePlayerReachedTheMiddleDeck()
         {
             var player = Player(947);
             var mover = player.GetComponent<PlayerMover>();
@@ -147,6 +147,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
             floor.transform.position = deck.transform.position + Vector3.down * 4f;
             floor.size = new Vector3(20, .4f, 18);
             course.LowerFloor = deck;
+            course.MiddleFloor = deck;
+            var start = Make("Tutorial start").AddComponent<BoxCollider>();
+            start.transform.position = deck.transform.position + Vector3.back * 12f;
+            start.size = deck.size;
+            course.StartFloor = start;
+            Shared("middle", new List<ulong> { player.OwnerClientId });
             Set(cannon, "course", course); Set(cannon, "roomFloor", floor);
             Physics.SyncTransforms();
             var lastSafe = new Pose(deck.bounds.center + Vector3.up * deck.bounds.extents.y + Vector3.right, Quaternion.Euler(0, 35f, 0));
@@ -159,11 +165,12 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 var floorFall = typeof(WaitingRoomCannonRehearsal).GetMethod("ShouldRestartAfterFloorLanding", Static);
                 Assert.That(floorFall.Invoke(null, new object[] { player, roomFeet }), Is.True);
                 Assert.That(floorFall.Invoke(null, new object[] { player, lastSafe.position }), Is.False);
-                Set(cannon, "lastSafePose", (Pose?)lastSafe);
+                player.transform.SetPositionAndRotation(lastSafe.position, lastSafe.rotation);
+                var expected = course.CheckpointPose(0, Mathf.Max(0, player.Slot));
                 Call(cannon, "ResetLocalRecovery", player);
                 Call(cannon, "PlaceLocalAtCheckpoint", player, mover);
-                Assert.That(player.transform.position, Is.EqualTo(lastSafe.position));
-                Assert.That(Quaternion.Angle(player.transform.rotation, lastSafe.rotation), Is.LessThan(.01f));
+                Assert.That(player.transform.position, Is.EqualTo(expected.position));
+                Assert.That(Quaternion.Angle(player.transform.rotation, expected.rotation), Is.LessThan(.01f));
             }
             finally { Set(tutorial, "cannonPracticeFloorFallIsFatal", floorRule); Set(cannon, "course", null); }
         }

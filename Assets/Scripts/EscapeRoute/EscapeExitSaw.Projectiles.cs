@@ -44,6 +44,9 @@ namespace CurtainCall.EscapeRoute
         uint cutMask, shotSerial, lastPresentedShot, courseEpoch;
         bool finaleDoorReported;
         float shotWait, recoilTime;
+        static readonly int RechargeAmount = Shader.PropertyToID("_DissolveAmount");
+        readonly List<(Renderer renderer, Material[] materials, MaterialPropertyBlock properties)> rechargeRenderers = new();
+        MaterialPropertyBlock rechargeProperties;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
         Vector3 recoilRest;
@@ -85,6 +88,7 @@ namespace CurtainCall.EscapeRoute
         void ClearShots()
         {
             shots.Clear(); shotWait = 0; recoilTime = 0;
+            ClearRechargeVisual();
             for (int i = 0; i < projectilePool.Length; i++) if (projectilePool[i] != null) projectilePool[i].SetActive(false);
             if (recoilVisual != null) recoilVisual.localPosition = recoilRest;
             if (launchAudio != null) launchAudio.Stop();
@@ -93,8 +97,13 @@ namespace CurtainCall.EscapeRoute
         void CarrierChanged()
         {
             // 발사된 무제한 톱날은 장치를 내려놓거나 다른 사람이 들어도 계속 이동한다.
-            if (!UnlimitedProjectiles) { ClearShots(); return; }
-            shotWait = 0; recoilTime = 0;
+            if (!UnlimitedProjectiles)
+            {
+                float remaining = shotWait;
+                ClearShots();
+                shotWait = remaining;
+            }
+            recoilTime = 0;
         }
         void ResetProjectileCourse()
         {
@@ -389,6 +398,7 @@ namespace CurtainCall.EscapeRoute
         }
         void PresentProjectiles(float deltaTime)
         {
+            PresentRecharge(deltaTime);
             for (int i = 0; i < projectilePool.Length; i++)
             {
                 bool show = ProjectileSessionReady && ProjectileMode && i < shots.Count;
@@ -417,6 +427,46 @@ namespace CurtainCall.EscapeRoute
                 recoilTime = Mathf.Max(0, recoilTime - Mathf.Max(0, deltaTime));
                 recoilVisual.localPosition = recoilRest - Vector3.forward * (recoilDistance * recoilTime / .15f);
             }
+        }
+        void PresentRecharge(float deltaTime)
+        {
+            if (!Application.isPlaying || !ProjectileMode) return;
+            if (session != null && !session.IsHost) shotWait = Mathf.Max(0f, shotWait - deltaTime);
+            var material = CurtainCall.Settings.GameSettings.Base.CarryDevices.SawRechargeMaterial;
+            if (!blade || !material || shotWait <= 0f || !CarryRoot.gameObject.activeInHierarchy)
+            {
+                ClearRechargeVisual();
+                return;
+            }
+            rechargeProperties ??= new MaterialPropertyBlock();
+            if (rechargeRenderers.Count == 0)
+                foreach (var renderer in blade.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (renderer is not MeshRenderer && renderer is not SkinnedMeshRenderer) continue;
+                    if (renderer.name.StartsWith("__", StringComparison.Ordinal)) continue;
+                    var original = renderer.sharedMaterials;
+                    if (original.Length == 0) continue;
+                    var properties = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(properties);
+                    rechargeRenderers.Add((renderer, original, properties));
+                    var temporary = new Material[original.Length];
+                    Array.Fill(temporary, material);
+                    renderer.sharedMaterials = temporary;
+                }
+            rechargeProperties.SetFloat(RechargeAmount, Mathf.Clamp01(shotWait / Mathf.Max(.01f, shotInterval - .25f)));
+            foreach (var item in rechargeRenderers)
+                if (item.renderer) item.renderer.SetPropertyBlock(rechargeProperties);
+        }
+
+        void ClearRechargeVisual()
+        {
+            foreach (var item in rechargeRenderers)
+                if (item.renderer)
+                {
+                    item.renderer.sharedMaterials = item.materials;
+                    item.renderer.SetPropertyBlock(item.properties);
+                }
+            rechargeRenderers.Clear();
         }
         void DisposeProjectiles()
         {

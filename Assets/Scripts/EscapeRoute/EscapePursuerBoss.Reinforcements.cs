@@ -10,6 +10,10 @@ namespace CurtainCall.EscapeRoute
         readonly List<EscapePursuerBoss> reinforcements = new();
         EscapePursuerBoss leader;
         Transform reinforcementRoot;
+        const double ReinforcementSpacing = 2.2;
+        readonly List<Renderer> hiddenReinforcementRenderers = new();
+        readonly List<Collider> hiddenReinforcementHitboxes = new();
+        bool reinforcementVisible = true;
         internal int EncounterIndex { get; private set; }
         internal bool IsReinforcement => EncounterIndex != 0;
         EscapePursuerBoss EncounterLeader => leader ? leader : this;
@@ -35,15 +39,12 @@ namespace CurtainCall.EscapeRoute
                 if (player && player.IsSpawned && player.Slot != NetworkPlayer.NoSlot
                     && (!transfer || !transfer.HasDeparture || transfer.CanParticipate(player.OwnerClientId))) players++;
             state.Reinforcements = (byte)Mathf.Clamp(players, 1, MaxReinforcements);
+            state.EncounterStarted = now;
             state.Revision++;
-            EnsureReinforcements(state.Reinforcements);
-            foreach (var boss in reinforcements)
-            {
-                boss.state.Round = state.Round;
-                boss.Enter(Phase.Battle, now, boss.transform.position);
-                boss.nextDash = now + 2 + .4 * boss.EncounterIndex;
-            }
         }
+
+        int ReinforcementsDue(double now) => Mathf.Clamp(
+            (int)((now - state.EncounterStarted) / ReinforcementSpacing), 0, state.Reinforcements);
 
         void EnsureReinforcements(int count)
         {
@@ -68,11 +69,47 @@ namespace CurtainCall.EscapeRoute
                 boss.fire = null;
                 if (boss.landingRing && !boss.landingRing.transform.IsChildOf(clone.transform)) boss.landingRing = null;
                 clone.transform.SetPositionAndRotation(SpawnReinforcement(index), transform.rotation);
+                if (Unity.Netcode.NetworkManager.Singleton && Unity.Netcode.NetworkManager.Singleton.IsServer)
+                {
+                    boss.state.Round = state.Round;
+                    boss.Enter(Phase.Landing, state.EncounterStarted + index * ReinforcementSpacing, clone.transform.position);
+                }
+                else boss.SetReinforcementVisible(false);
                 reinforcements.Add(boss);
             }
             reinforcementRoot.gameObject.SetActive(true);
             foreach (var boss in reinforcements)
                 if (boss && !boss.gameObject.activeSelf) boss.gameObject.SetActive(true);
+        }
+
+        void SetReinforcementVisible(bool visible)
+        {
+            if (visible == reinforcementVisible) return;
+            reinforcementVisible = visible;
+            if (!visible)
+            {
+                foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+                {
+                    if (renderer.forceRenderingOff) continue;
+                    renderer.forceRenderingOff = true;
+                    hiddenReinforcementRenderers.Add(renderer);
+                }
+                if (TryGetComponent(out CapsuleCollider capsule)) capsule.enabled = false;
+                if (TryGetComponent(out UnityEngine.AI.NavMeshAgent agent)) agent.enabled = false;
+                foreach (var part in parts)
+                    if (part?.hitbox && part.hitbox.enabled)
+                    {
+                        part.hitbox.enabled = false;
+                        hiddenReinforcementHitboxes.Add(part.hitbox);
+                    }
+                return;
+            }
+            foreach (var renderer in hiddenReinforcementRenderers)
+                if (renderer) renderer.forceRenderingOff = false;
+            hiddenReinforcementRenderers.Clear();
+            foreach (var hitbox in hiddenReinforcementHitboxes)
+                if (hitbox) hitbox.enabled = true;
+            hiddenReinforcementHitboxes.Clear();
         }
 
         Vector3 SpawnReinforcement(int index)

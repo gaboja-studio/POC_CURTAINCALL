@@ -107,7 +107,11 @@ namespace CurtainCall.EscapeRoute
             {
                 landedAt = state.Started;
                 if (landingDust) { landingDust.transform.position = transform.position; landingDust.Play(); }
-                if (remote) chase.PlayStep(.6f);
+                if (age < 1f)
+                {
+                    chase.PlayStep(.6f);
+                    CurtainCall.Sound.SoundManager.PlayAt(CurtainCall.Sound.SoundCueIds.EscapeRoar, transform);
+                }
             }
             bool sameRound = presentedRound == state.Round;
             if (tint == null) tint = new MaterialPropertyBlock();
@@ -182,11 +186,6 @@ namespace CurtainCall.EscapeRoute
             var local = NetworkPlayer.Local;
             if (IsReinforcement || !CombatStarted || !local || !InsideArena(local.transform.position) || chase.InShowcase) return;
             if (statusStyle == null) statusStyle = new GUIStyle(GUI.skin.label) { font = labelFont, fontSize = 18, alignment = TextAnchor.MiddleCenter };
-            string text = EscapeCampaignContent.Current && EscapeCampaignContent.Current.ExitOpen
-                ? "출구 개방 · 갈대밭으로 이동하세요"
-                : EncounterDefeated ? "추격자 제압 · 배선을 끊어 출구를 여세요"
-                : $"남은 추격자 {RemainingEnemies}명 · 추격자와 배선 모두 처리";
-            GUI.Label(new Rect(Screen.width * .5f - 280, 58, 560, 52), text, statusStyle);
             foreach (var saw in EscapeExitSaw.Devices)
                 if (saw && saw.FinaleBoss == this && saw.Carrier == local.OwnerClientId)
                 {

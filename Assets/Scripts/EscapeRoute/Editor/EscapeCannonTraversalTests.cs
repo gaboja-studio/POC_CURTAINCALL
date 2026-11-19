@@ -42,11 +42,36 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     Assert.That(saw.UsesAuthoredPath && saw.WorldUiVisual, Is.True);
                     var cue = saw.GetComponent<HumanCannonHazardCue>();
                     Assert.That(cue.warning && cue.warningSeconds > 1f, Is.True);
+                    Assert.That(Mathf.Abs(Vector3.Dot(saw.BladeNormal, Vector3.up)), Is.GreaterThan(.999f));
+                    Assert.That(cue.origin.y, Is.EqualTo(cue.destination.y).Within(.005f));
+                    Assert.That(cue.origin.y - cue.warning.position.y, Is.InRange(.20f, .40f));
+                    double active = cue.warningSeconds + cue.activeSeconds * .5 - cue.phase;
+                    if (active < 0) active += cue.warningSeconds + cue.activeSeconds + cue.restSeconds;
+                    var bladeCenter = saw.Position(active, 1f);
+                    var physicalBlade = saw.WorldUiVisual.GetComponentsInChildren<MeshFilter>(true).Single();
+                    // The asset's thin axis is local Y. It must match the damage disc through the full spin.
+                    var previousPosition = saw.WorldUiVisual.position;
+                    var previousRotation = saw.WorldUiVisual.rotation;
+                    try
+                    {
+                        foreach (double spinTime in new[] { active, active + .1, active + .3 })
+                        {
+                            saw.Present(spinTime, 1f);
+                            Assert.That(Mathf.Abs(Vector3.Dot(physicalBlade.transform.up, saw.BladeNormal)), Is.GreaterThan(.999f));
+                        }
+                    }
+                    finally { saw.WorldUiVisual.SetPositionAndRotation(previousPosition, previousRotation); }
+                    var character = GameSettings.Base.Character;
+                    Assert.That(saw.Touches(bladeCenter - Vector3.up * .35f, character.CapsuleHeight,
+                        character.CapsuleRadius, active, 1f), Is.True);
+                    Assert.That(saw.Touches(bladeCenter + Vector3.up * .5f, character.CapsuleHeight,
+                        character.CapsuleRadius, active, 1f), Is.False);
                     for (int sample = 0; sample <= 48; sample++)
                     {
                         var center = Vector3.Lerp(cue.origin, cue.destination, sample / 48f);
-                        Assert.That(Physics.Raycast(center, Vector3.down, 2f, Physics.DefaultRaycastLayers,
+                        Assert.That(Physics.Raycast(center, Vector3.down, out var floor, 2f, Physics.DefaultRaycastLayers,
                             QueryTriggerInteraction.Ignore), Is.True, $"No walkable surface at {center}");
+                        Assert.That(floor.distance, Is.InRange(.26f, .5f), $"Blade height over {floor.collider.name} at {center}");
                         var extents = new Vector3(saw.Radius, saw.Radius, .1f);
                         Assert.That(Physics.OverlapBox(center, extents, saw.BladeRotation, Physics.DefaultRaycastLayers,
                             QueryTriggerInteraction.Ignore), Is.Empty, $"Saw collides with scene geometry at {center}");
@@ -125,6 +150,68 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
         }
         [Test]
+        public void FirstCannonLeftBypassHasContinuousSupportAndClearStandingAccess()
+        {
+            var scene = Open(out bool opened);
+            try
+            {
+                Physics.SyncTransforms();
+                var frame = scene.GetRootGameObjects().Single().transform;
+                var character = GameSettings.Base.Character;
+                var ropes = new[] { "A03_CannonLandingWire", "Labyrinth 02 inspection fork",
+                    "Labyrinth 02 inspection approach cable", "Inspection service entry wire" }
+                    .Concat(Enumerable.Range(1, 7).Select(i => $"Inspection service descent {i}"));
+                foreach (string name in ropes)
+                {
+                    var rope = Find<BoxCollider>(scene, name);
+                    Vector3 end = Vector3.forward * (.5f * rope.size.z - .025f);
+                    Vector3 top = rope.center + Vector3.up * (.5f * rope.size.y);
+                    CheckSegment(name, rope.transform.TransformPoint(top - end), rope.transform.TransformPoint(top + end));
+                }
+
+                CheckLocal("first landing wire onto the turning pad", new(57.85f,-6,75), new(60,-5.92f,75));
+                CheckLocal("turning pad onto the left fork", new(60,-5.92f,75), new(60.98f,-6,77.12f));
+                CheckLocal("fork to approach", new(64.3f,-6,84.3f), new(70,-6,84));
+                CheckLocal("approach to first swing", new(75.5f,-6,84), new(79.35f,-6,85.9f));
+                CheckLocal("relay apron to entry wire", new(101,-6,85), new(99,-6,76.05f));
+                CheckLocal("entry wire to service swing", new(96,-6,70.2f), new(95,-6,67.85f));
+                CheckLocal("receiver to descent wire", new(89,-9,63), new(89,-9,60.6f));
+                CheckLocal("last descent wire to conveyor apron", new(77,-22,16.95f), new(75,-22,14.5f));
+                CheckLocal("clear conveyor approach through the merge opening", new(75,-22,16.95f), new(75,-22,14.5f));
+
+                AssertReach("Labyrinth Inspection swing 01", new(79.35f,-6,85.9f));
+                AssertReach("Inspection service swing", new(95,-6,67.85f));
+
+                void AssertReach(string name, Vector3 localFeet)
+                {
+                    var pole = Find<HumanCannonPole>(scene, name);
+                    var center = frame.TransformPoint(localFeet) + Vector3.up * (.5f * character.CapsuleHeight);
+                    Assert.That(Vector3.Distance(center, pole.Grip.position), Is.LessThan(GameSettings.Poles.GrabRadius), name);
+                    Assert.That(PlayerInteraction.ClearPathFrom(center, pole.Grip.position, pole.transform, ignoreRope: true), Is.True, name);
+                }
+                void CheckLocal(string label, Vector3 start, Vector3 end) =>
+                    CheckSegment(label, frame.TransformPoint(start), frame.TransformPoint(end));
+                void CheckSegment(string label, Vector3 start, Vector3 end)
+                {
+                    int steps = Mathf.CeilToInt(Vector3.Distance(start, end) / .1f);
+                    for (int i = 0; i <= steps; ++i)
+                    {
+                        var feet = Vector3.Lerp(start, end, (float)i / steps);
+                        Assert.That(Physics.Raycast(feet + Vector3.up * .12f, Vector3.down, .32f,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore), Is.True, $"{label} unsupported at {feet:F2}");
+                        float radius = character.CapsuleRadius;
+                        var blocked = Physics.OverlapCapsule(feet + Vector3.up * (radius + .08f),
+                            feet + Vector3.up * (character.CapsuleHeight - radius + .08f), radius,
+                            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                            .Where(c => c.bounds.max.y > feet.y + .20f);
+                        Assert.That(blocked.Select(c => c.name), Is.Empty, $"{label} blocked at {feet:F2}");
+                    }
+                }
+            }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [Test]
         public void FirstCannonLandsWithoutSteeringAndReportsOffCourseFalls()
         {
             var scene = Open(out bool opened);
@@ -177,6 +264,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             {
                 var mover = probe.AddComponent<PlayerMover>();
                 typeof(PlayerMover).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mover, null);
+                var first = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 01");
                 var second = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 02");
                 var third = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 03");
                 var relay = Find<HumanCannonPole>(scene, "Inspection service swing");
@@ -185,6 +273,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Physics.SyncTransforms();
                 foreach (int seat in Enumerable.Range(0, GameSettings.Poles.Capacity))
                 {
+                    Measure(first, second, null, seat);
                     Measure(second, third, null, seat);
                     Measure(third, null, apron, seat);
                     Measure(relay, null, receiver, seat);

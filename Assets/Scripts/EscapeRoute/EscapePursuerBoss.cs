@@ -39,7 +39,7 @@ namespace CurtainCall.EscapeRoute
         public bool Defeated => State == Phase.Dying || State == Phase.Dead;
         public bool InBattle => State >= Phase.LeapWarning && !Defeated;
         public bool CombatStarted => State >= Phase.LeapWarning;
-        internal bool TakesOverChase => CombatStarted || LauncherTaken();
+        internal bool TakesOverChase => IsReinforcement || CombatStarted || LauncherTaken();
         public bool LimitsFinalFire => arena != null;
         public Transform ArenaFrame => arena ? arena.transform : transform;
         public float SpeedScale => MovementScale(CurrentMask, Tuning.bossSlowPerCut);
@@ -160,10 +160,10 @@ namespace CurtainCall.EscapeRoute
             {
                 chase.CancelBossAttack();
                 transform.position = landing.position;
-                Enter(Phase.Battle, now, transform.position);
-                nextDash = now + 2;
+                Enter(Phase.Landing, now, transform.position);
                 BeginReinforcements(now);
             }
+            if (IsReinforcement && state.Phase == Phase.Waiting) return true;
             float age = Mathf.Max(0, (float)(now - state.Started));
             if (state.Phase == Phase.Waiting)
             {
@@ -193,7 +193,7 @@ namespace CurtainCall.EscapeRoute
                 case Phase.Leaping:
                     float t = Mathf.Clamp01(age / Tuning.bossLeapSeconds);
                     transform.position = Vector3.Lerp(state.From, state.Goal, t) + Vector3.up * (4 * Tuning.bossLeapHeight * t * (1-t));
-                    if (t >= 1) { Enter(Phase.Landing, now); chase.PlayStep(.6f); }
+                    if (t >= 1) Enter(Phase.Landing, now);
                     break;
                 case Phase.Landing:
                     if (age >= Tuning.bossLandingRecovery) { Enter(Phase.Battle, now); nextDash = now + 2; }
@@ -289,10 +289,16 @@ namespace CurtainCall.EscapeRoute
                 if (!IsReinforcement) ClearReinforcements();
                 HideBossWorldUi();
                 if (presentedRound >= 0 || presentedMask != 0) ResetPresentation();
+                if (IsReinforcement) SetReinforcementVisible(false);
                 return;
             }
+            if (!IsReinforcement && CombatStarted) EnsureReinforcements(ReinforcementsDue(timer.Clock));
             if (NetworkManager.Singleton && NetworkManager.Singleton.IsServer) Publish(timer.Clock);
-            if (!IsReinforcement && CombatStarted) EnsureReinforcements(state.Reinforcements);
+            if (IsReinforcement)
+            {
+                SetReinforcementVisible(CombatStarted);
+                if (!CombatStarted) return;
+            }
             Present(timer.Clock);
         }
     }
