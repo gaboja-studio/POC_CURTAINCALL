@@ -28,7 +28,7 @@ namespace CurtainCall.HumanCannon
             else
             {
                 messaging.RegisterNamedMessageHandler(StateName, ReceiveState);
-                RequestSnapshot(resetBarrier.Waiting ? resetBarrier.Token : 0);
+                if (!resetBarrier.Waiting) RequestSnapshot(0);
             }
         }
 
@@ -96,7 +96,7 @@ namespace CurtainCall.HumanCannon
             }
             ClearContacts(); runStart = runEnd = -1; ClearGroundFireState();
             if (session != null && session.IsHost) { epoch = Clock; revision++; Publish(); }
-            else { synchronized = false; RequestSnapshot(resetBarrier.Begin()); }
+            else { synchronized = false; resetBarrier.Begin(); }
         }
 
         void Unregister()

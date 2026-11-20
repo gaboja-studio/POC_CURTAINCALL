@@ -9,3 +9,4 @@
 - [rehearsal-flight-visibility.md](rehearsal-flight-visibility.md) — 인간대포 연습의 비행 화면 누락과 조명 깜빡임을 확인할 때
 
 - [humanoid-limb-carry-contact.md](humanoid-limb-carry-contact.md) — 실제 잘린 사지에 트램펄린이 걸리거나 올라갈 때
+- [restart-snapshot-retry.md](restart-snapshot-retry.md) — 인간대포 재시작 후 참가자의 발판·장애물·결승 톱이 갱신되지 않을 때

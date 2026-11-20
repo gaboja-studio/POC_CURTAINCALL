@@ -25,7 +25,7 @@ namespace CurtainCall.HumanCannon
             else
             {
                 messaging.RegisterNamedMessageHandler(StateName, ReceiveState);
-                RequestSnapshot(resetBarrier.Waiting ? resetBarrier.Token : 0);
+                if (!resetBarrier.Waiting) RequestSnapshot(0);
             }
         }
 
@@ -102,7 +102,7 @@ namespace CurtainCall.HumanCannon
                 revision++;
                 Publish();
             }
-            else RequestSnapshot(resetBarrier.Begin());
+            else resetBarrier.Begin();
         }
 
         void Unregister()

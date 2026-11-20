@@ -159,8 +159,7 @@ namespace CurtainCall.HumanCannon
             else
             {
                 messaging.RegisterNamedMessageHandler(StateName, ReceiveState);
-                SendRequest(resetBarrier.Waiting ? RouteAction.ResetSync : RouteAction.Sync,
-                    resetBarrier.Waiting ? resetBarrier.Token : -1);
+                if (!resetBarrier.Waiting) SendRequest(RouteAction.Sync, -1);
             }
         }
 

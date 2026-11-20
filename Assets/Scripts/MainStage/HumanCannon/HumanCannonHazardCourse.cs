@@ -115,6 +115,9 @@ namespace CurtainCall.HumanCannon
                 cannon = HumanCannonSystem.Current;
                 if (cannon != null) cannon.StateChanged += OnCannonAction;
             }
+            if (session != null && session.ConnectionState == SessionConnectionState.Client && messaging != null
+                && resetBarrier.TryGetRetryToken(Time.unscaledTimeAsDouble, out int token))
+                RequestSnapshot(token);
             if (session == null || !session.IsHost) return;
             if (runStart >= 0 && runEnd < 0 && Resolved) { runEnd = Clock; revision++; Publish(); }
             if (Clock >= nextSnapshot) { nextSnapshot = Clock + 0.5; Publish(); }
