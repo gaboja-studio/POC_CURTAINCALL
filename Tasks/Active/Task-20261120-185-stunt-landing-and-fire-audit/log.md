@@ -10,3 +10,5 @@
 - 컴파일은 EditMode 배치 실행으로 확인했다. check-work의 안전성과 문서/규칙은 통과했다. 씬과 에셋 및 프로젝트 설정 변경은 없다. 실제 플레이·다인 검증은 하지 않았다.
 - 변경은 이 브랜치에 커밋하지 않은 상태로 둔다. 스테이징·커밋·푸시·PR 없음.
 - 2026-11-20 저장 요청 후 최신 DEV 2de076bd 반영. 안전성=PASS; 컴파일=PASS(배치 EditMode); 테스트=PASS(착지 35건, 공용 기물 36건). 실제 플레이·다인 테스트 미실행.
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/468 (fix/stunt-landing-and-fire-audit → dev)
