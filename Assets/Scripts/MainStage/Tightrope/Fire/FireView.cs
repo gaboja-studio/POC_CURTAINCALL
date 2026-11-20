@@ -249,7 +249,16 @@ namespace CurtainCall.Tightrope.Fire
             foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);
         }
 
-        void OnDisable() => Hide();
+        /// <summary>표시 중인 화재 연출. 그래픽이 없는 화면에서는 꺼져 있어 null이다.</summary>
+        public static FireView Active { get; private set; }
+
+        void OnEnable() => Active = this;
+
+        void OnDisable()
+        {
+            if (Active == this) Active = null;
+            Hide();
+        }
 
         void OnDestroy()
         {

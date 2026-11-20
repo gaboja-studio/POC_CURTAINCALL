@@ -33,7 +33,8 @@ namespace CurtainCall.EscapeRoute
         MaterialPropertyBlock[] originalBlocks;
         float[] burnOffsets;
         MaterialPropertyBlock ropeBlock;
-        bool dissolving, contactsLive, filamentsLive, seamLive;
+        bool dissolving, contactsLive, filamentsLive, seamLive, vanishCued;
+        float dissolveAmount;
         [SerializeField] LineRenderer[] warningArcs = Array.Empty<LineRenderer>();
         [Min(.1f), SerializeField] float warningSeconds = 2f;
         [SerializeField] Transform button;
@@ -178,9 +179,12 @@ namespace CurtainCall.EscapeRoute
             Attach();
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
-            PresentPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible, timed);
             double cycle = timed ? hazards.Elapsed % (visibleSeconds + hiddenSeconds) : 0;
-            UpdateDissolve(cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds), visibleSeconds, (float)cycle) : 0);
+            float burn = cycle < visibleSeconds ? Mathf.InverseLerp(visibleSeconds - DissolveWindow, visibleSeconds, (float)cycle) : 0;
+            // 소실음은 눈에 보이는 소실 연출과 같은 시각에 시작한다. 같은 프레임의 경고 점멸음이 이를 끊지 않도록 먼저 처리한다.
+            UpdateVanishCue(timed && dissolveBurn && burn > 0);
+            PresentPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible, timed);
+            UpdateDissolve(burn);
             UpdateTransitionParticles(timed ? hazards.Elapsed : -1, cycle);
             UpdateTraversal(NetworkPlayer.Local);
             if (session != null && session.IsHost && synchronized && !resetBarrier.Waiting
@@ -219,8 +223,41 @@ namespace CurtainCall.EscapeRoute
             return (int)(progress * 6d) % 2 == 0 ? RopePhase.Flash : RopePhase.Visible;
         }
 
+        float DissolveWindow => Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds);
+
+        void UpdateVanishCue(bool burning)
+        {
+            // ESC-012의 큰 방전 구간(약 0.15~1.0초)이 소실 연출(1.05초) 동안 겹치고, 줄이 다 사라질 때 잦아든다.
+            if (burning && !vanishCued && IsReady && Application.isPlaying) PlayRopeCue(SoundCueIds.EscapeRopeDisappear);
+            vanishCued = burning;
+        }
+
+        /// <summary>
+        /// 화면의 외줄 조각이 이 지점에서 이미 다 타 없어졌는지. 지지면은 소실 연출 끝에 한꺼번에 꺼지지만,
+        /// 매달린 사람은 자기 손 위 조각이 보이지 않게 되는 순간 놓아야 한다. 덮는 조각이 없으면 false.
+        /// </summary>
+        public bool IsRopeGoneAt(Vector3 point)
+        {
+            if (!isActiveAndEnabled || !dissolving || ropeMaterials == null) return false;
+            bool covered = false;
+            for (int i = 0; i < ropeVisuals.Length; i++)
+            {
+                var visual = ropeVisuals[i];
+                if (!visual || !initialVisuals[i]) continue;
+                var bounds = visual.bounds;
+                bounds.Expand(GripReach);
+                if (!bounds.Contains(point)) continue;
+                covered = true;
+                if (RopeDissolve.AtOffset(dissolveAmount, burnOffsets[i]) < 1f) return false;
+            }
+            return covered;
+        }
+
+        const float GripReach = .5f;
+
         void UpdateDissolve(float amount)
         {
+            dissolveAmount = amount;
             if (!dissolveBurn || (amount <= 0 && !dissolving)) return;
             bool active = amount > 0;
             if (active && !dissolving) SetWarning(false);
@@ -315,18 +352,11 @@ namespace CurtainCall.EscapeRoute
             bool changeSupport = (phase == RopePhase.Hidden) != (next == RopePhase.Hidden);
             if (sound && IsReady && Application.isPlaying)
             {
-                string cue = next == RopePhase.Hidden ? SoundCueIds.EscapeRopeDisappear
+                // 소실 연출이 있으면 소실음은 연출 시작(UpdateVanishCue)에 이미 났다. 연출 중 경고 점멸음으로 끊지 않는다.
+                string cue = next == RopePhase.Hidden ? (dissolveBurn ? null : SoundCueIds.EscapeRopeDisappear)
                     : phase == RopePhase.Hidden ? SoundCueIds.EscapeRopeRestore
-                    : next == RopePhase.Flash ? SoundCueIds.EscapeRopeWarning : null;
-                if (cue != null)
-                {
-                    ropeSound.Stop();
-                    if (TryGetSoundPoint(out var point))
-                    {
-                        ropeSoundPoint = point;
-                        ropeSound = SoundManager.PlayAt(cue, point);
-                    }
-                }
+                    : next == RopePhase.Flash && !vanishCued ? SoundCueIds.EscapeRopeWarning : null;
+                if (cue != null) PlayRopeCue(cue);
             }
             phase = next;
             if (session != null && session.IsHost) foreach(var support in ropeSupports) if(support!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,support,"VANISHING_ROPE",next.ToString(),support.transform.position,true);
@@ -335,6 +365,14 @@ namespace CurtainCall.EscapeRoute
             var local = NetworkPlayer.Local;
             var mover = local != null ? local.GetComponent<PlayerMover>() : null;
             if (ApplyRopeVisibility(next != RopePhase.Hidden, mover)) switcher?.ReleaseForAuthoredDrop();
+        }
+
+        void PlayRopeCue(string cue)
+        {
+            ropeSound.Stop();
+            if (!TryGetSoundPoint(out var point)) return;
+            ropeSoundPoint = point;
+            ropeSound = SoundManager.PlayAt(cue, point);
         }
 
         bool TryGetSoundPoint(out Vector3 point)
