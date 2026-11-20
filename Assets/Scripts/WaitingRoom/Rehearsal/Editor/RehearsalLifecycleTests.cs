@@ -295,7 +295,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var player = Player(941);
             typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
             typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
-            Set(rehearsal, "local", player); Set(rehearsal, "placedRound", 3); Set(rehearsal, "lessonReturnedRound", 3);
+            Set(rehearsal, "local", player); Set(rehearsal, "placedRound", 3);
             foreach (string name in new[] { "arrived", "votes", "placed" }) ((HashSet<ulong>)Get(rehearsal, name)).Add(player.OwnerClientId);
             var walls = Make("Old tutorial finish walls"); Set(rehearsal, "finishWalls", walls);
             var state = (NetworkVariable<PlayerState>)Get(player, "state");

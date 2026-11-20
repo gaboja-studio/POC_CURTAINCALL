@@ -18,7 +18,8 @@ namespace CurtainCall.WaitingRoom
         public float CheckpointDistance = 14f;
         public bool UsesPoles => Kind is RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles or RehearsalStageKind.Trapeze;
         // 1단계의 기획상 완료 조건은 실제 도착이다. 순간 점프 복제 기록은 완료의 필수 조건이 아니다.
-        public bool RequiresSkillForArrival => Kind is not (RehearsalStageKind.Balance or RehearsalStageKind.LaneChange);
+        // 공중그네(3)는 빈칸 너머 도착대에 봉 비행으로만 닿으므로 도착 자체가 과제다. 봉 잡기 기록 누락으로 도착을 거부하지 않는다.
+        public bool RequiresSkillForArrival => Kind is not (RehearsalStageKind.Balance or RehearsalStageKind.LaneChange or RehearsalStageKind.Trapeze);
         public bool CanAdvance(int participants, int arrivals, int votes) => participants > 0 && arrivals > 0
             && (arrivals >= participants || Rule == RehearsalClearRule.Anyone
                 || Rule == RehearsalClearRule.EveryoneOrMajority && votes > participants / 2);
@@ -62,7 +63,7 @@ namespace CurtainCall.WaitingRoom
             new() { Id = "2-3", Kind = RehearsalStageKind.Relay, Rule = RehearsalClearRule.Anyone,
                 Title = "4 · 트리거 그네", Intro = "아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다." },
             new() { Id = "3", Kind = RehearsalStageKind.Trapeze, Rule = RehearsalClearRule.EveryoneOrMajority,
-                Title = "5 · 공중그네 잡기와 도약", Intro = "목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 만들고 Space로 도약해 다음 봉을 F로 잡으면 학습 완료입니다." },
+                Title = "5 · 공중그네 잡기와 도약", Intro = "목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 모아 Space로 도약해 다음 봉을 F로 잡고, 다시 Space로 건너편 줄에 착지해 도착대까지 가세요." },
         };
     }
 }

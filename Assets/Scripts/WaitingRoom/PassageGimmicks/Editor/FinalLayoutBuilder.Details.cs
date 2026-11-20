@@ -28,10 +28,12 @@ namespace CurtainCall.WaitingRoom.PassageGimmicks
             // 낮은 천장 판(3m)은 두지 않는다: 위의 진짜 천장(5.2m)과 두 겹으로 보이고, 배관 연결 통로 쪽에서 중간을 막는 판처럼 보였다(2026-11-13 사용자).
             const float top = CorH;
             // 벽 칠: 실제 문(생활 장소 문 x -3~-1)은 비운다.
-            foreach (var (z, inward, gaps) in new[] { (CorZ1, -1f, new (float, float)[0]), (CorZ0, 1f, new[] { (-3.1f, -.9f) }) })
+            // 북벽 칠은 북벽이 끝나는 배관 구역 서쪽 끝까지만 둔다. 그 동쪽은 배관 구역 벽 뒤라 복도에서는 안 보이고,
+            // 배관 구역 안쪽 벽면(z 50.85)과 같은 평면에 겹쳐 깜빡였다(2026-11-20 사용자).
+            foreach (var (z, inward, end, gaps) in new[] { (CorZ1, -1f, PipeZoneWestX, new (float, float)[0]), (CorZ0, 1f, x1, new[] { (-3.1f, -.9f) }) })
             {
                 float cursor = x0;
-                foreach (var (g0, g1) in gaps.Append((x1, x1)))
+                foreach (var (g0, g1) in gaps.Append((end, end)))
                 {
                     if (g0 > cursor)
                     {

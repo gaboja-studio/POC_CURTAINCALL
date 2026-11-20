@@ -24,6 +24,8 @@ namespace CurtainCall.WaitingRoom
         public bool IsOn => mode != Mode.Off;
         /// <summary>치직 잡음·웃는 얼굴 연출이 재생 중인가(이 동안에는 안내 화면·감시 화면으로 덮지 않는다).</summary>
         public bool IsPlayingFace => mode == Mode.Static || mode == Mode.Face;
+        /// <summary>소리만 끈다(화면은 그대로). 듣는 사람이 모니터가 있는 방 밖에 있을 때 쓴다.</summary>
+        public bool SoundMuted { get => audioSource != null && audioSource.mute; set { if (audioSource != null) audioSource.mute = value; } }
 
         TMPro.TextMeshPro slideTitle, slideBody;
         Texture2D watchTexture;

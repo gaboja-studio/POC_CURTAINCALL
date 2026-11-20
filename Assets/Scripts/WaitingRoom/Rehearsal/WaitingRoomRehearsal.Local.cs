@@ -30,7 +30,6 @@ namespace CurtainCall.WaitingRoom
         // 추락 복귀는 늘 소구간 출발대다(사용자 2026-11-03: 줄 위 체크포인트는 외줄 UI가 다시 켜지지 않아 제거).
         // 도착 기록과 이동 제한은 별개다. 공통 설정 기본값은 양 끝 진입을 위해 벽을 끈다.
         GameObject finishWalls;
-        int lessonReturnedRound = -1;
         string lastQuest = "";
         string lastDeviceGuide="";
         string rescueGuide = "";
@@ -168,7 +167,6 @@ namespace CurtainCall.WaitingRoom
             arrived.Remove(local.OwnerClientId);
             votes.Remove(local.OwnerClientId);
             placed.Remove(local.OwnerClientId);
-            lessonReturnedRound = -1;
             if (finishWalls != null) finishWalls.SetActive(false);
             if (completed) { placedRound = -1; return; }
             placedRound = round;
@@ -188,7 +186,6 @@ namespace CurtainCall.WaitingRoom
         /// <summary>소구간·회차가 바뀌었다(코스가 새로 만들어졌거나 사라짐).</summary>
         void OnCourseChanged()
         {
-            lessonReturnedRound = -1;
             ReleasePlacementLock();
             nextPlacementSend = 0f;
             placedRound = -1; lastQuest = ""; lastDeviceGuide="";
@@ -317,13 +314,7 @@ namespace CurtainCall.WaitingRoom
                 && !localRecoveryPending && placed.Contains(local.OwnerClientId)
                 && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId)
                 && (Stage.Kind != RehearsalStageKind.Trapeze || !IsStartPosition(local.transform.position));
-            if (completed && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
-            {
-                // 한 번의 도약/다음 봉 잡기가 끝나면 연습을 마친다. 공연의 연속 봉 코스를 재현하지 않는다.
-                Pose pose = course.GetFinishPose(Mathf.Max(0, local.Slot));
-                Relocate(mover, pose.position, pose.rotation);
-                lessonReturnedRound = round;
-            }
+            // 공중그네도 도착대까지 직접 건너간다(2026-11-20 사용자). 봉을 잡았다고 도착대로 옮기지 않는다.
             bool block = completed && CurtainCall.Settings.GameSettings.WaitingRoom.Tutorial.KeepFinishBarrier;
             if (block && finishWalls == null) finishWalls = BuildFinishWalls();
             if (finishWalls != null && finishWalls.activeSelf != block) finishWalls.SetActive(block);

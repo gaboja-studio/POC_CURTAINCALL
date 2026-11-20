@@ -142,6 +142,36 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return false;
         }
 
+        /// <summary>손을 뻗어 다음 잡을 곳에 닿는 최대 높이 간격(m). 화물 선반의 단 간격(약 2m)은 넘고, 허공에 뜬 통로 바닥판(5m 이상)은 넘지 못한다.</summary>
+        public const float MaxHoldGap = 2.2f;
+
+        /// <summary>
+        /// 선반·비계처럼 면이 끊긴 구조물(2026-11-20 사용자: 화물 선반 위 플레이어를 따라 오르지 못함). 이어진 벽은 아니어도
+        /// 발에서 가장자리까지 오르는 쪽 1.1m 안에 잡을 것(단·적재물·기둥)이 <see cref="MaxHoldGap"/> 안쪽 간격으로 있으면 오를 수 있다.
+        /// 아래가 통째로 빈 바닥판은 간격이 넘어 여전히 거부된다.
+        /// </summary>
+        public static bool HasFrameSupport(Vector3 from, Vector3 to, Transform self)
+        {
+            var flat = Vector3.ProjectOnPlane(to - from, Vector3.up);
+            float span = flat.magnitude, height = to.y - from.y;
+            if (height < PursuitClimbLinks.MinHeight || span < .05f) return false;
+            var direction = flat / span;
+            float lastHold = 0; // 바닥에서 시작한다.
+            for (float y = .25f; y < height - .12f; y += .25f) {
+                if (HoldAt(from + Vector3.up * y, direction, self)) lastHold = y;
+                else if (y - lastHold > MaxHoldGap) return false;
+            }
+            return height - lastHold <= MaxHoldGap;
+        }
+
+        static bool HoldAt(Vector3 origin, Vector3 direction, Transform self)
+        {
+            const float Radius = .2f, Reach = 1.1f;
+            int count = Physics.SphereCastNonAlloc(origin, Radius, direction, hits, Reach, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++) if (!Skip(hits[i].collider, self)) return true;
+            return false;
+        }
+
         static bool WallColumn(Vector3 from, float height, Vector3 direction, float reach, Transform self)
         {
             float previous = -1;
