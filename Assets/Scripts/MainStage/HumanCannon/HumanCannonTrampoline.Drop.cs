@@ -28,12 +28,11 @@ namespace CurtainCall.HumanCannon
         /// <summary>호스트가 공유하는 위치. 떨어지는 중이면 도착할 지면 위치를 보낸다.</summary>
         Vector3 SharedPosition => dropping ? dropTarget : transform.position;
 
-        /// <summary>낙사 때 옮길 곳: 시작 지점에 가장 가까운 생존자 발밑 지면. 공중 생존자도 그 아래 지면을 쓴다.
+        /// <summary>낙사 때 옮길 곳: 시작 지점에 가까운 순서로 생존자 주변에서 사용할 수 있는 지면을 찾는다.
         /// 발밑에 둘 수 없으면 2m와 4m 뒤의 지면을 확인한다.</summary>
         bool TryFindSurvivorGround(out Vector3 ground)
         {
             ground = default;
-            NetworkPlayer survivor = null;
             float nearest = float.PositiveInfinity;
             foreach (var candidate in NetworkPlayer.All)
             {
@@ -41,15 +40,18 @@ namespace CurtainCall.HumanCannon
                 Vector3 feet = candidate.transform.position;
                 if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) continue;
                 float distance = new Vector2(feet.x - initialPosition.x, feet.z - initialPosition.z).sqrMagnitude;
-                if (distance >= nearest) continue;
+                if (distance >= nearest || !TryFindGroundNearSurvivor(candidate, feet, out var placement)) continue;
                 nearest = distance;
-                survivor = candidate;
+                ground = placement;
             }
-            if (survivor == null) return false;
-            Vector3 position = survivor.transform.position;
+            return float.IsFinite(nearest);
+        }
+
+        bool TryFindGroundNearSurvivor(NetworkPlayer survivor, Vector3 position, out Vector3 ground)
+        {
             var cannon = HumanCannonSystem.Current;
             bool seated = cannon != null && cannon.IsSeated(survivor.OwnerClientId);
-            if (!seated && TryFindPlacement(position, initialRotation, survivor, out ground)) return true;
+            if (!seated && TryFindRecoveryPlacement(position, survivor, out ground)) return true;
             Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up);
             if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
             // 생존자의 2m, 4m 뒤에서 트램펄린을 놓을 수 있는 지면을 찾는다.
@@ -57,10 +59,17 @@ namespace CurtainCall.HumanCannon
             for (int step = 0; step < SurvivorBehindSteps; step++)
             {
                 behind -= forward.normalized * SurvivorBehindDistance;
-                if (TryFindPlacement(behind, initialRotation, survivor, out ground)) return true;
+                if (TryFindRecoveryPlacement(behind, survivor, out ground)) return true;
             }
+            ground = default;
             return false;
         }
+
+        bool TryFindRecoveryPlacement(Vector3 position, NetworkPlayer survivor, out Vector3 ground)
+            => TryFindPlacement(position, initialRotation, survivor, out ground) && IsStableRecoveryGround(ground);
+
+        static bool IsStableRecoveryGround(Vector3 ground) =>
+            HumanCannonRouteSystem.Current?.BlocksTrampolineAtTransport(ground, recovering: true) != true;
 
         internal static bool IsPursuerCollider(Collider collider) => collider.GetComponentInParent<PursuitActor>() != null
             || collider.GetComponentInParent<EscapeUnderstageChase>() != null;

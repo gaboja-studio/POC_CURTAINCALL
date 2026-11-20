@@ -80,12 +80,20 @@ namespace CurtainCall.HumanCannon
             // 운반자가 실려 가는 동안 그 트램폴린은 반동하지 않는다. 발판 밖으로 튀어나온 부분도 같다.
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && IsRiding(trampoline.Carrier)) return true;
+            return BlocksTrampolineAtTransport(contact, recovering: false);
+        }
+
+        internal bool BlocksTrampolineAtTransport(Vector3 contact, bool recovering)
+        {
+            if (runtime == null) return false;
             for (int i = 0; i < runtime.Length; i++)
             {
                 if (transports[i] == null) continue;
                 if (runtime[i].Trap.IsOpen && transports[i].ContainsFallColumn(contact)) return true;
                 // 이동·복귀 중 발판 위 트램폴린에서 튀어 오르며 같이 올라가지 못하게 한다.
-                if (Sealed(runtime[i]) && transports[i].ContainsAirColumn(contact)) return true;
+                // Recovered equipment also needs to stay reachable after an arrived platform returns.
+                if ((Sealed(runtime[i]) || recovering && runtime[i].State.Phase == DeparturePhase.Arrived)
+                    && transports[i].ContainsAirColumn(contact)) return true;
             }
             return false;
         }

@@ -220,7 +220,8 @@ namespace CurtainCall.HumanCannon
             Quaternion rotation = transform.rotation;
             Vector3 ground = default;
             bool nearby = !fellOff && (TryDropHere(carrier, out ground)
-                || TryFindNearbySidePlacement(dropOrigin, rotation, carrier, out ground, avoidRope: false));
+                || TryFindNearbySidePlacement(dropOrigin, rotation, carrier, out ground, avoidRope: false))
+                && IsStableRecoveryGround(ground);
             if (!nearby)
             {
                 rotation = initialRotation;
