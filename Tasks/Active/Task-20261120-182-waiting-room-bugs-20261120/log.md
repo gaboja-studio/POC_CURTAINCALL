@@ -13,3 +13,4 @@
 - 무관한 변경(커밋 대상 아님): 폰트 에셋 3개·`escape-labels.asset`(TMP 동적 글리프), `_ThirdParty` 서브모듈.
 - 추격 NavMesh는 다시 굽지 않음(충돌체 변경 없음).
 - 2026-11-20 dev 반영(12커밋, PR #459~462): 에디터 종료 확인 후 미커밋 변경을 stash → fast-forward → pop, 충돌 없음. `WaitingRoom.unity`는 양쪽 변경이 다른 자리라 자동 병합(표식 0, fileID 중복 0, TentTopShed 유지). dev에 같은 번호 Task-181(waiting-escape-bugs)이 들어와 이 Task를 182로 바꿈. 병합 뒤 컴파일·테스트는 다시 돌리지 않음.
+- 2026-11-20 저장·제출: 커밋 8dc22c41(이 작업 파일 17개만, 폰트 에셋·_ThirdParty 제외). PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/466 (fix/bugs-20261120 → dev). 제출 시점 dev가 5커밋 앞섬(PR #463~465, 겹치는 파일 0, 병합 시뮬레이션 충돌 없음) — 에디터가 열려 있어 로컬 반영은 하지 않음.
