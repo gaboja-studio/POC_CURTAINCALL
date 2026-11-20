@@ -3,7 +3,7 @@
 - **Title:** 탈출로 겹침 면 및 불필요 렌더링 최적화
 - **Type:** fix
 - **Assignee:** @RagSpirin
-- **Branch:** fix/escape-shaft-and-surface-polish
+- **Branch:** fix/escape-user-map-polish
 - **Base:** dev
 
 ## Context
@@ -18,3 +18,5 @@ origin/dev 843f085d에서 전용 브랜치를 만들었다(PR #410 반영). 기�
 제출 전 origin/dev b34664aa를 fast-forward 반영했다. 원격에서 Task151 번호가 먼저 사용되어 이 작업을 Task153으로 정리했다. 로컬 검사 증거 폴더 escape-optimization-151은 그대로 유지한다.
 
 2026-11-20 후속은 DEV 79171de9의 운영 탈출로에 남은 표면 겹침과 낭떠러지 깊이 표현을 정리한다. 공용 대포의 발사 연출은 공용 포구 프리팹에서 강화한다.
+
+사용자가 저장한 운영 탈출로의 편집을 적용하고, 사라진 그네 착지대와 화면에 보이지 않는 외줄 판정을 정리한다.
