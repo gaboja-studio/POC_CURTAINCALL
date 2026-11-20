@@ -81,7 +81,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (edge < 0) return Plan.None;
             var supportFeet = origin + direction * Mathf.Max(0, edge - StepOut);
             var supportTop = origin + direction * (edge + .2f); supportTop.y = top;
-            if (!PursuitClimbPath.HasWallSupport(supportFeet, supportTop, self)) return Plan.None;
+            if (!Supported(supportFeet, supportTop, self)) return Plan.None;
             if (edge > EdgeReach) {
                 // 가장자리 앞 바닥으로 다가간다. 단, 지금보다 0.3m 이상 가까워지는 바닥이 있을 때만(같은 자리로 다가가기를 반복하던 문제).
                 var stand = origin + direction * (edge - StepOut);
@@ -101,13 +101,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 && !SurfaceAt(origin + direction * (edge + .05f), top, self, out land)) return Plan.None;
             point = land.point;
             // A balcony top is not a wall. Search another edge instead of climbing its empty underside.
-            if (!PursuitClimbPath.HasWallSupport(origin, point, self)) return Plan.None;
+            if (!Supported(origin, point, self)) return Plan.None;
             // 서서 뻗을 기둥(몸 두께), 가장자리를 넘는 공간, 윗면에 설 공간.
             var column = new Vector3(origin.x, top + LipClearance, origin.z);
             if (!BodyOpen(origin + Vector3.up * BodyLift, column, self) || !Open(column, point + Vector3.up * LipClearance, self)
                 || !LandingRoom(point, self)) return Plan.None;
             return Plan.Climb;
         }
+
+        /// <summary>이어진 벽, 또는 선반처럼 단·적재물을 잡고 오를 수 있는 뼈대. 직접 오르기에만 쓴다(구운 링크는 벽만).</summary>
+        static bool Supported(Vector3 from, Vector3 to, Transform self)
+            => PursuitClimbPath.HasWallSupport(from, to, self) || PursuitClimbPath.HasFrameSupport(from, to, self);
 
         /// <summary>
         /// 내려갈 바닥. toward가 있으면 그 근처(대상이 내려간 곳)를 먼저, 없으면 가장 가까운 아래 NavMesh, 그래도 없으면 8방향 가장자리 밖 바닥.

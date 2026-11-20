@@ -440,11 +440,12 @@ namespace CurtainCall.WaitingRoom
                 if (placed.Contains(player.OwnerClientId))
                 {
                     changed |= ObserveLesson(player);
-                    if ((!s.RequiresSkillForArrival || LearnedSkill(player)) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player))
+                    // 모든 소구간은 도착대에 실제로 서야 도착이다(2026-11-20 사용자: 공중그네도 봉만 잡아서는 완료되지 않는다).
+                    if ((!s.RequiresSkillForArrival || LearnedSkill(player)) && IsFinished(player)
                         && arrived.Add(player.OwnerClientId))
                     {
                         changed = true;
-                        RecordAction("ARRIVED", player.OwnerClientId, s.Kind == RehearsalStageKind.Trapeze ? "LESSON_CRITERION" : "FINISH_PLATFORM");
+                        RecordAction("ARRIVED", player.OwnerClientId, "FINISH_PLATFORM");
                     }
                 }
             }

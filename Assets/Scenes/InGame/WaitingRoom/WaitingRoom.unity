@@ -192882,6 +192882,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EntrancePlaque
       objectReference: {fileID: 0}
+    - target: {fileID: 213251312599540706, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 797651487940222974, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
       propertyPath: text
       value: SCENERY / RIGGING
@@ -192973,10 +192977,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6448186190430660514, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
 --- !u!4 &527117614 stripped
 Transform:
@@ -207887,6 +207888,7 @@ Transform:
   - {fileID: 1025651898}
   - {fileID: 1321744741}
   - {fileID: 1008962331}
+  - {fileID: 1123000502}
   m_Father: {fileID: 474693371}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &575578886
@@ -222773,6 +222775,11 @@ MonoBehaviour:
   - WorkshopBranch
   - Area_S04_PropRoom
   - F8_PropRoom
+  soundZones:
+  - Lobby
+  - Area_Lobby
+  - Area_LobbyEast
+  soundFallbackRange: 20
 --- !u!1 &618948312
 GameObject:
   m_ObjectHideFlags: 0
@@ -258303,8 +258310,8 @@ Transform:
   m_GameObject: {fileID: 711923574}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17500019, y: 1.05, z: 50.818996}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -1.3499999, y: 1.05, z: 50.818996}
+  m_LocalScale: {x: 0.88425046, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2031178364}
@@ -393664,8 +393671,8 @@ Transform:
   m_GameObject: {fileID: 1076176617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17500019, y: 3.125, z: 50.835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -1.3499999, y: 3.125, z: 50.835}
+  m_LocalScale: {x: 0.88425046, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2031178364}
@@ -409450,6 +409457,53 @@ LODGroup:
     renderers:
     - renderer: {fileID: 1122793501}
   m_Enabled: 1
+--- !u!1 &1123000501
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1123000502}
+  - component: {fileID: 1123000503}
+  m_Layer: 0
+  m_Name: TentTopShed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1123000502
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1123000501}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 575343702}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1123000503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1123000501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfd814f15d79e7469d583b1cf655742, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SteepSurfaceShed
+  surfaces:
+  - {fileID: 4124073019245015063}
+  shedSpeed: 4
 --- !u!1 &1123544798
 GameObject:
   m_ObjectHideFlags: 0
@@ -461529,7 +461583,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1273812590
 Transform:
   m_ObjectHideFlags: 0
@@ -521633,8 +521687,8 @@ Transform:
   m_GameObject: {fileID: 1417935694}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17500019, y: 0.525, z: 50.835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -1.3499999, y: 0.525, z: 50.835}
+  m_LocalScale: {x: 0.88425046, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2031178364}
@@ -718706,6 +718760,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EntrancePlaque
       objectReference: {fileID: 0}
+    - target: {fileID: 213251312599540706, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 797651487940222974, guid: 921b05578f88b434ebd98553fb60d662, type: 3}
       propertyPath: text
       value: "\uD654\uBB3C \xB7 \uBB34\uB300 \uC7A5\uCE58"
@@ -824924,6 +824982,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+--- !u!64 &4124073019245015063 stripped
+MeshCollider:
+  m_CorrespondingSourceObject: {fileID: 2911775602436043056, guid: 4c39d35a2e3902a449451edcc17ce3c8, type: 3}
+  m_PrefabInstance: {fileID: 4124073019245015059}
+  m_PrefabAsset: {fileID: 0}
 --- !u!23 &4231508343964562254
 MeshRenderer:
   m_ObjectHideFlags: 0
