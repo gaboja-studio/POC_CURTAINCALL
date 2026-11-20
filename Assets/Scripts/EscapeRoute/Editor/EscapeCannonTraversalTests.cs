@@ -290,6 +290,11 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var second = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 02");
                 var third = Find<HumanCannonPole>(scene, "Labyrinth Inspection swing 03");
                 var apron = Find<BoxCollider>(scene, "02 inspection relay apron");
+                var extractionApron = Find<BoxCollider>(scene, "06 extraction corner apron");
+                Assert.That(extractionApron.GetComponent<MeshRenderer>().enabled, Is.True);
+                Assert.That(extractionApron.GetComponent<HumanCannonLandingZone>(), Is.Not.Null);
+                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                    .Any(part => part.name == "Extraction service exit wire"), Is.False, "A removed wire must not remain as an invisible crossing.");
                 Physics.SyncTransforms();
                 foreach (int seat in Enumerable.Range(0, GameSettings.Poles.Capacity))
                 {
@@ -297,7 +302,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     Measure(second, third, null, seat);
                     Measure(third, null, apron, seat);
                     Measure(Find<HumanCannonPole>(scene, "Extraction service swing"), null,
-                        Find<BoxCollider>(scene, "Extraction service swing receiver"), seat);
+                        extractionApron, seat);
                 }
 
                 void Measure(HumanCannonPole source, HumanCannonPole target, Collider landing, int seat)
