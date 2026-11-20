@@ -30,6 +30,7 @@ Unity 메뉴를 여러 번 오가지 않고, 창 하나에서 버전·로그·�
 - 로그·설문 체크는 Unity 메뉴 **CurtainCall → 테스트 빌드 태그**와 같은 PC 설정에 저장됩니다.
 - 설문 등록 내용은 빌드를 시작할 때 `Scripts/Telemetry/playtest-settings.json`에 저장됩니다. 바뀐 내용이 없으면 파일을 다시 쓰지 않습니다.
 - 빌드 기록은 `Builds/_logs/`에 남습니다. `Builds/` 폴더는 Git에 올라가지 않습니다.
+- Windows 게시자 서명을 사용할 때는 빌드 PC의 사용자 또는 컴퓨터 인증서 저장소에 있는 코드 서명 인증서 지문을 `CURTAINCALL_SIGNING_THUMBPRINT`로 설정합니다. 타임스탬프 서버를 사용하는 팀은 `CURTAINCALL_TIMESTAMP_URL`도 설정합니다. 도우미가 EXE에 SHA-256 서명을 적용하고 게시자를 확인합니다.
 
 ## 막혔을 때
 

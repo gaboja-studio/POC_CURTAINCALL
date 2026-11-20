@@ -105,7 +105,7 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
             Text(panel, "대상 버전", survey.versions, v => survey.versions = v.Trim());
             Text(panel, "설문 ID", survey.id, v => survey.id = v.Trim());
             var round = new IntegerField("설문 회차") { value = survey.round }; round.RegisterValueChangedCallback(e => survey.round = e.newValue); panel.Add(round);
-            panel.Add(new HelpBox("같은 ID·회차는 PC 사용자별 최초 1회입니다. 패치만 바꿔도 다시 열리지 않습니다. 다시 받으려면 회차를 올리고 새 빌드를 만드세요. 다른 설문으로 교체할 때는 새 ID를 쓰세요.", HelpBoxMessageType.Info));
+            panel.Add(new HelpBox("같은 설문 ID·회차는 PC 사용자마다 게임 버전별로 한 번 열립니다. 같은 버전에서 다시 받으려면 회차를 올리세요.", HelpBoxMessageType.Info));
             if (night) { var day = new IntegerField("몇 일차 밤에 열기") { value = survey.nightDay }; day.RegisterValueChangedCallback(e => survey.nightDay = e.newValue); panel.Add(day); }
             else panel.Add(new Label("런을 플레이한 뒤 나가기·호스트 종료·연결 끊김으로 퇴장할 때"));
             Text(panel, "설문 주소", survey.formUrl, v => survey.formUrl = v.Trim());

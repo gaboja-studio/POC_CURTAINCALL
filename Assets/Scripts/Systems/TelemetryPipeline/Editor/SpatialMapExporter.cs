@@ -44,25 +44,27 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
         public static void ExportEscapeSections()
         {
             var scene=EditorSceneManager.OpenScene("Assets/Scenes/Levels/escape_route.unity",OpenSceneMode.Single);
+            float frameY = scene.GetRootGameObjects().Single(root => root.name == "EscapeCampaignFrame").transform.position.y;
+            // Section ceilings are heights relative to the campaign frame.
             var sources=new[] {
-                ("EscapeArrivalStairs","합류 계단",-2f), ("01_Understage","시작홀",-12f),
-                ("02_CompressionGallery","진입 복도 · 첫 대포",-12f), ("03_04A_CannonWireDescent","착지 외줄 · 하강",-12f),
-                ("04B_ConveyorCatch","이동 그네 · 하부 처리장",-25f), ("05_CooperativeReboundAndExit","소실 외줄 · 트램폴린",-12f),
-                ("06_FlamesSwingCannonAndUpperWire","화염 · 상승 대포",-12f), ("01_RunUp_140_164","첫 반출교 · 추격 시작",-12f),
-                ("02_SideDischarge_164_226","협동교 · 방출 구역",-12f), ("03_OverheadLoads_226_276","상부 설비 구역",-12f),
-                ("04_SwingChasm_276_298","그네 단절 구역",-12f), ("05_LastSprint_298_366","마지막 질주",-12f),
-                ("06_Exit_366_400","절단기 · 출구",-12f), ("56_ExitMeadow","갈대밭",-10f) };
+                ("EscapeArrivalStairs","합류 계단",14f), ("01_Understage","시작홀",4f),
+                ("02_CompressionGallery","진입 복도 · 첫 대포",4f), ("03_04A_CannonWireDescent","착지 외줄 · 하강",4f),
+                ("04B_ConveyorCatch","이동 그네 · 하부 처리장",-9f), ("05_CooperativeReboundAndExit","소실 외줄 · 트램폴린",4f),
+                ("06_FlamesSwingCannonAndUpperWire","화염 · 상승 대포",4f), ("01_RunUp_140_164","첫 반출교 · 추격 시작",4f),
+                ("02_SideDischarge_164_226","협동교 · 방출 구역",4f), ("03_OverheadLoads_226_276","상부 설비 구역",4f),
+                ("04_SwingChasm_276_298","그네 단절 구역",4f), ("05_LastSprint_298_366","마지막 질주",4f),
+                ("06_Exit_366_400","절단기 · 출구",4f), ("56_ExitMeadow","갈대밭",6f) };
             var transforms=UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
             var regions=new List<(string name,Bounds bounds,float top)>();
             foreach(var source in sources){var t=transforms.FirstOrDefault(t=>t.name==source.Item1);if(t==null)continue;
                 var rs=t.GetComponentsInChildren<MeshRenderer>().Where(r=>r.enabled&&r.bounds.size.sqrMagnitude>.001f).ToArray();if(rs.Length==0)continue;
-                var b=rs[0].bounds;foreach(var r in rs.Skip(1))b.Encapsulate(r.bounds);b.Expand(new Vector3(3,0,3));regions.Add((source.Item2,b,source.Item3));}
+                var b=rs[0].bounds;foreach(var r in rs.Skip(1))b.Encapsulate(r.bounds);b.Expand(new Vector3(3,0,3));regions.Add((source.Item2,b,frameY + source.Item3));}
             if(regions.Count<10)throw new InvalidOperationException("Authored escape sections missing: "+regions.Count);
             var whole=regions[0].bounds;foreach(var r in regions.Skip(1))whole.Encapsulate(r.bounds);
             var rooms=regions.Select(r=>new{name=r.name,x=r.bounds.center.x,z=r.bounds.center.z,width=r.bounds.size.x,depth=r.bounds.size.z,route=Array.Empty<object>()}).ToArray();
             var manifest=JObject.Parse(File.ReadAllText("Assets/Resources/TelemetrySpatialMaps.json"));var maps=(JArray)manifest["maps"];
             foreach(var m in maps.Where(m=>(string)m["scene"]==scene.name).ToArray())m.Remove();
-            var captures=new[]{("전체 탈출로",whole,-12f)}.Concat(regions.Select(r=>(r.name,r.bounds,r.top))).ToArray();
+            var captures=new[]{("전체 탈출로",whole,frameY + 4f)}.Concat(regions.Select(r=>(r.name,r.bounds,r.top))).ToArray();
             for(int index=0;index<captures.Length;index++){
                 var (label,b,top)=captures[index];float aspect=b.size.x/Mathf.Max(1,b.size.z);int w=aspect>=1?2400:Mathf.RoundToInt(2400*aspect),h=aspect>=1?Mathf.RoundToInt(2400/aspect):2400;
                 var go=new GameObject("__EscapeMapCamera"){hideFlags=HideFlags.HideAndDontSave};var cam=go.AddComponent<Camera>();cam.enabled=false;cam.cameraType=CameraType.Preview;cam.orthographic=true;

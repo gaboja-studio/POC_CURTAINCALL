@@ -2,21 +2,21 @@
   "logVersions": "*",
   "night": {
     "enabled": true,
-    "id": "M2_NIGHT2",
-    "title": "M2 2일차 밤 정비",
-    "versions": "0.2.x",
-    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSd-pPOUCbrI9e4rOoYlX56A3p-ogclM3qc-hgw3CGRvfQJ1ug/viewform",
-    "entry": "entry.1208211459",
+    "id": "M8_NIGHT2",
+    "title": "0.8.x 2일차 밤 정비",
+    "versions": "0.8.x",
+    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLScPWl5_K2h4X8bzfNFv_4xurhvmuSUnioP1etlIT5YviI2nEA/viewform",
+    "entry": "entry.1050390610",
     "round": 1,
     "nightDay": 2
   },
   "exit": {
     "enabled": true,
-    "id": "M2_EXIT",
-    "title": "M2 게임 종료",
-    "versions": "0.2.x",
-    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfItvwqrR385gcjQOioam8UXD6f1f2qiADCrgo3Fb7108GjEw/viewform",
-    "entry": "entry.179079852",
+    "id": "M8_EXIT",
+    "title": "0.8.x 게임 종료",
+    "versions": "0.8.x",
+    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfUEe4Ijl36q7Awg8v12kbeqmtNoDuCwzVS0ifAEhsa5Vgl6g/viewform",
+    "entry": "entry.1606212413",
     "round": 1,
     "nightDay": 1
   }

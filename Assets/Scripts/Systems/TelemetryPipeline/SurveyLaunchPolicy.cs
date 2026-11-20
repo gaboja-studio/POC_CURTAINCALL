@@ -41,7 +41,7 @@ namespace CurtainCall.Telemetry.Pipeline
         }
     }
 
-    /// <summary>One local marker per account/installation and form, independent of log collection.</summary>
+    /// <summary>One local launch per installation, exact game version, survey kind and round.</summary>
     public sealed class SurveyLaunchCache
     {
         public const string LocalIdentity = "installation";
@@ -80,17 +80,39 @@ namespace CurtainCall.Telemetry.Pipeline
             if (WasOpened(identity, kind)) return false;
             return Claim(Marker(identity, kind), SurveyLaunchPolicy.Url(kind, entry, code), code, open);
         }
-        string Marker(string identity, string kind, SurveyDefinition survey)
+        string CampaignMarker(string identity, string kind, SurveyDefinition survey, string version = null)
         {
             if (!survey.Valid || string.IsNullOrEmpty(identity)) throw new ArgumentException("Invalid survey cache identity.");
-            return survey.Legacy(kind) ? Marker(identity, kind) : Path.Combine(root, "campaign-" + DurableOutbox.Sha256(survey.id + ":" + survey.round + ":" + kind + ":" + identity) + ".opened");
+            string key = survey.id + ":" + survey.round + ":" + kind + ":" + identity;
+            if (version != null) key = version + ":" + key;
+            return Path.Combine(root, "campaign-" + DurableOutbox.Sha256(key) + ".opened");
         }
-        public bool WasOpened(string identity, string kind, SurveyDefinition survey) => survey.Legacy(kind)
-            ? WasOpened(identity, kind) : File.Exists(Marker(identity, kind, survey));
-        public bool TryOpen(string identity, string kind, SurveyDefinition survey, string code, Action<string> open)
+        public bool WasOpened(string identity, string kind, SurveyDefinition survey, string version)
         {
-            if (WasOpened(identity, kind, survey)) return false;
-            return Claim(Marker(identity, kind, survey), SurveyLaunchPolicy.Url(survey, code), code, open);
+            if (!survey.Matches(version)) return false;
+            string path = CampaignMarker(identity, kind, survey, version);
+            if (File.Exists(path)) return true;
+            if (!Directory.Exists(root)) return false;
+            // Earlier builds stored the exact version in the invitation inside a shared marker.
+            var oldPaths = !survey.Legacy(kind) ? new[] { CampaignMarker(identity, kind, survey) }
+                : identity == LocalIdentity ? Directory.GetFiles(root, "0.1.0-" + kind + "-*.opened")
+                : new[] { Marker(identity, kind) };
+            string prefix = "CCS2." + Uri.EscapeDataString(version.Replace('.', '_')) + ".";
+            foreach (string oldPath in oldPaths)
+            {
+                if (!File.Exists(oldPath)) continue;
+                string code = File.ReadAllText(oldPath);
+                if (!code.StartsWith(prefix, StringComparison.Ordinal)
+                    && !(version == "0.1.0" && code.StartsWith("CCS1.0_1_0.", StringComparison.Ordinal))) continue;
+                Claim(path, null, code, _ => { });
+                return true;
+            }
+            return false;
+        }
+        public bool TryOpen(string identity, string kind, SurveyDefinition survey, string version, string code, Action<string> open)
+        {
+            if (!survey.Matches(version) || WasOpened(identity, kind, survey, version)) return false;
+            return Claim(CampaignMarker(identity, kind, survey, version), SurveyLaunchPolicy.Url(survey, code), code, open);
         }
         bool Claim(string path, string url, string code, Action<string> open)
         {

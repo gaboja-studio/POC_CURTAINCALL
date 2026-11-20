@@ -19,6 +19,8 @@ namespace CurtainCall.WaitingRoom
         RehearsalPathGuide guide;
         NetworkPlayer local;
         int placedRound = -1;
+        internal static int LocalPlacedRound => IsActive && instance.local != null && instance.local == NetworkPlayer.Local
+            && instance.placedRound == instance.round ? instance.placedRound : -1;
         bool localRecoveryPending;
         PlayerMover placementLock;
         bool placementControl;

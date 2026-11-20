@@ -24,7 +24,8 @@ function doPost(e){
     var result=ccLock_(function(){
       var book=ccBook_(),receipt=ccReceipts_(book)[batch.batchId];
       if(receipt){if(receipt[1]!==hash||Number(receipt[5])!==batch.events.length)throw new Error('BATCH_ID_CONFLICT');return {ok:true,batchId:batch.batchId,sha256:hash,acceptedEvents:batch.events.length,stored:'SHEETS'};}
-      if(batch.events.every(function(event){return ccDeleted_(event,ccRules_(book));}))return {ok:true,batchId:batch.batchId,sha256:hash,acceptedEvents:batch.events.length,stored:'DISCARDED_BY_ADMIN'};
+      var rules=ccRules_(book);
+      if(batch.events.every(function(event){return ccDeleted_(event,rules);}))return {ok:true,batchId:batch.batchId,sha256:hash,acceptedEvents:batch.events.length,stored:'DISCARDED_BY_ADMIN'};
       var folder=DriveApp.getFolderById(CC_CONFIG.rawFolderId);
       var files=folder.getFilesByName(batch.batchId+'.json');var file;
       if(files.hasNext()){
@@ -89,8 +90,19 @@ function ccImport_(book,preferred,scope){
   eventSheet.getRange(1,22,1,1).setValues([['gameVersion']]);
   var receipts=ccRows_(batchSheet,7,CC_CONFIG.maxEvents),done={};
   receipts.forEach(function(r){if(r[6]==='IMPORTED')done[r[0]]=r[1];});
-  var existing=ccRows_(eventSheet,TelemetryCore.headers.length,CC_CONFIG.maxEvents),ids={};
-  existing.forEach(function(r){ids[r[0]]=ccFingerprint_(r);});
+  var existingCount=eventSheet.getLastRow()-1,ids={},rowNumbers=new Map();
+  if(existingCount>=CC_CONFIG.maxEvents-250){
+    var checkpoint=ccSessionState_();
+    if(checkpoint&&!checkpoint.compacting&&!checkpoint.migration&&checkpoint.cursor===existingCount+1){
+      ccRelocateVerified_(book,checkpoint);
+      existingCount=eventSheet.getLastRow()-1;
+    }
+  }
+  if(existingCount>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
+  for(var startRow=2;startRow<=existingCount+1;startRow+=10000){
+    eventSheet.getRange(startRow,1,Math.min(10000,existingCount+2-startRow),1).getValues()
+      .forEach(function(r,i){rowNumbers.set(r[0],startRow+i);});
+  }
   var sessionState=ccSessionState_(),loadedSessions=new Set();
   var files=ccRawImportFiles_(DriveApp.getFolderById(CC_CONFIG.rawFolderId),preferred,scope),imported=0,staged=[],stagedReceipts=[];
   var rules=ccRules_(book),start=Date.now(),scannedAll=false;
@@ -98,12 +110,12 @@ function ccImport_(book,preferred,scope){
     if(!stagedReceipts.length)return;
     var rows=staged,receipts=stagedReceipts;staged=[];stagedReceipts=[];
     if(rows.length){
-      var end=existing.length+rows.length+1;
+      var end=existingCount+rows.length+1;
       if(end>eventSheet.getMaxRows())eventSheet.insertRowsAfter(eventSheet.getMaxRows(),end-eventSheet.getMaxRows());
-      eventSheet.getRange(existing.length+2,10,rows.length,1).setNumberFormat('@');
+      eventSheet.getRange(existingCount+2,10,rows.length,1).setNumberFormat('@');
     }
     // Events first; a crash before receipts is recovered by the same fingerprints.
-    ccAppend_(eventSheet,rows);existing.push.apply(existing,rows);
+    ccAppend_(eventSheet,rows);existingCount+=rows.length;
     ccAppend_(batchSheet,receipts);
   }
   try{
@@ -122,10 +134,12 @@ function ccImport_(book,preferred,scope){
         ccSessionDetail_(saved).forEach(function(old){ids[old.eventId]=ccFingerprint_(TelemetryCore.row(old,old,old.receivedAt));});loadedSessions.add(sk);
       }
       var row=TelemetryCore.row(e,b,now),fingerprint=ccFingerprint_(row);
+      if(!ids[e.eventId]&&rowNumbers.has(e.eventId))
+        ids[e.eventId]=ccFingerprint_(eventSheet.getRange(rowNumbers.get(e.eventId),1,1,TelemetryCore.headers.length).getValues()[0]);
       if(ids[e.eventId]&&ids[e.eventId]!==fingerprint)throw new Error('EVENT_ID_CONFLICT');
       if(!ids[e.eventId]){pending.push(row);ids[e.eventId]=fingerprint;}
     });
-    if(existing.length+staged.length+pending.length>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
+    if(existingCount+staged.length+pending.length>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
     staged.push.apply(staged,pending);
     stagedReceipts.push([b.batchId,hash,file.getId(),file.getDateCreated().toISOString(),now,b.events.length,'IMPORTED']);
     done[id]=hash;imported++;

@@ -6,6 +6,17 @@ function rows(f,days,environment='TEST',runId=randomUUID()){
  f.context.ccAppend_(f.book.getSheetByName('Events'),events.map(e=>f.context.TelemetryCore.row(e,f.batch,at)));return events;
 }
 const view={environment:'TEST',gameVersion:'0.1.0'};
+test('large session files round-trip through ordered compressed fragments',()=>{
+ const f=fixture(),records={events:[{note:'한'.repeat(2*1024*1024)}]};
+ f.context.Utilities.newBlob=(content,type,name)=>({getDataAsString:()=>content,getName:()=>name});
+ f.context.Utilities.zip=(pieces,name)=>({pieces,name});
+ f.context.Utilities.unzip=blob=>blob.pieces.slice().reverse();
+ const file=f.context.ccSaveJsonFile_({createFile(blob){
+  assert.equal(arguments.length,1);return {getName:()=>blob.name,getBlob:()=>blob};
+ }},'detail.json',records);
+ assert.equal(file.getName(),'detail.json.zip');
+ assert.equal(f.context.ccReadJsonFile_(file).events[0].note,records.events[0].note);
+});
 function plain(x){return JSON.parse(JSON.stringify(x));}
 test('room replay pages isolate environment, revision and viewer before returning detail',()=>{
  const f=fixture();require('node:vm').runInContext(require('node:fs').readFileSync(__dirname+'/room-replay.gs','utf8'),f.context);

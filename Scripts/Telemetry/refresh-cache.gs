@@ -43,11 +43,30 @@ function ccCacheJsonPut_(key,value){
   }catch(e){/* Drive fallback also works after cache eviction or a quota failure. */}
 }
 function ccCacheJsonGet_(key){try{var count=Number(ccCache_().get(key+':parts'));if(!count||count>20)return null;var parts=[];for(var i=0;i<count;i++){var part=ccCache_().get(key+':'+i);if(part===null)return null;parts.push(part);}return JSON.parse(parts.join(''));}catch(e){return null;}}
-function ccDriveJson_(id){var key='dashboard-file:'+id,value=ccCacheJsonGet_(key);if(value)return value;value=JSON.parse(DriveApp.getFileById(id).getBlob().getDataAsString('UTF-8'));ccCacheJsonPut_(key,value);return value;}
+function ccReadJsonFile_(file){
+  var blob=file.getBlob();
+  if(!file.getName().endsWith('.json.zip'))return JSON.parse(blob.getDataAsString('UTF-8'));
+  var pieces=Utilities.unzip(blob).sort(function(a,b){return a.getName().localeCompare(b.getName());});
+  return JSON.parse(pieces.map(function(piece){return piece.getDataAsString('UTF-8');}).join(''));
+}
+function ccDriveJson_(id){var key='dashboard-file:'+id,value=ccCacheJsonGet_(key);if(value)return value;value=ccReadJsonFile_(DriveApp.getFileById(id));ccCacheJsonPut_(key,value);return value;}
 function ccSnapshotFolder_(){
   var props=PropertiesService.getScriptProperties(),id=props.getProperty('DASHBOARD_CACHE_FOLDER_ID');
   if(id)return DriveApp.getFolderById(id);
   var folder=DriveApp.getFolderById(CC_CONFIG.rawFolderId).createFolder('대시보드 캐시');props.setProperty('DASHBOARD_CACHE_FOLDER_ID',folder.getId());return folder;
+}
+function ccSaveJsonFile_(folder,name,value){
+  var content=JSON.stringify(value);
+  var size=2*1024*1024;
+  if(content.length<=size)return folder.createFile(name,content,MimeType.PLAIN_TEXT);
+  // Split before creating blobs. Large sessions exceed both the text and single uncompressed blob limits.
+  var pieces=[];
+  for(var start=0;start<content.length;start=end){
+    var end=Math.min(start+size,content.length);
+    if(end<content.length&&/[\uD800-\uDBFF]/.test(content.charAt(end-1)))end--;
+    pieces.push(Utilities.newBlob(content.slice(start,end),MimeType.PLAIN_TEXT,String(pieces.length).padStart(8,'0')));
+  }
+  return folder.createFile(Utilities.zip(pieces,name+'.zip'));
 }
 function ccGameSignature_(events){
   return ccHash_('activity2:'+JSON.stringify(events.map(function(e){var s=e.sessionSummary;
@@ -59,7 +78,7 @@ function ccWriteSnapshot_(book,all,refreshedAt,importedBatches,publishSheets,sco
   var survey=ccSurveySnapshot_(book),index={revision:revision,epoch:epoch,groups:{}};
   var old=previous?ccDriveJson_(previous.indexId):null,dirty=new Set();
   if(old&&!scope)Object.keys(old.groups).forEach(function(env){Object.keys(old.groups[env].versionsData).forEach(function(v){dirty.add(env+'/'+v);});});
-  function save(suffix,value){var file=folder.createFile('cc-dashboard-'+revision+'-'+suffix+'.json',JSON.stringify(value),MimeType.PLAIN_TEXT);return file.getId();}
+  function save(suffix,value){return ccSaveJsonFile_(folder,'cc-dashboard-'+revision+'-'+suffix+'.json',value).getId();}
   ['TEST','LIVE'].forEach(function(environment){
     if(scope&&scope.environment!==environment){index.groups[environment]=old&&old.groups[environment]||{versions:[],versionsData:{}};return;}
     var versions=TelemetryCore.versionSelection(all.concat(survey.rows),environment).options,group={versions:versions,versionsData:{}};index.groups[environment]=group;
@@ -90,7 +109,7 @@ function ccWriteSnapshot_(book,all,refreshedAt,importedBatches,publishSheets,sco
 function getDashboardVersions(environment,auth){
   ccViewer_(auth);if(!['LIVE','TEST'].includes(environment))throw Error('INVALID_ENVIRONMENT');
   var p=ccSnapshotPointer_(),g=p&&ccDriveJson_(p.indexId).groups[environment];
-  return Array.from(new Set(['0.2.1'].concat(g?g.versions:['0.2.0','0.1.0'])));
+  return Array.from(new Set(['0.8.7','0.2.1'].concat(g?g.versions:['0.2.0','0.1.0'])));
 }
 function ccDashboardCache_(filters,action){
   filters=Object.assign({},filters||{});var pointer=ccSnapshotPointer_(),state=ccRefreshState_(pointer),data;

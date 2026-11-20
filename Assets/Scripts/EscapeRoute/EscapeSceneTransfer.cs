@@ -347,9 +347,11 @@ namespace CurtainCall.EscapeRoute
         {
             var runtime = TelemetryRuntime.Instance;
             if (runtime == null || runtime.CurrentRunId == null) return;
+            var player = NetworkPlayer.Local;
             runtime.Emit("WORLD_STATE_CHANGED", new() { ["entityId"] = "ESCAPE_ENTRANCE", ["entityKind"] = "OBJECT",
                 ["state"] = state, ["observation"] = "ESCAPE_TRANSFER", ["position"] = DetailLogIds.Position(at),
-                ["subjectKind"] = host ? "TEAM" : "PLAYER" }, host ? "HOST" : "LOCAL");
+                ["subjectKind"] = host ? "TEAM" : "PLAYER",
+                ["playerState"] = !host && player != null ? player.State.ToString() : null }, host ? "HOST" : "LOCAL");
         }
         public void Complete()
         {
