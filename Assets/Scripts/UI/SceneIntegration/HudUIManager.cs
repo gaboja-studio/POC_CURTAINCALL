@@ -63,13 +63,21 @@ namespace CurtainCall.UI.SceneIntegration
                     return card;
             return Add(HudRole.Guide,content,owner,title,"",seconds,badgeKey:key);
         }
-        public HudRoleCard ShowSystemEvent(string content, Transform owner, string title, float? seconds = null,HudEventKind kind=HudEventKind.Notice) =>
-            Add(HudRole.SystemEvent,content,owner,title,"",seconds,null,kind);
-        /// <param name="sound">카드와 함께 낼 사운드 상황 키(예: 내 사망). 동료 사망처럼 소리가 따로 없으면 null.</param>
+        public HudRoleCard ShowSystemEvent(string content, Transform owner, string title, float? seconds = null,
+            HudEventKind kind = HudEventKind.Notice) => ShowSystemEventWithSound(content, owner, title, seconds, kind, null);
+
+        internal HudRoleCard ShowSystemEventWithSound(string content, Transform owner, string title, float? seconds,
+            HudEventKind kind, string sound)
+        {
+            var card = Add(HudRole.SystemEvent, content, owner, title, "", seconds, kind: kind);
+            if (kind == HudEventKind.Warning) SoundManager.Play(sound ?? SoundSituations.WarningBanner);
+            return card;
+        }
+        /// <param name="sound">개인 사망음이 있으면 일반 경고음 대신 사용한다.</param>
         internal HudRoleCard ShowDeathWarning(string content, Transform owner, string title, float seconds, string sound = null)
         {
             var card = Add(HudRole.SystemEvent,content,owner,title,"",seconds,kind:HudEventKind.Warning,upperRightEvent:true);
-            if (card != null && !string.IsNullOrEmpty(sound)) SoundManager.Play(sound);
+            SoundManager.Play(sound ?? SoundSituations.WarningBanner);
             return card;
         }
         public HudRoleCard ShowZoneName(string content, Transform owner)

@@ -4,6 +4,7 @@ using System.Linq;
 using CurtainCall.StartLobby;
 using CurtainCall.Campaign;
 using CurtainCall.Player;
+using CurtainCall.Sound;
 using CurtainCall.Voice;
 using CurtainCall.UI.SettingsV2;
 using TMPro;
@@ -39,6 +40,10 @@ namespace CurtainCall.UI.SceneIntegration
         VoiceChat deviceVoice;
         string selectedInput = "unavailable", selectedOutput = "unavailable";
         bool inputTouched, outputTouched;
+        readonly Dictionary<string, bool> draftToggles = new();
+        float? previousSfxVolume;
+        int observedPage;
+        bool preparingDraft;
         static readonly FullScreenMode[] ScreenModes = { FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
         static readonly string[] ScreenLabels = { "전체 화면", "전체 화면 창", "창 모드" };
         /// <summary>'혈흔 연출 표시' 항목은 게임 설정이 켜져 있고 개발자 모드일 때만 보인다.</summary>
@@ -83,10 +88,15 @@ namespace CurtainCall.UI.SceneIntegration
             deviceVoice = VoiceChat.Instance;
             resolutions = ClientSettings.AvailableResolutions;
             var catalog = BuildCatalog();
+            foreach (var page in catalog.pages)
+                foreach (var row in page.rows)
+                    if (row.kind == SettingsRowKind.Toggle) draftToggles[row.id] = row.value.toggle;
             if (!view.Open(catalog, out string error))
             { Debug.LogError("설정 v2를 열지 못했습니다: " + error); OnViewClosed(); return; }
             if (deviceVoice != null) deviceVoice.DevicesChanged += RefreshDevices;
             RefreshDevices(); RefreshGame(); DraftChanged(view.GetDraftSnapshot());
+            observedPage = view.CurrentPage;
+            UiButtonSound.Bind(view.transform);
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(view.CancelButton.gameObject);
         }
         SettingsCatalog BuildCatalog()
@@ -191,6 +201,22 @@ namespace CurtainCall.UI.SceneIntegration
                 || action == "UvLight" && path == InputBindingPreferences.RightClickPath) ? GroundBindingPrefix + path : path;
         void DraftChanged(List<V2Value> values)
         {
+            bool toggled = false;
+            foreach (var value in values)
+            {
+                if (!draftToggles.TryGetValue(value.rowId, out bool previous) || previous == value.toggle) continue;
+                draftToggles[value.rowId] = value.toggle;
+                toggled = true;
+            }
+            var sfx = values.Find(v => v.rowId == "sfxVolume");
+            if (sfx != null)
+            {
+                if (!preparingDraft && previousSfxVolume is float old && !Mathf.Approximately(sfx.number, old))
+                    SoundManager.Play(SoundSituations.VolumePreview, new SoundPlayOptions { PreviewSfxVolume = sfx.number });
+                previousSfxVolume = sfx.number;
+            }
+            if (toggled && !preparingDraft) SoundManager.Play(SoundSituations.SettingsToggle);
+
             var mode = values.Find(v => v.rowId == "ScreenMode");
             if (mode != null) view.SetRowAvailability("Resolution", mode.choiceId != ((int)FullScreenMode.FullScreenWindow).ToString(),
                 mode.choiceId == ((int)FullScreenMode.FullScreenWindow).ToString() ? "전체 화면 창은 데스크톱 해상도를 사용합니다." : "");
@@ -207,6 +233,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!outputTouched) selectedOutput = (deviceVoice.ActiveOutputDevice ?? deviceVoice.EffectiveOutputDevice)?.DeviceID ?? "unavailable";
             UpdateDevice("InputDevice", inputs, selectedInput);
             UpdateDevice("OutputDevice", outputs, selectedOutput);
+            UiButtonSound.Bind(view.transform);
         }
         void UpdateDevice(string rowId, List<SettingsChoice> choices, string selected)
         {
@@ -341,7 +368,16 @@ namespace CurtainCall.UI.SceneIntegration
                     break;
                 default: return;
             }
-            if (view.SetDraftValues(values)) view.ShowMessage("이 탭을 초기화했습니다. 적용을 눌러 저장하세요.");
+            preparingDraft = true;
+            try
+            {
+                if (view.SetDraftValues(values))
+                {
+                    UiButtonSound.Bind(view.transform);
+                    view.ShowMessage("이 탭을 초기화했습니다. 적용을 눌러 저장하세요.");
+                }
+            }
+            finally { preparingDraft = false; }
         }
         async void Apply(SettingsApplyRequest request)
         {
@@ -376,7 +412,15 @@ namespace CurtainCall.UI.SceneIntegration
             }
             catch (Exception) { if (Current()) view.CompleteApply(request.token, false, "설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다."); }
         }
-        void LateUpdate() { if (IsOpen) RefreshGame(); }
+        void LateUpdate()
+        {
+            if (!IsOpen) return;
+            RefreshGame();
+            if (observedPage == view.CurrentPage) return;
+            observedPage = view.CurrentPage;
+            UiButtonSound.Bind(view.transform);
+            SoundManager.Play(SoundSituations.SettingsTab);
+        }
         void RefreshGame()
         {
             var run = CampaignRun.Instance;
@@ -409,6 +453,8 @@ namespace CurtainCall.UI.SceneIntegration
         void Cleanup()
         {
             session++; loadingDevices = false; capture = null;
+            draftToggles.Clear();
+            previousSfxVolume = null;
             if (deviceVoice != null) deviceVoice.DevicesChanged -= RefreshDevices;
             deviceVoice = null;
             if (inputDraft != null) Destroy(inputDraft); inputDraft = null;

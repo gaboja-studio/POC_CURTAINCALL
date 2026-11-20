@@ -1,5 +1,6 @@
 using System;
 using CurtainCall.Player;
+using CurtainCall.Sound;
 using CurtainCall.StartLobby;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.PanelsV1;
@@ -48,6 +49,8 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] TMP_Text leaveMessage;
         [SerializeField] TMP_Text footer;
         CurtainCallPanelView[] panels;
+        enum MenuWindow { None, Menu, LeaveConfirmation, Settings, SettingsConfirmation }
+        MenuWindow shownWindow;
         int contextHandle;
         bool leaving;
         EventSystem ownedEvents;
@@ -63,6 +66,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             Current = this; contextHandle = CurrentScene.handle;
             panels = menu.GetComponentsInChildren<CurtainCallPanelView>(true);
+            UiButtonSound.Bind(menu.transform);
             InputGate.AddReleaseKeys(Key.Escape);
             menu.OnSettingsRequested.AddListener(OpenMenuSettings);
             menu.OnLeaveConfirmed.AddListener(Leave);
@@ -113,7 +117,21 @@ namespace CurtainCall.UI.SceneIntegration
             ownedEvents = root.GetComponent<EventSystem>();
         }
         float nextEventsCheck;
-        void LateUpdate() => SyncInput();
+        void LateUpdate()
+        {
+            SyncInput();
+            var window = settings.IsExtensionOpen ? MenuWindow.SettingsConfirmation
+                : settings.IsOpen ? MenuWindow.Settings
+                : menu.IsConfirmationOpen ? MenuWindow.LeaveConfirmation
+                : menu.IsMenuOpen ? MenuWindow.Menu : MenuWindow.None;
+            if (window == shownWindow) return;
+            bool closing = window == MenuWindow.None
+                || (shownWindow == MenuWindow.LeaveConfirmation && window == MenuWindow.Menu)
+                || (shownWindow == MenuWindow.SettingsConfirmation && window == MenuWindow.Settings)
+                || (shownWindow == MenuWindow.Settings && window == MenuWindow.Menu);
+            shownWindow = window;
+            SoundManager.Play(closing ? SoundSituations.WindowClosed : SoundSituations.WindowOpened);
+        }
         void SyncInput()
         {
             bool owns = IsOpen || leaving;
@@ -154,6 +172,7 @@ namespace CurtainCall.UI.SceneIntegration
         { settings.Close(); menu.Hide(); SyncInput(); }
         void OnDisable()
         {
+            shownWindow = MenuWindow.None;
             if (settings != null) settings.Close();
             InputGate.SetBlocking(this, false);
             CurtainCall.Voice.VoiceChat.SetMuteKeyBlocked(this, false);

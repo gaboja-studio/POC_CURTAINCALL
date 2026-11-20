@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CurtainCall.Reward;
+using CurtainCall.Sound;
 using CurtainCall.WaitingRoom;
 using CurtainCall.UI.ShopV1;
 using TMPro;
@@ -33,6 +34,8 @@ namespace CurtainCall.UI.SceneIntegration
         int revision;
         float sentAt, nextRefresh;
         EventSystem ownedEvents;
+        ShopTab observedTab;
+        string observedEntry;
         public ShopPanelView View => view;
         public ShopUiTexts Texts => texts;
         public void Configure(ShopPanelView panel) => view = panel;
@@ -69,8 +72,10 @@ namespace CurtainCall.UI.SceneIntegration
                 EnsureEvents();
                 session = Guid.NewGuid().ToString("N"); revision = 0; fingerprint = null;
                 view.Open(Build());
+                ObserveSelection(false);
                 ApplyFonts();
             }
+            ObserveSelection(true);
             if (pending != null && Time.unscaledTime - sentAt > responseTimeout)
                 Answer(requestId, false, Fill(texts.responseTimeout));
             if (Time.unscaledTime < nextRefresh) return;
@@ -79,7 +84,14 @@ namespace CurtainCall.UI.SceneIntegration
             string key = model.GetContext(ShopTab.Items) + model.GetContext(ShopTab.Services) + string.Join("|", model.Entries.Select(e =>
                 e.Id + e.Title + e.Subtitle + e.PriceText + e.Description + e.UnavailableReason + e.StatusText + e.Available));
             if (fingerprint == key) return;
-            fingerprint = key; view.SetPresentation(model); ApplyFonts();
+            fingerprint = key; view.SetPresentation(model); ObserveSelection(false); ApplyFonts();
+        }
+        void ObserveSelection(bool playSound)
+        {
+            if (playSound && (observedTab != view.CurrentTab || observedEntry != view.SelectedEntryId))
+                SoundManager.Play(SoundSituations.ShopSelection);
+            observedTab = view.CurrentTab;
+            observedEntry = view.SelectedEntryId;
         }
         void EnsureEvents()
         {
@@ -205,7 +217,12 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (pending == null || string.IsNullOrEmpty(id) || id != requestId) return;
             var request = pending; pending = null; requestId = null;
-            if (ok) view.AcceptAction(request, text, Build()); else view.RejectAction(request, text);
+            bool displayed = ok ? view.AcceptAction(request, text, Build()) : view.RejectAction(request, text);
+            if (displayed)
+            {
+                SoundManager.Play(ok ? SoundSituations.ShopAccepted : SoundSituations.ShopRejected);
+                ObserveSelection(false);
+            }
             fingerprint = null; nextRefresh = 0; ApplyFonts();
         }
         void Closed()

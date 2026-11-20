@@ -150,6 +150,7 @@ namespace CurtainCall.WaitingRoom
                 // 해금 불가능(조건·열쇠·도구 부족) 탐색 대상은 안내 문구만 보여 주고 요청을 보내지 않는다(2026-11-16 우선순위 7순위).
                 if (Focused is ExplorationGate or ToolTarget or BreakableWall
                     && CommonInteractionSelection.Category(Focused) == CurtainCall.Settings.InteractionCategory.Locked) return;
+                bool accepted = false;
                 if (Focused is IShopPresentation presentation && presentation.IsAvailable)
                 {
                     bool allowed = Focused is not IExplorationTarget tool || string.IsNullOrEmpty(tool.ToolId) || ExplorationTargets.LocalHolds(tool.ToolId)
@@ -162,10 +163,13 @@ namespace CurtainCall.WaitingRoom
                         actor.UseToolAtContact(Focused, presentation, usedTool);
                         return;
                     }
+                    accepted = allowed && CommonInteractionSelection.Category(Focused) is not
+                        (CurtainCall.Settings.InteractionCategory.Locked or CurtainCall.Settings.InteractionCategory.PickupBlocked);
                     if (allowed)
                         reader.GetComponent<HumanoidPlayerPresentation>()?.RequestItemMotion(MotionKind(Focused), presentation.PresentationPoint, PolicyKind(Focused));
                 }
                 Focused.Interact();
+                if (accepted) Sound.SoundManager.Play(Sound.SoundSituations.InteractionAccepted);
             }
             // 길게 눌러 쓰는 대상(숙소 TV의 테이프 꺼내기)만 F 길게를 받는다. 기물 내려놓기는 T(DropPressed)로 분리했다.
             if (reader.Current.InteractLongPressed && Focused is IShopHoldTarget hold && hold.WantsHold

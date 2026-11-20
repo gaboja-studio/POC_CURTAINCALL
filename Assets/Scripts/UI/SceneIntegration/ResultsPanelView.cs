@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Globalization;
+using CurtainCall.Sound;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -41,6 +42,7 @@ namespace CurtainCall.UI.SceneIntegration
         private bool visible, bound, dispatchingAcknowledge;
         private long epoch;
         private Vector2 lastViewport;
+        private Coroutine rewardAudio;
 
         public void Configure(CanvasGroup visualGroup, RectTransform stage, Image titleRibbon, Image crest,
             Image maximum, Sprite failure, Sprite success, Sprite grand, Sprite self, Sprite teammate,
@@ -78,16 +80,30 @@ namespace CurtainCall.UI.SceneIntegration
             Render();
             if (this == null || epoch != openingEpoch || !visible || model != copy) return;
             UpdateStageGeometry();
-            if (Application.isPlaying) StartCoroutine(Fade(1, 0.16f, false)); else visuals.alpha = 1;
+            if (Application.isPlaying)
+            {
+                const string grandSuccess = SoundSituations.PerformanceGrandSuccess;
+                bool hasGrandSuccess = SoundCatalog.Current?.Resolve(grandSuccess, out _)?.HasClip == true;
+                string sound = copy.Outcome == ResultsOutcome.Failure ? SoundSituations.PerformanceFailure
+                    : copy.Outcome == ResultsOutcome.GrandSuccess && hasGrandSuccess ? grandSuccess
+                    : SoundSituations.PerformanceSuccess;
+                SoundManager.Play(sound);
+                StartCoroutine(Fade(1, 0.16f, false));
+            }
+            else visuals.alpha = 1;
             // Focus is the final operation: project OnSelect callbacks may hide/reopen the view.
             if (takeFocus && Application.isPlaying && acknowledge.gameObject.activeInHierarchy && acknowledge.IsInteractable())
                 acknowledge.Select();
         }
-        public bool SetPresentation(ResultsPresentation presentation)
+        public bool SetPresentation(ResultsPresentation presentation) => RefreshPresentation(presentation, false);
+
+        internal bool RefreshPresentation(ResultsPresentation presentation, bool keepRewardTransfer)
         {
             if (presentation == null) throw new ArgumentNullException("presentation");
             if (!visible || model == null || presentation.SessionId != model.SessionId) return false;
-            model = presentation.Copy(); rewardTransfer.Stop(); Render();
+            model = presentation.Copy();
+            if (!keepRewardTransfer) rewardTransfer.Stop();
+            Render();
             // Revision ordering is intentionally a project concern. Refresh never plays reward motion.
             return true;
         }
@@ -116,8 +132,25 @@ namespace CurtainCall.UI.SceneIntegration
         public bool PlayRewardTransfer(string expectedSessionId, int pieceCount = 5)
         {
             if (!Application.isPlaying || !visible || model == null || expectedSessionId != model.SessionId) return false;
-            return rewardTransfer != null && rewardTransfer.Play(pieceCount);
+            if (rewardTransfer == null || !rewardTransfer.Play(pieceCount)) return false;
+            if (rewardAudio != null) StopCoroutine(rewardAudio);
+            rewardAudio = StartCoroutine(PlayRewardCoins(Mathf.Clamp(pieceCount, 2, 8)));
+            return true;
         }
+
+        IEnumerator PlayRewardCoins(int count)
+        {
+            // The reward transfer starts one piece every 64 ms.
+            const float stagger = .064f;
+            float started = Time.unscaledTime;
+            for (int piece = 0; piece < count; piece++)
+            {
+                while (rewardTransfer.IsPlaying && Time.unscaledTime < started + piece * stagger) yield return null;
+                if (!rewardTransfer.IsPlaying) yield break;
+                SoundManager.Play(SoundSituations.RewardCoin, new SoundPlayOptions { IgnoreCooldown = true });
+            }
+        }
+
         public void SetRewardTransferDestination(RectTransform destination)
         { if (rewardTransfer != null) rewardTransfer.SetDestination(destination); }
 
@@ -199,7 +232,12 @@ namespace CurtainCall.UI.SceneIntegration
                     throw new InvalidOperationException("C12 member layers are incomplete.");
         }
         private void Bind()
-        { if (!bound && acknowledge != null) { acknowledge.onClick.AddListener(Acknowledge); bound = true; } }
+        {
+            if (bound || acknowledge == null) return;
+            acknowledge.onClick.AddListener(Acknowledge);
+            UiButtonSound.Bind(acknowledge);
+            bound = true;
+        }
         private void Unbind()
         { if (bound && acknowledge != null) acknowledge.onClick.RemoveListener(Acknowledge); bound = false; }
         private void ForceHidden()

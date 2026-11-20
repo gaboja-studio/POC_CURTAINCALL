@@ -3,6 +3,7 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Sound;
 using CurtainCall.UI.SceneIntegration;
 using Unity.Netcode;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         double lastRound;
         float lastWaitingElapsed = -1;
         float intensity, beat;
+        bool heartbeatActive;
+        SoundHandle heartbeat;
+        float heartbeatVolume;
         public int HighlightCount => 0; // Retained for diagnostics; silhouette outlines have been removed.
         public float Intensity => intensity;
         public bool IsChased { get; private set; }
@@ -148,10 +152,29 @@ namespace CurtainCall.WaitingRoom.Pursuit
             float pulse = Mathf.Pow((Mathf.Cos(beat * Mathf.PI * 2) + 1) * .5f, 3);
             edge.SetThreat(intensity * Mathf.Lerp(1 - rules.PulseAmount, 1, pulse), rules.EdgeWidth);
             canvas.enabled = intensity > .001f;
+            UpdateHeartbeat(IsChased && canvas.enabled, sample.Danger);
+        }
+
+        void UpdateHeartbeat(bool active, float danger)
+        {
+            float scale = Mathf.Lerp(.35f, 1f, danger);
+            if (active != heartbeatActive)
+            {
+                heartbeatActive = active;
+                if (active)
+                {
+                    heartbeatVolume = SoundCatalog.Current?.FindSituation(SoundSituations.PursuitHeartbeat)?.volumeScale ?? 1f;
+                    heartbeat = SoundManager.Play(SoundSituations.PursuitHeartbeat,
+                        new SoundPlayOptions { Loop = true, VolumeScale = scale });
+                }
+                else { heartbeat.Stop(.12f); heartbeat = default; }
+            }
+            if (heartbeat.IsPlaying) heartbeat.SetVolumeScale(heartbeatVolume * scale);
         }
 
         void ClearDisplay()
         {
+            UpdateHeartbeat(false, 0f);
             intensity = beat = 0; IsChased = false;
             lastObserver = null; lastSource = null; lastRound = -1;
             if (edge) edge.SetThreat(0, GameSettings.WaitingRoom.Pursuit.EdgeWidth);

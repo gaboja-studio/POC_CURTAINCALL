@@ -406,12 +406,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (next == stage) return;
             stage = next;
             var text = PursuitTexts.StageAnnouncement(next);
-            ShowStageWarning(text);
+            ShowStageWarning(text, next);
         }
-        void ShowStageWarning(string body)
+        void ShowStageWarning(string body, int announcedStage)
         {
-            if (!string.IsNullOrEmpty(body))
-                HudUIManager.Current.ShowSystemEvent(body, transform, PursuitTexts.AlertTitle, 4f, HudEventKind.Warning);
+            if (string.IsNullOrEmpty(body)) return;
+            const string escalation = Sound.SoundSituations.PursuitEscalation;
+            bool hasEscalation = announcedStage > 0 && Sound.SoundCatalog.Current?.Resolve(escalation, out _)?.HasClip == true;
+            HudUIManager.Current.ShowSystemEventWithSound(body, transform, PursuitTexts.AlertTitle, 4f,
+                HudEventKind.Warning, hasEscalation ? escalation : null);
         }
         void Bind()
         {
@@ -502,7 +505,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (active && stage != s.stage) {
                 stage = s.stage;
-                ShowStageWarning(s.announcement);
+                ShowStageWarning(s.announcement, s.stage);
             }
             if (!active) stage = -1;
         }

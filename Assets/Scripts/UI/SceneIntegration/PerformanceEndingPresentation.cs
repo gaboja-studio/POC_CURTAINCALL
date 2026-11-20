@@ -93,15 +93,19 @@ namespace CurtainCall.UI.SceneIntegration
             double elapsed = Time.unscaledTimeAsDouble - started;
             if (elapsed >= ResultAt && !ResultVisible && !BlackVisible)
             {
-                if (UsesResults) HudUIManager.ShowOutcome(BuildResults(pending),resultsView,false);
-
+                if (UsesResults)
+                {
+                    var result = BuildResults(pending);
+                    HudUIManager.ShowOutcome(result, resultsView, false);
+                    if (pending.Income > 0) resultsView.PlayRewardTransfer(result.SessionId);
+                }
             }
             int seconds = Mathf.CeilToInt(Mathf.Max(0, BlackAt - (float)elapsed));
             if (seconds != lastCountdown)
             {
                 lastCountdown = seconds;
-                if (UsesResults && resultsView.IsVisible) resultsView.SetPresentation(BuildResults(pending));
-
+                if (UsesResults && resultsView.IsVisible)
+                    resultsView.RefreshPresentation(BuildResults(pending), keepRewardTransfer: true);
             }
             if (elapsed >= BlackAt && loadedAt < 0) Cover();
             float hold = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.loadedHoldSeconds : .5f;

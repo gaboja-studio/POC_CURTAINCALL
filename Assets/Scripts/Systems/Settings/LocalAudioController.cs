@@ -21,6 +21,7 @@ namespace CurtainCall.Settings
             public float BaseVolume;
             public float AppliedVolume;
             public float Multiplier = 1f;
+            public float? PreviewSfxVolume;
         }
 
         static LocalAudioController instance;
@@ -44,7 +45,9 @@ namespace CurtainCall.Settings
 
         /// <summary>Play/PlayOneShot 전에 호출하면 즉시 적용한다(자동 탐색은 최대 .25초 지연).
         /// Voice는 분류별 음량을 거치지 않으며 Vivox AudioTap은 항상 제외한다.</summary>
-        public static void Register(AudioSource source, LocalAudioCategory category)
+        public static void Register(AudioSource source, LocalAudioCategory category) => Register(source, category, null);
+
+        internal static void Register(AudioSource source, LocalAudioCategory category, float? previewSfxVolume)
         {
             if (source == null || source.GetComponent<VivoxAudioTap>() != null) return;
             var controller = EnsureExists();
@@ -54,6 +57,7 @@ namespace CurtainCall.Settings
                 controller.routes.Add(source, route);
             }
             route.Category = category;
+            route.PreviewSfxVolume = previewSfxVolume;
             Apply(route);
         }
 
@@ -124,7 +128,7 @@ namespace CurtainCall.Settings
         static void Apply(Route route)
         {
             route.Multiplier = route.Category == LocalAudioCategory.Bgm ? ClientSettings.BgmVolume
-                : route.Category == LocalAudioCategory.Sfx ? ClientSettings.SfxVolume : 1f;
+                : route.Category == LocalAudioCategory.Sfx ? Mathf.Clamp01(route.PreviewSfxVolume ?? ClientSettings.SfxVolume) : 1f;
             route.AppliedVolume = route.BaseVolume * route.Multiplier;
             route.Source.volume = route.AppliedVolume;
         }

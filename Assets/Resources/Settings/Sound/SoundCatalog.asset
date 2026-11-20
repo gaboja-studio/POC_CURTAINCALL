@@ -447,7 +447,637 @@ MonoBehaviour:
     output: {fileID: 0}
     minDistance: 2
     maxDistance: 45
+  - id: UI-102
+    situation: "\uACBD\uACE0 \uBC30\uB108\uC74C"
+    description: "\uC0AC\uB9DD\u00B7\uC5F0\uACB0 \uC2E4\uD328\u00B7\uCD94\uACA9 \uC2DC\uC791 \uAC19\uC740 \uBE68\uAC04 \uC0BC\uAC01\uD615 \uACBD\uACE0 \uBC30\uB108\uAC00 \uB730 \uB54C \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 573a4eaa96081474a93890c121b819cc, type: 3}
+    category: 0
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 2
+    loop: 0
+    fadeOut: 0.2
+    delay: 0
+    cooldown: 0.7
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-302
+    situation: "\uC0C1\uD638\uC791\uC6A9 \uD655\uC778 \uACB0\uC815\uC74C"
+    description: "\uC11C\uBA85\u00B7\uC90D\uAE30\u00B7\uC0C1\uC810 \uC5F4\uAE30 \uB4F1 F \uC785\uB825\uC774 \uBC1B\uC544\uB4E4\uC5EC\uC84C\uC744 \uB54C \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: c69f955309c2e724fb89096c8eecefde, type: 3}
+    category: 0
+    volume: 0.55
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.06
+    delay: 0
+    cooldown: 0.15
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-502
+    situation: "\uB9E4\uB2EC\uB9BC \uCE74\uC6B4\uD2B8\uB2E4\uC6B4"
+    description: "\uC904\uC5D0 \uB9E4\uB2EC\uB824 '\uB0A8\uC740 N\uCD08'\uAC00 \uD45C\uC2DC\uB418\uB294 \uB3D9\uC548 \uCD08\uB9C8\uB2E4 \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 557a7a3caee5a374aa2921e511ba01ec, type: 3}
+    category: 0
+    volume: 0.42
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.04
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-703
+    situation: "\uACF5\uC5F0 \uC131\uACF5 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uACF5\uC5F0 \uC131\uACF5'\uC774 \uB730 \uB54C \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: d714654efe59c6b44acc002403903360, type: 3}
+    category: 0
+    volume: 0.75
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 4
+    loop: 0
+    fadeOut: 0.3
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-704
+    situation: "\uACF5\uC5F0 \uC2E4\uD328 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uACF5\uC5F0 \uC2E4\uD328'\uAC00 \uB730 \uB54C \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: c7729ea7c0d07944db3587fdbfdc696a, type: 3}
+    category: 0
+    volume: 0.75
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 4
+    loop: 0
+    fadeOut: 0.3
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-901
+    situation: "\uADE0\uD615 \uC704\uD5D8 \uACBD\uACE0\uC74C"
+    description: "\uC678\uC904 \uADE0\uD615 \uBC14\uB298\uC774 \uC8FC\uD669\u00B7\uBE68\uAC15 \uAD6C\uAC04\uC5D0 \uC788\uB294 \uB3D9\uC548 \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 1
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-907
+    situation: "\uD0C0\uC774\uBA38 \uC885\uB8CC\uC74C"
+    description: "\uD734\uC2DD \uC2DC\uAC04\u00B7\uD0C8\uCD9C\uB85C \uC81C\uD55C \uC2DC\uAC04\uC774 0\uC774 \uB410\uC744 \uB54C \uC7AC\uC0DD."
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: e3cf1e9c3b40b4f4da88a71de2eae330, type: 3}
+    category: 0
+    volume: 0.65
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 2
+    loop: 0
+    fadeOut: 0.3
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1001
+    situation: "\uBC84\uD2BC \uB9C8\uC6B0\uC2A4 \uC62C\uB9BC\uC74C"
+    description: "\uBA54\uC778 \uBA54\uB274\u00B7ESC \uBA54\uB274\u00B7\uC124\uC815\u00B7\uD655\uC778\uCC3D\uC758 \uACF5\uC6A9 \uBC84\uD2BC\uC5D0 \uB9C8\uC6B0\uC2A4\uB97C \uC62C\uB9B4 \uB54C \uC544\uC8FC \uC791\uAC8C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.2
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1002
+    situation: "\uBC84\uD2BC \uD074\uB9AD\uC74C"
+    description: "\uBA54\uB274\u00B7\uC124\uC815\u00B7\uD655\uC778\uCC3D\u00B7\uACB0\uACFC\uCC3D \uBC84\uD2BC\uC744 \uB20C\uB800\uC744 \uB54C \uC7AC\uC0DD. \uC6D4\uB4DC F \uC785\uB825(UI-302)\uACFC \uAD6C\uBD84."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1003
+    situation: "\uD328\uB110 \uC5F4\uB9BC\uC74C"
+    description: "ESC \uBA54\uB274\u00B7\uC124\uC815 \uCC3D\u00B7\uB098\uAC00\uAE30 \uD655\uC778\uCC3D\uC774 \uC5F4\uB9B4 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1004
+    situation: "\uD328\uB110 \uB2EB\uD798\uC74C"
+    description: "\uD328\uB110\uC744 \uB2EB\uAC70\uB098 \uD655\uC778\uCC3D\uC5D0\uC11C \uCDE8\uC18C\uD574 \uC774\uC804 \uD654\uBA74\uC73C\uB85C \uB3CC\uC544\uAC08 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1005
+    situation: "\uC124\uC815 \uD0ED \uC804\uD658\uC74C"
+    description: "\uC124\uC815 \uCC3D\uC5D0\uC11C \uD0ED\uC744 \uBC14\uAFC0 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1006
+    situation: "\uBCFC\uB968 \uBBF8\uB9AC\uB4E3\uAE30\uC74C"
+    description: "\uC124\uC815\uC5D0\uC11C \uD6A8\uACFC\uC74C\u00B7UI \uBCFC\uB968 \uC2AC\uB77C\uC774\uB354\uB97C \uC870\uC808\uD560 \uB54C \uBC14\uB010 \uD06C\uAE30\uB97C \uD655\uC778\uD558\uB3C4\uB85D \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0.16
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1007
+    situation: "\uD1A0\uAE00 \uC804\uD658\uC74C"
+    description: "\uC124\uC815\uC758 \uCF1C\uAE30\u00B7\uB044\uAE30 \uD1A0\uAE00\uC744 \uBC14\uAFC0 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1101
+    situation: "\uACF5\uC5F0 \uBCC0\uACBD\uC74C"
+    description: "\uC77C\uC815\uD310 \uD2F0\uCF13 \uC2AC\uB86F\uC744 \uB20C\uB7EC \uACF5\uC5F0\uC774 \uBC14\uB00C\uACE0 \uCCB4\uD06C\u00B7\uD14C\uB450\uB9AC\uAC00 \uD45C\uC2DC\uB420 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1102
+    situation: "\uB09C\uC774\uB3C4 \uBCC0\uACBD\uC74C"
+    description: "\uC77C\uC815\uD310 \uD654\uC0B4\uD45C\uB85C \uACF5\uC5F0 \uB09C\uC774\uB3C4\uB97C \uBC14\uAFC0 \uB54C \uC7AC\uC0DD. \uBC14\uAFC0 \uC218 \uC5C6\uB294 \uCE78\uC740 UI-303 \uC0AC\uC6A9."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1201
+    situation: "\uC0C1\uC810 \uD0ED\u00B7\uD488\uBAA9 \uC120\uD0DD\uC74C"
+    description: "\uC0C1\uC810 \uD328\uB110\uC5D0\uC11C \uD0ED\uC744 \uBC14\uAFB8\uAC70\uB098 \uD488\uBAA9\uC744 \uACE0\uB97C \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1202
+    situation: "\uAC70\uB798 \uC644\uB8CC\uC74C"
+    description: "\uAE30\uBB3C \uAD6C\uB9E4\u00B7\uD310\uB9E4\uB098 \uC11C\uBE44\uC2A4 \uACB0\uC81C\uAC00 \uC2B9\uC778\uB420 \uB54C \uC7AC\uC0DD. \uACF5\uB3D9 \uC790\uAE08 \uC99D\uAC10\uC74C(UI-507\uB7508)\uACFC \uD568\uAED8 \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1203
+    situation: "\uAC70\uB798 \uAC70\uC808\uC74C"
+    description: "\uACF5\uB3D9 \uC790\uAE08 \uBD80\uC871 \uB4F1\uC73C\uB85C \uAC70\uB798\uAC00 \uAC70\uC808\uB420 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1301
+    situation: "\uACF5\uC5F0 \uB300\uC131\uACF5 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uB300\uC131\uACF5' \uB9AC\uBCF8\uC774 \uB730 \uB54C \uC7AC\uC0DD. \uACF5\uC5F0 \uC131\uACF5(UI-703)\uBCF4\uB2E4 \uD654\uB824\uD558\uAC8C."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 4
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1302
+    situation: "\uBCF4\uC0C1 \uB3D9\uC804 \uC774\uB3D9\uC74C"
+    description: "\uACB0\uACFC\uCC3D\uC5D0\uC11C \uBCF4\uC0C1 \uB3D9\uC804\uC774 \uACF5\uB3D9 \uC790\uAE08 \uCABD\uC73C\uB85C \uB0A0\uC544\uAC08 \uB54C \uB3D9\uC804\uB9C8\uB2E4 \uC7AC\uC0DD. (2~8\uAC1C, 0.064\uCD08 \uAC04\uACA9)"
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1401
+    situation: "\uCD94\uACA9 \uB2E8\uACC4 \uC0C1\uC2B9\uC74C"
+    description: "\uCD94\uACA9 \uC2DC\uC791 1\uBD84 \uB4A4 \uC2DC\uC57C \uD655\uB300, 2\uBD84 \uB4A4 \uBCBD \uD22C\uC2DC, 3\uBD84 \uB4A4 \uCD5C\uC778\uC811 \uCD94\uACA9\uCC98\uB7FC \uCD94\uACA9 \uB2E8\uACC4\uAC00 \uC624\uB97C \uB54C \uC54C\uB9BC\uACFC \uD568\uAED8 \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 2
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1402
+    situation: "\uCD94\uACA9\uC790 \uADFC\uC811 \uB9E5\uBC15"
+    description: "\uCD94\uACA9\uC790\uAC00 \uAC00\uAE4C\uC6CC\uC838 \uD654\uBA74 \uAC00\uC7A5\uC790\uB9AC\uAC00 \uBD89\uAC8C \uB9E5\uBC15\uCE58\uB294 \uB3D9\uC548 \uC7AC\uC0DD. \uAC00\uAE4C\uC6B8\uC218\uB85D \uD06C\uAC8C. \uB300\uAE30\uC2E4\u00B7\uD0C8\uCD9C\uB85C \uACF5\uC6A9."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 2
+    loop: 1
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1501
+    situation: "\uB9C8\uC774\uD06C \uCF2C"
+    description: "\uB2E8\uCD95\uD0A4\uB098 \uB9C8\uC774\uD06C \uC544\uC774\uCF58\uC73C\uB85C \uB0B4 \uB9C8\uC774\uD06C\uB97C \uCF24 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-1501-off
+    situation: "\uB9C8\uC774\uD06C \uB054"
+    description: "\uB2E8\uCD95\uD0A4\uB098 \uB9C8\uC774\uD06C \uC544\uC774\uCF58\uC73C\uB85C \uB0B4 \uB9C8\uC774\uD06C\uB97C \uB04C \uB54C \uC7AC\uC0DD. UI-1501 \uB054 \uBCC0\uD615."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
+  - id: UI-303
+    situation: "\uC0C1\uD638\uC791\uC6A9 \uAC70\uBD80\uC74C"
+    description: "\uD604\uC7AC \uC77C\uC815 \uCE78\uC758 \uB09C\uC774\uB3C4\uB97C \uBCC0\uACBD\uD560 \uC218 \uC5C6\uC744 \uB54C \uC7AC\uC0DD."
+    enabled: 0
+    clips: []
+    category: 0
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    startOffset: 0
+    maxDuration: 1
+    loop: 0
+    fadeOut: 0.05
+    delay: 0
+    cooldown: 0
+    output: {fileID: 0}
+    minDistance: 2
+    maxDistance: 45
   situations:
+  - key: hud.warning-banner
+    label: "\uACBD\uACE0 \uBC30\uB108\uC74C"
+    description: "\uC0AC\uB9DD\u00B7\uC5F0\uACB0 \uC2E4\uD328\u00B7\uCD94\uACA9 \uC2DC\uC791 \uAC19\uC740 \uBE68\uAC04 \uC0BC\uAC01\uD615 \uACBD\uACE0 \uBC30\uB108\uAC00 \uB730 \uB54C \uC7AC\uC0DD."
+    cueId: UI-102
+    enabled: 1
+    volumeScale: 1
+  - key: interaction.accepted
+    label: "\uC0C1\uD638\uC791\uC6A9 \uD655\uC778 \uACB0\uC815\uC74C"
+    description: "\uC11C\uBA85\u00B7\uC90D\uAE30\u00B7\uC0C1\uC810 \uC5F4\uAE30 \uB4F1 F \uC785\uB825\uC774 \uBC1B\uC544\uB4E4\uC5EC\uC84C\uC744 \uB54C \uC7AC\uC0DD."
+    cueId: UI-302
+    enabled: 1
+    volumeScale: 1
+  - key: tightrope.hang-countdown
+    label: "\uB9E4\uB2EC\uB9BC \uCE74\uC6B4\uD2B8\uB2E4\uC6B4"
+    description: "\uC904\uC5D0 \uB9E4\uB2EC\uB824 '\uB0A8\uC740 N\uCD08'\uAC00 \uD45C\uC2DC\uB418\uB294 \uB3D9\uC548 \uCD08\uB9C8\uB2E4 \uC7AC\uC0DD."
+    cueId: UI-502
+    enabled: 1
+    volumeScale: 1
+  - key: results.success
+    label: "\uACF5\uC5F0 \uC131\uACF5 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uACF5\uC5F0 \uC131\uACF5'\uC774 \uB730 \uB54C \uC7AC\uC0DD."
+    cueId: UI-703
+    enabled: 1
+    volumeScale: 1
+  - key: results.failure
+    label: "\uACF5\uC5F0 \uC2E4\uD328 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uACF5\uC5F0 \uC2E4\uD328'\uAC00 \uB730 \uB54C \uC7AC\uC0DD."
+    cueId: UI-704
+    enabled: 1
+    volumeScale: 1
+  - key: tightrope.balance-warning
+    label: "\uADE0\uD615 \uC704\uD5D8 \uACBD\uACE0\uC74C"
+    description: "\uC678\uC904 \uADE0\uD615 \uBC14\uB298\uC774 \uC8FC\uD669\u00B7\uBE68\uAC15 \uAD6C\uAC04\uC5D0 \uC788\uB294 \uB3D9\uC548 \uC7AC\uC0DD."
+    cueId: UI-901
+    enabled: 1
+    volumeScale: 1
+  - key: rest-timer.expired
+    label: "\uD0C0\uC774\uBA38 \uC885\uB8CC\uC74C"
+    description: "\uD734\uC2DD \uC2DC\uAC04\u00B7\uD0C8\uCD9C\uB85C \uC81C\uD55C \uC2DC\uAC04\uC774 0\uC774 \uB410\uC744 \uB54C \uC7AC\uC0DD."
+    cueId: UI-907
+    enabled: 1
+    volumeScale: 1
+  - key: menu.button-hover
+    label: "\uBC84\uD2BC \uB9C8\uC6B0\uC2A4 \uC62C\uB9BC\uC74C"
+    description: "\uBA54\uC778 \uBA54\uB274\u00B7ESC \uBA54\uB274\u00B7\uC124\uC815\u00B7\uD655\uC778\uCC3D\uC758 \uACF5\uC6A9 \uBC84\uD2BC\uC5D0 \uB9C8\uC6B0\uC2A4\uB97C \uC62C\uB9B4 \uB54C \uC544\uC8FC \uC791\uAC8C \uC7AC\uC0DD."
+    cueId: UI-1001
+    enabled: 1
+    volumeScale: 1
+  - key: menu.button-click
+    label: "\uBC84\uD2BC \uD074\uB9AD\uC74C"
+    description: "\uBA54\uB274\u00B7\uC124\uC815\u00B7\uD655\uC778\uCC3D\u00B7\uACB0\uACFC\uCC3D \uBC84\uD2BC\uC744 \uB20C\uB800\uC744 \uB54C \uC7AC\uC0DD. \uC6D4\uB4DC F \uC785\uB825(UI-302)\uACFC \uAD6C\uBD84."
+    cueId: UI-1002
+    enabled: 1
+    volumeScale: 1
+  - key: menu.window-opened
+    label: "\uD328\uB110 \uC5F4\uB9BC\uC74C"
+    description: "ESC \uBA54\uB274\u00B7\uC124\uC815 \uCC3D\u00B7\uB098\uAC00\uAE30 \uD655\uC778\uCC3D\uC774 \uC5F4\uB9B4 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1003
+    enabled: 1
+    volumeScale: 1
+  - key: menu.window-closed
+    label: "\uD328\uB110 \uB2EB\uD798\uC74C"
+    description: "\uD328\uB110\uC744 \uB2EB\uAC70\uB098 \uD655\uC778\uCC3D\uC5D0\uC11C \uCDE8\uC18C\uD574 \uC774\uC804 \uD654\uBA74\uC73C\uB85C \uB3CC\uC544\uAC08 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1004
+    enabled: 1
+    volumeScale: 1
+  - key: settings.tab-changed
+    label: "\uC124\uC815 \uD0ED \uC804\uD658\uC74C"
+    description: "\uC124\uC815 \uCC3D\uC5D0\uC11C \uD0ED\uC744 \uBC14\uAFC0 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1005
+    enabled: 1
+    volumeScale: 1
+  - key: settings.volume-preview
+    label: "\uBCFC\uB968 \uBBF8\uB9AC\uB4E3\uAE30\uC74C"
+    description: "\uC124\uC815\uC5D0\uC11C \uD6A8\uACFC\uC74C\u00B7UI \uBCFC\uB968 \uC2AC\uB77C\uC774\uB354\uB97C \uC870\uC808\uD560 \uB54C \uBC14\uB010 \uD06C\uAE30\uB97C \uD655\uC778\uD558\uB3C4\uB85D \uC7AC\uC0DD."
+    cueId: UI-1006
+    enabled: 1
+    volumeScale: 1
+  - key: settings.toggle-changed
+    label: "\uD1A0\uAE00 \uC804\uD658\uC74C"
+    description: "\uC124\uC815\uC758 \uCF1C\uAE30\u00B7\uB044\uAE30 \uD1A0\uAE00\uC744 \uBC14\uAFC0 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1007
+    enabled: 1
+    volumeScale: 1
+  - key: schedule.trick-changed
+    label: "\uACF5\uC5F0 \uBCC0\uACBD\uC74C"
+    description: "\uC77C\uC815\uD310 \uD2F0\uCF13 \uC2AC\uB86F\uC744 \uB20C\uB7EC \uACF5\uC5F0\uC774 \uBC14\uB00C\uACE0 \uCCB4\uD06C\u00B7\uD14C\uB450\uB9AC\uAC00 \uD45C\uC2DC\uB420 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1101
+    enabled: 1
+    volumeScale: 1
+  - key: schedule.difficulty-changed
+    label: "\uB09C\uC774\uB3C4 \uBCC0\uACBD\uC74C"
+    description: "\uC77C\uC815\uD310 \uD654\uC0B4\uD45C\uB85C \uACF5\uC5F0 \uB09C\uC774\uB3C4\uB97C \uBC14\uAFC0 \uB54C \uC7AC\uC0DD. \uBC14\uAFC0 \uC218 \uC5C6\uB294 \uCE78\uC740 UI-303 \uC0AC\uC6A9."
+    cueId: UI-1102
+    enabled: 1
+    volumeScale: 1
+  - key: shop.selection-changed
+    label: "\uC0C1\uC810 \uD0ED\u00B7\uD488\uBAA9 \uC120\uD0DD\uC74C"
+    description: "\uC0C1\uC810 \uD328\uB110\uC5D0\uC11C \uD0ED\uC744 \uBC14\uAFB8\uAC70\uB098 \uD488\uBAA9\uC744 \uACE0\uB97C \uB54C \uC7AC\uC0DD."
+    cueId: UI-1201
+    enabled: 1
+    volumeScale: 1
+  - key: shop.transaction-accepted
+    label: "\uAC70\uB798 \uC644\uB8CC\uC74C"
+    description: "\uAE30\uBB3C \uAD6C\uB9E4\u00B7\uD310\uB9E4\uB098 \uC11C\uBE44\uC2A4 \uACB0\uC81C\uAC00 \uC2B9\uC778\uB420 \uB54C \uC7AC\uC0DD. \uACF5\uB3D9 \uC790\uAE08 \uC99D\uAC10\uC74C(UI-507\uB7508)\uACFC \uD568\uAED8 \uC7AC\uC0DD."
+    cueId: UI-1202
+    enabled: 1
+    volumeScale: 1
+  - key: shop.transaction-rejected
+    label: "\uAC70\uB798 \uAC70\uC808\uC74C"
+    description: "\uACF5\uB3D9 \uC790\uAE08 \uBD80\uC871 \uB4F1\uC73C\uB85C \uAC70\uB798\uAC00 \uAC70\uC808\uB420 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1203
+    enabled: 1
+    volumeScale: 1
+  - key: results.grand-success
+    label: "\uACF5\uC5F0 \uB300\uC131\uACF5 \uACB0\uACFC"
+    description: "\uACB0\uACFC \uD328\uB110\uC5D0 '\uB300\uC131\uACF5' \uB9AC\uBCF8\uC774 \uB730 \uB54C \uC7AC\uC0DD. \uACF5\uC5F0 \uC131\uACF5(UI-703)\uBCF4\uB2E4 \uD654\uB824\uD558\uAC8C."
+    cueId: UI-1301
+    enabled: 1
+    volumeScale: 1
+  - key: results.reward-coin
+    label: "\uBCF4\uC0C1 \uB3D9\uC804 \uC774\uB3D9\uC74C"
+    description: "\uACB0\uACFC\uCC3D\uC5D0\uC11C \uBCF4\uC0C1 \uB3D9\uC804\uC774 \uACF5\uB3D9 \uC790\uAE08 \uCABD\uC73C\uB85C \uB0A0\uC544\uAC08 \uB54C \uB3D9\uC804\uB9C8\uB2E4 \uC7AC\uC0DD. (2~8\uAC1C, 0.064\uCD08 \uAC04\uACA9)"
+    cueId: UI-1302
+    enabled: 1
+    volumeScale: 1
+  - key: pursuit.stage-escalation
+    label: "\uCD94\uACA9 \uB2E8\uACC4 \uC0C1\uC2B9\uC74C"
+    description: "\uCD94\uACA9 \uC2DC\uC791 1\uBD84 \uB4A4 \uC2DC\uC57C \uD655\uB300, 2\uBD84 \uB4A4 \uBCBD \uD22C\uC2DC, 3\uBD84 \uB4A4 \uCD5C\uC778\uC811 \uCD94\uACA9\uCC98\uB7FC \uCD94\uACA9 \uB2E8\uACC4\uAC00 \uC624\uB97C \uB54C \uC54C\uB9BC\uACFC \uD568\uAED8 \uC7AC\uC0DD."
+    cueId: UI-1401
+    enabled: 1
+    volumeScale: 1
+  - key: pursuit.heartbeat
+    label: "\uCD94\uACA9\uC790 \uADFC\uC811 \uB9E5\uBC15"
+    description: "\uCD94\uACA9\uC790\uAC00 \uAC00\uAE4C\uC6CC\uC838 \uD654\uBA74 \uAC00\uC7A5\uC790\uB9AC\uAC00 \uBD89\uAC8C \uB9E5\uBC15\uCE58\uB294 \uB3D9\uC548 \uC7AC\uC0DD. \uAC00\uAE4C\uC6B8\uC218\uB85D \uD06C\uAC8C. \uB300\uAE30\uC2E4\u00B7\uD0C8\uCD9C\uB85C \uACF5\uC6A9."
+    cueId: UI-1402
+    enabled: 1
+    volumeScale: 1
+  - key: voice.microphone-on
+    label: "\uB9C8\uC774\uD06C \uCF2C"
+    description: "\uB2E8\uCD95\uD0A4\uB098 \uB9C8\uC774\uD06C \uC544\uC774\uCF58\uC73C\uB85C \uB0B4 \uB9C8\uC774\uD06C\uB97C \uCF24 \uB54C \uC7AC\uC0DD."
+    cueId: UI-1501
+    enabled: 1
+    volumeScale: 1
+  - key: voice.microphone-off
+    label: "\uB9C8\uC774\uD06C \uB054"
+    description: "\uB2E8\uCD95\uD0A4\uB098 \uB9C8\uC774\uD06C \uC544\uC774\uCF58\uC73C\uB85C \uB0B4 \uB9C8\uC774\uD06C\uB97C \uB04C \uB54C \uC7AC\uC0DD. UI-1501 \uB054 \uBCC0\uD615."
+    cueId: UI-1501-off
+    enabled: 1
+    volumeScale: 1
+  - key: interaction.rejected
+    label: "\uC0C1\uD638\uC791\uC6A9 \uAC70\uBD80\uC74C"
+    description: "\uD604\uC7AC \uC77C\uC815 \uCE78\uC758 \uB09C\uC774\uB3C4\uB97C \uBCC0\uACBD\uD560 \uC218 \uC5C6\uC744 \uB54C \uC7AC\uC0DD."
+    cueId: UI-303
+    enabled: 1
+    volumeScale: 1
   - key: waiting-room.recall-broadcast
     label: "\uC18C\uC9D1 \uACBD\uBCF4 \uBC29\uC1A1"
     description: "\uC26C\uB294 \uC2DC\uAC04 \uC885\uB8CC 60\uCD08 \uC804 \uBB34\uB300

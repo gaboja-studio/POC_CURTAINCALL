@@ -191,7 +191,12 @@ namespace CurtainCall.StartLobby
             }
             string text = nearest.Prompt(out bool usable);
             SetPrompt(text, usable);
-            if (usable && local.TryGetComponent(out PlayerInputReader reader) && reader.Current.InteractTapped && CommonInteractionSelection.Consume(local, nearest)) nearest.Use();
+            if (usable && local.TryGetComponent(out PlayerInputReader reader) && reader.Current.InteractTapped
+                && CommonInteractionSelection.Consume(local, nearest))
+            {
+                nearest.Use();
+                Sound.SoundManager.Play(Sound.SoundSituations.InteractionAccepted);
+            }
         }
 
         void SetPrompt(string text, bool usable)

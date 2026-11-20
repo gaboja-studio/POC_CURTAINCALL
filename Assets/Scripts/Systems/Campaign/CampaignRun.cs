@@ -70,6 +70,8 @@ namespace CurtainCall.Campaign
         public event Action RecallAlarm;
         /// <summary>판정 화면의 실제 시간 만료 직전 쉬는 시간. 표시 타이머 0과 구분한다.</summary>
         public event Action<CampaignSnapshot> RestExpired;
+        /// <summary>실제로 만료된 제한 시간이 로컬 화면에 반영됐을 때.</summary>
+        public event Action RestTimerElapsed;
         /// <summary>내 준비 상태가 바뀌었을 때. 마지막 준비자의 즉시 시간대 전환보다 먼저 알린다.</summary>
         public event Action<bool> LocalReadyChanged;
 
@@ -424,6 +426,9 @@ namespace CurtainCall.Campaign
 
         void RaiseEvents(CampaignSnapshot previous, CampaignSnapshot next)
         {
+            if (previous.Generation > 0 && previous.Generation == next.Generation
+                && next.RestExpiryCount > previous.RestExpiryCount)
+                RestTimerElapsed?.Invoke();
             bool newGeneration = previous.Generation > 0 && next.Generation > previous.Generation;
             bool stepChanged = previous.Generation != next.Generation || previous.Day != next.Day || previous.Phase != next.Phase
                 || previous.Rest != next.Rest || previous.PerformanceIndex != next.PerformanceIndex;
