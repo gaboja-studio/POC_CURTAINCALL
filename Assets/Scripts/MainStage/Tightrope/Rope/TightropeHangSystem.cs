@@ -5,6 +5,7 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Fire;
 using CurtainCall.WaitingRoom;
 using UnityEngine;
 
@@ -149,7 +150,7 @@ namespace CurtainCall.Tightrope
             for (int candidate = 0; candidate < course.LaneCount; candidate++)
             {
                 if (!course.TryGetHangTarget(candidate, player.transform.position, out float along, out var point)
-                    || book.IsOccupied(candidate, along, Rules.LaneOccupyDistance)) continue;
+                    || book.IsOccupied(candidate, along, Rules.LaneOccupyDistance) || GripVisuallyGone(candidate, along)) continue;
                 float squared = (point - player.transform.position).sqrMagnitude;
                 if (squared > best || squared == best && lane >= 0
                     || !PlayerInteraction.ClearPath(player, point, course.HangTargetRoot(candidate))) continue;
@@ -222,7 +223,10 @@ namespace CurtainCall.Tightrope
             {
                 var player = Find(hang.Id);
                 if (player == null || player.State != PlayerState.Normal) { Debug.Log($"[RescueDiag] remove target={hang.Id} reason=missing-or-state"); (gone ??= new List<ulong>()).Add(hang.Id); continue; }
-                if (!course.IsLaneUsable(hang.Lane, hang.Distance))
+                // 소유자가 자기 화면의 소실 연출에 맞춰 먼저 놓았다면 낙하는 이미 시작됐다. 장부에서만 뺀다.
+                if (player.IsDroppingFromSupport) { (gone ??= new List<ulong>()).Add(hang.Id); continue; }
+                // 호스트도 같은 공유 시각의 소실 연출로 판단해 다른 화면의 매달림 표시를 같은 순간에 끝낸다.
+                if (!course.IsLaneUsable(hang.Lane, hang.Distance) || GripVisuallyGone(hang.Lane, hang.Distance))
                 {
                     (gone ??= new List<ulong>()).Add(hang.Id);
                     (unsupported ??= new List<NetworkPlayer>()).Add(player);
@@ -317,7 +321,8 @@ namespace CurtainCall.Tightrope
                 || local.State != PlayerState.Normal || PiggybackSystem.UsingDevice(local)) return false;
             if (localHang != null) return true;
             if (!local.TryGetComponent(out PlayerMover mover) || mover.Body == null) return false;
-            if (!course.TryGetRopePoint(local.transform.position, out int lane, out float distance)) return false;
+            if (!course.TryGetRopePoint(local.transform.position, out int lane, out float distance)
+                || GripVisuallyGone(lane, distance)) return false;
             BindLocal(local, mover, balance);
             Send(Request.Hang, 0, lane, distance);
             return true;
@@ -420,12 +425,26 @@ namespace CurtainCall.Tightrope
         }
 
         // A confirmed burn can arrive before the host's hang snapshot or a rescue message.
+        // 소실 연출이 손 위 조각을 먼저 지우면 지지면 해제(발화·전기 차단)를 기다리지 않고 그 화면에서 바로 놓는다.
         bool DropUnsupportedLocalGrip(NetworkPlayer local, int lane, float distance)
         {
-            if (course.IsLaneUsable(lane, distance)) return false;
+            if (course.IsLaneUsable(lane, distance) && !GripVisuallyGone(lane, distance)) return false;
             ReleaseLocalIntoFall(local);
             local.RequestNaturalFall();
             return true;
+        }
+
+        /// <summary>
+        /// 이 화면의 소실 연출(외줄 묘기 소각, 탈출로 전기 소실)이 그 지점의 줄 조각을 이미 다 지웠는지.
+        /// 두 연출 모두 공유 시각(서버 시각)으로 진행하므로 호스트와 각 소유자가 같은 순간을 계산한다.
+        /// </summary>
+        bool GripVisuallyGone(int lane, float distance)
+        {
+            if (course == null) return false;
+            var burn = FireView.Active;
+            if (burn != null && burn.IsRopeBurnedAway(lane, distance)) return true;
+            var ropes = EscapeCooperativeRopes.Current;
+            return ropes != null && ropes.IsRopeGoneAt(course.GetLanePosition(lane, distance));
         }
 
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>

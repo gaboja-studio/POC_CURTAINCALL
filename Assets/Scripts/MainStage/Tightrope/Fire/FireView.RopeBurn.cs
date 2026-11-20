@@ -12,12 +12,42 @@ namespace CurtainCall.Tightrope.Fire
         static readonly Color IgnitionGlow = new(1.3f, .18f, .025f);
         MaterialPropertyBlock burnProperties;
         readonly Dictionary<Material, Material> burnMaterials = new();
-        readonly List<(MeshRenderer renderer, Material[] originals, MaterialPropertyBlock originalBlock, float offset)> burningSurfaces = new();
+        readonly List<(MeshRenderer renderer, Material[] originals, MaterialPropertyBlock originalBlock, float offset, float from, float to)> burningSurfaces = new();
         readonly List<MeshRenderer> ropeRenderers = new();
         readonly List<Vector2> burningSpans = new();
         readonly List<Transform> hiddenPieces = new();
         Transform burningRoot, slices;
-        int burningSegment = -1;
+        int burningSegment = -1, burningLane = -1;
+
+        /// <summary>
+        /// 이 줄·거리의 밧줄 조각이 화면에서 이미 다 타 없어졌는지. 지지면은 발화 순간 사라지지만 조각은 끝에서부터
+        /// 먼저 사라지므로, 매달린 소유자는 이 값으로 손 위 조각이 사라지는 순간 놓는다. 덮는 조각이 없으면 false.
+        /// </summary>
+        public bool IsRopeBurnedAway(int lane, float distance)
+        {
+            if (!isActiveAndEnabled || fire == null || fire.Settings == null || burningLane != lane
+                || burningSegment < 0 || burningSegment != fire.PendingSegment || burningSurfaces.Count == 0) return false;
+            float remaining = fire.WarningRemaining(burningSegment);
+            if (remaining < 0f) return false;
+            float dissolve = BurnDissolve(remaining, fire.Settings.warningSeconds);
+            bool covered = false;
+            foreach (var surface in burningSurfaces)
+            {
+                if (surface.renderer == null || !surface.renderer.enabled
+                    || distance < surface.from - CoverMargin || distance > surface.to + CoverMargin) continue;
+                covered = true;
+                if (RopeDissolve.AtOffset(dissolve, surface.offset) < 1f) return false;
+            }
+            return covered;
+        }
+
+        const float CoverMargin = .05f;
+
+        static float BurnDissolve(float remaining, float warningSeconds)
+        {
+            float window = Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds);
+            return window > 0f ? Mathf.Clamp01(1f - remaining / window) : 1f;
+        }
 
         void UpdateRopeBurn()
         {
@@ -34,6 +64,7 @@ namespace CurtainCall.Tightrope.Fire
                 ClearRopeBurn();
                 burningRoot = root;
                 burningSegment = index;
+                burningLane = lane;
                 burningSpans.AddRange(segmentSpans);
                 slices = new GameObject("Burning rope visuals").transform;
                 slices.SetParent(root, false);
@@ -61,7 +92,7 @@ namespace CurtainCall.Tightrope.Fire
                     for (int i = 0; i < originals.Length; i++)
                         if (originals[i] != null) replacements[i] = BurnMaterial(originals[i]);
                     renderer.sharedMaterials = replacements;
-                    burningSurfaces.Add((renderer, originals, originalBlock, offset));
+                    burningSurfaces.Add((renderer, originals, originalBlock, offset, center - extent, center + extent));
                 }
                 ropeRenderers.Clear();
             }
@@ -70,8 +101,7 @@ namespace CurtainCall.Tightrope.Fire
 
         void ApplyRopeBurnProgress(float progress, float remaining, float warningSeconds)
         {
-            float window = Mathf.Min(RopeDissolve.WindowSeconds, warningSeconds);
-            float dissolve = window > 0f ? Mathf.Clamp01(1f - remaining / window) : 1f;
+            float dissolve = BurnDissolve(remaining, warningSeconds);
             float pulse = .75f + .25f * Mathf.Sin(Time.time * 13f);
             float warning = Mathf.Lerp(.38f, 1f, progress) * (1f - dissolve) * pulse;
             foreach (var surface in burningSurfaces)
@@ -129,7 +159,7 @@ namespace CurtainCall.Tightrope.Fire
             hiddenPieces.Clear();
             burningSpans.Clear();
             burningRoot = null;
-            burningSegment = -1;
+            burningSegment = burningLane = -1;
         }
     }
 }

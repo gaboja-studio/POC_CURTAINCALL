@@ -48,7 +48,7 @@ namespace CurtainCall.Sound
             (EscapeGrab, "추격자 포획", "뻗은 손이 플레이어를 붙잡는 순간."),
             (EscapeThrow, "추격자 투척", "손에서 플레이어가 놓이는 순간."),
             (EscapeRopeWarning, "소실 외줄 전기 경고", "외줄 소실 예고의 전기 점멸마다."),
-            (EscapeRopeDisappear, "외줄 소실", "외줄의 지지가 사라지는 순간."),
+            (EscapeRopeDisappear, "외줄 소실", "외줄이 타며 사라지는 소실 연출(약 1초)이 시작되는 순간. 연출이 끝나면 지지가 사라진다."),
             (EscapeRopeRestore, "외줄 복원", "사라진 외줄이 다시 나타나는 순간."),
             (EscapeFireWarning, "후반 추격불 시작 경고", "후반 추격불의 점화 예고 중."),
             (EscapeFireIgnition, "추격불 구간 점화", "각 화염벽 구간이 점화되는 순간."),
