@@ -9,3 +9,6 @@
 - 전체 EditMode 실행은 일부 테스트가 일시적으로 Play 상태를 열어 중단했다. Start 씬과 편집 상태를 복원하고 범위를 좁혔다. 신규 회귀 5건은 모두 수정 전 실패와 수정 후 통과를 확인했다. C# 컴파일과 공용 세팅 검사도 통과했다.
 - 2026-11-20 DEV 0da3539a 최신화 확인. Netcode는 씬 로드·언로드 도중 이미 이탈한 클라이언트도 타임아웃 명단에 담는다. 묘기 진입 중에만 연결을 유지한 참가자 또는 호스트의 실패를 확인하도록 수정했다. 이탈이 추가 로드 방식의 이전 씬 해제에 겹쳐도 남은 팀의 진입을 중단하지 않는다. 회귀 4건과 컴파일 통과. 실제 다인 세션 미실행.
 - 2026-11-20 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS(EditMode 회귀 5건과 전환 회귀 4건)
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/458 (fix/stunt-progression → dev)
+- 2026-11-20 외줄·인간대포·공연 씬 전환 수정 묶음을 DEV 검토용 [PR #458](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/458)에 제출했다.
