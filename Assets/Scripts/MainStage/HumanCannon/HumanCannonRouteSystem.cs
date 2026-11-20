@@ -37,9 +37,16 @@ namespace CurtainCall.HumanCannon
             public double EmptySince = -1;
             public Vector3 Offset;
             public Quaternion Rotation = Quaternion.identity;
-            public (ulong Rider, double StartedAt)? RevokedTravel;
-            public ulong ActiveRider => RevokedTravel == (State.Rider, State.StartedAt)
-                ? CannonSeatState.Nobody : State.Rider;
+            public int RiderReviveVersion;
+            public ulong ActiveRider
+            {
+                get
+                {
+                    if (State.Rider == CannonSeatState.Nobody) return CannonSeatState.Nobody;
+                    var rider = FindPlayer(State.Rider);
+                    return rider != null && rider.ReviveVersion != RiderReviveVersion ? CannonSeatState.Nobody : State.Rider;
+                }
+            }
         }
         Transit[] runtime;
         uint[] deliveredArrival;
@@ -212,6 +219,7 @@ namespace CurtainCall.HumanCannon
                 {
                     if (transit.State.TryStart(soleRider.OwnerClientId, transit.State.Revision, Clock, transports[i].TravelSeconds))
                     {
+                        transit.RiderReviveVersion = soleRider.ReviveVersion;
                         transit.Offset = soleRider.transform.position - transports[i].Platform.position;
                         transit.Rotation = soleRider.transform.rotation;
                         if (i == 0) ArmFire(0);
@@ -504,8 +512,7 @@ namespace CurtainCall.HumanCannon
                 if (transit.Trap.IsOpen) continue;
                 if (transit.State.Phase == DeparturePhase.Arrived && deliveredArrival[i] != transit.State.Revision)
                 {
-                    deliveredArrival[i] = transit.State.Revision;
-                    if (local != null && local.State == PlayerState.Normal && local.OwnerClientId == transit.ActiveRider
+                    if (local != null && local.IsSpawned && local.State == PlayerState.Normal && local.OwnerClientId == transit.ActiveRider
                         && transports[i] != null)
                     {
                         var pilot = local.GetComponent<HumanCannonPilot>();
@@ -515,6 +522,7 @@ namespace CurtainCall.HumanCannon
                             pilot.SetTransportPose(transports[i].Position(1) + transit.Offset, transit.Rotation);
                             HumanCannonTrampoline.Current?.FollowTransportArrival(local);
                             pilot.EndTransport();
+                            deliveredArrival[i] = transit.State.Revision;
                         }
                     }
                 }
@@ -537,7 +545,7 @@ namespace CurtainCall.HumanCannon
             {
                 // 마지막 Moving 프레임이 없더라도 정확한 도착점에서 운반을 마친다. R/사망은 현재 위치를 보존한다.
                 if (carriedTransit >= 0 && !runtime[carriedTransit].Trap.IsOpen && runtime[carriedTransit].State.Phase == DeparturePhase.Arrived
-                    && local != null && local.State == PlayerState.Normal && runtime[carriedTransit].ActiveRider == local.OwnerClientId)
+                    && local != null && local.IsSpawned && local.State == PlayerState.Normal && runtime[carriedTransit].ActiveRider == local.OwnerClientId)
                     carriedPilot.SetTransportPose(transports[carriedTransit].Position(1) + runtime[carriedTransit].Offset, runtime[carriedTransit].Rotation);
                 carriedPilot.EndTransport();
                 carriedPilot = null;
@@ -556,9 +564,9 @@ namespace CurtainCall.HumanCannon
                     transit.Boarding.Reset();
                     changed = true;
                 }
-                if (transit.State.Rider != player.OwnerClientId) continue;
-                if (host) changed |= transit.State.TryReleaseRider(player.OwnerClientId);
-                else transit.RevokedTravel = (player.OwnerClientId, transit.State.StartedAt);
+                if (host && transit.State.Rider == player.OwnerClientId
+                    && transit.RiderReviveVersion != player.ReviveVersion)
+                    changed |= transit.State.TryReleaseRider(player.OwnerClientId);
             }
             if (player.IsLocal && carriedPilot != null)
             {
@@ -590,7 +598,7 @@ namespace CurtainCall.HumanCannon
         {
             ownerFireContacts?.Reset();
             AliveFlyers = ArrivedFlyers = 0;
-            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; transit.RevokedTravel = null; }
+            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; transit.RiderReviveVersion = 0; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
             for (int i = 0; i < runtime.Length; i++) if (transports[i] != null) transports[i].Present(0);
         }

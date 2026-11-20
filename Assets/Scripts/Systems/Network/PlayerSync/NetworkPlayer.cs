@@ -169,6 +169,7 @@ namespace CurtainCall.Network.PlayerSync
 
         /// <summary>호스트가 정한 복구 회차. 배치 확인 메시지가 이전 재시작의 것인지 구분한다.</summary>
         public int RestartVersion => restartCount.Value;
+        internal int ReviveVersion => reviveCount.Value;
 
         /// <summary>이 캐릭터가 이 컴퓨터 사람의 것인지.</summary>
         public bool IsLocal => IsOwner;

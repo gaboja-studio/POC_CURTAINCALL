@@ -10,9 +10,9 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonRouteSystem
     {
         enum RouteAction : byte { Sync, ResetSync = 3 }
-        const string RequestName = "CurtainCall.HumanCannon.Route.Request.v2";
-        const string StateName = "CurtainCall.HumanCannon.Route.State.v2";
-        const int RequestBytes = 9;
+        const string RequestName = "CurtainCall.HumanCannon.Route.Request.v3";
+        const string StateName = "CurtainCall.HumanCannon.Route.State.v3";
+        const int RequestBytes = 9, TransitStateBytes = 89;
         CustomMessagingManager messaging;
 
         void SendRequest(RouteAction action, int index)
@@ -55,6 +55,7 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe(transit.State.Revision);
                 writer.WriteValueSafe((byte)transit.State.Phase);
                 writer.WriteValueSafe(transit.State.Rider);
+                writer.WriteValueSafe(transit.RiderReviveVersion);
                 writer.WriteValueSafe(transit.State.StartedAt);
                 writer.WriteValueSafe(transit.State.Duration);
                 writer.WriteValueSafe((byte)(transit.State.Delivered ? 1 : 0));
@@ -80,7 +81,7 @@ namespace CurtainCall.HumanCannon
 
         void ReceiveState(ulong sender, FastBufferReader reader)
         {
-            int expectedBytes = 24 + runtime.Length * 85 + fires.Length * 9;
+            int expectedBytes = 24 + runtime.Length * TransitStateBytes + fires.Length * 9;
             foreach (var fire in fires) if (fire != null) expectedBytes += fire.StageCount * 8;
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != expectedBytes) return;
             reader.ReadValueSafe(out uint incoming);
@@ -95,6 +96,7 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out uint stateRevision);
                 reader.ReadValueSafe(out byte phase);
                 reader.ReadValueSafe(out ulong rider);
+                reader.ReadValueSafe(out int riderReviveVersion);
                 reader.ReadValueSafe(out double startedAt);
                 reader.ReadValueSafe(out float duration);
                 reader.ReadValueSafe(out byte delivered);
@@ -107,13 +109,16 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out double boardedAt);
                 reader.ReadValueSafe(out byte occupied);
                 reader.ReadValueSafe(out byte rejected);
-                if (rejected > 1 || delivered > 1) return;
-                var transit = new Transit { Offset = offset, Rotation = rotation, Occupied = occupied == 1, Rejected = rejected == 1 };
+                if (riderReviveVersion < 0 || rejected > 1 || delivered > 1) return;
+                var transit = new Transit
+                {
+                    Offset = offset, Rotation = rotation, Occupied = occupied == 1, Rejected = rejected == 1,
+                    RiderReviveVersion = riderReviveVersion
+                };
                 if (!Finite(offset) || !Finite(rotation) || !transit.State.Receive(stateRevision, (DeparturePhase)phase, rider, startedAt, duration, delivered == 1)) return;
                 if (trapOpen > 1 || !transit.Trap.Receive(trapOpen == 1, openedAt, frozenProgress)) return;
                 if (occupied > 1 || !transit.Boarding.Receive(boardingRider, boardedAt)) return;
                 if (transit.Boarding.IsCounting && (transit.Trap.IsOpen || transit.State.Phase != DeparturePhase.Waiting || !transit.Occupied)) return;
-                if (runtime[i].RevokedTravel == (rider, startedAt)) transit.RevokedTravel = runtime[i].RevokedTravel;
                 snapshot[i] = transit;
             }
             reader.ReadValueSafe(out int fireCount);
