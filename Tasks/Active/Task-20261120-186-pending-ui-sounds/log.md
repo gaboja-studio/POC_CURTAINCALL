@@ -17,3 +17,5 @@
 - 비공개 에셋 main에 WAV 6종과 필요한 메타를 저장했다. Git LFS 업로드 6/6 확인. 공개 저장소는 9f16297c gitlink를 사용한다.
 
 - 2026-11-20 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/469 (feat/ui/sound → dev)
