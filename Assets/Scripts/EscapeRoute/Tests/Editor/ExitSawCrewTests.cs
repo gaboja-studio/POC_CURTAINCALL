@@ -211,6 +211,42 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        [TestCase(false)]
+        [TestCase(true)]
+        public void GuestShotFinishesTheLastCableAfterTheShooterIsLost(bool disconnected)
+        {
+            Fixture(true);
+            Set(saw, "scaleWithCrew", true);
+            Set(saw, "deviceId", 2);
+            Set(saw, "projectileLifetime", 0f);
+            // Stage the visible three-person machine. The real host still validates the pickup and shot.
+            Set(saw, "scaleWithCrew", false);
+            var guest = Player(41);
+            var survivor = Player(42);
+            survivor.transform.position += Vector3.right * 3;
+            var strand = Strand(ShotStart + Vector3.forward * 7);
+            SetCables(strand);
+            Physics.SyncTransforms();
+            var ownership = Get(saw, "ownership");
+            Call(saw, "HandleAction", 41UL, (byte)1, (uint)Get(ownership, "Revision"), true);
+            Assert.That(Get(saw, "Carrier"), Is.EqualTo(41UL));
+            Call(saw, "HandleAction", 41UL, (byte)3, (uint)Get(ownership, "Revision"), true);
+            Assert.That(Get(saw, "ActiveProjectileCount"), Is.EqualTo(1));
+            Assert.That(Get(strand, "IsCut"), Is.False);
+
+            if (disconnected) Set(guest, "IsSpawned", false);
+            else Set(Get(guest, "state"), "Value", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Retired"));
+            Set(saw, "scaleWithCrew", true);
+            Call(saw, "ReleaseUnavailableCarrier");
+            Call(saw, "RefreshCrewAvailability", 2);
+            Assert.That(Get(saw, "Carrier"), Is.EqualTo(ulong.MaxValue));
+            Assert.That(device.gameObject.activeSelf, Is.False);
+            Call(saw, "HostProjectileStep", .6f, null);
+            Assert.That(Get(strand, "IsCut"), Is.True);
+            Assert.That(Get(saw, "DoorOpen"), Is.True);
+        }
+
+        [Test]
         public void OtherScenesRetainAuthoredLauncherCountUntilExplicitlyEnabled()
         {
             Fixture(); Set(saw, "deviceId", 3); Call(saw, "RefreshCrewAvailability", 1);

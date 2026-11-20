@@ -3,12 +3,14 @@
 - **Title:** 최종 추격자와 톱날 발사기 사후 검사
 - **Type:** fix
 - **Assignee:** @RagSpirin
-- **Branch:** fix/escape-finale-launcher-audit
+- **Branch:** fix/escape-guest-shot-ending-roster
 - **Base:** dev
 
 ## Context
 
 최신 dev의 최종 추격자와 휴대 톱날 발사기를 재검사한다. 이미 통과한 시나리오는 제외한다.
+
+이번 후속은 게스트가 발사한 톱날이 마지막 배선에 닿기 전에 운반자가 사망하거나 연결이 끊기는 순서와, 참가 명단이 바뀔 때 게스트가 엔딩을 수신하는 순서를 확인한다.
 
 ## 계획
 
