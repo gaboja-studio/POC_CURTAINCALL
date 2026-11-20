@@ -63,3 +63,4 @@
 
 - [escape-landing-surface-overlap.md](escape-landing-surface-overlap.md) — 착지대와 장식 받침의 자글거림, 장식 삭제 후 벽 구멍을 검사할 때
 - [escape-transfer-ack-wait.md](escape-transfer-ack-wait.md) — 탈출로 입장에서 참가자의 배치 확인을 기다리다 로딩이 멈출 때
+- [tightrope-finale-stack-reapproval.md](tightrope-finale-stack-reapproval.md) — 외줄 결승 목마 편성을 바꾼 뒤 도약 승인이 갱신되지 않을 때
