@@ -48,3 +48,5 @@
 - 심부 바닥까지 닿는 시선은 말단 높이와 안개를 통과한 거리에 따라 색과 대비가 같은 심부색으로 완전히 수렴하도록 조정했다. 바닥 후보 세 곳을 임시 자홍색으로 바꿔 컨베이어 대포와 낮은 그네 두 구도에서 렌더했다. 안개를 끄면 각 구도에서 31,727–243,378 자홍색 픽셀이 검출됐고, 켜면 세 구도 모두 0이었다. 진단 머티리얼은 원복했다.
 
 - 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/454 (fix/escape-shaft-and-surface-polish → dev)
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/457 (fix/escape-user-map-polish → dev)
