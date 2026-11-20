@@ -3,6 +3,7 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -281,6 +282,7 @@ namespace CurtainCall.HumanCannon
         {
             if (!fire.Available || !fire.Armed || fire.Finished) return false;
             bool changed = false;
+            var stack = PiggybackSystem.Current;
             for (int stage = 0; stage < fire.StageCount; stage++)
             {
                 if (fire.StageAt(stage) >= 0) continue;
@@ -291,10 +293,13 @@ namespace CurtainCall.HumanCannon
                     if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
                     alive++;
                     ulong actor = player.OwnerClientId;
-                    Vector3 feet = player.transform.position;
-                    bool arrived = cannon == null || !cannon.IsFlying(actor);
-                    arrived &= fire.Reached(stage, feet) || stage == 0 && (IsSeatedAtShelter(actor)
-                        || shelter != null && shelter.SupportsLanding(feet) && !IsRiding(actor));
+                    var support = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : player;
+                    bool landed = support != null && !support.IsAirborne
+                        && (cannon == null || !cannon.IsFlying(support.OwnerClientId));
+                    bool arrived = landed && fire.Reached(stage, support.LatestOwnerPosition);
+                    if (stage == 0)
+                        arrived |= IsSeatedAtShelter(actor) || landed && shelter != null
+                            && !IsRiding(support.OwnerClientId) && shelter.SupportsStandingPlayer(player, cannon);
                     if (!arrived) { all = false; break; }
                 }
                 if (alive > 0 && all && fire.Boost(stage, Clock))

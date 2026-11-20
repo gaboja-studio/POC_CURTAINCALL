@@ -617,11 +617,20 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void CarryReleaseSurvivesTheChangeFromPlatformToRopeControls(bool onRope)
+        [TestCase(false, true)]
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        public void CarryReleaseSurvivesTheChangeFromPlatformToRopeControls(bool onRope, bool hasFloor)
         {
             var root = new GameObject("Carry input handoff");
+            root.transform.position = new Vector3(15100, 0, 15100);
+            var floor = new GameObject("Drop surface");
+            floor.transform.position = root.transform.position;
+            var ground = floor.AddComponent<BoxCollider>();
+            ground.center = Vector3.down * .30f;
+            ground.size = new Vector3(8f, .5f, 8f);
+            ground.enabled = hasFloor;
             var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
             var local = typeof(NetworkPlayer).GetProperty("Local");
             var oldLocal = local.GetValue(null);
@@ -656,12 +665,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var pilot = root.AddComponent<HumanCannonPilot>();
                 Set(pilot, "player", player);
                 Set(pilot, "system", sessionRoot.AddComponent<HumanCannonSystem>());
-                var deviceRoot = new GameObject("Held trampoline"); deviceRoot.transform.SetParent(root.transform);
+                var deviceRoot = new GameObject("Held trampoline"); deviceRoot.transform.SetParent(root.transform, false);
                 trampoline = deviceRoot.AddComponent<HumanCannonTrampoline>();
                 Set(trampoline, "session", session);
                 var ownership = (CannonSeatState)typeof(HumanCannonTrampoline).GetField("ownership", fields).GetValue(trampoline);
                 Assert.IsTrue(ownership.TryApply(CannonAction.Board, actor, ownership.Revision));
                 HumanCannonCarry.Register(trampoline);
+                Physics.SyncTransforms();
                 Call(pilot, "ReadInput", default(PlayerInputFrame));
                 Call(pilot, "ReadInput", default(PlayerInputFrame));
                 var input = new PlayerInputFrame { InteractLongPressed = true, InteractHeld = true, InteractHoldProgress = 1f };
@@ -672,7 +682,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     scheme.Tick(context, input);
                 }
                 else Call(pilot, "ReadInput", input);
-                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Assert.AreEqual(hasFloor ? CannonSeatState.Nobody : actor, trampoline.Carrier);
             }
             finally
             {
@@ -689,6 +699,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 blockedFrame.SetValue(null, previousBlockedFrame);
                 Object.DestroyImmediate(scheme);
                 Object.DestroyImmediate(root);
+                Object.DestroyImmediate(floor);
             }
         }
 
