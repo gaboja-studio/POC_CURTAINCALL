@@ -40,6 +40,12 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string[] calmZones = { "Area_Main", "Lobby", "ServiceGallery", "Area_S08_ElevatorHall", "Area_S02_Dormitory", "F8_Dorm", "Area_S03_Shop",
             "Area_S09_PracticeRoom", "F8_Practice", "Area_S10_Workshop", "WorkshopBranch", "Area_S04_PropRoom", "F8_PropRoom" };
 
+        [Header("소리")]
+        [Tooltip("내 캐릭터가 이 구역(탐색 구역 물체 이름)에 있을 때만 치직 소리가 들린다(2026-11-20 사용자: 로비에서만).")]
+        [SerializeField] string[] soundZones = { "Lobby", "Area_Lobby", "Area_LobbyEast" };
+        [Tooltip("구역 상자가 없는 자리(Area_Main)는 모니터에서 이 거리(m) 안일 때만 로비로 본다.")]
+        [SerializeField, Min(0f)] float soundFallbackRange = 20f;
+
         RingmasterMonitor monitor;
         BoxCollider approach, passage;
         ExplorationTimerZones zones;
@@ -77,6 +83,7 @@ namespace CurtainCall.WaitingRoom
             if (run == null) { if (monitor.IsOn) monitor.TurnOff(); return; }
             var state = run.State;
             if (zones == null) zones = FindFirstObjectByType<ExplorationTimerZones>();
+            monitor.SoundMuted = !LocalHearsMonitor();
 
             // 사람들이 어디에 있는지: 무대 입구 통로 쪽인지, 허용 구역 밖인지.
             bool atStage = false, away = false;
@@ -111,6 +118,16 @@ namespace CurtainCall.WaitingRoom
                 else if (away || counting && state.TimeRemaining <= boredSeconds) image = bored;
             }
             monitor.ShowImage(image != null ? image : watching);
+        }
+
+        /// <summary>내 캐릭터가 로비에 있는가. 소리는 화면마다 따로 판단한다(공유하지 않는다). 구역 판정이나 내 캐릭터가 없으면 들리게 둔다.</summary>
+        bool LocalHearsMonitor()
+        {
+            if (zones == null || !ShopReach.TryLocalFeet(out var feet)) return true;
+            string zone = zones.ZoneAt(feet);
+            if (System.Array.IndexOf(soundZones, zone) >= 0) return true;
+            var flat = feet - monitor.transform.position; flat.y = 0f;
+            return zone == "Area_Main" && flat.magnitude <= soundFallbackRange;
         }
 
         static bool Inside(BoxCollider box, Vector3 feet) => box != null && box.enabled && box.gameObject.activeInHierarchy

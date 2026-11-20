@@ -45,12 +45,12 @@ namespace CurtainCall.Tightrope
                 }
                 if (FindHeld(local, out int index, out bool lower))
                 {
-                    if (practiceLesson && PoleTotal == 2 && index == 1) return "다음 봉 잡기 성공 · 연습을 마치고 도착대로 이동합니다";
                     string time = HoldTimeLimited ? $" · 유지 {Mathf.Max(0f, (float)(poles[index].Until - Clock)):0.0}초" : "";
                     if (lower) return "동료 몸에 매달렸어요 · 반동에 맞춰 Space로 먼저 날아가기\n공중 WASD 조절 · 다음 봉에 가까워지면 F 잡기" + time;
                     if (poles[index].Lower != Nobody)
                         return "W/S로 두 사람 반동 키우기 · 아래 동료가 Space로 먼저 날아가요\n아래 동료가 놓은 뒤 Space로 따라가기 · 다음 봉의 동료 몸을 F로 잡기" + time;
-                    return !practiceLesson && index == PoleTotal - 1 ? "W/S 반동 · Space로 마지막 줄에 착지 · 공중 WASD 조절" + time
+                    // 리허설 수업의 마지막 봉도 공연처럼 건너편 줄로 내려와 도착대까지 간다(2026-11-20 사용자).
+                    return index == PoleTotal - 1 ? "W/S 반동 · Space로 마지막 줄에 착지 · 공중 WASD 조절" + time
                         : "W/S로 반동 키우기 · 동료는 아래에서 F로 매달리기\n동료가 먼저 건넜다면 Space로 따라가서 동료 몸에 F" + time;
                 }
                 if (IsInFlight(local))
@@ -72,7 +72,7 @@ namespace CurtainCall.Tightrope
                 }
                 return distance < course.TrapezeGapFrom
                     ? "공중그네 · 봉 가까이에서 F로 잡기 · 점프 중에도 F 잡기\n동료 몸에도 가까이에서 F로 매달릴 수 있어요"
-                    : practiceLesson && PoleTotal == 2 ? "첫 봉에서 도약해 다음 봉을 F로 잡으면 학습 완료입니다"
+                    : practiceLesson && PoleTotal == 2 ? "첫 봉에서 도약해 다음 봉을 F로 잡고, Space로 건너편 줄에 착지해 도착대로 가세요"
                     : "먼저 착지했다면 F로 동료 받기 준비 · 남은 동료는 마지막 낮은 봉으로 이동";
             }
         }
