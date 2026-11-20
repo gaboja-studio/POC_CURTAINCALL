@@ -92,31 +92,52 @@ namespace CurtainCall.Tightrope.Saws
                 changed = true;
                 break;
             }
+            bool canReplace = CanReplaceCooperativeAdmission(stack);
             foreach (var bottom in NetworkPlayer.All)
             {
                 int size = stack.GetStackSize(bottom);
                 if (!IsStandingStackMember(bottom) || stack.GetBelow(bottom) != null || !ValidFinaleStackSize(size)
-                    || size <= cooperativeAdmittedCount
+                    || !canReplace && size <= cooperativeAdmittedCount
                     || !bottom.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane)
                     || !TryGetCooperativeGateApproachPosition(lane, out var approach)) continue;
                 Vector3 offset = bottom.transform.position - approach;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGateLaunchTolerance
                     || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) continue;
                 int count = 0;
-                // 아래 두 담당자가 살아 있는 동안에는 기존 층을 유지하고 위쪽으로만 확장한다.
+                // Once crossing starts, keep the approved order and only extend above it.
                 var candidates = new ulong[MaximumFinaleStackSize];
                 for (var member = bottom; member != null && count < size; member = stack.GetAbove(member))
                 {
                     if (!IsStandingStackMember(member)) break;
-                    if (count < cooperativeAdmittedCount && cooperativeAdmittedPlayers[count] != member.NetworkObjectId) break;
+                    if (!canReplace && count < cooperativeAdmittedCount
+                        && cooperativeAdmittedPlayers[count] != member.NetworkObjectId) break;
                     candidates[count++] = member.NetworkObjectId;
                 }
                 if (count != size) continue;
                 Array.Copy(candidates, cooperativeAdmittedPlayers, count);
+                Array.Clear(cooperativeAdmittedPlayers, count, cooperativeAdmittedPlayers.Length - count);
                 cooperativeAdmittedCount = count;
                 return true;
             }
             return changed;
+        }
+
+        bool CanReplaceCooperativeAdmission(PiggybackSystem stack)
+        {
+            if (!ValidFinaleStackSize(cooperativeAdmittedCount)) return false;
+            NetworkPlayer formerBottom = null, formerSecond = null;
+            foreach (var member in NetworkPlayer.All)
+            {
+                if (member == null || !member.IsSpawned || !member.isActiveAndEnabled || member.State != PlayerState.Normal) continue;
+                int floor = CooperativeAdmittedFloor(member);
+                if (floor == 0) continue;
+                // Keep the approval for anyone still jumping or already beyond the saw.
+                if (member.IsAirborne || course.GetDistance(member.LatestOwnerPosition) >= CooperativeGateDistance) return false;
+                if (floor == 1) formerBottom = member;
+                else if (floor == 2) formerSecond = member;
+            }
+            return formerBottom != null && formerSecond != null
+                && (stack.GetBelow(formerBottom) != null || stack.GetBelow(formerSecond) != formerBottom);
         }
 
         bool IsStandingStackMember(NetworkPlayer player) => player != null && player.IsSpawned

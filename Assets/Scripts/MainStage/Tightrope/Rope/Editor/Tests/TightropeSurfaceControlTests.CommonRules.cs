@@ -4,6 +4,8 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Fire;
+using CurtainCall.Tightrope.Saws;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -1074,6 +1076,77 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     }
     finally { current.SetValue(null, oldSystem); }
    });
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  public void FinaleStackRetry_ReapprovesSwappedRolesOnlyBeforeCrossing(bool alreadyCrossed)
+  {
+   WithMountedPair((stack, _, passenger) =>
+   {
+    const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+    const float gateDistance = 6f;
+    const int lane = 0;
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var objectId = typeof(NetworkPlayer).GetProperty(nameof(NetworkPlayer.NetworkObjectId));
+    objectId.SetValue(player, 100UL);
+    objectId.SetValue(rider, 101UL);
+    var root = MakeObject("Finale approval test");
+    var saws = root.AddComponent<TightropeSaws>();
+    var fire = root.AddComponent<TightropeFire>();
+    var run = course.gameObject.AddComponent<TightropeRun>();
+    var fireCurrent = typeof(TightropeFire).GetField("current", BindingFlags.Static | BindingFlags.NonPublic);
+    var previousFire = fireCurrent.GetValue(null);
+    try
+    {
+     fireCurrent.SetValue(null, fire);
+     var burns = new System.Collections.Generic.List<FireSegment>();
+     for (int other = 1; other < course.LaneCount; other++)
+     {
+      course.BlockSegment(other, 0f, 10f);
+      burns.Add(new FireSegment(other + 1, 0, 10, 0));
+     }
+     typeof(TightropeFire).GetField("course", members).SetValue(fire, course);
+     typeof(TightropeFire).GetField("run", members).SetValue(fire, run);
+     typeof(TightropeFire).GetField("round", members).SetValue(fire, run.Round);
+     typeof(TightropeFire).GetField("snapshot", members).SetValue(fire, new FireSettings { segments = burns.ToArray() });
+     Assert.IsTrue(fire.FinaleReadyAt(gateDistance));
+
+     typeof(TightropeSaws).GetField("course", members).SetValue(saws, course);
+     typeof(TightropeSaws).GetField("builtSettings", members).SetValue(saws, new SawSettings
+     {
+      cooperativeGates = true, finaleFourStackRequired = true, finaleStartFraction = 0f,
+      cooperativeGateDistances = new[] { gateDistance }, cooperativeGateApproachDistance = 0f, cooperativeGateApproachSpeed = 0f
+     });
+     typeof(TightropeSaws).GetField("cooperativeGateIndex", members).SetValue(saws, 0);
+     typeof(TightropeSaws).GetField("cooperativeGateLane", members).SetValue(saws, lane);
+     typeof(TightropeSaws).GetField("cooperativeGateActive", members).SetValue(saws, true);
+     AddRope(lane, course.Layout.GetLaneSide(lane));
+     Assert.IsTrue(saws.TryGetCooperativeGateApproachPosition(lane, out var approach));
+
+     var below = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", members).GetValue(stack);
+     var above = (System.Collections.Generic.Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", members).GetValue(stack);
+     void Prepare(NetworkPlayer bottom, NetworkPlayer top, bool pastGate)
+     {
+      below.Clear(); above.Clear();
+      below[top.OwnerClientId] = bottom.OwnerClientId;
+      above[bottom.OwnerClientId] = top.OwnerClientId;
+      bottom.transform.position = approach;
+      top.transform.position = pastGate ? course.GetLanePosition(lane, gateDistance + 1f) : approach + Vector3.up * 1.5f;
+      mover.FreeMovement = passenger.FreeMovement = false;
+      Physics.SyncTransforms();
+     }
+
+     Prepare(player, rider, false);
+     Assert.IsTrue((bool)Invoke(saws, "ServerApproveCooperativeStack"), "The original pair reaches the real launch surface.");
+     Assert.AreEqual(1, saws.CooperativeAdmittedFloor(player));
+     Prepare(rider, player, alreadyCrossed);
+     Assert.AreEqual(!alreadyCrossed, (bool)Invoke(saws, "ServerApproveCooperativeStack"));
+     Assert.AreEqual(alreadyCrossed ? 1 : 2, saws.CooperativeAdmittedFloor(player));
+     Assert.AreEqual(alreadyCrossed ? 2 : 1, saws.CooperativeAdmittedFloor(rider));
+    }
+    finally { fireCurrent.SetValue(null, previousFire); }
+   }, mount: false);
   }
 
   void WithMountedPair(System.Action<PiggybackSystem, PiggybackFollow, PlayerMover> test, bool mount = true, float groundDepth = 12f)
