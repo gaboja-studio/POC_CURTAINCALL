@@ -10,6 +10,7 @@ using CurtainCall.Network.Session;
 using CurtainCall.Settings;
 using CurtainCall.UI.EscapeResultsKit;
 using NUnit.Framework;
+using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -120,6 +121,73 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                         Assert.That(reference, Is.Not.Null);
             }
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EndingPacketRemainsUsableWhileAnAvatarHasNoSlot(bool disconnected)
+        {
+            var root = new GameObject("Ending while the crew changes"); root.SetActive(false);
+            var previous = CampaignRun.Instance;
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var saved = all.ToArray(); all.Clear();
+            var actors = new List<NetworkPlayer>();
+            try
+            {
+                var host = new RunState();
+                host.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                host.EndEscape(true);
+                var run = root.AddComponent<CampaignRun>(); Set(run, "host", host); Set(run, "state", host.Snapshot);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+
+                var results = root.AddComponent<EscapeEndingResults>(); Call(results, "Awake");
+                Get(results, "channel").GetType().GetProperty("Session").SetValue(Get(results, "channel"), root.AddComponent<NetworkSessionManager>());
+                MakeAvatar(720, 0, PlayerState.Arrived);
+                MakeAvatar(721, disconnected ? NetworkPlayer.NoSlot : 1, disconnected ? PlayerState.Normal : PlayerState.Retired);
+                MakeAvatar(799, NetworkPlayer.NoSlot, PlayerState.Normal);
+                var observed = (Dictionary<ulong, EscapeEndingResults.Person>)Get(results, "observed");
+                observed[721] = new EscapeEndingResults.Person { client = 721, slot = 1, items = new[] { "saved-item" } };
+                results.Freeze();
+
+                var guestRoot = new GameObject("Guest ending receiver"); guestRoot.transform.SetParent(root.transform, false);
+                var guest = guestRoot.AddComponent<EscapeEndingResults>();
+                string packet = JsonUtility.ToJson(Get(results, "snapshot"));
+                string stale = packet.Replace("\"generation\":" + run.State.Generation, "\"generation\":" + (run.State.Generation - 1));
+                Call(guest, "Receive", stale);
+                Assert.That(guest.HasSnapshot, Is.False);
+                var retry = typeof(EscapeEndingResults).GetMethod("ShouldRequestEndingSnapshot", F);
+                Set(guest, "nextEndingSync", 100.5d);
+                Assert.That(retry.Invoke(guest, new object[] { run.State, true, 100.49d }), Is.False);
+                Assert.That(retry.Invoke(guest, new object[] { run.State, true, 100.5d }), Is.True);
+                Assert.That(retry.Invoke(guest, new object[] { run.State, false, 100.5d }), Is.False);
+                Call(guest, "Receive", packet);
+                Assert.That(guest.HasSnapshot, Is.True, "A changing crew must not cause the guest to reject the whole ending.");
+                Assert.That(retry.Invoke(guest, new object[] { run.State, true, 101d }), Is.False);
+                Assert.That(guest.People.Select(person => person.client), Is.EqualTo(new[] { 720UL, 721UL }));
+                Assert.That(guest.People[1].items, Is.EqualTo(new[] { "saved-item" }));
+                Assert.That(guest.Arrivals, Is.EquivalentTo(new[] { 720UL }));
+                Set(guest, "prefab", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/EscapeResultsKit/EscapeResultsCanvas.prefab"));
+                guest.Show(false);
+                Assert.That(guest.View, Is.Not.Null, "The validated packet must let the guest open the results view.");
+            }
+            finally
+            {
+                foreach (var actor in actors) typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(actor, false);
+                all.Clear(); all.AddRange(saved);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+
+            void MakeAvatar(ulong id, int slot, PlayerState state)
+            {
+                var node = new GameObject("Ending avatar " + id); node.transform.SetParent(root.transform, false);
+                var actor = node.AddComponent<NetworkPlayer>();
+                typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(actor, true);
+                typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(actor, id);
+                ((NetworkVariable<int>)Get(actor, "slot")).Value = slot;
+                ((NetworkVariable<PlayerState>)Get(actor, "state")).Value = state;
+                all.Add(actor); actors.Add(actor);
+            }
         }
 
         [TestCase(3), TestCase(4)]

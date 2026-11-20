@@ -39,6 +39,7 @@ namespace CurtainCall.EscapeRoute
         int observedGeneration;
         bool populated;
         long shownRevision = -1;
+        double nextEndingSync;
         public bool HasSnapshot => snapshot != null;
         public IReadOnlyCollection<ulong> Arrivals => arrivals;
         public EscapeResultsView View => view;
@@ -57,11 +58,29 @@ namespace CurtainCall.EscapeRoute
             if (run == null) return;
             if (observedGeneration != run.State.Generation || run.State.Phase == CampaignPhase.None)
             { Reset(); observedGeneration = run.State.Generation; }
+            double now = Time.unscaledTimeAsDouble;
+            if (ShouldRequestEndingSnapshot(run.State, channel.IsClient, now))
+            {
+                nextEndingSync = now + .5;
+                channel.Request("sync");
+            }
             if (!run.State.IsRunning || run.State.Phase == CampaignPhase.Ending || snapshot != null
                 || !failureMode && run.State.Phase != CampaignPhase.Escape) return;
+            ObserveCrew();
+        }
+
+        bool ShouldRequestEndingSnapshot(CampaignSnapshot state, bool client, double now) =>
+            client && snapshot == null && now >= nextEndingSync
+            && (failureMode ? FailureEndingPresentation.IsFailureEnding(state) : EscapeEndingPresentation.IsSuccessfulEnding(state));
+
+        static bool IsResultSlot(int slot) => slot is >= 0 and <= 63;
+
+        void ObserveCrew()
+        {
             foreach (var actor in NetworkPlayer.All)
             {
-                if (actor == null || !actor.IsSpawned) continue;
+                // A temporary avatar cannot overwrite its owner's last valid result row.
+                if (actor == null || !actor.IsSpawned || !IsResultSlot(actor.Slot)) continue;
                 if (actor.State == PlayerState.Arrived) arrivals.Add(actor.OwnerClientId);
                 Observe(actor);
             }
@@ -84,12 +103,7 @@ namespace CurtainCall.EscapeRoute
         {
             channel.Update();
             if (snapshot != null || CampaignRun.Instance == null || !CampaignRun.Instance.HasAuthority) return;
-            foreach (var actor in NetworkPlayer.All)
-            {
-                if (actor == null || !actor.IsSpawned) continue;
-                if (actor.State == PlayerState.Arrived) arrivals.Add(actor.OwnerClientId);
-                Observe(actor);
-            }
+            ObserveCrew();
             // The exit authority may observe arrival before this observer sees the avatar's final state.
             // Keep that arrival even if the avatar disconnects before results are frozen.
             if (!failureMode && owner != null)
@@ -113,7 +127,7 @@ namespace CurtainCall.EscapeRoute
                 || CampaignRun.Instance == null || incoming.generation != CampaignRun.Instance.State.Generation) return;
             var ids = new HashSet<ulong>();
             foreach (var p in incoming.people)
-                if (p == null || p.slot < 0 || p.slot > 63 || p.items == null || p.items.Length > 2 || !ids.Add(p.client)) return;
+                if (p == null || !IsResultSlot(p.slot) || p.items == null || p.items.Length > 2 || !ids.Add(p.client)) return;
             // The roster is immutable for this ending. Periodic sync must not reset the selected tab or button guard.
             if (snapshot != null && snapshot.generation == incoming.generation) return;
             snapshot = incoming;
@@ -180,7 +194,7 @@ namespace CurtainCall.EscapeRoute
         }
         public void Reset()
         {
-            snapshot = null; populated = false; shownRevision = -1; observed.Clear(); arrivals.Clear();
+            snapshot = null; populated = false; shownRevision = -1; nextEndingSync = 0; observed.Clear(); arrivals.Clear();
             if (view != null) view.SetVisible(false);
         }
         void OnDisable() { if (view != null) view.SetVisible(false); }
