@@ -7,9 +7,12 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
+using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.EditorTools.Tests;
 using CurtainCall.UI.EscapeResultsKit;
 using NUnit.Framework;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -26,6 +29,62 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static object Get(object o, string field) => o.GetType().GetField(field, F).GetValue(o);
         static void Set(object o, string field, object value) => o.GetType().GetField(field, F).SetValue(o, value);
         static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EndingHandoff_ReleasesItsInputAndCameraBeforeSceneUnload(bool disconnect)
+        {
+            using var gate = new InputGateTestScope();
+            var previousRun = CampaignRun.Instance;
+            var root = new GameObject("Loaded escape scene");
+            root.SetActive(false);
+            var geometry = new GameObject("Escape content");
+            geometry.transform.SetParent(root.transform, false);
+            try
+            {
+                var host = new RunState();
+                host.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                Assert.That(host.EndEscape(true), Is.True);
+                var run = root.AddComponent<CampaignRun>();
+                Set(run, "host", host);
+                Set(run, "state", host.Snapshot);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+
+                var content = root.AddComponent<EscapeCampaignContent>();
+                Set(content, "content", geometry);
+                var presentation = root.AddComponent<EscapeEndingPresentation>();
+                Set(presentation, "content", content);
+                var camera = root.AddComponent<CinemachineCamera>();
+                Set(presentation, "endingCamera", camera);
+                Call(presentation, "ResetPresentation");
+                Call(presentation, "LateUpdate");
+                Assert.That(presentation.IsPresenting, Is.True);
+                Assert.That(InputGate.IsRequested, Is.True);
+                Assert.That(camera.enabled, Is.True);
+
+                Set(presentation, "returnRequested", true);
+                Call(presentation, "LateUpdate");
+                Assert.That(InputGate.IsRequested, Is.True, "The ending still owns input until the handoff begins.");
+
+                if (disconnect)
+                {
+                    Call(run, "HandleConnection", SessionConnectionState.Offline);
+                    Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.None));
+                }
+                else
+                    geometry.SetActive(false);
+
+                Call(presentation, "LateUpdate");
+                Assert.That(presentation.IsPresenting, Is.False);
+                Assert.That(InputGate.IsRequested, Is.False);
+                Assert.That(camera.enabled, Is.False);
+            }
+            finally
+            {
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
+                Object.DestroyImmediate(root);
+            }
+        }
 
         [Test]
         public void SavedMovingRailsClearBothBodiesAndReleaseOverSupportedLanding()

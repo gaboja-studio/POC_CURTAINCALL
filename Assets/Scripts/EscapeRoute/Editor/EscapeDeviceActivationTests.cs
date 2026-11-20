@@ -1266,6 +1266,74 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         }
 
         [Test]
+        public void AvatarHandoff_CompletedDeparturePlacesReplacementExactlyOnce()
+        {
+            var root = new GameObject("Completed escape departure");
+            root.SetActive(false);
+            var platform = new GameObject("Replacement assembly floor");
+            var original = new GameObject("Previous avatar");
+            original.SetActive(false);
+            var replacement = new GameObject("Replacement avatar");
+            replacement.SetActive(false);
+            var previousLocal = NetworkPlayer.Local;
+            var previousContent = EscapeCampaignContent.Current;
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var oldPlayer = original.AddComponent<NetworkPlayer>();
+            var player = replacement.AddComponent<NetworkPlayer>();
+            try
+            {
+                platform.transform.position = new Vector3(9200f, 400f, 9200f);
+                var floor = platform.AddComponent<BoxCollider>();
+                floor.size = new Vector3(8f, .25f, 8f);
+                floor.center = Vector3.down * .125f;
+                var area = platform.AddComponent<BoxCollider>();
+                area.isTrigger = true; area.size = new Vector3(8f, 3f, 8f); area.center = Vector3.up * 1.5f;
+                var arrival = root.AddComponent<EscapeSceneArrival>();
+                Set(arrival, "assemblyArea", area);
+                var content = root.AddComponent<EscapeCampaignContent>();
+                Set(content, "content", platform);
+                SetCurrent(content);
+
+                var transfer = root.AddComponent<EscapeSceneTransfer>();
+                CreateChannel(transfer);
+                var snapshot = typeof(EscapeSceneTransfer).GetField("snapshot", Private).GetValue(transfer);
+                snapshot.GetType().GetField("phase").SetValue(snapshot, 2);
+                snapshot.GetType().GetField("participants").SetValue(snapshot, new[] { player.OwnerClientId });
+                snapshot.GetType().GetField("positions").SetValue(snapshot, new[] { Vector3.zero });
+                snapshot.GetType().GetField("rotations").SetValue(snapshot, new[] { Quaternion.identity });
+                Set(transfer, "localCaptured", true);
+                Set(transfer, "capturedOwner", player.OwnerClientId);
+                Set(transfer, "localRotation", Quaternion.identity);
+                Set(transfer, "localPlaced", true);
+                Set(transfer, "placedPlayer", oldPlayer);
+                local.SetValue(null, player);
+                ((NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", Private).GetValue(player)).Value = PlayerState.Fallen;
+                spawned.SetValue(player, true);
+                var mover = player.GetComponent<PlayerMover>();
+                Set(mover, "controller", mover.GetComponent<CharacterController>());
+                Physics.SyncTransforms();
+
+                Assert.IsTrue(transfer.PlaceLocal(arrival));
+                Assert.AreEqual(platform.transform.position, player.transform.position);
+                var moved = platform.transform.position + Vector3.forward;
+                player.transform.position = moved;
+                Assert.IsTrue(transfer.PlaceLocal(arrival));
+                Assert.AreEqual(moved, player.transform.position, "A placed avatar is never moved twice.");
+            }
+            finally
+            {
+                spawned.SetValue(player, false);
+                local.SetValue(null, previousLocal);
+                SetCurrent(previousContent);
+                Object.DestroyImmediate(replacement);
+                Object.DestroyImmediate(original);
+                Object.DestroyImmediate(platform);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void ArrivalRetriesItsViewAndUsesTheActualDepartureScene()
         {
             var source = EditorSceneManager.NewPreviewScene();

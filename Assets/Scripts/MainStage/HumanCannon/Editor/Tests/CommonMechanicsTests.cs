@@ -495,9 +495,71 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             finally { Object.DestroyImmediate(root); }
         }
 
+        [Test]
+        public void AvatarHandoff_LateFirstLiftSnapshotCannotReattachARevivedRider()
+        {
+            var root = new GameObject("Revived lift receiver");
+            root.SetActive(false);
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var route = root.AddComponent<HumanCannonRouteSystem>();
+            var player = root.AddComponent<NetworkPlayer>();
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            const ulong actor = 719UL;
+            try
+            {
+                current.SetValue(null, null);
+                route.ConfigurePractice(null, -10f);
+                Call(route, "OnEnable");
+                typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var reviveCount = (Unity.Netcode.NetworkVariable<int>)typeof(NetworkPlayer).GetField("reviveCount", fields).GetValue(player);
+                reviveCount.Value = 1;
+                spawned.SetValue(player, true);
+                all.Add(player);
+
+                Call(route, "ReleaseRevivedPassenger", player);
+                Assert.IsFalse(route.IsRiding(actor), "The old trip has not reached the receiving client yet.");
+                void Deliver(uint revision, double startedAt, int riderReviveVersion)
+                {
+                    using var writer = new Unity.Netcode.FastBufferWriter(128, Unity.Collections.Allocator.Temp);
+                    writer.WriteValueSafe(revision); writer.WriteValueSafe(0); writer.WriteValueSafe(1);
+                    writer.WriteValueSafe(0); writer.WriteValueSafe(1);
+                    writer.WriteValueSafe(revision); writer.WriteValueSafe((byte)DeparturePhase.Moving);
+                    writer.WriteValueSafe(actor); writer.WriteValueSafe(riderReviveVersion); writer.WriteValueSafe(startedAt); writer.WriteValueSafe(8f);
+                    writer.WriteValueSafe((byte)0); writer.WriteValueSafe(Vector3.zero); writer.WriteValueSafe(Quaternion.identity);
+                    writer.WriteValueSafe((byte)0); writer.WriteValueSafe(0d); writer.WriteValueSafe(0f);
+                    writer.WriteValueSafe(CannonSeatState.Nobody); writer.WriteValueSafe(0d);
+                    writer.WriteValueSafe((byte)1); writer.WriteValueSafe((byte)0); writer.WriteValueSafe(0);
+                    using var reader = new Unity.Netcode.FastBufferReader(writer, Unity.Collections.Allocator.Temp);
+                    Call(route, "ReceiveState", 0UL, reader);
+                    Assert.AreEqual(revision, route.TransportState(0).Revision);
+                }
+
+                Deliver(1, 10d, 0);
+                Assert.IsFalse(route.IsRiding(actor), "A trip started before the revival cannot move the revived avatar.");
+                Deliver(2, 30d, 2);
+                Assert.IsFalse(route.IsRiding(actor), "A future trip cannot attach before the corresponding avatar state arrives.");
+                spawned.SetValue(player, false);
+                reviveCount.Value = 2;
+                spawned.SetValue(player, true);
+                Call(route, "ReleaseRevivedPassenger", player);
+                Assert.IsTrue(route.IsRiding(actor), "The trip from the now-current life must not be revoked.");
+            }
+            finally
+            {
+                spawned.SetValue(player, false);
+                all.Remove(player);
+                Call(route, "OnDisable");
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase(true)]
         [TestCase(false)]
-        public void RevivedPassengerIsNotCarriedByThePreviousTrip(bool host)
+        public void AvatarHandoff_RevivedPassengerIsNotCarriedByThePreviousTrip(bool host)
         {
             var root = new GameObject("Transport recovery");
             root.SetActive(false);
@@ -517,19 +579,35 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var player = root.AddComponent<NetworkPlayer>();
                 const ulong actor = 717UL;
                 typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, actor);
+                var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+                var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+                var reviveCount = (Unity.Netcode.NetworkVariable<int>)typeof(NetworkPlayer)
+                    .GetField("reviveCount", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
+                spawned.SetValue(player, true);
+                all.Add(player);
                 var travel = route.TransportState(0);
-                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 10d, 8f));
-                Assert.IsTrue(route.IsRiding(actor));
+                try
+                {
+                    Assert.IsTrue(travel.TryStart(actor, travel.Revision, 10d, 8f));
+                    Assert.IsTrue(route.IsRiding(actor));
 
-                Call(route, "ReleaseRevivedPassenger", player);
-                Assert.IsFalse(route.IsRiding(actor));
-                Assert.IsFalse(route.IsRiding(CannonSeatState.Nobody));
-                Assert.AreEqual(0.5f, travel.Progress(14d));
-                Assert.IsTrue(travel.Tick(18d));
-                Assert.IsTrue(travel.TryReturn(20d));
-                Assert.IsTrue(travel.Tick(28d));
-                Assert.IsTrue(travel.TryStart(actor, travel.Revision, 30d, 8f));
-                Assert.IsTrue(route.IsRiding(actor));
+                    spawned.SetValue(player, false);
+                    reviveCount.Value = 1;
+                    spawned.SetValue(player, true);
+                    Call(route, "ReleaseRevivedPassenger", player);
+                    Assert.IsFalse(route.IsRiding(actor));
+                    Assert.IsFalse(route.IsRiding(CannonSeatState.Nobody));
+                    Assert.AreEqual(0.5f, travel.Progress(14d));
+                    Assert.IsTrue(travel.Tick(18d));
+                    Assert.IsTrue(travel.TryReturn(20d));
+                    Assert.IsTrue(travel.Tick(28d));
+                    Assert.IsTrue(travel.TryStart(actor, travel.Revision, 30d, 8f));
+                    var transit = ((System.Array)typeof(HumanCannonRouteSystem)
+                        .GetField("runtime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(route)).GetValue(0);
+                    transit.GetType().GetField("RiderReviveVersion").SetValue(transit, 1);
+                    Assert.IsTrue(route.IsRiding(actor));
+                }
+                finally { spawned.SetValue(player, false); all.Remove(player); }
             }
             finally
             {

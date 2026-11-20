@@ -199,7 +199,6 @@ namespace CurtainCall.EscapeRoute
         public bool PlaceLocal(EscapeSceneArrival destination)
         {
             if (!PlacementAuthorized || destination == null) return false;
-            if (Ready && localPlaced && !holding) return true;
             var player = NetworkPlayer.Local;
             if (IsLocalPlacementCurrent(player)) return true;
             if (!TryResolveCapturedMover(player, out var mover)) return false;
