@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -25,6 +27,17 @@ namespace CurtainCall.HumanCannon
             if (Supports(surface, feet)) return true;
             foreach (var tile in additionalSurfaces) if (Supports(tile, feet)) return true;
             return false;
+        }
+
+        // Mounted passengers share the ground contact of a still-linked carrier.
+        internal bool SupportsStandingPlayer(NetworkPlayer player, HumanCannonSystem cannon)
+        {
+            if (cannon == null) return false;
+            var stack = PiggybackSystem.Current;
+            var support = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : player;
+            return support != null && !support.IsAirborne
+                && !cannon.IsFlying(support.OwnerClientId) && !cannon.IsSeated(support.OwnerClientId)
+                && SupportsLanding(support.LatestOwnerPosition);
         }
 
         static bool Supports(BoxCollider tile, Vector3 feet)

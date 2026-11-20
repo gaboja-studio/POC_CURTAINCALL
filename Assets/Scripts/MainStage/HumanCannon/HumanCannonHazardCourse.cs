@@ -136,7 +136,7 @@ namespace CurtainCall.HumanCannon
         internal bool ApplyScheduledDifficulty(int level)
         {
             if (session == null || !session.IsHost || !CannonDifficulty.Valid(level)) return false;
-            return difficulty == level || runStart < 0 && ApplyDifficulty(level);
+            return ApplyDifficulty(level);
         }
 
         bool ApplyDifficulty(int level)

@@ -53,3 +53,7 @@ source: human, Task-20261102-093, Task-20261105-108, Task-20261116-140
 - 준비한 배경 내용은 영속 관리자 아래 한 벌로 보관한다. 원본의 빈 additive 씬은 접속 전에 해제하고, 첫 공연부터 위치·활성만 바꾼다. 비공연에서는 렌더러·조명·움직임을 끄고, 앱 종료까지 에셋 참조를 유지하므로 메모리가 상주한다.
 - 배경 존재 여부는 원본 씬의 `isLoaded`가 아니라 `PerformanceBackgroundLoader.BackgroundRoot`와 활성 상태로 확인한다. 피날레 조명도 이 루트를 사용한다. LAN/직접 공연 편집 검사의 기존 로드·해제 경로는 유지한다.
 - 회귀: `PreparedBackgroundSurvivesSingleLoadAndFirstPerformanceDoesNotReloadScene`, `CancellingRelayPreparationDoesNotStartTransport`. 실제 Relay 검증 조건·결과는 Task-20261116-140 log를 확인한다.
+
+## 묘기 진입 중 참가자가 이탈하는 경우
+
+NGO의 씬 이벤트 타임아웃 목록에는 실제로 시간이 초과된 참가자와 전환 중 이미 접속을 종료한 참가자가 함께 들어간다. 묘기로 이동할 때는 호스트와 현재 접속 중인 참가자의 실패만 전환 실패로 처리한다. 이탈을 실패로 처리하면 추가 로드 모드가 이전 씬만 닫고 묘기 씬을 열지 못할 수 있다. Task-20261120-177의 EditMode 회귀로 두 경우를 구분했다.

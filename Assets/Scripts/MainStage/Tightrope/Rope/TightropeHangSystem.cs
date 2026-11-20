@@ -139,7 +139,7 @@ namespace CurtainCall.Tightrope
         public bool ServerTryHang(NetworkPlayer player, float distance, int preferredLane = -1)
         {
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                || TightropeCourse.BlocksRopeForSaw(player)) return false;
+                || player.IsDroppingFromSupport || TightropeCourse.BlocksRopeForSaw(player)) return false;
             if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (PiggybackSystem.UsingDevice(player)) return false;
@@ -340,6 +340,8 @@ namespace CurtainCall.Tightrope
             UpdateRescuerBalance();
             var local = NetworkPlayer.Local;
             if (local != null && local.IsDroppingFromSupport) { ReleaseLocalIntoFall(local); return; }
+            if (local != null && local.State == PlayerState.Normal && book.TryGet(local.OwnerClientId, out var gripState)
+                && DropUnsupportedLocalGrip(local, gripState.Lane, gripState.Distance)) return;
             // 목마 낙하처럼 호스트가 먼저 매달리게 한 경우에도 내 몸을 붙잡는다.
             if (localHang == null && local != null && local.State == PlayerState.Normal && book.IsHanging(local.OwnerClientId)
                 && local.TryGetComponent(out PlayerMover mover) && mover.Body != null)
@@ -417,13 +419,23 @@ namespace CurtainCall.Tightrope
             if (localHang != null && localHang.Player == player) ReleaseLocal(false);
         }
 
+        // A confirmed burn can arrive before the host's hang snapshot or a rescue message.
+        bool DropUnsupportedLocalGrip(NetworkPlayer local, int lane, float distance)
+        {
+            if (course.IsLaneUsable(lane, distance)) return false;
+            ReleaseLocalIntoFall(local);
+            local.RequestNaturalFall();
+            return true;
+        }
+
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>
         void ApplyRescued(ulong id, int lane, float distance)
         {
             book.Remove(id);
             UpdateRescuerBalance();
             var local = NetworkPlayer.Local;
-            if (local == null || local.OwnerClientId != id || course == null) return;
+            if (local == null || local.OwnerClientId != id || course == null || local.State != PlayerState.Normal
+                || DropUnsupportedLocalGrip(local, lane, distance) || local.IsDroppingFromSupport) return;
             if (localHang == null && local.TryGetComponent(out PlayerMover mover) && mover.Body != null)
                 BindLocal(local, mover, local.GetComponent<PlayerBalance>());
             ReleaseLocal(true, course.GetLanePosition(lane, distance));
@@ -497,7 +509,7 @@ namespace CurtainCall.Tightrope
         bool WithinRescueReach(NetworkPlayer rescuer, TightropeHangBook.Hang hang, float reach)
         {
             // 그네·리프트 탑승은 외줄 추락 구조와 별개다. 탑승 중에는 구조를 시작하거나 계속할 수 없다.
-            if (RescueDeviceOccupied(rescuer)) return false;
+            if (RescueDeviceOccupied(rescuer) || !course.IsLaneUsable(hang.Lane, hang.Distance)) return false;
             Vector3 grip = GripPoint(hang);
             // 아래로 떨어지는 사람이나 매달린 높이에서는 동료를 끌어올릴 수 없다.
             if (RescuerAirborne(rescuer)) return false;

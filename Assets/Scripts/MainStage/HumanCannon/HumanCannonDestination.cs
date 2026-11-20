@@ -121,9 +121,8 @@ namespace CurtainCall.HumanCannon
         public bool HasArrived(NetworkPlayer player)
         {
             var cannon = HumanCannonSystem.Current;
-            return player != null && player.IsSpawned && player.State == PlayerState.Normal && !player.IsAirborne
-                && destination != null && destination.SupportsLanding(player.LatestOwnerPosition)
-                && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId);
+            return player != null && player.IsSpawned && player.State == PlayerState.Normal
+                && destination != null && destination.SupportsStandingPlayer(player, cannon);
         }
 
         Pose GetFinishWaitingPose(int rank, int participantCount)
