@@ -37,7 +37,6 @@ namespace CurtainCall.Tightrope
         const string LaneLinkedResult = "옆줄 착지: 목마 탑승";
 
         [Tooltip("테스트 표시: 화면 왼쪽 아래에 목마 연결 상태와 마지막 결과를 쓴다.")]
-        [SerializeField] bool showDebug = true;
 
         /// <summary>씬의 목마 기능. 없으면 null.</summary>
         public static PiggybackSystem Current { get; private set; }
@@ -61,7 +60,6 @@ namespace CurtainCall.Tightrope
         NetworkSessionManager session;
         CustomMessagingManager messaging; // 핸들러를 등록한 곳(접속마다 새로 생긴다)
         PlayerInteraction interaction;
-        string lastResult = "-";
         readonly HashSet<ulong> lastDropped = new(); // 마지막 연결 변경 때 연쇄로 떨어진 사람들
         Sequence handholdTween;
         float handholdAlpha;
@@ -194,7 +192,6 @@ namespace CurtainCall.Tightrope
             root.SetActive(false);
             var system = root.AddComponent<PiggybackSystem>();
             system.runtimeFallback = true;
-            system.showDebug = false;
             system.SuppressLegacyFeedback = true;
             root.AddComponent<PiggybackFollow>();
             DontDestroyOnLoad(root);
@@ -1198,7 +1195,6 @@ namespace CurtainCall.Tightrope
 
         void ShowResult(string result)
         {
-            lastResult = result;
             if (result == LaneLinkedResult) ShowHandholdLanding();
             Debug.Log($"[Piggyback] {result}");
             LocalResult?.Invoke(result);
@@ -1270,15 +1266,6 @@ namespace CurtainCall.Tightrope
                 GUI.Label(new Rect(0f, Screen.height * 0.65f, Screen.width, 40f), "손 잡아줌", handholdStyle);
                 GUI.color = previous;
             }
-            if (SuppressLegacyFeedback || !showDebug || NetworkPlayer.Local == null) return;
-            var local = NetworkPlayer.Local;
-            var below = GetBelow(local);
-            var above = GetAbove(local);
-            string text =
-                $"목마  나 {local.OwnerClientId}번 · {GetFloor(local)}층 / {GetStackSize(local)}명\n" +
-                $"아래 {(below != null ? below.OwnerClientId + "번" : "-")} · 위 {(above != null ? above.OwnerClientId + "번" : "-")} · 연결 {belowOf.Count}개\n" +
-                $"마지막: {lastResult}";
-            GUI.Label(new Rect(10f, Screen.height - 70f, 480f, 60f), text);
         }
     }
 }

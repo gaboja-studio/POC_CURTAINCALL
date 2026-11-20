@@ -25,6 +25,6 @@ PerformanceEntryJudgeTests.RestStartReturnsPerformanceFinisherToNormal을 실행
 
 ## 탈출 엔딩 뒤 로비
 
-로비의 위치 배치만으로 Arrived/Retired는 해제되지 않는다. LobbyRoom은 Normal만 상호작용을 허용하고 Retired 소유자의 모터는 꺼져 있다. Ending/Ended를 유지한 채 로비 환경 활성화·전환 완료 뒤 호스트가 ServerRestoreEveryone을 1회 호출한다. 탈출 씬이 남아 있을 때 복구하지 않는다. 레버의 ReturnToLobby는 다음 준비를 시작하는 별도 경계다.
+로비의 위치 배치만으로 Arrived/Retired는 해제되지 않는다. LobbyRoom은 Normal만 상호작용을 허용하고 Retired 소유자의 모터는 꺼져 있다. Ending/Ended를 유지한 채 로비 환경 활성화·전환 완료 뒤 호스트가 ServerRestoreEveryone을 1회 호출한다. 탈출 씬이 남아 있을 때 복구하지 않는다. 2026-11-20부터 같은 1회 복구 시점에 세션이 Ended면 호스트가 `ReturnToLobby()`도 호출해 레버·출연 명단을 Waiting으로 초기화한다(성공 런 기록은 `preparingAfterSuccess`로 유지, 다음 시작은 여전히 서명 + 레버).
 
 Task-120 일반 에디터의 실제 LAN 호스트에서 결과 버튼→Normal/입력 잠금 해제→W 이동→F 레버 Waiting 복구를 확인했다. 다중 클라이언트·Retired 조합은 추가 플레이 확인이 필요하다.

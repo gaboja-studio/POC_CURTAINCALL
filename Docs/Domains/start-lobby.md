@@ -12,7 +12,7 @@
   - `StartLobbyFlow.cs` — 큰 흐름(씬이 바뀌어도 유지). 호스트가 방을 열면 로비로(NGO 씬 전환), 접속이 끊기면 어디서든 시작 씬으로. 로비 씬 이름 = 공통 세팅 장소 전환의 `HubScene`.
   - `StartMenu.cs` — 시작 씬 메뉴(방 만들기 · 방 코드 참가 · LAN · 설정 · 종료).
   - `LobbyRoom.cs` — 로비 진행: 내 캐릭터 출발 위치·균형 끄기, 가까운 물건 F 안내, 게임 시작 뒤 커튼 열기 → 호스트가 `introSeconds` 뒤 `CampaignRun.EndIntro()`, HUD·ESC 메뉴.
-  - `LobbyInteractable.cs`(가까이 가서 F로 쓰는 물건), `LobbyReadyBoard.cs`(출연 명단 = 준비, 호스트 판정·이름 메시지 동기화), `LobbyCurtainLever.cs`(방장 레버: 시작 / 엔딩 뒤 `ReturnToLobby`).
+  - `LobbyInteractable.cs`(가까이 가서 F로 쓰는 물건), `LobbyReadyBoard.cs`(출연 명단 = 준비, 호스트 판정·이름 메시지 동기화), `LobbyCurtainLever.cs`(방장 레버: 시작 / 예비 `Ended` 복구).
   - `LobbyCamera.cs`(고정 방향, 내 캐릭터 쪽으로 조금만 따라가고 범위 밖으로 안 나감), `ClientSettings.cs`·`SettingsPanel.cs`(이 PC 설정: 전체 음량·화면 모드, PlayerPrefs).
 
 ## 진입점
@@ -29,7 +29,7 @@ StartLobbyFlow.LobbyScene;              // 로비 씬 이름(장소 전환 세�
 ## 현재 동작 (구현 사실)
 
 - 서명은 `Waiting`에서만 바뀌고, 게임 상태가 바뀌면(시작·로비 복귀) 호스트가 명단을 비운다. 나간 사람 서명은 호스트가 지운다.
-- 레버: 방장만, 최소 인원(`MinPlayers`)·전원 서명일 때 `StartGame()`. 엔딩 뒤(`Ended`)에는 `ReturnToLobby()` + 전원 몸 복구.
+- 레버: 방장만, 최소 인원(`MinPlayers`)·전원 서명일 때 `StartGame()`. 엔딩 뒤 로비가 보이면 `LobbyRoom`이 전원 몸 복구와 함께 `ReturnToLobby()`를 1회 호출해 Waiting(서명 가능)으로 돌린다. 레버의 `Ended` 분기는 예비로만 남는다.
 - 런 실패로 새 세대 도입이 오면 로비로 돌아와 커튼이 열린 뒤 다시 첫 공연으로 간다.
 - 로비 맵은 바닥 10×8m, 보이지 않는 벽으로 막는다. 출발 위치 4곳(자리 번호 순).
 

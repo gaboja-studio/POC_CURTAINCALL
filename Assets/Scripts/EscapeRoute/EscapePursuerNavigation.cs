@@ -105,7 +105,22 @@ namespace CurtainCall.EscapeRoute
 
         static bool Obstacle(Collider collider, Transform actor) => !collider.transform.IsChildOf(actor)
             && !collider.GetComponentInParent<NetworkPlayer>()
-            && !collider.GetComponentInParent<EscapePursuerDebris>();
+            && !LooseBody(collider);
+
+        /// <summary>
+        /// Bodies that never form route scenery: other pursuers (their spacing is CrowdsEncounter's job),
+        /// severed pursuer parts, torn player limbs (permanent when LimbLifetime is 0) and a limp corpse
+        /// detached from its player. These land at the pursuer's own feet after a grab/throw; an initial
+        /// overlap fails every capsule cast from that spot, so the search found no start cell and the
+        /// finale pursuer stopped for good.
+        /// </summary>
+        internal static bool LooseBody(Collider collider)
+        {
+            if (collider.GetComponentInParent<EscapePursuerDebris>() || collider.GetComponentInParent<EscapeUnderstageChase>()
+                || collider.GetComponentInParent<EscapePursuerBoss>() || CurtainCall.Damage.DismemberedLimb.Contains(collider)) return true;
+            var body = collider.attachedRigidbody;
+            return body && !body.isKinematic && collider.GetComponentInParent<CurtainCall.Player.HumanoidModel>();
+        }
 
         public static bool Sees(Transform actor, Vector3 feet, Vector3 target)
         {

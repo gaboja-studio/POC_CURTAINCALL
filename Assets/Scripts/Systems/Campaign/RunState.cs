@@ -76,7 +76,7 @@ namespace CurtainCall.Campaign
 
         /// <summary>실패 결과 확인 후 새 세대의 1일차 아침. 공연 해금/클리어는 새 런에서 다시 얻는다.</summary>
         public bool RestartAfterFailure()
-            => s.LastEnd is (RunEndReason.Deadline or RunEndReason.EscapeAllRetired) && RestartAfterEnding();
+            => CampaignSnapshot.IsFailureEnd(s.LastEnd) && RestartAfterEnding();
 
         public bool RestartAfterSuccess()
             => s.LastEnd == RunEndReason.EscapeSucceeded && RestartAfterEnding();
@@ -427,7 +427,10 @@ namespace CurtainCall.Campaign
             return true;
         }
 
-        /// <summary>확인창을 연 시간대가 그대로일 때만 현재 런을 실패 처리한다.</summary>
+        /// <summary>
+        /// 확인창을 연 시간대가 그대로일 때만 현재 런을 실패 처리한다. 기한 초과와 같은 실패 엔딩으로 들어가
+        /// 실패 연출·결과 확인(<see cref="RestartAfterFailure"/>) 뒤 새 세대 1일차 아침이 된다.
+        /// </summary>
         public bool AbandonRun(CampaignSnapshot expected)
         {
             if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
@@ -530,7 +533,8 @@ namespace CurtainCall.Campaign
 
         void FailRun(RunEndReason reason)
         {
-            if (reason == RunEndReason.Deadline || reason == RunEndReason.EscapeAllRetired)
+            // 런 포기도 기한 초과·탈출 실패와 같은 실패 엔딩을 거친다(2026-11-20 사용자: 바로 1일차 공연으로 건너뛰지 않는다).
+            if (CampaignSnapshot.IsFailureEnd(reason))
             {
                 ClearTimer();
                 s.Phase = CampaignPhase.Ending;

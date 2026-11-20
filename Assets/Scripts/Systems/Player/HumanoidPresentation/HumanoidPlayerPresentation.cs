@@ -184,7 +184,9 @@ namespace CurtainCall.Player
             // override the grounded state sent by its owner.
             bool inAir = jump != JumpKind.None || ((network == null || !network.IsSpawned || network.IsOwner) && mover.IsAirborne);
             if (PresentCircusMotion(inAir, moving)) return;
-            bool carrying = network != null && network.IsSpawned
+            // 운반 장치는 보통 상태의 운반자만 따라간다. 도착(탈출 성공 엔딩)처럼 보통이 아닌 상태에서는
+            // 운반 소유가 늦게 풀려도 들고 달리는 자세를 쓰지 않는다(아이템 손 동작의 CanUseItemHands와 같은 기준).
+            bool carrying = network != null && network.IsSpawned && network.State == PlayerState.Normal
                 && HumanCannonCarry.Held(network.OwnerClientId) != null;
             // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
             model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);

@@ -27,7 +27,7 @@ namespace CurtainCall.EscapeRoute
         public float FadeAlpha => fade != null ? fade.alpha : 0;
 
         public static bool IsFailureEnding(CampaignSnapshot state) => state.Phase == CampaignPhase.Ending
-            && state.LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired;
+            && CampaignSnapshot.IsFailureEnd(state.LastEnd);
 
         public static FailureEndingPresentation EnsureExists()
         {

@@ -539,6 +539,7 @@ namespace CurtainCall.Network.PlayerSync
             state.OnValueChanged -= HandleStateChanged;
             performanceFinishPlacement.OnValueChanged -= ApplyPerformanceFinishPlacement;
             mover.ParkedAtPerformanceFinish = false;
+            mover.OutOfPlay = false;
             restartCount.OnValueChanged -= HandleRestart;
             reviveCount.OnValueChanged -= HandleRevive;
             lostParts.OnValueChanged -= HandleLostPartsChanged;
@@ -625,6 +626,9 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>확정된 상태를 이 화면에 반영한다.</summary>
         void ApplyState(PlayerState current)
         {
+            // 확정된 사망·리타이어·포획 몸통은 모든 화면에서 산 사람을 막지 않는다. 겉모습(래그돌·던져진 몸통)이
+            // 줄 아래로 떨어지거나 사라져도 CharacterController는 제자리에 남아 보이지 않는 벽이 되었다.
+            mover.OutOfPlay = current is PlayerState.Fallen or PlayerState.Retired or PlayerState.EscapeCaptured;
             if (current == PlayerState.EscapeCaptured && IsOwner)
             {
                 mover.ClearPendingInput();

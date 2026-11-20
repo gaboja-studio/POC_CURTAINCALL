@@ -134,9 +134,9 @@ namespace CurtainCall.StartLobby
 
         void LateUpdate()
         {
-            // Ending keeps the session ended until the lever is used. Restore bodies separately:
-            // Arrived/Retired otherwise survive placement and reject both movement and interaction.
-            // Wait for the hub environment to be enabled; never revive actors inside the escape scene.
+            // Restore bodies separately: Arrived/Retired otherwise survive placement and reject
+            // both movement and interaction. Wait for the hub environment to be enabled; never
+            // revive actors inside the escape scene.
             if (shown && !SpaceLinkHub.HasLoadedSpace(gameObject.scene) && campaign != null
                 && (SpaceLinkDirector.Instance == null || !SpaceLinkDirector.Instance.IsTransitioning))
             {
@@ -145,6 +145,9 @@ namespace CurtainCall.StartLobby
                 {
                     NetworkPlayer.ServerRestoreEveryone();
                     endingBodiesRestored = true;
+                    // 로비 복귀 = 커튼 레버 초기화. Ended로 남으면 레버가 '올리기' 상태로 남고 출연 명단 서명이 막힌다.
+                    // 성공 런의 세대·가판대 기록은 CampaignRun이 Waiting에서도 유지하고, 다음 시작은 여전히 레버로만 한다.
+                    if (session.GameState == GameSessionState.Ended) session.ReturnToLobby();
                 }
             }
             if (!placePending) return;

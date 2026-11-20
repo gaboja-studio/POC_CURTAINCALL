@@ -94,7 +94,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
         {
             foreach(RunEndReason reason in System.Enum.GetValues(typeof(RunEndReason)))
                 foreach(CampaignPhase phase in System.Enum.GetValues(typeof(CampaignPhase)))
-                    Assert.AreEqual(phase==CampaignPhase.Ending && reason is RunEndReason.Deadline or RunEndReason.EscapeAllRetired,
+                    Assert.AreEqual(phase==CampaignPhase.Ending && reason is RunEndReason.Deadline or RunEndReason.EscapeAllRetired or RunEndReason.Abandoned,
                         FailureEndingPresentation.IsFailureEnding(new CampaignSnapshot{Phase=phase,LastEnd=reason}));
         }
         [Test]

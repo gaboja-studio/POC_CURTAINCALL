@@ -240,6 +240,9 @@ namespace CurtainCall.EscapeRoute
                             {
                                 var next = navigation.Step(transform, arena, target.transform.position,
                                     Tuning.bossMoveSpeed * SpeedScale * chase.PressureSpeed(target) * Time.deltaTime);
+                                // A teammate on the direct line used to freeze this pursuer until it left.
+                                // Two pursuers converging on one runner could block each other forever.
+                                if (CrowdsEncounter(next)) next = SlideAroundEncounter(next);
                                 if (!CrowdsEncounter(next)) transform.position = next;
                             }
                         }
@@ -282,7 +285,7 @@ namespace CurtainCall.EscapeRoute
         bool ClearMovement(Vector3 from, Vector3 to)
         {
             bool Obstacle(Collider collider) => !collider.transform.IsChildOf(transform)
-                && !collider.GetComponentInParent<NetworkPlayer>();
+                && !collider.GetComponentInParent<NetworkPlayer>() && !EscapePursuerNavigation.LooseBody(collider);
             foreach (var feet in new[] { from, to })
                 foreach (var collider in Physics.OverlapCapsule(feet + Vector3.up * 1.6f, feet + Vector3.up * 3.6f, 1.4f,
                     Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))

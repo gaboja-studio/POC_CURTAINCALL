@@ -435,20 +435,32 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(player, "ServerSetOneArm"); yield return null;
             Call(settings, "RequestAbandon"); yield return null;
             Call(settings, "ConfirmAbandon"); Call(settings, "ConfirmAbandon");
-            float until = Time.realtimeSinceStartup + 60;
-            while ((!SceneManager.GetSceneByName("Tightrope").isLoaded || (bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive")
-                || (bool)Get(Find("CurtainCall.SpaceLink.SpaceLinkDirector"), "IsTransitioning")) && Time.realtimeSinceStartup < until) yield return null;
-            Assert.IsTrue(SceneManager.GetSceneByName("Tightrope").isLoaded);
+            // 런 포기는 기한 초과와 같은 실패 엔딩 연출을 거친 뒤 호스트 확인으로 새 세대 1일차 아침이 된다.
+            Assert.AreEqual("Ending", Field(State, "Phase").ToString());
+            Assert.AreEqual("Abandoned", Field(State, "LastEnd").ToString());
+            Assert.AreEqual(generation, Field(State, "Generation"));
+            Assert.IsFalse((bool)Get(run, "CanAbandonRun"));
+            Assert.IsFalse((bool)Call(run, "AbandonRun", context));
+            var failure = Static("CurtainCall.EscapeRoute.FailureEndingPresentation", "Current");
+            float until = Time.realtimeSinceStartup + 30;
+            while (!(bool)Get(failure, "Ready") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue((bool)Get(failure, "Ready"), "런 포기도 실패 엔딩 결과를 보여야 합니다.");
+            Assert.IsTrue((bool)Call(failure, "StartNextRun"));
+            until = Time.realtimeSinceStartup + 60;
+            while (((int)Field(State, "Generation") != generation + 1 || !SceneManager.GetSceneByName("WaitingRoom").isLoaded
+                || (bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive")
+                || (bool)Get(Find("CurtainCall.SpaceLink.SpaceLinkDirector"), "IsTransitioning")
+                || (bool)Get(failure, "IsPresenting")) && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsFalse(SceneManager.GetSceneByName("Tightrope").isLoaded);
             Assert.AreEqual(generation + 1, Field(State, "Generation"));
             Assert.AreEqual(1, Field(State, "Day"));
-            Assert.AreEqual(0, Field(State, "PerformanceIndex"));
+            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
+            Assert.AreEqual("Morning", Field(State, "Rest").ToString());
             Assert.AreEqual("Abandoned", Field(State, "LastEnd").ToString());
             Assert.IsTrue((bool)Get(Find("CurtainCall.Network.Session.NetworkSessionManager"), "IsHost"));
             player = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
             Assert.AreEqual(0L, Get(Find("CurtainCall.Reward.PerformanceRewards"), "Balance"));
-            Assert.IsFalse((bool)Get(run, "CanAbandonRun"));
-            Assert.IsFalse((bool)Call(run, "AbandonRun", context));
             until = Time.realtimeSinceStartup + 3;
             while ((bool)Static("CurtainCall.Player.InputGate", "IsRequested") && Time.realtimeSinceStartup < until) yield return null;
             var blockers = (IEnumerable)T("CurtainCall.Player.InputGate").GetField("blockers", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);

@@ -73,7 +73,7 @@ namespace CurtainCall.Campaign
         /// <summary>내 준비 상태가 바뀌었을 때. 마지막 준비자의 즉시 시간대 전환보다 먼저 알린다.</summary>
         public event Action<bool> LocalReadyChanged;
 
-        /// <summary>런이 끝났다. 성공·기한 초과·전원 리타이어는 엔딩 확인을 기다리고, 포기는 기존 세대 교체를 따른다.</summary>
+        /// <summary>런이 끝났다. 성공·기한 초과·전원 리타이어·포기 모두 엔딩 확인을 기다린다.</summary>
         public event Action<RunEndReason> RunEnded;
 
         void Awake()

@@ -41,6 +41,7 @@ namespace CurtainCall.WaitingRoom
         readonly List<FloorProp> receivedFloor = new();
         readonly PropItem[] receivedShelf = new PropItem[ItemCarryBook.ShelfSlots];
         readonly List<FloorProp> trimmed = new();
+        readonly HashSet<ulong> keepHeldWhileRetired = new();
         static readonly IReadOnlyList<PropItem> Empty = new List<PropItem>().AsReadOnly();
         ItemCarryBook book;
         ShopChannel channel;
@@ -254,8 +255,15 @@ namespace CurtainCall.WaitingRoom
             WatchGeneration();
             bool retired = false;
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Retired && book.Retire(player.OwnerClientId))
-                { selected.Remove(player.OwnerClientId); retired = true; }
+            {
+                if (player == null || !player.IsSpawned) continue;
+                ulong id = player.OwnerClientId;
+                if (player.State != PlayerState.Retired) { keepHeldWhileRetired.Remove(id); continue; }
+                // 소지 기물을 잃는 것은 탈출로 리타이어뿐이다. 대기실 추격자에게 잡혀 리타이어(다음 아침 복귀)한 사람은
+                // 기물을 지키고, 리타이어한 채 장소가 탈출로로 바뀌어도 지킨 기물을 다시 지우지 않는다.
+                if (SurvivalRules.ServerPlace != SurvivalPlace.EscapeRoute) { keepHeldWhileRetired.Add(id); continue; }
+                if (!keepHeldWhileRetired.Contains(id) && book.Retire(id)) { selected.Remove(id); retired = true; }
+            }
             // 운반 장치를 잡은 플레이어는 손에 든 기물을 넣는다(선택 해제).
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && CarryingDevice(player.OwnerClientId)
