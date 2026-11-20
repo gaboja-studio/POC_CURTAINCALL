@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Reflection;
 using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.WaitingRoom.Pursuit;
@@ -16,6 +18,144 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
+        [TestCase(false)]
+        [TestCase(true)]
+        [Category("CannonTransportRecovery")]
+        public void LostCarrierChoosesTheClosestSurvivorWithAUsablePlacement(bool closestHasFloor)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var origin = new Vector3(15000f, 100f, 15000f);
+            var root = new GameObject("Recovery trampoline");
+            var floor = new GameObject("Survivor ground");
+            var close = new GameObject("Closest survivor");
+            var further = new GameObject("Further survivor");
+            var all = (List<NetworkPlayer>)NetworkPlayer.All;
+            var previous = all.ToArray();
+            var closest = close.AddComponent<NetworkPlayer>();
+            var teammate = further.AddComponent<NetworkPlayer>();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            try
+            {
+                root.transform.position = origin;
+                var body = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                body.center = Vector3.up * .3f;
+                body.size = new Vector3(.5f, .4f, .5f);
+                typeof(HumanCannonTrampoline).GetField("carryBody", members).SetValue(trampoline, body);
+                typeof(HumanCannonTrampoline).GetField("initialPosition", members).SetValue(trampoline, origin);
+                typeof(HumanCannonTrampoline).GetField("initialRotation", members).SetValue(trampoline, Quaternion.identity);
+                closest.transform.position = origin + Vector3.right * 4f;
+                teammate.transform.position = origin + Vector3.right * 10f;
+                Vector3 expected = (closestHasFloor ? closest : teammate).transform.position;
+                floor.transform.position = expected - Vector3.up * .1f;
+                floor.AddComponent<BoxCollider>().size = new Vector3(3f, .2f, 3f);
+                spawned.SetValue(closest, true);
+                spawned.SetValue(teammate, true);
+                all.Clear(); all.Add(teammate); all.Add(closest);
+                Physics.SyncTransforms();
+
+                var args = new object[] { Vector3.zero };
+                var recover = typeof(HumanCannonTrampoline).GetMethod("TryFindSurvivorGround", members);
+                Assert.IsTrue((bool)recover.Invoke(trampoline, args));
+                Assert.That(Vector3.Distance((Vector3)args[0], expected), Is.LessThan(.01f));
+            }
+            finally
+            {
+                spawned.SetValue(closest, false);
+                spawned.SetValue(teammate, false);
+                all.Clear(); all.AddRange(previous);
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(floor);
+                Object.DestroyImmediate(close);
+                Object.DestroyImmediate(further);
+                Physics.SyncTransforms();
+            }
+        }
+
+        [TestCase(DeparturePhase.Waiting)]
+        [TestCase(DeparturePhase.Moving)]
+        [TestCase(DeparturePhase.Arrived)]
+        [TestCase(DeparturePhase.Returning)]
+        [Category("CannonTransportRecovery")]
+        public void DisconnectedTransportRiderLeavesTrampolineOnReachableGround(DeparturePhase phase)
+        {
+            const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+            var origin = new Vector3(15100f, 100f, 15100f);
+            var root = new GameObject("Trampoline above deck");
+            var routeRoot = new GameObject("Recovery test transport");
+            var platform = new GameObject("Moving deck");
+            var start = new GameObject("Deck start");
+            var end = new GameObject("Deck end");
+            var floor = new GameObject("Reachable survivor ground");
+            var buddyRoot = new GameObject("Remaining player");
+            var sessionRoot = new GameObject("Unstarted recovery network");
+            sessionRoot.SetActive(false);
+            var buddy = buddyRoot.AddComponent<NetworkPlayer>();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var current = typeof(HumanCannonRouteSystem).GetProperty(nameof(HumanCannonRouteSystem.Current));
+            var previousRoute = current.GetValue(null);
+            var all = (List<NetworkPlayer>)NetworkPlayer.All;
+            var previous = all.ToArray();
+            var route = routeRoot.AddComponent<HumanCannonRouteSystem>();
+            var type = typeof(HumanCannonTrampoline);
+            try
+            {
+                var manager = sessionRoot.AddComponent<NetworkManager>();
+                var session = sessionRoot.AddComponent<NetworkSessionManager>();
+                typeof(NetworkSessionManager).GetField("_networkManager", members).SetValue(session, manager);
+                var transport = routeRoot.AddComponent<HumanCannonTransport>();
+                typeof(HumanCannonTransport).GetField("platform", members).SetValue(transport, platform.transform);
+                typeof(HumanCannonTransport).GetField("start", members).SetValue(transport, start.transform);
+                typeof(HumanCannonTransport).GetField("destination", members).SetValue(transport, end.transform);
+                start.transform.position = origin - Vector3.forward * 8f;
+                end.transform.position = origin + Vector3.forward * 8f;
+                platform.transform.position = origin - Vector3.up * .1f;
+                platform.AddComponent<BoxCollider>().size = new Vector3(4f, .2f, 4f);
+                route.enabled = false;
+                route.ConfigurePractice(transport, origin.y - 10f);
+                current.SetValue(null, null);
+                typeof(HumanCannonRouteSystem).GetMethod("OnEnable", members).Invoke(route, null);
+                var state = route.TransportState(0);
+                if (phase != DeparturePhase.Waiting)
+                    Assert.IsTrue(state.Receive(1, phase, CannonSeatState.Nobody, 0d, 5f));
+
+                root.transform.position = origin + Vector3.up * .05f;
+                var body = root.AddComponent<BoxCollider>();
+                var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                body.size = new Vector3(.5f, .4f, .5f);
+                body.center = Vector3.up * .3f;
+                type.GetField("carryBody", members).SetValue(trampoline, body);
+                type.GetField("initialPosition", members).SetValue(trampoline, start.transform.position);
+                type.GetField("session", members).SetValue(trampoline, session);
+                type.GetField("initialRotation", members).SetValue(trampoline, Quaternion.identity);
+                var ownership = (CannonSeatState)type.GetField("ownership", members).GetValue(trampoline);
+                Assert.IsTrue(ownership.TryApply(CannonAction.Board, 99, ownership.Revision));
+
+                var safe = origin + Vector3.right * 9f;
+                buddy.transform.position = safe;
+                floor.transform.position = safe - Vector3.up * .1f;
+                floor.AddComponent<BoxCollider>().size = new Vector3(4f, .2f, 4f);
+                spawned.SetValue(buddy, true);
+                all.Clear(); all.Add(buddy);
+                Physics.SyncTransforms();
+
+                type.GetMethod("ReleaseCarrierToGround", members).Invoke(trampoline, new object[] { null });
+                Assert.AreEqual(CannonSeatState.Nobody, trampoline.Carrier);
+                Vector3 settled = (Vector3)type.GetProperty("SharedPosition", members).GetValue(trampoline);
+                Assert.That(Vector3.Distance(settled, phase == DeparturePhase.Waiting ? origin : safe), Is.LessThan(.01f));
+            }
+            finally
+            {
+                spawned.SetValue(buddy, false);
+                all.Clear(); all.AddRange(previous);
+                typeof(HumanCannonRouteSystem).GetMethod("OnDisable", members).Invoke(route, null);
+                current.SetValue(null, previousRoute);
+                foreach (var item in new[] { root, routeRoot, platform, start, end, floor, buddyRoot, sessionRoot })
+                    Object.DestroyImmediate(item);
+                Physics.SyncTransforms();
+            }
+        }
+
         [Test, Category("CommonProgressionRegression")]
         public void DuplicateOwnershipReplyDoesNotRestartDropOrChangeCarrier()
         {
