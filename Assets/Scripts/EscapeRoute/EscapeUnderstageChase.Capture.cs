@@ -414,6 +414,8 @@ namespace CurtainCall.EscapeRoute
             {
                 var hit = reachHits[i].transform;
                 if (hit.IsChildOf(transform) || hit.GetComponentInParent<NetworkPlayer>()) continue;
+                // Loose torn limbs and severed pursuer parts on the floor never shield a runner.
+                if (hit.GetComponentInParent<EscapePursuerDebris>() || CurtainCall.Damage.DismemberedLimb.Contains(reachHits[i].collider)) continue;
                 if (runner)
                 {
                     var poles = HumanCannonPoleSystem.Current;

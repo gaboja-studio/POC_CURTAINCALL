@@ -149,6 +149,39 @@ namespace CurtainCall.EscapeRoute
             }
         }
 
+        // Keep the step's length but drop its component toward the nearest teammate, so a blocked
+        // pursuer walks around the one in front instead of standing still. Head-on steps turn to a
+        // fixed side; each pursuer's side is mirrored, so the pair circles rather than re-colliding.
+        Vector3 SlideAroundEncounter(Vector3 next)
+        {
+            Vector3 from = transform.position;
+            Vector3 step = Vector3.ProjectOnPlane(next - from, Vector3.up);
+            if (step.sqrMagnitude < .000001f || !arena) return from;
+            var main = EncounterLeader;
+            EscapePursuerBoss closest = null;
+            float best = float.PositiveInfinity;
+            Consider(main);
+            foreach (var other in main.reinforcements) Consider(other);
+            if (!closest) return from;
+            Vector3 away = Vector3.ProjectOnPlane(from - closest.transform.position, Vector3.up);
+            away = away.sqrMagnitude > .0001f ? away.normalized : transform.right;
+            float approach = Vector3.Dot(step, away);
+            if (approach >= 0) return from;
+            Vector3 tangent = step - away * approach;
+            if (tangent.sqrMagnitude < .0001f * step.sqrMagnitude) tangent = Vector3.Cross(Vector3.up, away);
+            Vector3 slide = from + tangent.normalized * step.magnitude + Vector3.up * (next.y - from.y);
+            Vector3 bounded = EscapePursuerNavigation.Clamp(arena, slide);
+            if (Vector3.ProjectOnPlane(bounded - slide, Vector3.up).sqrMagnitude > .0001f) return from;
+            return EscapePursuerNavigation.Supported(slide) && EscapePursuerNavigation.Clear(transform, from, slide) ? slide : from;
+
+            void Consider(EscapePursuerBoss other)
+            {
+                if (!other || other == this || !other.CombatStarted || other.Defeated) return;
+                float distance = (other.transform.position - from).sqrMagnitude;
+                if (distance < best) { best = distance; closest = other; }
+            }
+        }
+
         void ClearReinforcements()
         {
             foreach (var boss in reinforcements)

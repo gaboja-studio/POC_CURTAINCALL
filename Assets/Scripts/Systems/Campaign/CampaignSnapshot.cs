@@ -72,7 +72,7 @@ namespace CurtainCall.Campaign
         EscapeAllRetired,
         /// <summary>한 명 이상 탈출로 목적지 도착 → 엔딩.</summary>
         EscapeSucceeded,
-        /// <summary>호스트가 대기실에서 현재 런을 포기함 → 다음 세대 1일차.</summary>
+        /// <summary>호스트가 대기실에서 현재 런을 포기함 → 런 실패(실패 엔딩 연출 뒤 다음 세대 1일차 아침, 기한 초과와 같은 경로).</summary>
         Abandoned,
     }
 
@@ -121,8 +121,12 @@ namespace CurtainCall.Campaign
         /// <summary>그 공연을 지금 고를 수 있는지. 인간 대포만 발견이 필요하다.</summary>
         public bool IsTrickUnlocked(string trickId) => trickId != HumanCannonId || CannonUnlocked;
 
+        /// <summary>실패 엔딩 연출을 거쳐 새 런을 시작하는 런 실패 이유(기한 초과·탈출로 전원 리타이어·런 포기).</summary>
+        public static bool IsFailureEnd(RunEndReason reason)
+            => reason is RunEndReason.Deadline or RunEndReason.EscapeAllRetired or RunEndReason.Abandoned;
+
         public bool IsFirstMorningAfterEnding => Generation > 1 && Day == 1 && Phase == CampaignPhase.RestTime
-            && Rest == RestKind.Morning && LastEnd is RunEndReason.Deadline or RunEndReason.EscapeAllRetired or RunEndReason.EscapeSucceeded;
+            && Rest == RestKind.Morning && (IsFailureEnd(LastEnd) || LastEnd == RunEndReason.EscapeSucceeded);
 
         public bool IsRunning => Phase != CampaignPhase.None;
 

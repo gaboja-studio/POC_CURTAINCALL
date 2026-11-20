@@ -181,7 +181,7 @@ namespace CurtainCall.Player
         /// </summary>
         public bool PassThrough
         {
-            get => passThrough || ParkedAtPerformanceFinish;
+            get => passThrough || ParkedAtPerformanceFinish || OutOfPlay;
             set
             {
                 passThrough = value;
@@ -190,6 +190,20 @@ namespace CurtainCall.Player
         }
 
         bool passThrough;
+        bool outOfPlay;
+        /// <summary>
+        /// 확정된 사망·리타이어·포획 몸통(모든 화면). 탈출로에서 던져진 시체가 줄·바닥에 남아 겉모습이 사라진 뒤에도
+        /// 보이지 않는 몸통이 산 사람을 막지 않게 한다. 장소별 기능이 <see cref="PassThrough"/>를 덮어써도 유지된다.
+        /// </summary>
+        internal bool OutOfPlay
+        {
+            get => outOfPlay;
+            set
+            {
+                outOfPlay = value;
+                if (controller != null) controller.detectCollisions = !PassThrough;
+            }
+        }
         bool parkedAtPerformanceFinish;
         internal bool ParkedAtPerformanceFinish
         {

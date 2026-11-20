@@ -81,11 +81,13 @@ namespace CurtainCall.UI.SceneIntegration
             var state=campaign.State;
             bool blocked=InputGate.IsBlocked;
             bool intro=state.Phase==CampaignPhase.Intro, ending=state.Phase==CampaignPhase.Ending && session.GameState==GameSessionState.Ended;
+            // 로비 복귀 때 호스트가 바로 Waiting으로 되돌리므로(LobbyRoom) 귀환 알림은 세션 Ended에 묶지 않는다.
+            bool escaped=state.Phase==CampaignPhase.Ending && state.LastEnd==RunEndReason.EscapeSucceeded;
             if(!blocked && announcedPhase!=state.Phase)
             {
                 announcedPhase=state.Phase;
                 if(intro) HudUIManager.Current.ShowSystemEvent(openingBody,transform,state.IsGenerationChangeIntro?generationTitle:openingTitle);
-                else if(ending) HudUIManager.Current.ShowSystemEvent(endingBody,transform,endingTitle,kind:HudEventKind.Reward);
+                else if(ending || escaped) HudUIManager.Current.ShowSystemEvent(endingBody,transform,endingTitle,kind:HudEventKind.Reward);
             }
             string title=ending?"다음 공연 준비":readyTitle;
             string sub=ending?(session.IsHost?"커튼 레버로 다시 준비하세요":"방장이 다시 준비할 때까지 기다려주세요"):lever.Prompt(out _).Replace("[F] ","");
