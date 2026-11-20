@@ -1,3 +1,8 @@
+using System.Collections.Generic;
+using System.Reflection;
+using CurtainCall.Damage;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -5,6 +10,136 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class CannonLandingTests
     {
+        const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        [Test, Category("StuntRegression20261120")]
+        public void FinishAcceptsCapsuleStandingOnActualPlatformEdge()
+        {
+            var root = new GameObject("Finish edge fixture");
+            root.SetActive(false);
+            try
+            {
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                typeof(HumanCannonSystem).GetMethod("ResetSeats", Private).Invoke(cannon, null);
+                var platform = new GameObject("Finish platform");
+                platform.transform.SetParent(root.transform);
+                platform.transform.position = new Vector3(15000, 0, 15000);
+                var tile = platform.AddComponent<BoxCollider>();
+                tile.center = Vector3.down * .25f;
+                tile.size = new Vector3(4, .5f, 4);
+                var zone = platform.AddComponent<HumanCannonLandingZone>();
+                var player = new GameObject("Finisher").AddComponent<NetworkPlayer>();
+                player.transform.SetParent(root.transform);
+                player.transform.position = platform.transform.position + new Vector3(2.08f, .02f, 0);
+                typeof(NetworkPlayer).GetField("mover", Private).SetValue(player, player.GetComponent<PlayerMover>());
+                var body = player.GetComponent<CharacterController>();
+                body.height = 1.5f; body.center = Vector3.up * .75f; body.radius = .3f;
+                var supports = typeof(HumanCannonLandingZone).GetMethod("SupportsStandingPlayer", Private);
+                root.SetActive(true);
+                Physics.SyncTransforms();
+                bool StandingOnFinish() => (bool)supports.Invoke(zone, new object[] { player, cannon });
+                Assert.IsTrue(StandingOnFinish());
+                player.transform.position += Vector3.right * .5f;
+                Physics.SyncTransforms();
+                Assert.IsFalse(StandingOnFinish());
+
+                var upperFloor = new GameObject("Separate floor above finish");
+                upperFloor.transform.SetParent(platform.transform, false);
+                var upperTile = upperFloor.AddComponent<BoxCollider>();
+                upperTile.center = Vector3.up * .025f;
+                upperTile.size = new Vector3(2, .05f, 2);
+                player.transform.position = platform.transform.position + Vector3.up * .07f;
+                Physics.SyncTransforms();
+                Assert.IsFalse(StandingOnFinish(), "The actual support belongs to another floor.");
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(false), TestCase(true), Category("StuntRegression20261120")]
+        public void DetachedLimbsDoNotEndAirborneMovementOrHideARealLandingSurface(bool childCollider)
+        {
+            var root = new GameObject("Debris support fixture");
+            try
+            {
+                root.transform.position = new Vector3(15000, 0, 15000);
+                var debris = new GameObject("Detached limb");
+                debris.transform.SetParent(root.transform, false);
+                debris.AddComponent<DismemberedLimb>();
+                var shape = debris;
+                if (childCollider)
+                {
+                    shape = new GameObject("Limb collider child");
+                    shape.transform.SetParent(debris.transform, false);
+                }
+                shape.AddComponent<BoxCollider>().size = new Vector3(.7f, .1f, .7f);
+                var floor = root.AddComponent<BoxCollider>();
+                floor.center = Vector3.down * .26f;
+                floor.size = new Vector3(3, .4f, 3);
+                var feet = root.transform.position + Vector3.up * .07f;
+                Physics.SyncTransforms();
+                Assert.IsTrue(WalkableSupport.TryGetSupport(null, feet, out var support));
+                Assert.AreSame(floor, support.collider);
+                floor.enabled = false;
+                Assert.IsFalse(WalkableSupport.Contains(null, feet));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(JumpKind.InPlace), TestCase(JumpKind.Fall), Category("StuntRegression20261120")]
+        public void PursuitFireWaitsForTheLastPlayerToLandBeyondTheStageLine(JumpKind airborneMotion)
+        {
+            var root = new GameObject("Fire stage fixture");
+            root.SetActive(false);
+            var players = (List<NetworkPlayer>)typeof(NetworkPlayer)
+                .GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var added = new List<NetworkPlayer>();
+            try
+            {
+                Transform Point(string name, float z)
+                {
+                    var point = new GameObject(name).transform;
+                    point.SetParent(root.transform, false);
+                    point.localPosition = Vector3.forward * z;
+                    return point;
+                }
+                var route = root.AddComponent<HumanCannonRouteSystem>();
+                var fire = root.AddComponent<HumanCannonFireWall>();
+                void Set(string name, object value) =>
+                    typeof(HumanCannonFireWall).GetField(name, Private).SetValue(fire, value);
+                Set("start", Point("Start", 0));
+                Set("boundary", Point("Boundary", 20));
+                Set("visual", Point("Visual", 0));
+                Set("stageLines", new[] { Point("Stage", 5) });
+                Set("stageSpeedMultipliers", new[] { 1.5f });
+                root.SetActive(true);
+                for (int i = 0; i < 2; i++)
+                {
+                    var actor = Point("Teammate", 8 + i).gameObject.AddComponent<NetworkPlayer>();
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(actor, (ulong)(900 + i));
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(actor, true);
+                    if (!players.Contains(actor)) players.Add(actor);
+                    added.Add(actor);
+                }
+                Assert.IsTrue(fire.Arm(0));
+                var jump = (Unity.Netcode.NetworkVariable<JumpKind>)typeof(NetworkPlayer).GetField("jump", Private).GetValue(added[1]);
+                var boost = typeof(HumanCannonRouteSystem).GetMethod("BoostFire", Private);
+                jump.Value = airborneMotion;
+                Assert.IsFalse((bool)boost.Invoke(route, new object[] { fire }));
+                Assert.That(fire.StageAt(0), Is.LessThan(0));
+                jump.Value = JumpKind.None;
+                Assert.IsTrue((bool)boost.Invoke(route, new object[] { fire }));
+            }
+            finally
+            {
+                foreach (var player in added)
+                {
+                    players.Remove(player);
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                }
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [Test, Category("CommonRulesRegression")]
         public void SafeLandingUsesActualSupportAtCapsuleEdgeAndRejectsSeparateUpperFloor()
         {

@@ -10,3 +10,5 @@
 
 - [humanoid-limb-carry-contact.md](humanoid-limb-carry-contact.md) — 실제 잘린 사지에 트램펄린이 걸리거나 올라갈 때
 - [restart-snapshot-retry.md](restart-snapshot-retry.md) — 인간대포 재시작 후 참가자의 발판·장애물·결승 톱이 갱신되지 않을 때
+- [landing-platform-edge-contact.md](landing-platform-edge-contact.md) — 착지대 가장자리에 서도 완주나 쉼터 합류가 누락될 때
+- [pursuit-fire-airborne-arrival.md](pursuit-fire-airborne-arrival.md) — 마지막 팀원이 시작선을 공중으로 넘을 때 추격 화염이 너무 일찍 가속할 때

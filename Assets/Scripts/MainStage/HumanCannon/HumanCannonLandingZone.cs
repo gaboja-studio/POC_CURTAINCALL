@@ -37,7 +37,9 @@ namespace CurtainCall.HumanCannon
             var support = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : player;
             return support != null && !support.IsAirborne
                 && !cannon.IsFlying(support.OwnerClientId) && !cannon.IsSeated(support.OwnerClientId)
-                && SupportsLanding(support.LatestOwnerPosition);
+                && support.TryGetComponent<PlayerMover>(out var mover)
+                && WalkableSupport.TryGetSupport(mover, support.LatestOwnerPosition, out var contact)
+                && SupportsContact(contact);
         }
 
         static bool Supports(BoxCollider tile, Vector3 feet)
@@ -60,13 +62,17 @@ namespace CurtainCall.HumanCannon
         {
             if (!WalkableSupport.TryGetSupport(mover, feet, out var support)) return false;
             foreach (var zone in zones)
-            {
-                if (zone == null || !zone.isActiveAndEnabled) continue;
-                if (zone.surface == null) zone.surface = zone.GetComponent<BoxCollider>();
-                if (support.collider == zone.surface && Supports(zone.surface, support.point)) return true;
-                foreach (var tile in zone.additionalSurfaces)
-                    if (support.collider == tile && Supports(tile, support.point)) return true;
-            }
+                if (zone != null && zone.SupportsContact(support)) return true;
+            return false;
+        }
+
+        bool SupportsContact(RaycastHit contact)
+        {
+            if (!isActiveAndEnabled) return false;
+            if (surface == null) surface = GetComponent<BoxCollider>();
+            if (contact.collider == surface && Supports(surface, contact.point)) return true;
+            foreach (var tile in additionalSurfaces)
+                if (contact.collider == tile && Supports(tile, contact.point)) return true;
             return false;
         }
 
