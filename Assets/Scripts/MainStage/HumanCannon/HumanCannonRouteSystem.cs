@@ -143,6 +143,9 @@ namespace CurtainCall.HumanCannon
                 Connection(session.ConnectionState);
             }
             RelocateLocalFall();
+            if (session != null && session.ConnectionState == SessionConnectionState.Client && messaging != null
+                && resetBarrier.TryGetRetryToken(Time.unscaledTimeAsDouble, out int token))
+                SendRequest(RouteAction.ResetSync, token);
             if (session == null || !session.IsHost) return;
             // Player void death is handled by NetworkPlayer's shared world-Y rule.
             // This course's lower bound remains a prop-recovery/layout boundary only.
@@ -569,7 +572,7 @@ namespace CurtainCall.HumanCannon
             {
                 // 호스트는 재시작 알림을 보내기 전에 reset한다. 알림 이후 요청한 응답으로 순서 차이를 닫는다.
                 // 응답 시점에는 다음 라운드가 이미 Moving/Arrived여도 정상이다.
-                SendRequest(RouteAction.ResetSync, resetBarrier.Begin());
+                resetBarrier.Begin();
                 return;
             }
             ResetRoute(); revision++; Publish();

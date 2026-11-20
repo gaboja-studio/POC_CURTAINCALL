@@ -3,6 +3,9 @@ namespace CurtainCall.HumanCannon
     /// <summary>로컬 재시작 이후 요청한 응답만 받아 옛 운반 상태의 재적용을 막는다.</summary>
     public sealed class RouteResetBarrier
     {
+        const double RetryInterval = .5d;
+        double nextRetryAt;
+
         public bool Waiting { get; private set; }
         public int Token { get; private set; }
 
@@ -10,7 +13,17 @@ namespace CurtainCall.HumanCannon
         {
             Token = Token == int.MaxValue ? 1 : Token + 1;
             Waiting = true;
+            nextRetryAt = 0d;
             return Token;
+        }
+
+        internal bool TryGetRetryToken(double now, out int token)
+        {
+            token = 0;
+            if (!Waiting || now < nextRetryAt) return false;
+            nextRetryAt = now + RetryInterval;
+            token = Token;
+            return true;
         }
 
         public bool Accept(int acknowledgment)

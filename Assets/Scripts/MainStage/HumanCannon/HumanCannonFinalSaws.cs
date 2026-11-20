@@ -81,6 +81,9 @@ namespace CurtainCall.HumanCannon
                 session.ConnectionStateChanged += Connection;
                 Connection(session.ConnectionState);
             }
+            if (session != null && session.ConnectionState == SessionConnectionState.Client && messaging != null
+                && resetBarrier.TryGetRetryToken(Time.unscaledTimeAsDouble, out int token))
+                RequestSnapshot(token);
             if (session == null || !session.IsHost) return;
             if (!HasStarted)
                 foreach (var player in NetworkPlayer.All)
