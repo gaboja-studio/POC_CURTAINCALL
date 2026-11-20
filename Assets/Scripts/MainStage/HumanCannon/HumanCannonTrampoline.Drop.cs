@@ -120,7 +120,7 @@ namespace CurtainCall.HumanCannon
         void PresentPlacementOutline(NetworkPlayer carrier)
         {
             if (!Application.isPlaying) return;
-            if (carrier == null || !carrier.IsLocal || carrier.State != PlayerState.Normal)
+            if (!AllowsPlacementOutline(gameObject.scene) || carrier == null || !carrier.IsLocal || carrier.State != PlayerState.Normal)
             {
                 ClearPlacementOutline();
                 return;
@@ -141,6 +141,12 @@ namespace CurtainCall.HumanCannon
             bool fits = carryBody && !HasRopeSupport(carrier)
                 && TryManualDrop(transform.position, transform.rotation, carrier, out _, out _);
             placementOutline.SetColorOverride(fits ? new Color(.08f, 1f, .25f) : new Color(1f, .12f, .13f));
+        }
+
+        static bool AllowsPlacementOutline(UnityEngine.SceneManagement.Scene scene)
+        {
+            var escape = EscapeCampaignContent.Current;
+            return escape == null || escape.gameObject.scene != scene;
         }
 
         void ClearPlacementOutline()

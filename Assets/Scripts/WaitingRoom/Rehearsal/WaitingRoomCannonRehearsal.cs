@@ -24,13 +24,13 @@ namespace CurtainCall.WaitingRoom
             public ulong previousCarrier;
             public double endAt;
             public List<ulong> participants = new(), placed = new(), middle = new(), bounced = new(), arrived = new(), votes = new(), skipVotes = new();
+            public List<ulong> recovering = new();
         }
         static WaitingRoomCannonRehearsal instance;
         Shared shared = new();
         readonly HashSet<ulong> fallen = new();
         readonly Dictionary<ulong, double> fallenAt = new();
         readonly Dictionary<ulong, BodyPart> priorConditions = new();
-        readonly HashSet<ulong> recoveringPlacement = new();
         readonly List<GameObject> hidden = new();
         readonly List<WaitingRoomFlickerLight> steadyLights = new();
         RehearsalCannonCourse course;
@@ -171,7 +171,7 @@ namespace CurtainCall.WaitingRoom
             r.prompt = r.pendingUnlockPrompt = false;
             r.promptBlock.SetOpen(false); r.votePanel.Hide();
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
-            r.fallen.Clear(); r.fallenAt.Clear(); r.priorConditions.Clear(); r.recoveringPlacement.Clear();
+            r.fallen.Clear(); r.fallenAt.Clear(); r.priorConditions.Clear();
             r.localRecoveryPending = r.placingAfterRecovery = false; r.lastCarrier = CannonSeatState.Nobody;
             if (NetworkPlayer.Local is { IsSpawned: true } owner) r.CaptureReturnPose(owner);
             WaitingRoomStageDevices.ReserveCarrierForRehearsal();
@@ -278,7 +278,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var list in new[] { shared.placed, shared.middle, shared.bounced, shared.arrived, shared.votes, shared.skipVotes })
                 changed |= list.RemoveAll(id => !shared.participants.Contains(id)) > 0;
             fallen.RemoveWhere(id => !shared.participants.Contains(id));
-            recoveringPlacement.RemoveWhere(id => !shared.participants.Contains(id));
+            changed |= shared.recovering.RemoveAll(id => !shared.participants.Contains(id)) > 0;
             foreach (ulong id in priorConditions.Keys.ToArray())
                 if (!shared.participants.Contains(id)) priorConditions.Remove(id);
             if (shared.restoringCarrier && !shared.participants.Contains(shared.previousCarrier))
@@ -308,7 +308,7 @@ namespace CurtainCall.WaitingRoom
                     if (GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                         && fallenAt.TryGetValue(id, out double at) && Clock - at >= GameSettings.WaitingRoom.Rehearsal.RecoverSeconds)
                     {
-                        recoveringPlacement.Add(id);
+                        MarkRecovering(id);
                         RecoverPlayer(p);
                         fallen.Remove(id); fallenAt.Remove(id);
                         changed = true;
@@ -367,8 +367,7 @@ namespace CurtainCall.WaitingRoom
             if (ExpertService.IsLocalInTreatment) return;
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
-            if (p.State == PlayerState.Normal && (localRecoveryPending || local == p && previousState == PlayerState.Fallen))
-                ResetLocalRecovery(p);
+            if (p.State == PlayerState.Normal) SynchronizeLocalRecovery(p);
             if (local == p && previousState == PlayerState.Normal && p.State == PlayerState.Fallen)
                 WaitingRoomGuidePanel.ShowAs(T("fall-title", "사망"), DeathGuide, 10f, RoomNotice.Warning);
             local = p; previousState = p.State;
@@ -377,7 +376,8 @@ namespace CurtainCall.WaitingRoom
             if (!p.TryGetComponent(out PlayerMover mover) || p.Slot == NetworkPlayer.NoSlot
                 || (placedRound != shared.round && HumanCannonCarry.Held(p.OwnerClientId) != null)) return;
             PlaceLocalAtCheckpoint(p, mover);
-            if (shared.placed.Contains(p.OwnerClientId)) placingAfterRecovery = false;
+            if (shared.placed.Contains(p.OwnerClientId) && !shared.recovering.Contains(p.OwnerClientId))
+                placingAfterRecovery = false;
             if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
             { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
             UpdateQuest();
@@ -386,8 +386,26 @@ namespace CurtainCall.WaitingRoom
 
         void OnPlayerRevived(NetworkPlayer player)
         {
-            if (shared.active && !shared.ending && player != null && player == NetworkPlayer.Local)
-                localRecoveryPending = true;
+            if (!shared.active || shared.ending || player == null) return;
+            if (Host && shared.participants.Contains(player.OwnerClientId) && MarkRecovering(player.OwnerClientId))
+                Publish();
+            if (player == NetworkPlayer.Local) localRecoveryPending = true;
+        }
+
+        bool MarkRecovering(ulong actor)
+        {
+            if (shared.recovering.Contains(actor)) return false;
+            shared.recovering.Add(actor);
+            ForgetPlacement(actor);
+            return true;
+        }
+
+        void SynchronizeLocalRecovery(NetworkPlayer player)
+        {
+            // The host's position confirmation can lag behind the revival notification.
+            if (localRecoveryPending || local == player && previousState == PlayerState.Fallen
+                || shared.recovering.Contains(player.OwnerClientId) && !placingAfterRecovery)
+                ResetLocalRecovery(player);
         }
 
         void ResetLocalRecovery(NetworkPlayer player)
@@ -396,11 +414,16 @@ namespace CurtainCall.WaitingRoom
             placingAfterRecovery = true;
             placedRound = -1;
             nextPlacement = 0f;
-            shared.placed.Remove(player.OwnerClientId);
-            shared.arrived.Remove(player.OwnerClientId);
-            shared.votes.Remove(player.OwnerClientId);
-            shared.skipVotes.Remove(player.OwnerClientId);
+            ForgetPlacement(player.OwnerClientId);
             if (walls != null) walls.SetActive(false);
+        }
+
+        void ForgetPlacement(ulong actor)
+        {
+            shared.placed.Remove(actor);
+            shared.arrived.Remove(actor);
+            shared.votes.Remove(actor);
+            shared.skipVotes.Remove(actor);
         }
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover)
