@@ -65,3 +65,4 @@
 - [escape-transfer-ack-wait.md](escape-transfer-ack-wait.md) — 탈출로 입장에서 참가자의 배치 확인을 기다리다 로딩이 멈출 때
 - [tightrope-finale-stack-reapproval.md](tightrope-finale-stack-reapproval.md) — 외줄 결승 목마 편성을 바꾼 뒤 도약 승인이 갱신되지 않을 때
 - [avatar-handoff-packet-order.md](avatar-handoff-packet-order.md) — 발판의 옛 탑승 상태가 부활자에게 적용되거나 탈출로에 새 아바타가 배치되지 않을 때
+- [escape-ending-input-lock.md](escape-ending-input-lock.md) — 연결 종료 또는 콘텐츠 비활성화 뒤 성공 엔딩 카메라와 입력 잠금이 남을 때

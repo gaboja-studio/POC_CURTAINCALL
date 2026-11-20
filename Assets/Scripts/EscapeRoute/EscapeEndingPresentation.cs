@@ -89,9 +89,13 @@ namespace CurtainCall.EscapeRoute
         }
         void LateUpdate()
         {
-            if (content == null || !content.IsActive) return;
             var campaign = CampaignRun.Instance;
-            if (campaign != null && IsSuccessfulEnding(campaign.State)) BeginEnding();
+            if (content == null || !content.IsActive || campaign == null || !IsSuccessfulEnding(campaign.State))
+            {
+                if (IsPresenting) ResetPresentation();
+                return;
+            }
+            BeginEnding();
             // The old title is retained only as a serialized compatibility reference.
             if (title != null) title.alpha = 0;
             if (endingAt < 0) return;
