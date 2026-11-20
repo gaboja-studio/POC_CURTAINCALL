@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using CurtainCall.Campaign;
 using CurtainCall.Network.Session;
 using CurtainCall.Settings;
@@ -225,12 +226,13 @@ namespace CurtainCall.SpaceLink
             var mode = request.Reload ? SpaceTransitionMode.Single : settings.Mode;
             var from = Current;
             var target = request.Space;
+            bool enteringPerformance = target == SpaceId.Performance;
             string sceneName = request.SceneName;
             stepFailed = false;
 
             if (mode == SpaceTransitionMode.Single)
             {
-                yield return Load(sceneName, LoadSceneMode.Single);
+                yield return Load(sceneName, LoadSceneMode.Single, enteringPerformance);
             }
             else
             {
@@ -240,11 +242,11 @@ namespace CurtainCall.SpaceLink
                 {
                     if (scene.name == sceneName) continue;
                     if (hub.isLoaded && SceneManager.GetActiveScene() == scene) SceneManager.SetActiveScene(hub);
-                    yield return Unload(scene);
+                    yield return Unload(scene, enteringPerformance);
                     if (stepFailed || !IsCurrent(request)) break;
                 }
                 if (!stepFailed && IsCurrent(request) && !IsLoaded(sceneName))
-                    yield return Load(sceneName, LoadSceneMode.Additive);
+                    yield return Load(sceneName, LoadSceneMode.Additive, enteringPerformance);
             }
 
             // NGO can report a slow client before its local scene has finished loading.
@@ -265,7 +267,7 @@ namespace CurtainCall.SpaceLink
             SpaceChanged?.Invoke(target);
         }
 
-        IEnumerator Load(string sceneName, LoadSceneMode mode)
+        IEnumerator Load(string sceneName, LoadSceneMode mode, bool enteringPerformance = false)
         {
             var network = OnlineSceneManager();
             if (network == null)
@@ -288,7 +290,7 @@ namespace CurtainCall.SpaceLink
             {
                 if (scene != sceneName || loadMode != mode) return;
                 done = true;
-                if (timedOut.Count > 0) Fail($"{sceneName} 로드 시간 초과: {string.Join(", ", timedOut)}");
+                CheckSceneTimeouts(sceneName, "로드", timedOut, enteringPerformance);
             }
 
             network.OnLoadEventCompleted += Completed;
@@ -305,7 +307,7 @@ namespace CurtainCall.SpaceLink
             else if (!stepFailed && !IsLoaded(sceneName)) Fail($"{sceneName} 씬 로드가 완료되지 않았습니다.");
         }
 
-        IEnumerator Unload(Scene scene)
+        IEnumerator Unload(Scene scene, bool enteringPerformance = false)
         {
             string sceneName = scene.name;
             var network = OnlineSceneManager();
@@ -329,7 +331,7 @@ namespace CurtainCall.SpaceLink
             {
                 if (name != sceneName) return;
                 done = true;
-                if (timedOut.Count > 0) Fail($"{sceneName} 닫기 시간 초과: {string.Join(", ", timedOut)}");
+                CheckSceneTimeouts(sceneName, "닫기", timedOut, enteringPerformance);
             }
 
             network.OnUnloadEventCompleted += Completed;
@@ -344,6 +346,20 @@ namespace CurtainCall.SpaceLink
             network.OnUnloadEventCompleted -= Completed;
             if (!done) Fail($"{sceneName} 닫기 중 접속이 끊겼습니다.");
             else if (!stepFailed && scene.isLoaded) Fail($"{sceneName} 씬 닫기가 완료되지 않았습니다.");
+        }
+
+        void CheckSceneTimeouts(string sceneName, string operation, IReadOnlyList<ulong> timedOut, bool enteringPerformance)
+        {
+            var stillConnected = enteringPerformance ? NetworkSessionManager.Instance?.NetworkManager?.ConnectedClientsIds : null;
+            var blocked = RelevantSceneTimeouts(timedOut, stillConnected);
+            if (blocked.Count > 0) Fail($"{sceneName} {operation} 시간 초과: {string.Join(", ", blocked)}");
+        }
+
+        static IReadOnlyList<ulong> RelevantSceneTimeouts(IReadOnlyList<ulong> timedOut, IReadOnlyList<ulong> stillConnected)
+        {
+            // NGO includes clients that disconnected during the event in the same list as timeouts.
+            if (timedOut.Count == 0 || stillConnected == null) return timedOut;
+            return timedOut.Where(id => id == NetworkManager.ServerClientId || stillConnected.Contains(id)).ToArray();
         }
 
         /// <summary>접속 중인 호스트면 NGO 씬 관리, 아니면 null(오프라인 로드).</summary>

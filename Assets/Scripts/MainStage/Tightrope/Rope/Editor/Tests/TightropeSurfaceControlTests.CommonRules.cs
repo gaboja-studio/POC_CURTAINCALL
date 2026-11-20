@@ -762,6 +762,49 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
    }
   }
 
+  [TestCase(false)]
+  [TestCase(true)]
+  [Category("StuntBlockingRegressions")]
+  public void BurnedGripReleasesTheOwnerEvenWhileTheHostStillReportsAHang(bool rescueInFlight)
+  {
+   var root = MakeObject("Burning grip");
+   root.SetActive(false);
+   var hangs = root.AddComponent<TightropeHangSystem>();
+   const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+   typeof(TightropeHangSystem).GetField("course", fields).SetValue(hangs, course);
+   var book = (TightropeHangBook)typeof(TightropeHangSystem).GetField("book", fields).GetValue(hangs);
+   var local = typeof(NetworkPlayer).GetProperty(nameof(NetworkPlayer.Local));
+   var previousLocal = local.GetValue(null);
+   local.SetValue(null, player);
+   typeof(NetworkPlayer).GetProperty("IsOwner").SetValue(player, true);
+   try
+   {
+    const int lane = 0;
+    const float distance = 4f;
+    book.Begin(player.OwnerClientId, lane, distance, 7d, 0d);
+    Invoke(hangs, "BindLocal", player, mover, balance);
+    Invoke(hangs, "UpdateLocal");
+    Assert.IsTrue(hangs.IsHanging(player));
+    Assert.IsFalse(mover.Body.enabled);
+    Vector3 hangingFeet = player.transform.position;
+    course.BlockSegment(lane, 3f, 5f, false);
+
+    if (rescueInFlight) Invoke(hangs, "ApplyRescued", player.OwnerClientId, lane, distance);
+    else Invoke(hangs, "UpdateLocal");
+
+    Assert.IsFalse(hangs.IsHanging(player));
+    Assert.IsTrue(mover.Body.enabled);
+    Assert.IsTrue(mover.Simulated);
+    Assert.IsFalse(balance.IsSuspended);
+    Assert.AreEqual(hangingFeet, player.transform.position);
+    Assert.IsTrue((bool)typeof(NetworkPlayer).GetField("naturalFallQueued", fields).GetValue(player));
+   }
+   finally
+   {
+    local.SetValue(null, previousLocal);
+   }
+  }
+
   [Test]
   public void RelocatingAHangingPlayerClearsTheGripWithoutStartingAnotherFall()
   {
@@ -986,6 +1029,50 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
      testScene.name = oldName;
      UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(next);
     }
+   });
+  }
+
+  [TestCase(false)]
+  [TestCase(true)]
+  [Category("StuntBlockingRegressions")]
+  public void HumanCannonCountsMountedRidersOnlyAfterTheCarrierLands(bool shelter)
+  {
+   WithMountedPair((stack, _, passenger) =>
+   {
+    var rider = passenger.GetComponent<NetworkPlayer>();
+    var arrival = AddBox("Human Cannon finish", new Vector3(0, -.5f, 0), new Vector3(4, 1, 4));
+    var zone = arrival.gameObject.AddComponent<HumanCannonLandingZone>();
+    var destination = MakeObject("Human Cannon destination").AddComponent<HumanCannonDestination>();
+    var cannon = MakeObject("Human Cannon station system").AddComponent<HumanCannonSystem>();
+    Invoke(cannon, "ResetSeats");
+    const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+    typeof(HumanCannonDestination).GetField("destination", fields).SetValue(destination, zone);
+    var route = MakeObject("Human Cannon shelter route").AddComponent<HumanCannonRouteSystem>();
+    typeof(HumanCannonRouteSystem).GetField("shelter", fields).SetValue(route, zone);
+    typeof(HumanCannonRouteSystem).GetField("cannon", fields).SetValue(route, cannon);
+    var current = typeof(HumanCannonSystem).GetProperty(nameof(HumanCannonSystem.Current));
+    var oldSystem = current.GetValue(null);
+    current.SetValue(null, cannon);
+    try
+    {
+     Assert.AreSame(player, Invoke(stack, "GetSupportingPlayer", rider));
+     Assert.IsFalse(zone.SupportsLanding(rider.transform.position));
+     Assert.IsTrue(destination.HasArrived(player));
+     if (shelter)
+     {
+      Invoke(route, "CountShelterFlyers");
+      Assert.AreEqual(2, route.AliveFlyers);
+      Assert.AreEqual(2, route.ArrivedFlyers, "The shelter transport must not wait for already arrived riders to dismount.");
+     }
+     else Assert.IsTrue(destination.HasArrived(rider), "The rider shares the grounded carrier's arrival.");
+
+     player.transform.position += Vector3.up;
+     Assert.IsFalse(destination.HasArrived(player));
+     Assert.IsFalse(destination.HasArrived(rider), "Flying over the finish does not count.");
+     Invoke(route, "CountShelterFlyers");
+     Assert.AreEqual(0, route.ArrivedFlyers);
+    }
+    finally { current.SetValue(null, oldSystem); }
    });
   }
 

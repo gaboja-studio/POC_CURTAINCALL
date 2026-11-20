@@ -10,3 +10,5 @@ source: Task-20261118-162
 외줄 묘기 씬에서 쓰는 DeadleafGames의 `Mat_DissolveBurn`은 `Shader Graphs/DissolveShader`의 `_DissolveAmount`를 읽는다. 머티리얼 YAML에는 다른 셰이더의 `_burnAmount`도 남아 있다.
 
 밧줄의 UV와 노이즈 분포에 따라 소실량이 1에 도달하기 전에 모든 픽셀이 잘릴 수 있다. 실제 `WalkingRope`와 `TouringRigging` 조합으로 예고 직전까지 가닥이 보이는지 렌더링한다. 소각 범위는 `TightropeFire.GetSegmentSpans`에서 얻는다. 경고 시각과 지지면 제거는 기존 화재 상태가 결정한다.
+
+호스트의 소각 확정과 매달림·구조 완료 메시지는 별도 경로로 도착한다. 참가자가 소각 구간을 적용한 뒤에는 이전 매달림 좌표로 몸을 고정하거나 구조 메시지로 그 위에 올리지 않는다. 로컬에서도 잡고 있는 좌표의 실제 지지면을 검사한다.

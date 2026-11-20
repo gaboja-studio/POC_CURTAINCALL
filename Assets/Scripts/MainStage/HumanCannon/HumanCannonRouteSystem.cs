@@ -453,8 +453,8 @@ namespace CurtainCall.HumanCannon
                 AliveFlyers++;
                 // 쉼터 대포에 먼저 앉으면 발 위치가 바닥보다 높아진다. 대기 중인 동료도 합류 완료다.
                 // 이를 제외하면 대포는 두 번째 운송을, 승강기는 대포의 하차를 서로 기다린다.
-                if (IsSeatedAtShelter(player.OwnerClientId) || (shelter != null && shelter.SupportsLanding(player.transform.position)
-                    && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId))) ArrivedFlyers++;
+                if (IsSeatedAtShelter(player.OwnerClientId) || shelter != null && shelter.SupportsStandingPlayer(player, cannon))
+                    ArrivedFlyers++;
             }
         }
 

@@ -46,7 +46,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 SceneManager.SetActiveScene(previous);
         }
 
-        [Test, Category("CannonTierConnection")]
+        [Test, Category("CannonTierConnection"), Category("StuntBlockingRegressions")]
         public void ScheduledTierConnectsToTheGroundFireSwitchesInTheBuiltScene()
         {
             var preview = EditorSceneManager.OpenPreviewScene(HumanCannonTestSceneBuilder.ScenePath);
@@ -77,9 +77,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 var gate = Field<HumanCannonSawGate>(stage, "openingGate");
                 Assert.That(poles, Has.Length.EqualTo(6));
                 onEnable.Invoke(stage, null);
+                // The first launch can precede the campaign snapshot that opens settlement.
+                const double firstLaunch = 10d;
+                var runStart = courseType.GetField("runStart", members);
+                runStart.SetValue(course, firstLaunch);
+                Assert.IsFalse(course.SetDifficulty(3), "Manual tier changes stay locked after launch.");
                 foreach (int level in new[] { 1, 2, 3 })
                 {
-                    Assert.IsTrue((bool)apply.Invoke(course, new object[] { level }));
+                    Assert.IsTrue((bool)apply.Invoke(course, new object[] { level }), "The official tier must still open progression.");
+                    Assert.That(runStart.GetValue(course), Is.EqualTo(firstLaunch));
                     update.Invoke(stage, null);
                     var expected = level == 3 ? groups.Select(g => g.tierThreePole).ToArray()
                         : level == 2 ? poles : System.Array.Empty<HumanCannonPole>();
