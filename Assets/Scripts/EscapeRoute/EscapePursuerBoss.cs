@@ -165,6 +165,15 @@ namespace CurtainCall.EscapeRoute
         void Enter(Phase phase, double now, Vector3 goal = default)
         {
             state.Phase = phase; state.Started = now; state.From = transform.position; state.Goal = goal; state.Revision++;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.Emit("PURSUIT_STATE", new()
+            {
+                ["entityId"] = "ESCAPE_BOSS_" + EncounterIndex,
+                ["entityKind"] = "PURSUER",
+                ["encounterIndex"] = EncounterIndex,
+                ["state"] = phase.ToString(),
+                ["position"] = CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(state.From),
+                ["cuts"] = Cuts
+            }, "HOST");
         }
         internal bool AdvanceHost()
         {

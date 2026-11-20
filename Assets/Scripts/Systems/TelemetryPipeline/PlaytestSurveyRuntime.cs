@@ -21,7 +21,6 @@ namespace CurtainCall.Telemetry.Pipeline
         NetworkSessionManager session;
         string currentRun, currentIdentity, pendingCode, pendingIdentity;
         int currentSlot = -1;
-        float pendingUntil;
         /// <summary>빌드에서도 현재 로컬 플레이어의 설문 이력을 초기화한다. 설문 기능이 꺼져 있어도 가능하다.</summary>
         public static int ResetLocalHistory()
         {
@@ -61,9 +60,8 @@ namespace CurtainCall.Telemetry.Pipeline
             if (menu != next) { if (menu != null) menu.OnLeaveConfirmed.RemoveListener(LeaveConfirmed); menu = next; if (menu != null) menu.OnLeaveConfirmed.AddListener(LeaveConfirmed); }
             if (pendingCode != null)
             {
-                if (SceneManager.GetSceneByName("Start").isLoaded && (session == null || session.ConnectionState == SessionConnectionState.Offline))
+                if (session == null || session.ConnectionState == SessionConnectionState.Offline)
                 { string code = pendingCode, identity = pendingIdentity; pendingCode = null; Open(identity, SurveyLaunchPolicy.Exit, code); }
-                else if (Time.unscaledTime > pendingUntil) pendingCode = null;
             }
             var campaign = CampaignRun.Instance; var rewards = PerformanceRewards.Instance != null ? PerformanceRewards.Instance.State : null;
             var player = NetworkPlayer.Local;
@@ -86,9 +84,10 @@ namespace CurtainCall.Telemetry.Pipeline
             // persistentDataPath already separates OS users; keep the survey claim stable there.
             currentIdentity ??= SurveyLaunchCache.LocalIdentity;
             var step = campaign.State;
+            if (step.Phase is CampaignPhase.Ending or CampaignPhase.DemoEnding) OpenExitForCurrentRun();
             var night = configuration.Collection.night;
             if (night.Matches(Application.version) && step.Day == night.nightDay && step.Phase == CampaignPhase.Night && CurtainCall.Settings.WaitingRoomScenes.IsLoaded
-                && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Night, night))
+                && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Night, night, Application.version))
                 Open(currentIdentity, SurveyLaunchPolicy.Night, NewCode(SurveyLaunchPolicy.Night));
         }
         string NewCode(string kind) => SurveyLaunchPolicy.Code(configuration.Collection.For(kind), Application.version, kind, EnvironmentName, currentRun, currentSlot, Guid.NewGuid().ToString("N"), DateTime.UtcNow);
@@ -96,7 +95,19 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             // Use the pre-exit snapshot: the menu's earlier listener may already have stopped NGO.
             if (currentRun == null || currentSlot < 0 || pendingCode != null || !configuration.Collection.exit.Matches(Application.version)) return;
-            pendingCode = NewCode(SurveyLaunchPolicy.Exit); pendingIdentity = currentIdentity; pendingUntil = Time.unscaledTime + 60;
+            pendingCode = NewCode(SurveyLaunchPolicy.Exit); pendingIdentity = currentIdentity;
+        }
+        void OpenExitForCurrentRun()
+        {
+            var exit = configuration.Collection.exit;
+            if (currentRun != null && currentSlot >= 0 && exit.Matches(Application.version)
+                && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Exit, exit, Application.version))
+                Open(currentIdentity, SurveyLaunchPolicy.Exit, NewCode(SurveyLaunchPolicy.Exit));
+        }
+        void OnApplicationQuit()
+        {
+            if (pendingCode != null) Open(pendingIdentity, SurveyLaunchPolicy.Exit, pendingCode);
+            else if (configuration != null) OpenExitForCurrentRun();
         }
         void Disconnected(string reason)
         {
@@ -108,8 +119,7 @@ namespace CurtainCall.Telemetry.Pipeline
             try
             {
                 var survey = configuration.Collection.For(kind);
-                if (survey.Matches(Application.version) && !cache.WasOpened(identity, kind, survey))
-                    cache.TryOpen(identity, kind, survey, code, Application.OpenURL);
+                cache.TryOpen(identity, kind, survey, Application.version, code, Application.OpenURL);
             }
             catch (Exception) { Debug.LogWarning("[Survey] 설문 브라우저를 열지 못했습니다. 다음 해당 시점에 다시 시도합니다."); }
         }

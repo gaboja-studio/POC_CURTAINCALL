@@ -22,7 +22,18 @@ test('survey sheet publication separates patch versions and rounds and preserves
  const {fixture}=require('./server.fixture.cjs'),f=fixture(),a=response(),b={...response(),gameVersion:'0.2.3',surveyId:'M2_NIGHT',surveyRound:2};
  f.context.ccPublishSurveys_(f.book,[a,b],[]);
  const rows=f.tables['설문 통계'].slice(1);assert.equal(rows.length,2);assert.equal(rows[0][0],'0.1.0');assert.equal(rows[1][0],'0.2.3');assert.equal(rows[1][8],'M2_NIGHT');assert.equal(rows[1][9],2);
- const sources=f.context.ccSurveySources_();assert.equal(new Set(sources.map(s=>s.id)).size,4);for(const kind of ['NIGHT1','EXIT'])assert.equal(sources.filter(s=>s.kind===kind).length,2);
+ const sources=f.context.ccSurveySources_();assert.equal(new Set(sources.map(s=>s.id)).size,6);for(const kind of ['NIGHT1','EXIT'])assert.equal(sources.filter(s=>s.kind===kind).length,3);
+});
+test('0.8.7 survey codes join a player in the same session on both channels',()=>{
+ for(const env of ['TEST','LIVE'])for(const [kind,campaign] of [['NIGHT1','M8_NIGHT2'],['EXIT','M8_EXIT']]){
+  const link=code(kind,2,env).replace('CCS1.0_1_0','CCS2.0_8_7')+'.'+campaign+'.1';
+  const parsed=survey.parse(link,kind);
+  assert.equal(parsed.runId,run);
+  assert.equal(parsed.gameVersion,'0.8.7');
+  assert.equal(parsed.playerNumber,2);
+  assert.equal(parsed.environment,env);
+  assert.equal(parsed.surveyId,campaign);
+ }
 });
 test('response reader tolerates owner spacing, excludes unknown link and deduplicates the same invitation',()=>{
  const header=['타임스탬프','방코드를 입력해주세요','1. 재미','플레이 기록 연결 코드 (자동입력)'];

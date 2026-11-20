@@ -65,9 +65,9 @@ var CC_SESSION_RUNTIME=null;
 function initializeSessionSummaries(){ccOwner_();return ccMaintenanceLock_(function(){try{ccSessionUpdate_(ccBook_());Logger.log(JSON.stringify({complete:true,processing:ccSessionStatus_()}));}catch(error){Logger.log(JSON.stringify({complete:false,code:ccRefreshErrorCode_(error),processing:ccSessionStatus_()}));}});}
 function ccSessionState_(){var p=ccPropertyJson_('SESSION_STORE');return p?ccDriveJson_(p.fileId):null;}
 function ccSessionSave_(state){
-  var folder=ccSnapshotFolder_(),file=folder.createFile('cc-sessions-'+Utilities.getUuid()+'.json',JSON.stringify(state),MimeType.PLAIN_TEXT);
+  var folder=ccSnapshotFolder_(),file=ccSaveJsonFile_(folder,'cc-sessions-'+Utilities.getUuid()+'.json',state);
   // Read back the durable checkpoint before making it authoritative or deleting source rows.
-  var saved=JSON.parse(file.getBlob().getDataAsString('UTF-8'));if(saved.cursor!==state.cursor||Object.keys(saved.sessions).length!==Object.keys(state.sessions).length)throw Error('SESSION_CHECKPOINT_INVALID');
+  var saved=ccReadJsonFile_(file);if(saved.cursor!==state.cursor||Object.keys(saved.sessions).length!==Object.keys(state.sessions).length)throw Error('SESSION_CHECKPOINT_INVALID');
   var previous=ccPropertyJson_('SESSION_STORE');PropertiesService.getScriptProperties().setProperty('SESSION_STORE',JSON.stringify({fileId:file.getId()}));
   if(previous&&previous.fileId!==file.getId())try{DriveApp.getFileById(previous.fileId).setTrashed(true);}catch(e){}
   CC_SESSION_RUNTIME=state;ccSessionSaveStatus_(state);return state;
@@ -98,7 +98,7 @@ function ccSessionUpdate_(book,foreground){
     if(s&&s.archivedAt){state.migration.done.push(key);return;}
     var meaningful=incoming.filter(function(e){return !ids.has(e.eventId);});
     var events=old.concat(meaningful),first=events[0]||incoming[0],times=incoming.map(function(e){return e.occurredAt;}).sort(),received=incoming.map(function(e){return e.receivedAt||e.occurredAt;}).sort();
-    var summary=s&&!meaningful.length?s.summary:SessionCore.summarize(events,first),file=s&&!meaningful.length?null:ccSnapshotFolder_().createFile('cc-session-detail-'+Utilities.getUuid()+'.json',JSON.stringify({events:events}),MimeType.PLAIN_TEXT);
+    var summary=s&&!meaningful.length?s.summary:SessionCore.summarize(events,first),file=s&&!meaningful.length?null:ccSaveJsonFile_(ccSnapshotFolder_(),'cc-session-detail-'+Utilities.getUuid()+'.json',{events:events});
     if(s&&file&&s.detailFile)obsolete.push(s.detailFile);
     s={key:key,environment:first.environment,gameVersion:TelemetryCore.versionOf(first),runId:first.runId,appSessionId:first.appSessionId,firstAt:s&&s.firstAt<times[0]?s.firstAt:times[0],lastAt:s&&s.lastAt>times[times.length-1]?s.lastAt:times[times.length-1],lastReceivedAt:s&&s.lastReceivedAt>received[received.length-1]?s.lastReceivedAt:received[received.length-1],detailFile:file?file.getId():s.detailFile,summary:summary,archivedAt:null};
     state.sessions[key]=s;if(meaningful.length)changed++;
@@ -131,7 +131,7 @@ function ccSessionUpdate_(book,foreground){
 }
 function ccSessionGarbage_(state){
   var referenced=new Set(Object.values(state.sessions).map(function(s){return s.detailFile;}).filter(Boolean)),files=ccSnapshotFolder_().getFiles(),count=0,began=Date.now();
-  while(files.hasNext()&&count<100&&Date.now()-began<10000){var file=files.next();if(/^cc-session-detail-[0-9a-f-]{36}\.json$/.test(file.getName())&&!referenced.has(file.getId())&&Date.now()-file.getDateCreated().getTime()>CC_REFRESH_LEASE_MS){file.setTrashed(true);count++;}}
+  while(files.hasNext()&&count<100&&Date.now()-began<10000){var file=files.next();if(/^cc-session-detail-[0-9a-f-]{36}\.json(?:\.zip)?$/.test(file.getName())&&!referenced.has(file.getId())&&Date.now()-file.getDateCreated().getTime()>CC_REFRESH_LEASE_MS){file.setTrashed(true);count++;}}
 }
 function ccSessionCompact_(book,state){
   var rules=ccRules_(book),expired=new Set(Object.values(state.sessions).filter(function(s){return s.archivedAt;}).map(function(s){return s.key;}));if(!expired.size&&!rules.length)return;
@@ -157,7 +157,7 @@ function ccRelocateVerified_(book,state){
   var count=Math.min(25000,state.cursor-1),rows=sheet.getRange(2,1,count,TelemetryCore.headers.length).getValues(),verified=new Map(),blocks=[],start=null,size=0,began=Date.now();
   rows.forEach(function(row,i){var e=TelemetryCore.decode(row),key=SessionCore.key(e),s=state.sessions[key];
     if(s&&!s.archivedAt&&s.detailFile&&!verified.has(key)&&Date.now()-began<30000){
-      var ids=new Map();try{var file=DriveApp.getFileById(s.detailFile),saved=JSON.parse(file.getBlob().getDataAsString('UTF-8'));saved.events.forEach(function(x){ids.set(x.eventId,JSON.stringify(TelemetryCore.row(x,x,x.receivedAt)));});}catch(error){}
+      var ids=new Map();try{var file=DriveApp.getFileById(s.detailFile),saved=ccReadJsonFile_(file);saved.events.forEach(function(x){ids.set(x.eventId,JSON.stringify(TelemetryCore.row(x,x,x.receivedAt)));});}catch(error){}
       verified.set(key,ids);
     }
     var ids=verified.get(key),safe=ids&&ids.get(e.eventId)===JSON.stringify(row);

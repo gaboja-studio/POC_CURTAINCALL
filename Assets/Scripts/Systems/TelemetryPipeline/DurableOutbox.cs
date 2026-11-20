@@ -19,7 +19,7 @@ namespace CurtainCall.Telemetry.Pipeline
         static readonly ProfilerMarker ScanMarker = new("Telemetry.Outbox.PendingBytes");
         static readonly ProfilerMarker WriteMarker = new("Telemetry.Outbox.AtomicWrite");
         const int MaxBatchBytes = 100 * 1024;
-        const long MaxPendingBytes = 64L * 1024 * 1024;
+        const long MaxPendingBytes = 256L * 1024 * 1024;
         readonly string root;
         readonly string activePath;
         readonly string senderId;
@@ -45,7 +45,7 @@ namespace CurtainCall.Telemetry.Pipeline
 
         public DurableOutbox(string directory, string applicationSession)
         {
-            root = directory;
+            root = Path.GetFullPath(directory);
             Directory.CreateDirectory(root);
             // 시작할 때 한 번만 읽는다. 입력마다 누적 파일 전체를 디스크에서 재조회하지 않는다.
             foreach (string path in Directory.EnumerateFiles(root, "*.json"))
@@ -185,11 +185,24 @@ namespace CurtainCall.Telemetry.Pipeline
             active = NewBatch();
         }
 
-        public string NextPath() => Directory.EnumerateFiles(root, "*.json")
-            .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
-            .Where(p => !heldBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)))
-            .OrderBy(p => currentBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
-            .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault();
+        readonly ConcurrentDictionary<string, DateTime> uploadRetryAfter = new();
+        int uploadTurn;
+        public void DeferUpload(string path) => uploadRetryAfter[path] = DateTime.UtcNow.AddMinutes(5);
+        public string NextPath() => NextPath(false);
+        string NextPath(bool oldestFirst)
+        {
+            var now = DateTime.UtcNow;
+            return new DirectoryInfo(root).EnumerateFiles("*.json")
+                .Where(file => !uploadRetryAfter.TryGetValue(file.FullName, out var retry) || retry <= now)
+                .Select(file => (file, id: Path.GetFileNameWithoutExtension(file.Name)))
+                .Where(item => Guid.TryParseExact(item.id, "D", out _) && !heldBatches.ContainsKey(item.id))
+                .Select(item => (item.file, current: currentBatches.ContainsKey(item.id)))
+                // Keep the active play FIFO. After restart, resume recent plays promptly
+                // while reserving every fourth upload for the oldest outstanding data.
+                .OrderBy(item => !oldestFirst && !item.current)
+                .ThenBy(item => oldestFirst || item.current ? item.file.LastWriteTimeUtc.Ticks : -item.file.LastWriteTimeUtc.Ticks)
+                .Select(item => item.file.FullName).FirstOrDefault();
+        }
 
         // ACK is sent only after the host has persisted this exact immutable client batch.
         public string NextRelayPath() => Directory.EnumerateFiles(root, "*.json")
@@ -235,6 +248,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 cancellation.ThrowIfCancellationRequested();
                 DeleteFile(path);
                 currentBatches.TryRemove(batchId, out _);
+                uploadRetryAfter.TryRemove(path, out _);
                 return true;
             }
             finally { fileMutations.TryRemove(batchId, out _); }
@@ -303,7 +317,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 try
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    string path = NextPath();
+                    string path = NextPath(Interlocked.Increment(ref uploadTurn) % 4 == 0);
                     if (path == null) return new UploadPreparation();
                     string id = Path.GetFileNameWithoutExtension(path);
                     if (!fileMutations.TryAdd(id, 0)) return new UploadPreparation();

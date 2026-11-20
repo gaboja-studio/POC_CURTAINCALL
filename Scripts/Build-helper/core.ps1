@@ -5,6 +5,23 @@ $script:Utf8 = [System.Text.UTF8Encoding]::new($false)
 
 function Get-SettingsPath([string]$ProjectPath) { Join-Path $ProjectPath 'Scripts\Telemetry\playtest-settings.json' }
 
+function Set-PlaytestBuildSignature([string]$OutputPath) {
+    $thumbprint = ([string]$env:CURTAINCALL_SIGNING_THUMBPRINT).Trim()
+    if (-not $thumbprint) { return '서명 없음 (게시자 인증서 미설정)' }
+    if ($thumbprint -notmatch '^[a-fA-F0-9]{40}$') { throw '코드 서명 인증서 지문 형식을 확인하세요.' }
+    $cert = Get-ChildItem 'Cert:\CurrentUser\My','Cert:\LocalMachine\My' -CodeSigningCert |
+        Where-Object { $_.Thumbprint -eq $thumbprint -and $_.HasPrivateKey } | Select-Object -First 1
+    if (-not $cert) { throw '설정한 게시자의 코드 서명 인증서 또는 개인 키를 사용할 수 없습니다.' }
+    $options = @{ LiteralPath = $OutputPath; Certificate = $cert; HashAlgorithm = 'SHA256'; ErrorAction = 'Stop' }
+    if ($env:CURTAINCALL_TIMESTAMP_URL) { $options.TimestampServer = $env:CURTAINCALL_TIMESTAMP_URL }
+    $null = Set-AuthenticodeSignature @options
+    $signature = Get-AuthenticodeSignature -LiteralPath $OutputPath
+    if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Thumbprint -ne $thumbprint) {
+        throw "게시자 서명을 검증하지 못했습니다 ($($signature.Status))."
+    }
+    return "게시자 서명 확인: $($cert.Subject)"
+}
+
 function Get-UnityVersion([string]$ProjectPath) {
     $line = Get-Content -LiteralPath (Join-Path $ProjectPath 'ProjectSettings\ProjectVersion.txt') | Where-Object { $_ -match '^m_EditorVersion:\s*(\S+)' } | Select-Object -First 1
     if (-not $line) { throw 'ProjectSettings/ProjectVersion.txt에서 Unity 버전을 읽지 못했습니다.' }

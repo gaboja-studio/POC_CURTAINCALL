@@ -13,7 +13,7 @@ function Show-SurveyDialog($Owner, $Settings, [string]$Version) {
     function Text-Label([string]$text) { [System.Windows.Forms.Label]@{ Text = $text; TextAlign = 'MiddleLeft' } }
 
     $null = Put (Text-Label ("Google Forms에서 [미리 채워진 링크 받기] → '플레이 기록 연결 코드' 질문에 CC_LINK_SAMPLE 입력 → 링크 복사 후 아래 '미리 채워진 링크'에 붙여넣고 [가져오기]를 누르면 주소와 질문 ID가 채워집니다.`n" +
-        '같은 설문 ID·회차는 PC 사용자마다 처음 한 번만 열립니다. 같은 설문을 다시 받으려면 회차를 올리고, 다른 설문이면 새 ID를 쓰세요.')) 12 8 616 64 $dialog
+        '같은 설문 ID·회차는 PC 사용자마다 게임 버전별로 한 번 열립니다. 같은 버전에서 다시 받으려면 회차를 올리세요.')) 12 8 616 64 $dialog
 
     $slots = @{}
     $y = 78

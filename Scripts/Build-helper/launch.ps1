@@ -142,6 +142,13 @@ function Complete-UnityBuild {
     $State.Process = $null; Set-Busy $false
     foreach ($line in $outcome.Details) { Write-Status $line }
     if ($outcome.Success) {
+        try { Write-Status (Set-PlaytestBuildSignature $State.Request.Output) }
+        catch {
+            $statusLabel.Text = '빌드 생성됨 · 서명 실패'
+            Write-Status $_.Exception.Message
+            Show-Message $_.Exception.Message 'Error'
+            return
+        }
         Write-BuildInfo -Request $State.Request
         $openButton.Enabled = $true
         $statusLabel.Text = '빌드 완료'

@@ -35,6 +35,8 @@ namespace CurtainCall.Telemetry.Pipeline
         float nextPlayer, nextWorld, nextCache;
         Vector3 lastPosition;
         bool hasPosition, captured, dead, arrived, chased;
+        int restingBed = -1;
+        int observedRehearsalRound = -1;
         string scope;
         (bool active, int stage, bool completed, bool practice)? rehearsal;
         (bool active, bool ending, bool mastered, int checkpoint, bool arrived)? cannonRehearsal;
@@ -48,6 +50,7 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly Dictionary<int,bool> relayConnections = new();
         int geometryIndex;
         bool escapeStarted;
+        bool escapeOwnerReady;
         CampaignPerformanceEntry performanceEntry;
         HumanCannonHazardCourse hazards;
         BodyPart lastLost;
@@ -131,10 +134,21 @@ namespace CurtainCall.Telemetry.Pipeline
         public void Tick()
         {
             if (log.CurrentRunId == null || Scene is not ("WAITINGROOM" or "MAINSTAGE" or "EXITROUTE")) return;
+            // A dev restart can replicate the next run before the previous scene unloads.
+            var campaign = CampaignRun.Instance;
+            if (campaign != null && campaign.State.IsRunning)
+            {
+                var destination = SpaceRoute.ForPhase(campaign.State.Phase);
+                if (Scene == "WAITINGROOM" && destination != SpaceId.WaitingRoom
+                    || Scene == "MAINSTAGE" && destination != SpaceId.Performance
+                    || Scene == "EXITROUTE" && destination != SpaceId.EscapeRoute) return;
+            }
             if (scope != Scope)
             {
                 if (scope != null) log.ReleaseSpatialBoundary();
-                scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = false;
+                scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = escapeOwnerReady = false;
+                restingBed = -1;
+                observedRehearsalRound = -1;
                 pursuitStates.Clear(); discoveries.Clear(); clueAvailability.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
                 BindCourse(null);
                 geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null; cannonRehearsal = null;
@@ -153,6 +167,18 @@ namespace CurtainCall.Telemetry.Pipeline
             var player = NetworkPlayer.Local;
             if (Ready(player))
             {
+                if (Scene == "EXITROUTE" && !escapeOwnerReady)
+                    escapeOwnerReady = Point("SPATIAL_SAMPLE", player, "ESCAPE_OWNER_READY");
+                if (Scene == "WAITINGROOM" && player.RestingBed != restingBed)
+                {
+                    int bed = player.RestingBed;
+                    if (log.EmitFor(player, "WORLD_STATE_CHANGED", new() {
+                        ["entityId"] = "BED_" + (bed >= 0 ? bed : restingBed), ["entityKind"] = "OBJECT",
+                        ["state"] = bed >= 0 ? "REST_STARTED" : "REST_ENDED",
+                        ["previousBed"] = restingBed, ["currentBed"] = bed,
+                        ["position"] = DetailLogIds.Position(player.transform.position) }))
+                        restingBed = bed;
+                }
                 if (Scene is "MAINSTAGE" or "EXITROUTE") ObserveMechanisms(player);
                 bool nowCaptured = PursuitDirector.IsCaptured(player);
                 bool nowDead = player.State is PlayerState.Retired or PlayerState.Fallen;
@@ -227,7 +253,8 @@ namespace CurtainCall.Telemetry.Pipeline
                 WaitingRoomSpawn.LastPlacedScene == SceneManager.GetActiveScene().handle;
             if (Scene == "MAINSTAGE") return log.CurrentAttemptId != null && (performanceEntry == null || performanceEntry.LocalPlaced);
             return Scene == "EXITROUTE" && EscapeCampaignContent.IsTraversalActive
-                && (EscapeSceneTransfer.Current == null || EscapeSceneTransfer.Current.Ready);
+                && !EscapeDevelopmentSession.AwaitingEntrance
+                && (!EscapeCampaignContent.Current.IsCampaign || EscapeSceneTransfer.Current != null && EscapeSceneTransfer.Current.Ready);
         }
 
         void Cache()
@@ -398,6 +425,13 @@ namespace CurtainCall.Telemetry.Pipeline
             rehearsal = value;
             var player = NetworkPlayer.Local;
             if (player == null || !player.IsSpawned) return;
+            int placedRound = WaitingRoomRehearsal.LocalPlacedRound;
+            if (!value.active) observedRehearsalRound = -1;
+            if (placedRound >= 0 && placedRound != observedRehearsalRound && log.EmitFor(player, "REHEARSAL_STATE", new() {
+                ["recordKind"] = "SNAPSHOT", ["subjectKind"] = "PLAYER", ["state"] = "OWNER_PLACED",
+                ["round"] = placedRound, ["stage"] = value.stage, ["active"] = true, ["completed"] = value.completed,
+                ["practice"] = value.practice, ["trickId"] = "TIGHTROPE" }))
+                observedRehearsalRound = placedRound;
             var cannon = (active: WaitingRoomCannonRehearsal.IsActive, ending: WaitingRoomCannonRehearsal.IsEnding,
                 mastered: WaitingRoomCannonRehearsal.HasMastered, checkpoint: WaitingRoomCannonRehearsal.Checkpoint(player.OwnerClientId),
                 arrived: WaitingRoomCannonRehearsal.HasArrived(player.OwnerClientId));
@@ -547,6 +581,12 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (value != null) TelemetryRuntime.Mechanism(p, source, kind, value, p.transform.position, stackSize:size);
             }
             var pig = PiggybackSystem.Current;
+            var gate = TightropeSawsForScene();
+            if (gate != null)
+            {
+                int floor = gate.IsFourStackFinaleGate ? gate.CooperativeAdmittedFloor(p) : 0;
+                Track(gate, "FINALE_STACK", floor > 0 ? $"APPROVED:GATE_{gate.CooperativeGateIndex}:FLOOR_{floor}" : null);
+            }
             if (pig != null) {
                 var lower=pig.GetBelow(p);var upper=pig.GetAbove(p);
                 Track(pig,"PIGGYBACK",lower != null ? "RIDING:"+lower.OwnerClientId : null,pig.GetStackSize(p));

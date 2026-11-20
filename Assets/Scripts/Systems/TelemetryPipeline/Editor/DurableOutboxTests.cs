@@ -151,6 +151,25 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             Assert.That(batch.events[0].eventId, Is.EqualTo(entry.eventId));
             Assert.That(recovered.SenderId, Is.EqualTo(first.SenderId));
         }
+        [UnityTest] public IEnumerator RestartPrioritizesRecentPlayAndReservesAnOldestTurn()
+        {
+            var previous = New();
+            previous.Append(Event()); previous.Seal("CHECKPOINT");
+            string oldest = previous.NextPath();
+            File.SetLastWriteTimeUtc(oldest, DateTime.UtcNow.AddDays(-1));
+            previous.Append(Event()); previous.Seal("CHECKPOINT");
+            var recovered = New();
+            string newest = recovered.NextPath();
+            Assert.That(newest, Is.Not.EqualTo(oldest));
+            for (int turn = 1; turn <= 4; turn++)
+            {
+                var prepare = recovered.PrepareUploadAsync("test-placeholder");
+                while (!prepare.IsCompleted) yield return null;
+                Assert.That(prepare.GetAwaiter().GetResult().Path, Is.EqualTo(turn == 4 ? oldest : newest));
+            }
+            Assert.That(recovered.PendingBatchCount, Is.EqualTo(2));
+        }
+
         [Test] public void NewPlayUploadsBeforeHistoricalBacklog_WithoutDiscardingOlderBatches()
         {
             var old = New(); old.Append(Event()); old.Seal("CHECKPOINT");
@@ -243,11 +262,12 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
         {
             Directory.CreateDirectory(directory);
             string path = Path.Combine(directory, Guid.NewGuid().ToString("D") + ".json");
-            using (var stream = File.Create(path)) stream.SetLength(64L * 1024 * 1024 + 1);
+            const long oversized = 256L * 1024 * 1024 + 1;
+            using (var stream = File.Create(path)) stream.SetLength(oversized);
             var queue = New(); AssertIndex(queue);
             Assert.Throws<IOException>(() => queue.Append(Event()));
             AssertIndex(queue);
-            Assert.That(new FileInfo(path).Length, Is.EqualTo(64L * 1024 * 1024 + 1));
+            Assert.That(new FileInfo(path).Length, Is.EqualTo(oversized));
             Assert.That(File.Exists(Path.Combine(directory, "active.json")), Is.False);
         }
 

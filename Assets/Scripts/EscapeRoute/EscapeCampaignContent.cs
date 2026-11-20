@@ -368,8 +368,16 @@ namespace CurtainCall.EscapeRoute
                     arrived.Add(id);
                     // 도착자는 갈대밭 엔딩에서 빈손으로 달린다. 마지막 도착은 같은 프레임에 성공 엔딩(EndGame)이 되어
                     // 절단기의 '쓸 수 없는 운반자 놓기'가 다시 돌지 않으므로, 도착 판정 순간 호스트가 운반을 풀어 모두에게 보낸다.
-                    HumanCannonCarry.Held(id)?.ServerReleaseForInspection(id);
-                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(player,"ESCAPE_ARRIVED",new(){["position"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(player.transform.position),["reason"]="REED_FIELD_ENTRY"},"HOST");
+                    var carried = HumanCannonCarry.Held(id);
+                    bool hadCutter = carried is EscapeExitSaw;
+                    carried?.ServerReleaseForInspection(id);
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(player, "ESCAPE_ARRIVED", new()
+                    {
+                        ["position"] = CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(player.transform.position),
+                        ["reason"] = "REED_FIELD_ENTRY",
+                        ["carriedCutterOnArrival"] = hadCutter,
+                        ["cutterReleased"] = hadCutter && HumanCannonCarry.Held(id) is not EscapeExitSaw
+                    }, "HOST");
                     player.ServerSetState(PlayerState.Arrived);
                     CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.SubmitEscapeArrival();
                 }

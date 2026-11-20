@@ -15,7 +15,7 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
     /// </summary>
     public static class PlaytestBuildRunner
     {
-        public const string DevModeDefine = "CURTAINCALL_DEVMODE_BUILD";
+
 
         [Serializable] sealed class Result { public bool success; public string message, output, version, kind; public bool logs, surveys; }
 
@@ -43,22 +43,9 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
                 EditorPrefs.SetBool(PlaytestBuildTags.PreferenceKey(PlaytestBuildTags.Logs), logs);
                 EditorPrefs.SetBool(PlaytestBuildTags.PreferenceKey(PlaytestBuildTags.Surveys), surveys);
 
-                string[] scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
-                if (scenes.Length == 0) throw new InvalidOperationException("Build Settings에 켜진 씬이 없습니다.");
-                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)));
-
                 bool dev = kind == "Dev";
-                var options = new BuildPlayerOptions
-                {
-                    scenes = scenes,
-                    locationPathName = output,
-                    target = BuildTarget.StandaloneWindows64,
-                    targetGroup = BuildTargetGroup.Standalone,
-                    options = dev ? BuildOptions.Development : BuildOptions.None,
-                    extraScriptingDefines = dev ? new[] { DevModeDefine } : Array.Empty<string>()
-                };
                 Debug.Log($"[BuildHelper] {version} / {(dev ? "개발자(TEST)" : "라이브(LIVE)")} / 로그 {(logs ? "켬" : "끔")} / 설문 {(surveys ? "켬" : "끔")} → {output}");
-                BuildReport report = BuildPipeline.BuildPlayer(options);
+                BuildReport report = BuildWindowsPlayer(output, dev);
                 result.success = report.summary.result == BuildResult.Succeeded;
                 result.message = result.success
                     ? $"빌드 완료 ({report.summary.totalTime:hh\\:mm\\:ss}, {report.summary.totalSize / (1024 * 1024)} MB)"
@@ -77,6 +64,21 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
                 catch (Exception error) { Debug.LogError("[BuildHelper] 결과 파일 저장 실패: " + error.Message); }
             }
             EditorApplication.Exit(code);
+        }
+
+        public static BuildReport BuildWindowsPlayer(string output, bool development)
+        {
+            string[] scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+            if (scenes.Length == 0) throw new InvalidOperationException("Build Settings에 켜진 씬이 없습니다.");
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)));
+            return BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = scenes,
+                locationPathName = output,
+                target = BuildTarget.StandaloneWindows64,
+                targetGroup = BuildTargetGroup.Standalone,
+                options = development ? BuildOptions.Development : BuildOptions.None
+            });
         }
 
         static string Arg(string name)

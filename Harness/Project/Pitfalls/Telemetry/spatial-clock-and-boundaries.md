@@ -1,8 +1,8 @@
 ---
 summary: 소유자 공간 기록의 서버 시각·씬 종료 전송·서버 계약 배포
 status: active
-updated: 2026-11-05
-source: Task-20261105-106-telemetry-spatial-timeline
+updated: 2026-11-20
+source: Task-20261105-106-telemetry-spatial-timeline, Task-20261120-181-playtest-087
 ---
 
 # 공간 기록: 시각과 전송 경계를 분리한다
@@ -10,7 +10,7 @@ source: Task-20261105-106-telemetry-spatial-timeline
 2026-11-05 Task-106.
 
 - 위치는 소유자가 수집하고 공용 추격자·물체는 호스트가 수집한다. PC별 occurredAt만으로 동선을 합치면 시계 오차가 이동 순서를 바꾼다. roomId와 NGO ServerTime 기반 timelineMs를 같이 보존한다. 서로 다른 시계는 UTC_UNALIGNED로 표시한다.
-- 디스크 체크포인트는 데이터 보호이고 HTTP 전송 경계는 별개다. HoldNewBatches 중 파일은 NextPath/NextRelayPath에서 제외하고 씬·활동/런/접속 종료에 해제한다. 복구 파일은 다음 실행에서 전송 가능해야 한다.
+- 0.8.7부터 플레이 중 봉인된 체크포인트도 바로 전송한다. 씬 종료까지 보류하면 플레이가 길수록 대기열이 커진다. 기존 미전송 파일도 순서대로 재시도하며 서버가 해시와 건수를 확인한 파일만 지운다.
 - 250건/크기 제한으로 씬 기록은 여러 배치가 된다. 배치 ID/이벤트 ID/ACK는 그대로 유지하며 하나의 거대 요청으로 만들지 않는다.
 - 새 이벤트 계약은 수신 서버에도 필요하다. Apps Script 하나의 서로 다른 배포 버전에서 dashboardEnabled=true(대시보드)와 false(수신기)를 각각 보존한다. 공유/인증 설정을 바꾸지 않는다.
 - 0.2.0 첫 가이드 쉬는 시간은 튜토리얼 완료 전 집결을 거부한다. 조기 집결 테스트는 SetTutorialDone/RefreshGuideRest 후 타임아웃 미발생을 검사해야 한다.

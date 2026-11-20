@@ -316,7 +316,14 @@ namespace CurtainCall.Telemetry.Pipeline
             if (SceneType(sceneName) == "EXITROUTE" && session?.IsHost == true) Emit("ESCAPE_ENDED", new() { ["reason"] = reason.ToString(), ["timeout"]=false, ["arrived"]=NetworkPlayer.All.Count(p=>p!=null && p.State==PlayerState.Arrived), ["retired"]=NetworkPlayer.All.Count(p=>p!=null && (p.State==PlayerState.Retired || p.State==PlayerState.Fallen)) }, "HOST");
             spatialLogs?.Leaving(reason.ToString());
             performanceLogs?.Leave("RUN_ENDED"); waitingLogs?.SceneLeaving(); inputLogs?.CloseMicrophone();
-            Emit("RUN_ENDED", new() { ["reason"] = reason.ToString(), ["identityScope"] = "SHARED_REWARD_SESSION" }); Seal("RUN_ENDED");
+            Emit("RUN_ENDED", new()
+            {
+                ["reason"] = reason.ToString(),
+                ["endingResult"] = CampaignSnapshot.IsFailureEnd(reason) ? "FAILURE"
+                    : reason == RunEndReason.EscapeSucceeded ? "SUCCESS" : "NONE",
+                ["identityScope"] = "SHARED_REWARD_SESSION"
+            });
+            Seal("RUN_ENDED");
             outbox?.QueueBoundary("RUN_ENDED", true);
             CurrentAttemptId = null;
         }
@@ -333,7 +340,6 @@ namespace CurtainCall.Telemetry.Pipeline
         void EnterScene(string name)
         {
             sceneName = name; sceneEnteredAt = Time.unscaledTime;
-            outbox.QueueHold(SceneType(name) is "WAITINGROOM" or "MAINSTAGE" or "EXITROUTE");
             Emit("SCENE_ENTERED", new() { ["sceneName"] = name });
             if (name == "Start") Emit("TITLE_ENTERED");
         }
@@ -389,9 +395,17 @@ namespace CurtainCall.Telemetry.Pipeline
                     yield return request.SendWebRequest();
                     if (quitting) yield break;
                     bool accepted = false;
+                    bool batchRejected = false;
                     if (request.result == UnityWebRequest.Result.Success)
                     {
                         string response = request.downloadHandler.text;
+                        try
+                        {
+                            var receipt = Newtonsoft.Json.Linq.JObject.Parse(response);
+                            batchRejected = receipt["retryable"]?.ToString() == bool.FalseString
+                                && (string)receipt["error"] != "UNAUTHORIZED";
+                        }
+                        catch (Newtonsoft.Json.JsonException) { }
                         var acknowledgement = queue.AcknowledgeUploadAsync(upload.Path, response, cancellation.Token);
                         while (!acknowledgement.IsCompleted) yield return null;
                         if (quitting) yield break;
@@ -401,14 +415,16 @@ namespace CurtainCall.Telemetry.Pipeline
                     {
                         backoff = 2; LastError = null; LastUploadError = null;
                         LastUploadAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                        ReportProgress("Drive 저장 확인 · 다음 기록 전송 계속");
+                        ReportProgress($"Drive 저장 확인 · batch={Path.GetFileNameWithoutExtension(upload.Path)}");
                         yield return null;
                     }
                     else
                     {
                         if (LastUploadError == null) ReportProgress("Drive 전송 미확인 · 기록 보관 후 자동 재시도");
                         LastUploadError = "Telemetry upload not acknowledged; retry pending.";
-                        LastError = LastUploadError; backoff = Math.Min(backoff * 2, 300);
+                        LastError = LastUploadError;
+                        if (batchRejected) { queue.DeferUpload(upload.Path); yield return null; continue; }
+                        backoff = Math.Min(backoff * 2, 300);
                         yield return new WaitForSecondsRealtime(backoff + UnityEngine.Random.Range(0, 2f));
                     }
                 }

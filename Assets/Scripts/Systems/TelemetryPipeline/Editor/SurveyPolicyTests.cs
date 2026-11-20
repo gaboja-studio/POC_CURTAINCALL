@@ -68,18 +68,34 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
         [TestCase("0.2.1", "0.*", false)]
         public void VersionRangesKeepExactLogsAndSelectOnlyRequestedBuilds(string version, string pattern, bool expected)
             => Assert.That(VersionSelection.Matches(version, pattern), Is.EqualTo(expected));
-        [Test] public void PatchBuildKeepsTheClaimWhileANewRoundCanOpenAgain()
+        [TestCase(SurveyLaunchPolicy.Night)]
+        [TestCase(SurveyLaunchPolicy.Exit)]
+        public void SharedOldMarkerSuppressesOnlyItsRecordedVersion(string kind)
         {
             string root = Path.Combine(Path.GetTempPath(), "curtaincall-survey-" + Guid.NewGuid().ToString("N"));
             try
             {
-                var survey = new PlaytestCollectionSettings().night; var cache = new SurveyLaunchCache(root);
-                cache.TryOpen("installation", SurveyLaunchPolicy.Night, SurveyLaunchPolicy.NightEntry, "legacy", _ => {});
-                Assert.That(survey.Matches("0.1.9"), Is.True);
-                Assert.That(cache.TryOpen("installation", SurveyLaunchPolicy.Night, survey, "patch", _ => {}), Is.False);
+                var survey = new PlaytestCollectionSettings().For(kind);
+                survey.id = "FINAL_" + kind;
+                survey.versions = "0.8.x";
+                const string identity = SurveyLaunchCache.LocalIdentity;
+                var cache = new SurveyLaunchCache(root);
+                string Code(string version) => SurveyLaunchPolicy.Code(survey, version, kind, "TEST",
+                    Guid.NewGuid().ToString("D"), 1, Guid.NewGuid().ToString("N"), DateTime.UtcNow);
+                string original = Code("0.8.6");
+                Directory.CreateDirectory(root);
+                string oldKey = DurableOutbox.Sha256(survey.id + ":1:" + kind + ":" + identity);
+                File.WriteAllText(Path.Combine(root, "campaign-" + oldKey + ".opened"), original);
+                Assert.That(cache.TryOpen(identity, kind, survey, "0.8.6", original, _ => Assert.Fail()), Is.False);
+                string current = Code("0.8.7");
+                Assert.That(cache.TryOpen(identity, kind, survey, "0.8.7", current,
+                    url => Assert.That(url, Does.Contain(current))), Is.True);
+                Assert.That(new SurveyLaunchCache(root).TryOpen(identity, kind, survey, "0.8.7", current, _ => Assert.Fail()), Is.False);
+                Assert.That(cache.TryOpen(identity, kind, survey, "0.8.8", Code("0.8.8"), _ => {}), Is.True);
                 survey.round = 2;
-                Assert.That(cache.TryOpen("installation", SurveyLaunchPolicy.Night, survey, "new-round", _ => {}), Is.True);
-                Assert.That(new SurveyLaunchCache(root).TryOpen("installation", SurveyLaunchPolicy.Night, survey, "restart", _ => {}), Is.False);
+                Assert.That(cache.TryOpen(identity, kind, survey, "0.8.7", Code("0.8.7"), _ => {}), Is.True);
+                Assert.That(cache.ClearHistory(), Is.EqualTo(5));
+                Assert.That(cache.WasOpened(identity, kind, survey, "0.8.7"), Is.False);
             }
             finally { if (Directory.Exists(root)) { foreach (var file in Directory.GetFiles(root)) File.Delete(file); Directory.Delete(root); } }
         }
