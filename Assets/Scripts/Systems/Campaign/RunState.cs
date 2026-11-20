@@ -182,6 +182,7 @@ namespace CurtainCall.Campaign
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
+                s.RestExpiryCount++;
                 if (s.IsFinalMorning && !pursuitEnabled) { FailRun(RunEndReason.Deadline); return true; }
                 // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
                 if (pursuitEnabled) s.Timer = RestTimerState.Pursuit;

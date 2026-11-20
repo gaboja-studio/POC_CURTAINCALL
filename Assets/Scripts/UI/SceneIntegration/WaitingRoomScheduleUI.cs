@@ -268,18 +268,33 @@ namespace CurtainCall.UI.SceneIntegration
             string nextTrick = choices[(Array.IndexOf(choices, trick) + 1) % choices.Length];
             int tier = Math.Clamp(schedule.Book.Difficulty(day, slot), 1, schedule.MaxTier(nextTrick));
             var result = schedule.Set(day, slot, nextTrick, tier);
-            if (result == ScheduleRefusal.None && nextTrick != trick && ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied("공연 변경됨");
+            if (result == ScheduleRefusal.None && nextTrick != trick)
+            {
+                if (ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied("공연 변경됨");
+                Sound.SoundManager.Play(Sound.SoundSituations.ScheduleTrick);
+            }
             message = ScheduleBoard.Explain(result); lastKey = null; nextRefresh = 0;
         }
         public void ChooseTier(int day, int slot, int tier)
         {
             var schedule = ScheduleBoard.Instance;
-            if (schedule == null || !view.IsVisible || boardView == null || !boardView.IsOpen || !CanEditTier(schedule, day, slot)) return;
+            if (schedule == null || !view.IsVisible || boardView == null || !boardView.IsOpen) return;
+            if (!CanEditTier(schedule, day, slot))
+            {
+                Sound.SoundManager.Play(Sound.SoundSituations.InteractionRejected);
+                return;
+            }
             var run = CampaignRun.Instance;
             bool night = run != null && run.State.Phase == CampaignPhase.Night;
             int previousTier = schedule.Book.Difficulty(day, slot);
             var result = schedule.Set(day, slot, schedule.Book.Get(day, slot), tier);
-            if (result == ScheduleRefusal.None && previousTier != tier && ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied($"{tier}단계 적용됨");
+            if (result != ScheduleRefusal.None)
+                Sound.SoundManager.Play(Sound.SoundSituations.InteractionRejected);
+            else if (previousTier != tier)
+            {
+                if (ticketCards != null) ticketCards[(day - 1) * 2 + slot].Applied($"{tier}단계 적용됨");
+                Sound.SoundManager.Play(Sound.SoundSituations.ScheduleDifficulty);
+            }
             message = result == ScheduleRefusal.None && !night ? WaitingRoomText.Format("schedule.tier-changed", "다음 공연을 {tier}단계로 바꿨습니다", ("tier", tier)) : ScheduleBoard.Explain(result);
             lastKey = null; nextRefresh = 0;
         }
@@ -293,7 +308,11 @@ namespace CurtainCall.UI.SceneIntegration
             if (schedule == null) return;
             int day = index / 2 + 1, slot = index % 2;
             int next = schedule.Book.Difficulty(day, slot) + direction;
-            if (next < 1 || next > schedule.MaxTier(schedule.Book.Get(day, slot))) return;
+            if (next < 1 || next > schedule.MaxTier(schedule.Book.Get(day, slot)))
+            {
+                Sound.SoundManager.Play(Sound.SoundSituations.InteractionRejected);
+                return;
+            }
             ChooseTier(day, slot, next);
         }
         void Closed() { if (boardView != null) boardView.SetOpen(false); }

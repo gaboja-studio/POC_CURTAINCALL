@@ -61,7 +61,10 @@ namespace CurtainCall.Player
             if (revision == itemActionRevision && CanUseItemHands && exists && presentation.IsAvailable
                 && !condition.AllLimbsLost && target.Reach(transform.position, this) >= 0
                 && (ExplorationTargets.LocalHolds(tool.ToolId) || ExplorationTargets.AllowsBareHands(tool)))
+            {
                 target.Interact();
+                Sound.SoundManager.Play(Sound.SoundSituations.InteractionAccepted);
+            }
             if (!tracked) yield break;
             yield return new WaitForSeconds(.5f);
             if (revision == itemActionRevision) toolUse = null;

@@ -351,6 +351,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
         }
         /// <summary>M2 추락 매달림: 매달린 본인은 남은 시간, 끌어올리는 동료는 진행, 근처 동료에게는 F 안내.</summary>
+        int lastHangSecond, lastHangFrame = -2;
         bool AddHangGuide(NetworkPlayer player, Vector3 feet)
         {
             var hangs = TightropeHangSystem.Current;
@@ -359,9 +360,16 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (hang.Id == player.OwnerClientId)
                 {
+                    float remaining = hangs.RemainingSeconds(hang);
+                    int second = Mathf.CeilToInt(remaining);
+                    bool newlyShown = lastHangFrame < Time.frameCount - 1;
+                    if (!hang.IsPulling && second > 0 && (newlyShown || second < lastHangSecond))
+                        Sound.SoundManager.Play(Sound.SoundSituations.HangCountdown, new Sound.SoundPlayOptions { Loop = false });
+                    if (!hang.IsPulling || newlyShown) lastHangSecond = second;
+                    lastHangFrame = Time.frameCount;
                     DeviceGuide(player, feet, "-", hang.IsPulling ? "동료가 끌어올리는 중" : "줄에 매달려 버티는 중", false,
                         hang.IsPulling ? $"끌어올리기 {hangs.PullProgress(hang) * 100f:0}%"
-                            : $"동료가 F로 끌어올려야 합니다 · 남은 {hangs.RemainingSeconds(hang):0.0}초");
+                            : $"동료가 F로 끌어올려야 합니다 · 남은 {remaining:0.0}초");
                     return true;
                 }
                 if (hang.Rescuer == player.OwnerClientId)

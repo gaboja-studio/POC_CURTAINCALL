@@ -14,6 +14,8 @@ namespace CurtainCall.Sound
         public bool? Loop;
         /// <summary>음량 배율(설정 음량에 곱함). 비우면 1.</summary>
         public float? VolumeScale;
+        /// <summary>설정 미리듣기에서 이 재생에만 적용할 효과음 음량.</summary>
+        public float? PreviewSfxVolume;
         /// <summary>피치 고정값. 비우면 설정의 피치 범위에서 무작위.</summary>
         public float? Pitch;
         /// <summary>지연(초). 비우면 설정의 지연.</summary>
@@ -271,7 +273,8 @@ namespace CurtainCall.Sound
             source.loop = loop;
             source.outputAudioMixerGroup = cue.output;
             source.time = cue.StartTime(clip);
-            LocalAudioController.Register(source, cue.category == SoundCategory.Bgm ? LocalAudioCategory.Bgm : LocalAudioCategory.Sfx);
+            LocalAudioController.Register(source, cue.category == SoundCategory.Bgm ? LocalAudioCategory.Bgm : LocalAudioCategory.Sfx,
+                options.PreviewSfxVolume);
             voice.BaseVolume = cue.volume * catalog.CategoryVolume(cue.category);
             voice.Scale = Mathf.Max(0f, scale);
             LocalAudioController.SetSourceVolume(source, Mathf.Clamp01(voice.BaseVolume * voice.Scale));

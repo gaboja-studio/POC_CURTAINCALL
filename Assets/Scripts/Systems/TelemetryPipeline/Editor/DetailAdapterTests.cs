@@ -131,9 +131,11 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             Assert.That(observed.Phase, Is.EqualTo(CampaignPhase.RestTime)); Assert.That(observed.TimeRemaining, Is.Zero);
             Assert.That(DetailLogIds.Break(observed), Is.EqualTo("D1T2"));
             Assert.That(state.Snapshot.Phase, Is.EqualTo(CampaignPhase.Performance));
+            Assert.That(state.Snapshot.RestExpiryCount, Is.EqualTo(1));
             state.Tick(.1f, listener); Assert.That(calls, Is.EqualTo(1));
             state.EndPerformance(); // Night; no timeout.
             state.Tick(.1f, listener); Assert.That(calls, Is.EqualTo(1));
+            Assert.That(state.Snapshot.RestExpiryCount, Is.EqualTo(1));
         }
         [Test] public void RestExpiry_EarlyAssemblyNeverReportsTimeout()
         {
@@ -143,6 +145,7 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             state.SetTutorialDone(1); state.RefreshGuideRest(new ulong[] { 1 });
             int expired = 0; Assert.That(state.NotifyAllAtStageEntrance(), Is.True);
             state.Tick(100000, _ => expired++); Assert.That(expired, Is.Zero);
+            Assert.That(state.Snapshot.RestExpiryCount, Is.Zero);
         }
         [Test] public void RoutePosition_PreservesSourceSnapshotAndExplicitUnknown()
         {

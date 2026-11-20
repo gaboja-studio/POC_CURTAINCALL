@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CurtainCall.Network.Session;
+using CurtainCall.Sound;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -71,6 +72,7 @@ namespace CurtainCall.StartLobby
             if (settingsPage != null) settingsPage.Closed += () => Show(Page.Main);
             creditsPanel = StartMenuCreditsPanel.Create(this, creditsSettings != null ? creditsSettings :
                 Resources.Load<StartMenuCreditsSettings>(StartMenuCreditsSettings.ResourcePath));
+            UiButtonSound.Bind(transform);
             StartMenuHangingTitle.Attach(this);
             Show(Page.Main);
             SetStatus(flow.TakeMessage());

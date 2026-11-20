@@ -111,7 +111,7 @@ namespace CurtainCall.Sound.Editor
         }
 
         [Test]
-        public void Catalog_HasEveryCodeSituationWithPlayableSound()
+        public void Catalog_HasEveryCodeSituationWithARegisteredCue()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<SoundCatalog>(SoundCatalog.AssetPath);
             Assert.IsNotNull(catalog, SoundCatalog.AssetPath);
@@ -120,12 +120,12 @@ namespace CurtainCall.Sound.Editor
                 var cue = catalog.Resolve(key, out var situation);
                 Assert.IsNotNull(situation, key);
                 Assert.IsNotNull(cue, key + " 사운드");
-                Assert.IsTrue(cue.HasClip, key + " 클립");
+                Assert.IsTrue(cue.HasClip || !cue.enabled && cue.clips.Length == 0, key + " 클립");
             }
         }
 
         [Test]
-        public void Catalog_HasEveryCodeConnectedCueWithClip()
+        public void Catalog_HasEveryCodeConnectedCueWithAClipOrAwaitingOne()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<SoundCatalog>(SoundCatalog.AssetPath);
             Assert.IsNotNull(catalog, SoundCatalog.AssetPath);
@@ -133,8 +133,24 @@ namespace CurtainCall.Sound.Editor
             {
                 var cue = catalog.Find(id);
                 Assert.IsNotNull(cue, id);
-                Assert.IsTrue(cue.HasClip, id + " 클립");
+                Assert.IsTrue(cue.HasClip || !cue.enabled && cue.clips.Length == 0, id + " 클립");
             }
+        }
+
+        [TestCase(SoundSituations.WarningBanner, "alarm_siren_loop_11")]
+        [TestCase(SoundSituations.InteractionAccepted, "lever_turn_push_crank_handle_med_01")]
+        [TestCase(SoundSituations.HangCountdown, "hospital_beep_alarm_01")]
+        [TestCase(SoundSituations.PerformanceSuccess, "points_ticker_bonus_score_reward_jingle_04")]
+        [TestCase(SoundSituations.PerformanceFailure, "jingle_chime_19_negative")]
+        [TestCase(SoundSituations.TimerExpired, "bell_large_ringing_01")]
+        public void PendingUiSounds_ResolveToTheImportedClip(string key, string clipName)
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<SoundCatalog>(SoundCatalog.AssetPath);
+            var cue = catalog.Resolve(key, out var situation);
+            Assert.That(situation.enabled && cue.enabled, Is.True);
+            Assert.That(cue.FirstClip, Is.Not.Null);
+            Assert.That(cue.FirstClip.name, Is.EqualTo(clipName));
+            Assert.That(cue.loop, Is.False);
         }
     }
 }

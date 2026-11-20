@@ -5,6 +5,7 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Reward;
+using CurtainCall.Sound;
 using CurtainCall.Tightrope;
 using CurtainCall.Tightrope.Fire;
 using CurtainCall.UI.PerformanceHudV1;
@@ -41,6 +42,8 @@ namespace CurtainCall.UI.SceneIntegration
         Canvas legacyCanvas;
         bool legacyCanvasEnabled;
         bool ownsCommon;
+        bool balanceWarningActive;
+        SoundHandle balanceWarning;
         public PerformanceHUDView Hud => hud;
         public C1CheerGaugeView Cheer => cheer;
         public TightropeBalanceView LocalBalance => localBalance;
@@ -113,6 +116,7 @@ namespace CurtainCall.UI.SceneIntegration
         void OnDisable()
         {
             if (!Application.isPlaying) return;
+            SetBalanceWarning(false);
             HideGoal();
             bool owned = !sharedScene || CommonUiSceneLoader.CurrentSpace == this;
             if (sharedScene) CommonUiSceneLoader.Unregister(this);
@@ -222,6 +226,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (CommonUiSceneLoader.CurrentSpace != this)
                 {
+                    SetBalanceWarning(false);
                     HideGoal(); ownsCommon = false;
                     if (localBalance != null) localBalance.SetContext(false, false);
                     return;
@@ -269,6 +274,8 @@ namespace CurtainCall.UI.SceneIntegration
                 CommonPerformanceUI.Current.Feedback?.SetContext(active && !observing && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
             var hangs = TightropeHangSystem.Current;
             bool hanging = !humanCannon && hangs != null && hangs.IsHanging(local);
+            SetBalanceWarning(localBalance != null && active && !humanCannon && !observing && !hanging
+                && balance != null && balance.IsActive && balance.Zone != BalanceZone.Green);
             if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && (balance.IsActive || hanging), observing);
             bool wakingCheer = active && !cheer.gameObject.activeSelf;
             cheer.gameObject.SetActive(active);
@@ -291,6 +298,14 @@ namespace CurtainCall.UI.SceneIntegration
                     reader != null ? reader.BindingPartLabel("Posture", "positive", "D") : "D",
                     !hanging && posture < -0.5f, !hanging && posture > 0.5f);
             }
+        }
+
+        void SetBalanceWarning(bool active)
+        {
+            if (active == balanceWarningActive) return;
+            balanceWarningActive = active;
+            if (active) balanceWarning = SoundManager.PlayLoop(SoundSituations.BalanceWarning);
+            else { balanceWarning.Stop(.08f); balanceWarning = default; }
         }
 
         void RefreshProgress(TightropeCourse course, NetworkPlayer local)

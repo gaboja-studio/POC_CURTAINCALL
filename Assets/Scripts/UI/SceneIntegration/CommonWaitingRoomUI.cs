@@ -29,6 +29,7 @@ namespace CurtainCall.UI.SceneIntegration
         PropCarry carry;
         WaitingRoomShop shop;
         ExplorationState exploration;
+        CampaignRun observedRun;
         [SerializeField] DayClockView dayClock;
         [SerializeField] RestTimerView restTimer;
         bool oldLegacyHud, fundsReceived, wasActive;
@@ -57,6 +58,7 @@ namespace CurtainCall.UI.SceneIntegration
             var space = CommonUiSceneLoader.CurrentWaitingRoom;
             ObserveDeaths(space);
             var run = CampaignRun.Instance;
+            ObserveTimer(space != null ? run : null);
             bool active = space != null && run != null && !WaitingRoomCannonRehearsal.IsActive
                 && (run.State.Phase == CampaignPhase.RestTime || run.State.Phase == CampaignPhase.Night);
             AttachAnnouncer(active ? space.Announcer : null);
@@ -104,6 +106,16 @@ namespace CurtainCall.UI.SceneIntegration
             else hud.Gather.SetUnavailable();
             hud.Inventory.HideInventory(); // CommonInventoryUI owns C5 across gameplay spaces.
         }
+
+        void ObserveTimer(CampaignRun run)
+        {
+            if (ReferenceEquals(observedRun, run)) return;
+            if (!ReferenceEquals(observedRun, null)) observedRun.RestTimerElapsed -= PlayTimerEnd;
+            observedRun = run;
+            if (observedRun != null) observedRun.RestTimerElapsed += PlayTimerEnd;
+        }
+
+        static void PlayTimerEnd() => SoundManager.Play(SoundSituations.TimerExpired);
 
         // 새 공통 씬은 직렬화된 인스턴스를 사용하고, 구형 구성만 같은 프리팹으로 보완한다.
         bool EnsureRestTimer()
@@ -212,13 +224,14 @@ namespace CurtainCall.UI.SceneIntegration
                 observedDeaths[player] = dead;
             }
             if (newDeaths.Count > 0)
-                // 개인 사망음은 내 단원이 죽었을 때만. 동료 사망 소리는 경고 배너음(UI-102)이 결정되면 상황을 추가한다.
+                // 한 카드에 내 사망이 포함되면 기존 개인 사망음을 낸다.
                 HudUIManager.Current.ShowDeathWarning("",transform,string.Join(", ",newDeaths) + " 사망",announcementSeconds,
                     localDied ? SoundSituations.WaitingRoomLocalDeath : null);
         }
 
         void OnDisable()
         {
+            ObserveTimer(null);
             DismissMessages();
             observedDeathSpace = null;
             observedDeaths.Clear();

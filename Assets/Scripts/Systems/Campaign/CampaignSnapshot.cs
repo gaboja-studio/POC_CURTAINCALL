@@ -95,6 +95,8 @@ namespace CurtainCall.Campaign
         public RestTimerState Timer;
         /// <summary>쉬는 시간 남은 시간(초).</summary>
         public float TimeRemaining;
+        /// <summary>이번 세대에서 제한 시간이 실제로 만료된 횟수.</summary>
+        public int RestExpiryCount;
         /// <summary>이번 쉬는 시간에 소집 경보가 울렸는지.</summary>
         public bool AlarmRaised;
         /// <summary>마지막 탈출 기회(공연하는 날 수 다음 날 아침 쉬는 시간)인지.</summary>
@@ -138,7 +140,8 @@ namespace CurtainCall.Campaign
             Generation == other.Generation && Day == other.Day && Phase == other.Phase && Rest == other.Rest
             && PerformanceIndex == other.PerformanceIndex && Timer == other.Timer && AlarmRaised == other.AlarmRaised
             && ReadyCount == other.ReadyCount && RequiredCount == other.RequiredCount && LastEnd == other.LastEnd
-            && TrickId == other.TrickId && Difficulty == other.Difficulty && CannonUnlocked == other.CannonUnlocked && CompletedScheduleSlots == other.CompletedScheduleSlots;
+            && TrickId == other.TrickId && Difficulty == other.Difficulty && CannonUnlocked == other.CannonUnlocked
+            && CompletedScheduleSlots == other.CompletedScheduleSlots && RestExpiryCount == other.RestExpiryCount;
 
         internal void Write(FastBufferWriter writer)
         {
@@ -158,6 +161,7 @@ namespace CurtainCall.Campaign
             writer.WriteValueSafe((byte)Difficulty);
             writer.WriteValueSafe(CannonUnlocked);
             writer.WriteValueSafe(CompletedScheduleSlots);
+            writer.WriteValueSafe(RestExpiryCount);
         }
 
         internal static CampaignSnapshot Read(FastBufferReader reader)
@@ -179,6 +183,7 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out byte difficulty);
             reader.ReadValueSafe(out s.CannonUnlocked);
             reader.ReadValueSafe(out s.CompletedScheduleSlots);
+            if (reader.TryBeginRead(sizeof(int))) reader.ReadValueSafe(out s.RestExpiryCount);
             s.Phase = (CampaignPhase)phase;
             s.Rest = (RestKind)rest;
             s.Timer = (RestTimerState)timer;

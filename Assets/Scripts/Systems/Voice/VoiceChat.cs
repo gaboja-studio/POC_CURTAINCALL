@@ -103,7 +103,11 @@ namespace CurtainCall.Voice
         }
 
         /// <summary>내 마이크 끄기/켜기를 바꾼다(음소거 키와 같음).</summary>
-        public void ToggleMicMuted() => SetMicMuted(!IsMicMuted);
+        public void ToggleMicMuted()
+        {
+            SetMicMuted(!IsMicMuted);
+            Sound.SoundManager.Play(IsMicMuted ? Sound.SoundSituations.MicrophoneOff : Sound.SoundSituations.MicrophoneOn);
+        }
 
         static readonly HashSet<object> _muteKeyBlockers = new();
 
