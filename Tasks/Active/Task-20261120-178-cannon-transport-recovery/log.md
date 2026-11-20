@@ -7,3 +7,6 @@
 - 신규 EditMode 회귀 6건, C# 컴파일, 공용 설정 검사 통과. 이동·도착·복귀 3건과 가까운 단원 주변의 지면 부재 1건은 수정 전 실패했다. 대기 발판과 가까운 단원의 유효 지면은 기존 결과를 유지한다.
 - check-work에서 작업 범위, 문서 규칙, 컴파일과 공용 설정을 확인했다. 회귀 6건은 별도의 필터 실행 결과를 사용했다.
 - 2026-11-20 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=PASS(신규 EditMode 6건)
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/459 (fix/cannon-transport-recovery → dev)
+- 2026-11-20 DEV 검토용 [PR #459](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/459)에 제출했다.
