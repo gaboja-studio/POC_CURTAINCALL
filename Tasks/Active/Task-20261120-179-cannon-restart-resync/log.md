@@ -4,3 +4,6 @@
 - 참가자 재시작 때 첫 요청이 응답을 얻지 못하면 발판·일반 위험물·결승 톱은 토큰 없는 주기 스냅샷을 계속 거부하고 갱신되지 않았다.
 - 처음 보낸 요청과 같은 토큰을 0.5초마다 재전송한다. 현재 토큰의 응답으로만 대기를 끝내며, 다시 시작하거나 연결이 끝나면 이전 대기를 폐기한다. 탈출로의 호출부와 메시지 포맷에는 변경이 없다.
 - 2026-11-20 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(배치 EditMode 컴파일); 테스트=PASS(신규 회귀 3건). 실제 멀티플레이 미실행.
+
+- 2026-11-20 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/460 (fix/cannon-restart-resync → dev)
+- 2026-11-20 DEV 검토용 [PR #460](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/460)에 제출했다.
