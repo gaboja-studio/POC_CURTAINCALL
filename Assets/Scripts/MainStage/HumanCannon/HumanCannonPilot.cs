@@ -198,6 +198,11 @@ namespace CurtainCall.HumanCannon
             if (mover != null) mover.ResetExternalMotion(false);
         }
 
+        internal void ReleaseSyncedSeat(int index)
+        {
+            if (stationIndex == index) ReleaseMovement();
+        }
+
         internal void ReleaseFlight(int index, uint revision, uint segment)
         {
             if (MatchesFlight(index, revision, segment)) ReleaseMovement();

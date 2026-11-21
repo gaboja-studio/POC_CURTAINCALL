@@ -19,6 +19,118 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         static object Call(object target, string name, params object[] args) => target.GetType()
             .GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target,args);
 
+        [TestCase("selected")]
+        [TestCase("latest")]
+        [TestCase("lift")]
+        public void OfficialInteractionAudit_CannonBoardingChecksTheSelectedStationAndActualControlOwner(string scenario)
+        {
+            var root = new GameObject("Official cannon boarding audit");
+            root.SetActive(false);
+            root.transform.position = new Vector3(14900f, 40f, 14900f);
+            var cannon = root.AddComponent<HumanCannonSystem>();
+            var route = root.AddComponent<HumanCannonRouteSystem>();
+            var currentRoute = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var originalRoute = currentRoute.GetValue(null);
+            try
+            {
+                var actor = root.AddComponent<NetworkPlayer>();
+                typeof(Unity.Netcode.NetworkBehaviour).GetProperty("OwnerClientId").SetValue(actor, 47UL);
+                Set(actor, "mover", root.GetComponent<PlayerMover>());
+                var net = root.AddComponent<Unity.Netcode.Components.NetworkTransform>();
+                Set(actor, "networkTransform", net);
+                var original = root.transform.position;
+                Set(net, "m_InternalCurrentPosition", original);
+                var stations = new HumanCannonStation[2];
+                for (int i = 0; i < stations.Length; i++)
+                {
+                    var fixture = new GameObject("Boarding point " + i);
+                    fixture.transform.position = original + Vector3.right * (i + .5f) + Vector3.up;
+                    stations[i] = fixture.AddComponent<HumanCannonStation>();
+                }
+                Set(cannon, "stations", stations);
+                Call(cannon, "ResetSeats");
+                try
+                {
+                    if (scenario == "latest") root.transform.position = original + Vector3.left * 6f;
+                    Physics.SyncTransforms();
+                    Assert.That(cannon.FindBoardableStation(actor), Is.EqualTo(0));
+                    if (scenario == "lift")
+                    {
+                        currentRoute.SetValue(null, null);
+                        route.ConfigurePractice(null, -20f);
+                        Call(route, "OnEnable");
+                        var travel = route.TransportState(0);
+                        Assert.That(travel.TryStart(47, travel.Revision, 1d, 10f), Is.True);
+                    }
+                    Assert.That(Call(cannon, "CanBoardRequestedStation", actor, 1), Is.EqualTo(scenario != "lift"));
+                }
+                finally { foreach (var station in stations) if (station != null) Object.DestroyImmediate(station.gameObject); }
+            }
+            finally
+            {
+                if (currentRoute.GetValue(null) == route) Call(route, "OnDisable");
+                currentRoute.SetValue(null, originalRoute);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void OfficialInteractionAudit_RevivedCannonDriverRejectsSameRevisionSeatAndAcceptsANewOne()
+        {
+            var root = new GameObject("Cannon revive audit");
+            root.SetActive(false);
+            try
+            {
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                var actor = root.AddComponent<NetworkPlayer>();
+                typeof(Unity.Netcode.NetworkBehaviour).GetProperty("OwnerClientId").SetValue(actor, 47UL);
+                Set(cannon, "stations", new HumanCannonStation[1]);
+                Call(cannon, "ResetSeats");
+                Assert.That(Call(cannon, "ReceiveSeat", 0, 1u, 47UL), Is.True);
+                Call(cannon, "HandleRevivedMotion", actor);
+                Assert.That(Call(cannon, "ReceiveSeat", 0, 1u, 47UL), Is.False);
+                Assert.That(cannon.IsSeated(47), Is.False);
+                Assert.That(Call(cannon, "ReceiveSeat", 0, 3u, 47UL), Is.True);
+                Assert.That(cannon.IsSeated(47), Is.True);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void OfficialInteractionAudit_CannonVacancyOnlyUnlocksTheMatchingLocalSeat()
+        {
+            var root = new GameObject("Cannon control release audit");
+            root.SetActive(false);
+            try
+            {
+                var pilot = root.AddComponent<HumanCannonPilot>();
+                Set(pilot, "stationIndex", 1);
+                Call(pilot, "ReleaseSyncedSeat", 0);
+                Assert.That(pilot.IsDriving, Is.True);
+                Call(pilot, "ReleaseSyncedSeat", 1);
+                Assert.That(pilot.IsDriving, Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void OfficialInteractionAudit_BarrelObserverFailureDoesNotStopOtherStateObservers()
+        {
+            var root = new GameObject("Cannon observer audit");
+            root.SetActive(false);
+            try
+            {
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                bool acceptedBySecond = false;
+                cannon.StateChanged += (_, _, _) => throw new System.InvalidOperationException("cannon observer fixture");
+                cannon.StateChanged += (_, action, _) => acceptedBySecond = action == CannonAction.Launch;
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("cannon observer fixture"));
+                Call(cannon, "NotifySeatChanged", 0, CannonAction.Launch, 47UL);
+                Assert.That(acceptedBySecond, Is.True);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void CourseProgressAudit_AuthoredLiftCountsTheGuestLatestPosition(bool latestOnDeck)

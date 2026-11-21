@@ -40,6 +40,7 @@ namespace CurtainCall.HumanCannon
             public CannonSeatState State = new();
             public Vector3 ReturnPosition;
             public Quaternion ReturnRotation;
+            public uint? LocallyClearedRevision;
         }
 
         SeatRuntime[] seats;
@@ -220,26 +221,41 @@ namespace CurtainCall.HumanCannon
 
         public int FindBoardableStation(NetworkPlayer player)
         {
-            if (player == null || player.State != PlayerState.Normal || player.IsAirborne || IsFlying(player.OwnerClientId)) return -1;
-            if (HumanCannonCarry.Held(player.OwnerClientId) != null) return -1;
-            if (TightropeHangSystem.Current is { } hangs && (hangs.IsHanging(player) || hangs.IsRescuing(player))) return -1;
-            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return -1;
-            for (int i = 0; i < seats.Length; i++)
-                if (seats[i].State.Occupant == player.OwnerClientId) return -1;
+            if (!CanBoard(player)) return -1;
+            Vector3 origin = PlayerInteraction.LatestCenter(player);
             int nearest = -1;
             float best = float.PositiveInfinity;
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             for (int i = 0; i < stations.Length; i++)
             {
-                var station = stations[i];
-                if (station == null || !station.isActiveAndEnabled || !station.ReadyToUse || seats[i].State.IsOccupied) continue;
-                float distance = (station.BoardingPoint.position - PlayerInteraction.Center(player)).sqrMagnitude;
-                float radius = station.BoardingDistance * reach;
-                if (!PlayerInteraction.InRange(player, station.BoardingPoint.position, radius, station.transform) || distance >= best) continue;
+                if (!WithinBoardingReach(player, i, origin)) continue;
+                float distance = (stations[i].BoardingPoint.position - origin).sqrMagnitude;
+                if (distance >= best) continue;
                 nearest = i;
                 best = distance;
             }
             return nearest;
+        }
+
+        bool CanBoard(NetworkPlayer player)
+        {
+            if (player == null || player.State != PlayerState.Normal || player.IsAirborne) return false;
+            ulong actor = player.OwnerClientId;
+            if (IsFlying(actor) || IsSeated(actor) || HumanCannonCarry.Held(actor) != null
+                || HumanCannonRouteSystem.Current is { } route && route.gameObject.scene == gameObject.scene && route.IsRiding(actor)
+                || HumanCannonPoleSystem.Current?.HeldBy(actor) >= 0) return false;
+            return TightropeHangSystem.Current is not { } hangs || !hangs.IsHanging(player) && !hangs.IsRescuing(player);
+        }
+
+        bool CanBoardRequestedStation(NetworkPlayer player, int index) => CanBoard(player)
+            && WithinBoardingReach(player, index, PlayerInteraction.LatestCenter(player));
+
+        bool WithinBoardingReach(NetworkPlayer player, int index, Vector3 origin)
+        {
+            if (!ValidIndex(index) || !stations[index].ReadyToUse || seats[index].State.IsOccupied) return false;
+            var station = stations[index];
+            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
+            return PlayerInteraction.InRangeFrom(player, origin, station.BoardingPoint.position,
+                station.BoardingDistance * reach, station.transform);
         }
 
         /// <summary>로컬 입력 요청. 발사/취소는 내가 받은 점유 revision과 함께 호스트가 다시 확인한다.</summary>
@@ -320,13 +336,13 @@ namespace CurtainCall.HumanCannon
             if (action == CannonAction.Launch && !station.ReadyToUse) return;
             if (action == CannonAction.Launch && !PracticeMode && HumanCannonDestination.Current is { } destination
                 && destination.gameObject.scene == gameObject.scene && !destination.TryApplyScheduledDifficulty()) return;
-            if (action == CannonAction.Board && FindBoardableStation(player) != index) return;
+            if (action == CannonAction.Board && !CanBoardRequestedStation(player, index)) return;
             if (action == CannonAction.Board && !interactionReady)
             {
                 if (runtime.State.Revision != revision) return;
                 if (DelayInjuredInteraction(player, index, revision,
                     () => player != null && player.IsSpawned && player.State == PlayerState.Normal
-                        && ValidIndex(index) && seats[index].State.Revision == revision && FindBoardableStation(player) == index,
+                        && seats[index].State.Revision == revision && CanBoardRequestedStation(player, index),
                     () => HandleRequest(actor, index, action, revision, segment, landingPosition, true))) return;
             }
             var stack = CurtainCall.Tightrope.PiggybackSystem.Current;
@@ -402,11 +418,20 @@ namespace CurtainCall.HumanCannon
             if (index < 0 || index >= seats.Length) return;
             var action = (CannonAction)rawAction;
             if (action != CannonAction.Sync && revision <= seats[index].State.Revision) return;
-            if (!seats[index].State.Receive(revision, occupant)) return;
+            if (!ReceiveSeat(index, revision, occupant)) return;
             if (stations[index] != null && !double.IsNaN(firedAt) && !double.IsInfinity(firedAt)
                 && !double.IsNaN(activatedAt) && !double.IsInfinity(activatedAt))
                 stations[index].RestoreBarrel(firedAt, activatedAt);
             Apply(index, action, actor, position, rotation, velocity);
+        }
+
+        bool ReceiveSeat(int index, uint revision, ulong occupant)
+        {
+            var seat = seats[index];
+            if (seat.LocallyClearedRevision == revision && occupant != CannonSeatState.Nobody) return false;
+            if (!seat.State.Receive(revision, occupant)) return false;
+            if (seat.LocallyClearedRevision != revision) seat.LocallyClearedRevision = null;
+            return true;
         }
 
         void Apply(int index, CannonAction action, ulong actor, Vector3 position, Quaternion rotation, Vector3 velocity)
@@ -418,7 +443,7 @@ namespace CurtainCall.HumanCannon
                 flying.Clear();
                 awaitingFlightSnapshot = false;
                 if (pilot != null) pilot.ResetAfterRestart();
-                StateChanged?.Invoke(index, action, actor);
+                NotifySeatChanged(index, action, actor);
                 return;
             }
             if(boundPlayer!=null && actor==boundPlayer.OwnerClientId && action is CannonAction.Board or CannonAction.Launch) {
@@ -437,6 +462,7 @@ namespace CurtainCall.HumanCannon
             {
                 if (seats[index].State.Occupant == boundPlayer.OwnerClientId && ValidIndex(index))
                     pilot.SeatAt(index);
+                else if (action == CannonAction.Sync) pilot.ReleaseSyncedSeat(index);
                 else if (actor == boundPlayer.OwnerClientId)
                 {
                     if (action == CannonAction.Launch) pilot.Launch(index, seats[index].State.Revision, position, rotation, velocity);
@@ -444,7 +470,15 @@ namespace CurtainCall.HumanCannon
                     else if (action == CannonAction.Release) pilot.ReleaseMovement();
                 }
             }
-            StateChanged?.Invoke(index, action, actor);
+            NotifySeatChanged(index, action, actor);
+        }
+
+        void NotifySeatChanged(int index, CannonAction action, ulong actor)
+        {
+            if (StateChanged == null) return;
+            foreach (Action<int, CannonAction, ulong> observer in StateChanged.GetInvocationList())
+                try { observer(index, action, actor); }
+                catch (Exception error) { Debug.LogException(error, this); }
         }
 
         void Bind(NetworkPlayer local)
@@ -498,7 +532,11 @@ namespace CurtainCall.HumanCannon
             flying.Remove(player.OwnerClientId);
             foreach (var seat in seats)
                 if (seat.State.Occupant == player.OwnerClientId)
+                {
+                    // The actor revived before the host's seat release packet arrived.
+                    seat.LocallyClearedRevision = seat.State.Revision;
                     seat.State.Receive(seat.State.Revision, CannonSeatState.Nobody);
+                }
             if (player == boundPlayer && pilot != null) pilot.ReleaseMovement();
         }
 

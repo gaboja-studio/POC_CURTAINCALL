@@ -14,6 +14,44 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
 {
  public sealed partial class TightropeSurfaceControlTests
  {
+  [TestCase(true)]
+  [TestCase(false)]
+  public void OfficialInteractionAudit_OwnerSampleControlsHangAndRescueReach(bool rescue)
+  {
+   WithMountedPair((_, _, _) =>
+   {
+    const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+    const int lane = 0;
+    const float along = 4f;
+    AddRope(lane, course.Layout.GetLaneSide(lane));
+    var system = MakeObject("Rescue range audit").AddComponent<TightropeHangSystem>();
+    typeof(TightropeHangSystem).GetField("course", members).SetValue(system, course);
+    var latest = course.GetLanePosition(lane, along);
+    var networkTransform = player.gameObject.AddComponent<Unity.Netcode.Components.NetworkTransform>();
+    typeof(NetworkPlayer).GetField("networkTransform", members).SetValue(player, networkTransform);
+    var position = typeof(Unity.Netcode.Components.NetworkTransform).GetField("m_InternalCurrentPosition", members);
+    position.SetValue(networkTransform, latest);
+    player.transform.position = latest + course.Forward * 10f;
+    Physics.SyncTransforms();
+    var hang = new TightropeHangBook.Hang { Id = 1, Lane = lane, Distance = along };
+    object Result() => rescue
+      ? Invoke(system, "WithinRescueReach", player, hang, 2.5f)
+      : Invoke(system, "AcceptHang", player.OwnerClientId, lane, along);
+    Assert.That(Result(), Is.True);
+    position.SetValue(networkTransform, player.transform.position);
+    Assert.That(Result(), Is.False);
+   }, mount: false);
+  }
+
+  [TestCase(false, 2d, true)]
+  [TestCase(false, 5d, false)]
+  [TestCase(true, 2d, false)]
+  public void OfficialInteractionAudit_RescueReplyWaitEndsWhenApprovedOrTimedOut(bool approved, double now, bool waiting)
+  {
+   var check = typeof(TightropeHangSystem).GetMethod("IsAwaitingRescueReply", BindingFlags.Static | BindingFlags.NonPublic);
+   Assert.That(check.Invoke(null, new object[] { approved, now, 4d }), Is.EqualTo(waiting));
+  }
+
   [Test]
   public void CommonRules_HangTargetUsesRealEndpointAndDoesNotTreatTheRopeAsAWall()
   {

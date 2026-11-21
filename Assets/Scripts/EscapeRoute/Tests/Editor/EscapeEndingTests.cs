@@ -18,6 +18,75 @@ namespace CurtainCall.EscapeRoute.Tests
             .Invoke(null, new[] { State(state), open, inside, inspecting });
 
         [Test]
+        public void OfficialInteractionAudit_ResultRestoresInputWhenTheGameHudEventSystemDisappears()
+        {
+            var systemType = T("UnityEngine.EventSystems.EventSystem");
+            var current = systemType.GetProperty("current", BindingFlags.Static | BindingFlags.Public);
+            object saved = current.GetValue(null);
+            var root = new GameObject("Ending result input audit");
+            var hud = new GameObject("Prior gameplay HUD events");
+            try
+            {
+                var resultsType = T("CurtainCall.EscapeRoute.EscapeEndingResults");
+                var results = root.AddComponent(resultsType);
+                var display = new GameObject("Result view");
+                display.SetActive(false);
+                display.transform.SetParent(root.transform);
+                resultsType.GetField("view", Flags).SetValue(results, display.AddComponent(T("CurtainCall.UI.EscapeResultsKit.EscapeResultsView")));
+                var previous = hud.AddComponent(systemType);
+                hud.AddComponent(T("UnityEngine.InputSystem.UI.InputSystemUIInputModule"));
+                systemType.GetMethod("OnEnable", Flags).Invoke(previous, null);
+                current.SetValue(null, previous);
+                var ensure = resultsType.GetMethod("EnsureResultEvents", Flags);
+                ensure.Invoke(results, null);
+                Assert.That(current.GetValue(null), Is.SameAs(previous));
+                systemType.GetMethod("OnDisable", Flags).Invoke(previous, null);
+                hud.SetActive(false);
+                display.SetActive(true);
+                ensure.Invoke(results, null);
+                var replacement = resultsType.GetField("resultEvents", Flags).GetValue(results);
+                Assert.That(replacement, Is.Not.Null);
+                systemType.GetMethod("OnEnable", Flags).Invoke(replacement, null);
+                Assert.That(current.GetValue(null), Is.SameAs(replacement));
+                ensure.Invoke(results, null);
+                Assert.That(current.GetValue(null), Is.SameAs(replacement));
+                systemType.GetMethod("OnDisable", Flags).Invoke(replacement, null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(hud);
+                Object.DestroyImmediate(root);
+                if (saved != null) current.SetValue(null, saved);
+            }
+        }
+
+        [TestCase(false, "EscapeSucceeded")]
+        [TestCase(true, "EscapeAllRetired")]
+        public void OfficialInteractionAudit_OnlyTheEndingAuthorityCanRebuildAResetResultsSnapshot(bool failure, string reason)
+        {
+            var root = new GameObject("Ending snapshot audit");
+            root.SetActive(false);
+            try
+            {
+                var type = T("CurtainCall.EscapeRoute.EscapeEndingResults");
+                var result = root.AddComponent(type);
+                type.GetField("failureMode", Flags).SetValue(result, failure);
+                var state = Activator.CreateInstance(T("CurtainCall.Campaign.CampaignSnapshot"));
+                var phase = state.GetType().GetField("Phase");
+                var end = state.GetType().GetField("LastEnd");
+                phase.SetValue(state, Enum.Parse(phase.FieldType, "Ending"));
+                end.SetValue(state, Enum.Parse(end.FieldType, reason));
+                var check = type.GetMethod("ShouldRefreeze", Flags);
+                Assert.That(check.Invoke(result, new[] { state, (object)true }), Is.True);
+                Assert.That(check.Invoke(result, new[] { state, (object)false }), Is.False);
+                var snapshot = type.GetNestedType("Snapshot", BindingFlags.NonPublic);
+                type.GetField("snapshot", Flags).SetValue(result, Activator.CreateInstance(snapshot, true));
+                Assert.That(check.Invoke(result, new[] { state, (object)true }), Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
         public void FirstArrivalShowsTitleWithoutWaitingForPartyOrRevealingThroughLockedDoor()
         {
             Assert.IsFalse(Reveal("Normal", true, false, false));

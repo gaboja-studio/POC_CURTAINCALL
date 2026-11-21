@@ -62,7 +62,7 @@ namespace CurtainCall.Tightrope
         {
             var player = Find(sender);
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
-            if (!course.TryGetRopePoint(player.transform.position, out int observedLane, out float observedDistance)
+            if (!course.TryGetRopePoint(player.LatestOwnerPosition, out int observedLane, out float observedDistance)
                 || lane != observedLane || Mathf.Abs(distance - observedDistance) > Rules.LaneOccupyDistance) return false;
             ServerTryHang(player, observedDistance, observedLane);
             return true;
