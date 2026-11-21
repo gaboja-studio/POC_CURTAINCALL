@@ -40,8 +40,14 @@ namespace CurtainCall.SpaceLink
         void Update()
         {
             var session = NetworkSessionManager.Instance;
-            if (run == null || started || submitted || session == null || !session.IsHost
-                || !entry.IsCurrentPerformance || !entry.LocalParticipantReady) return;
+            if (run == null || session == null || !session.IsHost || !entry.IsCurrentPerformance) return;
+            if ((started || submitted) && !SamePerformance())
+            {
+                run.StopExternalPerformance();
+                pending = null; started = submitted = false;
+                attemptId = null;
+            }
+            if (started || submitted || !entry.LocalParticipantReady) return;
             var director = SpaceLinkDirector.Instance;
             if (director != null && director.IsTransitioning) return;
             // NGO 로드 완료와 소유자 순간이동이 모두 도착하기 전에는 판정을 시작하지 않는다.
@@ -50,8 +56,9 @@ namespace CurtainCall.SpaceLink
             {
                 NetworkPlayer player = null;
                 foreach (var candidate in NetworkPlayer.All)
-                    if (candidate.IsSpawned && candidate.OwnerClientId == id) { player = candidate; break; }
-                if (player == null || player.Slot == NetworkPlayer.NoSlot || player.IsApplyingInitialCondition) return;
+                    if (CampaignPerformanceEntry.CanPlaceAvatar(candidate) && candidate.OwnerClientId == id)
+                    { player = candidate; break; }
+                if (player == null) return;
                 if (player.State == PlayerState.Normal
                     && Vector3.Distance(player.LatestOwnerPosition, course.GetStartPose(player.Slot).position) > 1.5f) return;
             }
@@ -67,9 +74,7 @@ namespace CurtainCall.SpaceLink
         bool SamePerformance()
         {
             var state = campaign.State;
-            return state.Phase == CampaignPhase.Performance && state.Generation == performance.Generation
-                && state.Day == performance.Day && state.PerformanceIndex == performance.PerformanceIndex
-                && state.TrickId == performance.TrickId;
+            return CampaignPerformanceEntry.MatchesPerformanceStep(performance, state);
         }
 
         void HandleCampaign()

@@ -65,11 +65,12 @@ namespace CurtainCall.EscapeRoute
                 candidates.Clear();
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (player == null || !player.IsSpawned || !channel.IsConnected(player.OwnerClientId)) continue;
+                    if (!EscapeSceneTransfer.HasStableAvatar(player) || !channel.IsConnected(player.OwnerClientId)
+                        || EscapeSceneTransfer.FindSpawnedParticipant(player.OwnerClientId) != player) continue;
                     allParticipants.Add(player.OwnerClientId);
                     if (player.State != PlayerState.Normal || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)) continue;
                     living++;
-                    bool inside = Contains(assemblyArea, player.transform.position);
+                    bool inside = Contains(assemblyArea, player.LatestOwnerPosition);
                     var runtime = TelemetryRuntime.Instance;
                     if (runtime != null && runtime.CurrentRunId != null)
                     {
@@ -153,7 +154,7 @@ namespace CurtainCall.EscapeRoute
         string readyText;
         public static bool Contains(BoxCollider area, Vector3 feet)
         {
-            if (area == null || !area.gameObject.activeInHierarchy) return false;
+            if (area == null || !area.enabled || !area.gameObject.activeInHierarchy) return false;
             var local = area.transform.InverseTransformPoint(feet + Vector3.up * .35f) - area.center;
             var half = area.size * .5f;
             return float.IsFinite(local.x) && float.IsFinite(local.y) && float.IsFinite(local.z)

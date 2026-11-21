@@ -29,7 +29,8 @@ namespace CurtainCall.HumanCannon
         public PerformanceResult Result { get; private set; }
         public bool IsResolved => Result != null || PracticeCompleted || PracticeFailed;
         public bool PerformanceOpen => rewards != null && rewards.State?.IsOpen == true
-            && rewards.State.Performance?.Id == performanceId;
+            && rewards.State.Performance?.Id == performanceId && campaign != null
+            && MatchesCampaignPerformance(rewards.State.Performance, campaign.State);
         public string StatusText => Result != null
             ? $"공연 {(Result.Succeeded ? "성공" : "실패")} · 수입 {Result.Income} · 공용 정산 완료"
             : PracticeCompleted ? "연습 도착 성공! R로 다시 시작 (공용 정산 없음)"
@@ -65,7 +66,12 @@ namespace CurtainCall.HumanCannon
                 rewards.BeginPerformance(campaign.State.Difficulty > 0 ? campaign.State.Difficulty : difficultyLevel);
             }
             var identity = rewards.State?.Performance;
-            if (identity?.TrickId == "HumanCannon" && performanceId != identity.Id)
+            if (humanCannon && !MatchesCampaignPerformance(identity, campaign.State) && performanceId != null)
+            {
+                performanceId = null;
+                Result = null;
+            }
+            if (MatchesCampaignPerformance(identity, campaign.State) && performanceId != identity.Id)
             {
                 performanceId = identity.Id;
                 Result = null;
@@ -102,6 +108,11 @@ namespace CurtainCall.HumanCannon
                 PracticeFailed = player.State != PlayerState.Normal;
             }
         }
+
+        static bool MatchesCampaignPerformance(PerformanceIdentity identity, CampaignSnapshot state)
+            => identity != null && state.Phase == CampaignPhase.Performance && identity.TrickId == CampaignSnapshot.HumanCannonId
+                && state.TrickId == identity.TrickId && state.Generation == identity.Generation
+                && state.Day == identity.Day && state.PerformanceIndex == identity.Index;
 
         internal bool TryApplyScheduledDifficulty()
         {
