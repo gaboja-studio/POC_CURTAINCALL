@@ -234,8 +234,8 @@ namespace CurtainCall.Player
                 }
                 var locks = EscapeCooperativeLocks.Current;
                 if (locks != null) for (int i = 0; i < locks.Count; i++)
-                    if (locks.CanUseControl(player, i))
-                        Add(locks.Control(i), locks.Control(i), locks.ControlPoint(i), mounted ? MountedButtonPriority : device, "lock:" + i);
+                    if (locks.UsableControl(player, i) is { } control)
+                        Add(control, control, EscapeSwitchInteraction.Center(control), mounted ? MountedButtonPriority : device, "lock:" + i);
                 var ropes = EscapeCooperativeRopes.Current;
                 if (ropes != null && ropes.CanUseButton(player))
                     Add(ropes, ropes.Button, ropes.ButtonPoint, mounted ? MountedButtonPriority : device, "rope-button");

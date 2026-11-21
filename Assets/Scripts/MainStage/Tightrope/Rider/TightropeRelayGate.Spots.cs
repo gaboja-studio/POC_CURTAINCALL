@@ -40,7 +40,11 @@ namespace CurtainCall.Tightrope
         public void UseSpots(IReadOnlyList<RelaySpot> spots)
         {
             Deactivate(); ResetState(); DestroyViews();
-            foreach (var station in stations) if (station?.Pole != null) Destroy(station.Pole.gameObject);
+            foreach (var station in stations) if (station?.Pole != null)
+            {
+                station.Pole.gameObject.SetActive(false);
+                Destroy(station.Pole.gameObject);
+            }
             spotList = spots != null && spots.Count > 0 ? new List<RelaySpot>(spots) : null;
             stations = new Station[UsesSpots ? spotList.Count : 4];
             CreateStations();

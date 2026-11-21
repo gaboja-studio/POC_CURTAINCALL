@@ -222,6 +222,7 @@ namespace CurtainCall.HumanCannon
             if (states == null) return;
             if (connection == SessionConnectionState.Offline)
             {
+                flightOrigins.Clear();
                 for (int i = 0; i < states.Length; i++)
                 {
                     states[i] = NewRuntime(i);
