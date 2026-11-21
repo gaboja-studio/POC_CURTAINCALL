@@ -433,8 +433,8 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         bool BouncingAbove(NetworkPlayer player, int index)
         {
-            if (cannon == null || !cannon.TryGetFlight(player.OwnerClientId, out var flight) || flight.StationIndex >= 0) return false;
-            Vector3 position = player.transform.position;
+            if (cannon == null || !cannon.IsTrampolineFlight(player.OwnerClientId)) return false;
+            Vector3 position = player.LatestOwnerPosition;
             if (transports[index].ContainsAirColumn(position)) return true;
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody) return false;

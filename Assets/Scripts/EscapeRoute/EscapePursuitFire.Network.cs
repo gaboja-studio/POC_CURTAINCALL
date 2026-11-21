@@ -93,7 +93,8 @@ namespace CurtainCall.EscapeRoute
                 if (!player.IsLocal && player.TryGetComponent(out PlayerMover mover))
                 {
                     PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var spawn, out _);
-                    awaitingSpawn[player.OwnerClientId] = spawn;
+                    awaitingSpawn[player.OwnerClientId] = (spawn, Clock
+                        + CurtainCall.Settings.GameSettings.Base.SpaceTransition.PerformancePlacementGraceSeconds);
                 }
                 if (resetFrame == Time.frameCount) return;
                 waitForBridgeReset = ignitionBridge && ignitionBridge.DeploymentRequested;

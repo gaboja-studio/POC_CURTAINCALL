@@ -80,6 +80,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             [Values("spring", "trampoline", "ground")] string kind, [Values(true, false)] bool spawned)
         {
             var root = new GameObject("Late bounce"); root.SetActive(false);
+            var previousTrampoline = HumanCannonTrampoline.Current;
             var origin = new Vector3(17520, 80, 17520); root.transform.position = origin;
             NetworkPlayer actor = null;
             try
@@ -99,7 +100,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 bool accepted;
                 if (kind == "ground")
                 {
-                    Call(Get(pilot, "groundRequest"), "Begin", 1u, 1u);
+                    var trampoline = root.AddComponent<HumanCannonTrampoline>();
+                    typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, trampoline);
+                    Set(pilot, "groundSource", trampoline);
+                    ((GroundBounceRequest)Get(pilot, "groundRequest")).Begin(1u, 1u);
                     accepted = (bool)Call(cannon, "BeginGroundBounce", actor.OwnerClientId, 1u, 1u, origin + Vector3.down * 10, 10f, 1f);
                 }
                 else
@@ -122,6 +126,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
             finally
             {
+                typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, previousTrampoline);
                 if (actor != null) typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(actor, false);
                 Object.DestroyImmediate(root);
             }
