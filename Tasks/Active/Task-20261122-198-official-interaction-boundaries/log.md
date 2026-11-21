@@ -8,3 +8,5 @@
 - 기존 private 에셋 HEAD 불일치와 과거 Task ID 중복은 유지했다. B·C, F8, 튜토리얼 경로는 조사 범위에서 제외했다.
 - 정식 인간대포 씬의 출발·쉼터 대포 탑승점 간격이 약 3.20m인 배치를 확인했다. 공용 상호작용 거리 2.5m 기준 두 대포에 닿는 범위가 겹친다. 새 EditMode 14/14 및 Unity 컴파일을 통과했다(.harness/local/official-interaction-final.xml). 위치 지연, 좌석 동기화, 구조 요청, 엔딩 이벤트 시스템과 스냅샷은 자동 검사 조건이며 실제 다중 클라이언트 플레이가 아니다.
 - check-work 정적 안전성·문서/규칙 검사와 git diff --check 통과. Unity 컴파일·테스트는 별도 EditMode 실행에 포함됐다. 관찰자 예외 격리는 고의 예외를 주입해 확인한 보완이며 실제 플레이에서 발생한 10번째 증상으로 세지 않는다. 새 수정은 fix/official-interaction-boundaries 작업 트리에 보관한다.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/481 (fix/official-interaction-boundaries → dev)
