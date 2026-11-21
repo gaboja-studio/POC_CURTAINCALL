@@ -5,6 +5,22 @@ namespace CurtainCall.Tightrope.Saws.EditorTools.Tests
 {
     public sealed class CooperativeGateGeometryTests
     {
+        [TestCase(-1f, 2f, 40f, false)]
+        [TestCase(38f, 2f, 40f, false)]
+        [TestCase(41f, 0f, 40f, false)]
+        [TestCase(33f, 2f, 40f, true)]
+        public void OnlyGatesWithARealInCourseLandingCanBlockTheFinale(float distance, float offset, float finish, bool valid)
+            => Assert.That(TightropeSaws.IsPlayableCooperativeDistance(distance, offset, finish), Is.EqualTo(valid));
+
+        [TestCase(0f, false)]
+        [TestCase(float.PositiveInfinity, false)]
+        [TestCase(2f, true)]
+        public void MovingGateRejectsInvalidJumpTimingWithoutProducingAnInfiniteMovement(float flightTime, bool valid)
+        {
+            Assert.That(TightropeSaws.TryGetFiniteLaunchSpeed(6f, flightTime, 1f, out float speed), Is.EqualTo(valid));
+            Assert.That(speed, Is.EqualTo(valid ? 2f : 0f));
+        }
+
         [TestCase(0f)] [TestCase(.5f)] [TestCase(1.2f)]
         public void EnlargedOriginalSawBlocksSoloJumpOnItsLane(float footHeight)
         {

@@ -147,6 +147,14 @@ namespace CurtainCall.HumanCannon
         public int LocalBounceCount { get; private set; }
         public static event System.Action<ulong> ServerBounced;
 
+        void NotifyBounced(ulong actor)
+        {
+            if (ServerBounced == null) return;
+            foreach (System.Action<ulong> observer in ServerBounced.GetInvocationList())
+                try { observer(actor); }
+                catch (System.Exception error) { Debug.LogException(error, this); }
+        }
+
         void OnEnable()
         {
             RefreshCarryBody(null);
@@ -507,13 +515,15 @@ namespace CurtainCall.HumanCannon
         }
 
         bool NearSurface(NetworkPlayer player, Vector3 contact)
+            => (player.LatestOwnerPosition - contact).sqrMagnitude <= 25f && ContactWithinSurface(contact);
+
+        bool ContactWithinSurface(Vector3 contact)
         {
             Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
             var bounds = ContactBounds();
-            if (UsePropOutline)
-                return TrampolineOutline.Contains(relative, bounds, 1f) && (player.transform.position - contact).sqrMagnitude <= 25f;
+            if (UsePropOutline) return TrampolineOutline.Contains(relative, bounds, 1f);
             bounds.Expand(new Vector3(2f, 4f, 2f));
-            return bounds.Contains(relative) && (player.transform.position - contact).sqrMagnitude <= 25f;
+            return bounds.Contains(relative);
         }
 
         // 과승 실패 중에는 운반 트램폴린도 함께 떨어진다. 지연된 반동 요청에도 같은 판정을 사용한다.
@@ -589,7 +599,7 @@ namespace CurtainCall.HumanCannon
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, fromTrampoline: true);
             if (accepted)
             {
-                ServerBounced?.Invoke(player.OwnerClientId);
+                NotifyBounced(player.OwnerClientId);
                 CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.TrampolineBounce, contact, transform);
                 if (player.IsLocal) LocalBounceCount++;
                 foreach (ulong client in session.NetworkManager.ConnectedClientsIds)

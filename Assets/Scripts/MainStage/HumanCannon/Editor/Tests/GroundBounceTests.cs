@@ -28,6 +28,55 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void UnansweredGroundBounceRetriesTheSameAttemptAndExpires()
+        {
+            var request = new GroundBounceRequest();
+            request.Begin(7, 4, 10d);
+            Assert.IsTrue(request.TrySend(10d));
+            Assert.IsFalse(request.TrySend(10.1d));
+            Assert.IsTrue(request.TrySend(10.25d));
+            Assert.IsTrue(request.Matches(7, 4));
+            Assert.IsTrue(request.Expired(13d));
+            Assert.IsFalse(request.TrySend(13d));
+            request.Cancel();
+            Assert.AreEqual(8u, request.NextSequence(), "A replacement trampoline does not restart the player's sequence.");
+        }
+
+        [Test]
+        public void ConfirmedGroundBounceReplaysTheOriginalContactExactlyOncePerIdentity()
+        {
+            var history = new GroundBounceHistory();
+            var contact = new Vector3(2f, 1f, 3f);
+            Assert.IsTrue(history.TryAccept(17, 8, 5, 5));
+            Assert.IsFalse(history.TryReplay(17, 8, 5, out _));
+            history.RecordAccepted(17, contact);
+            Assert.IsTrue(history.TryReplay(17, 8, 5, out Vector3 received));
+            Assert.AreEqual(contact, received);
+            Assert.IsFalse(history.TryReplay(17, 8, 6, out _));
+            Assert.IsFalse(history.TryReplay(18, 8, 5, out _));
+            Assert.IsTrue(history.TryAccept(17, 9, 6, 6));
+            Assert.IsFalse(history.TryReplay(17, 8, 5, out _));
+        }
+
+        [TestCase(2)]
+        [TestCase(CannonFlightState.PoleEntrySource)]
+        public void LiftAirColumnCountsActualTrampolineReboundRegardlessOfTheOriginalDevice(int station)
+        {
+            var flights = new CannonFlightState();
+            flights.Begin(7, station, 17);
+            Assert.IsFalse(flights.IsTrampolineFlight(7));
+            Assert.IsTrue(flights.TryRebound(7, station, 17, 0, fromTrampoline: true));
+            Assert.IsTrue(flights.IsTrampolineFlight(7));
+            Assert.IsTrue(flights.TryRebound(7, station, 17, 1)); // grabs and releases from a pole use the same transition
+            Assert.IsFalse(flights.IsTrampolineFlight(7));
+            flights.Begin(7, -1, 18, fromTrampoline: true);
+            Assert.IsTrue(flights.IsTrampolineFlight(7));
+            Assert.IsFalse(flights.TryComplete(7, -1, 17));
+            Assert.IsTrue(flights.TryComplete(7, -1, 18));
+            Assert.IsFalse(flights.IsTrampolineFlight(7));
+        }
+
+        [Test]
         public void Host_RejectsDuplicateAndOutOfOrderGroundContacts()
         {
             var history = new GroundBounceHistory();

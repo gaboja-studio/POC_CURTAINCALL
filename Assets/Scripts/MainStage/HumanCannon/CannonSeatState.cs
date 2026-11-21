@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CurtainCall.HumanCannon
 {
-    public enum CannonAction : byte { Sync, Board, Launch, Cancel, Release, Land, Reset }
+    public enum CannonAction : byte { Sync, Board, Launch, Cancel, Release, Land, Reset, CancelGroundBounce }
 
     /// <summary>대포 한 자리의 호스트 판정. 입력 시점의 revision이 달라지면 오래된 요청을 버린다.</summary>
     public sealed class CannonSeatState
@@ -70,7 +70,7 @@ namespace CurtainCall.HumanCannon
             }
         }
 
-        readonly Dictionary<ulong, (int StationIndex, uint LaunchRevision, uint Segment)> flights = new();
+        readonly Dictionary<ulong, (int StationIndex, uint LaunchRevision, uint Segment, bool FromTrampoline)> flights = new();
         readonly List<ulong> expired = new();
 
         public bool Contains(ulong actor) => flights.ContainsKey(actor);
@@ -83,17 +83,20 @@ namespace CurtainCall.HumanCannon
             return false;
         }
 
-        public void Begin(ulong actor, int stationIndex, uint launchRevision) =>
-            flights[actor] = (stationIndex, launchRevision, 0);
+        public void Begin(ulong actor, int stationIndex, uint launchRevision, bool fromTrampoline = false) =>
+            flights[actor] = (stationIndex, launchRevision, 0, fromTrampoline);
+
+        public bool IsTrampolineFlight(ulong actor)
+            => flights.TryGetValue(actor, out var flight) && flight.FromTrampoline;
 
         public bool Matches(ulong actor, int stationIndex, uint launchRevision, uint segment) =>
             flights.TryGetValue(actor, out var flight) && flight.StationIndex == stationIndex
                 && flight.LaunchRevision == launchRevision && flight.Segment == segment;
 
-        public bool TryRebound(ulong actor, int stationIndex, uint launchRevision, uint segment)
+        public bool TryRebound(ulong actor, int stationIndex, uint launchRevision, uint segment, bool fromTrampoline = false)
         {
             if (!Matches(actor, stationIndex, launchRevision, segment)) return false;
-            flights[actor] = (stationIndex, launchRevision, segment + 1);
+            flights[actor] = (stationIndex, launchRevision, segment + 1, fromTrampoline);
             return true;
         }
 
@@ -126,7 +129,7 @@ namespace CurtainCall.HumanCannon
                     || !actors.Add(flight.Actor)) return false;
             flights.Clear();
             foreach (var flight in snapshot)
-                flights.Add(flight.Actor, (flight.StationIndex, flight.LaunchRevision, flight.Segment));
+                flights.Add(flight.Actor, (flight.StationIndex, flight.LaunchRevision, flight.Segment, false));
             return true;
         }
 

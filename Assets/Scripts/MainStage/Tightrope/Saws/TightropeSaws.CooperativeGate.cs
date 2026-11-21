@@ -65,6 +65,13 @@ namespace CurtainCall.Tightrope.Saws
 
         bool ValidCooperativeGateIndex => settings.cooperativeGateDistances != null && cooperativeGateIndex >= 0
             && cooperativeGateIndex < settings.cooperativeGateDistances.Length;
+
+        public static bool IsPlayableCooperativeDistance(float distance, float plateOffset, float finish)
+            => float.IsFinite(distance) && distance >= 0f && distance < finish && distance + plateOffset < finish;
+
+        bool HasPlayableCooperativeGate(int index) => course != null && settings.cooperativeGateDistances != null
+            && index >= 0 && index < settings.cooperativeGateDistances.Length
+            && IsPlayableCooperativeDistance(settings.cooperativeGateDistances[index], settings.cooperativeGatePlateOffset, course.FinishDistance);
         float CooperativeGateLiftOffset
         {
             get
@@ -126,8 +133,18 @@ namespace CurtainCall.Tightrope.Saws
             jumpHeight *= GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
             float flightTime = CooperativeGateGeometry.ForwardJumpRange(player.transform.position.y - course.transform.position.y,
                 jumpHeight, gravity, 1f);
-            alongSpeed = (landing - course.GetDistance(player.transform.position)) / flightTime - CooperativeApproachSpeed;
-            return alongSpeed > 0f;
+            return TryGetFiniteLaunchSpeed(landing - course.GetDistance(player.transform.position), flightTime,
+                CooperativeApproachSpeed, out alongSpeed);
+        }
+
+        public static bool TryGetFiniteLaunchSpeed(float distance, float flightTime, float approachSpeed, out float speed)
+        {
+            speed = 0f;
+            if (!float.IsFinite(flightTime) || flightTime <= 0f) return false;
+            float candidate = distance / flightTime - approachSpeed;
+            if (!float.IsFinite(candidate) || candidate <= 0f) return false;
+            speed = candidate;
+            return true;
         }
 
         void ResetCooperativeGates()
@@ -152,9 +169,9 @@ namespace CurtainCall.Tightrope.Saws
             if (!cooperativeGateActive)
             {
                 int next = cooperativeGateIndex + 1;
+                while (next < settings.cooperativeGateDistances.Length && !HasPlayableCooperativeGate(next)) next++;
                 if (next >= settings.cooperativeGateDistances.Length) return;
                 float distance = settings.cooperativeGateDistances[next];
-                if (!float.IsFinite(distance) || distance < 0f || distance + settings.cooperativeGatePlateOffset >= course.FinishDistance) return;
                 float leader = GetLeaderDistance();
                 if (float.IsNaN(leader) || leader < distance - settings.cooperativeGateTriggerLead) return;
                 // 소각 예정 줄은 먼저 고정하지만, 한 줄만 남았다고 속이거나 선두의 임의 줄을 선택하지 않는다.
@@ -213,8 +230,9 @@ namespace CurtainCall.Tightrope.Saws
                 if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || player.IsAirborne
                     || (IsFourStackFinaleGate && CooperativeAdmittedFloor(player) == 0)
                     || !player.TryGetComponent(out PlayerMover mover) || (player.IsOwner && (mover.IsAirborne || mover.PassThrough))
-                    || !course.TryGetSupportingRope(mover, out int supported) || !TryGetCooperativePlatePosition(supported, out var plate)) continue;
-                Vector3 offset = player.transform.position - plate;
+                    || !course.TryGetSupportingRopeAt(mover, player.LatestOwnerPosition, out int supported)
+                    || !TryGetCooperativePlatePosition(supported, out var plate)) continue;
+                Vector3 offset = player.LatestOwnerPosition - plate;
                 if (Mathf.Abs(offset.y) > settings.plateHeightTolerance
                     || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f
                     || Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGatePlateLength * .5f) continue;
