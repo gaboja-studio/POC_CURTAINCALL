@@ -9,6 +9,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope;
 using CurtainCall.Tightrope.EditorTools.Tests;
 using CurtainCall.UI.EscapeResultsKit;
 using NUnit.Framework;
@@ -29,6 +30,63 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static object Get(object o, string field) => o.GetType().GetField(field, F).GetValue(o);
         static void Set(object o, string field, object value) => o.GetType().GetField(field, F).SetValue(o, value);
         static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
+
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        public void OfficialPathAudit_MountedRunnerOutsideArrivalVolumeSharesOnlyALiveCarrierArrival(bool inside, bool expected)
+        {
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Levels/escape_route.unity");
+            var stackRoot = new GameObject("Escape arrival stack");
+            stackRoot.SetActive(false);
+            var stack = stackRoot.AddComponent<PiggybackSystem>();
+            var current = typeof(PiggybackSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            bool suppressed = PiggybackSystem.Suppressed;
+            var players = (List<NetworkPlayer>)NetworkPlayer.All;
+            var before = players.ToArray();
+            players.Clear();
+            try
+            {
+                current.SetValue(null, stack);
+                PiggybackSystem.Suppressed = false;
+                stackRoot.SetActive(true);
+                var content = scene.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<EscapeCampaignContent>(true)).Single();
+                var gate = (BoxCollider)Get(content, "arrivalArea");
+                Assert.That(gate.gameObject.activeInHierarchy && gate.enabled, Is.True);
+                var center = gate.transform.TransformPoint(gate.center);
+                var carrier = AddPlayer(200UL, center + (inside ? Vector3.zero : gate.transform.right * gate.size.x));
+                var rider = AddPlayer(201UL, center + Vector3.up * (gate.size.y + 1f));
+                ((Dictionary<ulong, ulong>)Get(stack, "belowOf")).Add(rider.OwnerClientId, carrier.OwnerClientId);
+                Assert.That(EscapeEntrance.Contains(gate, rider.transform.position), Is.False);
+                var result = typeof(EscapeCampaignContent).GetMethod("IsAtArrival", F).Invoke(content, new object[] { rider });
+                Assert.That(result, Is.EqualTo(expected));
+
+                NetworkPlayer AddPlayer(ulong id, Vector3 position)
+                {
+                    var node = new GameObject("Stack runner");
+                    node.SetActive(false);
+                    node.transform.SetParent(stackRoot.transform);
+                    node.transform.position = position;
+                    var player = node.AddComponent<NetworkPlayer>();
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, id);
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                    players.Add(player);
+                    return player;
+                }
+            }
+            finally
+            {
+                foreach (var player in players)
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+                players.Clear();
+                players.AddRange(before);
+                Object.DestroyImmediate(stackRoot);
+                current.SetValue(null, previous);
+                PiggybackSystem.Suppressed = suppressed;
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
 
         [Test]
         public void StartCampaignAudit_OfficialBuildUsesTheLobbyAndTheActualPerformanceAndEscapeScenes()

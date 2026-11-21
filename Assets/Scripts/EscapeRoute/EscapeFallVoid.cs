@@ -18,6 +18,14 @@ namespace CurtainCall.EscapeRoute
         [Tooltip("심부 구조물에 내려앉아 진행이 끊기는 높이. 공중에서는 기본 낙사선만 적용합니다.")]
         [SerializeField] float strandedLandingHeight = -30;
         readonly Dictionary<ulong, (Vector3 Feet, double Since)> settledFeet = new();
+        static readonly HashSet<EscapeFallVoid> active = new();
+
+        internal static bool IsStrandedGround(Scene scene, Vector3 feet)
+        {
+            foreach (var volume in active)
+                if (volume.gameObject.scene == scene && volume.ContainsStrandedLanding(feet)) return true;
+            return false;
+        }
 
         public bool Contains(Vector3 feet) => ContainsAtHeight(feet, fallHeight);
         internal bool ContainsStrandedLanding(Vector3 feet) => ContainsAtHeight(feet, strandedLandingHeight);
@@ -50,7 +58,13 @@ namespace CurtainCall.EscapeRoute
                 }
         }
 
-        void OnDisable() => settledFeet.Clear();
+        void OnEnable() => active.Add(this);
+
+        void OnDisable()
+        {
+            active.Remove(this);
+            settledFeet.Clear();
+        }
 
         internal bool IsSettled(ulong actor, Vector3 feet, double now)
         {

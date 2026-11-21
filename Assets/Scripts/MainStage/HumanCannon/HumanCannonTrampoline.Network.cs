@@ -15,7 +15,7 @@ namespace CurtainCall.HumanCannon
         const string StateMessage = "CurtainCall.Trampoline.State";
         const string BounceMessage = "CurtainCall.Trampoline.Bounce";
         const int RequestSize = 45;
-        const int StateSize = 40;
+        const int StateSize = 41;
         const int BounceSize = 37;
         bool hasOwnershipSnapshot;
         double nextOwnershipSync;
@@ -69,6 +69,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(Carrier);
             writer.WriteValueSafe(SharedPosition);
             writer.WriteValueSafe(transform.rotation);
+            writer.WriteValueSafe(!UsesCourseDropRecovery || dropping);
             messaging.SendNamedMessage(StateMessage, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -79,13 +80,30 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out ulong carrier);
             reader.ReadValueSafe(out Vector3 position);
             reader.ReadValueSafe(out Quaternion rotation);
+            reader.ReadValueSafe(out bool animateDrop);
             // A retried sync can repeat the same in-flight drop or carry state. Apply it only once.
             if (!Finite(position) || !Finite(rotation) || hasOwnershipSnapshot && revision <= ownership.Revision) return;
             if (!ownership.Receive(revision, carrier)) return;
             hasOwnershipSnapshot = true;
             localGrabPending = false;
             // 운반자가 공중에서 죽어 놓인 경우 순간이동 대신 바로 아래 지면까지 떨어뜨린다.
-            if (carrier == CannonSeatState.Nobody && TryStartRemoteDrop(position, rotation)) transform.rotation = rotation;
+            if (animateDrop && carrier == CannonSeatState.Nobody)
+            {
+                if (TryStartRemoteDrop(position, rotation)) transform.rotation = rotation;
+                else
+                {
+                    StopDrop();
+                    transform.SetPositionAndRotation(position, rotation);
+                    // Nearby clients may already be at the target or see different obstacles.
+                    // Keep the mechanism unavailable until the host confirms its final support.
+                    if (UsesCourseDropRecovery)
+                    {
+                        dropTarget = position;
+                        dropSpeed = 0f;
+                        dropping = true;
+                    }
+                }
+            }
             else
             {
                 StopDrop();

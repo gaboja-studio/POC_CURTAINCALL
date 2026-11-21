@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -129,6 +130,182 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 typeof(HumanCannonTrampoline).GetProperty("Current").SetValue(null, previousTrampoline);
                 if (actor != null) typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(actor, false);
                 Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase("solid", 0f)]
+        [TestCase("moved", -.3f)]
+        [TestCase("debris", 0f)]
+        [TestCase("stranded", 0f)]
+        public void OfficialPathAudit_DropRecoveryChoosesUsableGround(string blocker, float expectedHeight)
+        {
+            var previous = typeof(EscapeCampaignContent).GetProperty("Current").GetValue(null);
+            var root = new GameObject("Course drop recovery");
+            root.SetActive(false);
+            var supportRoot = new GameObject("Course support");
+            var obstacleRoot = new GameObject("Temporary ledge");
+            var voidRoot = new GameObject("Authored stranded volume");
+            var origin = new Vector3(18000, 1000, 18000);
+            EscapeFallVoid pit = null;
+            try
+            {
+                var course = root.AddComponent<EscapeCampaignContent>();
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, course);
+                var device = root.AddComponent<HumanCannonTrampoline>();
+                var floor = supportRoot.AddComponent<BoxCollider>();
+                float extraHeight = blocker == "debris" ? .8f : 0f;
+                floor.transform.position = origin + Vector3.up * (expectedHeight - .5f);
+                floor.size = new Vector3(8, 1, 8);
+                obstacleRoot.transform.position = origin + Vector3.up * (extraHeight - .1f);
+                if (blocker == "debris")
+                {
+                    var obstacle = obstacleRoot.AddComponent<BoxCollider>();
+                    obstacle.size = new Vector3(2, .2f, 2);
+                    obstacleRoot.AddComponent<EscapePursuerDebris>();
+                }
+                if (blocker == "stranded")
+                {
+                    pit = voidRoot.AddComponent<EscapeFallVoid>();
+                    Set(pit, "coordinateSpace", voidRoot.transform);
+                    voidRoot.transform.position = origin + Vector3.right * 6;
+                    Set(pit, "footprint", new Rect(-1, -1, 2, 2));
+                    Set(pit, "strandedLandingHeight", 1f);
+                    var lower = obstacleRoot.AddComponent<BoxCollider>();
+                    lower.size = Vector3.one;
+                    lower.transform.position = voidRoot.transform.position - Vector3.up * .5f;
+                    Call(pit, "OnEnable");
+                }
+                Physics.SyncTransforms();
+                object[] args = { origin + Vector3.up * 1.1f, Vector3.zero, true };
+                Assert.That(Call(device, "TryFindGround", args), Is.True);
+                Assert.That(((Vector3)args[1]).y, Is.EqualTo(origin.y + expectedHeight).Within(.02f));
+                if (pit != null)
+                {
+                    args[0] = voidRoot.transform.position + Vector3.up * 1.1f;
+                    Assert.That(Call(device, "TryFindGround", args), Is.False, "A cannot return the player to a fatal ledge for their gear.");
+                }
+            }
+            finally
+            {
+                if (pit != null) Call(pit, "OnDisable");
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(supportRoot);
+                Object.DestroyImmediate(obstacleRoot);
+                Object.DestroyImmediate(voidRoot);
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, previous);
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void OfficialPathAudit_TheHostFinalPoseControlsPickupAfterDrop(bool samePosition)
+        {
+            var previous = typeof(EscapeCampaignContent).GetProperty("Current").GetValue(null);
+            var root = new GameObject("Route client drop");
+            root.SetActive(false);
+            try
+            {
+                var course = root.AddComponent<EscapeCampaignContent>();
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, course);
+                var device = root.AddComponent<HumanCannonTrampoline>();
+                var landing = new Vector3(18000, 1000, 18000);
+                root.transform.position = samePosition ? landing : landing + Vector3.right * 12;
+                ReceiveDrop(1, landing, true);
+                Assert.That(Get(device, "dropping"), Is.True);
+                var finalPose = landing + Vector3.forward;
+                ReceiveDrop(2, finalPose, false);
+                Assert.That(Get(device, "dropping"), Is.False);
+                Assert.That(root.transform.position, Is.EqualTo(finalPose));
+                ReceiveDrop(1, landing, true);
+                Assert.That(root.transform.position, Is.EqualTo(finalPose));
+
+                void ReceiveDrop(uint revision, Vector3 point, bool animate)
+                {
+                    using var writer = new FastBufferWriter(41, Allocator.Temp);
+                    writer.WriteValueSafe(revision);
+                    writer.WriteValueSafe(CannonSeatState.Nobody);
+                    writer.WriteValueSafe(point);
+                    writer.WriteValueSafe(Quaternion.identity);
+                    writer.WriteValueSafe(animate);
+                    using var reader = new FastBufferReader(writer, Allocator.Temp);
+                    Call(device, "HandleStateMessage", NetworkManager.ServerClientId, reader);
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, previous);
+            }
+        }
+
+        [TestCase("target-obstructed")]
+        [TestCase("target-removed")]
+        [TestCase("target-lowered")]
+        [TestCase("target-still-supported")]
+        public void OfficialPathAudit_AnApprovedDropResolvesAgainstTheFinalFloor(string change)
+        {
+            var previous = typeof(EscapeCampaignContent).GetProperty("Current").GetValue(null);
+            var root = new GameObject("Host course drop");
+            root.SetActive(false);
+            var landingFloor = new GameObject("Landing");
+            var fallbackFloor = new GameObject("Initial placement");
+            var blocker = new GameObject("Entered after approval");
+            var position = new Vector3(18000, 1000, 18000);
+            var home = position + Vector3.right * 15;
+            try
+            {
+                var course = root.AddComponent<EscapeCampaignContent>();
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, course);
+                var session = root.AddComponent<NetworkSessionManager>();
+                Set(session, "_networkManager", root.GetComponent<NetworkManager>());
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(session, SessionConnectionState.Host);
+                var device = root.AddComponent<HumanCannonTrampoline>();
+                Set(device, "session", session);
+                Set(device, "initialPosition", home);
+                Set(device, "initialRotation", Quaternion.identity);
+                AddSupport(landingFloor, position);
+                AddSupport(fallbackFloor, home);
+                root.AddComponent<BoxCollider>();
+                root.SetActive(true);
+                Call(device, "RefreshCarryBody", new object[] { null });
+                root.transform.position = position + Vector3.up;
+                Call(device, "StartDrop", position);
+                if (change == "target-obstructed")
+                {
+                    var ceiling = blocker.AddComponent<BoxCollider>();
+                    blocker.transform.position = position + Vector3.up * .5f;
+                    ceiling.size = new Vector3(8, .98f, 8);
+                }
+                if (change == "target-removed") landingFloor.SetActive(false);
+                if (change == "target-lowered") landingFloor.transform.position -= Vector3.up * .3f;
+                root.transform.position = position;
+                Physics.SyncTransforms();
+                if (change == "target-obstructed")
+                    Assert.That(Call(device, "CanSettleAt", position, Quaternion.identity, null), Is.False);
+                Call(device, "CompleteCourseDrop", Quaternion.identity);
+                Assert.That(Get(device, "dropping"), Is.False);
+                var expected = change switch
+                {
+                    "target-still-supported" => position,
+                    "target-lowered" => position - Vector3.up * .3f,
+                    _ => home
+                };
+                Assert.That(Vector3.Distance(root.transform.position, expected), Is.LessThan(.02f),
+                    $"Expected {expected}, got {root.transform.position}.");
+
+                void AddSupport(GameObject node, Vector3 top)
+                {
+                    node.transform.position = top - Vector3.up * .5f;
+                    node.AddComponent<BoxCollider>().size = new Vector3(8, 1, 8);
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(landingFloor);
+                Object.DestroyImmediate(fallbackFloor);
+                Object.DestroyImmediate(blocker);
+                typeof(EscapeCampaignContent).GetProperty("Current").SetValue(null, previous);
             }
         }
 

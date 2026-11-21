@@ -58,6 +58,7 @@ namespace CurtainCall.EscapeRoute
         public static bool IsTraversalActive => Current != null && Current.isActiveAndEnabled
             && Current.IsActive && Current.gameObject.scene == SceneManager.GetActiveScene();
         readonly HashSet<ulong> arrived = new();
+        readonly HashSet<ulong> arrivalCandidates = new();
         readonly List<ulong> directParticipants = new();
         CampaignRun run;
         int generation;
@@ -342,6 +343,17 @@ namespace CurtainCall.EscapeRoute
                 if (directParticipants.Count == 0) return;
                 participants = directParticipants;
             }
+            // Resolve the whole stack before any arriving carrier changes state and dismounts its riders.
+            arrivalCandidates.Clear();
+            if (ExitOpen)
+                foreach (ulong id in participants)
+                {
+                    if (arrived.Contains(id) || IsCampaign && !transfer.IsParticipantConnected(id)) continue;
+                    var player = EscapeSceneTransfer.FindSpawnedParticipant(id);
+                    if (player == null || player.State != PlayerState.Normal || player.Slot == NetworkPlayer.NoSlot
+                        || player.IsApplyingInitialCondition) continue;
+                    if (IsAtArrival(player)) arrivalCandidates.Add(id);
+                }
             int pending = 0;
             foreach (ulong id in participants)
             {
@@ -363,7 +375,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 if (player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
                 if (player.State == PlayerState.Arrived) { arrived.Add(id); continue; }
-                if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.LatestOwnerPosition))
+                if (player.State == PlayerState.Normal && arrivalCandidates.Contains(id))
                 {
                     arrived.Add(id);
                     // 도착자는 갈대밭 엔딩에서 빈손으로 달린다. 마지막 도착은 같은 프레임에 성공 엔딩(EndGame)이 되어
@@ -385,6 +397,16 @@ namespace CurtainCall.EscapeRoute
             }
             if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
             reported = run.EndEscape(arrived.Count > 0);
+        }
+
+        bool IsAtArrival(NetworkPlayer player)
+        {
+            if (EscapeEntrance.Contains(arrivalArea, player.LatestOwnerPosition)) return true;
+            var stack = PiggybackSystem.Current;
+            var carrier = stack != null && stack.GetSupportingPlayer(player) != null ? stack.GetCarrier(player) : null;
+            return carrier != null && carrier.IsSpawned && carrier.State == PlayerState.Normal
+                && CanUseRouteDevice(gameObject.scene, carrier.OwnerClientId)
+                && EscapeEntrance.Contains(arrivalArea, carrier.LatestOwnerPosition);
         }
 
         void LateUpdate()

@@ -24,6 +24,7 @@ namespace CurtainCall.HumanCannon
         bool dropping;
         Vector3 dropTarget;
         float dropSpeed;
+        double nextDropRecovery;
 
         /// <summary>호스트가 공유하는 위치. 떨어지는 중이면 도착할 지면 위치를 보낸다.</summary>
         Vector3 SharedPosition => dropping ? dropTarget : transform.position;
@@ -37,7 +38,7 @@ namespace CurtainCall.HumanCannon
             foreach (var candidate in NetworkPlayer.All)
             {
                 if (candidate == null || !candidate.IsSpawned || candidate.State != PlayerState.Normal) continue;
-                Vector3 feet = candidate.transform.position;
+                Vector3 feet = candidate.LatestOwnerPosition;
                 if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) continue;
                 float distance = new Vector2(feet.x - initialPosition.x, feet.z - initialPosition.z).sqrMagnitude;
                 if (distance >= nearest || !TryFindGroundNearSurvivor(candidate, feet, out var placement)) continue;
@@ -52,7 +53,7 @@ namespace CurtainCall.HumanCannon
             var cannon = HumanCannonSystem.Current;
             bool seated = cannon != null && cannon.IsSeated(survivor.OwnerClientId);
             if (!seated && TryFindRecoveryPlacement(position, survivor, out ground)) return true;
-            Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up);
+            Vector3 forward = Vector3.ProjectOnPlane(survivor.LatestOwnerRotation * Vector3.forward, Vector3.up);
             if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
             // 생존자의 2m, 4m 뒤에서 트램펄린을 놓을 수 있는 지면을 찾는다.
             Vector3 behind = position;
@@ -70,8 +71,17 @@ namespace CurtainCall.HumanCannon
                 && position.y - ground.y <= GameSettings.Trampoline.GrabDistance
                 && IsStableRecoveryGround(ground);
 
-        static bool IsStableRecoveryGround(Vector3 ground) =>
-            HumanCannonRouteSystem.Current?.BlocksTrampolineAtTransport(ground, recovering: true) != true;
+        bool UsesCourseDropRecovery => EscapeCampaignContent.Current?.gameObject.scene == gameObject.scene
+            || HumanCannonRouteSystem.Current?.gameObject.scene == gameObject.scene && !IsWaitingRoom(gameObject.scene.name);
+
+        bool IsStableRecoveryGround(Vector3 ground)
+        {
+            var route = HumanCannonRouteSystem.Current;
+            bool traversal = UsesCourseDropRecovery;
+            return (route == null || traversal && route.gameObject.scene != gameObject.scene
+                    || !route.BlocksTrampolineAtTransport(ground, recovering: true))
+                && (!traversal || !EscapeFallVoid.IsStrandedGround(gameObject.scene, ground));
+        }
 
         internal static bool IsPursuerCollider(Collider collider) => collider.GetComponentInParent<PursuitActor>() != null
             || collider.GetComponentInParent<EscapeUnderstageChase>() != null;
@@ -81,15 +91,15 @@ namespace CurtainCall.HumanCannon
         {
             ground = from;
             Vector3 origin = from + Vector3.up * DropMinHeight;
-            float distance = HumanCannonRouteSystem.Current != null
-                ? Mathf.Max(0f, origin.y - HumanCannonRouteSystem.Current.FallHeight) : DropProbeDistance;
+            var route = HumanCannonRouteSystem.Current;
+            bool traversal = UsesCourseDropRecovery;
+            float distance = route != null && (!traversal || route.gameObject.scene == gameObject.scene)
+                ? Mathf.Max(0f, origin.y - route.FallHeight) : DropProbeDistance;
             int count = Physics.RaycastNonAlloc(origin, Vector3.down, dropHits, distance,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             var hits = count == dropHits.Length
                 ? Physics.RaycastAll(origin, Vector3.down, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) : dropHits;
             if (hits != dropHits) count = hits.Length;
-            bool traversal = EscapeCampaignContent.Current?.gameObject.scene == gameObject.scene
-                || HumanCannonRouteSystem.Current?.gameObject.scene == gameObject.scene && !IsWaitingRoom(gameObject.scene.name);
             float nearest = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
@@ -98,8 +108,10 @@ namespace CurtainCall.HumanCannon
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null
                     || DismemberedLimb.Contains(hit.collider) || IsPursuerCollider(hit.collider)) continue;
                 if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
-                if (traversal && hit.collider.gameObject.scene != gameObject.scene) continue;
-                if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
+                if (traversal && (hit.collider.gameObject.scene != gameObject.scene
+                    || hit.collider.GetComponentInParent<EscapePursuerDebris>() != null)) continue;
+                if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)
+                    || traversal && EscapeFallVoid.IsStrandedGround(gameObject.scene, hit.point)) continue;
                 nearest = hit.distance;
                 ground = hit.point;
             }
@@ -114,15 +126,16 @@ namespace CurtainCall.HumanCannon
                 && HumanCannonCarry.CanMoveFromPose(transform, carryBody, from, ground, rotation, carrier);
 
         bool TryDropHere(NetworkPlayer carrier, out Vector3 ground)
-            => TryFindDropPath(transform.position, transform.rotation, carrier, out ground);
+            => TryFindDropPath(transform.position, transform.rotation, carrier, out ground, avoidRope: UsesCourseDropRecovery);
 
         bool TryManualDrop(Vector3 position, Quaternion rotation, NetworkPlayer player, out Vector3 ground, out Vector3 origin)
         {
             origin = position;
-            if (TryFindDropPath(position, rotation, player, out ground)) return true;
+            bool avoidRope = UsesCourseDropRecovery;
+            if (TryFindDropPath(position, rotation, player, out ground, avoidRope)) return true;
             bool side = IsWaitingRoom(gameObject.scene.name)
                 ? TryFindWaitingRoomDrop(position, rotation, player, out ground)
-                : TryFindNearbySidePlacement(position, rotation, player, out ground, false, UsesTraversalCarryClearance(gameObject.scene.name));
+                : TryFindNearbySidePlacement(position, rotation, player, out ground, avoidRope, UsesTraversalCarryClearance(gameObject.scene.name));
             if (side) origin = new Vector3(ground.x, position.y, ground.z);
             return side;
         }
@@ -210,8 +223,13 @@ namespace CurtainCall.HumanCannon
         bool TryRestoreInitialPlacement(NetworkPlayer carrier, out Vector3 ground, bool avoidRope = false)
         {
             ground = initialPosition;
-            return CanSettleAt(initialPosition, initialRotation, carrier)
-                || TryFindNearbyPlacement(initialPosition, initialRotation, carrier, out ground, avoidRope);
+            if (!UsesCourseDropRecovery)
+                return CanSettleAt(initialPosition, initialRotation, carrier)
+                    || TryFindNearbyPlacement(initialPosition, initialRotation, carrier, out ground, avoidRope);
+            bool SafeAt(Vector3 point) => initialPosition.y - point.y <= GameSettings.Trampoline.GrabDistance
+                && IsStableRecoveryGround(point);
+            return TryFindPlacement(initialPosition, initialRotation, carrier, out ground, avoidRope: true) && SafeAt(ground)
+                || TryFindNearbySidePlacement(initialPosition, initialRotation, carrier, out ground, avoidRope: true) && SafeAt(ground);
         }
 
         bool TryFindNearbySidePlacement(Vector3 position, Quaternion rotation, NetworkPlayer carrier, out Vector3 ground, bool avoidRope, bool fullWidth = false)
@@ -285,6 +303,7 @@ namespace CurtainCall.HumanCannon
             transform.position = new Vector3(target.x, position.y, target.z);
             dropTarget = target;
             dropSpeed = 0f;
+            nextDropRecovery = 0d;
             dropping = true;
         }
 
@@ -302,6 +321,30 @@ namespace CurtainCall.HumanCannon
             return true;
         }
 
+        void CompleteCourseDrop(Quaternion rotation)
+        {
+            bool host = session != null && session.IsHost;
+            // Clients wait for the supported final pose, even when their local collision differs.
+            if (!host || Time.unscaledTimeAsDouble < nextDropRecovery) return;
+            nextDropRecovery = Time.unscaledTimeAsDouble + .15d;
+            if (!TryFindPlacement(dropTarget, rotation, null, out var ground, avoidRope: true)
+                || dropTarget.y - ground.y > GameSettings.Trampoline.GrabDistance || !IsStableRecoveryGround(ground))
+            {
+                if (!TryFindNearbySidePlacement(dropTarget, rotation, null, out ground, avoidRope: true)
+                    || !IsStableRecoveryGround(ground))
+                {
+                    if (!TryFindSurvivorGround(out ground)
+                        && !TryRestoreInitialPlacement(null, out ground, avoidRope: true)) return;
+                    rotation = initialRotation;
+                }
+            }
+            transform.SetPositionAndRotation(ground, rotation);
+            StopDrop();
+            RefreshCarryBody(null);
+            ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+            PublishOwnership();
+        }
+
         void TickDrop()
         {
             if (!dropping) return;
@@ -313,6 +356,12 @@ namespace CurtainCall.HumanCannon
             {
                 // A player or pursuer may have entered the landing space after the host approved the drop.
                 var rotation = transform.rotation;
+                if (UsesCourseDropRecovery)
+                {
+                    CompleteCourseDrop(rotation);
+                    ResetPreviousPose();
+                    return;
+                }
                 if (CanSettleAt(dropTarget, rotation, null))
                     dropping = false;
                 else if (session != null && session.IsHost && TryFindNearbyPlacement(dropTarget, rotation, null, out var ground))
