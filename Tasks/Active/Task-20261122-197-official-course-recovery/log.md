@@ -8,3 +8,5 @@
 - 비공개 에셋 HEAD 불일치와 기존 과거 Task ID 중복은 유지했다.
 - 신규 EditMode 5/5 및 Unity 컴파일 통과(.harness/local/official-course-progress.xml). 실제 인간대포 씬의 쉼터 승강기로 참가자의 최신 탑승·하차 (2건), 외줄 목마 관문에서 늦은 원격 모델 (1건), 탈출로 A 하부 작업 구역과 동일한 조건에서 발판 모서리의 실물·트리거 구분 (2건)을 확인했다.
 - check-work 정적 안전성·문서/규칙 검사와 git diff --check 통과. 실제 실시간 다중 클라이언트 플레이는 수행하지 않았다. 이번 후속 수정은 fix/official-course-recovery 로컬 작업으로 유지한다.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/480 (fix/official-course-recovery → dev)
