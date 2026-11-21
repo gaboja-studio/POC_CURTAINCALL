@@ -7,3 +7,6 @@
 - 실제 멀티플레이는 사용자가 확인한다.
 - 신규 TransitionAudit EditMode 12건 통과, 실패 0건. 결과 .harness/local/stunt-escape-transition-verified.xml. 이미 통과한 이전 검사 묶음은 재실행하지 않았다.
 - check-work의 변경 범위 및 문서·규칙 통과. 컴파일·테스트는 별도 EditMode를 사용해 check-work에서 생략했다. git diff --check 통과.
+
+- 2026-11-21 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/476 (fix/stunt-escape-transition-blockers → dev)
+- DEV 검토용 [PR #476](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/476)로 제출했다.
