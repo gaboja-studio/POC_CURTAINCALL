@@ -9,3 +9,5 @@
 - verify-scope·verify-fast·verify-knowledge 통과. check-work의 연결 에디터 단계는 이 작업 트리에 Pipeline이 열려 있지 않아 ENV_BLOCKED였으며 배치 Unity 실행에서 컴파일과 자동 검사를 완료했다. 실제 플레이는 실행하지 않았다.
 - 별도 제출 지시 전까지 fix/stunt-escape-progression-blockers 작업 트리에 유지한다.
 - 2026-11-21 제출 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(Unity 배치); 테스트=PASS(EditMode 263건)
+
+- 2026-11-21 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/472 (fix/stunt-escape-progression-blockers → dev)
