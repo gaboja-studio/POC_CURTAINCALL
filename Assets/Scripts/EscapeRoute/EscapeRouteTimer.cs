@@ -21,7 +21,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, HideInInspector] TimerDisplay display;
 
         public static EscapeRouteTimer Current { get; private set; }
-        public bool HasStarted => synchronized && !resetBarrier.Waiting && startedAt >= 0;
+        public bool HasStarted => synchronized && !resetBarrier.Waiting && startedAt >= 0
+            && (content == null || !content.IsCampaign || CampaignRun.Instance != null && generation == CurrentGeneration);
         public double StartedAt => startedAt;
         public double ElapsedSeconds => HasStarted ? ElapsedAt(Clock, startedAt) : 0;
         public BoxCollider StartArea => startArea;
@@ -52,12 +53,10 @@ namespace CurtainCall.EscapeRoute
 
         bool IsParticipant(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned) return false;
-            if (content == null || !content.IsCampaign) return true;
-            var transfer = EscapeSceneTransfer.Current;
-            if (transfer == null) return false;
-            foreach (var id in transfer.Participants) if (id == player.OwnerClientId) return true;
-            return false;
+            if (player == null || !player.IsSpawned || player.Slot == NetworkPlayer.NoSlot
+                || player.IsApplyingInitialCondition) return false;
+            return content == null || !content.IsCampaign
+                || EscapeSceneTransfer.Current?.CanParticipate(player.OwnerClientId) == true;
         }
 
         bool CanStart(NetworkPlayer player) => IsParticipant(player) && player.State == PlayerState.Normal

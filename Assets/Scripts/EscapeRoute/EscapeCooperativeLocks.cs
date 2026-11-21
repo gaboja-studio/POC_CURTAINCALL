@@ -210,21 +210,23 @@ namespace CurtainCall.EscapeRoute
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
                     || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))) return false;
-            Vector3 point = zone.transform.InverseTransformPoint(player.transform.position) - zone.center;
+            Vector3 feet = player.transform.position;
+            Vector3 point = zone.transform.InverseTransformPoint(feet) - zone.center;
             if (Mathf.Abs(point.x) > zone.size.x * .5f || Mathf.Abs(point.y) > zone.size.y * .5f
                 || Mathf.Abs(point.z) > zone.size.z * .5f) return false;
-            if (TightropeCourse.Current != null && TightropeCourse.Current.TryGetSupportingRopeAt(mover, player.transform.position, out _)) return true;
-            int hits = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .12f, Vector3.down,
+            if (TightropeCourse.Current != null && TightropeCourse.Current.TryGetSupportingRopeAt(mover, feet, out _)) return true;
+            int hits = Physics.RaycastNonAlloc(feet + Vector3.up * .12f, Vector3.down,
                 arrivalHits, .3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < hits; i++)
-            {
-                var support = arrivalHits[i];
-                if (support.normal.y > .5f && support.collider.gameObject.scene == gameObject.scene
-                    && support.collider.GetComponentInParent<NetworkPlayer>() == null
-                    && !CurtainCall.Damage.DismemberedLimb.Contains(support.collider)) return true;
-            }
-            return false;
+                if (arrivalHits[i].normal.y > .5f && IsArrivalSupport(arrivalHits[i].collider)) return true;
+
+            return WalkableSupport.TryGetSupport(mover, feet, out var edge)
+                && Mathf.Abs(feet.y - edge.point.y) <= .18f && IsArrivalSupport(edge.collider);
         }
+
+        bool IsArrivalSupport(Collider surface) => surface != null && surface.gameObject.scene == gameObject.scene
+            && surface.GetComponentInParent<NetworkPlayer>() == null
+            && !CurtainCall.Damage.DismemberedLimb.Contains(surface) && !surface.GetComponentInParent<EscapePursuerDebris>();
 
         void HostStep()
         {

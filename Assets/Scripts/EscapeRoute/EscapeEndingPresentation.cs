@@ -87,10 +87,18 @@ namespace CurtainCall.EscapeRoute
             if (endingCamera != null) endingCamera.enabled = true;
             InputGate.SetBlocking(this, true);
         }
+        bool CanPresent
+        {
+            get
+            {
+                var campaign = CampaignRun.Instance;
+                return content != null && content.IsActive && campaign != null && IsSuccessfulEnding(campaign.State);
+            }
+        }
+
         void LateUpdate()
         {
-            var campaign = CampaignRun.Instance;
-            if (content == null || !content.IsActive || campaign == null || !IsSuccessfulEnding(campaign.State))
+            if (!CanPresent)
             {
                 if (IsPresenting) ResetPresentation();
                 return;
@@ -127,10 +135,11 @@ namespace CurtainCall.EscapeRoute
 
         public IEnumerator HoldBeforeTransition()
         {
+            if (!isActiveAndEnabled || !CanPresent) yield break;
             BeginEnding();
-            // Host keeps the shared scene visible; each client renders its own ending on the same campaign state.
-            while (isActiveAndEnabled && !returnRequested
-                && CampaignRun.Instance != null && IsSuccessfulEnding(CampaignRun.Instance.State)) yield return null;
+            // Wait for confirmation only while the ending can still be displayed.
+            while (isActiveAndEnabled && CanPresent && !returnRequested) yield return null;
+            if (IsPresenting && !CanPresent) ResetPresentation();
         }
     }
 }

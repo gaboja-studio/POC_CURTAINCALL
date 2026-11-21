@@ -30,6 +30,125 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Set(object o, string field, object value) => o.GetType().GetField(field, F).SetValue(o, value);
         static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
 
+        [Test]
+        public void EndingAvailability_TransitionStopsWaitingWhenItsContentIsGone()
+        {
+            using var gate = new InputGateTestScope();
+            var root = new GameObject("Ending transition fixture");
+            var previous = CampaignRun.Instance;
+            try
+            {
+                var runObject = new GameObject("Campaign fixture");
+                runObject.SetActive(false);
+                runObject.transform.SetParent(root.transform, false);
+                var run = runObject.AddComponent<CampaignRun>();
+                var campaign = new RunState();
+                campaign.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                campaign.EndEscape(true);
+                Set(run, "state", campaign.Snapshot);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+
+                var geometry = new GameObject("Escape route");
+                geometry.transform.SetParent(root.transform, false);
+                var content = root.AddComponent<EscapeCampaignContent>();
+                Set(content, "content", geometry);
+                var ending = root.AddComponent<EscapeEndingPresentation>();
+                Set(ending, "content", content);
+                var transition = ending.HoldBeforeTransition();
+                Assert.That(transition.MoveNext(), Is.True);
+                geometry.SetActive(false);
+                Assert.That(transition.MoveNext(), Is.False);
+                Assert.That(InputGate.IsRequested, Is.False);
+            }
+            finally
+            {
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase("day")]
+        [TestCase("outcome")]
+        [TestCase("early")]
+        public void EndingAvailability_OnlyTheCurrentEndingCanFreezeTheGuestView(string mismatch)
+        {
+            WithEnding((results, run, state) =>
+            {
+                string packet = ResultPacket(state, true, includePerson: true);
+                if (mismatch == "day")
+                {
+                    var wrongDay = state;
+                    wrongDay.Day++;
+                    packet = ResultPacket(wrongDay, true, includePerson: true);
+                }
+                else if (mismatch == "outcome")
+                    packet = ResultPacket(state, false, includePerson: true);
+                else
+                {
+                    var playing = state;
+                    playing.Phase = CampaignPhase.Escape;
+                    Set(run, "state", playing);
+                }
+                Call(results, "Receive", packet);
+                Assert.That(results.HasSnapshot, Is.False);
+                Set(run, "state", state);
+                Call(results, "Receive", ResultPacket(state, true, includePerson: true));
+                Assert.That(results.HasSnapshot, Is.True);
+            });
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EndingAvailability_EmptyRosterStillOpensTheResultScreen(bool authority)
+        {
+            WithEnding((results, _, state) =>
+            {
+                Call(results, "Receive", ResultPacket(state, true, includePerson: false));
+                Assert.That(results.HasSnapshot, Is.True);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/EscapeResultsKit/EscapeResultsCanvas.prefab");
+                Set(results, "prefab", prefab);
+                results.Show(authority);
+                Assert.That(results.View, Is.Not.Null);
+                Assert.That(results.View.Visible, Is.True);
+                Assert.That(results.View.ReturnButton.interactable, Is.EqualTo(authority));
+            });
+        }
+
+        static string ResultPacket(CampaignSnapshot state, bool success, bool includePerson)
+        {
+            var type = typeof(EscapeEndingResults).GetNestedType("Snapshot", BindingFlags.NonPublic);
+            var packet = Activator.CreateInstance(type);
+            type.GetField("generation").SetValue(packet, state.Generation);
+            type.GetField("day").SetValue(packet, state.Day);
+            type.GetField("success").SetValue(packet, success);
+            var people = includePerson ? new[] { new EscapeEndingResults.Person { client = 71, slot = 0, escaped = success } }
+                : Array.Empty<EscapeEndingResults.Person>();
+            type.GetField("people").SetValue(packet, people);
+            return JsonUtility.ToJson(packet);
+        }
+
+        static void WithEnding(Action<EscapeEndingResults, CampaignRun, CampaignSnapshot> check)
+        {
+            var root = new GameObject("Results state fixture");
+            root.SetActive(false);
+            var previous = CampaignRun.Instance;
+            try
+            {
+                var campaign = new RunState();
+                campaign.DebugStartAt(new RunStartPoint(3, RunStartPhase.Escape, 0, CampaignSnapshot.TightropeId));
+                campaign.EndEscape(true);
+                var run = root.AddComponent<CampaignRun>();
+                Set(run, "state", campaign.Snapshot);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                check(root.AddComponent<EscapeEndingResults>(), run, campaign.Snapshot);
+            }
+            finally
+            {
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void EndingHandoff_ReleasesItsInputAndCameraBeforeSceneUnload(bool disconnect)

@@ -31,6 +31,65 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void TraversalAudit_AnUnassignedAvatarCannotStartTheClock()
+        {
+            var root = new GameObject("Clock start fixture");
+            root.SetActive(false);
+            try
+            {
+                var area = new GameObject("Entrance area");
+                area.transform.SetParent(root.transform, false);
+                var box = area.AddComponent<BoxCollider>();
+                box.size = Vector3.one * 4;
+                var timer = root.AddComponent(Timer);
+                Set(timer, "startArea", box);
+                var avatar = new GameObject("Avatar awaiting slot");
+                avatar.transform.SetParent(root.transform, false);
+                var player = avatar.AddComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                root.SetActive(true);
+                Set(player, "IsSpawned", true);
+                var slot = Get(player, "slot");
+                Set(slot, "m_InternalValue", -1);
+                Assert.That(Call(timer, "CanStart", player), Is.False);
+                Set(slot, "m_InternalValue", 0);
+                Assert.That(Call(timer, "CanStart", player), Is.True);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void TraversalAudit_AnOldEncounterCannotRunDuringTheNextCampaignGeneration()
+        {
+            var root = new GameObject("Encounter generation fixture");
+            root.SetActive(false);
+            const BindingFlags statics = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            var instance = T("CurtainCall.Campaign.CampaignRun").GetProperty("Instance", statics);
+            var previous = instance.GetValue(null);
+            try
+            {
+                var content = root.AddComponent(T("CurtainCall.EscapeRoute.EscapeCampaignContent"));
+                Set(content, "IsCampaign", true);
+                var run = root.AddComponent(instance.PropertyType);
+                var state = Get(run, "state");
+                Set(state, "Generation", 3);
+                Set(run, "state", state);
+                instance.SetValue(null, run);
+                var timer = root.AddComponent(Timer);
+                Set(timer, "content", content);
+                Assert.That(Apply(timer, 4, 0, 2, 100), Is.True);
+                Assert.That(Get(timer, "HasStarted"), Is.False);
+                Assert.That(Get(timer, "ElapsedSeconds"), Is.EqualTo(0d));
+                Assert.That(Apply(timer, 5, 0, 3, 200), Is.True);
+                Assert.That(Get(timer, "HasStarted"), Is.True);
+            }
+            finally
+            {
+                instance.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void LateClientKeepsTheSameEncounterEpochWithDuplicateOrOlderSnapshot()
         {
             var go=new GameObject("Offline timer snapshot fixture");go.SetActive(false);
@@ -116,6 +175,7 @@ namespace CurtainCall.EscapeRoute.Tests
                 var area=volume.AddComponent<BoxCollider>();area.isTrigger=true;area.size=Vector3.one*4;
                 Set(timer,"startArea",area);
                 player=actor.AddComponent(playerType);Set(player,"IsSpawned",true);Set(player,"OwnerClientId",69UL);
+                Set(Get(player,"slot"),"m_InternalValue",0);
                 Set(Get(player,"state"),"m_InternalValue",Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"),"Normal"));
                 players.Add(player);
                 Assert.That(Apply(timer,1,0,0,-1),Is.True);
@@ -165,6 +225,7 @@ namespace CurtainCall.EscapeRoute.Tests
                 Set(timer,"startArea",box);root.SetActive(true);
                 player=actor.AddComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
                 Set(player,"IsSpawned",true);Set(player,"OwnerClientId",69UL);Set(player,"IsOwner",false);
+                Set(Get(player,"slot"),"m_InternalValue",0);
                 actor.transform.position=root.transform.TransformPoint(new Vector3(-.5f,0,11));actor.SetActive(true);
                 Assert.That(Call(timer,"CanStart",player),Is.False,"Stairs and approach corridor must not start the clock.");
                 actor.transform.position=root.transform.TransformPoint(new Vector3(1,0,11));

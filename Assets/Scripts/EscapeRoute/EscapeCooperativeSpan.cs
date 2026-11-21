@@ -50,7 +50,7 @@ namespace CurtainCall.EscapeRoute
             deployed = value; transitionAmount = atSnapshot; transitionAt = snapshotTime;
             amount = AmountAt(Clock); PresentState(wasDeploying);
         }
-        void OnEnable() { amount = transitionAmount = 0; transitionAt = Clock; PresentState(false); }
+        void OnEnable() { amount = AmountAt(Clock); PresentState(false); }
         void OnDisable() => driveSound.Stop();
         void Update()
         {
