@@ -124,7 +124,7 @@ namespace CurtainCall.EscapeRoute
         {
             SynchronizeRound();
             if (safe && cannon && station >= 0 && station < cannon.StationCount && IsFirstCannon(cannon.Station(station))
-                && firstWire && firstWire.SupportsLanding(position)) departed.Add(actor);
+                && firstWire && firstWire.SupportsPlayerContact(EscapeSceneTransfer.FindSpawnedParticipant(actor), position)) departed.Add(actor);
         }
         bool IsFirstCannon(HumanCannonStation station)
         {

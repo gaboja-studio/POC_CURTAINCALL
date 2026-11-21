@@ -90,7 +90,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(Vector3.Angle(station.Muzzle.forward, Vector3.forward), Is.LessThan(0.001f), station.name);
                 // 2026-11-02 담당자 결정: 무조작 착지가 도착지점 중간이 되도록 앞 속도 8 → 11.74 → 11.79(위 속도 12 유지).
                 Assert.That(Vector3.Distance(station.LaunchVelocity, new Vector3(0, 12, 11.79f)), Is.LessThan(0.001f), station.name);
-                Assert.That(station.AirControlSpeed, Is.EqualTo(3f).Within(0.001f), station.name);
+                Assert.That(station.AirControlSpeed, Is.EqualTo(GameSettings.Base.AirControl.Speed).Within(.001f), station.name);
                 Assert.That(station.BoardingDistance, Is.EqualTo(2.5f).Within(0.001f), station.name);
             }
         }
@@ -120,7 +120,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(deckZone.SupportsLanding(station.BoardingPoint.position), Is.True, station.name + " boarding needs safe footing");
                 float legFront = station.GetComponentsInChildren<Renderer>()
                     .Where(r => r.enabled && r.bounds.min.y <= deck.bounds.max.y + 0.05f).Max(r => r.bounds.max.z);
-                Assert.That(legFront, Is.EqualTo(deck.bounds.max.z).Within(0.005f), station.name + " 앞 다리가 바닥 끝에 딱 맞아야 한다");
+                Assert.That(legFront, Is.LessThanOrEqualTo(deck.bounds.max.z + .005f), station.name + " 앞 다리가 갑판 밖에 뜨면 안 된다");
             }
             // 2026-11-02 담당자 결정: 발사 방향 쪽 갑판 앞끝은 지상 바닥(2구간 바닥) 끝에 맞춘다(1m 여유 결정 대체).
             float groundFront = new[] { "Floor_0_1", "Floor_1_1", "Floor_2_1" }

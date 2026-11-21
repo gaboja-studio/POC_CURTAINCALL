@@ -81,10 +81,12 @@ namespace CurtainCall.EscapeRoute
         internal static bool HasArrivalFloor(Scene destination, Vector3 feet)
         {
             Physics.SyncTransforms();
-            foreach (var hit in Physics.RaycastAll(feet + Vector3.up * .15f, Vector3.down, 5f,
+            foreach (var hit in Physics.RaycastAll(feet + Vector3.up * .15f, Vector3.down, .45f,
                          Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 if (hit.collider.gameObject.scene == destination && hit.normal.y >= .7f
-                    && hit.collider.GetComponentInParent<NetworkPlayer>() == null) return true;
+                    && WalkableSupport.IsSupportCollider(hit.collider, null)
+                    && hit.collider.GetComponentInParent<EscapePursuerDebris>() == null
+                    && !Tightrope.TightropeCourse.IsRopeSurface(hit.collider)) return true;
             return false;
         }
     }

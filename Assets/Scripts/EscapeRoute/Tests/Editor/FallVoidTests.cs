@@ -34,6 +34,13 @@ namespace CurtainCall.EscapeRoute.Tests
                 Assert.IsFalse(Supported(), "A late-loading collider keeps the owner waiting.");
                 box.enabled = true;
                 Assert.IsTrue(Supported());
+
+                floor.transform.position = feet - Vector3.up * 3f;
+                Assert.IsFalse(Supported(), "The bottom of a shaft several metres beneath the spawn cannot release placement.");
+                floor.transform.position = feet - Vector3.up * .55f;
+                floor.AddComponent(AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(a => a.GetType("CurtainCall.Damage.DismemberedLimb")).First(t => t != null));
+                Assert.IsFalse(Supported(), "Dislodged limbs cannot act as a spawn floor.");
             }
             finally
             {
@@ -82,6 +89,18 @@ namespace CurtainCall.EscapeRoute.Tests
                 Assert.That(Fatal(), Is.False, "Crossing the higher limit in flight is permitted.");
                 SetJump("None");
                 Assert.That(Fatal(), Is.True, "Standing on the deep ledge cannot strand a player.");
+                var other = EditorSceneManager.NewPreviewScene();
+                try
+                {
+                    var secondaryRoot = new GameObject("Region in another scene");
+                    SceneManager.MoveGameObjectToScene(secondaryRoot, other);
+                    var isolatedRegion = secondaryRoot.AddComponent(voidType);
+                    voidType.GetField("coordinateSpace", privateMembers).SetValue(isolatedRegion, frame.transform);
+                    voidType.GetField("strandedLandingHeight", privateMembers).SetValue(isolatedRegion, -24.6f);
+                    Assert.That(check.Invoke(isolatedRegion, new object[] { player }), Is.False,
+                        "The same physical slab belongs to another scene from this region's perspective.");
+                }
+                finally { EditorSceneManager.ClosePreviewScene(other); }
                 tile.enabled = false;
                 Physics.SyncTransforms();
                 Assert.That(Fatal(), Is.False, "There is no landing without a physical support.");
@@ -94,6 +113,24 @@ namespace CurtainCall.EscapeRoute.Tests
                 Object.DestroyImmediate(actor);
                 Object.DestroyImmediate(frame);
             }
+        }
+
+        [Test]
+        public void DeepLedgeContactRequiresAStationarySampleEvenWhenAirborneStateLags()
+        {
+            var root = new GameObject("Deep ledge sample");
+            try
+            {
+                var type = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.EscapeRoute.EscapeFallVoid")).First(t => t != null);
+                var region = root.AddComponent(type);
+                var check = type.GetMethod("IsSettled", BindingFlags.Instance | BindingFlags.NonPublic);
+                bool Settled(Vector3 feet, double clock) => (bool)check.Invoke(region, new object[] { 41UL, feet, clock });
+                Assert.IsFalse(Settled(Vector3.zero, 1d));
+                Assert.IsFalse(Settled(Vector3.down * .07f, 1.4d));
+                Assert.IsFalse(Settled(Vector3.down * .07f, 1.6d));
+                Assert.IsTrue(Settled(Vector3.down * .07f, 1.8d));
+            }
+            finally { Object.DestroyImmediate(root); }
         }
 
         [TestCase(67, -18.5f, -17, false)] // 그네 탑승 높이

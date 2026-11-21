@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.HumanCannon;
@@ -16,6 +17,7 @@ namespace CurtainCall.EscapeRoute
         [Tooltip("시설을 통째 배치했을 때 원본 좌표계. 비어 있으면 기존 월드 좌표."), SerializeField] Transform coordinateSpace;
         [Tooltip("심부 구조물에 내려앉아 진행이 끊기는 높이. 공중에서는 기본 낙사선만 적용합니다.")]
         [SerializeField] float strandedLandingHeight = -30;
+        readonly Dictionary<ulong, (Vector3 Feet, double Since)> settledFeet = new();
 
         public bool Contains(Vector3 feet) => ContainsAtHeight(feet, fallHeight);
         internal bool ContainsStrandedLanding(Vector3 feet) => ContainsAtHeight(feet, strandedLandingHeight);
@@ -33,27 +35,55 @@ namespace CurtainCall.EscapeRoute
             var session = NetworkSessionManager.Instance;
             if (session == null || !session.IsHost || session.GameState != GameSessionState.Playing
                 || !EscapeCampaignContent.IsTraversalActive || gameObject.scene != SceneManager.GetActiveScene()
-                || EscapeDevelopmentSession.AwaitingEntrance || EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return;
+                || EscapeDevelopmentSession.AwaitingEntrance || EscapeDevelopmentSession.FallConsequencesSuppressed(this))
+            {
+                settledFeet.Clear();
+                return;
+            }
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Normal
                     && player.Slot != NetworkPlayer.NoSlot && !player.IsApplyingInitialCondition
                     && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
                     && IsFatalPosition(player))
-                    player.ServerKill(NetworkPlayer.DeathOrigin.MapExit);
+                {
+                    if (player.ServerKill(NetworkPlayer.DeathOrigin.MapExit)) settledFeet.Remove(player.OwnerClientId);
+                }
+        }
+
+        void OnDisable() => settledFeet.Clear();
+
+        internal bool IsSettled(ulong actor, Vector3 feet, double now)
+        {
+            if (settledFeet.TryGetValue(actor, out var sample) && (feet - sample.Feet).sqrMagnitude <= .0025f)
+                return now - sample.Since >= .35d;
+            settledFeet[actor] = (feet, now);
+            return false;
         }
 
         bool IsFatalPosition(NetworkPlayer player)
         {
             Vector3 feet = player.LatestOwnerPosition;
             if (Contains(feet)) return true;
-            if (!ContainsStrandedLanding(feet) || player.IsAirborne || player.IsBeingRescued
+            if (!ContainsStrandedLanding(feet) || player.IsBeingRescued
                 || HumanCannonSystem.Current?.IsFlying(player.OwnerClientId) == true
                 || HumanCannonPoleSystem.Current?.HeldBy(player.OwnerClientId) >= 0
                 || TightropeHangSystem.Current?.IsHanging(player) == true
-                || PiggybackSystem.Current?.GetSupportingPlayer(player) != null) return false;
-            return player.TryGetComponent<PlayerMover>(out var mover)
-                && WalkableSupport.TryGetSupport(mover, feet, out var support)
-                && ContainsStrandedLanding(support.point);
+                || PiggybackSystem.Current?.GetSupportingPlayer(player) != null
+                || HumanCannonRouteSystem.Current?.IsRiding(player.OwnerClientId) == true
+                || !player.TryGetComponent<PlayerMover>(out var mover)
+                || !WalkableSupport.TryGetSupport(mover, feet, gameObject.scene, out var support)
+                || !ContainsStrandedLanding(support.point))
+            {
+                settledFeet.Remove(player.OwnerClientId);
+                return false;
+            }
+            if (!player.IsAirborne) return true;
+            // A guest can still be marked airborne after stopping on a deep concrete lip.
+            // Corroborate the real near-foot contact over several samples before adjudicating it.
+            if (feet.y - support.point.y <= .08f)
+                return IsSettled(player.OwnerClientId, feet, Time.unscaledTimeAsDouble);
+            settledFeet.Remove(player.OwnerClientId);
+            return false;
         }
 
         void OnDrawGizmosSelected()

@@ -74,6 +74,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Set(fire, "speed", 2f);
             Set(fire, "halfWidth", 3f);
             Set(fire, "height", 10f);
+            // Position and fire gates are intentionally unavailable when disabled.
+            // Keep the singleton out of this fixture while giving the tested devices real availability.
+            trampoline.gameObject.SetActive(false);
+            root.SetActive(true);
         }
 
         [TearDown]
@@ -131,6 +135,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void MovingLiftSynchronizesDeckBeforeCarryAndCameraQueries()
         {
             var route = Child("Moving route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            route.gameObject.SetActive(false);
             var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
             var previous = current.GetValue(null);
             try
@@ -138,6 +143,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.IsFalse(Physics.autoSyncTransforms, "This regression covers the project's manual transform synchronization.");
                 current.SetValue(null, null);
                 route.ConfigurePractice(transport, -10f);
+                route.gameObject.SetActive(true);
                 typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
                 platform.SetParent(null); platform.gameObject.SetActive(true);
                 var deck = platform.gameObject.AddComponent<BoxCollider>();
@@ -180,6 +186,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var previousRoute = routeCurrent.GetValue(null);
             bool previousSuppressed = PiggybackSystem.Suppressed;
             var route = Child("Route").gameObject.AddComponent<HumanCannonRouteSystem>();
+            route.gameObject.SetActive(false);
             var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
             try
             {
@@ -188,6 +195,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 routeCurrent.SetValue(null, null);
                 PiggybackSystem.Suppressed = false;
                 route.ConfigurePractice(transport, -10);
+                route.gameObject.SetActive(true);
                 typeof(HumanCannonRouteSystem).GetMethod("OnEnable", PrivateInstance).Invoke(route, null);
                 var below = (Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", PrivateInstance).GetValue(stack);
                 for (int i = 0; i < crew; i++)

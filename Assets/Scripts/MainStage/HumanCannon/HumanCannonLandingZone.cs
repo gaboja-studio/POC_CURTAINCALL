@@ -38,9 +38,23 @@ namespace CurtainCall.HumanCannon
             return support != null && !support.IsAirborne
                 && !cannon.IsFlying(support.OwnerClientId) && !cannon.IsSeated(support.OwnerClientId)
                 && support.TryGetComponent<PlayerMover>(out var mover)
-                && WalkableSupport.TryGetSupport(mover, support.LatestOwnerPosition, out var contact)
+                && WalkableSupport.TryGetSupport(mover, support.LatestOwnerPosition, gameObject.scene, out var contact, OwnsSurface)
                 && SupportsContact(contact);
         }
+
+        internal bool SupportsPlayerContact(NetworkPlayer player, Vector3 feet)
+        {
+            if (player == null || !isActiveAndEnabled || !player.TryGetComponent<PlayerMover>(out var mover)) return false;
+            var course = TightropeCourse.Current;
+            if (course != null && course.gameObject.scene == gameObject.scene
+                && course.TryGetSupportingRopeAt(mover, feet, out _, out var rope))
+                return OwnsSurface(rope);
+            return WalkableSupport.TryGetSupport(mover, feet, gameObject.scene, out var contact, OwnsSurface)
+                && SupportsContact(contact);
+        }
+
+        bool OwnsSurface(Collider candidate)
+            => candidate == GetComponent<BoxCollider>() || System.Array.IndexOf(additionalSurfaces, candidate) >= 0;
 
         static bool Supports(BoxCollider tile, Vector3 feet)
         {
@@ -60,9 +74,16 @@ namespace CurtainCall.HumanCannon
         /// <summary>몸 중심이 플랫폼 밖에 있어도 실제 발밑 접촉면이 안전대면 같은 착지다.</summary>
         internal static bool ContainsLanding(PlayerMover mover, Vector3 feet)
         {
-            if (!WalkableSupport.TryGetSupport(mover, feet, out var support)) return false;
+            if (!WalkableSupport.TryGetSupport(mover, feet, default, out var support, IsRegisteredSurface)) return false;
             foreach (var zone in zones)
                 if (zone != null && zone.SupportsContact(support)) return true;
+            return false;
+        }
+
+        static bool IsRegisteredSurface(Collider candidate)
+        {
+            foreach (var zone in zones)
+                if (zone != null && zone.isActiveAndEnabled && zone.OwnsSurface(candidate)) return true;
             return false;
         }
 
