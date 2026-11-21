@@ -71,7 +71,10 @@ namespace CurtainCall.EscapeRoute
 
         bool ShouldRequestEndingSnapshot(CampaignSnapshot state, bool client, double now) =>
             client && snapshot == null && now >= nextEndingSync
-            && (failureMode ? FailureEndingPresentation.IsFailureEnding(state) : EscapeEndingPresentation.IsSuccessfulEnding(state));
+            && IsExpectedEnding(state);
+
+        bool IsExpectedEnding(CampaignSnapshot state) =>
+            failureMode ? FailureEndingPresentation.IsFailureEnding(state) : EscapeEndingPresentation.IsSuccessfulEnding(state);
 
         static bool IsResultSlot(int slot) => slot is >= 0 and <= 63;
 
@@ -122,9 +125,12 @@ namespace CurtainCall.EscapeRoute
         void Publish() { if (snapshot != null) channel.SendState(JsonUtility.ToJson(snapshot)); }
         void Receive(string json)
         {
+            var run = CampaignRun.Instance;
+            if (run == null || !IsExpectedEnding(run.State)) return;
+            var state = run.State;
             var incoming = JsonUtility.FromJson<Snapshot>(json);
-            if (incoming == null || incoming.day < 1 || incoming.people == null || incoming.people.Length < 1 || incoming.people.Length > 4
-                || CampaignRun.Instance == null || incoming.generation != CampaignRun.Instance.State.Generation) return;
+            if (incoming == null || incoming.day != state.Day || incoming.generation != state.Generation
+                || incoming.success == failureMode || incoming.people == null || incoming.people.Length > 4) return;
             var ids = new HashSet<ulong>();
             foreach (var p in incoming.people)
                 if (p == null || !IsResultSlot(p.slot) || p.items == null || p.items.Length > 2 || !ids.Add(p.client)) return;
@@ -138,7 +144,7 @@ namespace CurtainCall.EscapeRoute
         }
         public void Show(bool authority)
         {
-            if (snapshot == null || snapshot.people.Length == 0) return;
+            if (snapshot == null) return;
             if (view == null)
             {
                 var canvas = Instantiate(prefab, transform);

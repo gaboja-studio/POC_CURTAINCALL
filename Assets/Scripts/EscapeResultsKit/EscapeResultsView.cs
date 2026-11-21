@@ -134,8 +134,8 @@ namespace CurtainCall.UI.EscapeResultsKit
 
         public void SetPlayers(EscapePlayerData[] players)
         {
-            if (players == null || players.Length < 1 || players.Length > PlayerRows.Length)
-                throw new ArgumentException("Supply 1–4 players.", nameof(players));
+            if (players == null || players.Length > PlayerRows.Length)
+                throw new ArgumentException("Supply up to four players.", nameof(players));
             // Validate the complete snapshot before changing the view.
             foreach (var p in players)
                 if (p == null || (p.Items != null && p.Items.Length > 2))
@@ -160,7 +160,7 @@ namespace CurtainCall.UI.EscapeResultsKit
                     row.EmptyItems[j].enabled = item == null;
                 }
             }
-            Summary.text = $"탈출 {escaped}명 · 미탈출 {players.Length-escaped}명";
+            Summary.text = players.Length == 0 ? "표시할 단원 기록이 없습니다." : $"탈출 {escaped}명 · 미탈출 {players.Length-escaped}명";
         }
 
         public void SetEnding(bool success, int day)

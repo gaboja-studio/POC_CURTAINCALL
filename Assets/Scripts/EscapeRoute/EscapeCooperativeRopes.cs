@@ -463,7 +463,8 @@ namespace CurtainCall.EscapeRoute
             for (int i = 0; i < count; i++)
                 if (lowerFloorHits[i].normal.y > .5f && lowerFloorHits[i].collider.gameObject.scene == gameObject.scene
                     && lowerFloorHits[i].collider.GetComponentInParent<NetworkPlayer>() == null
-                    && !CurtainCall.Damage.DismemberedLimb.Contains(lowerFloorHits[i].collider)) return true;
+                    && !CurtainCall.Damage.DismemberedLimb.Contains(lowerFloorHits[i].collider)
+                    && !lowerFloorHits[i].collider.GetComponentInParent<EscapePursuerDebris>()) return true;
             return false;
         }
 

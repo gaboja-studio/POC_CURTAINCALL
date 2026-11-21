@@ -69,6 +69,64 @@ namespace CurtainCall.EscapeRoute.Tests
             return session;
         }
 
+        [Test]
+        public void TraversalAudit_ReactivatingADeployedBridgeDoesNotRetractIt()
+        {
+            var span = Root("Reactivated bridge").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Call(span, "SynchronizeDeployment", true, 1f, 0d);
+            Assert.That(Get(span, "Traversable"), Is.True);
+            Call(span, "OnEnable");
+            Assert.That(Get(span, "Traversable"), Is.True);
+            Assert.That(Get(span, "DeploymentFraction"), Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void TraversalAudit_AvatarSupportedByTheEdgeOfAPlatformCompletesArrival()
+        {
+            var locks = Locks(out var checkpoint);
+            var player = Player(211);
+            var zone = Root("Arrival volume", true).AddComponent<BoxCollider>();
+            zone.isTrigger = true;
+            zone.size = Vector3.one * 4;
+            Set(checkpoint, "arrival", zone);
+            var floor = Root("Arrival platform", true).AddComponent<BoxCollider>();
+            floor.center = new Vector3(-.6f, -.25f, 0);
+            floor.size = new Vector3(1f, .5f, 3f);
+            var body = player.GetComponent<CharacterController>();
+            body.radius = .3f;
+            body.height = 1.5f;
+            body.center = Vector3.up * .75f;
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.True);
+            floor.enabled = false;
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.False);
+        }
+
+        [Test]
+        public void TraversalAudit_FallenPursuerPartsCannotClaimTheLowerWorkerGate()
+        {
+            var ropes = Root("Lower worker controller").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeRopes"));
+            var player = Player(212);
+            var zone = Root("Lower worker area", true).AddComponent<BoxCollider>();
+            zone.isTrigger = true;
+            zone.size = Vector3.one * 4;
+            Set(ropes, "lowerWorkerBounds", zone);
+            var debris = Root("Detached pursuer part", true);
+            debris.layer = 2;
+            debris.AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerDebris"));
+            var shape = debris.AddComponent<BoxCollider>();
+            shape.center = Vector3.down * .1f;
+            shape.size = new Vector3(1f, .1f, 1f);
+            Physics.SyncTransforms();
+            Assert.That(Call(ropes, "IsStandingInLower", player), Is.False);
+            var floor = Root("Lower room real support", true).AddComponent<BoxCollider>();
+            floor.center = Vector3.down * .25f;
+            floor.size = new Vector3(2f, .5f, 2f);
+            Physics.SyncTransforms();
+            Assert.That(Call(ropes, "IsStandingInLower", player), Is.True);
+        }
+
         [TestCase(false)] [TestCase(true)]
         public void ObservationFrameBlocksGrabForDisplayAndHostButTriggersAndOpenApproachRemainValid(bool trigger)
         {
