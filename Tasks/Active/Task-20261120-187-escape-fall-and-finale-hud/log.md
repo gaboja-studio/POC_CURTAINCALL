@@ -13,3 +13,5 @@
 - 절단기 접지는 중심 레이와 캡슐 접촉 모두 파편을 제외한다. 발사형 절단기를 내려놓을 때는 절단기 위치의 지면도 검사한다. 컨트롤러가 준비될 때까지 발사·접지·이동 보정을 건너뛴다.
 - Doctor는 기존 사설 에셋 HEAD 불일치와 Task ID 중복을 보고했다. 사설 에셋 포인터 검사 통과. 공개 프로젝트의 참조 포인터와 기존 비공개 변경은 건드리지 않았다.
 - 2026-11-21 제출 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(배치 EditMode); 테스트=PASS(548건). PlayMode·실제 다인 플레이 미실행. 파편 검사에서 실제 지면 복원 여부는 접지 진입점으로 확인했다.
+
+- 2026-11-21 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/470 (fix/escape-fall-and-finale-hud → dev)
