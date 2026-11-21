@@ -197,13 +197,14 @@ namespace CurtainCall.Network.PlayerSync
             if (CurtainCall.Dev.DevStartLauncher.HoldingPlayerMovement
                 || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive) return false;
             if (!IsServer || !CurrentFallEpoch(restart, revive) || State != PlayerState.Normal || !FiniteFallPoint(feet)
-                || !CommonDamageRules.IsBelowWorldDeathY(feet.y)
-                || Vector3.ProjectOnPlane(feet - transform.position, Vector3.up).sqrMagnitude > 25f) return false;
+                || !CommonDamageRules.IsBelowWorldDeathY(feet.y)) return false;
+            Vector3 observed = LatestOwnerPosition;
+            if (!FiniteFallPoint(observed) || Vector3.ProjectOnPlane(feet - observed, Vector3.up).sqrMagnitude > 25f) return false;
             // Fast downward movement can outrun the host's interpolated Y by more than five metres.
             // Once both poses are below the common plane, vertical lag cannot make the fall safe.
             // A respawn above the plane still rejects the distant old pose, in addition to epoch checks.
-            if ((feet - transform.position).sqrMagnitude > 25f
-                && !CommonDamageRules.IsBelowWorldDeathY(transform.position.y)) return false;
+            if ((feet - observed).sqrMagnitude > 25f
+                && !CommonDamageRules.IsBelowWorldDeathY(observed.y)) return false;
             return ServerKill(DeathOrigin.MapExit);
         }
 
@@ -405,7 +406,11 @@ namespace CurtainCall.Network.PlayerSync
                 && Mathf.Abs(transform.position.y - course.GetLanePosition(lane, distance).y) <= course.RopeHeightTolerance)
             {
                 Vector3 side = Vector3.Cross(Vector3.up, course.ForwardAt(transform.position)).normalized;
-                mover.Body.Move(side * (mover.BodyRadius + course.RopeWidthAt(lane) * .5f + .1f));
+                Vector3 origin = transform.position;
+                Vector3 step = side * (mover.BodyRadius + course.RopeWidthAt(lane) * .5f + .1f);
+                mover.Body.Move(step);
+                if (course.TryGetSupportingRope(mover, out int stillSupported) && stillSupported == lane)
+                    mover.Body.Move(Vector3.ProjectOnPlane(origin - step - transform.position, Vector3.up));
             }
             mover.ResetExternalMotion(true);
             RequestNaturalFallRpc(RestartVersion, reviveCount.Value);

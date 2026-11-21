@@ -12,6 +12,63 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     {
         const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
 
+        [TestCase(2f, .40f, -.04f, true)]
+        [TestCase(.5f, .22f, -.04f, false)]
+        public void LandingProbeUsesTheWorldSizeOfTheController(float scale, float edgeGap, float footHeight, bool supported)
+        {
+            var root = new GameObject("Landing world size fixture");
+            var actor = new GameObject("Scaled player");
+            try
+            {
+                root.transform.position = new Vector3(15000, 20, 15000);
+                var floor = root.AddComponent<BoxCollider>();
+                floor.center = Vector3.down * .2f;
+                floor.size = new Vector3(4f, .4f, 4f);
+                actor.transform.localScale = new Vector3(scale, 1, scale);
+                actor.transform.position = root.transform.position + new Vector3(2f + edgeGap, footHeight, 0);
+                var mover = actor.AddComponent<PlayerMover>();
+                var body = actor.GetComponent<CharacterController>();
+                body.radius = .3f;
+                Physics.SyncTransforms();
+                Assert.That(WalkableSupport.Contains(mover, actor.transform.position), Is.EqualTo(supported));
+            }
+            finally { Object.DestroyImmediate(actor); Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void IgnoredPhysicalObstaclesCannotHoldAPlayerDownOrKeepThemCrouched()
+        {
+            var root = new GameObject("Pass-through landing and headroom");
+            var actor = new GameObject("Pass-through actor");
+            try
+            {
+                root.transform.position = new Vector3(15000, 20, 15000);
+                actor.transform.position = root.transform.position;
+                var mover = actor.AddComponent<PlayerMover>();
+                var controller = actor.GetComponent<CharacterController>();
+                typeof(PlayerMover).GetField("controller", Private).SetValue(mover, controller);
+                controller.radius = .3f;
+                controller.height = .7f;
+                controller.center = Vector3.up * .35f;
+                var floor = root.AddComponent<BoxCollider>();
+                floor.center = Vector3.down * .2f;
+                floor.size = new Vector3(4f, .4f, 4f);
+                var ceiling = root.AddComponent<BoxCollider>();
+                ceiling.center = Vector3.up * 1.12f;
+                ceiling.size = new Vector3(4f, .2f, 4f);
+                Physics.SyncTransforms();
+                var method = typeof(PlayerMover).GetMethod("HasHeadroom", Private);
+                bool CanStand() => (bool)method.Invoke(mover, new object[] { 1.45f });
+                Assert.IsTrue(WalkableSupport.Contains(mover, actor.transform.position));
+                Assert.IsFalse(CanStand());
+                Physics.IgnoreCollision(controller, floor);
+                Physics.IgnoreCollision(controller, ceiling);
+                Assert.IsFalse(WalkableSupport.Contains(mover, actor.transform.position));
+                Assert.IsTrue(CanStand());
+            }
+            finally { Object.DestroyImmediate(actor); Object.DestroyImmediate(root); }
+        }
+
         [Test, Category("StuntRegression20261120")]
         public void FinishAcceptsCapsuleStandingOnActualPlatformEdge()
         {

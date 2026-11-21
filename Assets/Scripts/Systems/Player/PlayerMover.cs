@@ -605,10 +605,14 @@ namespace CurtainCall.Player
                     return false;
             }
             int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, headroomHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var hits = count == headroomHits.Length
+                ? Physics.OverlapCapsule(bottom, top, radius, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                : headroomHits;
+            if (hits != headroomHits) count = hits.Length;
             for (int i = 0; i < count; i++)
             {
-                var hit = headroomHits[i];
-                if (hit == null || hit == controller || hit.transform.IsChildOf(transform)) continue;
+                var hit = hits[i];
+                if (!WalkableSupport.CanCollideWithBody(hit, controller) || hit.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>() != null) continue;
                 if (hit is CharacterController && hit.TryGetComponent(out PlayerMover _)) continue;
                 if (CurtainCall.Damage.DismemberedLimb.Contains(hit)) continue;
                 return false;
@@ -825,14 +829,17 @@ namespace CurtainCall.Player
             int count = Physics.CapsuleCastNonAlloc(top, bottom, radius, Vector3.down, groundHits, maxDrop + skin,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
 
+            var hits = count == groundHits.Length
+                ? Physics.CapsuleCastAll(top, bottom, radius, Vector3.down, maxDrop + skin, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                : groundHits;
+            if (hits != groundHits) count = hits.Length;
             float minNormalY = Mathf.Cos(controller.slopeLimit * Mathf.Deg2Rad) - 0.01f;
             float nearest = float.MaxValue;
             for (int i = 0; i < count; i++)
             {
-                var hit = groundHits[i];
+                var hit = hits[i];
                 var col = hit.collider;
-                if (col == null || hit.distance <= 0f || hit.distance >= nearest) continue; // 0은 시작부터 겹친 물체
-                if (col == controller || col.transform.IsChildOf(transform) || CurtainCall.Damage.DismemberedLimb.Contains(col)) continue;
+                if (hit.distance <= 0f || hit.distance >= nearest || !WalkableSupport.IsSupportCollider(col, controller)) continue;
                 if (col is CharacterController && col.TryGetComponent(out PlayerMover _)) continue;
                 if (!IsWalkable(hit, minNormalY)) continue;
                 nearest = hit.distance;
@@ -868,18 +875,23 @@ namespace CurtainCall.Player
             }
 
             float radius = BodyRadius, skin = controller.skinWidth;
-            int count = Physics.SphereCastNonAlloc(transform.position + Vector3.up * (radius * 2f + skin), radius,
-                Vector3.down, groundHits, (radius + skin) * 2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            Vector3 origin = transform.position + Vector3.up * (radius * 2f + skin);
+            float limit = (radius + skin) * 2f;
+            int count = Physics.SphereCastNonAlloc(origin, radius,
+                Vector3.down, groundHits, limit, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var hits = count == groundHits.Length
+                ? Physics.SphereCastAll(origin, radius, Vector3.down, limit, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                : groundHits;
+            if (hits != groundHits) count = hits.Length;
             float minNormalY = Mathf.Cos(controller.slopeLimit * Mathf.Deg2Rad);
             float nearest = float.PositiveInfinity;
             Vector3 normal = Vector3.zero;
             for (int i = 0; i < count; i++)
             {
-                var hit = groundHits[i];
-                if (hit.collider == null || hit.distance <= 0f || hit.distance >= nearest
-                    || hit.normal.y <= 0f || hit.normal.y >= minNormalY
-                    || hit.collider.transform.IsChildOf(transform) || hit.collider.GetComponentInParent<PlayerMover>() != null
-                    || CurtainCall.Damage.DismemberedLimb.Contains(hit.collider)) continue;
+                var hit = hits[i];
+                if (hit.distance <= 0f || hit.distance >= nearest || hit.normal.y <= 0f || hit.normal.y >= minNormalY
+                    || !WalkableSupport.IsSupportCollider(hit.collider, controller)
+                    || hit.collider.GetComponentInParent<PlayerMover>() != null) continue;
                 nearest = hit.distance;
                 normal = hit.normal;
             }
