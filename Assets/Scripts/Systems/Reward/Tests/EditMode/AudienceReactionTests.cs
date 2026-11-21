@@ -1,3 +1,4 @@
+using System.Linq;
 using CurtainCall.Results;
 using NUnit.Framework;
 
@@ -14,6 +15,35 @@ namespace CurtainCall.Reward.Tests
                 new[] { new RewardParticipantSeed("p", 1, 0), new RewardParticipantSeed("q", 2, 1) }, rules));
             return model;
         }
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        public void OfficialFinishAudit_OnlyLiveConnectedPhysicalFinisherKeepsGrace(bool connected, bool dead)
+        {
+            var model = Begin();
+            var host = new UnityEngine.GameObject("Reward grace audit");
+            host.SetActive(false);
+            try
+            {
+                var type = System.AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(assembly => assembly.GetType("CurtainCall.Reward.PerformanceRewards"))
+                    .First(result => result != null);
+                var rewards = host.AddComponent(type);
+                const System.Reflection.BindingFlags privateMembers =
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                var clients = (System.Collections.Generic.HashSet<ulong>)type
+                    .GetField("graceClients", privateMembers).GetValue(rewards);
+                var check = type.GetMethod("HasLiveFinisher", privateMembers);
+                clients.Add(1);
+                Assert.That(check.Invoke(rewards, new object[] { model.Snapshot() }), Is.True);
+                model.Observe("p", 0, dead, connected, rules);
+                Assert.That(model.SurvivorCount, Is.EqualTo(1));
+                Assert.That(check.Invoke(rewards, new object[] { model.Snapshot() }), Is.False);
+                clients.Add(2);
+                Assert.That(check.Invoke(rewards, new object[] { model.Snapshot() }), Is.True);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
         [Test]
         public void ReactionsClampAndDeathFreezesCheer()
         {

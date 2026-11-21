@@ -11,18 +11,17 @@ namespace CurtainCall.Tightrope.Fire
 {
     public sealed partial class TightropeFire
     {
-        const string ContactMessage = "CurtainCall.Tightrope.Fire.Contact.v3";
-        const int ContactBytes = 38;
+        const string ContactMessage = "CurtainCall.Tightrope.Fire.Contact.v4";
+        const int ContactBytes = 50;
         const double MaxContactAge = 1.25;
         readonly Dictionary<ulong, uint> contactSequences = new();
-        readonly Dictionary<ulong, (FireKind kind, int segment)> fireContacts = new();
         readonly float[] segmentActivatedAt = new float[64];
         uint nextContactSequence;
         float nextContactReport;
 
         void ClearContactReports()
         {
-            contactSequences.Clear(); fireContacts.Clear(); nextContactReport = 0;
+            contactSequences.Clear(); nextContactReport = 0;
             Array.Fill(segmentActivatedAt, float.PositiveInfinity);
         }
 
@@ -40,7 +39,8 @@ namespace CurtainCall.Tightrope.Fire
             nextContactReport = Time.unscaledTime + .15f;
             using var writer = new FastBufferWriter(ContactBytes, Allocator.Temp);
             writer.WriteValueSafe(++nextContactSequence); writer.WriteValueSafe(round);
-            writer.WriteValueSafe(player.RestartVersion); writer.WriteValueSafe(at); writer.WriteValueSafe(feet);
+            writer.WriteValueSafe(player.RestartVersion); writer.WriteValueSafe(player.NetworkObjectId);
+            writer.WriteValueSafe(player.ReviveVersion); writer.WriteValueSafe(at); writer.WriteValueSafe(feet);
             writer.WriteValueSafe((byte)kind); writer.WriteValueSafe(index); writer.WriteValueSafe(touching);
             messaging.SendNamedMessage(ContactMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
         }
@@ -50,10 +50,19 @@ namespace CurtainCall.Tightrope.Fire
             if (session == null || !session.IsHost || !session.NetworkManager.ConnectedClients.ContainsKey(sender)
                 || reader.Length - reader.Position != ContactBytes) return;
             reader.ReadValueSafe(out uint serial); reader.ReadValueSafe(out int contactRound);
-            reader.ReadValueSafe(out int restart); reader.ReadValueSafe(out double at); reader.ReadValueSafe(out Vector3 feet);
+            reader.ReadValueSafe(out int restart); reader.ReadValueSafe(out ulong avatar);
+            reader.ReadValueSafe(out int revive); reader.ReadValueSafe(out double at); reader.ReadValueSafe(out Vector3 feet);
             reader.ReadValueSafe(out byte kind); reader.ReadValueSafe(out int index); reader.ReadValueSafe(out bool touching);
-            ValidateContact(sender, serial, contactRound, restart, at, feet, (FireKind)kind, index, touching);
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.OwnerClientId == sender)
+                {
+                    if (MatchesContactLife(player, avatar, revive)) ValidateContact(sender, serial, contactRound, restart, at, feet, (FireKind)kind, index, touching);
+                    break;
+                }
         }
+
+        static bool MatchesContactLife(NetworkPlayer player, ulong avatar, int revive)
+            => player.NetworkObjectId == avatar && player.ReviveVersion == revive;
 
         bool ValidateContact(ulong sender, uint serial, int contactRound, int restart, double at, Vector3 feet, FireKind kind, int index, bool touching = true)
         {
@@ -67,12 +76,11 @@ namespace CurtainCall.Tightrope.Fire
             if (player == null || player.State != PlayerState.Normal || player.RestartVersion != restart || !run.IsParticipantReady(player)
                 || !player.TryGetComponent(out PlayerMover mover)) return false;
             float envelope = 1f + 30f * (float)Math.Max(0, Elapsed - at + .1);
-            if ((player.transform.position - feet).sqrMagnitude > envelope * envelope) return false;
+            if ((player.LatestOwnerPosition - feet).sqrMagnitude > envelope * envelope) return false;
             bool actualContact = TryContact(feet, mover.BodyRadius, (float)at, true, out var actualKind, out int actualIndex);
             if (touching != actualContact || touching && (actualKind != kind || actualIndex != index)) return false;
             contactSequences[sender] = serial;
             if (touching) Kill(player, kind, index, course.GetDistance(feet));
-            else fireContacts.Remove(sender);
             return true;
         }
 

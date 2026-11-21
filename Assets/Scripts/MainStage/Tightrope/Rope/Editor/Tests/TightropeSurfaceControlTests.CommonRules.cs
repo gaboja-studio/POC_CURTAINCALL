@@ -1119,6 +1119,13 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
   [TestCase(false)]
   [TestCase(true)]
   public void FinaleStackRetry_ReapprovesSwappedRolesOnlyBeforeCrossing(bool alreadyCrossed)
+   => CheckFinaleStackApproval(alreadyCrossed, false);
+
+  [Test]
+  public void CourseProgressAudit_StackAtLaunchLineUsesTheRemoteCarrierLatestFeet()
+   => CheckFinaleStackApproval(false, true);
+
+  void CheckFinaleStackApproval(bool alreadyCrossed, bool laggingReplica)
   {
    WithMountedPair((stack, _, passenger) =>
    {
@@ -1176,8 +1183,19 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
      }
 
      Prepare(player, rider, false);
+     if (laggingReplica)
+     {
+      Assert.IsFalse(player.IsOwner);
+      var networkTransform = player.gameObject.AddComponent<Unity.Netcode.Components.NetworkTransform>();
+      typeof(NetworkPlayer).GetField("networkTransform", members).SetValue(player, networkTransform);
+      typeof(Unity.Netcode.Components.NetworkTransform).GetField("m_InternalCurrentPosition", members)
+       .SetValue(networkTransform, approach);
+      player.transform.position = approach - course.Forward * 2f;
+      Physics.SyncTransforms();
+     }
      Assert.IsTrue((bool)Invoke(saws, "ServerApproveCooperativeStack"), "The original pair reaches the real launch surface.");
      Assert.AreEqual(1, saws.CooperativeAdmittedFloor(player));
+     if (laggingReplica) return;
      Prepare(rider, player, alreadyCrossed);
      Assert.AreEqual(!alreadyCrossed, (bool)Invoke(saws, "ServerApproveCooperativeStack"));
      Assert.AreEqual(alreadyCrossed ? 1 : 2, saws.CooperativeAdmittedFloor(player));

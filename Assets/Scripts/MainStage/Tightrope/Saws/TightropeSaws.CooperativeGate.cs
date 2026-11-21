@@ -116,9 +116,10 @@ namespace CurtainCall.Tightrope.Saws
             while (stack.GetBelow(bottom) is { } next) bottom = next;
             if (!bottom.IsSpawned || bottom.State != PlayerState.Normal || bottom.IsAirborne
                 || !bottom.TryGetComponent(out PlayerMover bottomMover) || (bottom.IsOwner && bottomMover.IsAirborne)
-                || !course.TryGetSupportingRope(bottomMover, out int lane)
+                || !course.TryGetSupportingRopeAt(bottomMover, bottom.LatestOwnerPosition, out int lane)
                 || !TryGetCooperativeGateApproachPosition(lane, out var approach)) return false;
-            Vector3 offset = player.transform.position - approach;
+            Vector3 feet = player.LatestOwnerPosition;
+            Vector3 offset = feet - approach;
             if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGateLaunchTolerance
                 || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) return false;
             float gravity = mover.JumpGravity;
@@ -126,14 +127,14 @@ namespace CurtainCall.Tightrope.Saws
             float landing = CooperativeLandingDistance(player);
             if (!course.IsLaneUsable(lane, landing)) return false;
             float gateDistance = CooperativeGateDistance;
-            if (!CooperativeGateGeometry.TryCalculateLaunch(player.transform.position.y - course.transform.position.y,
-                normalHeight, gravity, gateDistance - course.GetDistance(player.transform.position),
+            if (!CooperativeGateGeometry.TryCalculateLaunch(feet.y - course.transform.position.y,
+                normalHeight, gravity, gateDistance - course.GetDistance(feet),
                 mover.BodyRadius, landing - gateDistance, settings, out jumpHeight, out alongSpeed)) return false;
             // 목마 높이 배율을 반영한 실제 체공 시간으로 이동 발판까지의 상대 속도를 맞춘다.
             jumpHeight *= GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
-            float flightTime = CooperativeGateGeometry.ForwardJumpRange(player.transform.position.y - course.transform.position.y,
+            float flightTime = CooperativeGateGeometry.ForwardJumpRange(feet.y - course.transform.position.y,
                 jumpHeight, gravity, 1f);
-            return TryGetFiniteLaunchSpeed(landing - course.GetDistance(player.transform.position), flightTime,
+            return TryGetFiniteLaunchSpeed(landing - course.GetDistance(feet), flightTime,
                 CooperativeApproachSpeed, out alongSpeed);
         }
 

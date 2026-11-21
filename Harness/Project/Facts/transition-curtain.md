@@ -30,3 +30,4 @@ source: Task-20261019-061
 - RectMask2D 화면 끝 감쇠로 명암 배경이 가장자리1px에 섞였으므로 clip padding -2UI 적용. viewport/천의 좌표·크기는 바꾸지 않으며 실제 렌더 명암 픽셀 비교로 검증한다.
 - TMP 가로 Ellipsis는 isTextOverflowing 플래그 대신 실제 visible U+2026/원문 보존 검사. `GetPreferredValues`는 characterInfo를 바꾸므로 메시 검사 후 측정하거나 ForceMeshUpdate로 다시 생성한다.
 - 자동 검사/화면 캡처는 사람 최종 외형·손맛·공동/실기기·실게임 검증을 대체하지 않는다. reload both OFF 지원은 주장하지 않는다.
+- 정식 묘기·엔딩 이동은 캠페인 단계가 이미 바뀌어 같은 이벤트가 다시 발행되지 않는다. 커튼 닫힘 확인을 한 번 다시 시도하고, NGO가 이전 씬 이벤트를 처리 중이면 해당 로드 제한 시간에 맞춰 기다린다. 다른 단계 요청이 들어오면 이전 재시도를 폐기한다.

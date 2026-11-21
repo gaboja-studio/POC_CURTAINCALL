@@ -53,10 +53,24 @@ namespace CurtainCall.Network.PlayerSync
             }
         }
 
+        internal Quaternion LatestOwnerRotation
+        {
+            get
+            {
+                if (IsOwner || networkTransform == null) return transform.rotation;
+                var rotation = networkTransform.GetSpaceRelativeRotation(true);
+                return networkTransform.InLocalSpace && transform.parent != null
+                    ? transform.parent.rotation * rotation : rotation;
+            }
+        }
+
         internal void ServerPlacePerformanceFinisher(Pose pose)
         {
             if (!IsServer || !IsSpawned || State != PlayerState.Normal) return;
             CurtainCall.Tightrope.PiggybackSystem.Current?.ServerReleaseForRelocation(OwnerClientId);
+            var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
+            if (hangs != null && hangs.IsHanging(this)) hangs.ServerReleaseForInspection(OwnerClientId);
+            CurtainCall.HumanCannon.HumanCannonCarry.Held(OwnerClientId)?.ServerReleaseForInspection(OwnerClientId);
             ServerSetState(PlayerState.Arrived);
             performanceFinishPlacement.Value = new PerformanceFinishPlacement
                 { Active = true, Position = pose.position, Rotation = pose.rotation };

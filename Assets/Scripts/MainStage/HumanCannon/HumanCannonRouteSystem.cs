@@ -221,7 +221,7 @@ namespace CurtainCall.HumanCannon
                     if (transit.State.TryStart(soleRider.OwnerClientId, transit.State.Revision, Clock, transports[i].TravelSeconds))
                     {
                         transit.RiderReviveVersion = soleRider.ReviveVersion;
-                        transit.Offset = soleRider.transform.position - transports[i].Platform.position;
+                        transit.Offset = soleRider.LatestOwnerPosition - transports[i].Platform.position;
                         transit.Rotation = soleRider.transform.rotation;
                         if (i == 0) ArmFire(0);
                         if (i == 2) ArmFire(1);
@@ -354,7 +354,7 @@ namespace CurtainCall.HumanCannon
                 || cannon == null || cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId)
                 || IsRiding(player.OwnerClientId)) return false;
             if (!Carries(player)) return false;
-            if (!transports[index].ContainsFeet(player.transform.position, 0)
+            if (!transports[index].ContainsFeet(player.LatestOwnerPosition, 0)
                 || CountPassengers(index, out _) != 1) return false;
             if (index == 1 && !ShelterReady) return false;
             return true;
@@ -420,10 +420,10 @@ namespace CurtainCall.HumanCannon
 
         bool OccupiesWaitingTransport(NetworkPlayer player, CurtainCall.Tightrope.PiggybackSystem stack, int index)
         {
-            if (transports[index].ContainsPassenger(player.transform.position) || BouncingAbove(player, index)) return true;
+            if (transports[index].ContainsPassenger(player.LatestOwnerPosition) || BouncingAbove(player, index)) return true;
             // A mounted jump may put the rider above the boarding volume without breaking their link.
             for (var support = stack?.GetSupportingPlayer(player); support != null; support = stack.GetBelow(support))
-                if (transports[index].ContainsPassenger(support.transform.position) || BouncingAbove(support, index)) return true;
+                if (transports[index].ContainsPassenger(support.LatestOwnerPosition) || BouncingAbove(support, index)) return true;
             return false;
         }
 
@@ -439,7 +439,7 @@ namespace CurtainCall.HumanCannon
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody) return false;
             var carrier = FindPlayer(trampoline.Carrier);
-            if (carrier == null || !transports[index].ContainsPassenger(carrier.transform.position)
+            if (carrier == null || !transports[index].ContainsPassenger(carrier.LatestOwnerPosition)
                 || position.y < trampoline.Surface.y - .5f) return false;
             float reach = TrampolineRadius(trampoline) + TrampolineAirReach;
             return Vector3.ProjectOnPlane(position - trampoline.Surface, Vector3.up).sqrMagnitude <= reach * reach;

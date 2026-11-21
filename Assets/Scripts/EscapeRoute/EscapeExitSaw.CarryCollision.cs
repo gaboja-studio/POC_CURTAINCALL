@@ -90,8 +90,8 @@ namespace CurtainCall.EscapeRoute
             if (!Grounded(carrier, requireReportedGrounded: carrier.IsLocal)
                 || loadCollider && !PoseFits(CarryRoot.position, CarryRoot.rotation, null)) return false;
             if (!ProjectileMode) return true;
-            var dropFeet = loadCollider ? loadCollider.bounds.center : CarryRoot.position;
-            dropFeet.y = carrier.transform.position.y;
+            var dropFeet = loadCollider ? loadCollider.transform.TransformPoint(loadCollider.center) : CarryRoot.position;
+            dropFeet.y = RouteFeet(carrier).y;
             return HasFootprintSupport(null, dropFeet, .25f);
         }
 

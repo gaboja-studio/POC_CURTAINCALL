@@ -97,9 +97,9 @@ namespace CurtainCall.Tightrope.Saws
                 int size = stack.GetStackSize(bottom);
                 if (!IsStandingStackMember(bottom) || stack.GetBelow(bottom) != null || !ValidFinaleStackSize(size)
                     || !canReplace && size <= cooperativeAdmittedCount
-                    || !bottom.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane)
+                    || !bottom.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRopeAt(mover, bottom.LatestOwnerPosition, out int lane)
                     || !TryGetCooperativeGateApproachPosition(lane, out var approach)) continue;
-                Vector3 offset = bottom.transform.position - approach;
+                Vector3 offset = bottom.LatestOwnerPosition - approach;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGateLaunchTolerance
                     || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) continue;
                 int count = 0;
