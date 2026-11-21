@@ -1,3 +1,7 @@
+using UnityEngine;
+using Unity.Netcode;
+using CurtainCall.Network.PlayerSync;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
@@ -17,6 +21,27 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(hang.Remaining, Is.EqualTo(5d));
             Assert.IsFalse(hang.ShortenBaseTime(7d));
         }
+        [TestCase(44UL, 5, 7, true)]
+        [TestCase(45UL, 5, 7, false)]
+        [TestCase(44UL, 4, 7, false)]
+        [TestCase(44UL, 5, 6, false)]
+        public void RescueCompletionMatchesTheAvatarRestartAndRevival(ulong avatar, int restart, int revive, bool accepted)
+        {
+            var root = new GameObject("Rescue arrival avatar");
+            root.SetActive(false);
+            try
+            {
+                var actor = root.AddComponent<NetworkPlayer>();
+                typeof(NetworkPlayer).GetProperty("NetworkObjectId").SetValue(actor, 44UL);
+                const BindingFlags privateFields = BindingFlags.Instance | BindingFlags.NonPublic;
+                ((NetworkVariable<int>)typeof(NetworkPlayer).GetField("restartCount", privateFields).GetValue(actor)).Value = 5;
+                ((NetworkVariable<int>)typeof(NetworkPlayer).GetField("reviveCount", privateFields).GetValue(actor)).Value = 7;
+                var match = typeof(TightropeHangSystem).GetMethod("MatchesRescueArrival", BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(match.Invoke(null, new object[] { actor, avatar, restart, revive }), Is.EqualTo(accepted));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         static bool AllLanes(int lane, float distance) => true;
 
         [Test]

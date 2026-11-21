@@ -262,7 +262,11 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < poles.Length; i++)
             {
                 var runtime = states[i]; var pole = poles[i];
-                if (pole == null) continue;
+                if (pole == null)
+                {
+                    if (runtime.State.IsOccupied) Deactivate(i);
+                    continue;
+                }
                 ObserveLoopRecycle(i);
                 if (session != null && session.IsHost)
                 {
@@ -403,7 +407,7 @@ namespace CurtainCall.HumanCannon
                 if (transferring && !stack.CanReleaseForDevice(player)) return;
                 double grabbedAt = Clock;
                 float hold = HoldDuration(poles[index], player);
-                if (seat > 0) hold = Mathf.Min(hold, Mathf.Max(.001f, (float)(runtime.State.DeadlineAt(seat - 1) - grabbedAt)));
+                if (seat > 0) hold = PassengerHold(hold, grabbedAt, runtime.State.DeadlineAt(seat - 1));
                 if (!runtime.State.TryGrab(actor, runtime.State.Revision, grabbedAt, hold, false, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 if (runtime.State.Count == 1)
@@ -443,6 +447,13 @@ namespace CurtainCall.HumanCannon
             }
         }
 
+        internal static float PassengerHold(float hold, double grabbedAt, double supportDeadline)
+        {
+            if (supportDeadline <= 0d) return hold;
+            float remaining = Mathf.Max(.001f, (float)(supportDeadline - grabbedAt));
+            return hold <= 0f ? remaining : Mathf.Min(hold, remaining);
+        }
+
         static float HoldDuration(HumanCannonPole pole, NetworkPlayer player) => GameSettings.Base.BodyDamage.HangSeconds(
             pole.HoldSeconds, player.TryGetComponent(out PlayerCondition condition) ? condition.LostArmCount : 0);
 
@@ -476,7 +487,7 @@ namespace CurtainCall.HumanCannon
             }
             else if (action == PoleEvent.Released)
             {
-                flightOrigins[actor] = index;
+                flightOrigins[actor] = (index, station, launch);
                 cannon.ApplyPoleRelease(actor, station, launch, segment, runtime.ReleasePosition, runtime.ReleaseRotation,
                     runtime.ReleaseVelocity, poles[index].AirControlSpeed);
                 OccupancyChanged?.Invoke(index, actor, false);

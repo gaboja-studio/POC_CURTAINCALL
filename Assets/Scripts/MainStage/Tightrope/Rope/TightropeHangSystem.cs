@@ -105,18 +105,37 @@ namespace CurtainCall.Tightrope
             Connect();
             if (localPullHeld && (InputGate.IsBlocked || RescueDeviceOccupied(NetworkPlayer.Local)))
             { Debug.Log("[RescueDiag] local cancel reason=input-blocked-or-device"); Send(Request.Cancel); localPullHeld = false; }
-            if (!Active || lastRound != Round)
+            AdvanceRound();
+            if (!Active)
             {
-                pendingHangs.Clear();
-                lastRound = Round;
-                if (book.Count > 0) { book.Clear(); if (IsHost) Publish(); }
-                if (localHang != null) ReleaseLocal(false);
-                if (!Active) { ReleaseRescuerBalance(); return; }
+                ClearRound();
+                return;
             }
             if (IsHost) { RetryPendingHangs(); ServerTick(Time.deltaTime); }
+            else RetryRoundSync();
             UpdateLocal();
         }
-        int lastRound;
+
+        int lastRound = int.MinValue;
+        void AdvanceRound()
+        {
+            if (lastRound == Round) return;
+            lastRound = Round;
+            ClearRound();
+        }
+
+        void ClearRound()
+        {
+            pendingHangs.Clear();
+            ResetSnapshotTracking();
+            if (book.Count > 0)
+            {
+                book.Clear();
+                if (IsHost) Publish();
+            }
+            if (localHang != null) ReleaseLocal(false);
+            ReleaseRescuerBalance();
+        }
         void ClearPlayerHang(NetworkPlayer player)
         {
             if (player == null) return;
@@ -142,6 +161,7 @@ namespace CurtainCall.Tightrope
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal
                 || player.IsDroppingFromSupport || TightropeCourse.BlocksRopeForSaw(player)) return false;
             if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
+            AdvanceRound();
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (PiggybackSystem.UsingDevice(player)) return false;
             if (!Active) { player.ServerReleaseIntoFall(); return false; }
@@ -319,6 +339,7 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (!Active || local == null || balance == null || balance.gameObject != local.gameObject
                 || local.State != PlayerState.Normal || PiggybackSystem.UsingDevice(local)) return false;
+            AdvanceRound();
             if (localHang != null) return true;
             if (!local.TryGetComponent(out PlayerMover mover) || mover.Body == null) return false;
             if (!course.TryGetRopePoint(local.transform.position, out int lane, out float distance)

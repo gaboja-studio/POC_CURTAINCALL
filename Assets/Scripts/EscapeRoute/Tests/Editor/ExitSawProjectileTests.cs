@@ -44,6 +44,44 @@ namespace CurtainCall.EscapeRoute.Tests
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
+        public void ShotObserverExceptionDoesNotPreventTheCableCutOrTheRemainingObservers()
+        {
+            Fixture(true);
+            var strand = Strand(ShotStart + Vector3.forward * 4);
+            SetCables(strand);
+            var shot = Shot(1, 0, ShotStart, Vector3.forward);
+            var sawType = saw.GetType();
+            var eventInfo = sawType.GetEvent("ShotObserved");
+            Delegate failing = Delegate.CreateDelegate(eventInfo.EventHandlerType, this,
+                GetType().GetMethod(nameof(ThrowForShot), BindingFlags.Instance | BindingFlags.NonPublic));
+            Delegate observing = Delegate.CreateDelegate(eventInfo.EventHandlerType, this,
+                GetType().GetMethod(nameof(ObserveShot), BindingFlags.Instance | BindingFlags.NonPublic));
+            eventInfo.AddEventHandler(null, failing);
+            eventInfo.AddEventHandler(null, observing);
+            try
+            {
+                shotCallbacks = 0;
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Exception,
+                    new System.Text.RegularExpressions.Regex("Test shot observer failure"));
+                Call(saw, "CutAlong", ShotStart, ShotStart + Vector3.forward * 8, Vector3.up, shot);
+                Assert.That(shotCallbacks, Is.EqualTo(1));
+                Assert.That(Get(strand, "IsCut"), Is.True);
+                Assert.That(Get(saw, "DoorOpen"), Is.True);
+            }
+            finally
+            {
+                eventInfo.RemoveEventHandler(null, observing);
+                eventInfo.RemoveEventHandler(null, failing);
+            }
+        }
+
+        int shotCallbacks;
+        void ThrowForShot(Component source, ulong actor, string key, string state, Vector3 position, Vector3 direction, string detail) =>
+            throw new InvalidOperationException("Test shot observer failure");
+        void ObserveShot(Component source, ulong actor, string key, string state, Vector3 position, Vector3 direction, string detail) =>
+            shotCallbacks++;
+
+        [Test]
         public void HeldLauncherFollowsThroughFinalBayRailButPlayerStillStopsAtIt()
         {
             Fixture(true);

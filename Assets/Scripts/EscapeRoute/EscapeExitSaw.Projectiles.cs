@@ -48,6 +48,14 @@ namespace CurtainCall.EscapeRoute
         readonly List<(Renderer renderer, Material[] materials, MaterialPropertyBlock properties)> rechargeRenderers = new();
         MaterialPropertyBlock rechargeProperties;
         public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
+        void NotifyShot(Shot shot, string state, Vector3 position, string detail)
+        {
+            if (ShotObserved == null) return;
+            foreach (Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> observer in ShotObserved.GetInvocationList())
+                try { observer(this, shot.Shooter, ShotKey(shot), state, position, shot.Direction, detail); }
+                catch (Exception error) { Debug.LogException(error, this); }
+        }
+
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
         Vector3 recoilRest;
         public bool ProjectileMode => fireWithoutCables || cables != null && cables.Length > 0;
@@ -261,7 +269,7 @@ namespace CurtainCall.EscapeRoute
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
             CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.SawFire, start, CarryRoot);
-            ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
+            NotifyShot(shot, "FIRED", shot.Position, "");
             lastPresentedShot = shotSerial;
             EmitLaunch();
             return true;
@@ -331,7 +339,7 @@ namespace CurtainCall.EscapeRoute
                 bool outsideEncounter = !blocked && UnlimitedProjectiles && finaleBoss
                     && finaleBoss.SawHasLeftEncounter(to, shot.Direction);
                 if (blocked || outsideEncounter || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
-                    if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
+                    if (host) NotifyShot(shot, "ENDED", to,
                         (shot.CutAny ? "CABLE_HIT/" : "NO_CABLE_HIT/")
                         + (blocked ? "OBSTRUCTION" : outsideEncounter ? "OUTSIDE_ARENA" : "LIFETIME"));
                     shots.RemoveAt(i);
@@ -377,7 +385,7 @@ namespace CurtainCall.EscapeRoute
                 cutMask |= bit; cutPoints[i] = hit; cable.SetCut(true, hit, true);
                 if (shot != null) {
                     shot.CutAny = true;
-                    ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "CABLE_CUT", hit, shot.Direction,
+                    NotifyShot(shot, "CABLE_CUT", hit,
                         CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
                 }
                 if (!finaleBoss && DoorOpen)

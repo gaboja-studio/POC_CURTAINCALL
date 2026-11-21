@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Reflection;
 using NUnit.Framework;
@@ -163,6 +164,64 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             typeof(HumanCannonPoleSystem).GetField("states", Instance).SetValue(receiver, states);
         }
         [TearDown] public void TearDown() => Object.DestroyImmediate(root);
+
+        [TestCase(6f, 10d, 0d, 6f)]
+        [TestCase(0f, 10d, 0d, 0f)]
+        [TestCase(6f, 10d, 13d, 3f)]
+        [TestCase(0f, 10d, 13d, 3f)]
+        public void PassengerUsesRemainingSupportTimeOnlyWhenTheSupportHasADeadline(
+            float passengerSeconds, double now, double supportDeadline, float expected)
+        {
+            var method = typeof(HumanCannonPoleSystem).GetMethod("PassengerHold", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(method.Invoke(null, new object[] { passengerSeconds, now, supportDeadline }), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void DestroyedPoleStillAcceptsTheHostsAbandonment()
+        {
+            Deliver(Two, 8);
+            Object.DestroyImmediate(root.GetComponent<HumanCannonPole>());
+            var after = Two;
+            after[0] = Vacant;
+            Deliver(after, 9, action: 3, actor: 7, seat: 0);
+            Assert.That(receiver.State(0).SeatOf(7), Is.EqualTo(-1));
+            Assert.That(receiver.State(0).SeatOf(8), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void LocalPoleRebuildDoesNotRaiseTheHostsSnapshotFloor()
+        {
+            var parent = new GameObject("Common pole parent");
+            parent.transform.SetParent(root.transform, false);
+            HumanCannonPole MakePole()
+            {
+                var child = new GameObject("Rebuilt pole");
+                child.transform.SetParent(parent.transform, false);
+                return child.AddComponent<HumanCannonPole>();
+            }
+            var first = MakePole();
+            int index = receiver.Register(first);
+            var seat = receiver.State(index);
+            Assert.IsTrue(seat.TryGrab(19, seat.Revision, 0d, 5f));
+            uint revision = seat.Revision;
+            for (int i = 0; i < 3; i++) Assert.That(receiver.Register(MakePole()), Is.EqualTo(index));
+            Assert.That(receiver.State(index).Revision, Is.EqualTo(revision));
+            Assert.That(receiver.State(index).Count, Is.Zero);
+        }
+
+        [TestCase(5u, true)]
+        [TestCase(7u, false)]
+        public void OnlyLandingOfTheReleasedFlightTriggersThePoleLandingEvent(uint completedLaunch, bool reported)
+        {
+            var origins = (Dictionary<ulong, (int Pole, int Station, uint Launch)>)typeof(HumanCannonPoleSystem)
+                .GetField("flightOrigins", Instance).GetValue(receiver);
+            origins[8] = (4, 1, 5u);
+            var calls = new List<int>();
+            receiver.Landed += (pole, actor, position, safe) => calls.Add(pole);
+            typeof(HumanCannonPoleSystem).GetMethod("OnLandingConfirmed", Instance)
+                .Invoke(receiver, new object[] { 8UL, 1, completedLaunch, 2u, Vector3.one, true });
+            Assert.That(calls, Is.EqualTo(reported ? new[] { 4 } : Array.Empty<int>()));
+        }
 
         [Test]
         public void LateJoinRestoresSeparateFlightTokensAndStableSeats()

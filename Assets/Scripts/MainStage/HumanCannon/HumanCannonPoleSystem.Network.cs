@@ -119,7 +119,7 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
             // 비트 0: 지상 담당 통과, 비트 1~4: 좌석별 역방향, 비트 5: 열린 톱벽.
-            var gate = poles[index].LinkedGate;
+            var gate = poles[index] != null ? poles[index].LinkedGate : null;
             byte flags = (byte)(gate != null && gate.CarrierPassed ? 1 : 0);
             for (int slot = 0; slot < runtime.State.Capacity; slot++)
                 if (runtime.State.OccupantAt(slot) != CannonSeatState.Nobody && runtime.Riders[slot].ReverseFacing)
@@ -161,7 +161,7 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out byte seat); reader.ReadValueSafe(out int station);
             reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment); reader.ReadValueSafe(out byte flags);
             int reversedSeats = (flags >> 1) & ((1 << PoleGateState.MaxRiders) - 1);
-            if (index < 0 || index >= states.Length || poles[index] == null
+            if (index < 0 || index >= states.Length || poles[index] == null && action != (byte)PoleEvent.Abandoned
                 || (flags & ~(1 | GateOpenFlag | (((1 << PoleGateState.MaxRiders) - 1) << 1))) != 0
                 || !float.IsFinite(angle) || !float.IsFinite(speed)
                 || !float.IsFinite(releaseDirection) || Mathf.Abs(releaseDirection) > 1f) return;
@@ -196,7 +196,7 @@ namespace CurtainCall.HumanCannon
             runtime.ReceiveAngle(angle, Time.unscaledTimeAsDouble, continuousSwing);
             runtime.Speed = speed;
             runtime.ReleaseDirection = releaseDirection;
-            runtime.MaxDisplayAngle = poles[index].MaxSwingAngle;
+            if (poles[index] != null) runtime.MaxDisplayAngle = poles[index].MaxSwingAngle;
             for (int slot = 0; slot < receivedFlights.Length; slot++)
             {
                 var rider = runtime.Riders[slot];
@@ -209,7 +209,7 @@ namespace CurtainCall.HumanCannon
             {
                 runtime.ReleasePosition = releasePosition; runtime.ReleaseRotation = releaseRotation; runtime.ReleaseVelocity = releaseVelocity;
             }
-            if (poles[index].LinkedGate != null)
+            if (poles[index] != null && poles[index].LinkedGate != null)
                 poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0,
                     (flags & GateOpenFlag) != 0 || states[index].State.OccupantAt(0) != CannonSeatState.Nobody, Clock);
             Apply(index, (PoleEvent)action, actor, station, launch, segment);
