@@ -34,6 +34,7 @@ namespace CurtainCall.EscapeRoute
         Snapshot snapshot;
         ShopChannel channel;
         EscapeResultsView view;
+        EventSystem resultEvents, lastResultEvents;
         EscapeEndingPresentation owner;
         FailureEndingPresentation failureOwner;
         int observedGeneration;
@@ -59,6 +60,7 @@ namespace CurtainCall.EscapeRoute
             if (observedGeneration != run.State.Generation || run.State.Phase == CampaignPhase.None)
             { Reset(); observedGeneration = run.State.Generation; }
             double now = Time.unscaledTimeAsDouble;
+            if (ShouldRefreeze(run.State, run.HasAuthority)) Freeze();
             if (ShouldRequestEndingSnapshot(run.State, channel.IsClient, now))
             {
                 nextEndingSync = now + .5;
@@ -72,6 +74,8 @@ namespace CurtainCall.EscapeRoute
         bool ShouldRequestEndingSnapshot(CampaignSnapshot state, bool client, double now) =>
             client && snapshot == null && now >= nextEndingSync
             && IsExpectedEnding(state);
+
+        bool ShouldRefreeze(CampaignSnapshot state, bool authority) => authority && snapshot == null && IsExpectedEnding(state);
 
         bool IsExpectedEnding(CampaignSnapshot state) =>
             failureMode ? FailureEndingPresentation.IsFailureEnding(state) : EscapeEndingPresentation.IsSuccessfulEnding(state);
@@ -152,12 +156,8 @@ namespace CurtainCall.EscapeRoute
                 // Gameplay HUD < ending result < the shared transition curtain (2000).
                 canvas.GetComponent<Canvas>().sortingOrder = 600;
                 view.ReturnRequested.AddListener(RequestReturn);
-                if (EventSystem.current == null)
-                {
-                    var events = new GameObject("Escape result events", typeof(EventSystem), typeof(InputSystemUIInputModule));
-                    events.transform.SetParent(view.transform, false);
-                }
             }
+            EnsureResultEvents();
             if (!populated)
             {
                 view.SetPlayers(snapshot.people.Select(p => new EscapePlayerData {
@@ -191,6 +191,28 @@ namespace CurtainCall.EscapeRoute
                     Portrait(stats?.personalModel ?? -1), (stats?.earned ?? 0).ToString("N0"), (stats?.spent ?? 0).ToString("N0"));
             }
         }
+        void EnsureResultEvents()
+        {
+            var current = EventSystem.current;
+            if (current == null || !current.isActiveAndEnabled || !current.TryGetComponent<BaseInputModule>(out var module)
+                || !module.isActiveAndEnabled)
+            {
+                if (resultEvents == null)
+                {
+                    var input = new GameObject("Escape result events", typeof(EventSystem), typeof(InputSystemUIInputModule));
+                    input.transform.SetParent(view.transform, false);
+                    resultEvents = input.GetComponent<EventSystem>();
+                }
+                resultEvents.gameObject.SetActive(true);
+                current = resultEvents;
+                if (EventSystem.current != null && EventSystem.current != current) EventSystem.current = current;
+            }
+            if (lastResultEvents == current) return;
+            lastResultEvents = current;
+            if (populated && view.Visible)
+                current.SetSelectedGameObject((view.StatisticsSelected ? view.StatisticsTab : view.PlayersTab).gameObject);
+        }
+
         Sprite Portrait(int model) => portraits != null && model >= 0 && model < portraits.Length ? portraits[model] : null;
         void RequestReturn()
         {
@@ -200,10 +222,15 @@ namespace CurtainCall.EscapeRoute
         }
         public void Reset()
         {
-            snapshot = null; populated = false; shownRevision = -1; nextEndingSync = 0; observed.Clear(); arrivals.Clear();
-            if (view != null) view.SetVisible(false);
+            snapshot = null; populated = false; lastResultEvents = null; shownRevision = -1; nextEndingSync = 0; observed.Clear(); arrivals.Clear();
+            HideResultView();
         }
-        void OnDisable() { if (view != null) view.SetVisible(false); }
+        void HideResultView()
+        {
+            if (view != null) view.SetVisible(false);
+            if (resultEvents != null) resultEvents.gameObject.SetActive(false);
+        }
+        void OnDisable() => HideResultView();
         void OnDestroy() => channel?.Dispose();
     }
 }

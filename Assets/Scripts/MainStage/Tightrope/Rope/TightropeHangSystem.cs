@@ -127,6 +127,9 @@ namespace CurtainCall.Tightrope
         void ClearRound()
         {
             pendingHangs.Clear();
+            localPullHeld = false;
+            releaseSince = -1d;
+            cancelSent = false;
             ResetSnapshotTracking();
             if (book.Count > 0)
             {
@@ -165,15 +168,17 @@ namespace CurtainCall.Tightrope
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (PiggybackSystem.UsingDevice(player)) return false;
             if (!Active) { player.ServerReleaseIntoFall(); return false; }
+            Vector3 feet = player.LatestOwnerPosition;
+            Vector3 center = PlayerInteraction.LatestCenter(player);
             int lane = -1;
             float best = Rules.CatchDistance * Rules.CatchDistance;
             for (int candidate = 0; candidate < course.LaneCount; candidate++)
             {
-                if (!course.TryGetHangTarget(candidate, player.transform.position, out float along, out var point)
+                if (!course.TryGetHangTarget(candidate, feet, out float along, out var point)
                     || book.IsOccupied(candidate, along, Rules.LaneOccupyDistance) || GripVisuallyGone(candidate, along)) continue;
-                float squared = (point - player.transform.position).sqrMagnitude;
+                float squared = (point - feet).sqrMagnitude;
                 if (squared > best || squared == best && lane >= 0
-                    || !PlayerInteraction.ClearPath(player, point, course.HangTargetRoot(candidate))) continue;
+                    || !PlayerInteraction.ClearPathFrom(center, point, course.HangTargetRoot(candidate), player)) continue;
                 lane = candidate; distance = along; best = squared;
             }
             if (lane < 0)
@@ -315,17 +320,23 @@ namespace CurtainCall.Tightrope
         double releaseSince = -1d;
         bool cancelSent;
         const double ReleaseDebounceSeconds = 0.2d;
+        const double RescueResponseSeconds = 1d;
+        double pullReplyAt;
 
         // 균형은 각 캐릭터의 소유자가 계산한다. 호스트가 승인한 구조 상태로 로컬 캐릭터만 보호한다.
         void UpdateRescuerBalance()
         {
             var local = NetworkPlayer.Local;
+            if (local != null && localPullHeld && !IsAwaitingRescueReply(book.IsRescuing(local.OwnerClientId), Now, pullReplyAt))
+                localPullHeld = false;
             var next = Active && local != null && local.State == PlayerState.Normal && !RescueDeviceOccupied(local)
                 && book.IsRescuing(local.OwnerClientId)
                 ? local.GetComponent<PlayerBalance>() : null;
             if (rescuerBalance != next) { ReleaseRescuerBalance(); rescuerBalance = next; }
             if (rescuerBalance != null) rescuerBalance.IsRescueSupported = true;
         }
+
+        static bool IsAwaitingRescueReply(bool approved, double now, double deadline) => !approved && now < deadline;
 
         void ReleaseRescuerBalance()
         {
@@ -522,6 +533,7 @@ namespace CurtainCall.Tightrope
             if (target == null || !CommonInteractionSelection.Consume(local, this)) return false;
             Debug.Log($"[RescueDiag] local request id={local.OwnerClientId} target={target.Id} held={input.InteractHeld}");
             localPullHeld = true;
+            pullReplyAt = Now + RescueResponseSeconds;
             context.Mover.ClearPendingInput();
             context.Balance?.SetCorrectionInput(0f);
             Send(Request.Rescue, target.Id);
@@ -554,8 +566,11 @@ namespace CurtainCall.Tightrope
             // 아래로 떨어지는 사람이나 매달린 높이에서는 동료를 끌어올릴 수 없다.
             if (RescuerAirborne(rescuer)) return false;
             float multiplier = rescuer.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return Mathf.Abs(rescuer.transform.position.y - grip.y) <= Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance)
-                && PlayerInteraction.InRange(rescuer, grip + Vector3.up * .05f, Mathf.Min(reach, GameSettings.Base.Interaction.Distance) * multiplier);
+            Vector3 center = PlayerInteraction.LatestCenter(rescuer);
+            float feetY = rescuer.transform.position.y + (center.y - PlayerInteraction.Center(rescuer).y);
+            return Mathf.Abs(feetY - grip.y) <= Mathf.Max(course.RopeHeightTolerance, Rules.RescueHeightTolerance)
+                && PlayerInteraction.InRangeFrom(rescuer, center, grip + Vector3.up * .05f,
+                    Mathf.Min(reach, GameSettings.Base.Interaction.Distance) * multiplier, null);
         }
 
         // 실제 거리 판정을 플레이 중 Scene 뷰 Gizmos에서 확인한다. 충돌체는 사용하지 않는다.
