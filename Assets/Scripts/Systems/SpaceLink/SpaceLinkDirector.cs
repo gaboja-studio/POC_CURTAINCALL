@@ -20,6 +20,8 @@ namespace CurtainCall.SpaceLink
     public sealed partial class SpaceLinkDirector : MonoBehaviour
     {
         const int MaxLogLines = 8;
+        const double MinimumNetworkSceneStartTimeout = 30d;
+        const float SceneRetryDelay = .25f;
 
         public static SpaceLinkDirector Instance { get; private set; }
 
@@ -54,6 +56,10 @@ namespace CurtainCall.SpaceLink
                 trickId = state.TrickId;
                 phase = state.Phase;
             }
+
+            public bool AllowsRecovery => !Reload && phase is (CampaignPhase.Performance or CampaignPhase.RestTime
+                or CampaignPhase.Night or CampaignPhase.Ending);
+            public bool IgnoresDisconnected => Space == SpaceId.Performance || AllowsRecovery;
 
             public bool Matches(in CampaignSnapshot state) => state.Phase == phase && state.Generation == generation
                 && state.Day == day && state.PerformanceIndex == performanceIndex
@@ -203,19 +209,32 @@ namespace CurtainCall.SpaceLink
                     continue;
                 }
                 if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
-                {
-                    uint curtainVersion = 0;
-                    yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version,
-                        request.Space == SpaceId.EscapeRoute);
-                    try
-                    {
-                        if (IsCurrent(request) && CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
-                            yield return Transition(request);
-                    }
-                    finally { CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CompleteFor(curtainVersion); }
-                }
+                    yield return TransitionWithCurtain(request);
             }
             running = null;
+        }
+
+        IEnumerator TransitionWithCurtain(TransitionRequest request)
+        {
+            int attempts = request.AllowsRecovery ? 2 : 1;
+            for (int attempt = 0; attempt < attempts; attempt++)
+            {
+                if (!IsCurrent(request) || pending.HasValue) yield break;
+                uint curtainVersion = 0;
+                yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(
+                    version => curtainVersion = version, request.Space == SpaceId.EscapeRoute);
+                try
+                {
+                    if (!IsCurrent(request) || pending.HasValue) yield break;
+                    if (CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
+                    {
+                        yield return Transition(request);
+                        yield break;
+                    }
+                }
+                finally { CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CompleteFor(curtainVersion); }
+                if (attempt + 1 < attempts) yield return new WaitForSecondsRealtime(SceneRetryDelay);
+            }
         }
 
         bool IsCurrent(in TransitionRequest request) => HasAuthority && request.Matches(campaign.State);
@@ -226,13 +245,15 @@ namespace CurtainCall.SpaceLink
             var mode = request.Reload ? SpaceTransitionMode.Single : settings.Mode;
             var from = Current;
             var target = request.Space;
-            bool enteringPerformance = target == SpaceId.Performance;
+            bool ignoreDisconnected = request.IgnoresDisconnected;
+            bool CanProceed() => IsCurrent(request) && (!request.AllowsRecovery || !pending.HasValue);
+            Func<bool> retryWhile = request.AllowsRecovery ? CanProceed : null;
             string sceneName = request.SceneName;
             stepFailed = false;
 
             if (mode == SpaceTransitionMode.Single)
             {
-                yield return Load(sceneName, LoadSceneMode.Single, enteringPerformance);
+                yield return Load(sceneName, LoadSceneMode.Single, ignoreDisconnected, retryWhile);
             }
             else
             {
@@ -242,15 +263,15 @@ namespace CurtainCall.SpaceLink
                 {
                     if (scene.name == sceneName) continue;
                     if (hub.isLoaded && SceneManager.GetActiveScene() == scene) SceneManager.SetActiveScene(hub);
-                    yield return Unload(scene, enteringPerformance);
-                    if (stepFailed || !IsCurrent(request)) break;
+                    yield return Unload(scene, ignoreDisconnected, retryWhile);
+                    if (stepFailed || !CanProceed()) break;
                 }
-                if (!stepFailed && IsCurrent(request) && !IsLoaded(sceneName))
-                    yield return Load(sceneName, LoadSceneMode.Additive, enteringPerformance);
+                if (!stepFailed && CanProceed() && !IsLoaded(sceneName))
+                    yield return Load(sceneName, LoadSceneMode.Additive, ignoreDisconnected, retryWhile);
             }
 
             // NGO can report a slow client before its local scene has finished loading.
-            while (target == SpaceId.EscapeRoute && IsCurrent(request)
+            while (target == SpaceId.EscapeRoute && CanProceed()
                 && CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
                 yield return null;
             if (stepFailed)
@@ -258,7 +279,7 @@ namespace CurtainCall.SpaceLink
                 AddLog($"실패: {SpaceRoute.Describe(from)} → {SpaceRoute.Describe(target)} ({sceneName})");
                 yield break;
             }
-            if (!IsCurrent(request))
+            if (!CanProceed())
             {
                 AddLog($"폐기: 지난 공연 요청 ({sceneName})");
                 yield break;
@@ -267,7 +288,7 @@ namespace CurtainCall.SpaceLink
             SpaceChanged?.Invoke(target);
         }
 
-        IEnumerator Load(string sceneName, LoadSceneMode mode, bool ignoreDisconnected = false)
+        IEnumerator Load(string sceneName, LoadSceneMode mode, bool ignoreDisconnected = false, Func<bool> retryWhile = null)
         {
             var network = OnlineSceneManager();
             if (network == null)
@@ -293,11 +314,21 @@ namespace CurtainCall.SpaceLink
                 CheckSceneTimeouts(sceneName, "로드", timedOut, ignoreDisconnected);
             }
 
-            network.OnLoadEventCompleted += Completed;
-            var status = network.LoadScene(sceneName, mode);
+            SceneEventProgressStatus StartLoad()
+            {
+                network.OnLoadEventCompleted += Completed;
+                var result = network.LoadScene(sceneName, mode);
+                if (result != SceneEventProgressStatus.Started) network.OnLoadEventCompleted -= Completed;
+                return result;
+            }
+
+            var status = SceneEventProgressStatus.None;
+            yield return BeginNetworkSceneEvent(StartLoad,
+                () => retryWhile?.Invoke() == true && OnlineSceneManager() == network,
+                () => Time.unscaledTimeAsDouble, NetworkSceneStartTimeout, result => status = result);
             if (status != SceneEventProgressStatus.Started)
             {
-                network.OnLoadEventCompleted -= Completed;
+                if (retryWhile?.Invoke() == false) yield break;
                 Fail($"NGO {sceneName} 로드 실패: {status}");
                 yield break;
             }
@@ -307,7 +338,7 @@ namespace CurtainCall.SpaceLink
             else if (!stepFailed && !IsLoaded(sceneName)) Fail($"{sceneName} 씬 로드가 완료되지 않았습니다.");
         }
 
-        IEnumerator Unload(Scene scene, bool ignoreDisconnected = false)
+        IEnumerator Unload(Scene scene, bool ignoreDisconnected = false, Func<bool> retryWhile = null)
         {
             string sceneName = scene.name;
             var network = OnlineSceneManager();
@@ -334,11 +365,22 @@ namespace CurtainCall.SpaceLink
                 CheckSceneTimeouts(sceneName, "닫기", timedOut, ignoreDisconnected);
             }
 
-            network.OnUnloadEventCompleted += Completed;
-            var status = network.UnloadScene(scene);
+            SceneEventProgressStatus StartUnload()
+            {
+                network.OnUnloadEventCompleted += Completed;
+                var result = network.UnloadScene(scene);
+                if (result != SceneEventProgressStatus.Started) network.OnUnloadEventCompleted -= Completed;
+                return result;
+            }
+
+            var status = SceneEventProgressStatus.None;
+            yield return BeginNetworkSceneEvent(StartUnload,
+                () => retryWhile?.Invoke() == true && OnlineSceneManager() == network,
+                () => Time.unscaledTimeAsDouble, NetworkSceneStartTimeout, result => status = result);
+            if (retryWhile != null && status == SceneEventProgressStatus.SceneNotLoaded && !scene.isLoaded) yield break;
             if (status != SceneEventProgressStatus.Started)
             {
-                network.OnUnloadEventCompleted -= Completed;
+                if (retryWhile?.Invoke() == false) yield break;
                 Fail($"NGO {sceneName} 닫기 실패: {status}");
                 yield break;
             }
@@ -347,6 +389,25 @@ namespace CurtainCall.SpaceLink
             if (!done) Fail($"{sceneName} 닫기 중 접속이 끊겼습니다.");
             else if (!stepFailed && scene.isLoaded) Fail($"{sceneName} 씬 닫기가 완료되지 않았습니다.");
         }
+
+        // NGO rejects a new event while its previous load/unload is completing. Keep the
+        // same campaign request and wait for NGO, without repeating a successful event.
+        static IEnumerator BeginNetworkSceneEvent(Func<SceneEventProgressStatus> start, Func<bool> canRetry,
+            Func<double> clock, double timeout, Action<SceneEventProgressStatus> complete)
+        {
+            double deadline = clock() + timeout;
+            var status = start();
+            while (status == SceneEventProgressStatus.SceneEventInProgress && canRetry() && clock() < deadline)
+            {
+                yield return new WaitForSecondsRealtime(SceneRetryDelay);
+                if (!canRetry() || clock() >= deadline) break;
+                status = start();
+            }
+            complete(status);
+        }
+
+        static double NetworkSceneStartTimeout => Math.Max(MinimumNetworkSceneStartTimeout,
+            (NetworkSessionManager.Instance?.NetworkManager?.NetworkConfig?.LoadSceneTimeOut ?? 0) + 1d);
 
         void CheckSceneTimeouts(string sceneName, string operation, IReadOnlyList<ulong> timedOut, bool ignoreDisconnected)
         {
