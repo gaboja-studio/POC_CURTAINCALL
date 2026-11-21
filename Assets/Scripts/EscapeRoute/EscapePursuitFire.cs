@@ -178,15 +178,16 @@ namespace CurtainCall.EscapeRoute
                 TryArmBridge(now);
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (!Alive(player)) continue;
+                    if (!Alive(player) || !EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)) continue;
+                    Vector3 feet = player.LatestOwnerPosition;
                     if (awaitingSpawn.TryGetValue(player.OwnerClientId, out Vector3 spawn))
                     {
-                        if ((player.transform.position - spawn).sqrMagnitude > 9) continue;
+                        if ((feet - spawn).sqrMagnitude > 9) continue;
                         awaitingSpawn.Remove(player.OwnerClientId);
                     }
                     if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);
                     if (IsArmed && DamageAllowed(player) && player.TryGetComponent(out PlayerMover mover)
-                        && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(this,"OB_"));
+                        && Threatens(feet, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(this,"OB_"));
                 }
                 if (Time.unscaledTimeAsDouble >= nextSnapshot) { nextSnapshot = Time.unscaledTimeAsDouble + .5; Publish(); }
             }

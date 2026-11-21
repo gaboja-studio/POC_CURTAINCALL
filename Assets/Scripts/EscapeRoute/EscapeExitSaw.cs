@@ -112,13 +112,14 @@ namespace CurtainCall.EscapeRoute
         public bool TeamReachedExitZone { get; private set; }
         void WatchObjectiveZone()
         {
-            if (deviceId != 0 || TeamReachedExitZone || !Ready || !session.IsHost || !cableSocket
+            if (deviceId != 0 || TeamReachedExitZone || !SessionReady || !session.IsHost || !cableSocket
                 || !EscapeCampaignContent.IsTraversalActive) return;
             foreach (var member in NetworkPlayer.All)
             {
                 if (!Alive(member) || member.Slot == NetworkPlayer.NoSlot || member.IsApplyingInitialCondition
+                    || !CanUseCampaignLauncher(member.OwnerClientId)
                     || (inspection && inspection.IsInspecting(member.OwnerClientId))
-                    || !objectiveZone.Contains(cableSocket.InverseTransformPoint(member.transform.position))) continue;
+                    || !objectiveZone.Contains(cableSocket.InverseTransformPoint(RouteFeet(member)))) continue;
                 TeamReachedExitZone = true;
                 Changed();
                 break;
@@ -238,18 +239,21 @@ namespace CurtainCall.EscapeRoute
             if (!Alive(player) || !CanUseCampaignLauncher(player.OwnerClientId)) return "actor unavailable";
             if (ownership.IsOccupied || HumanCannonCarry.Held(player.OwnerClientId) != null) return "already carrying";
             bool remoteOnHost = session.IsHost && !player.IsLocal;
-            Vector3 feet = player.transform.position;
+            Vector3 feet = RouteFeet(player);
             if (!Grounded(player, requireReportedGrounded: !remoteOnHost)) return "no ground contact";
             var course = TightropeCourse.Current;
             if (CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockRopeWithSaw
                 && course != null && course.IsTraversalActive && player.TryGetComponent(out PlayerMover mover)
-                && course.TryGetSupportingRope(mover, out _)) return "on rope";
+                && course.TryGetSupportingRopeAt(mover, feet, out _)) return "on rope";
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)) return "cannon unavailable or in use";
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return "mounted";
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            if (!PlayerInteraction.InRange(player, GrabPoint, CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach, CarryRoot)) return "out of reach or obstructed";
+            float distance = CurtainCall.Settings.GameSettings.Base.Interaction.Distance * reach;
+            Vector3 center = PlayerInteraction.Center(player) + (feet - player.transform.position);
+            if (!(distance > 0f && (center - GrabPoint).sqrMagnitude <= distance * distance)
+                || !PlayerInteraction.ClearPathFrom(center, GrabPoint, CarryRoot, player)) return "out of reach or obstructed";
 
             // Both sides grip the handle in its current direction. Camera-facing steering starts after pickup.
             Vector3 offset = Vector3.Scale(CarryRoot.InverseTransformPoint(GrabPoint), CarryRoot.lossyScale);
@@ -280,8 +284,14 @@ namespace CurtainCall.EscapeRoute
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
             float maxFootGap = reportedAirborne
                 ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) + Physics.defaultContactOffset : .25f;
-            return HasFootprintSupport(mover, player.transform.position, maxFootGap);
+            return HasFootprintSupport(mover, RouteFeet(player), maxFootGap);
         }
+        bool OfficialEscapeScene => gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.EscapeRouteScene;
+
+        bool UseLatestOwnerPose => OfficialEscapeScene && session != null && session.IsHost;
+
+        Vector3 RouteFeet(NetworkPlayer player) => UseLatestOwnerPose ? player.LatestOwnerPosition : player.transform.position;
+
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
             if (followedCarrier != carrier.OwnerClientId)
@@ -301,6 +311,19 @@ namespace CurtainCall.EscapeRoute
                 var offset = Vector3.Scale(CarryRoot.InverseTransformPoint(Handle.position), CarryRoot.lossyScale);
                 if (!TrampolineCarryPose.TryCalculate(hand, bearing, offset, out position, out rotation)) return false;
                 carrierRotation = Quaternion.LookRotation(bearing);
+            }
+            if (ProjectileMode && UseLatestOwnerPose && !carrier.IsLocal)
+            {
+                // A click can arrive before interpolation has turned the displayed avatar.
+                var latestFacing = Vector3.Cross(carrier.LatestOwnerRotation * Vector3.right, Vector3.up);
+                var hand = RouteFeet(carrier) + Vector3.up * Mathf.Max(0, carryHandleHeight);
+                var offset = Vector3.Scale(CarryRoot.InverseTransformPoint(Handle.position), CarryRoot.lossyScale);
+                if (TrampolineCarryPose.TryCalculate(hand, latestFacing, offset, out var newestPosition, out var newestRotation))
+                {
+                    position = newestPosition;
+                    rotation = newestRotation;
+                }
+                else position += RouteFeet(carrier) - carrier.transform.position;
             }
             // A held launcher follows the hand; the player's controller owns world movement.
             carryBlocked = (align || !ProjectileMode)

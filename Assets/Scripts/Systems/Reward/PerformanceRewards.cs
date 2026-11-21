@@ -401,6 +401,8 @@ namespace CurtainCall.Reward
                 || !SamePerformance()) return false;
             bool start = gracePerformance != model.Performance.Id;
             if (start && arrived.Count == 0) return false;
+            long priorRevision = model.Revision;
+            ObserveNetwork();
             if (start) ClearGrace();
 
             var roster = model.Snapshot().Segments;
@@ -410,12 +412,15 @@ namespace CurtainCall.Reward
                 foreach (var person in roster)
                 {
                     if (person.ParticipantId != id || !person.Connected || person.Dead) continue;
-                    graceArrivals[id] = "Arrived";
                     if (graceClients.Add(person.ClientId)) placements.Add((person.ClientId, graceClients.Count - 1));
                     break;
                 }
             }
-            if (start && placements.Count == 0) return false;
+            if (start && placements.Count == 0)
+            {
+                if (model.Revision != priorRevision) Publish();
+                return false;
+            }
             if (nearFinish != null) foreach (string id in nearFinish) graceArrivals[id] = "Arrived";
 
             float seconds = GameSettings.Base.Run.FinishGraceSeconds;
@@ -439,7 +444,8 @@ namespace CurtainCall.Reward
             // 기다릴 사람이 없으면(나머지가 이미 도착했거나 사망·이탈) 여유 시간 없이 바로 정산한다.
             if (seconds <= 0f || NobodyLeftToWait()) return FinishGrace();
             if (start) Debug.Log($"[Reward] 첫 생존 도착: {seconds:0.#}초 뒤 공연 종료");
-            if (placements.Count > 0) { model.Touch(); Publish(); }
+            if (placements.Count > 0) model.Touch();
+            if (model.Revision != priorRevision) Publish();
             return false;
         }
 
@@ -462,8 +468,8 @@ namespace CurtainCall.Reward
         {
             if (gracePerformance == null || !CanMutate()) return;
             if (model.Performance?.Id != gracePerformance) { ClearGrace(); return; }
-            // 여유 시간 중 남은 사람이 모두 도착하거나 사망·이탈하면 남은 초와 상관없이 바로 끝낸다.
-            if (Time.unscaledTime >= graceEndsAt || NobodyLeftToWait()) FinishGrace();
+            // A withdrawn finisher cannot keep the timer running or settle for the remaining crew.
+            if (!HasLiveFinisher(model.Snapshot()) || Time.unscaledTime >= graceEndsAt || NobodyLeftToWait()) FinishGrace();
         }
 
         /// <summary>아직 코스를 진행 중인 생존자가 없는지. 실제 도착자가 아닌 살아 있는 사람이 하나라도 있으면 기다린다.</summary>
@@ -476,15 +482,28 @@ namespace CurtainCall.Reward
 
         bool FinishGrace()
         {
-            var arrivals = new Dictionary<string, string>();
-            foreach (var person in model.Snapshot().Segments)
-                if (person.Connected && !person.Dead && graceArrivals.TryGetValue(person.ParticipantId, out string judgement))
-                    arrivals[person.ParticipantId] = judgement;
-            if (arrivals.Count > 0) return FinishPerformance(true, "Completed", arrivals);
+            ObserveNetwork();
+            var snapshot = model.Snapshot();
+            if (HasLiveFinisher(snapshot))
+            {
+                var arrivals = new Dictionary<string, string>();
+                foreach (var person in snapshot.Segments)
+                    if (person.Connected && !person.Dead
+                        && (graceClients.Contains(person.ClientId) || graceArrivals.ContainsKey(person.ParticipantId)))
+                        arrivals[person.ParticipantId] = "Arrived";
+                return FinishPerformance(true, "Completed", arrivals);
+            }
             // 도착자가 여유 시간 안에 모두 사망·이탈했으면 공연을 이어 간다. 다음 도착이 새 여유 시간을 연다.
             ClearGrace();
             model.Touch();
             Publish();
+            return false;
+        }
+
+        bool HasLiveFinisher(RewardSnapshot snapshot)
+        {
+            foreach (var person in snapshot.Segments)
+                if (person.Connected && !person.Dead && graceClients.Contains(person.ClientId)) return true;
             return false;
         }
 

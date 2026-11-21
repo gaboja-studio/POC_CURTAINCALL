@@ -17,7 +17,7 @@ namespace CurtainCall.EscapeRoute
         string attachedRequestName, attachedStateName;
         const int RequestSize = 9, StateSize = 66, ShotSize = 36;
         const double RemoteGrabGrace = .35;
-        readonly List<(ulong Actor, uint Revision, double Expires)> pendingGrabs = new();
+        readonly List<(ulong Actor, uint Revision, double Expires, NetworkPlayer Avatar, int Restart, int Revive)> pendingGrabs = new();
         CustomMessagingManager messaging, suspendedHostMessaging;
         void RequestAction(byte action)
         {
@@ -114,13 +114,15 @@ namespace CurtainCall.EscapeRoute
             if (action == 0 && token >= 0) SendState(sender, token);
             else if ((action == 1 || action == 2 || action == 3) && token == 0)
             {
+                var requester = action == 1 ? FindPlayer(sender) : null;
                 if (action == 1 && Ready && !Suppressed && !ownership.IsOccupied && expected == ownership.Revision
-                    && !CanGrab(FindPlayer(sender)))
+                    && (!OfficialEscapeScene || Alive(requester)) && !CanGrab(requester))
                 {
                     // The reliable input can reach the host before the interpolated owner pose catches up.
                     // Keep one request per guest and recheck the normal pickup rules on the host.
                     if (!pendingGrabs.Exists(request => request.Actor == sender && request.Revision == expected))
-                        pendingGrabs.Add((sender, expected, Time.unscaledTimeAsDouble + RemoteGrabGrace));
+                        pendingGrabs.Add((sender, expected, Time.unscaledTimeAsDouble + RemoteGrabGrace,
+                            requester, requester != null ? requester.RestartVersion : 0, requester != null ? requester.ReviveVersion : 0));
                 }
                 else
                 {
@@ -138,7 +140,7 @@ namespace CurtainCall.EscapeRoute
                 var request = pendingGrabs[i];
                 var player = FindPlayer(request.Actor);
                 if (!Ready || Suppressed || ownership.IsOccupied || request.Revision != ownership.Revision
-                    || request.Expires < now)
+                    || request.Expires < now || OfficialEscapeScene && !GrabRequestMatches(player, request.Avatar, request.Restart, request.Revive))
                 {
                     if (request.Expires < now && !ownership.IsOccupied && request.Revision == ownership.Revision)
                         Debug.LogWarning($"[ExitSaw] {gameObject.scene.name}/{deviceId} guest {request.Actor} grab expired: {CheckGrab(player, out _, out _)}", this);
@@ -150,6 +152,9 @@ namespace CurtainCall.EscapeRoute
                 HandleAction(request.Actor, 1, request.Revision);
             }
         }
+        static bool GrabRequestMatches(NetworkPlayer current, NetworkPlayer avatar, int restart, int revive)
+            => Alive(current) && current == avatar && current.RestartVersion == restart && current.ReviveVersion == revive;
+
         void Publish()
         {
             Present(0);

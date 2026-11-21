@@ -217,7 +217,7 @@ namespace CurtainCall.EscapeRoute
             if (!ProjectileMode || !CanOperate(carrier) || Carrier != carrier.OwnerClientId
                 || shotWait > 0 || shots.Count >= MaxProjectiles) return false;
             // A blocked turn can leave a valid held pose. Reject a shot only if that pose lost the carrier's hand.
-            if (carryBlocked && Vector3.Distance(Handle.position, carrier.transform.position + Vector3.up * carryHandleHeight) >= .3f)
+            if (carryBlocked && Vector3.Distance(Handle.position, RouteFeet(carrier) + Vector3.up * carryHandleHeight) >= .3f)
                 return false;
             if (!SpawnProjectile()) return false;
             shotWait = shotInterval;
@@ -247,11 +247,12 @@ namespace CurtainCall.EscapeRoute
             Vector3 start = origin.position;
             var carrier = FindPlayer(Carrier);
             float level = start.y;
+            Vector3 feet = carrier ? RouteFeet(carrier) : default;
             if (carrier)
             {
                 float muzzleAboveHand = (CarryRoot.InverseTransformPoint(origin.position).y
                     - CarryRoot.InverseTransformPoint(Handle.position).y) * Mathf.Abs(CarryRoot.lossyScale.y);
-                level = carrier.transform.position.y + Mathf.Max(0, carryHandleHeight) + muzzleAboveHand;
+                level = feet.y + Mathf.Max(0, carryHandleHeight) + muzzleAboveHand;
                 if (finaleBoss && Mathf.Abs(start.y - level) > .25f) start.y = level;
             }
             Vector3 alignedOrigin = start;
@@ -259,12 +260,12 @@ namespace CurtainCall.EscapeRoute
             for (int step = 0; step < 6 && back > 0 && ObstructionDistance(start, direction, 0, out _); step++)
                 start = alignedOrigin - direction * (back * (step + 1) / 6f);
             if (ObstructionDistance(start, direction, 0, out _)
-                || carrier != null && LaunchPathObstructed(carrier.transform.position, start))
+                || carrier != null && LaunchPathObstructed(feet, start))
             {
                 // The held body can cross a rail or wall, but the blade must start on
                 // the bearer's side. Do not discard a click just because the muzzle
                 // protrudes through scenery; launch from a clear point near the hand.
-                if (carrier == null || !TryFindNearHandLaunch(carrier, level, direction, out start)) return false;
+                if (carrier == null || !TryFindNearHandLaunch(feet, level, direction, out start)) return false;
             }
             var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = start, Direction = direction };
             shots.Add(shot);
@@ -275,9 +276,9 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
-        bool TryFindNearHandLaunch(NetworkPlayer carrier, float height, Vector3 direction, out Vector3 start)
+        bool TryFindNearHandLaunch(Vector3 feet, float height, Vector3 direction, out Vector3 start)
         {
-            var anchor = carrier.transform.position;
+            var anchor = feet;
             anchor.y = height;
             start = anchor;
             Vector3 side = Vector3.Cross(Vector3.up, direction);
@@ -288,7 +289,7 @@ namespace CurtainCall.EscapeRoute
                 {
                     var candidate = back + side * ((lane == 2 ? -1 : lane) * .20f);
                     if (ObstructionDistance(candidate, direction, 0, out _)
-                        || LaunchPathObstructed(carrier.transform.position, candidate)) continue;
+                        || LaunchPathObstructed(feet, candidate)) continue;
                     start = candidate;
                     return true;
                 }
