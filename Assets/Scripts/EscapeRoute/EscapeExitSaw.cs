@@ -76,8 +76,7 @@ namespace CurtainCall.EscapeRoute
             get
             {
                 if (!ProjectileMode) return cutProgress >= cutSeconds;
-                return RequiredCableCount > 0 && CutCableCount == RequiredCableCount
-                    && (!finaleBoss || finaleBoss.EncounterDefeated);
+                return AllExitCablesCut && (!finaleBoss || finaleBoss.EncounterDefeated);
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
@@ -125,13 +124,37 @@ namespace CurtainCall.EscapeRoute
                 break;
             }
         }
+        bool AllExitCablesCut => RequiredCableCount > 0 && CutCableCount == RequiredCableCount;
+        internal string FinaleObjective
+        {
+            get
+            {
+                if (!finaleBoss) return null;
+                if (finaleBoss.EncounterDefeated) return "절단기로 남은 배선을 끊으세요.";
+                if (!AllExitCablesCut) return "추격자를 모두 제압하고 배선을 끊으면 문이 열립니다.";
+                if (!finaleBoss.CombatStarted) return "추격자 등장 대기";
+                return finaleBoss.HasSawTargets ? "남은 추격자를 모두 제압하세요." : ReinforcementWaitGuidance;
+            }
+        }
+
         public string Guidance => DoorOpen ? (finaleBoss ? "추격자 제압 및 배선 절단 완료 · 출구로 이동하세요" : "배선 절단 완료 · 출구로 이동하세요")
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
-            : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.EncounterDefeated ? $"{UseKey} 발사 · 남은 추격자 {finaleBoss.RemainingEnemies}명 · 배선 {CutCableCount}/{RequiredCableCount}"
+            : finaleBoss && finaleBoss.CombatStarted && !finaleBoss.EncounterDefeated
+                ? FinaleCombatGuidance()
             : ProjectileMode && RequiredCableCount == 0 ? $"{UseKey} · 톱날 한 발 발사 · 배선 절단용"
             : ProjectileMode ? $"색 전선을 조준하고 {UseKey}로 발사" // 끊은 횟수는 보여 주지 않는다(2026-11-13 사용자)
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
+        string ReinforcementWaitGuidance => finaleBoss.HasIncomingLeap ? "추격자 착지 대기" : "추가 추격자 등장 대기";
+
+        string FinaleCombatGuidance()
+        {
+            bool cablesCut = AllExitCablesCut;
+            if (!finaleBoss.HasSawTargets)
+                return cablesCut ? ReinforcementWaitGuidance : $"{ReinforcementWaitGuidance} · {UseKey}로 배선 절단";
+            return cablesCut ? $"추격자를 조준하고 {UseKey}로 발사" : $"추격자 또는 배선을 조준하고 {UseKey}로 발사";
+        }
+
         bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null
             && session.GameState == GameSessionState.Playing;
         bool Ready => SessionReady && CarryRoot.gameObject.activeInHierarchy;
@@ -249,7 +272,7 @@ namespace CurtainCall.EscapeRoute
         bool Grounded(NetworkPlayer player, bool requireReportedGrounded = true)
         {
             if (!Alive(player) || inspection != null && inspection.IsInspecting(player.OwnerClientId)
-                || !player.TryGetComponent(out PlayerMover mover) || !mover.Body.enabled
+                || !player.TryGetComponent(out PlayerMover mover) || !mover.Body || !mover.Body.enabled
                 || player.IsLocal && !mover.Simulated) return false;
             bool reportedAirborne = player.IsAirborne || mover.IsAirborne;
             if (reportedAirborne && (requireReportedGrounded || player.IsLocal)) return false;
@@ -257,13 +280,7 @@ namespace CurtainCall.EscapeRoute
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;
             float maxFootGap = reportedAirborne
                 ? mover.Body.skinWidth * Mathf.Abs(mover.transform.lossyScale.y) + Physics.defaultContactOffset : .25f;
-            var feet = player.transform.position;
-            if (HasSupport(feet, maxFootGap)) return true;
-            // At floor seams the capsule can stand on an edge while its center ray misses.
-            return WalkableSupport.TryGetSupport(mover, feet, out var support)
-                && Mathf.Abs(feet.y - support.point.y) <= maxFootGap
-                && !support.transform.IsChildOf(CarryRoot) && !support.collider.GetComponentInParent<EscapeExitSaw>()
-                && !CurtainCall.Damage.DismemberedLimb.Contains(support.collider);
+            return HasFootprintSupport(mover, player.transform.position, maxFootGap);
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
@@ -293,7 +310,7 @@ namespace CurtainCall.EscapeRoute
             if (carryBlocked)
             {
                 // Undo horizontal penetration only. Restoring the old height suspends a falling carrier in midair.
-                if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body.enabled)
+                if (carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover) && mover.Simulated && mover.Body && mover.Body.enabled)
                     mover.Body.Move(Vector3.ProjectOnPlane(lastSafeFeet - carrier.transform.position, Vector3.up));
                 return false;
             }

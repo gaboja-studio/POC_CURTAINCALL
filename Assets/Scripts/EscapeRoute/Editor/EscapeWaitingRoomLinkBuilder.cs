@@ -56,7 +56,7 @@ namespace CurtainCall.EscapeRoute.Editor
             var disabledBehaviours = previousRoots.SelectMany(r=>r.GetComponentsInChildren<MonoBehaviour>(true)).Where(c=>c is PlayerSpawnPoints
                 || c is EscapeDevelopmentSession || c is EscapeInspectionSession || c is EscapeInspectionCamera || c is EscapeCannonReviewHud).Cast<Behaviour>().ToArray();
             foreach (var fall in previousRoots.SelectMany(r => r.GetComponentsInChildren<EscapeFallVoid>(true)))
-                fall.enabled = false;
+                Set(fall, "coordinateSpace", frame.transform);
             foreach (var fire in previousRoots.SelectMany(r=>r.GetComponentsInChildren<EscapePursuitFire>(true))) Set(fire, "coordinateSpace", frame.transform);
             foreach (var cannon in previousRoots.SelectMany(r=>r.GetComponentsInChildren<HumanCannonSystem>(true))) Set(cannon, "flightCoordinateSpace", frame.transform);
             var saw = previousRoots.SelectMany(r=>r.GetComponentsInChildren<EscapeExitSaw>(true)).First();

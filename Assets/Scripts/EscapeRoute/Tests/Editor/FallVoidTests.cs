@@ -43,6 +43,59 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
 
+        [Test]
+        public void DeepFoundationKillsOnlyAfterLandingButTheLowerVoidKillsDuringFreeFall()
+        {
+            var frame = new GameObject("Isolated escape shaft");
+            frame.transform.position = new Vector3(9300, 3100, 7000);
+            frame.transform.rotation = Quaternion.Euler(0, 180, 0);
+            var actor = new GameObject("Falling player");
+            var floor = new GameObject("Concrete ledge");
+            floor.transform.SetParent(frame.transform, false);
+            try
+            {
+                const BindingFlags privateMembers = BindingFlags.Instance | BindingFlags.NonPublic;
+                Type Find(string name) => AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(a => a.GetType(name)).First(t => t != null);
+                var voidType = Find("CurtainCall.EscapeRoute.EscapeFallVoid");
+                var region = frame.AddComponent(voidType);
+                voidType.GetField("coordinateSpace", privateMembers).SetValue(region, frame.transform);
+                voidType.GetField("strandedLandingHeight", privateMembers).SetValue(region, -24.6f);
+                var check = voidType.GetMethod("IsFatalPosition", privateMembers);
+                var playerType = Find("CurtainCall.Network.PlayerSync.NetworkPlayer");
+                var player = actor.AddComponent(playerType);
+                var moverType = Find("CurtainCall.Player.PlayerMover");
+                var mover = actor.GetComponent(moverType);
+                playerType.GetField("mover", privateMembers).SetValue(player, mover);
+                var jump = moverType.GetProperty("CurrentJump");
+                void SetJump(string kind) => jump.SetValue(mover, Enum.Parse(jump.PropertyType, kind));
+                bool Fatal() => (bool)check.Invoke(region, new object[] { player });
+                var body = actor.GetComponent<CharacterController>();
+                body.radius = .3f; body.height = 1.5f; body.center = Vector3.up * .75f;
+                var tile = floor.AddComponent<BoxCollider>();
+                tile.size = new Vector3(3, .5f, 3);
+                floor.transform.localPosition = new Vector3(46, -26.25f, -74);
+                actor.transform.position = frame.transform.TransformPoint(new Vector3(46, -25.98f, -74));
+                Physics.SyncTransforms();
+
+                SetJump("Fall");
+                Assert.That(Fatal(), Is.False, "Crossing the higher limit in flight is permitted.");
+                SetJump("None");
+                Assert.That(Fatal(), Is.True, "Standing on the deep ledge cannot strand a player.");
+                tile.enabled = false;
+                Physics.SyncTransforms();
+                Assert.That(Fatal(), Is.False, "There is no landing without a physical support.");
+                SetJump("Fall");
+                actor.transform.position = frame.transform.TransformPoint(new Vector3(46, -30.2f, -74));
+                Assert.That(Fatal(), Is.True, "Below the hard limit no support is needed.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(frame);
+            }
+        }
+
         [TestCase(67, -18.5f, -17, false)] // 그네 탑승 높이
         [TestCase(66, -22, 14, false)] // 기존 진입 대포 준비대
         [TestCase(46, -29.9f, -74, false)]

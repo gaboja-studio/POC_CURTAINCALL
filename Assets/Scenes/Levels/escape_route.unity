@@ -1536972,7 +1536972,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2014077374}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 545de166c98d6e840b8952a641074470, type: 3}
   m_Name: 
@@ -1536983,8 +1536983,9 @@ MonoBehaviour:
     y: -90
     width: 410
     height: 220
-  fallHeight: -40
+  fallHeight: -30
   coordinateSpace: {fileID: 1923766777}
+  strandedLandingHeight: -24.6
 --- !u!1 &2015289561
 GameObject:
   m_ObjectHideFlags: 0

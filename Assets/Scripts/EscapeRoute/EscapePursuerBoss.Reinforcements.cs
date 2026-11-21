@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.WorldIndicators;
 using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
@@ -30,6 +31,10 @@ namespace CurtainCall.EscapeRoute
             }
         }
         public bool EncounterDefeated => CombatStarted && RemainingEnemies == 0;
+        bool AwaitingLanding => State is Phase.LeapWarning or Phase.Leaping;
+        bool CanBeHitBySaw => InBattle && !AwaitingLanding;
+        internal bool HasSawTargets => CanBeHitBySaw || reinforcements.Exists(boss => boss && boss.CanBeHitBySaw);
+        internal bool HasIncomingLeap => AwaitingLanding || reinforcements.Exists(boss => boss && boss.AwaitingLanding);
 
         void BeginReinforcements(double now)
         {
@@ -62,12 +67,24 @@ namespace CurtainCall.EscapeRoute
                 var clone = Instantiate(gameObject, reinforcementRoot);
                 clone.SetActive(false);
                 clone.name = "Arena pursuer " + (index + 1);
+                // Instantiating the live leader also clones its generated warning children.
+                // Their runtime owners are not serialized, so the new boss must build fresh views.
+                foreach (var warning in clone.GetComponentsInChildren<WorldIndicatorView>(true))
+                {
+                    warning.Hide();
+                    if (Application.isPlaying) Destroy(warning.gameObject);
+                    else DestroyImmediate(warning.gameObject);
+                }
                 var boss = clone.GetComponent<EscapePursuerBoss>();
                 boss.EncounterIndex = index;
                 boss.leader = this;
                 boss.ignitionLever = null;
                 boss.fire = null;
                 if (boss.landingRing && !boss.landingRing.transform.IsChildOf(clone.transform)) boss.landingRing = null;
+                // The live leader's rig and renderers may already show hits or death.
+                boss.rigRest = rigRest;
+                boss.rigRotation = rigRotation;
+                boss.ResetPresentation();
                 ReinforcementLeap(index, out var launch, out var destination);
                 clone.transform.SetPositionAndRotation(launch, Quaternion.LookRotation(destination - launch));
                 if (Unity.Netcode.NetworkManager.Singleton && Unity.Netcode.NetworkManager.Singleton.IsServer)

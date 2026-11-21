@@ -218,7 +218,7 @@ namespace CurtainCall.EscapeRoute
         bool CanOperate(NetworkPlayer player)
         {
             if (!Alive(player) || inspection != null && inspection.IsInspecting(player.OwnerClientId)
-                || !player.TryGetComponent(out CurtainCall.Player.PlayerMover mover) || !mover.Body.enabled
+                || !player.TryGetComponent(out CurtainCall.Player.PlayerMover mover) || !mover.Body || !mover.Body.enabled
                 || player.IsLocal && (!mover.Simulated || !mover.ControlEnabled)) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))) return false;

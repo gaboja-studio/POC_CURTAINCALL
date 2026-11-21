@@ -52,7 +52,7 @@ namespace CurtainCall.EscapeRoute
         void ConsiderSawHit(Vector3 from, Vector3 to, Vector3 normal, float radius, float thickness,
             ref EscapePursuerBoss target, ref int selected, ref float first)
         {
-            if (!CombatStarted || Defeated || state.Phase == Phase.LeapWarning || state.Phase == Phase.Leaping) return;
+            if (!CanBeHitBySaw) return;
             for (int i = 0; i < parts.Length && i < 8; i++)
             {
                 var hitbox = parts[i].hitbox;

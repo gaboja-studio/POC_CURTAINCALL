@@ -183,17 +183,23 @@ namespace CurtainCall.EscapeRoute
                 Destroy(go, 4);
             }
         }
+        bool ShouldShowAim(NetworkPlayer local)
+        {
+            if (IsReinforcement || !CombatStarted || !local || !local.IsSpawned || local.State != PlayerState.Normal
+                || !chase || chase.InShowcase || !InsideArena(local.transform.position)
+                || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive) return false;
+            foreach (var saw in EscapeExitSaw.Devices)
+                if (saw && saw.isActiveAndEnabled && saw.CarryRoot.gameObject.activeInHierarchy
+                    && !saw.Suppressed && saw.FinaleBoss == this && saw.Carrier == local.OwnerClientId)
+                    return true;
+            return false;
+        }
+
         void OnGUI()
         {
-            var local = NetworkPlayer.Local;
-            if (IsReinforcement || !CombatStarted || !local || !InsideArena(local.transform.position) || chase.InShowcase) return;
+            if (!ShouldShowAim(NetworkPlayer.Local)) return;
             if (statusStyle == null) statusStyle = new GUIStyle(GUI.skin.label) { font = labelFont, fontSize = 18, alignment = TextAnchor.MiddleCenter };
-            foreach (var saw in EscapeExitSaw.Devices)
-                if (saw && saw.FinaleBoss == this && saw.Carrier == local.OwnerClientId)
-                {
-                    GUI.Label(new Rect(Screen.width * .5f - 12, Screen.height * .5f - 14, 24, 28), "+", statusStyle);
-                    break;
-                }
+            GUI.Label(new Rect(Screen.width * .5f - 12, Screen.height * .5f - 14, 24, 28), "+", statusStyle);
         }
     }
 }
