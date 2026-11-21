@@ -44,6 +44,36 @@ namespace CurtainCall.EscapeRoute.Tests
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
+        public void OfficialFinishAdditional_GuestShotFromNewOwnerHeightCutsCable()
+        {
+            Fixture(true);
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/Levels/escape_route.unity",
+                UnityEditor.SceneManagement.OpenSceneMode.Additive);
+            try
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(saw.gameObject, scene);
+                var guest = Player(42);
+                var netTransform = guest.gameObject.AddComponent(T("Unity.Netcode.Components.NetworkTransform"));
+                Set(guest, "networkTransform", netTransform);
+                var feet = Origin + Vector3.up * 1.8f;
+                Set(netTransform, "m_InternalCurrentPosition", feet);
+                Set(netTransform, "m_InternalCurrentRotation", Quaternion.identity);
+                Own(42);
+                var wire = Strand(feet + Vector3.up * 1.45f + Vector3.forward * 4f);
+                SetCables(wire);
+                Physics.SyncTransforms();
+                Assert.That(Call(saw, "FollowCarrier", guest, false), Is.True);
+                Assert.That(Call(saw, "TryFire", guest), Is.True);
+                Call(saw, "StepProjectiles", .25f, true);
+                Assert.That(Get(wire, "IsCut"), Is.True);
+            }
+            finally
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
         public void ShotObserverExceptionDoesNotPreventTheCableCutOrTheRemainingObservers()
         {
             Fixture(true);

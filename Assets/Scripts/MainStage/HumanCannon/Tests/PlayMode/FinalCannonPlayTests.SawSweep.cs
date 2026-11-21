@@ -51,19 +51,20 @@ namespace CurtainCall.HumanCannon.Tests
             var contact = center - Vector3.up * ((float)Get(mover, "BodyHeight") * .5f);
             Call(mover, "SetStartPose", contact, Quaternion.identity, true);
             int restart = (int)Get(player, "RestartVersion"); double epoch = (double)Get(course, "epoch");
-            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 1u, restart, epoch, at, contact + Vector3.up * 100));
+            ulong avatar = (ulong)Get(player, "NetworkObjectId"); int revive = (int)Get(player, "ReviveVersion");
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 1u, restart, avatar, revive, epoch, at, contact + Vector3.up * 100));
             AssertBody(0);
             Call(mover, "SetStartPose", contact + Vector3.forward * 5f, Quaternion.identity, true);
             yield return new WaitForSeconds(.3f);
             Assert.IsFalse((bool)Call(saw, "Touches", contact, (float)Get(mover, "BodyHeight"), (float)Get(mover, "BodyRadius"), (double)Get(course, "Elapsed"), 1f), "The moving hazard has already passed the contact point by receipt.");
-            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, epoch, at, contact));
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, avatar, revive, epoch, at, contact));
             AssertBody(4);
-            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, epoch, at, contact));
-            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 3u, restart, epoch, at, contact));
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, avatar, revive, epoch, at, contact));
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 3u, restart, avatar, revive, epoch, at, contact));
             AssertBody(4);
-            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart - 1, epoch, at, contact));
-            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart, epoch - 1, at, contact));
-            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, false, 4u, restart, epoch, at, contact));
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart - 1, avatar, revive, epoch, at, contact));
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart, avatar, revive, epoch - 1, at, contact));
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, false, 4u, restart, avatar, revive, epoch, at, contact));
         }
         [UnityTest, Category("PerformanceBalance")]
         public IEnumerator FastSaw_FixedLevelOneHidesUnusedSawDamage_AndKeepsVisibleSawDamage()

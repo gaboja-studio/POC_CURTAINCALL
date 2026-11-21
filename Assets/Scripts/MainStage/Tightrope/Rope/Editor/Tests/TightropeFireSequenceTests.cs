@@ -42,6 +42,56 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         };
 
         [Test]
+        public void OfficialFinishAudit_ContactMustNameTheCurrentLifeAndAvatar()
+        {
+            var root = new GameObject("Fire contact identity audit");
+            root.SetActive(false);
+            try
+            {
+                var player = root.AddComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>();
+                var currentAvatar = player.NetworkObjectId;
+                var match = typeof(TightropeFire).GetMethod("MatchesContactLife", BindingFlags.NonPublic | BindingFlags.Static);
+                Assert.That(match.Invoke(null, new object[] { player, currentAvatar, 0 }), Is.True);
+                Assert.That(match.Invoke(null, new object[] { player, currentAvatar + 1, 0 }), Is.False);
+                Assert.That(match.Invoke(null, new object[] { player, currentAvatar, 1 }), Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void OfficialFinishAdditional_FireStillAppliesAtSameSpotAfterReviving()
+        {
+            var root = NewInactiveFixture(out var fire, out _);
+            var rule = CurtainCall.Network.PlayerSync.NetworkPlayer.ServerCanChangeState;
+            var place = CurtainCall.Survival.SurvivalRules.ServerPlace;
+            try
+            {
+                var player = root.AddComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>();
+                typeof(NetworkBehaviour).GetProperty("IsServer").SetValue(player, true);
+                CurtainCall.Survival.SurvivalRules.ServerPlace = CurtainCall.Survival.SurvivalPlace.Performance;
+                int hits = 0;
+                fire.Hit += _ => hits++;
+                CurtainCall.Network.PlayerSync.NetworkPlayer.ServerCanChangeState = (_, _) => false;
+                Invoke(fire, "Kill", player, FireKind.Chase, -1, 10f);
+                Assert.That(player.State, Is.EqualTo(CurtainCall.Network.PlayerSync.PlayerState.Normal));
+                Assert.That(hits, Is.Zero);
+                CurtainCall.Network.PlayerSync.NetworkPlayer.ServerCanChangeState = null;
+                Invoke(fire, "Kill", player, FireKind.Chase, -1, 10f);
+                Invoke(fire, "Kill", player, FireKind.Chase, -1, 10f);
+                Assert.That(hits, Is.EqualTo(1), "The dead state prevents duplicate hits.");
+                Assert.That(player.ServerRevive(), Is.True);
+                Invoke(fire, "Kill", player, FireKind.Chase, -1, 10f);
+                Assert.That(hits, Is.EqualTo(2), "A revived player must be judged again at the same spot.");
+            }
+            finally
+            {
+                CurtainCall.Network.PlayerSync.NetworkPlayer.ServerCanChangeState = rule;
+                CurtainCall.Survival.SurvivalRules.ServerPlace = place;
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void LeaderDistanceStartsWarningAndOnlyDeadlineActivatesTheLane()
         {
             var settings = DistanceSettings();

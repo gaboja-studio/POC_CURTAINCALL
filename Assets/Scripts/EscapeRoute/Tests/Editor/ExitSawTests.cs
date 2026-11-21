@@ -78,6 +78,51 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(ownership, "TryApply", Enum.Parse(T("CurtainCall.HumanCannon.CannonAction"), "Board"), actor, (uint)Get(ownership, "Revision")), Is.True);
         }
         [Test]
+        public void OfficialFinishAudit_QueuedGrabCannotSurviveAReviveOrAvatarReplacement()
+        {
+            var original = Player(42);
+            var replacement = Player(42);
+            var matches = T(SawType).GetMethod("GrabRequestMatches", Static);
+            Assert.That(matches.Invoke(null, new object[] { original, original, 0, 0 }), Is.True);
+            Assert.That(matches.Invoke(null, new object[] { original, original, 1, 0 }), Is.False);
+            Assert.That(matches.Invoke(null, new object[] { original, original, 0, 1 }), Is.False);
+            Assert.That(matches.Invoke(null, new object[] { replacement, original, 0, 0 }), Is.False);
+        }
+
+        [Test]
+        public void OfficialFinishAudit_GuestPickupAimAndDropUseLatestOwnerPose()
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/Levels/escape_route.unity",
+                UnityEditor.SceneManagement.OpenSceneMode.Additive);
+            try
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(saw.gameObject, scene);
+                var guest = Player(42);
+                var netTransform = guest.gameObject.AddComponent(T("Unity.Netcode.Components.NetworkTransform"));
+                Set(guest, "networkTransform", netTransform);
+                guest.transform.position = Origin + Vector3.up * 3f;
+                Set(netTransform, "m_InternalCurrentPosition", Origin);
+                Set(netTransform, "m_InternalCurrentRotation", Quaternion.Euler(0f, 90f, 0f));
+                Physics.SyncTransforms();
+                Assert.That(Call(saw, "CanGrab", guest), Is.True, "Host's interpolated position is still above the landing.");
+                Own(42);
+                Assert.That(Call(saw, "FollowCarrier", guest, false), Is.True);
+                Assert.That(Vector3.Dot(device.forward, Vector3.right), Is.GreaterThan(.99f), "Use the latest owner's turn.");
+                var handle = (Transform)Get(saw, "Handle");
+                float height = (float)Get(saw, "carryHandleHeight");
+                Assert.That(Vector3.Distance(handle.position, Origin + Vector3.up * height), Is.LessThan(.005f));
+                Physics.SyncTransforms();
+                Assert.That(Call(saw, "CanLeaveAtCurrentPose", guest), Is.True, "Drop on the newest supporting floor.");
+            }
+            finally
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
         public void HingedExitOpensBothLeavesOutwardAndClosesOnResetWithoutLiftingTheDoor()
         {
             Fixture();

@@ -43,6 +43,7 @@ namespace CurtainCall.Tightrope.Fire
         NetworkSessionManager session;
         CustomMessagingManager messaging;
         FireSettings snapshot;
+        string receivedSettings;
         ulong activeMask, appliedMask;
         int round = -1, sequence, receivedSequence = -1;
         int pendingSegment = -1;
@@ -140,7 +141,12 @@ namespace CurtainCall.Tightrope.Fire
                 run.PerformanceStarted -= HandlePerformance;
                 run = null;
             }
-            if (course != null) course.Rebuilt -= HandleRebuilt;
+            if (course != null)
+            {
+                course.Rebuilt -= HandleRebuilt;
+                ClearAppliedFireBlocks();
+            }
+            snapshot = null; receivedSettings = null; activeMask = 0; round = -1;
             if (session != null)
             {
                 session.ConnectionStateChanged -= HandleConnection;
@@ -270,15 +276,11 @@ namespace CurtainCall.Tightrope.Fire
                 float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : 0f;
                 if (TryContact(player.transform.position, radius, Elapsed, false, out var kind, out int index))
                     Kill(player, kind, index, course.GetDistance(player.transform.position));
-                else fireContacts.Remove(player.OwnerClientId);
             }
         }
 
         void Kill(NetworkPlayer player, FireKind kind, int segment, float distance)
         {
-            var contact = (kind, segment);
-            if (fireContacts.TryGetValue(player.OwnerClientId, out var previous) && previous == contact) return;
-            fireContacts[player.OwnerClientId] = contact;
             // 접촉 판정은 추격 불벽만 한다. 줄 구간 불은 줄이 끊어져 추락으로 처리된다(Task-115).
             if (!player.ServerHazardContact(CurtainCall.Damage.HazardDamageKind.FatalFire, "FIRE_"+kind+"_"+segment, NetworkPlayer.DeathOrigin.FirePillar)) return;
             TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
@@ -321,7 +323,8 @@ namespace CurtainCall.Tightrope.Fire
             }
             else if (state == SessionConnectionState.Offline)
             {
-                snapshot = null;
+                ClearAppliedFireBlocks();
+                snapshot = null; receivedSettings = null;
                 activeMask = appliedMask = 0;
                 pendingSegment = -1;
                 pendingIgniteAt = -1f;
@@ -377,20 +380,26 @@ namespace CurtainCall.Tightrope.Fire
             reader.ReadValueSafe(out float incomingIgniteAt);
             reader.ReadValueSafe(out float incomingFurthest);
             reader.ReadValueSafe(out string json);
-            var settings = FireSettings.FromJson(json);
-            if (settings == null || settings.segments == null || settings.segments.Length > 64) return;
-            if (incomingPending < -1 || incomingPending >= settings.segments.Length
-                || float.IsNaN(incomingIgniteAt) || float.IsInfinity(incomingIgniteAt)
-                || float.IsNaN(incomingFurthest) || float.IsInfinity(incomingFurthest)) return;
+            ApplyRemoteFireState(incomingRound, incomingSequence, mask, incomingElapsed, at, running,
+                incomingPending, incomingIgniteAt, incomingFurthest, json);
+        }
+
+        bool ApplyRemoteFireState(int incomingRound, int incomingSequence, ulong mask, float incomingElapsed, double at,
+            bool running, int incomingPending, float incomingIgniteAt, float incomingFurthest, string json)
+        {
+            bool settingsChanged = snapshot == null || json != receivedSettings;
+            var settings = settingsChanged ? FireSettings.FromJson(json) : snapshot;
+            if (settings?.segments == null || settings.segments.Length > 64 || !float.IsFinite(incomingElapsed)
+                || incomingElapsed < 0f || !double.IsFinite(at) || incomingPending < -1
+                || incomingPending >= settings.segments.Length || !float.IsFinite(incomingIgniteAt)
+                || !float.IsFinite(incomingFurthest)) return false;
+
             bool newRound = incomingRound != round;
-            if (newRound)
-            {
-                appliedMask = 0;
-                if (run != null && incomingRound == run.Round) course.ClearBlockedSegments();
-            }
+            if (newRound || settingsChanged || (appliedMask & ~mask) != 0)
+                ClearAppliedFireBlocks();
             round = incomingRound;
             receivedSequence = incomingSequence;
-            if (newRound || snapshot == null) snapshot = settings;
+            snapshot = settings; receivedSettings = json;
             activeMask = mask;
             pendingSegment = incomingPending;
             pendingIgniteAt = incomingIgniteAt;
@@ -400,6 +409,13 @@ namespace CurtainCall.Tightrope.Fire
             ticking = running;
             ApplyBlocks();
             Changed?.Invoke();
+            return true;
+        }
+
+        void ClearAppliedFireBlocks()
+        {
+            if (appliedMask != 0 && course != null) course.ClearBlockedSegments();
+            appliedMask = 0;
         }
 
         void Unregister()
