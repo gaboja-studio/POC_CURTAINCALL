@@ -103,6 +103,29 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(locks, "AtArrival", player, 0), Is.False);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void CourseProgressAudit_LowerWorkAreaAcceptsRealOverhangingFootprintOnly(bool solidFloor)
+        {
+            var ropes = Root("Lower work bay").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeRopes"));
+            var player = Player(212);
+            var zone = Root("Lower work bay volume", true).AddComponent<BoxCollider>();
+            zone.isTrigger = true;
+            zone.size = Vector3.one * 4f;
+            Set(ropes, "lowerWorkerBounds", zone);
+            var ledge = Root("Lower work bay support", true).AddComponent<BoxCollider>();
+            ledge.center = new Vector3(-.6f, -.25f, 0f);
+            ledge.size = new Vector3(1f, .5f, 3f);
+            ledge.isTrigger = !solidFloor;
+            var body = player.GetComponent<CharacterController>();
+            body.radius = .3f;
+            body.height = 1.5f;
+            body.center = Vector3.up * .75f;
+            Physics.SyncTransforms();
+            Assert.That(ledge.Raycast(new Ray(Origin + Vector3.up * .12f, Vector3.down), out _, .3f), Is.False);
+            Assert.That(Call(ropes, "IsStandingInLower", player), Is.EqualTo(solidFloor));
+        }
+
         [Test]
         public void TraversalAudit_FallenPursuerPartsCannotClaimTheLowerWorkerGate()
         {

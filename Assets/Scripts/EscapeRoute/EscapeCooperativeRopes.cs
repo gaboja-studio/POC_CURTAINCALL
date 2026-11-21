@@ -471,16 +471,21 @@ namespace CurtainCall.EscapeRoute
             if (!IsInsideLower(player) || player.IsAirborne
                 || HumanCannonPoleSystem.Current?.HeldBy(player.OwnerClientId) >= 0
                 || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
-                    || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))) return false;
-            int count = Physics.RaycastNonAlloc(player.LatestOwnerPosition + Vector3.up * .12f,
+                    || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))
+                || !player.TryGetComponent(out PlayerMover mover)) return false;
+            Vector3 feet = player.LatestOwnerPosition;
+            int count = Physics.RaycastNonAlloc(feet + Vector3.up * .12f,
                 Vector3.down, lowerFloorHits, .3f, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
-                if (lowerFloorHits[i].normal.y > .5f && lowerFloorHits[i].collider.gameObject.scene == gameObject.scene
-                    && lowerFloorHits[i].collider.GetComponentInParent<NetworkPlayer>() == null
-                    && !CurtainCall.Damage.DismemberedLimb.Contains(lowerFloorHits[i].collider)
-                    && !lowerFloorHits[i].collider.GetComponentInParent<EscapePursuerDebris>()) return true;
-            return false;
+                if (lowerFloorHits[i].normal.y > .5f && IsLowerFloor(lowerFloorHits[i].collider, mover.Body)) return true;
+
+            return WalkableSupport.TryGetSupport(mover, feet, gameObject.scene, out var edge)
+                && Mathf.Abs(feet.y - edge.point.y) <= .18f && IsLowerFloor(edge.collider, mover.Body);
         }
+
+        bool IsLowerFloor(Collider surface, CharacterController body) => surface != null
+            && surface.gameObject.scene == gameObject.scene && WalkableSupport.IsSupportCollider(surface, body)
+            && !surface.GetComponentInParent<EscapePursuerDebris>();
 
         void RefreshWorker()
         {
