@@ -18,16 +18,19 @@ namespace CurtainCall.SpaceLink
         TightropeRun run;
         NetworkPlayer placed;
         PlayerMover mover;
+        PlayerSpawnPoints sceneSpawns;
         PlayerController controller;
         PlayerControlScheme previousScheme;
         bool previousFreeMovement;
-        bool controlHeld, initialized;
+        bool controlHeld, controlBeforeHold, initialized;
+        CampaignSnapshot placedStep;
         readonly System.Collections.Generic.HashSet<NetworkPlayer> prepared = new();
         readonly System.Collections.Generic.HashSet<NetworkPlayer> seenAtStart = new();
         readonly System.Collections.Generic.Dictionary<NetworkPlayer, double> entryGraceEnds = new();
         System.Func<NetworkPlayer, PlayerState, bool> guard, previousGuard;
 
-        public bool LocalPlaced => placed != null && placed == NetworkPlayer.Local && placed.IsSpawned;
+        public bool LocalPlaced => placed != null && placed == NetworkPlayer.Local && placed.IsSpawned
+            && campaign != null && MatchesPerformanceStep(placedStep, campaign.State);
 
         internal bool LocalParticipantReady
         {
@@ -55,7 +58,7 @@ namespace CurtainCall.SpaceLink
         {
             var session = NetworkSessionManager.Instance;
             var campaign = CampaignRun.Instance;
-            if (!scene.isLoaded || session == null || session.GameState != GameSessionState.Playing
+            if (!scene.isLoaded || session == null || session.ConnectionState == SessionConnectionState.Offline
                 || campaign != null && campaign.IsOfflineRun) return;
             var settings = GameSettings.Base.SpaceTransition;
             string trick = scene.name == settings.TightropeScene ? "Tightrope"
@@ -70,6 +73,7 @@ namespace CurtainCall.SpaceLink
             entry.trickId = trick;
             entry.campaign = campaign;
             entry.run = FindInScene<TightropeRun>(scene);
+            entry.sceneSpawns = FindInScene<PlayerSpawnPoints>(scene);
             entry.InitializeIfReady();
         }
 
@@ -80,7 +84,7 @@ namespace CurtainCall.SpaceLink
             campaign = CampaignRun.Instance;
             // 새 세션 직행에서는 씬 로드 뒤에 첫 캠페인 스냅샷을 받는다. 초기화를 버리지 않고 기다린다.
             if (session == null || session.GameState != GameSessionState.Playing
-                || campaign == null || campaign.IsOfflineRun || !campaign.State.IsRunning) return false;
+                || campaign == null || campaign.IsOfflineRun || !IsCurrentPerformance) return false;
             initialized = true;
             if (run != null) run.SetExternallyManaged(true);
             else if (session.IsHost) HoldDeathsUntilPlaced(); // 줄타기는 TightropeRun이 시작 전 판정을 막는다.
@@ -113,10 +117,22 @@ namespace CurtainCall.SpaceLink
 
         void Update()
         {
-            if (!InitializeIfReady() || !IsCurrentPerformance) return; // 클라이언트의 공용 상태 수신이 씬 로드보다 늦을 수 있다.
+            if (!InitializeIfReady() || !IsCurrentPerformance)
+            {
+                ReleaseControl();
+                return;
+            }
+            bool stepChanged = !MatchesPerformanceStep(placedStep, campaign.State);
+            if (stepChanged)
+            {
+                ReleaseControl();
+                placed = null;
+                prepared.Clear(); seenAtStart.Clear(); entryGraceEnds.Clear();
+                placedStep = campaign.State;
+            }
             var session = NetworkSessionManager.Instance;
             if (session == null || session.GameState != GameSessionState.Playing) return;
-            if (run != null && run.State == TightropeRunState.Waiting)
+            if (run != null && (stepChanged || run.State == TightropeRunState.Waiting))
             {
                 var course = run.GetComponent<TightropeCourse>();
                 course.ApplyStage(course.TestStage > 0 ? course.TestStage : campaign.State.Difficulty);
@@ -124,15 +140,20 @@ namespace CurtainCall.SpaceLink
             if (session.IsHost)
                 foreach (var player in NetworkPlayer.All)
                 {
+                    if (!CanPlaceAvatar(player)) continue;
                     if (prepared.Add(player) && player.State == PlayerState.Arrived) player.ServerSetState(PlayerState.Normal);
                     if (guard == null || seenAtStart.Contains(player)) continue;
-                    if (IsAtStart(player, player.transform.position)) seenAtStart.Add(player);
+                    if (IsAtStart(player, player.LatestOwnerPosition)) seenAtStart.Add(player);
                     else if (player.IsSpawned && player.Slot != NetworkPlayer.NoSlot)
                         entryGraceEnds.TryAdd(player, Time.unscaledTimeAsDouble + GameSettings.Base.SpaceTransition.PerformancePlacementGraceSeconds);
                 }
             var local = NetworkPlayer.Local;
-            if (local == null || !local.IsSpawned || local.Slot == NetworkPlayer.NoSlot || local.State == PlayerState.Arrived) return;
-            if (placed != local) Place(local);
+            if (!CanPlaceAvatar(local) || local.State != PlayerState.Normal) return;
+            if (placed != local)
+            {
+                ReleaseControl();
+                Place(local);
+            }
             if (controlHeld && (run == null || run.State == TightropeRunState.Running)) ReleaseControl();
         }
 
@@ -152,16 +173,24 @@ namespace CurtainCall.SpaceLink
 
         internal static void ConfirmPlayerPlacement(NetworkPlayer player, Vector3 feet)
         {
-            var entry = FindFirstObjectByType<CampaignPerformanceEntry>();
-            if (entry != null && entry.guard != null && entry.IsCurrentPerformance && IsAtStart(player, feet))
+            var entry = FindInScene<CampaignPerformanceEntry>(SceneManager.GetActiveScene());
+            if (entry != null && entry.guard != null && entry.IsCurrentPerformance && entry.IsAtStart(player, feet))
                 entry.seenAtStart.Add(player);
         }
 
-        static bool IsAtStart(NetworkPlayer player, Vector3 feet)
+        internal static bool CanPlaceAvatar(NetworkPlayer player) => player != null && player.IsSpawned
+            && player.Slot != NetworkPlayer.NoSlot && !player.IsApplyingInitialCondition;
+
+        internal static bool MatchesPerformanceStep(CampaignSnapshot left, CampaignSnapshot right)
+            => left.Phase == CampaignPhase.Performance && right.Phase == CampaignPhase.Performance
+                && left.Generation == right.Generation && left.Day == right.Day
+                && left.PerformanceIndex == right.PerformanceIndex && left.TrickId == right.TrickId;
+
+        bool IsAtStart(NetworkPlayer player, Vector3 feet)
         {
-            if (player.Slot == NetworkPlayer.NoSlot || player.State != PlayerState.Normal
+            if (!CanPlaceAvatar(player) || player.State != PlayerState.Normal
                 || !player.TryGetComponent(out PlayerMover playerMover)) return false;
-            PlayerSpawnPoints.GetPose(player.Slot, playerMover.LaneSpacing, out var position, out _);
+            ResolveStartPose(player, playerMover, out var position, out _);
             return Vector3.Distance(feet, position) <= 1.5f;
         }
 
@@ -181,19 +210,28 @@ namespace CurtainCall.SpaceLink
             }
             else
             {
-                PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var position, out var rotation);
+                ResolveStartPose(player, mover, out var position, out var rotation);
                 mover.SetStartPose(position, rotation);
             }
             mover.PassThrough = false;
             if (run == null) return;
+            controlBeforeHold = mover.ControlEnabled;
             mover.SetControlEnabled(false);
             controlHeld = true;
         }
 
+        void ResolveStartPose(NetworkPlayer player, PlayerMover playerMover, out Vector3 position, out Quaternion rotation)
+        {
+            if (sceneSpawns != null && sceneSpawns.TryGetSlotPose(player.Slot, out position, out rotation)) return;
+            PlayerSpawnPoints.GetPose(player.Slot, playerMover.LaneSpacing, out position, out rotation);
+        }
+
         void ReleaseControl()
         {
+            if (!controlHeld) return;
             controlHeld = false;
-            if (mover != null && placed != null && placed.State == PlayerState.Normal) mover.SetControlEnabled(true);
+            if (mover != null && placed != null && placed.State == PlayerState.Normal)
+                mover.SetControlEnabled(controlBeforeHold);
         }
 
         void OnDisable()
