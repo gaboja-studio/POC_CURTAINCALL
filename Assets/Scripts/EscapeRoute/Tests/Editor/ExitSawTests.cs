@@ -460,6 +460,53 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void ExitSawFollowup_FallenPursuerDebrisCannotSupportPickup()
+        {
+            Fixture(true);
+            Set(saw, "fireWithoutCables", true);
+            var player = Player(51);
+            var floor = roots.Single(root => root.name == "Actual support").GetComponent<BoxCollider>();
+            var debris = Root("Detached pursuer part", true);
+            debris.layer = 2;
+            debris.AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerDebris"));
+            var shape = debris.AddComponent<BoxCollider>();
+            shape.center = Vector3.down * .07f; shape.size = new Vector3(1, .1f, 1);
+            floor.enabled = false;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "HasSupport", Origin, .25f), Is.False);
+            Assert.That(Call(saw, "CanGrab", player), Is.False);
+            floor.enabled = true;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "Grounded", player, true), Is.True, "A real floor still supplies support with debris present.");
+        }
+
+        [Test]
+        public void ExitSawFollowup_StandingAtAnEdgeDoesNotLetThePlayerDropALauncherOverTheVoid()
+        {
+            Fixture(true);
+            var player = Player(52);
+            Set(saw, "fireWithoutCables", true);
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "CanLeaveAtCurrentPose", player), Is.True);
+            player.transform.position = Origin + Vector3.forward * 4.55f;
+            device.position = Origin + Vector3.forward * 5.65f;
+            Physics.SyncTransforms();
+            Assert.That(Call(saw, "CanLeaveAtCurrentPose", player), Is.False);
+        }
+
+        [Test]
+        public void ExitSawFollowup_AvatarWithoutAnInitializedControllerRejectsInteractions()
+        {
+            Fixture(true);
+            var player = Player(53);
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Assert.That(Call(saw, "CanOperate", player), Is.True);
+            Set(mover, "controller", null);
+            Assert.That(Call(saw, "CanOperate", player), Is.False);
+            Assert.That(Call(saw, "Grounded", player, true), Is.False);
+        }
+
+        [Test]
         public void RemoteGrabUsesCapsuleSupportAcrossAGapBetweenFloorPanels()
         {
             Fixture(true);

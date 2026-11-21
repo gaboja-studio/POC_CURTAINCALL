@@ -114,8 +114,40 @@ namespace CurtainCall.EscapeRoute.Tests
                     var board = (Transform)station.GetType().GetProperty("BoardingPoint").GetValue(station);
                     Assert.That(board.position.y, Is.GreaterThan(deathY), station.name);
                 }
-                var legacyVoids = facility.GetComponentsInChildren(TypeOf("CurtainCall.EscapeRoute.EscapeFallVoid"), true);
-                Assert.That(legacyVoids.Cast<Behaviour>().Any(v => v.enabled), Is.False);
+                var voidType = TypeOf("CurtainCall.EscapeRoute.EscapeFallVoid");
+                var voids = facility.GetComponentsInChildren(voidType, true).Cast<Behaviour>()
+                    .Where(v => v.enabled && v.gameObject.activeInHierarchy).ToArray();
+                var contains = voidType.GetMethod("Contains");
+                bool Lethal(Vector3 point) => voids.Any(v => (bool)contains.Invoke(v, new object[] { point }));
+                foreach (var shaft in new[] { new Vector3(8, -31, 17), new Vector3(46, -31, -74),
+                    new Vector3(180, -31, 0), new Vector3(345, -31, 60) })
+                {
+                    Vector3 feet = facility.transform.TransformPoint(shaft);
+                    Assert.That(feet.y, Is.GreaterThan(deathY), "This depth is above the common world death plane.");
+                    Assert.That(Lethal(feet), Is.True, $"An escape shaft can strand a survivor at {shaft}.");
+                }
+                var stranded = voidType.GetMethod("ContainsStrandedLanding", BindingFlags.Instance | BindingFlags.NonPublic);
+                bool Stranded(Vector3 point) => voids.Any(v => (bool)stranded.Invoke(v, new object[] { point }));
+                var foundation = facility.GetComponentsInChildren<BoxCollider>(false).Single(c => c.name == "Processing bay foundation");
+                var foundationTop = foundation.transform.TransformPoint(foundation.center + Vector3.up * foundation.size.y * .5f);
+                Assert.That(Lethal(foundationTop), Is.False, "The higher boundary must allow a swing above the foundation.");
+                Assert.That(Stranded(foundationTop), Is.True, "Landing on the concrete foundation cannot strand the player.");
+                foreach (var station in stations)
+                {
+                    var board = (Transform)station.GetType().GetProperty("BoardingPoint").GetValue(station);
+                    Assert.That(Lethal(board.position) || Stranded(board.position), Is.False, station.name);
+                }
+                var landingType = TypeOf("CurtainCall.HumanCannon.HumanCannonLandingZone");
+                foreach (var landing in facility.GetComponentsInChildren(landingType, false).Cast<Component>())
+                    foreach (var tile in landing.GetComponents<BoxCollider>().Concat(
+                        (BoxCollider[])landingType.GetField("additionalSurfaces", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(landing)))
+                    {
+                        if (!tile || !tile.enabled || tile.isTrigger) continue;
+                        var top = tile.transform.TransformPoint(tile.center + Vector3.up * tile.size.y * .5f);
+                        Assert.That(Lethal(top) || Stranded(top), Is.False, tile.name);
+                    }
+                Assert.That(Lethal(facility.transform.TransformPoint(new Vector3(-40, -35, 17))), Is.False,
+                    "The route volume must not reach the neighboring facility.");
             }
             finally { EditorSceneManager.ClosePreviewScene(scene); }
         }

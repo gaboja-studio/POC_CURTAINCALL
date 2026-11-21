@@ -33,7 +33,7 @@ namespace CurtainCall.EscapeRoute
         [Tooltip("출구가 열린 뒤, 내가 도착할 때까지 표시합니다."), SerializeField, TextArea]
         string arrivalBody = "열린 출구를 지나 갈대밭에 도착하세요.";
         HudRoleCard objective;
-        bool? lastDoorOpen;
+        string lastObjectiveHeading, lastObjectiveBody;
         [SerializeField] Vector3 campaignPosition;
         [SerializeField] Vector3 campaignEuler;
         // Legacy A cues were authored in the original facility's world coordinates.
@@ -399,18 +399,23 @@ namespace CurtainCall.EscapeRoute
             }
             bool open = exitSaw != null && exitSaw.DoorOpen;
             if (!open && (!exitSaw || !exitSaw.TeamReachedExitZone)) { ClearObjective(); return; }
-            if (lastDoorOpen == open) return;
-            lastDoorOpen = open;
-            string heading = open ? arrivalTitle : escapeTitle, body = open ? arrivalBody : escapeBody;
-            if (objective && !objective.Closing) objective.SetText(body, heading);
+            string heading = open ? arrivalTitle : escapeTitle;
+            string body = open ? arrivalBody : exitSaw.FinaleObjective ?? escapeBody;
+            if (objective && !objective.Closing)
+            {
+                if (lastObjectiveHeading == heading && lastObjectiveBody == body) return;
+                objective.SetText(body, heading);
+            }
             else objective = HudUIManager.Current.ShowObjective(body, transform, heading);
+            lastObjectiveHeading = heading;
+            lastObjectiveBody = body;
         }
 
         void ClearObjective()
         {
             if (objective) objective.Close(true);
             objective = null;
-            lastDoorOpen = null;
+            lastObjectiveHeading = lastObjectiveBody = null;
         }
 
         void OnDisable() => ClearObjective();

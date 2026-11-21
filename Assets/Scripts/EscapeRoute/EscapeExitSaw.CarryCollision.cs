@@ -41,7 +41,7 @@ namespace CurtainCall.EscapeRoute
             carrierRotation = carrier.transform.rotation;
             var hand = carrier.transform.position + Vector3.up * Mathf.Max(0, carryHandleHeight);
             bool canCorrect = carrier.IsLocal && carrier.TryGetComponent(out PlayerMover mover)
-                && mover.Simulated && mover.Body.enabled;
+                && mover.Simulated && mover.Body && mover.Body.enabled;
             if (!TryContactTranslation(hand, carrier, canCorrect, out position)) return false;
 
             var correction = Vector3.ProjectOnPlane(Handle.position + position - CarryRoot.position - hand, Vector3.up);
@@ -68,16 +68,32 @@ namespace CurtainCall.EscapeRoute
             for (int i = 0; i < count; i++)
             {
                 var hit = hits[i];
-                if (hit.normal.y > .5f && hit.collider != null && !hit.collider.transform.IsChildOf(CarryRoot)
-                    && hit.collider.GetComponentInParent<NetworkPlayer>() == null
-                    && hit.collider.GetComponentInParent<EscapeExitSaw>() == null
-                    && !DismemberedLimb.Contains(hit.collider)) return true;
+                if (hit.normal.y > .5f && IsSawSupport(hit.collider)) return true;
             }
             return false;
         }
 
-        bool CanLeaveAtCurrentPose(NetworkPlayer carrier) =>
-            Grounded(carrier, requireReportedGrounded: carrier.IsLocal) && (loadCollider == null || PoseFits(CarryRoot.position, CarryRoot.rotation, null));
+        bool IsSawSupport(Collider collider) => collider && !collider.transform.IsChildOf(CarryRoot)
+            && !collider.GetComponentInParent<NetworkPlayer>() && !collider.GetComponentInParent<EscapeExitSaw>()
+            && !DismemberedLimb.Contains(collider) && !collider.GetComponentInParent<EscapePursuerDebris>();
+
+        bool HasFootprintSupport(PlayerMover mover, Vector3 feet, float maxFootGap)
+        {
+            if (HasSupport(feet, maxFootGap)) return true;
+            // A narrow panel seam can leave the centre ray unsupported while the footprint still touches.
+            return WalkableSupport.TryGetSupport(mover, feet, out var support)
+                && Mathf.Abs(feet.y - support.point.y) <= maxFootGap && IsSawSupport(support.collider);
+        }
+
+        bool CanLeaveAtCurrentPose(NetworkPlayer carrier)
+        {
+            if (!Grounded(carrier, requireReportedGrounded: carrier.IsLocal)
+                || loadCollider && !PoseFits(CarryRoot.position, CarryRoot.rotation, null)) return false;
+            if (!ProjectileMode) return true;
+            var dropFeet = loadCollider ? loadCollider.bounds.center : CarryRoot.position;
+            dropFeet.y = carrier.transform.position.y;
+            return HasFootprintSupport(null, dropFeet, .25f);
+        }
 
         void RecoverCarryPose()
         {
