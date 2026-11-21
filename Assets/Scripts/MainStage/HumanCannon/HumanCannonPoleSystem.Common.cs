@@ -9,7 +9,7 @@ namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonPoleSystem
     {
-        readonly Dictionary<ulong, int> flightOrigins = new();
+        readonly Dictionary<ulong, (int Pole, int Station, uint Launch)> flightOrigins = new();
         HumanCannonSystem observedFlightSystem;
 
         bool TryRecyclePosition(int index, int seat, ulong actor, out Vector3 position)
@@ -67,8 +67,8 @@ namespace CurtainCall.HumanCannon
 
         void OnLandingConfirmed(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
         {
-            if (!flightOrigins.Remove(actor, out int index)) return;
-            Landed?.Invoke(index, actor, position, safe);
+            if (!flightOrigins.Remove(actor, out var origin) || origin.Station != station || origin.Launch != revision) return;
+            Landed?.Invoke(origin.Pole, actor, position, safe);
         }
 
         public void Deactivate(int index)
@@ -85,8 +85,9 @@ namespace CurtainCall.HumanCannon
                 {
                     ulong actor = states[index].State.OccupantAt(seat);
                     if (actor == CannonSeatState.Nobody) continue;
-                    states[index].State.TryRelease(actor, states[index].State.Revision, Clock, .001f);
-                    Publish(index, PoleEvent.Abandoned, actor, seat);
+                    var state = states[index].State;
+                    if (state.TryRelease(actor, state.Revision, Clock, .001f))
+                        Publish(index, PoleEvent.Abandoned, actor, seat);
                 }
             }
             HumanCannonSystem.Current?.CancelLocalPole(index);
@@ -137,8 +138,11 @@ namespace CurtainCall.HumanCannon
             var state = states[index].State;
             return state.OccupantAt(state.SeatOf(actor) + 1) != CannonSeatState.Nobody;
         }
-        public bool IsFlyingFrom(int index, ulong actor) => index >= 0 && flightOrigins.TryGetValue(actor, out int origin)
-            && origin == index && HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(actor) && HeldBy(actor) < 0;
+        public bool IsFlyingFrom(int index, ulong actor) => index >= 0 && flightOrigins.TryGetValue(actor, out var origin)
+            && origin.Pole == index && HasMatchingDeparture(actor, origin) && HeldBy(actor) < 0;
+
+        static bool HasMatchingDeparture(ulong actor, (int Pole, int Station, uint Launch) origin) =>
+            HumanCannonSystem.Current != null && HumanCannonSystem.Current.MatchesLaunch(actor, origin.Station, origin.Launch);
         public bool CanApproachPole(int index, NetworkPlayer player) => Valid(index) && poles[index].InteractionAvailable
             && CanApproach(player) && FindSeat(player, index) >= 0;
 
@@ -148,7 +152,8 @@ namespace CurtainCall.HumanCannon
             if (player == null || context.Mover == null || context.Mover.gameObject != player.gameObject
                 || !player.TryGetComponent(out HumanCannonPilot pilot)) return false;
             bool held = HeldBy(player.OwnerClientId) >= 0;
-            bool flying = flightOrigins.ContainsKey(player.OwnerClientId) && pilot.IsFlying;
+            bool flying = pilot.IsFlying && flightOrigins.TryGetValue(player.OwnerClientId, out var origin)
+                && HasMatchingDeparture(player.OwnerClientId, origin);
             if (!held && !flying && (!input.InteractTapped || FindGrabbable(player) < 0)) return false;
             if (!held && !flying && !CommonInteractionSelection.Allows(player, Pole(FindGrabbable(player)))) return false;
             pilot.ReadInput(input);

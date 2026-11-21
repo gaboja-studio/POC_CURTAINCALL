@@ -54,7 +54,7 @@ namespace CurtainCall.EscapeRoute
         readonly RouteResetBarrier resetBarrier = new();
         NetworkSessionManager session;
         CustomMessagingManager messaging;
-        uint revision, sequence;
+        uint revision, sequence, roundStartRevision;
         bool synchronized;
         bool[] initialSupports, initialVisuals;
         enum RopePhase { Visible, Flash, Hidden }
@@ -64,9 +64,11 @@ namespace CurtainCall.EscapeRoute
         Vector3 ropeSoundPoint;
         ulong workerOwner = CannonSeatState.Nobody;
         uint pendingOverflow, firstOverflowRequest;
+        NetworkPlayer overflowAvatar;
+        int overflowReviveVersion;
         bool initialGate, initialLowerGate;
         int resetFrame = -1;
-        double nextSnapshot, nextOverflowRequest;
+        double nextSnapshot, nextOverflowRequest, nextSync;
         public static EscapeCooperativeRopes Current { get; private set; }
         public Transform Button => button;
         public Vector3 ButtonPoint => EscapeSwitchInteraction.Center(button);
@@ -177,6 +179,7 @@ namespace CurtainCall.EscapeRoute
                 || SoundBlocked(ropeSupports, listener.transform.position + Vector3.up * 1.2f, ropeSoundPoint, listener.transform)))
                 ropeSound.Stop();
             Attach();
+            RetrySynchronization();
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
             double cycle = timed ? hazards.Elapsed % (visibleSeconds + hiddenSeconds) : 0;
@@ -491,8 +494,15 @@ namespace CurtainCall.EscapeRoute
         void ReturnOverflow()
         {
             var local = NetworkPlayer.Local;
+            if (local == null || overflowAvatar != local || overflowReviveVersion != local.ReviveVersion)
+                ClearOverflowRequest();
             if (!CanReturnOverflow(local) || messaging == null)
-            { pendingOverflow = firstOverflowRequest = 0; return; }
+            {
+                ClearOverflowRequest();
+                return;
+            }
+            overflowAvatar = local;
+            overflowReviveVersion = local.ReviveVersion;
             if (Time.unscaledTimeAsDouble < nextOverflowRequest) return;
             nextOverflowRequest = Time.unscaledTimeAsDouble + .25;
             pendingOverflow = ++sequence;
@@ -526,7 +536,13 @@ namespace CurtainCall.EscapeRoute
             switcher?.ReleaseForAuthoredDrop();
             mover.Relocate(overflowReturnPoint.position, overflowReturnPoint.rotation);
             mover.ResetExternalMotion(false);
+            ClearOverflowRequest();
+        }
+
+        void ClearOverflowRequest()
+        {
             pendingOverflow = firstOverflowRequest = 0;
+            overflowAvatar = null;
         }
 
         void Attach()
@@ -543,11 +559,15 @@ namespace CurtainCall.EscapeRoute
                 synchronized = true;
                 messaging.RegisterNamedMessageHandler(RequestName, ReadRequest);
             }
-            else
-            {
-                messaging.RegisterNamedMessageHandler(StateName, ReadState);
-                SendRequest(0, 0, 0);
-            }
+            else messaging.RegisterNamedMessageHandler(StateName, ReadState);
+        }
+
+        void RetrySynchronization()
+        {
+            double now = Time.unscaledTimeAsDouble;
+            if (messaging == null || session == null || session.IsHost || synchronized || now < nextSync) return;
+            nextSync = now + .5d;
+            SendRequest(0, 0, resetBarrier.Waiting ? resetBarrier.Token : 0);
         }
 
         void RequestOpen()
@@ -580,7 +600,8 @@ namespace CurtainCall.EscapeRoute
 
         void OpenByHost(ulong actor, uint expected, uint request)
         {
-            if (!session.IsHost || expected != revision || request == 0
+            // Changes to the lower worker do not invalidate a lever press in the same round.
+            if (!session.IsHost || expected < roundStartRevision || expected > revision || request == 0
                 || requests.TryGetValue(actor, out uint previous) && request <= previous) return;
             requests[actor] = request;
             NetworkPlayer player = null;
@@ -621,8 +642,11 @@ namespace CurtainCall.EscapeRoute
                 || synchronized && incoming == revision && (open != ReturnOpen || owner != workerOwner)
                 || !resetBarrier.Accept(token)) return false;
             revision = incoming; synchronized = true; SetGate(open); SetWorker(owner);
-            if (firstOverflowRequest != 0 && overflowAck >= firstOverflowRequest && overflowAck <= pendingOverflow)
-                ReturnLocalOverflow(NetworkPlayer.Local);
+            var local = NetworkPlayer.Local;
+            if (local != null && local == overflowAvatar && local.ReviveVersion == overflowReviveVersion
+                && firstOverflowRequest != 0
+                && overflowAck >= firstOverflowRequest && overflowAck <= pendingOverflow)
+                ReturnLocalOverflow(local);
             return true;
         }
 
@@ -634,13 +658,15 @@ namespace CurtainCall.EscapeRoute
                 if (resetFrame == Time.frameCount) return;
                 resetFrame = Time.frameCount;
                 SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
-                pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0; revision++; Publish();
+                ClearOverflowRequest(); nextOverflowRequest = 0;
+                roundStartRevision = ++revision; Publish();
             }
             else if (player.IsLocal)
             {
                 synchronized = false; SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
-                pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
-                SendRequest(0, 0, resetBarrier.Begin());
+                ClearOverflowRequest(); nextOverflowRequest = nextSync = 0;
+                resetBarrier.Begin();
+                RetrySynchronization();
             }
         }
 
@@ -652,8 +678,8 @@ namespace CurtainCall.EscapeRoute
                 messaging.UnregisterNamedMessageHandler(StateName);
             }
             messaging = null; session = null; synchronized = false;
-            revision = sequence = 0; requests.Clear(); resetBarrier.Clear();
-            pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
+            revision = sequence = roundStartRevision = 0; requests.Clear(); resetBarrier.Clear();
+            ClearOverflowRequest(); nextOverflowRequest = nextSync = 0;
             SetGate(false); SetWorker(CannonSeatState.Nobody); PresentPhase(RopePhase.Visible, false);
         }
 

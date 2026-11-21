@@ -33,12 +33,12 @@ namespace CurtainCall.HumanCannon
             {
                 Deactivate(existing);
                 poles[existing] = pole;
-                var state = states[existing];
-                state.State.Reset(); state.ResetRevision = state.State.Revision;
-                state.Angle = state.Speed = 0f;
-                state.ResetDrive();
-                state.LastDeparture.Clear();
-                for (int seat = 0; seat < state.Riders.Length; seat++) state.Riders[seat] = new Rider();
+                uint revision = states[existing].State.Revision;
+                var replacement = NewRuntime(existing);
+                // Only authority advances this wire slot's revision. Local rebuild order can differ.
+                replacement.ResetRevision = session != null && session.IsHost ? revision + 1 : revision;
+                replacement.State.Receive(replacement.ResetRevision, CannonSeatState.Nobody, PoleSawPhase.Active, 0, 0);
+                states[existing] = replacement;
                 return existing;
             }
             int wire = StableWireId(path);

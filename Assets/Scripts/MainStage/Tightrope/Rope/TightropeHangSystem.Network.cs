@@ -10,13 +10,16 @@ namespace CurtainCall.Tightrope
     public sealed partial class TightropeHangSystem
     {
         enum Request : byte { Hang, Rescue, Cancel, Sync }
-        const string RequestMessage = "CurtainCall.Tightrope.Hang.Request";
-        const string StateMessage = "CurtainCall.Tightrope.Hang.State";
-        const string RescuedMessage = "CurtainCall.Tightrope.Hang.Rescued";
+        string RequestMessage => "CurtainCall.Tightrope.Hang.Request." + gameObject.scene.name;
+        string StateMessage => "CurtainCall.Tightrope.Hang.State." + gameObject.scene.name;
+        string RescuedMessage => "CurtainCall.Tightrope.Hang.Rescued." + gameObject.scene.name;
         const int RequestSize = 21; // operation + round + target + lane + distance
+        const int RescuedSize = 36;
         const int EntrySize = 36;   // id + lane + distance + remaining + rescuer + pull + total
         NetworkSessionManager session;
         CustomMessagingManager messaging;
+        bool hasRoundSnapshot;
+        double nextRoundSync;
 
         bool IsHost => session != null && session.IsHost && messaging != null;
 
@@ -29,12 +32,25 @@ namespace CurtainCall.Tightrope
             if (messaging == manager) return;
             Unregister();
             messaging = manager;
+            ResetSnapshotTracking();
             book.Clear();
             if (messaging == null) return;
             messaging.RegisterNamedMessageHandler(RequestMessage, ReadRequest);
             messaging.RegisterNamedMessageHandler(StateMessage, ReadState);
             messaging.RegisterNamedMessageHandler(RescuedMessage, ReadRescued);
-            if (!session.IsHost) Send(Request.Sync);
+        }
+
+        void ResetSnapshotTracking()
+        {
+            hasRoundSnapshot = false;
+            nextRoundSync = 0d;
+        }
+
+        void RetryRoundSync()
+        {
+            if (session == null || session.IsHost || messaging == null || hasRoundSnapshot || Now < nextRoundSync) return;
+            nextRoundSync = Now + .5d;
+            Send(Request.Sync);
         }
 
         struct PendingHang { public int Round, Lane; public float Distance; public double Expires; }
@@ -143,7 +159,7 @@ namespace CurtainCall.Tightrope
 
         void ReadState(ulong sender, FastBufferReader reader)
         {
-            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId || !reader.TryBeginRead(8)) return;
+            if (!Active || session == null || session.IsHost || sender != NetworkManager.ServerClientId || !reader.TryBeginRead(8)) return;
             reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out int count);
             if (generation != Round || count < 0 || count > 16 || !reader.TryBeginRead(count * EntrySize)) return;
@@ -163,33 +179,50 @@ namespace CurtainCall.Tightrope
                     Id = id, Lane = lane, Distance = distance, Remaining = remaining, Rescuer = rescuer, PullRemaining = pull, Total = total
                 });
             }
+            AdvanceRound();
             book.Replace(snapshot);
+            hasRoundSnapshot = true;
             snapshotAt = Now;
             UpdateRescuerBalance();
         }
 
         void SendRescued(TightropeHangBook.Hang hang)
         {
+            var target = Find(hang.Id);
+            if (target == null || target.State != PlayerState.Normal) return;
             if (IsHost)
             {
-                using var writer = new FastBufferWriter(20, Allocator.Temp);
+                using var writer = new FastBufferWriter(RescuedSize, Allocator.Temp);
                 writer.WriteValueSafe(Round);
                 writer.WriteValueSafe(hang.Id);
                 writer.WriteValueSafe(hang.Lane);
                 writer.WriteValueSafe(hang.Distance);
+                writer.WriteValueSafe(target.NetworkObjectId);
+                writer.WriteValueSafe(target.RestartVersion);
+                writer.WriteValueSafe(target.ReviveVersion);
                 messaging.SendNamedMessageToAll(RescuedMessage, writer, NetworkDelivery.ReliableSequenced);
             }
             ApplyRescued(hang.Id, hang.Lane, hang.Distance);
         }
 
+        internal static bool MatchesRescueArrival(NetworkPlayer target, ulong avatar, int restart, int revive) =>
+            target != null && target.State == PlayerState.Normal && target.NetworkObjectId == avatar
+            && target.RestartVersion == restart && target.ReviveVersion == revive;
+
         void ReadRescued(ulong sender, FastBufferReader reader)
         {
-            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId || !reader.TryBeginRead(20)) return;
+            if (!Active || session == null || session.IsHost || sender != NetworkManager.ServerClientId
+                || reader.Length - reader.Position != RescuedSize) return;
             reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out ulong id);
             reader.ReadValueSafe(out int lane);
             reader.ReadValueSafe(out float distance);
-            if (generation != Round || !float.IsFinite(distance) || course == null || lane < 0 || lane >= course.LaneCount) return;
+            reader.ReadValueSafe(out ulong avatar);
+            reader.ReadValueSafe(out int restart);
+            reader.ReadValueSafe(out int revive);
+            if (generation != Round || !float.IsFinite(distance) || course == null || lane < 0 || lane >= course.LaneCount
+                || !MatchesRescueArrival(Find(id), avatar, restart, revive)) return;
+            AdvanceRound();
             ApplyRescued(id, lane, distance);
         }
     }
