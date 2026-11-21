@@ -27,6 +27,7 @@ namespace CurtainCall.HumanCannon
         uint flightSegment;
         bool awaitingBounce;
         bool awaitingLanding;
+        double flightReplyDeadline;
         bool rejectedSurface;
         Vector3 velocity;
         Vector3 flightForward;
@@ -190,11 +191,16 @@ namespace CurtainCall.HumanCannon
 
         internal void CompleteLanding(int index, uint revision, uint segment)
         {
-            if (!awaitingLanding || !MatchesFlight(index, revision, segment)) return;
+            if (!MatchesFlight(index, revision, segment)) return;
             player?.ResetEquipmentAirCycle();
             ReleaseMovement();
             // 호스트가 확정한 실제 착지다. 이전 점프/옆줄 목표 없이 지지면 조작으로 인계한다.
             if (mover != null) mover.ResetExternalMotion(false);
+        }
+
+        internal void ReleaseFlight(int index, uint revision, uint segment)
+        {
+            if (MatchesFlight(index, revision, segment)) ReleaseMovement();
         }
 
         internal void ResumeAfterRejectedLanding(int index, uint revision, uint segment)
@@ -261,10 +267,13 @@ namespace CurtainCall.HumanCannon
             SampleGroundJump();
         }
 
+        const double FlightReplyGraceSeconds = 2d;
+
         void SimulateFlight()
         {
             if (IsHoldingPole) return;
-            if (awaitingBounce && HumanCannonTrampoline.Current == null)
+            if (awaitingLanding && Time.unscaledTimeAsDouble >= flightReplyDeadline) awaitingLanding = false;
+            if (awaitingBounce && (HumanCannonTrampoline.Current == null || Time.unscaledTimeAsDouble >= flightReplyDeadline))
             {
                 awaitingBounce = false;
                 rejectedSurface = true;
@@ -292,6 +301,7 @@ namespace CurtainCall.HumanCannon
             {
                 // 호스트 반동 응답 전에는 바닥 사망을 요청하지 않는다. R/사망은 이 대기도 해제한다.
                 awaitingBounce = true;
+                flightReplyDeadline = Time.unscaledTimeAsDouble + FlightReplyGraceSeconds;
                 Teleport(contact + Vector3.up * 0.05f, transform.rotation);
                 trampoline.RequestBounce(flightStationIndex, launchRevision, flightSegment, contact);
                 return;
@@ -303,6 +313,7 @@ namespace CurtainCall.HumanCannon
             {
                 // 호스트가 쿠션/일반 바닥을 확정할 때까지 착지 위치와 비행 식별자를 유지한다.
                 awaitingLanding = true;
+                flightReplyDeadline = Time.unscaledTimeAsDouble + FlightReplyGraceSeconds;
                 system.RequestLanding(flightStationIndex, launchRevision, flightSegment, transform.position);
             }
         }

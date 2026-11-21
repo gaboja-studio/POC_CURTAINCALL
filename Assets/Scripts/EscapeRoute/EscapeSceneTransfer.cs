@@ -200,7 +200,15 @@ namespace CurtainCall.EscapeRoute
         {
             if (!PlacementAuthorized || destination == null) return false;
             var player = NetworkPlayer.Local;
-            if (IsLocalPlacementCurrent(player)) return true;
+            if (IsLocalPlacementCurrent(player))
+            {
+                bool needsView = !arrivalViewPlaced || sourceCamera == null || !sourceCamera.isActiveAndEnabled
+                    || sourceDirector == null || !sourceDirector.isActiveAndEnabled;
+                if (needsView && destination.AssemblyAnchor != null
+                    && TryPlaceArrivalView(destination.AssemblyAnchor, destination.gameObject.scene))
+                    sourceDirector.SetLookRotation(arrivalLook);
+                return true;
+            }
             if (!TryResolveCapturedMover(player, out var mover)) return false;
             var content = EscapeCampaignContent.Current;
             if (content == null || !content.IsActive || !content.IsSceneryReady) return false;
@@ -211,7 +219,7 @@ namespace CurtainCall.EscapeRoute
             var hostPose = new Pose(snapshot.positions[index], snapshot.rotations[index]);
             if (!TryResolveArrivalPose(scene, destination.AssemblyArea, localPose, hostPose, index, snapshot.participants.Length, out var pose)) return false;
 
-            if (!TryPlaceArrivalView(player.State, destination.AssemblyAnchor, scene)) return false;
+            TryPlaceArrivalView(destination.AssemblyAnchor, scene);
             mover.SetStartPose(pose.position, pose.rotation);
             if (arrivalViewPlaced) sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
@@ -251,15 +259,18 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
-        bool TryPlaceArrivalView(PlayerState state, Transform anchor, Scene destination)
+        bool TryPlaceArrivalView(Transform anchor, Scene destination)
         {
-            bool hasView = TryGetArrivalView();
-            // A spectator may not have an active gameplay camera. Their avatar still has to be placed.
-            if (!hasView && state is not (PlayerState.Fallen or PlayerState.Retired)) return false;
+            // Camera setup can lag behind avatar placement. It must not delay the crew's acknowledgement.
+            if (!TryGetArrivalView())
+            {
+                arrivalViewPlaced = false;
+                return false;
+            }
             if (sourceCamera != null) MoveCamera(sourceCamera.transform, capturedScene, destination);
             if (sourceDirector != null) MoveCamera(sourceDirector.transform, capturedScene, destination);
-            arrivalViewPlaced = hasView;
-            if (hasView) arrivalLook = anchor.rotation * localLook;
+            arrivalViewPlaced = true;
+            arrivalLook = anchor.rotation * localLook;
             return true;
         }
 

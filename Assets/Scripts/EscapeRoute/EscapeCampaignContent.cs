@@ -356,14 +356,14 @@ namespace CurtainCall.EscapeRoute
                     arrived.Remove(id); // A development restart returned this participant to the start.
                 }
                 // Avatar availability is not a disconnect verdict. Wait for a connected member's state.
-                if (player == null)
+                if (player == null || player.Slot == NetworkPlayer.NoSlot || player.IsApplyingInitialCondition)
                 {
                     if (IsCampaign) pending++;
                     continue;
                 }
                 if (player.State == PlayerState.Retired || player.State == PlayerState.Fallen) continue;
                 if (player.State == PlayerState.Arrived) { arrived.Add(id); continue; }
-                if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
+                if (player.State == PlayerState.Normal && ExitOpen && EscapeEntrance.Contains(arrivalArea, player.LatestOwnerPosition))
                 {
                     arrived.Add(id);
                     // 도착자는 갈대밭 엔딩에서 빈손으로 달린다. 마지막 도착은 같은 프레임에 성공 엔딩(EndGame)이 되어
@@ -384,8 +384,7 @@ namespace CurtainCall.EscapeRoute
                 else if (IsUnresolvedParticipant(connected, player.State)) pending++;
             }
             if (pending != 0 || arrived.Count == 0 && DevCheats.ShouldHoldCheckpointWipe()) return;
-            reported = true;
-            run.EndEscape(arrived.Count > 0);
+            reported = run.EndEscape(arrived.Count > 0);
         }
 
         void LateUpdate()

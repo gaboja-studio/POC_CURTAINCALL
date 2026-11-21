@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using CurtainCall.Network.PlayerSync;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Netcode;
@@ -107,6 +108,41 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             flights.Begin(7, 0, 4);
             ReceiveRemoval(oldFlight);
             Assert.IsTrue(flights.Matches(7, 0, 4, 0));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void HostFlightRemovalUnlocksOnlyTheMatchingLocalPilot(bool stale)
+        {
+            var player = root.AddComponent<NetworkPlayer>();
+            typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, 7UL);
+            var pilot = root.AddComponent<HumanCannonPilot>();
+            typeof(HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true);
+            typeof(HumanCannonPilot).GetField("flightStationIndex", Instance).SetValue(pilot, 0);
+            typeof(HumanCannonPilot).GetField("launchRevision", Instance).SetValue(pilot, 2u);
+            typeof(HumanCannonPilot).GetField("flightSegment", Instance).SetValue(pilot, 1u);
+            Set("boundPlayer", player);
+            Set("pilot", pilot);
+
+            ReceiveSnapshot(new[] { new CannonFlightState.Flight(7, 0, 2, 1) });
+            ReceiveRemoval(new CannonFlightState.Flight(7, 0, 2, stale ? 0u : 1u));
+
+            Assert.That(pilot.IsDriving, Is.EqualTo(stale));
+            Assert.That(receiver.IsFlying(7), Is.EqualTo(stale));
+        }
+
+        [TestCase("awaitingLanding")]
+        [TestCase("awaitingBounce")]
+        public void UnansweredContactCannotFreezeFlightIndefinitely(string pending)
+        {
+            var pilot = root.AddComponent<HumanCannonPilot>();
+            typeof(HumanCannonPilot).GetProperty("IsFlying").SetValue(pilot, true);
+            var wait = typeof(HumanCannonPilot).GetField(pending, Instance);
+            wait.SetValue(pilot, true);
+            typeof(HumanCannonPilot).GetField("flightReplyDeadline", Instance).SetValue(pilot, double.NegativeInfinity);
+            typeof(HumanCannonPilot).GetMethod("SimulateFlight", Instance).Invoke(pilot, null);
+            Assert.That(wait.GetValue(pilot), Is.False);
+            Assert.IsTrue(pilot.IsFlying);
         }
 
         [Test]

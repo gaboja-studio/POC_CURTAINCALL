@@ -19,7 +19,13 @@ namespace CurtainCall.HumanCannon
         enum LandingResult : byte { Unsuccessful, Supported, RetryFlight }
         const string SpringReboundMessage = "CurtainCall.HumanCannon.SpringRebound";
         const int SpringReboundSize = 36; // actor + station + launch + segment + contact + speed
-        struct PendingLanding { public int Station; public uint Revision, Segment; public Vector3 Position; }
+        struct PendingLanding
+        {
+            public int Station;
+            public uint Revision, Segment;
+            public Vector3 Position;
+            public double Deadline;
+        }
         readonly Dictionary<ulong, PendingLanding> pendingLandingReports = new();
         readonly List<ulong> pendingLandingActors = new();
 
@@ -28,11 +34,18 @@ namespace CurtainCall.HumanCannon
             pendingLandingActors.Clear(); pendingLandingActors.AddRange(pendingLandingReports.Keys);
             foreach (var actor in pendingLandingActors)
             {
-                var report = pendingLandingReports[actor];
+                if (!pendingLandingReports.TryGetValue(actor, out var report)) continue;
                 var player = FindPlayer(actor);
                 if (player == null || player.State != PlayerState.Normal || !flying.Matches(actor, report.Station, report.Revision, report.Segment))
                 { pendingLandingReports.Remove(actor); continue; }
-                if ((player.transform.position - report.Position).sqrMagnitude > 25f) continue;
+                if ((player.LatestOwnerPosition - report.Position).sqrMagnitude > 25f)
+                {
+                    if (Time.unscaledTimeAsDouble < report.Deadline) continue;
+                    pendingLandingReports.Remove(actor);
+                    ResumeRejectedLanding(actor, report.Station, report.Revision, report.Segment);
+                    PublishLanding(actor, report.Station, report.Revision, report.Segment, LandingResult.RetryFlight);
+                    continue;
+                }
                 pendingLandingReports.Remove(actor);
                 HandleLanding(player, report.Station, report.Revision, report.Segment, report.Position);
             }
@@ -158,9 +171,15 @@ namespace CurtainCall.HumanCannon
             if (!float.IsFinite(position.x) || !float.IsFinite(position.y) || !float.IsFinite(position.z)) return;
             // A reliable landing request can arrive ahead of the owner's transform. Do not
             // convert that mismatch into an injury: wait for the same flight's position update.
-            if ((player.transform.position - position).sqrMagnitude > 25f)
+            if ((player.LatestOwnerPosition - position).sqrMagnitude > 25f)
             {
-                pendingLandingReports[player.OwnerClientId] = new PendingLanding { Station = index, Revision = revision, Segment = segment, Position = position };
+                if (!pendingLandingReports.TryGetValue(player.OwnerClientId, out var existing)
+                    || existing.Station != index || existing.Revision != revision || existing.Segment != segment)
+                    pendingLandingReports[player.OwnerClientId] = new PendingLanding
+                    {
+                        Station = index, Revision = revision, Segment = segment,
+                        Position = position, Deadline = Time.unscaledTimeAsDouble + 1d
+                    };
                 return;
             }
             pendingLandingReports.Remove(player.OwnerClientId);
