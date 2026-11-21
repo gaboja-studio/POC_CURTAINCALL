@@ -6,3 +6,6 @@
 - 기존 비공개 블록 에셋 HEAD 불일치 및 중복 과거 Task ID는 이번 범위 밖이며 그대로 보존했다.
 - EditMode 20건 통과, 실패 0건. 신규 Start 경로 사례 17개와 변경된 아바타 교체 조건 3개를 실행했다. 결과 .harness/local/start-campaign-audit-verified.xml.
 - check-work 범위와 문서·규칙 통과, 컴파일은 별도 EditMode로 확인. 실제 Start부터 팀 플레이는 하지 않았다.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/477 (fix/start-campaign-progression-blockers → dev)
+- DEV 검토용 [PR #477](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/477)로 제출했다.
