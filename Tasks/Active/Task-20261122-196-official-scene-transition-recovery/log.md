@@ -9,3 +9,5 @@
 - 동일 요청의 NGO 시작 대기 한도는 최소 30초이며 실제 NGO LoadSceneTimeOut보다 1초 더 둔다. 긴 씬 로드의 30초 이후 재시도도 검증했다.
 - 최종 EditMode 8/8 및 컴파일 통과(.harness/local/official-handoff-complete.xml). 시뮬레이션한 NGO 응답으로 일시 거절·새 요청 발생·기한 초과·검증 거절을 확인했으며 정상 캠페인 상태 진행으로 묘기 종료와 A 성공 엔딩의 다음 씬 선택을 확인했다. 실제 Start 멀티플레이와 렌더 커튼은 확인 범위 밖이다.
 - check-work 정적 안전성·문서/규칙 통과. 컴파일과 EditMode는 별도 Unity 실행으로 확인했다. git diff --check 통과. 새 수정은 fix/official-scene-transition-recovery 로컬 작업이다.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/479 (fix/official-scene-transition-recovery → dev)
