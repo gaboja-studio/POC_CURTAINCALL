@@ -7,3 +7,6 @@
 - 검증. 검사에서 호출 인자와 기물 등록 상태가 바뀐 기존 테스트 준비 코드를 맞췄다. 봉 재생성 테스트는 호스트 세션을 명시한다. 재검사 EditMode 409건 통과, 실패 0건. 결과 .harness/local/stunt-escape-combinations-recheck.xml.
 - check-work 범위와 빠른 문서·규칙 검사는 통과. 별도 EditMode에서 Unity를 컴파일해 check-work에서 중복 컴파일과 테스트는 생략했다. 기존 문서 길이 경고와 외부 에셋 작업 사본 차이를 확인했다.
 - 멀티플레이 직접 플레이는 미실행. 이번 후속 작업은 로컬 브랜치에 유지.
+
+- 2026-11-21 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/475 (fix/stunt-escape-combination-blockers → dev)
+- 2026-11-21. 수정 13건을 DEV 검토용 [PR #475](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/475)로 제출했다.
