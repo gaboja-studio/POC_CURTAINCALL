@@ -67,7 +67,8 @@ namespace CurtainCall.HumanCannon
 
         void OnLandingConfirmed(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
         {
-            if (!flightOrigins.Remove(actor, out var origin) || origin.Station != station || origin.Launch != revision) return;
+            if (!flightOrigins.TryGetValue(actor, out var origin) || origin.Station != station || origin.Launch != revision) return;
+            flightOrigins.Remove(actor);
             Landed?.Invoke(origin.Pole, actor, position, safe);
         }
 

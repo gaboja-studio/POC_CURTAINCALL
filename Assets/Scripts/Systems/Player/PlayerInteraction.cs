@@ -41,8 +41,21 @@ namespace CurtainCall.Player
 
         /// <summary>대상 중심의 구형 상호작용 범위. 입력·호스트·안내에서 함께 사용한다.</summary>
         public static bool InRange(Component actor, Vector3 target, float radius, Transform targetRoot = null, bool ignoreRope = false) => actor != null
-            && float.IsFinite(radius) && radius > 0f && (Center(actor) - target).sqrMagnitude <= radius * radius
-            && ClearPathFrom(Center(actor), target, targetRoot, actor, ignoreRope);
+            && InRangeFrom(actor, Center(actor), target, radius, targetRoot, ignoreRope);
+
+        internal static bool InRangeFrom(Component actor, Vector3 origin, Vector3 target, float radius,
+            Transform targetRoot, bool ignoreRope = false)
+            => float.IsFinite(radius) && radius > 0f && (origin - target).sqrMagnitude <= radius * radius
+                && ClearPathFrom(origin, target, targetRoot, actor, ignoreRope);
+
+        internal static Vector3 LatestCenter(NetworkPlayer actor)
+        {
+            Vector3 center = Center(actor);
+            // Mounted and hanging poses can be imposed by the host between owner samples.
+            if (CurtainCall.Tightrope.PiggybackSystem.Current?.IsInStack(actor) == true
+                || CurtainCall.HumanCannon.HumanCannonPoleSystem.Current?.HeldBy(actor.OwnerClientId) >= 0) return center;
+            return center + (actor.LatestOwnerPosition - actor.transform.position);
+        }
 
         static readonly RaycastHit[] reachHits = new RaycastHit[64];
         static readonly Collider[] reachOverlaps = new Collider[32];

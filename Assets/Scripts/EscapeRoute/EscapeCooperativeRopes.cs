@@ -210,7 +210,8 @@ namespace CurtainCall.EscapeRoute
                 || player.State != PlayerState.Normal || session == null
                 || session.GameState != GameSessionState.Playing) return false;
             return EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
-                && EscapeSwitchInteraction.InRange(player, button);
+                && (session.IsHost && !player.IsLocal ? EscapeSwitchInteraction.InOwnerRange(player, button)
+                    : EscapeSwitchInteraction.InRange(player, button));
         }
 
         RopePhase PhaseAt(double elapsed)
@@ -453,15 +454,25 @@ namespace CurtainCall.EscapeRoute
 
         bool IsInsideLower(NetworkPlayer player) => lowerWorkerBounds != null && lowerWorkerBounds.enabled
             && lowerWorkerBounds.gameObject.activeInHierarchy && player != null && player.IsSpawned
-            && player.State == PlayerState.Normal && lowerWorkerBounds.bounds.Contains(player.transform.position)
+            && player.State == PlayerState.Normal && InsideLowerBounds(lowerWorkerBounds, player.LatestOwnerPosition)
             && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId);
+
+        static bool InsideLowerBounds(Collider bounds, Vector3 feet)
+            => bounds is BoxCollider box
+                ? WithinBox(box.transform.InverseTransformPoint(feet) - box.center, box.size * .5f)
+                : bounds.bounds.Contains(feet);
+
+        static bool WithinBox(Vector3 point, Vector3 half) => Mathf.Abs(point.x) <= half.x
+            && Mathf.Abs(point.y) <= half.y && Mathf.Abs(point.z) <= half.z;
 
         readonly RaycastHit[] lowerFloorHits = new RaycastHit[16];
         bool IsStandingInLower(NetworkPlayer player)
         {
             if (!IsInsideLower(player) || player.IsAirborne
-                || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(player.OwnerClientId)) return false;
-            int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .12f,
+                || HumanCannonPoleSystem.Current?.HeldBy(player.OwnerClientId) >= 0
+                || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
+                    || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))) return false;
+            int count = Physics.RaycastNonAlloc(player.LatestOwnerPosition + Vector3.up * .12f,
                 Vector3.down, lowerFloorHits, .3f, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
                 if (lowerFloorHits[i].normal.y > .5f && lowerFloorHits[i].collider.gameObject.scene == gameObject.scene
@@ -520,8 +531,7 @@ namespace CurtainCall.EscapeRoute
             if (session == null || !session.IsHost || expected != revision || ReturnOpen
                 || workerOwner == CannonSeatState.Nobody || actor == workerOwner || request == 0
                 || requests.TryGetValue(actor, out uint previous) && request <= previous) return false;
-            NetworkPlayer player = null;
-            foreach (var candidate in NetworkPlayer.All) if (candidate.OwnerClientId == actor) { player = candidate; break; }
+            var player = EscapeSceneTransfer.FindSpawnedParticipant(actor);
             if (!IsStandingInLower(player)) return false;
             requests[actor] = request;
             // A local-only pilot reset leaves the authoritative flight occupied. Reuse the
@@ -604,10 +614,9 @@ namespace CurtainCall.EscapeRoute
             // Changes to the lower worker do not invalidate a lever press in the same round.
             if (!session.IsHost || expected < roundStartRevision || expected > revision || request == 0
                 || requests.TryGetValue(actor, out uint previous) && request <= previous) return;
-            requests[actor] = request;
-            NetworkPlayer player = null;
-            foreach (var candidate in NetworkPlayer.All) if (candidate.OwnerClientId == actor) { player = candidate; break; }
+            var player = EscapeSceneTransfer.FindSpawnedParticipant(actor);
             if (!CanUseButton(player)) return;
+            requests[actor] = request;
             CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,button,"RETURN_LEVER","ACTIVATED",ButtonPoint,true);
             SetGate(true); revision++; Publish();
         }

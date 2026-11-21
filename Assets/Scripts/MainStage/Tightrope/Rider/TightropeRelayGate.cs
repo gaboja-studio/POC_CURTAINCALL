@@ -132,6 +132,7 @@ namespace CurtainCall.Tightrope
         {
             if (player == null || common == null) return -1;
             int index = common.HeldBy(player.OwnerClientId);
+            if (index < 0) return -1;
             for (int i = 0; i < stations.Length; i++) if (stations[i] != null && stations[i].Index == index) return i;
             return -1;
         }
@@ -147,7 +148,7 @@ namespace CurtainCall.Tightrope
             if (round != generation) { Deactivate(); ResetState(); round = generation; }
             for (int i = 0; i < stations.Length; i++)
             {
-                var station = stations[i]; if (station == null) continue;
+                var station = stations[i]; if (station?.Pole == null) continue;
                 if (!IsActive && station.Pole.InteractionAvailable) common.Deactivate(station.Index);
                 station.Pole.InteractionAvailable = IsActive;
                 station.Pole.PresentationVisible = isActiveAndEnabled && HasGate && course.IsTraversalActive;
