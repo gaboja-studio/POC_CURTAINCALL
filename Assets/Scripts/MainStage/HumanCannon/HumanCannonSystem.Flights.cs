@@ -1,6 +1,7 @@
 using CurtainCall.Network.PlayerSync;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
@@ -10,6 +11,21 @@ namespace CurtainCall.HumanCannon
         const string FlightRemovedMessage = "CurtainCall.HumanCannon.FlightRemoved";
         const int FlightSize = 20; // actor + station + launch + segment
         bool awaitingFlightSnapshot;
+        double nextFlightSync;
+
+        void RetryFlightSync()
+        {
+            double now = Time.unscaledTimeAsDouble;
+            if (!awaitingFlightSnapshot || messaging == null || now < nextFlightSync) return;
+            nextFlightSync = now + .5d;
+            using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
+            writer.WriteValueSafe((byte)CannonAction.Sync);
+            writer.WriteValueSafe(-1);
+            writer.WriteValueSafe(0u);
+            writer.WriteValueSafe(0u);
+            writer.WriteValueSafe(Vector3.zero);
+            messaging.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+        }
 
         void SendFlightSnapshot(ulong client)
         {
@@ -81,7 +97,9 @@ namespace CurtainCall.HumanCannon
         {
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != FlightSize) return;
             var flight = ReadFlight(reader);
-            flying.TryComplete(flight.Actor, flight.StationIndex, flight.LaunchRevision, flight.Segment);
+            if (flying.TryComplete(flight.Actor, flight.StationIndex, flight.LaunchRevision, flight.Segment)
+                && boundPlayer != null && boundPlayer.OwnerClientId == flight.Actor)
+                pilot?.ReleaseFlight(flight.StationIndex, flight.LaunchRevision, flight.Segment);
         }
     }
 }

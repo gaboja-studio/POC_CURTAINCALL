@@ -39,10 +39,9 @@ namespace CurtainCall.SpaceLink
 
         void Update()
         {
-            ApplyStage();
             var session = NetworkSessionManager.Instance;
             if (run == null || started || submitted || session == null || !session.IsHost
-                || !entry.IsCurrentPerformance || !entry.LocalPlaced) return;
+                || !entry.IsCurrentPerformance || !entry.LocalParticipantReady) return;
             var director = SpaceLinkDirector.Instance;
             if (director != null && director.IsTransitioning) return;
             // NGO 로드 완료와 소유자 순간이동이 모두 도착하기 전에는 판정을 시작하지 않는다.
@@ -52,9 +51,9 @@ namespace CurtainCall.SpaceLink
                 NetworkPlayer player = null;
                 foreach (var candidate in NetworkPlayer.All)
                     if (candidate.IsSpawned && candidate.OwnerClientId == id) { player = candidate; break; }
-                if (player == null || player.Slot == NetworkPlayer.NoSlot) return;
+                if (player == null || player.Slot == NetworkPlayer.NoSlot || player.IsApplyingInitialCondition) return;
                 if (player.State == PlayerState.Normal
-                    && Vector3.Distance(player.transform.position, course.GetStartPose(player.Slot).position) > 1.5f) return;
+                    && Vector3.Distance(player.LatestOwnerPosition, course.GetStartPose(player.Slot).position) > 1.5f) return;
             }
             // 밤 정비에서 고른 단계(런 상태, 1일차는 1)로 공용 정산을 연다.
             if (!rewards.BeginPerformance(Mathf.Clamp(campaign.State.Difficulty, 1, 3), GameSettings.Tightrope.Reward)) return;
@@ -63,18 +62,6 @@ namespace CurtainCall.SpaceLink
             started = true;
             attemptId = run.Results.AttemptId;
             round = run.Round;
-        }
-
-        /// <summary>
-        /// 대기실 스케줄에서 고른 단계(캠페인 상태, 모든 화면에 동기화)의 코스·톱날로 맞춘다.
-        /// 호스트·클라이언트가 각자 같은 값으로 부르며, 판이 시작된 뒤에는 바꾸지 않는다.
-        /// </summary>
-        void ApplyStage()
-        {
-            if (run == null || entry == null || campaign == null || !entry.IsCurrentPerformance
-                || started || run.State != TightropeRunState.Waiting) return;
-            var course = run.GetComponent<TightropeCourse>();
-            if (course != null) course.ApplyStage(course.TestStage > 0 ? course.TestStage : campaign.State.Difficulty);
         }
 
         bool SamePerformance()

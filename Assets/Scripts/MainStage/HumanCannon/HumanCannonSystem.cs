@@ -201,6 +201,7 @@ namespace CurtainCall.HumanCannon
                 }
             }
             PruneFlights();
+            RetryFlightSync();
         }
 
         void LateUpdate()
@@ -502,13 +503,8 @@ namespace CurtainCall.HumanCannon
                 messaging.RegisterNamedMessageHandler(FlightSnapshotMessage, HandleFlightSnapshot);
                 messaging.RegisterNamedMessageHandler(FlightRemovedMessage, HandleFlightRemoved);
                 awaitingFlightSnapshot = true;
-                using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
-                writer.WriteValueSafe((byte)CannonAction.Sync);
-                writer.WriteValueSafe(-1);
-                writer.WriteValueSafe(0u);
-                writer.WriteValueSafe(0u);
-                writer.WriteValueSafe(Vector3.zero);
-                messaging.SendNamedMessage(RequestMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+                nextFlightSync = 0d;
+                RetryFlightSync();
             }
         }
 

@@ -25,6 +25,7 @@ namespace CurtainCall.EscapeRoute
         public BoxCollider FirstPersonArea => firstPersonArea;
         CameraViewDirector cameraRequest;
         bool reachedStairEnd;
+        bool barriersApplied, forwardWasActive, returnWasActive;
         int approachGeneration = -1;
         void Awake() => Current = this;
         void Update()
@@ -33,11 +34,22 @@ namespace CurtainCall.EscapeRoute
             var run = CampaignRun.Instance;
             bool campaign = run != null && run.State.Phase == CampaignPhase.Escape
                 && transfer != null && transfer.HasDeparture;
-            if (!campaign) { ReleaseCamera(); return; }
+            if (!campaign)
+            {
+                if (run == null || run.State.Phase != CampaignPhase.Ending) RestoreBarriers();
+                ReleaseCamera();
+                return;
+            }
             if (approachGeneration != run.State.Generation)
             {
                 approachGeneration = run.State.Generation;
                 reachedStairEnd = false;
+            }
+            if (!barriersApplied)
+            {
+                forwardWasActive = forwardBarrier != null && forwardBarrier.activeSelf;
+                returnWasActive = returnBarrier != null && returnBarrier.activeSelf;
+                barriersApplied = true;
             }
             if (returnBarrier != null) returnBarrier.SetActive(true);
             if (forwardBarrier != null) forwardBarrier.SetActive(!transfer.Ready);
@@ -70,6 +82,16 @@ namespace CurtainCall.EscapeRoute
             if (cameraRequest != null) cameraRequest.ReleaseView(this);
             cameraRequest = null;
         }
-        void OnDestroy() { ReleaseCamera(); if (Current == this) Current = null; }
+        void RestoreBarriers()
+        {
+            if (!barriersApplied) return;
+            barriersApplied = false;
+            if (forwardBarrier != null) forwardBarrier.SetActive(forwardWasActive);
+            if (returnBarrier != null) returnBarrier.SetActive(returnWasActive);
+        }
+
+        void OnDisable() { ReleaseCamera(); RestoreBarriers(); }
+
+        void OnDestroy() { if (Current == this) Current = null; }
     }
 }

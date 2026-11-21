@@ -31,6 +31,9 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
 
         static void Set(object instance, string name, object value) => instance.GetType().GetField(name, Private).SetValue(instance, value);
         static object Call(object instance, string name, params object[] args) => instance.GetType().GetMethod(name, Private).Invoke(instance, args);
+        static NetworkVariable<int> PlayerSlot(NetworkPlayer player) =>
+            (NetworkVariable<int>)typeof(NetworkPlayer).GetField("slot", Private).GetValue(player);
+
         static void SetCurrent<T>(T instance) => typeof(T).GetProperty("Current").SetValue(null, instance);
 
         [Test]
@@ -511,6 +514,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     var go = new GameObject("Matrix actor " + i); go.transform.SetParent(root.transform);
                     var actor = go.AddComponent<NetworkPlayer>();
                     server.SetValue(actor, true); typeof(NetworkBehaviour).GetProperty("OwnerClientId").SetValue(actor, ids[i]);
+                    PlayerSlot(actor).Value = i;
                     actors.Add(actor); all.Add(actor);
                     states.Add((NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", Private).GetValue(actor));
                 }
@@ -821,9 +825,14 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     actor.transform.position = room.transform.position + (i == 0 ? Vector3.zero : Vector3.forward * 10);
                     var player = actor.AddComponent<NetworkPlayer>();
                     spawned.SetValue(player, true); server.SetValue(player, true); owner.SetValue(player, ids[i]);
+                    PlayerSlot(player).Value = i;
                     State(player, i < 2 ? PlayerState.Normal : PlayerState.Retired);
                     players.Add(player); all.Add(player);
                 }
+                PlayerSlot(players[0]).Value = NetworkPlayer.NoSlot;
+                Call(content, "Update");
+                Assert.That(players[0].State, Is.EqualTo(PlayerState.Normal), "An uninitialized replacement cannot finish at its old pose.");
+                PlayerSlot(players[0]).Value = 0;
                 Call(content, "Update");
                 Assert.That(players[0].State, Is.EqualTo(PlayerState.Arrived));
                 Assert.That(run.State.Phase, Is.EqualTo(CampaignPhase.Escape), "The remaining living teammate keeps playing.");
@@ -902,6 +911,7 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                     root.transform.SetParent(fixture.transform, false);
                     var actor = root.AddComponent<NetworkPlayer>();
                     spawned.SetValue(actor, true); server.SetValue(actor, true); owner.SetValue(actor, id);
+                    PlayerSlot(actor).Value = actors.Count;
                     var state = typeof(NetworkPlayer).GetField("state", Private).GetValue(actor);
                     state.GetType().GetProperty("Value").SetValue(state, id == ids[1] || thirdDisconnected && id == ids[2]
                         ? PlayerState.Normal : PlayerState.Retired);
@@ -1201,10 +1211,10 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
             }
         }
 
-        [TestCase(PlayerState.Normal, false)]
-        [TestCase(PlayerState.Fallen, true)]
-        [TestCase(PlayerState.Retired, true)]
-        public void DepartureCameraIsRequiredOnlyForPlayersWhoStillHaveToRun(PlayerState state, bool expected)
+        [TestCase(PlayerState.Normal)]
+        [TestCase(PlayerState.Fallen)]
+        [TestCase(PlayerState.Retired)]
+        public void DepartureAcknowledgesAvatarEvenWhenTheCameraIsUnavailable(PlayerState state)
         {
             var root = new GameObject("Escape arrival without a local camera");
             var platform = new GameObject("Escape assembly floor");
@@ -1250,8 +1260,9 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Set(mover, "controller", mover.GetComponent<CharacterController>());
                 Physics.SyncTransforms();
 
-                Assert.That(transfer.PlaceLocal(arrival), Is.EqualTo(expected));
-                Assert.That(root.transform.position, Is.EqualTo(expected ? platform.transform.position : Vector3.zero));
+                Assert.IsTrue(transfer.PlaceLocal(arrival));
+                Assert.That(root.transform.position, Is.EqualTo(platform.transform.position));
+                Assert.That(typeof(EscapeSceneTransfer).GetField("arrivalViewPlaced", Private).GetValue(transfer), Is.False);
                 Assert.That(player.State, Is.EqualTo(state));
             }
             finally
@@ -1263,6 +1274,65 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 Object.DestroyImmediate(platform);
                 Object.DestroyImmediate(root);
             }
+        }
+
+        [TestCase(PlayerState.Fallen, true)]
+        [TestCase(PlayerState.Retired, true)]
+        [TestCase(PlayerState.Normal, false)]
+        public void SpectatingHostDoesNotBlockTightropeStartOrPretendToBePlaced(PlayerState state, bool ready)
+        {
+            var root = new GameObject("Host readiness without placement");
+            root.SetActive(false);
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var previous = NetworkPlayer.Local;
+            var player = root.AddComponent<NetworkPlayer>();
+            try
+            {
+                var entryType = System.AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(assembly => assembly.GetType("CurtainCall.SpaceLink.CampaignPerformanceEntry"))
+                    .First(type => type != null);
+                var entry = root.AddComponent(entryType);
+                local.SetValue(null, player);
+                spawned.SetValue(player, true);
+                PlayerSlot(player).Value = 0;
+                ((NetworkVariable<PlayerState>)typeof(NetworkPlayer).GetField("state", Private).GetValue(player)).Value = state;
+                Assert.That(entryType.GetProperty("LocalPlaced").GetValue(entry), Is.False);
+                Assert.That(entryType.GetProperty("LocalParticipantReady", Private).GetValue(entry), Is.EqualTo(ready));
+            }
+            finally
+            {
+                spawned.SetValue(player, false);
+                local.SetValue(null, previous);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        public void InterruptedArrivalRestoresTheAuthoredBarriers(bool originalForward, bool originalReturn)
+        {
+            var root = new GameObject("Interrupted escape arrival");
+            root.SetActive(false);
+            var forward = new GameObject("Forward barrier");
+            var rear = new GameObject("Rear barrier");
+            forward.transform.SetParent(root.transform);
+            rear.transform.SetParent(root.transform);
+            try
+            {
+                var arrival = root.AddComponent<EscapeSceneArrival>();
+                Set(arrival, "forwardBarrier", forward);
+                Set(arrival, "returnBarrier", rear);
+                Set(arrival, "forwardWasActive", originalForward);
+                Set(arrival, "returnWasActive", originalReturn);
+                Set(arrival, "barriersApplied", true);
+                forward.SetActive(!originalForward);
+                rear.SetActive(!originalReturn);
+                Call(arrival, "OnDisable");
+                Assert.That(forward.activeSelf, Is.EqualTo(originalForward));
+                Assert.That(rear.activeSelf, Is.EqualTo(originalReturn));
+            }
+            finally { Object.DestroyImmediate(root); }
         }
 
         [Test]

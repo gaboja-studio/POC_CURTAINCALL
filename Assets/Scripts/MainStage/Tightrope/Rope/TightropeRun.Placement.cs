@@ -37,7 +37,9 @@ namespace CurtainCall.Tightrope
             { ReleasePlacementLock(); return; }
             var local = NetworkPlayer.Local;
             if (local == null || !local.IsSpawned || local.State != PlayerState.Normal
-                || (BridgeManagesPerformance && localPreparedRound != Round)) return;
+                || (BridgeManagesPerformance && localPreparedRound != Round))
+            { ReleasePlacementLock(); return; }
+            if (placementLock != null && placementLock.gameObject != local.gameObject) ReleasePlacementLock();
             if (IsParticipantReady(local)) { ReleasePlacementLock(); return; }
             // 위치 메시지와 RunState/복구 메시지는 서로 다른 순서로 올 수 있다.
             // 출발점에 온 소유자는 확인 응답까지 이동하지 않고 같은 회차를 재전송한다.
@@ -78,8 +80,9 @@ namespace CurtainCall.Tightrope
                     if (candidate.OwnerClientId == sender) { target = candidate; break; }
                 if (target == null || !target.IsSpawned || target.State != PlayerState.Normal || target.RestartVersion != restart) return;
                 // 재전송에는 계속 응답하되, 최초 확인은 호스트의 실제 위치도 출발점일 때만 한다.
-                if (!IsParticipantReady(target) && (!IsStartPosition(target.transform.position)
-                    || Vector3.Distance(target.transform.position, position) > .75f)) return;
+                Vector3 observed = target.LatestOwnerPosition;
+                if (!IsParticipantReady(target) && (!IsStartPosition(observed)
+                    || Vector3.Distance(observed, position) > .75f)) return;
                 placedPlayers[target] = restart;
                 seenAtStart.Add(target);
                 SendPlacement(sender, true, round, restart, position);
@@ -95,7 +98,8 @@ namespace CurtainCall.Tightrope
 
         void ReleasePlacementLock()
         {
-            if (placementLock != null && NetworkPlayer.Local != null && NetworkPlayer.Local.State == PlayerState.Normal)
+            if (placementLock != null && placementLock.TryGetComponent(out NetworkPlayer owner)
+                && owner.IsSpawned && owner.State == PlayerState.Normal)
                 placementLock.SetControlEnabled(placementControl);
             placementLock = null;
         }

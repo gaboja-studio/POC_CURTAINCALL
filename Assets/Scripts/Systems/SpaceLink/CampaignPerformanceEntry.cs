@@ -27,7 +27,18 @@ namespace CurtainCall.SpaceLink
         readonly System.Collections.Generic.Dictionary<NetworkPlayer, double> entryGraceEnds = new();
         System.Func<NetworkPlayer, PlayerState, bool> guard, previousGuard;
 
-        public bool LocalPlaced => placed != null;
+        public bool LocalPlaced => placed != null && placed == NetworkPlayer.Local && placed.IsSpawned;
+
+        internal bool LocalParticipantReady
+        {
+            get
+            {
+                var local = NetworkPlayer.Local;
+                return local != null && local.IsSpawned && local.Slot != NetworkPlayer.NoSlot
+                    && !local.IsApplyingInitialCondition
+                    && (LocalPlaced || local.State is PlayerState.Fallen or PlayerState.Retired);
+            }
+        }
 
         // 로비를 건너뛴 치트 세션의 참가자에게는 SpaceLinkDirector가 없을 수 있다.
         // 씬 전환을 결정하는 호스트 관리자와 별개로, 각 화면이 자기 공연 진입을 준비한다.
@@ -105,6 +116,11 @@ namespace CurtainCall.SpaceLink
             if (!InitializeIfReady() || !IsCurrentPerformance) return; // 클라이언트의 공용 상태 수신이 씬 로드보다 늦을 수 있다.
             var session = NetworkSessionManager.Instance;
             if (session == null || session.GameState != GameSessionState.Playing) return;
+            if (run != null && run.State == TightropeRunState.Waiting)
+            {
+                var course = run.GetComponent<TightropeCourse>();
+                course.ApplyStage(course.TestStage > 0 ? course.TestStage : campaign.State.Difficulty);
+            }
             if (session.IsHost)
                 foreach (var player in NetworkPlayer.All)
                 {
@@ -127,9 +143,10 @@ namespace CurtainCall.SpaceLink
         void HoldDeathsUntilPlaced()
         {
             previousGuard = NetworkPlayer.ServerCanChangeState;
-            guard = (player, next) => (next != PlayerState.Fallen || IsCurrentPerformance && (seenAtStart.Contains(player)
-                    || entryGraceEnds.TryGetValue(player, out double until) && Time.unscaledTimeAsDouble >= until))
-                && (previousGuard == null || previousGuard(player, next));
+            guard = (player, next) => (previousGuard == null || previousGuard(player, next))
+                && (!this || !isActiveAndEnabled || gameObject.scene != SceneManager.GetActiveScene()
+                    || next != PlayerState.Fallen || IsCurrentPerformance && (seenAtStart.Contains(player)
+                        || entryGraceEnds.TryGetValue(player, out double until) && Time.unscaledTimeAsDouble >= until));
             NetworkPlayer.ServerCanChangeState = guard;
         }
 
@@ -156,9 +173,17 @@ namespace CurtainCall.SpaceLink
             controller = player.GetComponent<PlayerController>();
             previousScheme = controller != null && controller.HasAssignedScheme ? controller.Scheme : null;
             previousFreeMovement = mover.FreeMovement;
-            PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var position, out var rotation);
-            if (run != null && player.TryGetComponent(out PlayerBalance balance)) balance.SetBalanceActive(false);
-            mover.SetStartPose(position, rotation);
+            if (run != null)
+            {
+                var pose = run.GetComponent<TightropeCourse>().GetStartPose(player.Slot);
+                if (player.TryGetComponent(out PlayerBalance balance)) balance.SetBalanceActive(false);
+                mover.SetStartPose(pose.position, pose.rotation);
+            }
+            else
+            {
+                PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var position, out var rotation);
+                mover.SetStartPose(position, rotation);
+            }
             mover.PassThrough = false;
             if (run == null) return;
             mover.SetControlEnabled(false);
