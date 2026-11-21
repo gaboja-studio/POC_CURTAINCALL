@@ -1,4 +1,5 @@
 using CurtainCall.Cameras;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -205,7 +206,7 @@ namespace CurtainCall.HumanCannon
             if (player == null || !player.TryGetComponent(out PlayerMover mover) || (player.IsLocal
                 ? !mover.Simulated || mover.IsAirborne : player.IsAirborne)) return false;
             var course = TightropeCourse.Current;
-            return course != null && course.IsTraversalActive && course.TryGetSupportingRope(mover, out _);
+            return course != null && course.IsTraversalActive && course.TryGetSupportingRopeAt(mover, player.LatestOwnerPosition, out _);
         }
 
         internal static bool WaitingForRopeDrop(PlayerMover mover)
@@ -222,13 +223,16 @@ namespace CurtainCall.HumanCannon
             if (carryBody == null) RefreshCarryBody(carrier);
             // 들고 낙사하면 시작 지점에 가장 가까운 생존자 발밑 지면으로 옮긴다(2026-11-05 사용자 요청).
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
-            bool fellOff = carrier != null
-                && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
+            var route = HumanCannonRouteSystem.Current;
+            bool relevantRoute = route != null && (!UsesCourseDropRecovery || route.gameObject.scene == gameObject.scene);
+            Vector3 feet = carrier != null ? carrier.LatestOwnerPosition : transform.position;
+            bool fellOff = relevantRoute && (feet.y < route.FallHeight || transform.position.y < route.FallHeight)
+                || UsesCourseDropRecovery && EscapeFallVoid.IsStrandedGround(gameObject.scene, feet);
             Vector3 dropOrigin = transform.position;
             Quaternion rotation = transform.rotation;
             Vector3 ground = default;
             bool nearby = !fellOff && (TryDropHere(carrier, out ground)
-                || TryFindNearbySidePlacement(dropOrigin, rotation, carrier, out ground, avoidRope: false))
+                || TryFindNearbySidePlacement(dropOrigin, rotation, carrier, out ground, avoidRope: UsesCourseDropRecovery))
                 && IsStableRecoveryGround(ground);
             if (!nearby)
             {
@@ -444,7 +448,7 @@ namespace CurtainCall.HumanCannon
             var position = transform.position;
             var rotation = transform.rotation;
             // Relocation detaches at the old pose before its carrier teleports.
-            if (CanSettleAt(position, rotation, carrier))
+            if (!UsesCourseDropRecovery && CanSettleAt(position, rotation, carrier))
                 ReleaseAt(actor, ownership.Revision, position, rotation, position);
             else
                 ReleaseCarrierToGround(carrier);

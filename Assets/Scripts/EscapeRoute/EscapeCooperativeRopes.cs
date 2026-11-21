@@ -431,7 +431,9 @@ namespace CurtainCall.EscapeRoute
         bool ApplyRopeVisibility(bool present, PlayerMover mover)
         {
             var course = switcher != null ? switcher.GetComponent<TightropeCourse>() : null;
-            bool supported = !present && course != null && course.TryGetSupportingRope(mover, out _);
+            bool supported = !present && course != null && mover != null
+                && course.TryGetSupportingRopeAt(mover, mover.transform.position, out _, out var supportAtFeet)
+                && IsTimedSupport(supportAtFeet);
             for (int i = 0; i < ropeSupports.Length; i++)
                 if (ropeSupports[i] != null) ropeSupports[i].enabled = present && initialSupports[i];
             for (int i = 0; i < ropeVisuals.Length; i++)
