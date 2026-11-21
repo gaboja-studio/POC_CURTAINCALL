@@ -96,7 +96,7 @@ namespace CurtainCall.HumanCannon
         {
             if (RejectUnavailableLocalMotion(actor)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
-            if (!flying.TryRebound(actor, index, revision, segment)) return false;
+            if (!flying.TryRebound(actor, index, revision, segment, fromTrampoline)) return false;
             FindPlayer(actor)?.BeginFlightFallAt(position);
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
                 pilot.Rebound(index, revision, segment, position, upwardSpeed, fromTrampoline);
@@ -117,10 +117,12 @@ namespace CurtainCall.HumanCannon
                 if (pilot == null || !pilot.BeginGroundBounce(sequence, epoch, contact, speed, controlSpeed)) return false;
             }
             // -1은 대포 좌석 없이 지상 점프로 시작한 비행이다. 이후 반동/착지는 같은 식별자로 검증한다.
-            flying.Begin(actor, -1, sequence);
+            flying.Begin(actor, -1, sequence, fromTrampoline: true);
             FindPlayer(actor)?.BeginFlightFallAt(contact);
             return true;
         }
+
+        internal bool IsTrampolineFlight(ulong actor) => flying.IsTrampolineFlight(actor);
 
         internal void RejectGroundBounce(uint sequence, uint epoch)
         {
@@ -255,6 +257,11 @@ namespace CurtainCall.HumanCannon
             SendRequest(index, CannonAction.Land, launchRevision, segment, position);
         }
 
+        internal void RequestGroundBounceCancellation(uint sequence)
+        {
+            if (boundPlayer != null) SendRequest(-1, CannonAction.CancelGroundBounce, sequence);
+        }
+
         void SendRequest(int index, CannonAction action, uint revision, uint segment = 0, Vector3 position = default)
         {
             if (session != null && session.IsHost)
@@ -297,6 +304,14 @@ namespace CurtainCall.HumanCannon
             if (action == CannonAction.Land)
             {
                 HandleLanding(player, index, revision, segment, landingPosition);
+                return;
+            }
+            if (action == CannonAction.CancelGroundBounce)
+            {
+                if (index == -1 && flying.TryGet(actor, out var flight)
+                    && flight.StationIndex == -1 && flight.LaunchRevision == revision && flight.Segment == 0
+                    && flying.TryComplete(actor, -1, revision))
+                    SendFlightRemoved(flight);
                 return;
             }
             if (!ValidIndex(index) || (action != CannonAction.Board && action != CannonAction.Launch && action != CannonAction.Cancel)) return;

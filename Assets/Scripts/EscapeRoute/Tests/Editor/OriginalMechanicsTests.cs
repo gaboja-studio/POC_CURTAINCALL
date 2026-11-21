@@ -173,9 +173,9 @@ namespace CurtainCall.EscapeRoute.Tests
         {
             var type = TypeOf("CurtainCall.HumanCannon.CannonFlightState");
             var host = Activator.CreateInstance(type); var client = Activator.CreateInstance(type);
-            Call(host,"Begin",7UL,-2,9U);
-            Assert.That(Call(host,"TryRebound",7UL,-2,9U,0U),Is.True);
-            Assert.That(Call(host,"TryRebound",7UL,-2,9U,0U),Is.False);
+            Call(host,"Begin",7UL,-2,9U,false);
+            Assert.That(Call(host,"TryRebound",7UL,-2,9U,0U,false),Is.True);
+            Assert.That(Call(host,"TryRebound",7UL,-2,9U,0U,false),Is.False);
             Assert.That(Call(client,"Restore",Call(host,"Capture"),1),Is.True);
             Assert.That(Call(client,"Matches",7UL,-2,9U,1U),Is.True);
             Assert.That(Call(client,"TryComplete",7UL,-2,9U,1U),Is.True);

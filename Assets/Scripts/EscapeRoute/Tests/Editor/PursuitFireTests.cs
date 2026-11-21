@@ -193,6 +193,25 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Threat(new Vector3(10, 0, 0), 500), Is.False);
         }
 
+        [TestCase(4d, 5d, 9f, true)]
+        [TestCase(5d, 5d, 9f, false)]
+        [TestCase(4d, 5d, 2f, false)]
+        public void ResetProtectionEndsOnPlacementOrGraceExpiry(double now, double deadline, float gap, bool waiting)
+        {
+            Assert.That(Static("StillAwaitingSpawn", Vector3.right * gap, Vector3.zero, now, deadline), Is.EqualTo(waiting));
+        }
+
+        [Test]
+        public void BossOnlyIgnitionDoesNotRequireASecondTrigger()
+        {
+            var fire = Fire();
+            Set(fire, "trigger", null);
+            var boss = Root("Ignition boss").AddComponent(T("CurtainCall.EscapeRoute.EscapePursuerBoss"));
+            Assert.That(Get(fire, "Configured"), Is.False);
+            Set(fire, "pursuerIgnition", boss);
+            Assert.That(Get(fire, "Configured"), Is.True);
+        }
+
         [Test]
         public void EntryRequiresActualGroundSupportAndHonorsInspectionDamageGuardForRemoteOwner()
         {
@@ -205,10 +224,14 @@ namespace CurtainCall.EscapeRoute.Tests
             var mover = actor.GetComponent(T("CurtainCall.Player.PlayerMover")); Call(mover, "Awake");
             Set(player, "IsSpawned", true); Set(player, "OwnerClientId", 69UL); Set(player, "IsOwner", false); Set(mover, "Simulated", false);
             actor.SetActive(true); Physics.SyncTransforms();
+            Set(Get(player, "slot"), "m_InternalValue", 0);
             Assert.That(Call(fire, "CanArm", player), Is.False, "A free-flight body inside the volume has no actual footing.");
             var support = Root("Original entry floor", true).AddComponent<BoxCollider>();
             support.center = Vector3.down * .15f; support.size = new Vector3(4, .3f, 4); Physics.SyncTransforms();
             Assert.That(Call(fire, "CanArm", player), Is.True, "A remote owner is not locally simulated, but can trigger the shared clock.");
+            Set(Get(player, "slot"), "m_InternalValue", -1);
+            Assert.That(Call(fire, "CanArm", player), Is.False, "A queued player cannot start finale hazards before placement.");
+            Set(Get(player, "slot"), "m_InternalValue", 0);
             var guard = player.GetType().GetProperty("ServerCanChangeState", StaticFlags);
             var parameters = guard.PropertyType.GetMethod("Invoke").GetParameters().Select(p => Expression.Parameter(p.ParameterType)).ToArray();
             guard.SetValue(null, Expression.Lambda(guard.PropertyType, Expression.Constant(false), parameters).Compile());

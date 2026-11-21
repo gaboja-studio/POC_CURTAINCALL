@@ -33,7 +33,7 @@ namespace CurtainCall.HumanCannon.Tests
             var cushion = GameObject.Find("LandingCushion").GetComponent<BoxCollider>();
             Vector3 contact = new Vector3(cushion.bounds.center.x, cushion.bounds.max.y, cushion.bounds.center.z);
             var flights = Get(system, "flying");
-            Call(flights, "Begin", Actor, 0, 111u);
+            Call(flights, "Begin", Actor, 0, 111u, false);
             Call(mover, "SetStartPose", contact + Vector3.right * 10, Quaternion.identity, true);
             int before = SafeLandings;
             var initialParts = Get(player, "LostParts");

@@ -20,19 +20,20 @@ namespace CurtainCall.HumanCannon
         bool hasOwnershipSnapshot;
         double nextOwnershipSync;
 
-        void SendRequest(TrampolineAction action, int station, uint launch, uint segment, Vector3 position)
+        void SendRequest(TrampolineAction action, int station, uint launch, uint segment, Vector3 position, uint? requestedEpoch = null)
         {
             var player = NetworkPlayer.Local;
             if (player == null || player.State != PlayerState.Normal) return;
             if (action != TrampolineAction.Bounce && action != TrampolineAction.GroundBounce && InputGate.IsBlocked) return;
             if (action == TrampolineAction.Grab) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player,this,"TRAMPOLINE");
+            uint epoch = requestedEpoch ?? ownership.Revision;
             if (session != null && session.IsHost)
-                HandleRequest(player.OwnerClientId, action, ownership.Revision, station, launch, segment, position, transform.rotation);
+                HandleRequest(player.OwnerClientId, action, epoch, station, launch, segment, position, transform.rotation);
             else if (messaging != null)
             {
                 using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
                 writer.WriteValueSafe((byte)action);
-                writer.WriteValueSafe(ownership.Revision);
+                writer.WriteValueSafe(epoch);
                 writer.WriteValueSafe(station);
                 writer.WriteValueSafe(launch);
                 writer.WriteValueSafe(segment);
@@ -147,7 +148,6 @@ namespace CurtainCall.HumanCannon
                 ownership = new CannonSeatState();
                 StopDrop();
                 groundHistory.Clear();
-                groundSequence = 0;
                 transform.SetPositionAndRotation(initialPosition, initialRotation);
                 ResetPreviousPose();
                 LocalBounceCount = 0;
