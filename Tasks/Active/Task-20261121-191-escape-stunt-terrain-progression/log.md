@@ -10,3 +10,5 @@
 - 최종 Unity 배치 EditMode 477/477 통과. 저장된 탈출로·인간대포·외줄 씬 검사와 합류실, 심부 발판, 외줄 접지, 기립, 운반 기물 귀환, 호스트 낙사 승인 회귀를 포함했다. verify-scope, verify-fast, verify-knowledge 및 git diff --check 통과. 실제 플레이는 미실행.
 - 새 지형 수정은 fix/escape-stunt-terrain-progression 작업 트리에 유지한다.
 - 2026-11-21 제출 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(Unity 배치); 테스트=PASS(EditMode 477건)
+
+- 2026-11-21 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/474 (fix/escape-stunt-terrain-progression → dev)
