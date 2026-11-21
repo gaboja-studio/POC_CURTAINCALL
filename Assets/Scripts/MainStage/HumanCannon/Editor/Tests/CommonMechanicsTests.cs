@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
@@ -17,6 +18,53 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     {
         static object Call(object target, string name, params object[] args) => target.GetType()
             .GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target,args);
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CourseProgressAudit_AuthoredLiftCountsTheGuestLatestPosition(bool latestOnDeck)
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenPreviewScene(
+                "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity");
+            var avatar = new GameObject("Guest lift occupancy");
+            avatar.SetActive(false);
+            var current = typeof(HumanCannonRouteSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var all = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var priorPlayers = all.ToArray();
+            HumanCannonRouteSystem route = null;
+            NetworkPlayer player = null;
+            try
+            {
+                route = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<HumanCannonRouteSystem>(true)).Single();
+                current.SetValue(null, null);
+                Call(route, "OnEnable");
+                var transport = route.Transport(1);
+                Assert.That(transport.IsConfigured, Is.True);
+                var aboard = transport.Platform.position + Vector3.up * .02f;
+                var away = aboard + Vector3.right * 20f;
+                Assert.That(transport.ContainsPassenger(aboard), Is.True);
+                Assert.That(transport.ContainsPassenger(away), Is.False);
+                player = avatar.AddComponent<NetworkPlayer>();
+                var network = avatar.AddComponent<Unity.Netcode.Components.NetworkTransform>();
+                Set(player, "networkTransform", network);
+                Set(network, "m_InternalCurrentPosition", latestOnDeck ? aboard : away);
+                avatar.transform.position = latestOnDeck ? away : aboard;
+                typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
+                all.Clear(); all.Add(player);
+                object[] arguments = { 1, null };
+                Assert.That(Call(route, "CountPassengers", arguments), Is.EqualTo(latestOnDeck ? 1 : 0));
+                Assert.That(arguments[1], Is.SameAs(latestOnDeck ? player : null));
+            }
+            finally
+            {
+                if (player != null) typeof(Unity.Netcode.NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, false);
+                all.Clear(); all.AddRange(priorPlayers);
+                if (route != null) Call(route, "OnDisable");
+                current.SetValue(null, previous);
+                Object.DestroyImmediate(avatar);
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
 
         [Test, Category("CommonRulesRegression")]
         public void FourPlayersTwoPiggybackPairsCanSelectPoleWhileLongPressStillDismounts()
