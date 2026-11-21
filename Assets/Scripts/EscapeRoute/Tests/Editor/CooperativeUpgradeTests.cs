@@ -601,6 +601,47 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void TransitionAudit_UpperPressStillWorksWhenTheLowerControlJustActivated()
+        {
+            var locks = Locks(out var checkpoint, true);
+            var runner = Player(94);
+            var upper = Root("Reachable original switch", true).transform;
+            var lower = Root("Distant last runner switch", true).transform;
+            upper.position = runner.transform.position + Vector3.up;
+            lower.position = upper.position + Vector3.forward * 10f;
+            Set(checkpoint, "shoulderControl", upper);
+            Set(checkpoint, "lastRunnerControl", lower);
+            Call(locks, "Present");
+            Assert.That(Call(locks, "Control", 0), Is.SameAs(lower));
+            Assert.That(Call(locks, "UsableControl", runner, 0), Is.SameAs(upper));
+            Call(locks, "Arm", 94UL, 0, 0U, 1U);
+            Assert.That(Call(locks, "IsOpen", 0), Is.True);
+        }
+
+        [Test]
+        public void TransitionAudit_HostSwitchUsesLatestOwnerPoseAndStillHonorsObstructions()
+        {
+            var locks = Locks(out var checkpoint, true);
+            var runner = Player(94);
+            var network = runner.gameObject.AddComponent(T("Unity.Netcode.Components.NetworkTransform"));
+            var feet = runner.transform.position;
+            Set(runner, "IsOwner", false);
+            Set(runner, "networkTransform", network);
+            Set(network, "m_InternalCurrentPosition", feet + Vector3.forward * 8f);
+            var button = Root("Remote power switch", true).transform;
+            button.position = feet + Vector3.forward * 8.7f + Vector3.up * .75f;
+            Set(checkpoint, "shoulderControl", button);
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "CanUseControl", runner, 0), Is.False);
+            Assert.That(Call(locks, "ReachableHostControl", runner, 0), Is.SameAs(button));
+            var wall = Root("Switch partition", true).AddComponent<BoxCollider>();
+            wall.transform.position = feet + Vector3.forward * 8.4f + Vector3.up;
+            wall.size = new Vector3(2f, 2f, .12f);
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "ReachableHostControl", runner, 0), Is.Null);
+        }
+
+        [Test]
         public void AuthoredHoistBridgeStaysDeployedAfterTheLastHolderReleases()
         {
             var locks = Locks(out var checkpoint, true);

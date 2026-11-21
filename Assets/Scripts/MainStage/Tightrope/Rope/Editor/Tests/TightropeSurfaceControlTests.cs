@@ -370,6 +370,33 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             .Invoke(null, new object[] { mover, feet });
 
         [Test]
+        public void TemporaryPassThroughNeverCountsAsStandingOnARope()
+        {
+            var rope = AuthoredRopes()[0];
+            MovePlayer(new Vector3(0f, 0f, 4f));
+            Assert.IsTrue(course.TryGetSupportingRope(mover, out _));
+            Physics.IgnoreCollision(mover.Body, rope, true);
+            Assert.IsFalse(course.TryGetSupportingRope(mover, out _));
+            Assert.IsFalse(WalkableSupport.Contains(mover, player.transform.position));
+            Physics.IgnoreCollision(mover.Body, rope, false);
+            Assert.IsTrue(course.TryGetSupportingRope(mover, out _));
+        }
+
+        [Test]
+        public void TeammateChildColliderCannotReplaceTheRealRopeSupport()
+        {
+            AuthoredRopes();
+            MovePlayer(new Vector3(0f, .07f, 4f));
+            var teammate = MakeObject("Teammate with child collision");
+            teammate.AddComponent<NetworkPlayer>();
+            var accessory = AddBox("Teammate collision part", new Vector3(0f, .025f, 4f), new Vector3(.25f, .08f, .3f));
+            accessory.transform.SetParent(teammate.transform, true);
+            Physics.SyncTransforms();
+            Assert.That(course.TryGetSupportingRope(mover, out int lane), Is.True);
+            Assert.That(lane, Is.Zero);
+        }
+
+        [Test]
         public void CannonLandingOnRopeEdge_UsesBodySupportInsteadOfFootCenter()
         {
             var rope = AuthoredRopes()[0];
@@ -382,6 +409,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Vector3 reportedFeet = player.transform.position;
             MovePlayer(new Vector3(2f, 1f, 4f));
             Assert.That(SafeLanding(reportedFeet), Is.True);
+            Assert.That(Invoke(zone, "SupportsPlayerContact", player, reportedFeet), Is.True,
+                "The actual first-wire contact must also activate the route mechanic.");
         }
 
         [Test]

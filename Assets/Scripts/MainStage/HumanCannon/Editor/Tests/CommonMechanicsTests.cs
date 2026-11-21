@@ -99,6 +99,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             try
             {
                 var host = first.AddComponent<HumanCannonPoleSystem>();
+                var hostSession = first.AddComponent<NetworkSessionManager>();
+                typeof(NetworkSessionManager).GetProperty("ConnectionState").SetValue(hostSession, SessionConnectionState.Host);
+                Set(host, "session", hostSession);
                 var client = second.AddComponent<HumanCannonPoleSystem>();
                 HumanCannonPole Pole(GameObject parent, string name)
                 { var child=new GameObject(name); child.transform.SetParent(parent.transform,false); return child.AddComponent<HumanCannonPole>(); }

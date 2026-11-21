@@ -10,28 +10,39 @@ namespace CurtainCall.HumanCannon
         const string GroundBounceMessage = "CurtainCall.Trampoline.GroundBounce";
         const int GroundBounceSize = 25; // accepted + sequence + epoch + contact + speed
         readonly GroundBounceHistory groundHistory = new();
-        uint groundSequence;
         internal uint Revision => ownership.Revision;
-        internal uint NextGroundSequence() => ++groundSequence;
+        internal bool CanRequestGroundBounce => isActiveAndEnabled && session != null && messaging != null
+            && (session.IsHost || hasOwnershipSnapshot);
 
-        internal void RequestGroundBounce(uint sequence, Vector3 contact) =>
-            SendRequest(TrampolineAction.GroundBounce, -1, sequence, 0, contact);
+        internal void RequestGroundBounce(uint sequence, uint epoch, Vector3 contact) =>
+            SendRequest(TrampolineAction.GroundBounce, -1, sequence, 0, contact, epoch);
 
         void HandleGroundBounce(NetworkPlayer player, uint epoch, uint sequence, Vector3 contact)
         {
             var cannon = HumanCannonSystem.Current;
-            bool nearSurface = NearSurface(player, contact);
-            bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && cannon != null && Carrier != player.OwnerClientId && nearSurface
+            ulong actor = player.OwnerClientId;
+            Vector3 storedContact = default;
+            bool replay = cannon != null && cannon.MatchesFlight(actor, -1, sequence, 0)
+                && groundHistory.TryReplay(actor, sequence, epoch, out storedContact);
+            if (replay) contact = storedContact;
+            bool available = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && cannon != null && Carrier != actor;
+            // Reliable input can arrive before the owner transform. Leave this attempt pending
+            // so the owner's retry can be validated once its near-surface pose is visible.
+            if (!replay && available && !player.IsLocal && epoch == ownership.Revision
+                && ContactWithinSurface(contact) && !NearSurface(player, contact)) return;
+            bool accepted = replay || available && NearSurface(player, contact)
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)
                 && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, CurtainCall.Settings.GameSettings.Trampoline.UpwardSpeed, CurtainCall.Settings.GameSettings.Trampoline.AirControlSpeed);
-            if (accepted) {
-                ServerBounced?.Invoke(player.OwnerClientId);
+            if (accepted && !replay)
+            {
+                groundHistory.RecordAccepted(actor, contact);
+                NotifyBounced(actor);
                 CurtainCall.WaitingRoom.Pursuit.PursuitStimuli.Emit(CurtainCall.WaitingRoom.Pursuit.PursuitNoiseKind.TrampolineBounce, contact, transform);
             }
             if (player.IsLocal)
             {
-                if (accepted) LocalBounceCount++;
+                if (accepted) { if (!replay) LocalBounceCount++; }
                 else cannon?.RejectGroundBounce(sequence, epoch);
                 return;
             }

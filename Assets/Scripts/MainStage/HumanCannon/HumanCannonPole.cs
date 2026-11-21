@@ -160,7 +160,8 @@ namespace CurtainCall.HumanCannon
                     || route.Elapsed - observedElapsed > .35d) return false;
                 target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
             }
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, passenger: seat > 0), transform, ignoreRope: true);
+            return PlayerInteraction.InRangeFrom(player, PlayerInteraction.LatestCenter(player), target,
+                GrabRadius(player, passenger: seat > 0), transform, ignoreRope: true);
         }
 
         /// <summary>빠르게 지나간 순환 봉만 짧은 수신 지연을 허용한다. 거리·부상·점유 검사는 원본을 유지한다.</summary>

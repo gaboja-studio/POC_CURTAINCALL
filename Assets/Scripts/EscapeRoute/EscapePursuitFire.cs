@@ -38,7 +38,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(0)] float burstEmissionMultiplier = 2.5f;
         [SerializeField, Min(.01f)] float steadyEmissionMultiplier = .45f;
 
-        readonly Dictionary<ulong, Vector3> awaitingSpawn = new();
+        readonly Dictionary<ulong, (Vector3 Spawn, double Deadline)> awaitingSpawn = new();
         NetworkSessionManager session;
         double armedAt = -1;
         int firstBay;
@@ -56,7 +56,7 @@ namespace CurtainCall.EscapeRoute
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
         bool Ready => isActiveAndEnabled && IsSynchronized && session != null && session.GameState == GameSessionState.Playing;
-        bool Configured => (trigger != null || ignitionBridge != null) && bays.Length > 0 && ValidSchedule(startDelay, stepSeconds, warnSeconds, burstSeconds)
+        bool Configured => (trigger != null || ignitionBridge != null || pursuerIgnition != null) && bays.Length > 0 && ValidSchedule(startDelay, stepSeconds, warnSeconds, burstSeconds)
             && float.IsFinite(safeExitX);
 
         public FirePhase PhaseAt(int index, double now) => index >= 0 && index < bays.Length && pursuerIgnition
@@ -132,24 +132,35 @@ namespace CurtainCall.EscapeRoute
 
         bool CanArm(NetworkPlayer player)
         {
-            if (!Alive(player) || player.IsAirborne || RouteX(player.transform.position) >= safeExitX
+            if (!EligibleRunner(player) || player.IsAirborne
                 || !DamageAllowed(player) || !player.TryGetComponent(out PlayerMover mover)
                 || trigger == null || !trigger.enabled || !trigger.gameObject.activeInHierarchy
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
                     || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))) return false;
-            Vector3 point = trigger.transform.InverseTransformPoint(player.transform.position) - trigger.center;
+            Vector3 feet = player.LatestOwnerPosition;
+            if (RouteX(feet) >= safeExitX) return false;
+            Vector3 point = trigger.transform.InverseTransformPoint(feet) - trigger.center;
             Vector3 half = trigger.size * .5f;
             if (!Finite(point) || Mathf.Abs(point.x) > half.x || Mathf.Abs(point.y) > half.y || Mathf.Abs(point.z) > half.z) return false;
-            if (TightropeCourse.Current != null && TightropeCourse.Current.TryGetSupportingRopeAt(mover, player.transform.position, out _)) return true;
+            var rope = TightropeCourse.Current;
+            if (rope != null && rope.gameObject.scene == gameObject.scene && rope.TryGetSupportingRopeAt(mover, feet, out _)) return true;
             // Do not use mover.Simulated: it is false for every remote owner on the host.
-            foreach (var hit in Physics.RaycastAll(player.transform.position + Vector3.up * .12f, Vector3.down, .3f,
+            foreach (var hit in Physics.RaycastAll(feet + Vector3.up * .12f, Vector3.down, .3f,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                if (hit.collider != null && !hit.transform.IsChildOf(player.transform) && hit.normal.y > .5f) return true;
+                if (hit.collider != null && hit.collider.gameObject.scene == gameObject.scene && hit.normal.y > .5f
+                    && hit.collider.GetComponentInParent<NetworkPlayer>() == null
+                    && hit.collider.GetComponentInParent<EscapePursuerDebris>() == null
+                    && !CurtainCall.Damage.DismemberedLimb.Contains(hit.collider)) return true;
             return false;
         }
 
-        static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
+        bool EligibleRunner(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal
+            && player.Slot != NetworkPlayer.NoSlot && !player.IsApplyingInitialCondition
+            && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId);
+
+        internal static bool StillAwaitingSpawn(Vector3 feet, Vector3 spawn, double now, double deadline)
+            => now < deadline && (feet - spawn).sqrMagnitude > 9f;
         static bool DamageAllowed(NetworkPlayer player) => NetworkPlayer.ServerCanChangeState == null
             || NetworkPlayer.ServerCanChangeState(player, PlayerState.Fallen);
         static bool Finite(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
@@ -178,11 +189,11 @@ namespace CurtainCall.EscapeRoute
                 TryArmBridge(now);
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (!Alive(player) || !EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)) continue;
+                    if (!EligibleRunner(player)) continue;
                     Vector3 feet = player.LatestOwnerPosition;
-                    if (awaitingSpawn.TryGetValue(player.OwnerClientId, out Vector3 spawn))
+                    if (awaitingSpawn.TryGetValue(player.OwnerClientId, out var placement))
                     {
-                        if ((feet - spawn).sqrMagnitude > 9) continue;
+                        if (StillAwaitingSpawn(feet, placement.Spawn, now, placement.Deadline)) continue;
                         awaitingSpawn.Remove(player.OwnerClientId);
                     }
                     if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);

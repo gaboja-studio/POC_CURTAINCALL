@@ -66,7 +66,9 @@ namespace CurtainCall.HumanCannon
         }
 
         bool TryFindRecoveryPlacement(Vector3 position, NetworkPlayer survivor, out Vector3 ground)
-            => TryFindPlacement(position, initialRotation, survivor, out ground) && IsStableRecoveryGround(ground);
+            => TryFindPlacement(position, initialRotation, survivor, out ground, avoidRope: true)
+                && position.y - ground.y <= GameSettings.Trampoline.GrabDistance
+                && IsStableRecoveryGround(ground);
 
         static bool IsStableRecoveryGround(Vector3 ground) =>
             HumanCannonRouteSystem.Current?.BlocksTrampolineAtTransport(ground, recovering: true) != true;
@@ -86,6 +88,8 @@ namespace CurtainCall.HumanCannon
             var hits = count == dropHits.Length
                 ? Physics.RaycastAll(origin, Vector3.down, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) : dropHits;
             if (hits != dropHits) count = hits.Length;
+            bool traversal = EscapeCampaignContent.Current?.gameObject.scene == gameObject.scene
+                || HumanCannonRouteSystem.Current?.gameObject.scene == gameObject.scene && !IsWaitingRoom(gameObject.scene.name);
             float nearest = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
@@ -94,6 +98,7 @@ namespace CurtainCall.HumanCannon
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null
                     || DismemberedLimb.Contains(hit.collider) || IsPursuerCollider(hit.collider)) continue;
                 if (avoidRope && TightropeCourse.IsRopeSurface(hit.collider)) continue;
+                if (traversal && hit.collider.gameObject.scene != gameObject.scene) continue;
                 if (Physics.GetIgnoreLayerCollision(gameObject.layer, hit.collider.gameObject.layer)) continue;
                 nearest = hit.distance;
                 ground = hit.point;

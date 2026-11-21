@@ -64,11 +64,19 @@ namespace CurtainCall.EscapeRoute
         internal bool CanParticipate(ulong id) => Ready && Array.IndexOf(snapshot.participants, id) >= 0
             && IsParticipantConnected(id);
 
+        internal static bool HasStableAvatar(NetworkPlayer player) => player != null && player.IsSpawned
+            && player.Slot != NetworkPlayer.NoSlot && !player.IsApplyingInitialCondition;
+
         internal static NetworkPlayer FindSpawnedParticipant(ulong id)
         {
+            NetworkPlayer fallback = null;
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.OwnerClientId == id) return player;
-            return null;
+            {
+                if (player == null || !player.IsSpawned || player.OwnerClientId != id) continue;
+                if (HasStableAvatar(player)) return player;
+                fallback ??= player;
+            }
+            return fallback;
         }
         public bool AllCaptured => AllConnectedAcknowledged(captured);
         public bool AllPlaced => AllConnectedAcknowledged(placed);
@@ -99,15 +107,13 @@ namespace CurtainCall.EscapeRoute
                 positions = new Vector3[ids.Count], rotations = new Quaternion[ids.Count] };
             for (int i = 0; i < ids.Count; i++)
             {
-                NetworkPlayer member = null;
-                foreach (var player in NetworkPlayer.All)
-                    if (player != null && player.IsSpawned && player.OwnerClientId == ids[i]) { member = player; break; }
-                if (member == null || !channel.IsConnected(ids[i])) return false;
+                var member = FindSpawnedParticipant(ids[i]);
+                if (!HasStableAvatar(member) || !channel.IsConnected(ids[i])) return false;
                 next.participants[i] = ids[i];
                 bool caught = PursuitDirector.IsCaptured(member);
                 next.positions[i] = caught
                     ? PursuitDirector.ArrivalLocal(source.GetComponent<BoxCollider>(), i, ids.Count)
-                    : source.InverseTransformPoint(member.transform.position);
+                    : source.InverseTransformPoint(member.LatestOwnerPosition);
                 next.rotations[i] = caught ? Quaternion.identity : Quaternion.Inverse(source.rotation) * member.transform.rotation;
             }
             snapshot = next;
@@ -159,7 +165,7 @@ namespace CurtainCall.EscapeRoute
         void CaptureLocal()
         {
             var player = NetworkPlayer.Local;
-            if (localCaptured || source == null || player == null || !player.IsSpawned
+            if (localCaptured || source == null || !HasStableAvatar(player)
                 || !player.TryGetComponent(out PlayerMover mover)) return;
             int index = Array.IndexOf(snapshot.participants, player.OwnerClientId);
             if (index < 0) return;
@@ -230,13 +236,13 @@ namespace CurtainCall.EscapeRoute
         }
 
         bool IsLocalPlacementCurrent(NetworkPlayer player) =>
-            localPlaced && player != null && player.IsSpawned && player == placedPlayer && player.OwnerClientId == capturedOwner;
+            localPlaced && HasStableAvatar(player) && player == placedPlayer && player.OwnerClientId == capturedOwner;
 
         bool TryResolveCapturedMover(NetworkPlayer player, out PlayerMover mover)
         {
             mover = null;
             // The local avatar can be replaced after its pose was captured. The captured pose belongs to its owner.
-            return localCaptured && player != null && player.IsSpawned && player.OwnerClientId == capturedOwner
+            return localCaptured && HasStableAvatar(player) && player.OwnerClientId == capturedOwner
                 && player.TryGetComponent(out mover);
         }
 
@@ -317,14 +323,27 @@ namespace CurtainCall.EscapeRoute
         }
         void Request(ulong sender, string json)
         {
-            if (json == "sync") { Publish(); return; }
-            if (!Pending || Array.IndexOf(snapshot.participants, sender) < 0) return;
+            if (json == "sync") { PublishTo(sender); return; }
+            if (!HasDeparture || Array.IndexOf(snapshot.participants, sender) < 0) return;
             var ack = JsonUtility.FromJson<Ack>(json);
             if (ack == null || ack.generation != snapshot.generation) return;
+            if (ShouldReplyWithCompletion(Ready, ack.kind))
+            {
+                PublishTo(sender);
+                return;
+            }
+            if (!Pending) return;
             if (ack.kind == "captured") captured.Add(sender);
             else if (ack.kind == "placed" && PlacementAuthorized) { captured.Add(sender); placed.Add(sender); }
         }
-        void Publish() { if (channel.IsHost) channel.SendState(JsonUtility.ToJson(snapshot)); }
+        static bool ShouldReplyWithCompletion(bool complete, string kind)
+            => complete && (kind == "captured" || kind == "placed");
+
+        void Publish() => PublishTo(null);
+        void PublishTo(ulong? target)
+        {
+            if (channel.IsHost) channel.SendState(JsonUtility.ToJson(snapshot), target);
+        }
         void Receive(string json)
         {
             var value = JsonUtility.FromJson<Snapshot>(json);
@@ -367,7 +386,8 @@ namespace CurtainCall.EscapeRoute
         public void Complete()
         {
             if (!PlacementAuthorized || !channel.IsHost || !AllPlaced) return;
-            if (snapshot.phase != 2 && EscapeSceneArrival.Current != null) RecordTransfer("TRANSFER_COMPLETE", EscapeSceneArrival.Current.AssemblyAnchor.position, true);
+            if (snapshot.phase != 2 && EscapeSceneArrival.Current?.AssemblyAnchor is { } anchor)
+                RecordTransfer("TRANSFER_COMPLETE", anchor.position, true);
             snapshot.phase = 2; snapshot.failure = "";
             Publish();
             // The curtain still blocks input until its reveal animation completes.

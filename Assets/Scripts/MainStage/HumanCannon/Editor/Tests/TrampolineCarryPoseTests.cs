@@ -18,10 +18,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     [Category("November11CommonFix")]
     public class TrampolineCarryPoseTests
     {
-        [TestCase(false)]
-        [TestCase(true)]
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
         [Category("CannonTransportRecovery")]
-        public void LostCarrierChoosesTheClosestSurvivorWithAUsablePlacement(bool closestHasFloor)
+        public void LostCarrierChoosesTheClosestSurvivorWithAUsablePlacement(bool closestHasFloor, bool unreachableLedge)
         {
             const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
             var origin = new Vector3(15000f, 100f, 15000f);
@@ -49,6 +50,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Vector3 expected = (closestHasFloor ? closest : teammate).transform.position;
                 floor.transform.position = expected - Vector3.up * .1f;
                 floor.AddComponent<BoxCollider>().size = new Vector3(3f, .2f, 3f);
+                if (unreachableLedge)
+                {
+                    var ledge = new GameObject("Inaccessible shelf directly below nearest player");
+                    ledge.transform.SetParent(floor.transform);
+                    ledge.transform.position = closest.transform.position + Vector3.down * 8f;
+                    ledge.AddComponent<BoxCollider>().size = new Vector3(2, .2f, 2);
+                }
                 spawned.SetValue(closest, true);
                 spawned.SetValue(teammate, true);
                 all.Clear(); all.Add(teammate); all.Add(closest);

@@ -62,8 +62,9 @@ namespace CurtainCall.EscapeRoute
         }
         public Vector3 ControlPoint(int index) => EscapeSwitchInteraction.Center(Control(index));
         public string Prompt(int index) => Valid(index) ? checkpoints[index].prompt : "";
-        public string Instruction(int index) => !Valid(index) ? "" : checkpoints[index].lastRunnerControl
-            && Control(index) == checkpoints[index].lastRunnerControl ? "마지막 주자 · 바닥 레버에 가까이 가서 F" : checkpoints[index].instruction;
+        public string Instruction(int index) => ControlInstruction(index, Control(index));
+        internal string ControlInstruction(int index, Transform control) => !Valid(index) ? "" : checkpoints[index].lastRunnerControl
+            && control == checkpoints[index].lastRunnerControl ? "마지막 주자 · 바닥 레버에 가까이 가서 F" : checkpoints[index].instruction;
         public string Status(int index) => !Valid(index) ? "" : checkpoints[index].effectName
             + (IsLatched(index) ? " · 가동 고정" : IsOpen(index) ? " · 가동 중" : " · 정지");
         public string Feedback(int index) => !Valid(index) ? "" : (IsLatched(index)
@@ -128,7 +129,7 @@ namespace CurtainCall.EscapeRoute
             if (!InputGate.IsBlocked && local != null && local.TryGetComponent(out PlayerInputReader input)
                 && input.isActiveAndEnabled && input.Current.InteractTapped)
                 for (int i = 0; i < checkpoints.Length; i++)
-                    if (CanUseControl(local, i) && CommonInteractionSelection.Consume(local, Control(i)))
+                    if (UsableControl(local, i) is { } control && CommonInteractionSelection.Consume(local, control))
                     {
                         if (session.IsHost) Arm(local.OwnerClientId, i, revision, ++sequence);
                         else SendRequest(1, i, ++sequence, 0);
@@ -138,11 +139,28 @@ namespace CurtainCall.EscapeRoute
             Present();
         }
 
-        public bool CanUseControl(NetworkPlayer player, int index)
+        public bool CanUseControl(NetworkPlayer player, int index) => UsableControl(player, index) != null;
+
+        internal Transform UsableControl(NetworkPlayer player, int index)
         {
-            if (!Ready || !Valid(index) || (armed & (1u << index)) != 0 || !Alive(player)) return false;
-            return EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId)
-                && EscapeSwitchInteraction.InRange(player, Control(index));
+            if (!CanActivate(player, index)) return null;
+            Transform control = Control(index);
+            if (EscapeSwitchInteraction.InRange(player, control)) return control;
+            Transform upper = checkpoints[index].shoulderControl;
+            return upper != control && EscapeSwitchInteraction.InRange(player, upper) ? upper : null;
+        }
+
+        bool CanActivate(NetworkPlayer player, int index) => Ready && Valid(index) && !IsArmed(index) && Alive(player)
+            && EscapeCampaignContent.CanUseRouteDevice(gameObject.scene, player.OwnerClientId);
+
+        Transform ReachableHostControl(NetworkPlayer player, int index)
+        {
+            if (!CanActivate(player, index)) return null;
+            var checkpoint = checkpoints[index];
+            // The regular control is still legitimate when the last-runner alternative becomes visible in transit.
+            if (EscapeSwitchInteraction.InOwnerRange(player, checkpoint.shoulderControl)) return checkpoint.shoulderControl;
+            return HasOneUnresolvedRunner() && EscapeSwitchInteraction.InOwnerRange(player, checkpoint.lastRunnerControl)
+                ? checkpoint.lastRunnerControl : null;
         }
 
         static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
@@ -210,11 +228,12 @@ namespace CurtainCall.EscapeRoute
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
                 || HumanCannonSystem.Current != null && (HumanCannonSystem.Current.IsFlying(player.OwnerClientId)
                     || HumanCannonSystem.Current.IsSeated(player.OwnerClientId))) return false;
-            Vector3 feet = player.transform.position;
+            Vector3 feet = player.LatestOwnerPosition;
             Vector3 point = zone.transform.InverseTransformPoint(feet) - zone.center;
             if (Mathf.Abs(point.x) > zone.size.x * .5f || Mathf.Abs(point.y) > zone.size.y * .5f
                 || Mathf.Abs(point.z) > zone.size.z * .5f) return false;
-            if (TightropeCourse.Current != null && TightropeCourse.Current.TryGetSupportingRopeAt(mover, feet, out _)) return true;
+            var rope = TightropeCourse.Current;
+            if (rope != null && rope.gameObject.scene == gameObject.scene && rope.TryGetSupportingRopeAt(mover, feet, out _)) return true;
             int hits = Physics.RaycastNonAlloc(feet + Vector3.up * .12f, Vector3.down,
                 arrivalHits, .3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < hits; i++)
@@ -297,10 +316,10 @@ namespace CurtainCall.EscapeRoute
                 || requests.TryGetValue(actor, out uint last) && request <= last) return;
             requests[actor] = request;
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player.OwnerClientId == actor && CanUseControl(player, index))
+                if (player != null && player.OwnerClientId == actor && ReachableHostControl(player, index) is { } control)
                 {
                     armed |= 1u << index;
-                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player, Control(index), checkpoints[index].sourceName, "ACTIVATED", ControlPoint(index), true);
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player, control, checkpoints[index].sourceName, "ACTIVATED", EscapeSwitchInteraction.Center(control), true);
                     latched |= 1u << index;
                     revision++; Publish(); break;
                 }

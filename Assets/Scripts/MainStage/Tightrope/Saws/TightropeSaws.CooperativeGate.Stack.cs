@@ -58,8 +58,7 @@ namespace CurtainCall.Tightrope.Saws
             }
         }
 
-        bool IsRequiredFinaleIndex(int index) => settings.finaleFourStackRequired && course != null
-            && index >= 0 && index < (settings.cooperativeGateDistances?.Length ?? 0)
+        bool IsRequiredFinaleIndex(int index) => settings.finaleFourStackRequired && HasPlayableCooperativeGate(index)
             && settings.cooperativeGateDistances[index] >= course.FinishDistance * settings.finaleStartFraction;
 
         void ResetCooperativeAdmission()

@@ -70,13 +70,14 @@ namespace CurtainCall.EscapeRoute
         {
             var timer = EscapeRouteTimer.Current;
             if (!safe || !timer || !timer.HasStarted || timer.gameObject.scene != gameObject.scene) return;
-            if (round == timer.StartedAt && crossed.Contains(actor) && upperLanding && upperLanding.SupportsLanding(position))
+            var player = EscapeSceneTransfer.FindSpawnedParticipant(actor);
+            if (round == timer.StartedAt && crossed.Contains(actor) && upperLanding && upperLanding.SupportsPlayerContact(player, position))
             {
                 transferred.Add(actor);
                 return;
             }
             if (!cannon || station < 0 || station >= cannon.StationCount || !IsFirstCannon(cannon.Station(station)) ||
-                !firstWire || !firstWire.SupportsLanding(position)) return;
+                !firstWire || !firstWire.SupportsPlayerContact(player, position)) return;
             if (round != timer.StartedAt)
             {
                 round = timer.StartedAt;

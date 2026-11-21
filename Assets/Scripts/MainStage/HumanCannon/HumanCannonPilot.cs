@@ -243,6 +243,7 @@ namespace CurtainCall.HumanCannon
             HeldPole = -1;
             onTransport = false;
             groundRequest.Cancel();
+            groundSource = null;
             flightStationIndex = -1;
             launchRevision = 0;
             flightSegment = 0;

@@ -307,8 +307,12 @@ namespace CurtainCall.Tightrope
 
         /// <summary>원격 착지 요청 좌표도 소유자의 표면 전환과 같은 몸통·지지면 기준으로 검사한다.</summary>
         public bool TryGetSupportingRopeAt(PlayerMover mover, Vector3 feet, out int lane)
+            => TryGetSupportingRopeAt(mover, feet, out lane, out _);
+
+        internal bool TryGetSupportingRopeAt(PlayerMover mover, Vector3 feet, out int lane, out Collider support)
         {
             lane = NoLane;
+            support = null;
             if (mover == null || mover.Body == null || !mover.Body.enabled || ropeSurfaces.Count == 0) return false;
             if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) return false;
             var trampoline = HumanCannon.HumanCannonTrampoline.Current;
@@ -332,12 +336,9 @@ namespace CurtainCall.Tightrope
             for (int i = 0; i < count; i++)
             {
                 var hit = hits[i];
-                if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
+                if (!WalkableSupport.IsSupportCollider(hit.collider, mover.Body)
                     || heldTrampoline != null && hit.collider.transform.IsChildOf(heldTrampoline)
                     || hit.distance <= .0001f) continue;
-                // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
-                // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).
-                if (DismemberedLimb.Contains(hit.collider)) continue;
                 // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
                 // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
@@ -351,6 +352,7 @@ namespace CurtainCall.Tightrope
                 if (Mathf.Abs(hit.distance - closest) <= 0.001f && lane == NoLane) continue;
                 closest = hit.distance;
                 lane = candidate;
+                support = hit.collider;
             }
             return lane != NoLane;
         }

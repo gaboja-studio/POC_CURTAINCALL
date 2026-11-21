@@ -31,6 +31,178 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
 
         [Test]
+        public void StartCampaignAudit_OfficialBuildUsesTheLobbyAndTheActualPerformanceAndEscapeScenes()
+        {
+            var enabled = EditorBuildSettings.scenes.Where(item => item.enabled).Select(item => item.path).ToArray();
+            Assert.That(enabled[0], Is.EqualTo("Assets/Scenes/InGame/Start.unity"));
+            var transition = GameSettings.Base.SpaceTransition;
+            string SceneFor(CurtainCall.SpaceLink.SpaceId place, string trick = null)
+                => CurtainCall.SpaceLink.SpaceRoute.SceneName(place, transition, trick);
+            Assert.That(enabled.Any(path => path.EndsWith("/" + transition.HubScene + ".unity")), Is.True);
+            Assert.That(enabled.Any(path => path.EndsWith("/" + transition.WaitingRoomScene + ".unity")), Is.True);
+            Assert.That(SceneFor(CurtainCall.SpaceLink.SpaceId.EscapeRoute), Is.EqualTo("escape_route"));
+            Assert.That(enabled, Does.Contain("Assets/Scenes/Levels/escape_route.unity"));
+            foreach (var trick in new[] { CampaignSnapshot.HumanCannonId, CampaignSnapshot.TightropeId })
+                Assert.That(enabled.Any(path => path.EndsWith("/" + SceneFor(CurtainCall.SpaceLink.SpaceId.Performance, trick) + ".unity")), Is.True);
+        }
+
+        [TestCase(true, "placed", true)]
+        [TestCase(true, "captured", true)]
+        [TestCase(false, "placed", false)]
+        [TestCase(true, "other", false)]
+        public void StartCampaignAudit_PeersCanRecoverMissedEscapeCompletion(bool complete, string kind, bool reply)
+        {
+            var method = typeof(EscapeSceneTransfer).GetMethod("ShouldReplyWithCompletion", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(method.Invoke(null, new object[] { complete, kind }), Is.EqualTo(reply));
+        }
+
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        public void StartCampaignAudit_DisconnectedPeerDoesNotBlockLoadOrSourceUnload(bool connected, bool clear)
+        {
+            var method = typeof(CurtainCall.SpaceLink.SpaceLinkDirector).GetMethod("RelevantSceneTimeouts",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            var present = connected ? new[] { 0UL, 8UL } : new[] { 0UL };
+            var remaining = (IReadOnlyList<ulong>)method.Invoke(null, new object[] { new[] { 8UL }, present });
+            Assert.That(remaining.Count == 0, Is.EqualTo(clear));
+        }
+
+        [TestCase(-1, false, false)]
+        [TestCase(0, true, false)]
+        [TestCase(0, false, true)]
+        public void StartCampaignAudit_OnlyAssignedSettledAvatarsCanBePlaced(int slot, bool applying, bool valid)
+        {
+            var root = new GameObject("Campaign avatar readiness");
+            root.SetActive(false);
+            try
+            {
+                var player = root.AddComponent<NetworkPlayer>();
+                const BindingFlags statics = BindingFlags.Static | BindingFlags.NonPublic;
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                var variable = Get(player, "slot");
+                Set(variable, "m_InternalValue", slot);
+                typeof(NetworkPlayer).GetProperty("IsApplyingInitialCondition").SetValue(player, applying);
+                var escape = typeof(EscapeSceneTransfer).GetMethod("HasStableAvatar", statics);
+                var performance = typeof(CurtainCall.SpaceLink.CampaignPerformanceEntry).GetMethod("CanPlaceAvatar", statics);
+                Assert.That(escape.Invoke(null, new object[] { player }), Is.EqualTo(valid));
+                Assert.That(performance.Invoke(null, new object[] { player }), Is.EqualTo(valid));
+                typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, false);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase(3, 1, true)]
+        [TestCase(4, 1, false)]
+        [TestCase(3, 2, false)]
+        public void StartCampaignAudit_ReusedPerformanceSceneRequiresTheCurrentDayAndAttempt(int day, int index, bool current)
+        {
+            var prior = new CampaignSnapshot
+            {
+                Phase = CampaignPhase.Performance, Generation = 2, Day = 3, PerformanceIndex = 1,
+                TrickId = CampaignSnapshot.HumanCannonId
+            };
+            var incoming = prior;
+            incoming.Day = day; incoming.PerformanceIndex = index;
+            const BindingFlags statics = BindingFlags.Static | BindingFlags.NonPublic;
+            var sameStep = typeof(CurtainCall.SpaceLink.CampaignPerformanceEntry).GetMethod("MatchesPerformanceStep", statics);
+            Assert.That(sameStep.Invoke(null, new object[] { prior, incoming }), Is.EqualTo(current));
+            var settlement = new CurtainCall.Results.PerformanceIdentity(Guid.NewGuid().ToString("N"), 2, 3, 1, prior.TrickId);
+            var sameSettlement = typeof(HumanCannonDestination).GetMethod("MatchesCampaignPerformance", statics);
+            Assert.That(sameSettlement.Invoke(null, new object[] { settlement, incoming }), Is.EqualTo(current));
+        }
+
+        [Test]
+        public void StartCampaignAudit_AnOlderUnassignedAvatarDoesNotHideTheRealParticipant()
+        {
+            var first = new GameObject("Placeholder network avatar"); first.SetActive(false);
+            var second = new GameObject("Final network avatar"); second.SetActive(false);
+            var roster = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            int initial = roster.Count;
+            try
+            {
+                NetworkPlayer Add(GameObject root, int slot)
+                {
+                    var player = root.AddComponent<NetworkPlayer>();
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(player, true);
+                    typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(player, 862UL);
+                    Set(Get(player, "slot"), "m_InternalValue", slot);
+                    roster.Add(player);
+                    return player;
+                }
+                Add(first, -1);
+                var stable = Add(second, 0);
+                const BindingFlags statics = BindingFlags.Static | BindingFlags.NonPublic;
+                var escape = typeof(EscapeSceneTransfer).GetMethod("FindSpawnedParticipant", statics);
+                var rewards = typeof(CurtainCall.Reward.PerformanceRewards).GetMethod("FindPlayer", statics);
+                Assert.That(escape.Invoke(null, new object[] { 862UL }), Is.SameAs(stable));
+                Assert.That(rewards.Invoke(null, new object[] { 862UL, true }), Is.SameAs(stable));
+            }
+            finally
+            {
+                for (int i = roster.Count - 1; i >= initial; i--)
+                {
+                    typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(roster[i], false);
+                    roster.RemoveAt(i);
+                }
+                Object.DestroyImmediate(first); Object.DestroyImmediate(second);
+            }
+        }
+
+        [Test]
+        public void StartCampaignAudit_OverlappingSceneUsesThePerformanceSpawnRegistry()
+        {
+            var actor = new GameObject("Cannon entrant"); actor.SetActive(false);
+            var course = new GameObject("Active cannon start points");
+            var overlap = new GameObject("Source room still loaded");
+            var current = typeof(PlayerSpawnPoints).GetField("current", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = current.GetValue(null);
+            try
+            {
+                var player = actor.AddComponent<NetworkPlayer>();
+                Set(Get(player, "slot"), "m_InternalValue", 0);
+                var entry = actor.AddComponent<CurtainCall.SpaceLink.CampaignPerformanceEntry>();
+                var authored = course.AddComponent<PlayerSpawnPoints>();
+                var other = overlap.AddComponent<PlayerSpawnPoints>();
+                course.transform.position = new Vector3(210, 27, -10);
+                overlap.transform.position = new Vector3(-500, 20, 0);
+                Set(authored, "points", new[] { course.transform });
+                Set(other, "points", new[] { overlap.transform });
+                current.SetValue(null, other);
+                Set(entry, "sceneSpawns", authored);
+                var args = new object[] { player, actor.GetComponent<PlayerMover>(), Vector3.zero, Quaternion.identity };
+                typeof(CurtainCall.SpaceLink.CampaignPerformanceEntry).GetMethod("ResolveStartPose", F).Invoke(entry, args);
+                Assert.That(args[2], Is.EqualTo(course.transform.position));
+            }
+            finally
+            {
+                Object.DestroyImmediate(actor); Object.DestroyImmediate(overlap); Object.DestroyImmediate(course);
+                current.SetValue(null, previous);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void StartCampaignAudit_AnInterruptedPlacementRestoresTheOriginalControlFlag(bool wasEnabled)
+        {
+            var root = new GameObject("Placement with control already owned");
+            root.SetActive(false);
+            try
+            {
+                var entry = root.AddComponent<CurtainCall.SpaceLink.CampaignPerformanceEntry>();
+                var player = root.AddComponent<NetworkPlayer>();
+                var mover = root.GetComponent<PlayerMover>();
+                mover.SetControlEnabled(false);
+                Set(entry, "mover", mover);
+                Set(entry, "placed", player);
+                Set(entry, "controlBeforeHold", wasEnabled);
+                Set(entry, "controlHeld", true);
+                Call(entry, "ReleaseControl");
+                Assert.That(mover.ControlEnabled, Is.EqualTo(wasEnabled));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
         public void EndingAvailability_TransitionStopsWaitingWhenItsContentIsGone()
         {
             using var gate = new InputGateTestScope();

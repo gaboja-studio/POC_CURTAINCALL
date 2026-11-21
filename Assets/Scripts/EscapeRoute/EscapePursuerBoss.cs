@@ -189,6 +189,11 @@ namespace CurtainCall.EscapeRoute
                 if (!fireRequested || !route.Following || route.Progress < ignitionRoutePoint - .1f) return false;
                 chase.CancelBossAttack(); Enter(Phase.Ignition, now); age = 0;
             }
+            // The fire itself can attach a frame later than the boss. Retry after the
+            // scheduled cue without moving the entrance or restarting the ignition animation.
+            if (!IsReinforcement && fire && !fire.IsArmed
+                && (state.Phase != Phase.Ignition || age >= .65f))
+                fire.ServerIgniteFromPursuer(this);
             if (state.Phase == Phase.Chasing)
             {
                 if (route.Progress < leapRoutePoint || !RunnerInArena() || !landing) return false;
@@ -202,7 +207,6 @@ namespace CurtainCall.EscapeRoute
             switch (state.Phase)
             {
                 case Phase.Ignition:
-                    if (age >= .65f && fire && !fire.IsArmed) fire.ServerIgniteFromPursuer(this);
                     if (age >= 1.4f) Enter(Phase.Chasing, now);
                     break;
                 case Phase.LeapWarning:

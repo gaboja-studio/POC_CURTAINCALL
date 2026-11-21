@@ -30,12 +30,17 @@ namespace CurtainCall.HumanCannon
             LocalPolePilot(actor)?.HoldPole(pole, station, launch, segment + 1);
         }
 
-        internal void ApplyPoleRelease(ulong actor, int station, uint launch, uint segment,
+        internal bool ApplyPoleRelease(ulong actor, int station, uint launch, uint segment, int pole,
             Vector3 position, Quaternion rotation, Vector3 velocity, float controlSpeed)
         {
-            if (!flying.TryRebound(actor, station, launch, segment)) return;
-            FindPlayer(actor)?.BeginFlightFallAt(position);
-            LocalPolePilot(actor)?.LeavePole(station, launch, segment + 1, position, rotation, velocity, controlSpeed);
+            bool advanced = flying.TryRebound(actor, station, launch, segment);
+            if (!advanced && !flying.Matches(actor, station, launch, segment + 1)) return false;
+            if (advanced) FindPlayer(actor)?.BeginFlightFallAt(position);
+            var local = LocalPolePilot(actor);
+            // The flight snapshot can arrive before the device release on the other channel.
+            if (local != null && (advanced || local.HeldPole == pole))
+                local.LeavePole(station, launch, segment + 1, position, rotation, velocity, controlSpeed);
+            return true;
         }
 
         internal void SyncPoleHold(ulong actor, int station, uint launch, uint segment, int pole)
