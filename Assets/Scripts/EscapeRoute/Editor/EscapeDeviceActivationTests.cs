@@ -117,6 +117,8 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
                 var replacement = root.AddComponent<NetworkPlayer>();
                 typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(replacement, owner);
                 typeof(NetworkPlayer).GetProperty("IsSpawned").SetValue(replacement, spawned);
+                var slot = typeof(NetworkPlayer).GetField("slot", Private).GetValue(replacement);
+                slot.GetType().GetField("m_InternalValue", Private).SetValue(slot, 0);
                 Set(transfer, "localCaptured", true);
                 Set(transfer, "capturedOwner", 3UL);
                 Assert.That(Call(transfer, "IsLocalPlacementCurrent", replacement), Is.False);

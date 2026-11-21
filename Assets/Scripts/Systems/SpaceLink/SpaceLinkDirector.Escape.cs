@@ -64,7 +64,7 @@ namespace CurtainCall.SpaceLink
                     foreach (var old in LoadedSpaceScenes(GameSettings.Base.SpaceTransition))
                     {
                         if (old == destination) continue;
-                        yield return Unload(old);
+                        yield return Unload(old, ignoreDisconnected: true);
                         if (stepFailed || !IsCurrent(request)) break;
                     }
                 }
@@ -86,7 +86,7 @@ namespace CurtainCall.SpaceLink
             {
                 var departure = transfer.DepartureScene;
                 if (departure.isLoaded) SceneManager.SetActiveScene(departure);
-                yield return Unload(partial);
+                yield return Unload(partial, ignoreDisconnected: true);
                 if (!IsCurrent(request) || !transfer.Coordinating) yield break;
                 if (stepFailed)
                 {
@@ -95,7 +95,7 @@ namespace CurtainCall.SpaceLink
                 }
             }
 
-            yield return Load(request.SceneName, LoadSceneMode.Additive);
+            yield return Load(request.SceneName, LoadSceneMode.Additive, ignoreDisconnected: true);
             if (!IsCurrent(request) || !transfer.Coordinating) yield break;
             if (stepFailed)
             {

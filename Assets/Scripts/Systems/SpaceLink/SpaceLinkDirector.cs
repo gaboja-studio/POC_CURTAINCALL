@@ -267,7 +267,7 @@ namespace CurtainCall.SpaceLink
             SpaceChanged?.Invoke(target);
         }
 
-        IEnumerator Load(string sceneName, LoadSceneMode mode, bool enteringPerformance = false)
+        IEnumerator Load(string sceneName, LoadSceneMode mode, bool ignoreDisconnected = false)
         {
             var network = OnlineSceneManager();
             if (network == null)
@@ -290,7 +290,7 @@ namespace CurtainCall.SpaceLink
             {
                 if (scene != sceneName || loadMode != mode) return;
                 done = true;
-                CheckSceneTimeouts(sceneName, "로드", timedOut, enteringPerformance);
+                CheckSceneTimeouts(sceneName, "로드", timedOut, ignoreDisconnected);
             }
 
             network.OnLoadEventCompleted += Completed;
@@ -307,7 +307,7 @@ namespace CurtainCall.SpaceLink
             else if (!stepFailed && !IsLoaded(sceneName)) Fail($"{sceneName} 씬 로드가 완료되지 않았습니다.");
         }
 
-        IEnumerator Unload(Scene scene, bool enteringPerformance = false)
+        IEnumerator Unload(Scene scene, bool ignoreDisconnected = false)
         {
             string sceneName = scene.name;
             var network = OnlineSceneManager();
@@ -331,7 +331,7 @@ namespace CurtainCall.SpaceLink
             {
                 if (name != sceneName) return;
                 done = true;
-                CheckSceneTimeouts(sceneName, "닫기", timedOut, enteringPerformance);
+                CheckSceneTimeouts(sceneName, "닫기", timedOut, ignoreDisconnected);
             }
 
             network.OnUnloadEventCompleted += Completed;
@@ -348,9 +348,9 @@ namespace CurtainCall.SpaceLink
             else if (!stepFailed && scene.isLoaded) Fail($"{sceneName} 씬 닫기가 완료되지 않았습니다.");
         }
 
-        void CheckSceneTimeouts(string sceneName, string operation, IReadOnlyList<ulong> timedOut, bool enteringPerformance)
+        void CheckSceneTimeouts(string sceneName, string operation, IReadOnlyList<ulong> timedOut, bool ignoreDisconnected)
         {
-            var stillConnected = enteringPerformance ? NetworkSessionManager.Instance?.NetworkManager?.ConnectedClientsIds : null;
+            var stillConnected = ignoreDisconnected ? NetworkSessionManager.Instance?.NetworkManager?.ConnectedClientsIds : null;
             var blocked = RelevantSceneTimeouts(timedOut, stillConnected);
             if (blocked.Count > 0) Fail($"{sceneName} {operation} 시간 초과: {string.Join(", ", blocked)}");
         }
