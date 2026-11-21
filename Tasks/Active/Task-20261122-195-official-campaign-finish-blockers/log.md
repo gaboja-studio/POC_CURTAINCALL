@@ -11,3 +11,5 @@
 - 신규 EditMode 최종 7건 통과. 탈출로 A 실제 씬을 열고 별도 테스트 기물·배선으로 참가자 잡기/조준/놓기 및 높은 위치에서 발사 후 절단을 검증했다. 실제 Start 방과 다중 클라이언트 플레이는 실행하지 않았다. 보고서 .harness/local/official-finish-audit-final.xml, official-finish-additional.xml(배선 통과), official-finish-fire-revive.xml(재검사 통과).
 - check-work 정적 안전성·문서/규칙 PASS. Unity 단계는 별도 EditMode로 확인하여 정적 명령에서는 SkipUnity를 사용했다. git diff --check 통과. 이 작업 묶음은 로컬 브랜치에 보관 중이다.
 - 제출 전 DEV 8f95c4e5 및 병합된 PR #477 반영. 화염 복도의 최신 위치·참가 자격 판정은 DEV에 별도로 반영돼 있어 DEV 구현을 유지했다. 통합 기준 EditMode 7/7 및 컴파일 통과.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/478 (fix/official-campaign-finish-blockers → dev)
