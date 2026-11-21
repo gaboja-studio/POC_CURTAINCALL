@@ -290,6 +290,49 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void TransitionAudit_WorkerAtTheCornerOfARotatedMachineDoesNotLockItsEntry()
+        {
+            var lower = (BoxCollider)Get(coop, "lowerWorkerBounds");
+            lower.transform.position = origin;
+            lower.transform.rotation = Quaternion.Euler(0, 45, 0);
+            lower.center = Vector3.zero;
+            lower.size = new Vector3(1, 3, 8);
+            Physics.SyncTransforms();
+            var runner = Player(25);
+            runner.transform.position = origin + new Vector3(2, 0, -2);
+            Assert.That(lower.bounds.Contains(runner.transform.position), Is.True);
+            Assert.That(Call(coop, "IsInsideLower", runner), Is.False);
+            runner.transform.position = origin + lower.transform.forward * 2f;
+            Assert.That(Call(coop, "IsInsideLower", runner), Is.True);
+        }
+
+        [Test]
+        public void TransitionAudit_HangingOverTheLowerDeckDoesNotReserveItsWorkerSlot()
+        {
+            var player = Player(26);
+            var floor = Root("Lower standing surface").AddComponent<BoxCollider>();
+            floor.transform.position = player.transform.position - Vector3.up * .15f;
+            floor.size = new Vector3(3f, .3f, 3f);
+            Physics.SyncTransforms();
+            Assert.That(Call(coop, "IsStandingInLower", player), Is.True);
+            var poleType = T("CurtainCall.HumanCannon.HumanCannonPoleSystem");
+            var current = poleType.GetProperty("Current");
+            var previous = current.GetValue(null);
+            var group = Root("Inactive common poles", false);
+            try
+            {
+                var pole = Root("Lower switch pole").AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+                var registry = group.AddComponent(poleType);
+                var poleIndex = (int)Call(registry, "Register", pole);
+                var state = Call(registry, "State", poleIndex);
+                Assert.That(Call(state, "TryGrab", 26UL, 0U, 0d, 0f, false, 0), Is.True);
+                current.SetValue(null, registry);
+                Assert.That(Call(coop, "IsStandingInLower", player), Is.False);
+            }
+            finally { current.SetValue(null, previous); }
+        }
+
+        [Test]
         public void ReturningWireLetsBouncingPlayerRiseAndThenSupportsLanding()
         {
             var wire = supports[0];

@@ -624,17 +624,20 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
             if (locks != null) for (int i = 0; i < locks.Count; i++)
-                if (locks.Control(i) != null && locks.Control(i).gameObject.activeInHierarchy
-                    && Vector3.Distance(feet, locks.ControlPoint(i)) < 7)
+            {
+                var usableControl = locks.UsableControl(NetworkPlayer.Local, i);
+                var control = usableControl != null ? usableControl : locks.Control(i);
+                Vector3 point = CurtainCall.EscapeRoute.EscapeSwitchInteraction.Center(control);
+                if (control != null && control.gameObject.activeInHierarchy && Vector3.Distance(feet, point) < 7)
                 {
-                    var control = locks.Control(i);
-                    bool usable = locks.CanUseControl(NetworkPlayer.Local, i);
-                    Add(control, locks.ControlPoint(i), locks.IsArmed(i) ? locks.Status(i) : locks.Prompt(i), usable, usable, feet);
+                    bool usable = usableControl != null;
+                    Add(control, point, locks.IsArmed(i) ? locks.Status(i) : locks.Prompt(i), usable, usable, feet);
                     candidates[candidates.Count - 1].Pole = true;
-                    candidates[candidates.Count - 1].Reachable = usable || InCommonReach(locks.ControlPoint(i), control);
+                    candidates[candidates.Count - 1].Reachable = usable || InCommonReach(point, control);
                     candidates[candidates.Count - 1].Helper = locks.IsArmed(i) ? locks.Status(i)
-                        : usable ? locks.Instruction(i) : "버튼 가까이에서 F를 누르세요";
+                        : usable ? locks.ControlInstruction(i, control) : "버튼 가까이에서 F를 누르세요";
                 }
+            }
             var course = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
             if (course == null || course.Button == null || !course.Button.gameObject.activeInHierarchy
                 || Vector3.Distance(feet, course.ButtonPoint) >= 7) return;

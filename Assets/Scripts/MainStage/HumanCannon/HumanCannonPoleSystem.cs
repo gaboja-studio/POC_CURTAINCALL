@@ -171,7 +171,7 @@ namespace CurtainCall.HumanCannon
                 if (seat > 0 && state.OccupantAt(seat - 1) == CannonSeatState.Nobody) continue;
                 if (state.OccupantAt(seat) != CannonSeatState.Nobody
                     || !poles[index].IsSeatInReach(player, GrabAngle(index), seat, observedElapsed)) continue;
-                float candidate = (poles[index].GrabPoint(GrabAngle(index), seat) - PlayerInteraction.Center(player)).sqrMagnitude;
+                float candidate = (poles[index].GrabPoint(GrabAngle(index), seat) - PlayerInteraction.LatestCenter(player)).sqrMagnitude;
                 if (candidate < distance) { distance = candidate; closest = seat; }
             }
             return closest;
@@ -487,11 +487,11 @@ namespace CurtainCall.HumanCannon
             }
             else if (action == PoleEvent.Released)
             {
-                flightOrigins[actor] = (index, station, launch);
-                cannon.ApplyPoleRelease(actor, station, launch, segment, runtime.ReleasePosition, runtime.ReleaseRotation,
-                    runtime.ReleaseVelocity, poles[index].AirControlSpeed);
+                bool departed = cannon.ApplyPoleRelease(actor, station, launch, segment, index, runtime.ReleasePosition,
+                    runtime.ReleaseRotation, runtime.ReleaseVelocity, poles[index].AirControlSpeed);
+                if (departed) flightOrigins[actor] = (index, station, launch);
                 OccupancyChanged?.Invoke(index, actor, false);
-                Released?.Invoke(index, actor);
+                if (departed) Released?.Invoke(index, actor);
             }
             else if (action == PoleEvent.Abandoned)
             {

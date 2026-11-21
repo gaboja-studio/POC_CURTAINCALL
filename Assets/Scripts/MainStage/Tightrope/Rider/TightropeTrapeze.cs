@@ -47,7 +47,7 @@ namespace CurtainCall.Tightrope
 
         public void ConfigurePracticeLesson(int count = 2, bool lowPoles = false)
         {
-            if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true })
+            if (poles[0] == null && !gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true })
             { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLesson = true; practiceLowPoles = lowPoles; }
         }
         void Awake()
@@ -105,7 +105,11 @@ namespace CurtainCall.Tightrope
             }
         }
         int LocalIndex(int shared)
-        { for (int i = 0; i < PoleTotal; i++) if (poles[i] != null && poles[i].Index == shared) return i; return -1; }
+        {
+            if (shared < 0) return -1;
+            for (int i = 0; i < PoleTotal; i++) if (poles[i] != null && poles[i].Index == shared) return i;
+            return -1;
+        }
         void OnOccupancy(int index, ulong actor, bool held)
         {
             int local = LocalIndex(index);
@@ -139,7 +143,7 @@ namespace CurtainCall.Tightrope
         public bool IsInFlight(NetworkPlayer player)
         {
             if (player == null || common == null) return false;
-            for (int i = 0; i < PoleTotal; i++) if (common.IsFlyingFrom(poles[i].Index, player.OwnerClientId)) return true;
+            for (int i = 0; i < PoleTotal; i++) if (poles[i] != null && common.IsFlyingFrom(poles[i].Index, player.OwnerClientId)) return true;
             return false;
         }
         public bool IsCrossing(NetworkPlayer player) => IsHeld(player) || IsInFlight(player);

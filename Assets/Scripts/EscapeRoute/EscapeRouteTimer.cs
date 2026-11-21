@@ -34,7 +34,7 @@ namespace CurtainCall.EscapeRoute
         int generation = -1, resetFrame = -1;
         bool synchronized;
         NetworkSessionManager session;
-        readonly Dictionary<ulong, Vector3> awaitingSpawn = new();
+        readonly Dictionary<ulong, (NetworkPlayer Avatar, Vector3 Feet, double Deadline)> awaitingSpawn = new();
 
         // Copied development scenes still synchronize every player's entrance pose.
         // Do not consume the encounter's opening while their movement is held for loading.
@@ -60,7 +60,7 @@ namespace CurtainCall.EscapeRoute
         }
 
         bool CanStart(NetworkPlayer player) => IsParticipant(player) && player.State == PlayerState.Normal
-            && startArea != null && startArea.enabled && EscapeEntrance.Contains(startArea, player.transform.position);
+            && startArea != null && startArea.enabled && EscapeEntrance.Contains(startArea, player.LatestOwnerPosition);
 
         void OnEnable()
         {
@@ -81,7 +81,11 @@ namespace CurtainCall.EscapeRoute
             }
             if (session.IsHost)
             {
-                if (generation != CurrentGeneration) ResetClock();
+                if (generation != CurrentGeneration)
+                {
+                    awaitingSpawn.Clear();
+                    ResetClock();
+                }
                 if (resetFrame != Time.frameCount)
                 {
                     foreach (var player in NetworkPlayer.All)
@@ -89,7 +93,7 @@ namespace CurtainCall.EscapeRoute
                         if (!IsParticipant(player) || player.State != PlayerState.Normal) continue;
                         if (awaitingSpawn.TryGetValue(player.OwnerClientId, out var spawn))
                         {
-                            if ((player.transform.position - spawn).sqrMagnitude > 9) continue;
+                            if (WaitForPlacement(spawn.Avatar == player, player.LatestOwnerPosition, spawn.Feet, Clock, spawn.Deadline)) continue;
                             awaitingSpawn.Remove(player.OwnerClientId);
                         }
                         if (!HasStarted && CanStart(player))
@@ -109,6 +113,9 @@ namespace CurtainCall.EscapeRoute
             }
         }
 
+        internal static bool WaitForPlacement(bool sameAvatar, Vector3 feet, Vector3 spawn, double now, double deadline)
+            => sameAvatar && now < deadline && (feet - spawn).sqrMagnitude > 9f;
+
         void ResetClock()
         {
             startedAt = -1;
@@ -124,7 +131,8 @@ namespace CurtainCall.EscapeRoute
                 if (!player.IsLocal && player.TryGetComponent(out PlayerMover mover))
                 {
                     PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var spawn, out _);
-                    awaitingSpawn[player.OwnerClientId] = spawn;
+                    awaitingSpawn[player.OwnerClientId] = (player, spawn, Clock
+                        + CurtainCall.Settings.GameSettings.Base.SpaceTransition.PerformancePlacementGraceSeconds);
                 }
                 if (resetFrame == Time.frameCount) return;
                 resetFrame = Time.frameCount; ResetClock();

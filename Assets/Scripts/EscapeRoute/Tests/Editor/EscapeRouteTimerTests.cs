@@ -30,6 +30,43 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(elapsed,Is.EqualTo(expected).Within(.00001));
         }
 
+        [TestCase(true, 2, 5, true)]
+        [TestCase(true, 5, 5, false)]
+        [TestCase(false, 2, 5, false)]
+        public void TransitionAudit_ClockPlacementTracksTheActualAvatarAndExpires(bool sameAvatar, double now, double deadline, bool waiting)
+        {
+            var probe = Timer.GetMethod("WaitForPlacement", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(probe.Invoke(null, new object[] { sameAvatar, Vector3.right * 12f, Vector3.zero, now, deadline }),
+                Is.EqualTo(waiting));
+        }
+
+        [Test]
+        public void TransitionAudit_EncounterClockStartsFromTheLatestOwnerSample()
+        {
+            var root = new GameObject("Entrance sample");
+            var avatar = new GameObject("Interpolated remote sample");
+            avatar.SetActive(false);
+            try
+            {
+                var area = root.AddComponent<BoxCollider>();
+                area.size = Vector3.one * 3f;
+                var timer = root.AddComponent(Timer);
+                Set(timer, "startArea", area);
+                var player = avatar.AddComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                var network = avatar.AddComponent(T("Unity.Netcode.Components.NetworkTransform"));
+                avatar.transform.position = Vector3.forward * -10f;
+                Set(network, "m_InternalCurrentPosition", Vector3.zero);
+                Set(player, "networkTransform", network);
+                Set(player, "IsSpawned", true);
+                Set(Get(player, "slot"), "m_InternalValue", 0);
+                Assert.That(Call(timer, "CanStart", player), Is.True);
+                Set(network, "m_InternalCurrentPosition", Vector3.forward * -10f);
+                Assert.That(Call(timer, "CanStart", player), Is.False);
+                Set(player, "IsSpawned", false);
+            }
+            finally { Object.DestroyImmediate(root); Object.DestroyImmediate(avatar); }
+        }
+
         [Test]
         public void TraversalAudit_AnUnassignedAvatarCannotStartTheClock()
         {

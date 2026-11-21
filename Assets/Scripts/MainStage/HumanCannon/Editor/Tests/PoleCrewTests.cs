@@ -13,6 +13,101 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     public class PoleCrewTests
     {
         const ulong Empty = CannonSeatState.Nobody;
+
+        [Test]
+        public void TransitionAudit_AnOldCannonLandingCannotConsumeTheNextSwingDeparture()
+        {
+            var root = new GameObject("Swing flight book");
+            root.SetActive(false);
+            try
+            {
+                var system = root.AddComponent<HumanCannonPoleSystem>();
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var origins = (Dictionary<ulong, (int Pole, int Station, uint Launch)>)
+                    typeof(HumanCannonPoleSystem).GetField("flightOrigins", fields).GetValue(system);
+                var landed = typeof(HumanCannonPoleSystem).GetMethod("OnLandingConfirmed", fields);
+                int confirmed = -1;
+                system.Landed += (pole, _, _, _) => confirmed = pole;
+                origins.Add(19, (4, -2, 11));
+                landed.Invoke(system, new object[] { 19UL, -2, 10U, 2U, Vector3.zero, true });
+                Assert.That(confirmed, Is.EqualTo(-1));
+                Assert.That(origins.ContainsKey(19), Is.True);
+                landed.Invoke(system, new object[] { 19UL, -2, 11U, 2U, Vector3.zero, true });
+                Assert.That(confirmed, Is.EqualTo(4));
+                Assert.That(origins.ContainsKey(19), Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+        [Test]
+        public void TransitionAudit_DepartureAcceptsItsOwnSnapshotButRejectsAnotherFlight()
+        {
+            var root = new GameObject("Device snapshot ordering");
+            root.SetActive(false);
+            try
+            {
+                var cannon = root.AddComponent<HumanCannonSystem>();
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                var flights = (CannonFlightState)typeof(HumanCannonSystem).GetField("flying", fields).GetValue(cannon);
+                var release = typeof(HumanCannonSystem).GetMethod("ApplyPoleRelease", fields);
+                flights.Begin(19, -2, 11);
+                Assert.That(flights.TryRebound(19, -2, 11, 0), Is.True);
+                bool Apply(uint revision) => (bool)release.Invoke(cannon,
+                    new object[] { 19UL, -2, revision, 0U, 3, Vector3.zero, Quaternion.identity, Vector3.forward, 1f });
+                Assert.That(Apply(10), Is.False);
+                Assert.That(Apply(11), Is.True);
+                Assert.That(flights.Matches(19, -2, 11, 1), Is.True);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void TransitionAudit_RemoteCanGrabASwingBetweenRenderedPositions()
+        {
+            var root = new GameObject("Remote swing approach");
+            var playerRoot = new GameObject("Remote rendered position");
+            playerRoot.SetActive(false);
+            try
+            {
+                var pole = root.AddComponent<HumanCannonPole>();
+                var player = playerRoot.AddComponent<CurtainCall.Network.PlayerSync.NetworkPlayer>();
+                var network = playerRoot.AddComponent<Unity.Netcode.Components.NetworkTransform>();
+                const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+                typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, true);
+                typeof(CurtainCall.Network.PlayerSync.NetworkPlayer).GetField("networkTransform", fields).SetValue(player, network);
+                var latest = typeof(Unity.Netcode.Components.NetworkTransform).GetField("m_InternalCurrentPosition", fields);
+                playerRoot.transform.position = pole.GrabPoint(0, 0) + Vector3.forward * 15f;
+                latest.SetValue(network, pole.GrabPoint(0, 0) - Vector3.up * .75f);
+                var reach = typeof(HumanCannonPole).GetMethod("IsSeatInReach", fields);
+                object[] args = { player, 0f, 0, -1d };
+                Assert.That(reach.Invoke(pole, args), Is.True);
+                latest.SetValue(network, playerRoot.transform.position);
+                Assert.That(reach.Invoke(pole, args), Is.False);
+                typeof(NetworkBehaviour).GetProperty("IsSpawned").SetValue(player, false);
+            }
+            finally { Object.DestroyImmediate(root); Object.DestroyImmediate(playerRoot); }
+        }
+
+        [Test]
+        public void TransitionAudit_DisabledPracticeTrapezeCannotChangeItsInitializedPoleCount()
+        {
+            var root = new GameObject("Disabled practice trapeze");
+            root.SetActive(false);
+            try
+            {
+                root.AddComponent<CurtainCall.Tightrope.TightropeCourse>();
+                var run = root.AddComponent<CurtainCall.Tightrope.TightropeRun>();
+                run.SetPracticeMode(true);
+                var trapeze = root.AddComponent<CurtainCall.Tightrope.TightropeTrapeze>();
+                trapeze.ConfigurePracticeLesson(1);
+                var poles = (Array)trapeze.GetType().GetField("poles", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(trapeze);
+                poles.SetValue(Activator.CreateInstance(poles.GetType().GetElementType(), true), 0);
+                trapeze.ConfigurePracticeLesson(3);
+                Assert.That(trapeze.PoleCount, Is.EqualTo(1));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void FourRiders_KeepTheirSeatsWhenTheFirstRiderLeaves()
         {
@@ -135,6 +230,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     {
         const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic;
         const ulong Empty = CannonSeatState.Nobody;
+
         GameObject root;
         HumanCannonPoleSystem receiver;
         object runtime;

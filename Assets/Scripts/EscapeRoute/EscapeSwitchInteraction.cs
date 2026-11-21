@@ -16,6 +16,14 @@ namespace CurtainCall.EscapeRoute
             ? button.TryGetComponent<Renderer>(out var visual) ? visual.bounds.center : button.position
             : Vector3.zero;
 
+        internal static bool InOwnerRange(NetworkPlayer actor, Transform button)
+        {
+            if (!actor || !button || !button.gameObject.activeInHierarchy) return false;
+            float reach = actor.TryGetComponent<PlayerInteraction>(out var interaction) ? interaction.ReachMultiplier : 1f;
+            return PlayerInteraction.InRangeFrom(actor, PlayerInteraction.LatestCenter(actor), Center(button),
+                GameSettings.Base.Interaction.Distance * reach, button);
+        }
+
         public static bool InRange(Component actor, Transform button, float radius = DefaultRadius)
         {
             if (actor == null || button == null || !button.gameObject.activeInHierarchy) return false;
