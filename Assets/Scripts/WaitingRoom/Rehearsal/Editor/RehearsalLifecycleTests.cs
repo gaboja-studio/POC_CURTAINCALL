@@ -96,6 +96,32 @@ namespace CurtainCall.WaitingRoom.EditorTools
             return player;
         }
 
+        [TestCase("HumanCannon", false, false, true)]
+        [TestCase("Tightrope", false, false, true)]
+        [TestCase("escape_route", false, false, true)]
+        [TestCase("WaitingRoom", true, false, true)]
+        [TestCase("WaitingRoom", false, true, true)]
+        [TestCase("WaitingRoom", false, false, false)]
+        [TestCase("Lobby", false, false, false)]
+        public void ExplorationSlotAccessFollowsSceneAndActiveRehearsal(string sceneName, bool ropeActive, bool cannonActive, bool blocked)
+        {
+            var scene = SceneManager.GetActiveScene();
+            string originalName = scene.name;
+            try
+            {
+                scene.name = sceneName;
+                Set(rehearsal, "active", ropeActive);
+                Shared("active", cannonActive);
+                Assert.AreEqual(!blocked, PropCarry.CanSelectItem(ItemUses.StakePuller));
+                Assert.AreEqual(!blocked, PropCarry.CanSelectItem(ItemUses.UvLamp));
+                Assert.IsTrue(PropCarry.CanSelectItem(ItemUses.SpringShoes));
+            }
+            finally
+            {
+                scene.name = originalName;
+            }
+        }
+
         [TestCase(false), TestCase(true), Category("WaitingRoomCommonRecovery")]
         public void CannonRevivalWithoutAnObservedFallenFrameReturnsToStartAndClearsArrival(bool middle)
         {

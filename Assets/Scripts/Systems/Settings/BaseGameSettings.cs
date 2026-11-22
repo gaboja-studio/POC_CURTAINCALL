@@ -113,7 +113,7 @@ namespace CurtainCall.Settings
             [SerializeField] bool blockPiggybackOnSawCarrier = true;
             [Tooltip("톱날 발사대 운반 중에는 외줄에 탑승하거나 외줄 위에서 발사대를 잡을 수 없습니다.")]
             [SerializeField] bool blockRopeWithSaw = true;
-            [Tooltip("본 공연 중에는 UV와 탐색 도구의 효과를 비활성화합니다.")]
+            [Tooltip("공연·리허설·탈출로에서는 탐색 기물의 슬롯 선택·내려놓기와 UV·탐색 도구 사용을 막습니다.")]
             [SerializeField] bool blockExplorationToolsDuringPerformance = true;
             [Tooltip("운반 장치의 충돌 검사에서 접촉 떨림을 줄이는 여유(m). 트램펄린과 톱날 발사기에 공통 적용합니다.")]
             [SerializeField, Range(.001f, .05f)] float collisionSkin = .02f;

@@ -86,6 +86,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     if (!Keyboard.current[Keys[i]].wasPressedThisFrame) continue;
                     var item = held != null && i < held.Count ? held[i] : default;
+                    if (item.Uid != 0 && !PropCarry.CanSelectItem(item.ItemId)) continue;
                     // 대기실의 공연 기물은 손에 꺼내 들지 않는 대신 그 칸 위 설명을 켜고 끈다. 칸 선택은 그대로 해서
                     // 버리기·선반 보관이 된다(2026-11-18 사용자). 설명은 선택과 함께 켜지고, 선택이 풀리면 꺼진다.
                     bool willSelect = item.Uid != 0 && carry.Selected(id).Uid != item.Uid;
@@ -122,7 +123,7 @@ namespace CurtainCall.UI.SceneIntegration
             int balloonSlot = local ? local.ActiveBalloonSlot : -1;
             bool firstUseKey = UseKeyShown(0, held, capacity, usableHere, balloonSlot), secondUseKey = UseKeyShown(1, held, capacity, usableHere, balloonSlot);
             next+=$":{firstUse}:{secondUse}:{firstReady}:{secondReady}:{firstUseKey}:{secondUseKey}";
-            if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}";
+            if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}:{PropCarry.CanSelectItem(item.ItemId)}";
             if (signature != next)
             {
                 signature = next; data.Clear();
@@ -145,7 +146,8 @@ namespace CurtainCall.UI.SceneIntegration
                     var opacity = view.GetComponent<CanvasGroup>();
                     if (opacity == null) opacity = view.gameObject.AddComponent<CanvasGroup>();
                     bool equipment=held!=null && i<held.Count && ItemCatalog.Get(held[i].ItemId)?.kind==ItemKind.Equipment;
-                    opacity.alpha = i>=capacity ? .35f : equipment && !(i==0 ? firstReady : secondReady) ? .65f : 1f;
+                    bool disabled = i >= capacity || (held != null && i < held.Count && !PropCarry.CanSelectItem(held[i].ItemId));
+                    opacity.alpha = disabled ? .35f : equipment && !(i==0 ? firstReady : secondReady) ? .65f : 1f;
                     // 칸 선택 테두리는 슬롯 템플릿(씬)에 배치했다. 슬롯은 템플릿의 복제본이라 같은 테두리를 가진다.
                     var border = view.GetComponentInChildren<InventorySlotSelectionBorder>(true);
                     if (border != null) border.Show(data[i].IsHeld);
