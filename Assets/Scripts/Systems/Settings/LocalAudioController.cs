@@ -14,6 +14,8 @@ namespace CurtainCall.Settings
     /// </summary>
     public sealed class LocalAudioController : MonoBehaviour
     {
+        const float EffectsMixGain = .7f;
+
         sealed class Route
         {
             public AudioSource Source;
@@ -128,7 +130,7 @@ namespace CurtainCall.Settings
         static void Apply(Route route)
         {
             route.Multiplier = route.Category == LocalAudioCategory.Bgm ? ClientSettings.BgmVolume
-                : route.Category == LocalAudioCategory.Sfx ? Mathf.Clamp01(route.PreviewSfxVolume ?? ClientSettings.SfxVolume) : 1f;
+                : route.Category == LocalAudioCategory.Sfx ? EffectsMixGain * Mathf.Clamp01(route.PreviewSfxVolume ?? ClientSettings.SfxVolume) : 1f;
             route.AppliedVolume = route.BaseVolume * route.Multiplier;
             route.Source.volume = route.AppliedVolume;
         }

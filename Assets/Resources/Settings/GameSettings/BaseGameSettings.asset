@@ -199,8 +199,8 @@ MonoBehaviour:
     - Tightrope
     - HumanCannon
     - escape_route
-    conversationalDistance: 2
-    audibleDistance: 20
+    conversationalDistance: 5
+    audibleDistance: 40
     fadeModel: 2
     fadeIntensity: 1
     mouthHeight: 1.55

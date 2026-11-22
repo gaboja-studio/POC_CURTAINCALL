@@ -194,8 +194,7 @@ namespace CurtainCall.WaitingRoom
             if (material == null)
             {
                 var color = new Color(1f, .78f, .25f);
-                material = new Material(renderer.sharedMaterial) { color = color };
-                if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color); // URP Lit
+                material = CurtainCall.ItemArt.ItemVisualAssets.CreateFallbackMaterial(color);
             }
             renderer.sharedMaterial = material;
             return view;

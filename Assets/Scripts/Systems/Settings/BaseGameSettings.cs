@@ -902,10 +902,10 @@ namespace CurtainCall.Settings
             [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoom", "Tightrope", "HumanCannon" };
 
             [Tooltip("생존자: 이 거리(m) 안에서는 최대 음량. 정수.")]
-            [SerializeField, Min(1)] int conversationalDistance = 2;
+            [SerializeField, Min(1)] int conversationalDistance = 5;
 
             [Tooltip("생존자: 이 거리(m) 밖은 들리지 않는다. 정수, 대화 거리보다 커야 한다.")]
-            [SerializeField, Min(2)] int audibleDistance = 20;
+            [SerializeField, Min(2)] int audibleDistance = 40;
 
             [Tooltip("생존자: 대화 거리~들리는 거리 사이에서 줄어드는 모양. 직선 = 일정하게 줄어 들리는 거리에서 0(기본). 반비례 = 처음에 빨리 줄고 멀수록 천천히. 지수 = 매우 빨리 줄어듦.")]
             [SerializeField] VoiceFadeModel fadeModel = VoiceFadeModel.Linear;

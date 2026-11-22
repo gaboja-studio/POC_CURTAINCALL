@@ -259,6 +259,23 @@ namespace CurtainCall.Tightrope
             }
         }
 
+        // Lower seats in a pole chain can already be underneath a walkable rope.
+        // Find its real top beneath the common bar before starting the owner's downward flight.
+        internal Vector3 PoleDropFeet(Vector3 bar, Vector3 feet)
+        {
+            float clearance = Physics.defaultContactOffset * 2f;
+            var ray = new Ray(bar + Vector3.up * clearance, Vector3.down);
+            float nearest = Mathf.Max(0f, bar.y - feet.y) + clearance * 2f;
+            foreach (var surface in ropeSurfaces.Keys)
+            {
+                if (surface == null || !surface.enabled || surface.isTrigger || !surface.gameObject.activeInHierarchy
+                    || !surface.Raycast(ray, out var hit, nearest) || hit.normal.y <= 0f) continue;
+                nearest = hit.distance;
+                feet.y = Mathf.Max(feet.y, hit.point.y + clearance);
+            }
+            return feet;
+        }
+
         // ── 조회 ────────────────────────────────────────────
 
         /// <summary>위치의 진행 거리(m). 출발선이 0, 전진 방향이 +.</summary>

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SoundCatalog
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Sound.SoundCatalog
   uiVolume: 1
-  sfxVolume: 1
+  sfxVolume: 0.8
   bgmVolume: 1
   voices: 32
   cues:

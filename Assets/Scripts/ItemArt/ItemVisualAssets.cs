@@ -11,6 +11,12 @@ namespace CurtainCall.ItemArt
         public static readonly string[] Motions = { "ItemStrike", "ItemManipulate", "ItemPull", "ItemAim", "ItemHold", "ItemEquip", "ItemStow", "ItemCrawl" };
         static readonly Dictionary<string, Sprite> icons = new();
         static readonly Dictionary<string, GameObject> prefabs = new();
+        public static Material CreateFallbackMaterial(Color tint)
+        {
+            // The built-in primitive material uses Standard, which is unsupported in URP.
+            return new Material(Resources.Load<Material>("ItemArt/Materials/Kit_Steel")) { color = tint };
+        }
+
         public static bool IsTool(string id) => ItemCatalog.Get(id)?.kind == ItemKind.Tool;
         public static string State(string motion, int stage) => motion + (stage > 0 ? "_Cut" + stage : "");
         // 낡은 비디오 테이프1·2는 비디오 테이프 모델·아이콘을 같이 쓴다.

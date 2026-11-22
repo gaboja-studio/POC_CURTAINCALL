@@ -76,21 +76,21 @@ namespace CurtainCall.Settings.EditorTests
         public void ExistingVivoxGainContract_IsPreserved(float normalized, int expected) =>
             Assert.AreEqual(expected, VoiceChat.ToVivoxVolume(normalized));
 
-        // 2026-11-19 사용자: 내 마이크 예전 최대(Vivox 0)를 50%로, 100%는 +50 증폭.
         [TestCase(0f, -50)]
-        [TestCase(.5f, 0)]
-        [TestCase(1f, 50)]
-        [TestCase(2f, 50)]
-        public void MicGain_HalfIsOldMaximumAndFullBoosts(float normalized, int expected) =>
+        [TestCase(.5f, -25)]
+        [TestCase(1f, 0)]
+        [TestCase(2f, 0)]
+        public void MicGain_NeverBoosts(float normalized, int expected) =>
             Assert.AreEqual(expected, VoiceChat.ToVivoxMicVolume(normalized));
 
-        [TestCase(1f, .5f)]
-        [TestCase(.5f, .25f)]
+        [TestCase(1f, 1f)]
+        [TestCase(.5f, 1f)]
+        [TestCase(.25f, .5f)]
         [TestCase(0f, 0f)]
         public void LegacyMicVolume_KeepsSameLoudness(float legacy, float migrated)
         {
             Assert.AreEqual(migrated, VoiceChat.MigrateLegacyMicVolume(legacy), 1e-5f);
-            Assert.AreEqual(VoiceChat.ToVivoxVolume(legacy), VoiceChat.ToVivoxMicVolume(VoiceChat.MigrateLegacyMicVolume(legacy)));
+            Assert.AreEqual(Mathf.Min(0, Mathf.RoundToInt(Mathf.Lerp(-50, 50, legacy))), VoiceChat.ToVivoxMicVolume(migrated));
         }
 
         [Test]

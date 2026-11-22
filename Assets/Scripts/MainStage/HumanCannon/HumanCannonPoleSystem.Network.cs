@@ -92,6 +92,12 @@ namespace CurtainCall.HumanCannon
                 pole.RefreshMovingPose();
                 runtime.ReleasePosition = TryRecyclePosition(index, seat, actor, out var terminal)
                     ? terminal : pole.HangingPosition(runtime.Angle, seat);
+                var course = CurtainCall.Tightrope.TightropeCourse.Current;
+                if (drop && course != null && course.gameObject.scene == pole.gameObject.scene)
+                {
+                    Vector3 bar = runtime.ReleasePosition + Vector3.up * (pole.HangLength + seat * pole.RiderSpacing);
+                    runtime.ReleasePosition = course.PoleDropFeet(bar, runtime.ReleasePosition);
+                }
                 // TryRelease has cleared the occupant, but this seat still holds its departure facing.
                 runtime.ReleaseRotation = SeatRotation(index, seat);
                 runtime.ReleaseVelocity = drop ? Vector3.zero : CannonAirControl.LimitPoleHorizontalSpeed(

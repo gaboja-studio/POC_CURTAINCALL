@@ -100,7 +100,7 @@ namespace CurtainCall.WaitingRoom
             Destroy(shape.GetComponent<Collider>());
             shape.hideFlags = HideFlags.DontSave;
             shape.transform.SetParent(body, false);
-            shape.GetComponent<Renderer>().sharedMaterial = Material(shape.GetComponent<Renderer>());
+            shape.GetComponent<Renderer>().sharedMaterial = FallbackMaterial();
             shapes[key] = shape;
             return shape;
         }
@@ -113,11 +113,10 @@ namespace CurtainCall.WaitingRoom
             shape.transform.localScale = new Vector3(size.x / Mathf.Max(.001f, lossy.x), size.y / Mathf.Max(.001f, lossy.y), size.z / Mathf.Max(.001f, lossy.z));
         }
 
-        Material Material(Renderer renderer)
+        Material FallbackMaterial()
         {
             if (itemMaterial != null) return itemMaterial;
-            itemMaterial = new Material(renderer.sharedMaterial) { color = itemColor };
-            if (itemMaterial.HasProperty("_BaseColor")) itemMaterial.SetColor("_BaseColor", itemColor); // URP Lit
+            itemMaterial = CurtainCall.ItemArt.ItemVisualAssets.CreateFallbackMaterial(itemColor);
             return itemMaterial;
         }
 

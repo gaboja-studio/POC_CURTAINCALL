@@ -146,7 +146,7 @@ namespace CurtainCall.StartLobby.EditorTools
             Shape("Valance", root, PrimitiveType.Cube, new Vector3(0, 7.3f, 1.2f), new Vector3(16f, 1.6f, 0.4f), velvet);
             Shape("Valance Fringe", root, PrimitiveType.Cube, new Vector3(0, 6.48f, 1f), new Vector3(16f, 0.12f, 0.12f), gold);
 
-            Prop(Props + "SM_Prop_Chair_Folding_01", root, new Vector3(0.4f, 0.6f, 3.6f), 200f, 1.2f, fallback: new Vector3(0.5f, 0.9f, 0.5f));
+            Prop(Props + "SM_Prop_Chair_Folding_01", root, new Vector3(0.4f, 0.6f, 3.6f), 200f, 1.2f, fallback: new Vector3(0.5f, 0.9f, 0.5f), keepPrefabColliders: true);
             var bulb = Mat("bulb", new Color(1f, 0.9f, 0.7f), 0.5f, 0f, new Color(3f, 2.3f, 1.3f));
             for (float x = -6.8f; x <= 6.8f; x += 0.85f)
                 Shape("Footlight", root, PrimitiveType.Sphere, new Vector3(x, 0.66f, 0.42f), Vector3.one * 0.11f, bulb);
