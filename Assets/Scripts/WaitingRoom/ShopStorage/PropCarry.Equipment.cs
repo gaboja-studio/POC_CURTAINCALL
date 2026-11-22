@@ -47,7 +47,9 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>발 위치 기준 공연 기물 장소. 대기실이면 지역명 "연습실" 구역만 연습으로 허용한다.</summary>
         public static EquipmentPlace PlaceAt(Vector3 feet) =>
-            !WaitingRoomScene ? EquipmentPlace.Normal : ExplorationTimerZones.IsPracticeRoom(feet) ? EquipmentPlace.Practice : EquipmentPlace.Blocked;
+            !WaitingRoomScene ? EquipmentPlace.Normal
+                : CurtainCall.Campaign.CampaignRun.RehearsalPendingOrActive || ExplorationTimerZones.IsPracticeRoom(feet)
+                    ? EquipmentPlace.Practice : EquipmentPlace.Blocked;
 
         /// <summary>이 플레이어가 지금 공연 기물을 쓰는 장소. 대기실에서 캐릭터를 못 찾으면 막는다.</summary>
         public static EquipmentPlace PlaceOf(ulong player)

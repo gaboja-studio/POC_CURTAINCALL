@@ -16,6 +16,41 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         [UnityTest]
+        public IEnumerator RehearsalInventoryKeepsExplorationAndDropsPerformanceEquipment()
+        {
+            yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
+            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
+            ulong me = (ulong)Get(carry, "LocalClientId");
+            var itemType = T("CurtainCall.WaitingRoom.PropItem");
+            void Receive(int uid, string id) => Assert.AreEqual("None",
+                Call(carry, "Receive", me, Activator.CreateInstance(itemType, uid, id, id, 3)).ToString());
+            int Selected() => (int)Get(Call(carry, "Selected", me), "Uid");
+            object[] Held() => ((IEnumerable)Call(carry, "Held", me)).Cast<object>().ToArray();
+
+            Receive(9181, "magician-hairpin");
+            Receive(9182, "spring-shoes");
+            Call(carry, "RequestSelectSlot", 0);
+            Assert.AreEqual(0, Selected());
+            Call(carry, "RequestDrop");
+            Assert.AreEqual(2, Held().Length);
+            Call(carry, "RequestSelectSlot", 1);
+            Call(carry, "RequestSelectSlot", 0);
+            Assert.AreEqual(9182, Selected());
+            Assert.AreEqual(true, Call(carry, "UseEquipment", me, "spring-shoes", false, false));
+            Assert.AreEqual(3, Get(Held()[1], "Uses"));
+
+            yield return null;
+            var slots = Field(Find("CurtainCall.UI.SceneIntegration.CommonInventoryUI"), "slots");
+            float Opacity(int i) => ((Component)Call(slots, "GetSlot", i)).GetComponent<CanvasGroup>().alpha;
+            Assert.Less(Opacity(0), Opacity(1));
+            CursorTestKey("T");
+            yield return null;
+            CursorTestKey(null);
+            yield return null;
+            Assert.AreEqual(9181, Get(Held().Single(), "Uid"));
+        }
+
+        [UnityTest]
         public IEnumerator W2_HandRules_ToolsHoldEquipmentSelectsAndEquipmentUseCools()
         {
             yield return Launch(2, "Night", 0, "", "WaitingRoom");

@@ -125,6 +125,9 @@ namespace CurtainCall.WaitingRoom
         /// <summary>신체 상태와 관계없이 지닐 수 있는 개수.</summary>
         public int Slots(ulong player) => SurvivalRules.ItemSlots();
 
+        public static bool CanSelectItem(string itemId) => ExplorationKeys.ItemEnabled(itemId)
+            && !(ExplorationTargets.SlotsBlocked && ItemCatalog.Get(itemId)?.use == ItemUse.Exploration);
+
         /// <summary>
         /// 1·2로 고른 칸(도구 또는 장비). 고르지 않았거나 집어넣었으면 빈 값. T(버리기)·가판대 대상이다.
         /// 선택은 UID로 저장해 목록이 밀려도 유지되고 소지 상태와 함께 공유된다.
@@ -135,7 +138,7 @@ namespace CurtainCall.WaitingRoom
             if (!selected.TryGetValue(player, out int uid) || uid <= 0) return default;
             var items = Held(player);
             int limit = Mathf.Min(items.Count, Slots(player));
-            for (int i = 0; i < limit; i++) if (items[i].Uid == uid && ExplorationKeys.ItemEnabled(items[i].ItemId)) return items[i];
+            for (int i = 0; i < limit; i++) if (items[i].Uid == uid && CanSelectItem(items[i].ItemId)) return items[i];
             return default;
         }
 
@@ -191,7 +194,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>빈손일 때 새로 받은 도구를 바로 손에 든다(2026-11-01 사용자). 장비는 슬롯에만 넣는다.</summary>
         void AutoHold(ulong player, PropItem item)
         {
-            if (item.Uid == 0 || !IsHoldable(item.ItemId) || InHand(player).Uid != 0 || IsDead(player) || CarryingDevice(player)) return;
+            if (item.Uid == 0 || !IsHoldable(item.ItemId) || !CanSelectItem(item.ItemId) || InHand(player).Uid != 0 || IsDead(player) || CarryingDevice(player)) return;
             selected[player] = item.Uid;
         }
 
@@ -206,7 +209,7 @@ namespace CurtainCall.WaitingRoom
             if (CarryingDevice(LocalClientId)) return;
             var items = Held(LocalClientId);
             if (index < 0 || index >= 5) return;
-            if (index < items.Count && index >= Slots(LocalClientId)) return;
+            if (index < items.Count && (index >= Slots(LocalClientId) || !CanSelectItem(items[index].ItemId))) return;
             int uid = index < items.Count ? items[index].Uid : 0;
             if (HasAuthority) Select(LocalClientId, uid);
             else channel.Request(JsonUtility.ToJson(new RequestData { kind = SelectRequest, uid = uid }));
@@ -218,7 +221,7 @@ namespace CurtainCall.WaitingRoom
             if (uid == 0) { selected[player] = -1; Publish(); return; }
             var items = book.Held(player);
             for (int i = 0; i < Mathf.Min(5, Mathf.Min(items.Count, Slots(player))); i++)
-                if (items[i].Uid == uid && ExplorationKeys.ItemEnabled(items[i].ItemId)) { selected[player] = Selected(player).Uid == uid ? -1 : uid; Publish(); return; }
+                if (items[i].Uid == uid && CanSelectItem(items[i].ItemId)) { selected[player] = Selected(player).Uid == uid ? -1 : uid; Publish(); return; }
         }
 
         void Awake()
@@ -454,7 +457,7 @@ namespace CurtainCall.WaitingRoom
         void TrimOverLimit()
         {
             var run = CampaignRun.Instance;
-            if (run != null && run.State.Phase == CampaignPhase.Performance) return;
+            if (ExplorationTargets.SlotsBlocked || (run != null && run.State.Phase == CampaignPhase.Performance)) return;
             bool changed = false;
             foreach (ulong player in new List<ulong>(book.Players))
             {

@@ -108,16 +108,20 @@ namespace CurtainCall.WaitingRoom
             pumpedFrame = Time.frameCount;
             var previous = Focused;
             Focused = null;
-            if (RoomInteractionsLocked) return;
+            bool roomLocked = RoomInteractionsLocked;
+            if (roomLocked && !CurtainCall.Campaign.CampaignRun.RehearsalPendingOrActive) return;
 
             var reader = LocalReader();
             if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked || !PlayerInteraction.CanInteract(reader)) return;
 
+            var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
+            if (reader.Current.DropItemPressed && (actorForGate == null || !actorForGate.InteractionActionLocked))
+                DropPressed?.Invoke();
+            if (roomLocked) return;
+
             // 2026-11-16 상호작용 고도화: 가장 가까운 대상이 아니라 공통 선택(우선순위·화면 기준점)이 고른 대상 하나만 안내·F를 받는다.
             if (CommonInteractionSelection.Selected(reader) is IShopTarget chosen && targets.Contains(chosen)) Focused = chosen;
             if (!ReferenceEquals(previous, Focused) && Focused is ClueInspectable clue) ClueFocused?.Invoke(clue);
-            var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
-            if (reader.Current.DropItemPressed && (actorForGate == null || !actorForGate.InteractionActionLocked)) DropPressed?.Invoke();
             // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
             if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
             // 부수기 홀드(맨몸 2026-11-13, 말뚝 뽑개 2026-11-16 사용자): F를 길게 누르고 있어야 한다. 게이지 하나가 천천히 차고, 다 차면 부서진다.

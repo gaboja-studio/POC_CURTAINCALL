@@ -50,8 +50,12 @@ namespace CurtainCall.WaitingRoom
 
     public static class ExplorationTargets
     {
+        // 바닥 기물 장부와 같은 공연·탈출 씬을 사용한다. 대기실 자유 연습은 리허설에 포함하지 않는다.
+        public static bool SlotsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
+            && (CurtainCall.Campaign.CampaignRun.RehearsalPendingOrActive || !string.IsNullOrEmpty(FloorPropsView.CurrentSpace));
+
         public static bool ToolsBlocked => CurtainCall.Settings.GameSettings.Base.CarryDevices.BlockExplorationToolsDuringPerformance
-            && (CurtainCall.Campaign.CampaignRun.Instance?.State.Phase == CurtainCall.Campaign.CampaignPhase.Performance
+            && (SlotsBlocked || CurtainCall.Campaign.CampaignRun.Instance?.State.Phase == CurtainCall.Campaign.CampaignPhase.Performance
                 // 대기실 연습실의 자유 연습 코스도 '진행 중인 외줄'로 잡혀 대기실 내내 도구가 막혔다(2026-11-15 사용자: 환풍구·녹슨 벽이 더 안 부서짐). 대기실 씬의 코스는 공연으로 보지 않는다.
                 || CurtainCall.Tightrope.TightropeRun.Current is { PracticeMode: false, TraversalOnly: false, State: CurtainCall.Tightrope.TightropeRunState.Running } rope
                     && rope.gameObject.scene.name != CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomScene

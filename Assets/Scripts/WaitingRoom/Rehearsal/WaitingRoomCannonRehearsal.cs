@@ -170,12 +170,12 @@ namespace CurtainCall.WaitingRoom
                 || Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance") == null) return false;
             r.prompt = r.pendingUnlockPrompt = false;
             r.promptBlock.SetOpen(false); r.votePanel.Hide();
+            PropCarry.Instance?.SaveRehearsalSelection();
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
             r.fallen.Clear(); r.fallenAt.Clear(); r.priorConditions.Clear();
             r.localRecoveryPending = r.placingAfterRecovery = false; r.lastCarrier = CannonSeatState.Nobody;
             if (NetworkPlayer.Local is { IsSpawned: true } owner) r.CaptureReturnPose(owner);
             WaitingRoomStageDevices.ReserveCarrierForRehearsal();
-            PropCarry.Instance?.SaveRehearsalSelection();
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned) continue;
