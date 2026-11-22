@@ -31,6 +31,28 @@ namespace CurtainCall.EscapeRoute.EditorTools.Tests
         static void Set(object o, string field, object value) => o.GetType().GetField(field, F).SetValue(o, value);
         static void Call(object o, string method, params object[] args) => o.GetType().GetMethod(method, F).Invoke(o, args);
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void DeviceReconciliationAudit_AuthoredEscapeSawOnlyUsesItsSceneFloor(bool sameScene)
+        {
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Levels/escape_route.unity");
+            var support = new GameObject("Floor at the launcher's feet");
+            try
+            {
+                var cutter = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EscapeExitSaw>(true))
+                    .First(s => s.ProjectileMode);
+                if (sameScene) SceneManager.MoveGameObjectToScene(support, scene);
+                var floor = support.AddComponent<BoxCollider>();
+                Assert.That(typeof(EscapeExitSaw).GetMethod("IsSawSupport", F).Invoke(cutter, new object[] { floor }),
+                    Is.EqualTo(sameScene));
+            }
+            finally
+            {
+                Object.DestroyImmediate(support);
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
+
         [TestCase(true, true)]
         [TestCase(false, false)]
         public void OfficialPathAudit_MountedRunnerOutsideArrivalVolumeSharesOnlyALiveCarrierArrival(bool inside, bool expected)

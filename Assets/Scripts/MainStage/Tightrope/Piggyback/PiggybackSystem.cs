@@ -539,6 +539,8 @@ namespace CurtainCall.Tightrope
                 || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
                 || !CanStand(climber) || InWaitingRoom && LeavesStackInWaitingRoom(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
+            bool sharedCourse = UsesOfficialPlatformRecovery;
+            Vector3 origin = sharedCourse ? PlayerInteraction.LatestCenter(climber) : PlayerInteraction.Center(climber);
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
@@ -549,11 +551,15 @@ namespace CurtainCall.Tightrope
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 if (BlocksNewPassenger(other)) continue;
                 if (climber.TryGetComponent(out PlayerMover climberMover) && climberMover.FreeMovement
-                    && other.TryGetComponent(out PlayerMover carrierMover) && carrierMover.FreeMovement
-                    && !PiggybackFollow.HasRoomForPassenger(climberMover, PiggybackFollow.HeadAboveStack(this, other))) continue;
-                Vector3 center = PlayerInteraction.Center(other);
-                float distance = (center - PlayerInteraction.Center(climber)).sqrMagnitude;
-                if (!PlayerInteraction.InRange(climber, center, reach) || distance > best
+                    && other.TryGetComponent(out PlayerMover carrierMover) && carrierMover.FreeMovement)
+                {
+                    var head = PiggybackFollow.HeadAboveStack(this, other);
+                    if (sharedCourse) head += other.LatestOwnerPosition - other.transform.position;
+                    if (!PiggybackFollow.HasRoomForPassenger(climberMover, head)) continue;
+                }
+                Vector3 center = sharedCourse ? PlayerInteraction.LatestCenter(other) : PlayerInteraction.Center(other);
+                float distance = (center - origin).sqrMagnitude;
+                if (!PlayerInteraction.InRangeFrom(climber, origin, center, reach, null) || distance > best
                     || distance == best && target != null && other.OwnerClientId >= target.OwnerClientId) continue;
                 best = distance;
                 target = other;
@@ -576,18 +582,37 @@ namespace CurtainCall.Tightrope
             // 대기실은 앉은 채로도 탑승·해제할 수 있다(2026-11-16). 탑승 뒤 일어설 공간이 없으면 PiggybackFollow가 바로 내린다.
             && (!player.TryGetComponent(out PlayerMover posture) || !posture.IsCrouched || CrouchedPiggybackAllowed)
             && (TightropeCourse.Current != null && player.TryGetComponent(out PlayerMover mover)
-                && TightropeCourse.Current.TryGetSupportingRope(mover, out _) || GroundSupport(player) != null);
+                && TightropeCourse.Current.TryGetSupportingRopeAt(mover,
+                    UsesOfficialPlatformRecovery ? player.LatestOwnerPosition : player.transform.position, out _)
+                || GroundSupport(player) != null);
 
         // 대기실 바닥 목마만 해당한다. 리허설·연습실 외줄 코스가 진행 중이면 공연과 같은 줄 위 규칙(연쇄 추락)을 유지한다.
         static bool InWaitingRoom => WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene())
             && (TightropeCourse.Current == null || !TightropeCourse.Current.IsGameplayActive);
         static bool CrouchedPiggybackAllowed => InteractionFocusSettings.Current.Piggyback.allowCrouchedInWaitingRoom && InWaitingRoom;
 
+        internal static bool UsesOfficialPlatformRecovery
+        {
+            get
+            {
+                var route = GameSettings.Base.SpaceTransition;
+                var scene = SceneManager.GetActiveScene().name;
+                return scene == route.HumanCannonScene || scene == route.TightropeScene || scene == route.EscapeRouteScene;
+            }
+        }
+
         internal static Collider GroundSupport(NetworkPlayer player)
         {
             if (player == null || player.State != PlayerState.Normal || player.IsAirborne
                 || !player.TryGetComponent(out PlayerMover mover) || mover.Body == null
                 || player.IsLocal && mover.IsAirborne) return null;
+            if (UsesOfficialPlatformRecovery)
+            {
+                var scene = SceneManager.GetActiveScene();
+                Predicate<Collider> accepts = surface => IsDismountGround(surface, mover.Body, scene);
+                return WalkableSupport.TryGetSupport(mover, player.LatestOwnerPosition, scene, out var support, accepts)
+                    && accepts(support.collider) ? support.collider : null;
+            }
             var origin = player.transform.position + Vector3.up * .15f;
             foreach (var hit in Physics.RaycastAll(origin, Vector3.down, .45f,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
@@ -712,25 +737,27 @@ namespace CurtainCall.Tightrope
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";
             if (aboveOf.ContainsKey(riderId)) return "거부: 내 위에 사람이 있어 내려올 수 없음";
+            var rider = FindPlayer(riderId);
+            if (rider == null || !rider.IsSpawned || rider.State != PlayerState.Normal) return "거부: 내 캐릭터를 찾지 못함";
             if (transferred == null && !jumping)
             {
                 var carrier = FindPlayer(BottomOf(riderId));
                 var course = TightropeCourse.Current;
                 var platform = GroundSupport(carrier);
-                if (platform != null && ServerDismountOnPlatform(carrier, platform, FindPlayer(riderId))) return "해제: 발판에 내려옴";
+                if (platform != null && ServerDismountOnPlatform(carrier, platform, rider)) return "해제: 발판에 내려옴";
                 // 대기실 바닥은 여러 조각·가구로 나뉘어 발판 하나 안에서 자리를 못 찾는 일이 많다(2026-11-16 사용자: F 홀드 하차가 잘 안 됨).
                 // 주변 아무 바닥에 내려 주고, 그래도 자리가 없으면 점프 하차처럼 그 자리에서 연결만 끊는다.
                 bool waitingRoomFloor = platform != null && WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene())
                     && (course == null || !course.PiggybackUsesRopeBalance(carrier, true));
                 if (InWaitingRoom || waitingRoomFloor)
                 {
-                    if (ServerDismountNearby(carrier, FindPlayer(riderId))) return "해제: 근처 바닥에 내려옴";
+                    if (ServerDismountNearby(carrier, rider)) return "해제: 근처 바닥에 내려옴";
                 }
                 else if (platform != null) return "거부: 발판에 내려설 자리가 없음";
-                else if ((course == null || !course.PiggybackUsesRopeBalance(carrier, true)) && !FindPlayer(riderId).IsAirborne)
+                else if ((course == null || !course.PiggybackUsesRopeBalance(carrier, true)) && !rider.IsAirborne)
                     return "거부: 안전한 발판에 착지한 뒤 내려올 수 있음";
             }
-            RememberTrapezeEntry(FindPlayer(riderId));
+            RememberTrapezeEntry(rider);
             belowOf.Remove(riderId);
             aboveOf.Remove(below);
             transferred?.Invoke();
@@ -754,7 +781,8 @@ namespace CurtainCall.Tightrope
                 if (carrier == null || carrier.State != PlayerState.Normal || carrier.IsAirborne
                     || GetBelow(carrier) != null || GetAbove(carrier) == null
                     || !carrier.TryGetComponent(out PlayerMover mover) || (carrier.IsLocal && mover.IsAirborne)) continue;
-                if (course.TryGetSupportingRope(mover, out _))
+                if (course.TryGetSupportingRopeAt(mover,
+                    UsesOfficialPlatformRecovery ? carrier.LatestOwnerPosition : carrier.transform.position, out _))
                 {
                     carriersFromRope.Add(carrier.OwnerClientId);
                     continue;
@@ -770,10 +798,13 @@ namespace CurtainCall.Tightrope
             for (var rider = onlyRider != null ? onlyRider : GetAbove(carrier); rider != null; rider = onlyRider != null ? null : GetAbove(rider))
             {
                 if (rider.State != PlayerState.Normal || !rider.TryGetComponent(out PlayerMover mover)) return false;
-                float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
-                float height = Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);
-                if (!TryFindPlatformSeat(platform, carrier.transform.position, radius, height, placements, out var feet))
-                    return false; // 전원이 설 수 있을 때만 연결을 바꾼다.
+                bool official = UsesOfficialPlatformRecovery;
+                float radius = official ? mover.BodyRadius : Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
+                float height = official ? mover.BodyHeight : Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);
+                bool found = official
+                    ? TryFindCoursePlatformSeat(mover, platform, carrier.LatestOwnerPosition, radius, height, placements, out var feet)
+                    : TryFindPlatformSeat(platform, carrier.transform.position, radius, height, placements, out feet);
+                if (!found) return false; // 전원이 설 수 있을 때만 연결을 바꾼다.
                 placements.Add(rider.OwnerClientId, feet);
             }
             if (placements.Count == 0) return false;
@@ -819,6 +850,91 @@ namespace CurtainCall.Tightrope
                     return true;
                 }
             return false;
+        }
+
+        internal static bool IsDismountGround(Collider surface, CharacterController body, Scene scene)
+            => WalkableSupport.IsSupportCollider(surface, body) && !surface.isTrigger
+                && surface.gameObject.scene == scene && !TightropeCourse.IsRopeSurface(surface)
+                && !surface.GetComponentInParent<EscapePursuerDebris>();
+
+        // The pad can be assembled from several concrete colliders. Validate the
+        // complete footprint on the walkable plane, including seams and rotated edges.
+        static bool TryFindCoursePlatformSeat(PlayerMover mover, Collider platform, Vector3 carrierFeet,
+            float radius, float height, Dictionary<ulong, Vector3> placements, out Vector3 feet)
+        {
+            feet = default;
+            Scene scene = platform.gameObject.scene;
+            float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
+            float separationSquared = separation * separation;
+            var body = mover.Body;
+            for (float distance = separation + .01f; distance <= 5f; distance += Mathf.Max(.2f, radius))
+                for (int i = 0; i < 16; i++)
+                {
+                    var direction = Quaternion.Euler(0f, i * 22.5f, 0f) * Vector3.forward;
+                    var candidate = carrierFeet + direction * distance;
+                    if (IsSeatReserved(candidate, separationSquared, placements)
+                        || !TryNearbyFloor(candidate, carrierFeet.y, body, scene, out var center)) continue;
+                    float margin = radius + .22f;
+                    if (!TryNearbyFloor(candidate + Vector3.right * margin, center.y, body, scene, out _)
+                        || !TryNearbyFloor(candidate + Vector3.left * margin, center.y, body, scene, out _)
+                        || !TryNearbyFloor(candidate + Vector3.forward * margin, center.y, body, scene, out _)
+                        || !TryNearbyFloor(candidate + Vector3.back * margin, center.y, body, scene, out _)) continue;
+                    var position = center + Vector3.up * .035f;
+                    if (!PlayerInteraction.ClearPathFrom(carrierFeet + Vector3.up * .6f, position + Vector3.up * .6f, null, mover)
+                        || !CourseSeatHasClearance(body, position, radius, height)
+                        || !HasContinuousDismountFloor(carrierFeet, center, body, scene)) continue;
+                    feet = position;
+                    return true;
+                }
+            return false;
+        }
+
+        static bool HasContinuousDismountFloor(Vector3 from, Vector3 to, CharacterController body, Scene scene)
+        {
+            int steps = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(from, to) / .12f));
+            bool missed = false;
+            for (int i = 1; i < steps; i++)
+            {
+                var feet = Vector3.Lerp(from, to, (float)i / steps);
+                bool supported = TryNearbyFloor(feet, feet.y, body, scene, out _);
+                if (!supported && missed) return false;
+                missed = !supported;
+            }
+            return true;
+        }
+
+        static readonly RaycastHit[] dismountFloorHits = new RaycastHit[16];
+        static bool TryNearbyFloor(Vector3 position, float referenceHeight, CharacterController body, Scene scene, out Vector3 ground)
+        {
+            const float step = .18f;
+            position.y = referenceHeight;
+            ground = default;
+            float nearest = float.PositiveInfinity;
+            var origin = position + Vector3.up * (step + .01f);
+            int count = Physics.RaycastNonAlloc(origin, Vector3.down, dismountFloorHits, step * 2f + .01f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var hits = count == dismountFloorHits.Length
+                ? Physics.RaycastAll(origin, Vector3.down, step * 2f + .01f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                : dismountFloorHits;
+            if (hits != dismountFloorHits) count = hits.Length;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = hits[i];
+                if (hit.distance >= nearest || hit.normal.y <= .9f || !IsDismountGround(hit.collider, body, scene)) continue;
+                nearest = hit.distance;
+                ground = hit.point;
+            }
+            return float.IsFinite(nearest);
+        }
+
+        internal static bool CourseSeatHasClearance(CharacterController body, Vector3 feet, float radius, float height)
+        {
+            foreach (var obstacle in Physics.OverlapCapsule(feet + Vector3.up * radius,
+                feet + Vector3.up * Mathf.Max(radius, height - radius), radius,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                if (WalkableSupport.CanCollideWithBody(obstacle, body)
+                    && !CurtainCall.Damage.DismemberedLimb.Contains(obstacle)) return false;
+            return true;
         }
 
         static bool TryFindPlatformSeat(Collider platform, Vector3 carrierFeet, float radius, float height,

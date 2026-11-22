@@ -222,6 +222,43 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             }
         }
 
+        [TestCase("connected-tiles", true)]
+        [TestCase("rotated-ledge", false)]
+        [TestCase("far-lower-slab", false)]
+        [TestCase("separated-tiles", false)]
+        [TestCase("short-rider", true)]
+        [TestCase("full-height-rider", false)]
+        public void DeviceReconciliationAudit_MountDismountChecksTheActualFootprintAndBody(string scenario, bool possible)
+        {
+            var feet = origin + new Vector3(0f, 0f, 50f);
+            var carrierPad = AddBox("Carrier slab", new Vector3(0f, -.2f, 50f), new Vector3(.62f, .4f, .62f));
+            float height = 1.7f;
+            if (scenario == "rotated-ledge")
+            {
+                carrierPad.size = new Vector3(4f, .4f, .65f);
+                carrierPad.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
+            }
+            else if (scenario is "short-rider" or "full-height-rider")
+            {
+                carrierPad.size = new Vector3(3f, .4f, 3f);
+                AddBox("Passage roof", new Vector3(0f, 1.3f, 50f), new Vector3(3f, .2f, 3f));
+                if (scenario == "short-rider") height = 1f;
+            }
+            else
+            {
+                float slabHeight = scenario == "far-lower-slab" ? -.6f : 0f;
+                float slabX = scenario == "separated-tiles" ? 2f : 1.515f;
+                AddBox("Neighbor slab", new Vector3(slabX, slabHeight - .2f, 50f), new Vector3(2.4f, .4f, 2.4f));
+            }
+            var positions = new Dictionary<ulong, Vector3>();
+            Physics.SyncTransforms();
+            var find = typeof(PiggybackSystem).GetMethod("TryFindCoursePlatformSeat", BindingFlags.Static | BindingFlags.NonPublic);
+            object[] args = { mover, carrierPad, feet, .3f, height, positions, Vector3.zero };
+            Assert.That(find.Invoke(null, args), Is.EqualTo(possible));
+            if (possible && scenario == "connected-tiles")
+                Assert.That(((Vector3)args[6]).x, Is.GreaterThan(feet.x + .55f));
+        }
+
         [Test]
         public void PiggybackDismount_ReservesThreeClearPositionsAwayFromPlatformEdge()
         {

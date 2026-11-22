@@ -24,6 +24,11 @@ namespace CurtainCall.HumanCannon
             transform.SetPositionAndRotation(position, rotation);
         }
 
+        internal void CancelTransport()
+        {
+            if (onTransport) ReleaseMovement();
+        }
+
         internal void EndTransport()
         {
             if (!onTransport) return;
