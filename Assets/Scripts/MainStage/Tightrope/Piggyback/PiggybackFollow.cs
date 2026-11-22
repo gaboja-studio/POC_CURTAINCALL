@@ -565,6 +565,8 @@ namespace CurtainCall.Tightrope
         {
             if (player == null || !player.IsLocal || player.State != PlayerState.Normal
                 || !player.TryGetComponent(out PlayerMover mover)) return;
+            if (PiggybackSystem.UsesOfficialPlatformRecovery
+                && (IsCrossing(player) || player.IsDroppingFromSupport || launchedAt >= 0f)) return;
             if (player.TryGetComponent(out PlayerBalance balance))
             {
                 if (balance.HasFallen) return;

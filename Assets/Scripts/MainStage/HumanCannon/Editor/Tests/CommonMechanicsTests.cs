@@ -19,6 +19,102 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         static object Call(object target, string name, params object[] args) => target.GetType()
             .GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target,args);
 
+        [TestCase("replacement")]
+        [TestCase("restart")]
+        [TestCase("valid")]
+        [TestCase("missing")]
+        public void DeviceReconciliationAudit_TransportOwnsOnlyItsOriginalRider(string scenario)
+        {
+            var first = new GameObject("Original lift rider");
+            var next = new GameObject("Replacement lift rider");
+            first.SetActive(false);
+            next.SetActive(false);
+            var active = (System.Collections.Generic.List<NetworkPlayer>)NetworkPlayer.All;
+            var prior = active.ToArray();
+            active.Clear();
+            var spawned = typeof(NetworkPlayer).GetProperty("IsSpawned");
+            var owner = typeof(NetworkPlayer).GetProperty("OwnerClientId");
+            var avatar = typeof(NetworkPlayer).GetProperty("NetworkObjectId");
+            var original = first.AddComponent<NetworkPlayer>();
+            var replacement = next.AddComponent<NetworkPlayer>();
+            try
+            {
+                owner.SetValue(original, 51UL); owner.SetValue(replacement, 51UL);
+                avatar.SetValue(original, 810UL); avatar.SetValue(replacement, 811UL);
+                spawned.SetValue(original, true); spawned.SetValue(replacement, true);
+                var type = typeof(HumanCannonRouteSystem).GetNestedType("Transit", BindingFlags.NonPublic);
+                var entry = System.Activator.CreateInstance(type);
+                var travel = (DepartureTravelState)type.GetField("State").GetValue(entry);
+                Assert.That(travel.TryStart(51UL, 0u, .1d, 3f), Is.True);
+                type.GetMethod("BindRider").Invoke(entry, new object[] { original });
+                active.Add(replacement);
+                if (scenario is "valid" or "restart") active.Add(original);
+                if (scenario == "restart")
+                {
+                    var version = typeof(NetworkPlayer).GetField("restartCount", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(original);
+                    Set(version, "m_InternalValue", 1);
+                }
+                if (scenario == "missing") active.Clear();
+                var resolve = type.GetMethod("ResolveRider");
+                var expected = scenario == "valid" ? original : null;
+                Assert.That(resolve.Invoke(entry, null), Is.EqualTo(expected));
+                Assert.That(travel.Tick(4d), Is.True);
+                Assert.That(resolve.Invoke(entry, null), Is.EqualTo(expected));
+            }
+            finally
+            {
+                spawned.SetValue(original, false); spawned.SetValue(replacement, false);
+                active.Clear(); active.AddRange(prior);
+                Object.DestroyImmediate(first); Object.DestroyImmediate(next);
+            }
+        }
+
+        [TestCase("direct")]
+        [TestCase("void-side")]
+        [TestCase("wall-side")]
+        [TestCase("both-unsafe")]
+        public void DeviceReconciliationAudit_TransportStowawayReturnsToVerifiedGround(string scenario)
+        {
+            var root = new GameObject("Transit disembark audit");
+            var origin = new Vector3(18000f, 1400f, 18000f);
+            try
+            {
+                var player = Child("Rider", origin).gameObject.AddComponent<NetworkPlayer>();
+                var mover = player.GetComponent<PlayerMover>();
+                Call(mover, "Awake");
+                var transport = Child("Lift", origin).gameObject.AddComponent<HumanCannonTransport>();
+                var start = origin + Vector3.right * 8f;
+                Set(transport, "platform", Child("Moving deck", origin));
+                Set(transport, "start", Child("Boarding", start));
+                Set(transport, "destination", Child("End", start + Vector3.up * 14f));
+                var side = origin + Vector3.left * 4f;
+                var entry = transport.BoardingSide(.35f);
+                if (scenario is "direct" or "wall-side") AddBox("Side ground", side - Vector3.up * .5f, new Vector3(3f, 1f, 3f));
+                if (scenario != "both-unsafe") AddBox("Boarding ground", entry - Vector3.up * .5f, new Vector3(4f, 1f, 4f));
+                if (scenario == "wall-side") AddBox("Side obstruction", side + Vector3.up * .9f, new Vector3(1.5f, 1.8f, 1.5f));
+                Physics.SyncTransforms();
+                var find = typeof(HumanCannonRouteSystem).GetMethod("TryResolveStowawayExit", BindingFlags.Static | BindingFlags.NonPublic);
+                object[] args = { mover, transport, side, .35f, Vector3.zero };
+                Assert.That(find.Invoke(null, args), Is.EqualTo(scenario != "both-unsafe"));
+                if (scenario != "both-unsafe")
+                {
+                    var expected = scenario == "direct" ? side : entry;
+                    Assert.That(Vector3.Distance((Vector3)args[4], expected), Is.LessThan(.08f));
+                }
+
+                Transform Child(string label, Vector3 p)
+                {
+                    var node = new GameObject(label).transform;
+                    node.SetParent(root.transform);
+                    node.position = p;
+                    return node;
+                }
+
+                void AddBox(string label, Vector3 p, Vector3 size) => Child(label, p).gameObject.AddComponent<BoxCollider>().size = size;
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [TestCase("selected")]
         [TestCase("latest")]
         [TestCase("lift")]

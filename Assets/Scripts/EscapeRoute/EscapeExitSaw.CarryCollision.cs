@@ -73,7 +73,8 @@ namespace CurtainCall.EscapeRoute
             return false;
         }
 
-        bool IsSawSupport(Collider collider) => collider && !collider.transform.IsChildOf(CarryRoot)
+        bool IsSawSupport(Collider collider) => collider && (!OfficialEscapeScene || collider.gameObject.scene == gameObject.scene)
+            && !collider.transform.IsChildOf(CarryRoot)
             && !collider.GetComponentInParent<NetworkPlayer>() && !collider.GetComponentInParent<EscapeExitSaw>()
             && !DismemberedLimb.Contains(collider) && !collider.GetComponentInParent<EscapePursuerDebris>();
 
@@ -81,7 +82,8 @@ namespace CurtainCall.EscapeRoute
         {
             if (HasSupport(feet, maxFootGap)) return true;
             // A narrow panel seam can leave the centre ray unsupported while the footprint still touches.
-            return WalkableSupport.TryGetSupport(mover, feet, out var support)
+            var scene = OfficialEscapeScene ? gameObject.scene : default;
+            return WalkableSupport.TryGetSupport(mover, feet, scene, out var support, IsSawSupport)
                 && Mathf.Abs(feet.y - support.point.y) <= maxFootGap && IsSawSupport(support.collider);
         }
 

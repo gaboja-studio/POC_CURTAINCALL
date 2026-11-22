@@ -11,8 +11,8 @@ namespace CurtainCall.HumanCannon
     {
         enum RouteAction : byte { Sync, ResetSync = 3 }
         const string RequestName = "CurtainCall.HumanCannon.Route.Request.v3";
-        const string StateName = "CurtainCall.HumanCannon.Route.State.v3";
-        const int RequestBytes = 9, TransitStateBytes = 89;
+        const string StateName = "CurtainCall.HumanCannon.Route.State.v4";
+        const int RequestBytes = 9, TransitStateBytes = 102;
         CustomMessagingManager messaging;
 
         void SendRequest(RouteAction action, int index)
@@ -56,6 +56,9 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe((byte)transit.State.Phase);
                 writer.WriteValueSafe(transit.State.Rider);
                 writer.WriteValueSafe(transit.RiderReviveVersion);
+                writer.WriteValueSafe(transit.HasRiderIdentity);
+                writer.WriteValueSafe(transit.RiderAvatar);
+                writer.WriteValueSafe(transit.RiderRestartVersion);
                 writer.WriteValueSafe(transit.State.StartedAt);
                 writer.WriteValueSafe(transit.State.Duration);
                 writer.WriteValueSafe((byte)(transit.State.Delivered ? 1 : 0));
@@ -97,6 +100,9 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out byte phase);
                 reader.ReadValueSafe(out ulong rider);
                 reader.ReadValueSafe(out int riderReviveVersion);
+                reader.ReadValueSafe(out bool hasRiderIdentity);
+                reader.ReadValueSafe(out ulong riderAvatar);
+                reader.ReadValueSafe(out int riderRestartVersion);
                 reader.ReadValueSafe(out double startedAt);
                 reader.ReadValueSafe(out float duration);
                 reader.ReadValueSafe(out byte delivered);
@@ -109,11 +115,12 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out double boardedAt);
                 reader.ReadValueSafe(out byte occupied);
                 reader.ReadValueSafe(out byte rejected);
-                if (riderReviveVersion < 0 || rejected > 1 || delivered > 1) return;
+                if (riderReviveVersion < 0 || riderRestartVersion < 0 || rejected > 1 || delivered > 1) return;
                 var transit = new Transit
                 {
                     Offset = offset, Rotation = rotation, Occupied = occupied == 1, Rejected = rejected == 1,
-                    RiderReviveVersion = riderReviveVersion
+                    RiderReviveVersion = riderReviveVersion, HasRiderIdentity = hasRiderIdentity,
+                    RiderAvatar = riderAvatar, RiderRestartVersion = riderRestartVersion
                 };
                 if (!Finite(offset) || !Finite(rotation) || !transit.State.Receive(stateRevision, (DeparturePhase)phase, rider, startedAt, duration, delivered == 1)) return;
                 if (trapOpen > 1 || !transit.Trap.Receive(trapOpen == 1, openedAt, frozenProgress)) return;
@@ -152,7 +159,7 @@ namespace CurtainCall.HumanCannon
             Unregister();
             if (connection == SessionConnectionState.Offline)
             {
-                if (carriedPilot != null) { carriedPilot.EndTransport(); carriedPilot = null; }
+                if (carriedPilot != null) { carriedPilot.CancelTransport(); carriedPilot = null; }
                 carriedTransit = -1; revision = 0; resetBarrier.Clear();
                 System.Array.Clear(deliveredArrival, 0, deliveredArrival.Length);
                 ResetRoute();

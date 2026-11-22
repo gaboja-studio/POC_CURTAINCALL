@@ -38,16 +38,30 @@ namespace CurtainCall.HumanCannon
             public double EmptySince = -1;
             public Vector3 Offset;
             public Quaternion Rotation = Quaternion.identity;
-            public int RiderReviveVersion;
-            public ulong ActiveRider
+            public int RiderReviveVersion, RiderRestartVersion;
+            public ulong RiderAvatar;
+            public bool HasRiderIdentity;
+
+            public void BindRider(NetworkPlayer rider)
             {
-                get
-                {
-                    if (State.Rider == CannonSeatState.Nobody) return CannonSeatState.Nobody;
-                    var rider = FindPlayer(State.Rider);
-                    return rider != null && rider.ReviveVersion != RiderReviveVersion ? CannonSeatState.Nobody : State.Rider;
-                }
+                RiderAvatar = rider.NetworkObjectId;
+                RiderRestartVersion = rider.RestartVersion;
+                RiderReviveVersion = rider.ReviveVersion;
+                HasRiderIdentity = true;
             }
+
+            public NetworkPlayer ResolveRider()
+            {
+                if (State.Rider == CannonSeatState.Nobody) return null;
+                foreach (var player in NetworkPlayer.All)
+                    if (player != null && player.IsSpawned && player.State == PlayerState.Normal
+                        && player.OwnerClientId == State.Rider && player.ReviveVersion == RiderReviveVersion
+                        && (!HasRiderIdentity || player.NetworkObjectId == RiderAvatar && player.RestartVersion == RiderRestartVersion))
+                        return player;
+                return null;
+            }
+
+            public ulong ActiveRider => ResolveRider()?.OwnerClientId ?? CannonSeatState.Nobody;
         }
         Transit[] runtime;
         uint[] deliveredArrival;
@@ -174,7 +188,7 @@ namespace CurtainCall.HumanCannon
                 var transit = runtime[i];
                 if (transports[i] == null) continue;
                 ulong rider = transit.State.Rider;
-                if (rider != CannonSeatState.Nobody && FindPlayer(rider)?.State != PlayerState.Normal)
+                if (rider != CannonSeatState.Nobody && transit.ResolveRider() == null)
                     changed |= transit.State.TryReleaseRider(rider);
                 bool wasOpen = transit.Trap.IsOpen;
                 int passengers = CountPassengers(i, out var soleRider);
@@ -220,9 +234,9 @@ namespace CurtainCall.HumanCannon
                 {
                     if (transit.State.TryStart(soleRider.OwnerClientId, transit.State.Revision, Clock, transports[i].TravelSeconds))
                     {
-                        transit.RiderReviveVersion = soleRider.ReviveVersion;
+                        transit.BindRider(soleRider);
                         transit.Offset = soleRider.LatestOwnerPosition - transports[i].Platform.position;
-                        transit.Rotation = soleRider.transform.rotation;
+                        transit.Rotation = soleRider.LatestOwnerRotation;
                         if (i == 0) ArmFire(0);
                         if (i == 2) ArmFire(1);
                         Debug.Log($"[HumanCannonRoute] transport {i} auto-started actor={soleRider.OwnerClientId} after={boardingSeconds:F1}s");
@@ -385,13 +399,54 @@ namespace CurtainCall.HumanCannon
                     float radius = mover.Body != null ? mover.Body.radius : 0.5f;
                     Vector3 feet = player.transform.position;
                     if (transports[i].ContainsPassenger(feet))
-                        mover.Relocate(transports[i].OutsideBarrier(feet, radius), player.transform.rotation);
+                    {
+                        var transport = transports[i];
+                        var outside = transport.OutsideBarrier(feet, radius);
+                        if (PiggybackSystem.UsesOfficialPlatformRecovery)
+                        {
+                            if (!TryResolveStowawayExit(mover, transport, outside, radius, out outside)) continue;
+                        }
+                        mover.Relocate(outside, player.transform.rotation);
+                    }
                     // 발판 밖으로 튀어나온 운반 트램폴린 위에 서서 버티면 타던 쪽 갑판으로 되돌린다.
                     else if (transit.State.Phase == DeparturePhase.Moving && OnCarriedTrampoline(transit.ActiveRider, feet, radius))
-                        mover.Relocate(transports[i].BoardingSide(radius), player.transform.rotation);
+                    {
+                        var transport = transports[i];
+                        var boarding = transport.BoardingSide(radius);
+                        if (PiggybackSystem.UsesOfficialPlatformRecovery
+                            && !TryResolveStowawayExit(mover, transport, boarding, radius, out boarding)) continue;
+                        mover.Relocate(boarding, player.transform.rotation);
+                    }
                     else continue;
                     Debug.Log($"[HumanCannonRoute] transport {i} sealed; moved actor={player.OwnerClientId} off");
                 }
+            }
+        }
+
+        static bool TryResolveStowawayExit(PlayerMover mover, HumanCannonTransport transport, Vector3 side,
+            float radius, out Vector3 exit)
+        {
+            var boarding = transport.BoardingSide(radius);
+            if (TryGroundedExit(side, out exit) || TryGroundedExit(boarding, out exit)) return true;
+            for (int i = 0; i < 8; i++)
+            {
+                var direction = Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward;
+                if (TryGroundedExit(boarding + direction * (radius + .55f), out exit)) return true;
+            }
+            return false;
+
+            bool TryGroundedExit(Vector3 candidate, out Vector3 supported)
+            {
+                supported = default;
+                if (transport.ContainsPassenger(candidate)
+                    || !WalkableSupport.TryGetSupport(mover, candidate, transport.gameObject.scene, out var ground)
+                    || Mathf.Abs(ground.point.y - candidate.y) > .18f
+                    || !PiggybackSystem.IsDismountGround(ground.collider, mover.Body, transport.gameObject.scene)
+                    || ground.transform.IsChildOf(transport.Platform)
+                    || !ground.collider.Raycast(new Ray(candidate + Vector3.up * .2f, Vector3.down), out ground, .4f)) return false;
+                supported = new Vector3(candidate.x, ground.point.y + .035f, candidate.z);
+                float bodyRadius = Mathf.Min(mover.BodyRadius, mover.BodyHeight * .5f);
+                return PiggybackSystem.CourseSeatHasClearance(mover.Body, supported, bodyRadius, mover.BodyHeight);
             }
         }
 
@@ -511,13 +566,19 @@ namespace CurtainCall.HumanCannon
             if (resetBarrier.Waiting) return;
             int localIndex = -1;
             var local = NetworkPlayer.Local;
+            if (carriedPilot != null && (local == null || carriedPilot.gameObject != local.gameObject))
+            {
+                carriedPilot.CancelTransport();
+                carriedPilot = null;
+                carriedTransit = -1;
+            }
             for (int i = 0; i < runtime.Length; i++)
             {
                 var transit = runtime[i];
                 if (transit.Trap.IsOpen) continue;
                 if (transit.State.Phase == DeparturePhase.Arrived && deliveredArrival[i] != transit.State.Revision)
                 {
-                    if (local != null && local.IsSpawned && local.State == PlayerState.Normal && local.OwnerClientId == transit.ActiveRider
+                    if (local != null && local.IsSpawned && local.State == PlayerState.Normal && transit.ResolveRider() == local
                         && transports[i] != null)
                     {
                         var pilot = local.GetComponent<HumanCannonPilot>();
@@ -532,8 +593,8 @@ namespace CurtainCall.HumanCannon
                     }
                 }
                 if (transit.State.Phase != DeparturePhase.Moving || transports[i] == null) continue;
-                var rider = FindPlayer(transit.ActiveRider);
-                if (rider == null || rider.State != PlayerState.Normal) continue;
+                var rider = transit.ResolveRider();
+                if (rider == null) continue;
                 var position = transports[i].Platform.position + transit.Offset;
                 if (rider == local)
                 {
@@ -550,7 +611,7 @@ namespace CurtainCall.HumanCannon
             {
                 // 마지막 Moving 프레임이 없더라도 정확한 도착점에서 운반을 마친다. R/사망은 현재 위치를 보존한다.
                 if (carriedTransit >= 0 && !runtime[carriedTransit].Trap.IsOpen && runtime[carriedTransit].State.Phase == DeparturePhase.Arrived
-                    && local != null && local.IsSpawned && local.State == PlayerState.Normal && runtime[carriedTransit].ActiveRider == local.OwnerClientId)
+                    && local != null && local.IsSpawned && local.State == PlayerState.Normal && runtime[carriedTransit].ResolveRider() == local)
                     carriedPilot.SetTransportPose(transports[carriedTransit].Position(1) + runtime[carriedTransit].Offset, runtime[carriedTransit].Rotation);
                 carriedPilot.EndTransport();
                 carriedPilot = null;
@@ -575,7 +636,7 @@ namespace CurtainCall.HumanCannon
             }
             if (player.IsLocal && carriedPilot != null)
             {
-                carriedPilot.EndTransport();
+                carriedPilot.CancelTransport();
                 carriedPilot = null;
                 carriedTransit = -1;
             }
@@ -586,7 +647,7 @@ namespace CurtainCall.HumanCannon
         {
             // RequestRestartAll은 플레이어마다 알린다. 로컬 알림 한 번으로 처리해야 늦은 원격 알림이 재차 잠그지 않는다.
             if (player == null || !player.IsLocal) return;
-            if (carriedPilot != null) { carriedPilot.EndTransport(); carriedPilot = null; }
+            if (carriedPilot != null) { carriedPilot.CancelTransport(); carriedPilot = null; }
             carriedTransit = -1;
             Array.Clear(deliveredArrival, 0, deliveredArrival.Length);
             if (session == null || !session.IsHost)
@@ -603,7 +664,7 @@ namespace CurtainCall.HumanCannon
         {
             ownerFireContacts?.Reset();
             AliveFlyers = ArrivedFlyers = 0;
-            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; transit.RiderReviveVersion = 0; }
+            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; transit.RiderReviveVersion = transit.RiderRestartVersion = 0; transit.HasRiderIdentity = false; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
             for (int i = 0; i < runtime.Length; i++) if (transports[i] != null) transports[i].Present(0);
         }
@@ -611,7 +672,7 @@ namespace CurtainCall.HumanCannon
         public bool ResetPracticeTransport()
         {
             if (cannon == null || !cannon.PracticeMode || session == null || !session.IsHost) return false;
-            if (carriedPilot != null) { carriedPilot.EndTransport(); carriedPilot = null; }
+            if (carriedPilot != null) { carriedPilot.CancelTransport(); carriedPilot = null; }
             carriedTransit = -1;
             ResetRoute(); revision++; Publish();
             return true;
@@ -631,7 +692,7 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Revived -= ReleaseRevivedPassenger;
             if (cannon != null) cannon.StateChanged -= CannonChanged;
             if (session != null) session.ConnectionStateChanged -= Connection;
-            if (carriedPilot != null) carriedPilot.EndTransport();
+            if (carriedPilot != null) carriedPilot.CancelTransport();
             Unregister();
             cannon = null;
             session = null;
