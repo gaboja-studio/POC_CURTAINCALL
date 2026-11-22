@@ -4,3 +4,5 @@
 - 후반 접이교 구간의 등·등기구·전용 받침 67개를 정리하고 거리 조명 목록 3곳에서 삭제된 등 37개의 참조를 제거했다. 도개교 데크, 조작 상태등과 기믹 화염·폭발 조명은 보존했다.
 - 시작 복도의 상류·하류 주철 방류관 안에 조명 영향을 받지 않는 검은 불투명 마감을 넣었다. 충돌체 없이 기존 물줄기를 사용하며, 두 물줄기 상단 메시가 검은 면 앞으로 나오는 것을 편집 모드 수치로 확인했다.
 - 검사: 씬 비교에서 끊긴 참조 0개. Unity EditMode EscapeFinaleFlowTests 14/14 및 저장소 안전성 검사 통과. 사용자 플레이 확인 전.
+
+- 2026-11-22 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/484 (fix/escape-bridge-lights-outfall → dev)
