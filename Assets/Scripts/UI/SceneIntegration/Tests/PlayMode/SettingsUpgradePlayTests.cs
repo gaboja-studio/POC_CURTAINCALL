@@ -218,7 +218,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 double applyDeadline = Time.realtimeSinceStartupAsDouble + 15;
                 while ((bool)Get(owner, "IsOpen") && Time.realtimeSinceStartupAsDouble < applyDeadline) yield return null;
                 Assert.IsFalse((bool)Get(owner, "IsOpen")); Assert.AreEqual(.8f, Static(client.FullName, "Volume")); Assert.AreEqual(1f, Static(client.FullName, "BgmVolume"));
-                Assert.AreEqual(.5f, Get(voice, "MicVolume")); Assert.AreEqual(1f, Get(voice, "TeamVolume")); Assert.IsFalse((bool)Get(voice, "IsMicMuted")); Assert.IsFalse((bool)Get(voice, "IsTeamMuted"));
+                Assert.AreEqual(1f, Get(voice, "MicVolume")); Assert.AreEqual(1f, Get(voice, "TeamVolume")); Assert.IsFalse((bool)Get(voice, "IsMicMuted")); Assert.IsFalse((bool)Get(voice, "IsTeamMuted"));
                 Assert.AreEqual(devicesWereReady, Get(voice, "AreAudioDevicesReady"), "오디오 초기화는 SDK 준비 상태를 유지하며 미초기화 상태에서는 네트워크 초기화를 시작하지 않습니다.");
                 if (devicesWereReady)
                 {

@@ -488,6 +488,20 @@ namespace CurtainCall.WaitingRoom
         {
             if (source == null || !source.HasProperty("_EmissionColor") || !source.HasProperty("_BaseMap") || source.IsKeywordEnabled("_EMISSION")) return source;
             if (selfLit.TryGetValue(source, out var m) && m != null) return m;
+            if (source.IsKeywordEnabled("_ALPHATEST_ON"))
+            {
+                // Use a serialized cutout variant so paper alpha survives player shader stripping.
+                m = new Material(Resources.Load<Material>("Textures/WaitingRoom/Clues/InspectionCutout"))
+                {
+                    name = "CluePaper_" + source.name, hideFlags = HideFlags.DontSave
+                };
+                m.SetTexture("_BaseMap", source.GetTexture("_BaseMap"));
+                m.SetTextureScale("_BaseMap", source.GetTextureScale("_BaseMap"));
+                m.SetTextureOffset("_BaseMap", source.GetTextureOffset("_BaseMap"));
+                m.SetColor("_BaseColor", source.GetColor("_BaseColor"));
+                m.SetFloat("_Cutoff", source.GetFloat("_Cutoff"));
+                return selfLit[source] = m;
+            }
             m = new Material(source) { name = "ClueSelfLit_" + source.name, hideFlags = HideFlags.DontSave };
             m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             if (m.HasProperty("_EmissionMap")) m.SetTexture("_EmissionMap", source.GetTexture("_BaseMap"));

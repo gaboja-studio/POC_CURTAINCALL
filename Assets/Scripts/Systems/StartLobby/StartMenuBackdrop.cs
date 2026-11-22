@@ -73,27 +73,17 @@ namespace CurtainCall.StartLobby
             foreach (Transform child in transform)
                 if (child.name.StartsWith("SM_Prop_Chair_Folding_01", System.StringComparison.Ordinal)) prop = child;
             if (floor == null || prop == null || prop.GetComponent<Rigidbody>() != null) return;
-            var meshes = prop.GetComponentsInChildren<MeshFilter>();
-            if (meshes.Length == 0) return;
+            prop.GetComponentsInChildren<Collider>(chairColliders);
+            if (chairColliders.Count == 0) return;
 
             chairMaterial = new PhysicsMaterial("Start chair friction")
             {
                 dynamicFriction = 0.32f, staticFriction = 0.42f,
                 bounciness = 0.02f, frictionCombine = PhysicsMaterialCombine.Minimum
             };
-            // The scene builder removes prop colliders. Convex hulls support the chair on
-            // its actual feet and allow AddForceAtPosition to produce off-centre torque.
-            foreach (var mesh in meshes)
-            {
-                if (mesh.sharedMesh == null) continue;
-                var collider = mesh.gameObject.AddComponent<MeshCollider>();
-                collider.sharedMesh = mesh.sharedMesh;
-                collider.convex = true;
+            // Use the prefab's authored convex hull. The render mesh is not readable in players.
+            foreach (var collider in chairColliders)
                 collider.sharedMaterial = chairMaterial;
-                chairColliders.Add(collider);
-                ownedComponents.Add(collider);
-            }
-            if (chairColliders.Count == 0) return;
             if (floor.GetComponent<Collider>() == null) ownedComponents.Add(floor.gameObject.AddComponent<BoxCollider>());
             var floorRenderer = floor.GetComponent<Renderer>();
             if (floorRenderer != null)

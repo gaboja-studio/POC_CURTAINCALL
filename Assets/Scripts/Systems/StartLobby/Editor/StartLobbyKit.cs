@@ -103,19 +103,20 @@ namespace CurtainCall.StartLobby.EditorTools
         }
 
         /// <summary>Synty 프리팹을 참조로 놓는다. 원래 콜라이더는 떼고, <paramref name="solid"/>면 겉 크기 상자 콜라이더를 붙인다. 없으면 상자로 대체.</summary>
-        public static GameObject Prop(string path, Transform parent, Vector3 position, float rotationY = 0f, float scale = 1f, bool solid = false, Vector3? fallback = null)
+        public static GameObject Prop(string path, Transform parent, Vector3 position, float rotationY = 0f, float scale = 1f, bool solid = false, Vector3? fallback = null, bool keepPrefabColliders = false)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path + ".prefab");
             if (prefab == null)
             {
                 Debug.LogWarning($"[StartLobby] Synty 프리팹 없음 → 상자로 대체: {Path.GetFileName(path)} (Assets/_ThirdParty를 받았는지 확인)");
                 var size = (fallback ?? Vector3.one) * scale;
-                return Shape(Path.GetFileName(path) + " (대체)", parent, PrimitiveType.Cube, position + Vector3.up * size.y * 0.5f, size, Mat("fallback", new Color(0.4f, 0.32f, 0.26f)), solid, new Vector3(0, rotationY, 0));
+                return Shape(Path.GetFileName(path) + " (대체)", parent, PrimitiveType.Cube, position + Vector3.up * size.y * 0.5f, size, Mat("fallback", new Color(0.4f, 0.32f, 0.26f)), solid || keepPrefabColliders, new Vector3(0, rotationY, 0));
             }
             var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             go.transform.localPosition = position;
             go.transform.localRotation = Quaternion.Euler(0, rotationY, 0);
             go.transform.localScale = Vector3.one * scale;
+            if (keepPrefabColliders) return go;
             foreach (var collider in go.GetComponentsInChildren<Collider>()) Object.DestroyImmediate(collider);
             if (solid) AddBoundsCollider(go);
             return go;

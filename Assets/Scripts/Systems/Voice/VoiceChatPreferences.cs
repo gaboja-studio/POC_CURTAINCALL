@@ -11,11 +11,11 @@ namespace CurtainCall.Voice
         const string MicVolumeKey = "CurtainCall.Voice.MicVolume";
         const string TeamVolumeKey = "CurtainCall.Voice.TeamVolume";
         const string TeamMuteKey = "CurtainCall.Voice.TeamMuted";
-        // 2: 내 마이크 50% = Vivox 기본(0), 100% = +50 증폭(2026-11-19 사용자). 없으면 예전 값(100% = 0)이라 절반으로 옮긴다.
+        // Scale 2 allowed positive gain. Scales 1 and 3 top out at unity.
         const string MicVolumeScaleKey = "CurtainCall.Voice.MicVolumeScale";
-        const int MicVolumeScale = 2;
+        const int MicVolumeScale = 3;
         /// <summary>내 마이크 입력 음량 기본값. 예전 최대(Vivox 기본 0)와 같은 크기다.</summary>
-        public const float DefaultMicVolume = .5f;
+        public const float DefaultMicVolume = 1f;
         public float MicVolume { get; private set; } = DefaultMicVolume;
         public float TeamVolume { get; private set; } = 1f;
         public bool IsTeamMuted { get; private set; }
@@ -47,22 +47,21 @@ namespace CurtainCall.Voice
         {
             if (!PlayerPrefs.HasKey(MicVolumeKey)) return DefaultMicVolume;
             float saved = Mathf.Clamp01(PlayerPrefs.GetFloat(MicVolumeKey, 1));
-            if (PlayerPrefs.GetInt(MicVolumeScaleKey, 1) >= MicVolumeScale) return saved;
-            // 예전 저장값은 같은 크기로 들리도록 새 범위로 옮긴다(예전 100% → 50%).
-            float migrated = MigrateLegacyMicVolume(saved);
+            int scale = PlayerPrefs.GetInt(MicVolumeScaleKey, 1);
+            if (scale >= MicVolumeScale) return saved;
+            float migrated = scale == 2 ? MigrateLegacyMicVolume(saved) : saved;
             PlayerPrefs.SetFloat(MicVolumeKey, migrated);
             PlayerPrefs.SetInt(MicVolumeScaleKey, MicVolumeScale);
             PlayerPrefs.Save();
             return migrated;
         }
 
-        /// <summary>예전 마이크 값(100% = Vivox 0)을 새 범위(50% = Vivox 0)의 같은 크기로 바꾼다.</summary>
-        public static float MigrateLegacyMicVolume(float legacy) => Mathf.Clamp01(legacy) * DefaultMicVolume;
+        // Preserve the old input level up to unity and cap previously boosted settings.
+        public static float MigrateLegacyMicVolume(float saved) => Mathf.Clamp01(saved * 2f);
 
         // 100% is Vivox's unchanged default (0), not its +50 boost. Zero explicitly mutes.
         public static int ToVivoxVolume(float normalized) => Mathf.RoundToInt(Mathf.Lerp(-50, 0, Mathf.Clamp01(normalized)));
-        // 내 마이크만 Vivox 전체 범위를 쓴다: 0% = -50, 50% = 0(기본), 100% = +50(2026-11-19 사용자: 예전 최대가 너무 작음).
-        public static int ToVivoxMicVolume(float normalized) => Mathf.RoundToInt(Mathf.Lerp(-50, 50, Mathf.Clamp01(normalized)));
+        public static int ToVivoxMicVolume(float normalized) => ToVivoxVolume(normalized);
         void ApplyDeviceLevels()
         {
             if (!_vivoxReady) return;
