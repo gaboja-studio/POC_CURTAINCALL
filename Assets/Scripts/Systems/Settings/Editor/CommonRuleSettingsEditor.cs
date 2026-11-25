@@ -14,6 +14,7 @@ namespace CurtainCall.Settings.EditorTools
     [CustomPropertyDrawer(typeof(BaseGameSettings.BodyDamageSettings))]
     [CustomPropertyDrawer(typeof(TightropeSettings.RopeMovementSettings))]
     [CustomPropertyDrawer(typeof(WaitingRoomSettings.TutorialSettings))]
+    [CustomPropertyDrawer(typeof(PoleGrabZone))]
     internal sealed class CommonRuleSettingsDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

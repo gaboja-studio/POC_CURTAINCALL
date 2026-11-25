@@ -53,6 +53,7 @@ namespace CurtainCall.HumanCannon
                 commonRightCable = CaptureCable(rightCable, rightAnchor);
             }
             foreach (var collider in instance.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+            if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null) PoleCountdownView.Prewarm();
             PresentCommonRoot();
         }
 

@@ -147,6 +147,34 @@ namespace CurtainCall.HumanCannon
         public bool CanApproachPole(int index, NetworkPlayer player) => Valid(index) && poles[index].InteractionAvailable
             && CanApproach(player) && FindSeat(player, index) >= 0;
 
+        /// <summary>
+        /// 조작 안내용: 가까이 있지만 아직 잡을 수 없는 목마 전용 높은 봉(맨 위 자리가 빈 것). 없으면 -1.
+        /// 판정·요청에는 쓰지 않는다. 거리는 GameSettings 봉 설정의 '높은 봉 안내 거리'(수평)다.
+        /// </summary>
+        public int FindPiggybackOnlyHint(NetworkPlayer player)
+        {
+            float range = GameSettings.Poles.PiggybackHintDistance;
+            if (player == null || range <= 0f || states == null || player.State != PlayerState.Normal
+                || HeldBy(player.OwnerClientId) >= 0 || !FromGround(player) || FindGrabbable(player) >= 0) return -1;
+            Vector3 feet = player.transform.position;
+            int best = -1;
+            float bestDistance = range * range;
+            for (int i = 0; i < poles.Length; i++)
+            {
+                if (!Valid(i) || !poles[i].PiggybackOnly || !poles[i].InteractionAvailable
+                    || states[i].State.OccupantAt(0) != CannonSeatState.Nobody) continue;
+                Vector3 bar = poles[i].BarPosition(GrabAngle(i));
+                // 봉보다 한참 아래(다른 층)나 봉 위에 있는 사람에게는 안내하지 않는다.
+                float below = bar.y - feet.y;
+                if (below < 0f || below > 10f) continue;
+                Vector3 offset = Vector3.ProjectOnPlane(bar - feet, Vector3.up);
+                if (offset.sqrMagnitude > bestDistance) continue;
+                bestDistance = offset.sqrMagnitude;
+                best = i;
+            }
+            return best;
+        }
+
         public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input)
         {
             var player = NetworkPlayer.Local;

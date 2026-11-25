@@ -26,17 +26,18 @@ namespace CurtainCall.Tightrope
         static readonly float[] DigitX = { -.36f, -.16f, .16f, .36f };
         static readonly int[] DigitDivisors = { 1000, 100, 10, 1 };
 
-        internal static PoleCountdownView Create(Transform parent)
+        internal static PoleCountdownView Create(Transform parent) => Prewarm() ? new PoleCountdownView(parent) : null;
+
+        /// <summary>공용 머티리얼·메시를 준비한다. 봉 외형을 만들 때 미리 불러 첫 탑승 프레임에 셰이더 검색·머티리얼 생성을 하지 않는다(2026-11-26).</summary>
+        internal static bool Prewarm()
         {
-            if (material == null)
-            {
-                var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-                if (shader == null) return null;
-                material = new Material(shader) { hideFlags = HideFlags.DontSave };
-                boxMesh = CreateBoxMesh();
-                tint = new MaterialPropertyBlock();
-            }
-            return new PoleCountdownView(parent);
+            if (material != null) return true;
+            var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+            if (shader == null) return false;
+            material = new Material(shader) { hideFlags = HideFlags.DontSave };
+            boxMesh = CreateBoxMesh();
+            tint = new MaterialPropertyBlock();
+            return true;
         }
 
         PoleCountdownView(Transform parent)

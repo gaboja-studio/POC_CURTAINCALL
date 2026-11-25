@@ -40,7 +40,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
                 PlaceOnRope(course, (int)Get(trapeze, "LaneIndex"), (float)Get(trapeze, "EntryDistance"));
                 yield return null;
-                Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, LocalPlayer), "첫 봉도 공통 거리 안이면 혼자 잡을 수 있다");
+                // 2026-11-26 사용자(Task-204): 높은 첫 봉은 반드시 목마로만 잡는다. 예전 '혼자 잡을 수 있다' 규칙을 대체한다.
+                Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, LocalPlayer), "높은 첫 봉은 혼자서는 잡히지 않는다");
 
                 var network = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
                 var prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");

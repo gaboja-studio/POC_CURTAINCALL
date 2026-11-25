@@ -537,7 +537,7 @@ namespace CurtainCall.Tightrope
             if (!IsGameplayActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsEnding
                 || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || HumanCannonCarry.HasOccupiedHands(climber)
-                || !CanStand(climber) || InWaitingRoom && LeavesStackInWaitingRoom(climber)) return null;
+                || !CanStand(climber) || LeavesStackNow(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             bool sharedCourse = UsesOfficialPlatformRecovery;
             Vector3 origin = sharedCourse ? PlayerInteraction.LatestCenter(climber) : PlayerInteraction.Center(climber);
@@ -546,7 +546,7 @@ namespace CurtainCall.Tightrope
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)
                     || CurtainCall.WaitingRoom.ExpertService.IsTreating(other.OwnerClientId)) continue;
-                if (!CanStand(other) || InWaitingRoom && LeavesStackInWaitingRoom(other)) continue;
+                if (!CanStand(other) || LeavesStackNow(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 if (BlocksNewPassenger(other)) continue;
@@ -821,6 +821,19 @@ namespace CurtainCall.Tightrope
         bool ServerDismountNearby(NetworkPlayer carrier, NetworkPlayer rider)
         {
             if (carrier == null || rider == null || rider.State != PlayerState.Normal || !rider.TryGetComponent(out PlayerMover mover)) return false;
+            var placements = new Dictionary<ulong, Vector3>();
+            if (!TryFindNearbyFloor(carrier, mover, placements, out var feet)) return false;
+            placements[rider.OwnerClientId] = feet;
+            belowOf.Remove(rider.OwnerClientId, out ulong lower);
+            aboveOf.Remove(lower);
+            ServerBroadcast(placements: placements);
+            return true;
+        }
+
+        /// <summary>아래 사람 주변(뒤쪽부터 8방향, 가까운 고리부터)에서 발 높이가 비슷하고 이미 예약되지 않은 빈 바닥.</summary>
+        static bool TryFindNearbyFloor(NetworkPlayer carrier, PlayerMover mover, Dictionary<ulong, Vector3> reserved, out Vector3 feet)
+        {
+            feet = default;
             float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
             float height = Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);
             float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
@@ -834,19 +847,17 @@ namespace CurtainCall.Tightrope
                     // 뒤쪽부터 좌우로 번갈아 본다(앞을 막지 않게).
                     float angle = (i + 1) / 2 * 45f * (i % 2 == 0 ? 1f : -1f);
                     Vector3 candidate = origin + Quaternion.Euler(0f, angle, 0f) * back * (separation + .01f + ring * radius * 1.5f);
-                    if (!Physics.Raycast(candidate + Vector3.up * 1.2f, Vector3.down, out var hit, 2.4f,
+                    if (IsSeatReserved(candidate, separation * separation, reserved)
+                        || !Physics.Raycast(candidate + Vector3.up * 1.2f, Vector3.down, out var hit, 2.4f,
                             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
                         || hit.normal.y < .7f || Mathf.Abs(hit.point.y - origin.y) > .5f
                         || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
-                    Vector3 feet = hit.point + Vector3.up * .035f;
-                    if (Physics.CheckCapsule(feet + Vector3.up * radius, feet + Vector3.up * Mathf.Max(radius, height - radius), radius,
+                    Vector3 position = hit.point + Vector3.up * .035f;
+                    if (Physics.CheckCapsule(position + Vector3.up * radius, position + Vector3.up * Mathf.Max(radius, height - radius), radius,
                             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
-                        || Physics.Linecast(origin + Vector3.up * .6f, feet + Vector3.up * .6f,
+                        || Physics.Linecast(origin + Vector3.up * .6f, position + Vector3.up * .6f,
                             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
-                    var placements = new Dictionary<ulong, Vector3> { [rider.OwnerClientId] = feet };
-                    belowOf.Remove(rider.OwnerClientId, out ulong lower);
-                    aboveOf.Remove(lower);
-                    ServerBroadcast(placements: placements);
+                    feet = position;
                     return true;
                 }
             return false;
@@ -1087,19 +1098,47 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void ServerReleaseWaitingRoomStates()
         {
+            // 2026-11-26: 연습실 자유 연습 외줄이 켜져 있으면 InWaitingRoom이 거짓이라 침대에 누워도 목마가 풀리지 않았다.
+            // 침대·포획은 외줄 위에서 일어나지 않으므로 대기실 씬이면 항상 푼다. 사망은 외줄 연습 중이면 기존 연쇄 추락을 따른다.
             if (belowOf.Count == 0 || !InteractionFocusSettings.Current.Piggyback.releaseOnWaitingRoomStateChange
-                || !InWaitingRoom) return;
+                || !WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene())) return;
             List<NetworkPlayer> leaving = null;
             foreach (var player in NetworkPlayer.All)
-                if (player != null && IsInStack(player.OwnerClientId) && LeavesStackInWaitingRoom(player)) (leaving ??= new List<NetworkPlayer>()).Add(player);
+                if (player != null && IsInStack(player.OwnerClientId) && LeavesStackNow(player)) (leaving ??= new List<NetworkPlayer>()).Add(player);
             if (leaving == null) return;
             // 아래층부터 풀면 위층은 이미 함께 풀려 한 번만 처리된다.
             leaving.Sort((a, b) => GetFloor(a).CompareTo(GetFloor(b)));
-            foreach (var player in leaving) ServerReleaseForRelocation(player.OwnerClientId);
+            foreach (var player in leaving)
+            {
+                if (!IsInStack(player.OwnerClientId)) continue;
+                if (player.State == PlayerState.Normal && player.RestingBed >= 0) ServerReleaseForBed(player);
+                else ServerReleaseForRelocation(player.OwnerClientId);
+            }
         }
 
-        internal static bool LeavesStackInWaitingRoom(NetworkPlayer player) => player.State != PlayerState.Normal
-            || player.RestingBed >= 0 || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player);
+        /// <summary>목마를 유지할 수 없는 상태: 침대에 누움·포획(어느 씬이든), 대기실 바닥에서의 사망.</summary>
+        internal static bool LeavesStackNow(NetworkPlayer player) => player.RestingBed >= 0
+            || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)
+            || InWaitingRoom && player.State != PlayerState.Normal;
+
+        /// <summary>
+        /// 침대에 누운 단원(맨 위·중간·맨 아래)과 그 위 단원을 목마에서 내리고, 내려오는 사람은 맨 아래 단원 주변 바닥에 세운다.
+        /// 누운 자세는 겉모습만 침대로 옮기므로 몸이 남은 자리(머리 위)에서 그대로 떨어지거나 공중에 떠 보이지 않게 한다(2026-11-26).
+        /// 자리가 없으면 분리 순간 위치를 그대로 쓴다(기존 재배치 해제와 같음).
+        /// </summary>
+        void ServerReleaseForBed(NetworkPlayer resting)
+        {
+            ulong actor = resting.OwnerClientId;
+            var carrier = FindPlayer(BottomOf(actor));
+            var first = carrier == resting ? GetAbove(resting) : resting;
+            var placements = new Dictionary<ulong, Vector3>();
+            for (var rider = first; rider != null; rider = GetAbove(rider))
+                placements[rider.OwnerClientId] = carrier != null && rider.TryGetComponent(out PlayerMover mover)
+                    && TryFindNearbyFloor(carrier, mover, placements, out var feet) ? feet : rider.transform.position;
+            if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
+            for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
+            ServerBroadcast(placements: placements);
+        }
 
         /// <summary>성공 집결 전에 각 화면의 목마·손잡기 연결을 해제한다.</summary>
         public void ReleaseForSuccess()

@@ -1,7 +1,40 @@
+using System;
 using UnityEngine;
 
 namespace CurtainCall.Settings
 {
+    /// <summary>
+    /// 봉을 바닥(발판·외줄·목마 위)에서 잡을 때 쓰는 상자 판정 영역. 봉 중심(흔들리는 봉 위치)을 원점으로 하고
+    /// 봉의 수평 방향을 따른다(X=봉 길이 방향, Y=위, Z=앞뒤 흔들림 방향). 단위는 m이며 씬·부모 크기와 무관하다.
+    /// 물리 충돌에는 참여하지 않는 판정 전용 영역이다(2026-11-26 높은 그네 목마 전용 판정).
+    /// </summary>
+    [Serializable]
+    public struct PoleGrabZone
+    {
+        [InspectorName("중심(봉 기준)"), Tooltip("흔들리는 봉 중심에서 상자 중심까지의 위치(m). X=봉 길이 방향, Y=위(음수면 봉 아래), Z=앞뒤 흔들림 방향.")]
+        public Vector3 center;
+        [InspectorName("크기"), Tooltip("상자의 가로(X, 봉 길이 방향)·높이(Y)·깊이(Z, 앞뒤 흔들림 방향) 크기(m). 플레이어 몸 중심이 이 안에 있어야 잡을 수 있다.")]
+        public Vector3 size;
+
+        public PoleGrabZone(Vector3 center, Vector3 size) { this.center = center; this.size = size; }
+
+        /// <summary>그네 공중그네 첫 봉 기준: 목마 위에 선 사람(봉 아래 약 2.2~2.8m)과 목마 도약(봉 아래 약 1~1.6m)을 모두 담는다.</summary>
+        public static PoleGrabZone Default => new(new Vector3(0f, -1.1f, 0f), new Vector3(3f, 4.2f, 4.6f));
+
+        public Vector3 SafeSize => new(Finite(size.x), Finite(size.y), Finite(size.z));
+        static float Finite(float value) => float.IsFinite(value) ? Mathf.Max(.05f, Mathf.Abs(value)) : .05f;
+
+        /// <summary>봉 중심·봉 방향 기준으로 점이 상자 안에 있는지.</summary>
+        /// <param name="reach">팔 부상 등 잡기 거리 배율(0~1). 상자 크기를 같은 비율로 줄인다.</param>
+        public bool Contains(Vector3 bar, Quaternion yaw, Vector3 point, float reach = 1f)
+        {
+            if (!float.IsFinite(point.x) || !float.IsFinite(point.y) || !float.IsFinite(point.z)) return false;
+            Vector3 local = Quaternion.Inverse(yaw) * (point - bar) - center;
+            Vector3 half = SafeSize * (.5f * (float.IsFinite(reach) ? Mathf.Clamp01(reach) : 1f));
+            return Mathf.Abs(local.x) <= half.x && Mathf.Abs(local.y) <= half.y && Mathf.Abs(local.z) <= half.z;
+        }
+    }
+
     /// <summary>모든 씬의 일반 봉·스위치 봉이 함께 사용하는 조작/운동 설정.</summary>
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Pole Settings", fileName = "PoleSettings")]
     public sealed class PoleSettings : ScriptableObject
@@ -53,6 +86,32 @@ namespace CurtainCall.Settings
         [SerializeField] GameObject switchVisual;
         [InspectorName("스위치 봉 너비"), Tooltip("모든 씬의 스위치 봉 가로 길이(m). 기본 1.8m. 봉 길이와 양쪽 줄 사이 간격만 함께 조정하며, 봉 두께·줄 높이·잡기 거리·매달림 위치·반동·도약은 바꾸지 않는다. 씬이나 부모 오브젝트의 크기와 무관하게 적용한다.")]
         [SerializeField, Min(.1f)] float switchBarWidth = 1.8f;
+        [Header("목마 전용 높은 봉 (외줄 공중그네 첫 봉 · 씬 봉의 '목마 전용 높은 봉' 체크)")]
+        [InspectorName("기본 바닥 잡기 영역"), Tooltip("목마 전용 높은 봉을 바닥·목마 위에서 잡을 때 플레이어 몸 중심이 있어야 하는 상자(봉 중심 기준, m). 씬 봉에서 '개별 판정 상자'를 켜면 그 봉의 상자를 대신 쓴다. 공중(대포·봉 비행)에서 잡을 때는 이 상자가 아니라 기존 '봉 직접 잡기 반경'을 쓴다. 기본: 중심 (0, -1.1, 0), 크기 (3, 4.2, 4.6).")]
+        [SerializeField] PoleGrabZone piggybackGrabZone = PoleGrabZone.Default;
+        [InspectorName("목마 탑승자만 바닥에서 잡기"), Tooltip("켜면 목마 전용 높은 봉은 목마 맨 위 사람(또는 목마에서 막 분리 점프한 사람)만 바닥 쪽에서 잡을 수 있다. 혼자 점프·2단 점프로는 잡히지 않는다. 끄면 위 상자 판정만 쓴다. 공중 비행 중 잡기와 매달린 동료 잡기에는 영향이 없다. 기본 켬.")]
+        [SerializeField] bool piggybackOnlyRequiresStack = true;
+        [InspectorName("높은 봉 안내 거리"), Tooltip("목마 전용 높은 봉의 중심에서 이 수평 거리(m) 안에 있지만 아직 잡을 수 없을 때 화면 왼쪽 아래에 목마 사용법을 안내한다. 0이면 안내하지 않는다. 기본 6m.")]
+        [SerializeField, Min(0f)] float piggybackHintDistance = 6f;
+        [InspectorName("안내 · 혼자일 때"), Tooltip("목마를 타지 않은 단원에게 보이는 제목. F/Space/W/S는 현재 키로 바뀐다.")]
+        [SerializeField] string soloHintTitle = "높은 그네";
+        [InspectorName("안내 · 혼자일 때 설명"), TextArea(1, 3)]
+        [SerializeField] string soloHintBody = "높은 그네는 목마를 통해 잡을 수 있어요";
+        [InspectorName("안내 · 목마 위 사람"), Tooltip("목마 맨 위 단원에게 보이는 제목.")]
+        [SerializeField] string topHintTitle = "목마 위에서 그네 잡기";
+        [InspectorName("안내 · 목마 위 사람 설명"), TextArea(1, 3)]
+        [SerializeField] string topHintBody = "그네 바로 아래로 이동해 F로 잡기 · 닿지 않으면 W+Space로 뛰어오른 뒤 공중에서 F";
+        [InspectorName("안내 · 목마 아래 사람"), Tooltip("위에 동료를 태운 단원에게 보이는 제목.")]
+        [SerializeField] string carrierHintTitle = "위 동료를 그네 아래로 데려가기";
+        [InspectorName("안내 · 목마 아래 사람 설명"), TextArea(1, 3)]
+        [SerializeField] string carrierHintBody = "동료가 그네를 잡으면 목마가 풀립니다 · 매달린 동료 가까이에서 F로 동료를 잡아 함께 매달리기";
+
+        public PoleGrabZone PiggybackGrabZone => piggybackGrabZone;
+        public bool PiggybackOnlyRequiresStack => piggybackOnlyRequiresStack;
+        public float PiggybackHintDistance => float.IsFinite(piggybackHintDistance) ? Mathf.Max(0f, piggybackHintDistance) : 0f;
+        public string SoloHintTitle => soloHintTitle; public string SoloHintBody => soloHintBody;
+        public string TopHintTitle => topHintTitle; public string TopHintBody => topHintBody;
+        public string CarrierHintTitle => carrierHintTitle; public string CarrierHintBody => carrierHintBody;
 
         public int Capacity => Mathf.Clamp(capacity, 1, 4);
         public bool TopRiderOnlySwing => topRiderOnlySwing;

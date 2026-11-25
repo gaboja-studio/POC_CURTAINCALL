@@ -1754,7 +1754,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f730e22f6361d1e41a61bd57104bc74d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.StartLobby.LobbyReadyBoard
-  reach: 1.8
   rows:
   - {fileID: 594004954}
   - {fileID: 511718971}
@@ -1905,6 +1904,15 @@ MonoBehaviour:
   guide: {fileID: 871715878}
   banner: {fileID: 1006522234}
   toast: {fileID: 1670535914}
+  openingTitle: "\uB9C9\uC774 \uC624\uB985\uB2C8\uB2E4"
+  generationTitle: "\uC0C8 \uC138\uB300\uAC00 \uBB34\uB300\uC5D0 \uC12D\uB2C8\uB2E4"
+  endingTitle: "\uCEE4\uD2BC \uCF5C!"
+  openingBody: "\uCCAB \uACF5\uC5F0\uC744 \uC900\uBE44\uD558\uC138\uC694"
+  endingBody: "\uD0C8\uCD9C\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4."
+  readyTitle: "\uCD9C\uC5F0 \uBA85\uB2E8 \uC11C\uBA85"
+  signGuide: "\uCD9C\uC5F0 \uBA85\uB2E8\uC5D0 \uB2E4\uAC00\uAC00 \uC11C\uBA85\uD558\uC138\uC694"
+  signedGuide: "\uC11C\uBA85 \uC644\uB8CC \xB7 \uBC29\uC7A5\uC774 \uCEE4\uD2BC \uB808\uBC84\uB85C
+    \uC2DC\uC791\uD569\uB2C8\uB2E4"
 --- !u!1 &504035684
 GameObject:
   m_ObjectHideFlags: 0
@@ -7202,6 +7210,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1374088106}
   - component: {fileID: 1374088107}
+  - component: {fileID: 1374088108}
   m_Layer: 0
   m_Name: Bound Front
   m_TagString: Untagged
@@ -7218,7 +7227,7 @@ Transform:
   m_GameObject: {fileID: 1374088105}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: -1.5}
+  m_LocalPosition: {x: 0, y: 19.5, z: -1.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7243,8 +7252,20 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 11, y: 4, z: 0.6}
+  m_Size: {x: 11, y: 40, z: 0.6}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1374088108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374088105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dfd3f8cf566431e81fffb68bf41ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.InteractionPassThrough
 --- !u!1 &1402513114
 GameObject:
   m_ObjectHideFlags: 0
@@ -8115,6 +8136,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1541349384}
   - component: {fileID: 1541349385}
+  - component: {fileID: 1541349386}
   m_Layer: 0
   m_Name: Bound Left
   m_TagString: Untagged
@@ -8131,7 +8153,7 @@ Transform:
   m_GameObject: {fileID: 1541349383}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.4, y: 1.5, z: 3}
+  m_LocalPosition: {x: -5.4, y: 19.5, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8156,8 +8178,20 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.6, y: 4, z: 9}
+  m_Size: {x: 0.6, y: 40, z: 9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1541349386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541349383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dfd3f8cf566431e81fffb68bf41ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.InteractionPassThrough
 --- !u!1 &1566487978
 GameObject:
   m_ObjectHideFlags: 0
@@ -9304,6 +9338,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1771656789}
   - component: {fileID: 1771656790}
+  - component: {fileID: 1771656791}
   m_Layer: 0
   m_Name: Bound Back
   m_TagString: Untagged
@@ -9320,7 +9355,7 @@ Transform:
   m_GameObject: {fileID: 1771656788}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: 7.7}
+  m_LocalPosition: {x: 0, y: 19.5, z: 7.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9345,8 +9380,20 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 11, y: 4, z: 0.6}
+  m_Size: {x: 11, y: 40, z: 0.6}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1771656791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1771656788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dfd3f8cf566431e81fffb68bf41ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.InteractionPassThrough
 --- !u!1 &1792587408
 GameObject:
   m_ObjectHideFlags: 0
@@ -11146,7 +11193,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd18208fa5c185148925c91a1a094491, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.StartLobby.LobbyCurtainLever
-  reach: 1.8
   board: {fileID: 337457179}
   handle: {fileID: 263294781}
   pulledAngle: 50
@@ -11489,6 +11535,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2141291468}
   - component: {fileID: 2141291469}
+  - component: {fileID: 2141291470}
   m_Layer: 0
   m_Name: Bound Right
   m_TagString: Untagged
@@ -11505,7 +11552,7 @@ Transform:
   m_GameObject: {fileID: 2141291467}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.4, y: 1.5, z: 3}
+  m_LocalPosition: {x: 5.4, y: 19.5, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11530,8 +11577,20 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.6, y: 4, z: 9}
+  m_Size: {x: 0.6, y: 40, z: 9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2141291470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2141291467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dfd3f8cf566431e81fffb68bf41ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.InteractionPassThrough
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
