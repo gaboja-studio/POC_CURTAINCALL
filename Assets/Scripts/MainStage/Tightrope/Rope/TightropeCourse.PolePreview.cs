@@ -42,10 +42,39 @@ namespace CurtainCall.Tightrope
                 {
                     bool last = i == TrapezePerformancePoles.Length - 1;
                     DrawPole(TrapezeRestingFeet(TrapezePerformancePoles[i]) + Vector3.up * 1.5f, last ? Color.green : Color.cyan,
-                        i == 0 ? "1 · 가까이서 F 잡기" : last ? $"{i + 1} · 낮은 복귀 봉" : $"{i + 1} · 동료 몸 잡고 교대");
+                        i == 0 ? "1 · 목마로만 F 잡기" : last ? $"{i + 1} · 낮은 복귀 봉" : $"{i + 1} · 동료 몸 잡고 교대");
+                    if (TrapezePerformancePoles[i] == 0) DrawPiggybackZone(TrapezeRestingFeet(0) + Vector3.up * CurtainCall.Settings.GameSettings.Poles.HangLength);
                 }
 #endif
         }
+
+#if UNITY_EDITOR
+        /// <summary>런타임에 생기는 높은 출발 봉의 바닥 잡기 상자(GameSettings › 봉 설정 › 기본 바닥 잡기 영역)와 기준 높이.</summary>
+        void DrawPiggybackZone(Vector3 bar)
+        {
+            var zone = CurtainCall.Settings.GameSettings.Poles.PiggybackGrabZone;
+            var yaw = Quaternion.LookRotation(Forward, Vector3.up);
+            var previous = Gizmos.matrix;
+            Gizmos.color = new Color(1f, .82f, .2f, 1f);
+            Gizmos.matrix = Matrix4x4.TRS(bar, yaw, Vector3.one);
+            Gizmos.DrawWireCube(zone.center, zone.SafeSize);
+            Gizmos.matrix = previous;
+            float rope = bar.y - CurtainCall.Settings.GameSettings.Poles.HangLength - 3.5f;
+            void Reach(float height, string label)
+            {
+                bool inside = CurtainCall.HumanCannon.PoleReachReference.Reaches(zone, bar, yaw, rope, height);
+                Vector3 point = bar + yaw * new Vector3(zone.center.x, 0f, zone.center.z);
+                point.y = rope + height;
+                Gizmos.color = inside ? new Color(.35f, 1f, .45f) : new Color(1f, .35f, .3f);
+                Gizmos.DrawLine(point - Right * .6f, point + Right * .6f);
+                UnityEditor.Handles.Label(point + Right * .6f, $"{label} · {(inside ? "닿음" : "안 닿음")}");
+            }
+            Reach(CurtainCall.HumanCannon.PoleReachReference.SoloJump, "혼자 점프");
+            Reach(CurtainCall.HumanCannon.PoleReachReference.PiggybackStand, "목마 위");
+            Reach(CurtainCall.HumanCannon.PoleReachReference.PiggybackJump, "목마 점프");
+            UnityEditor.Handles.Label(bar + Vector3.up * (zone.center.y + zone.SafeSize.y * .5f + .3f), "목마 전용 판정 상자 · 봉 설정에서 조절");
+        }
+#endif
 
 #if UNITY_EDITOR
         void DrawPole(Vector3 grip, Color color, string label)

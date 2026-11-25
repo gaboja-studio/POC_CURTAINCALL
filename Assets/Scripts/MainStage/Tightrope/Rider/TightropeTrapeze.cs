@@ -84,6 +84,8 @@ namespace CurtainCall.Tightrope
                     feet -= Vector3.up * GameSettings.WaitingRoom.Tutorial.FirstTrapezeLowering;
                 poles[i].Physics.transform.SetPositionAndRotation(feet + Vector3.up * GameSettings.Poles.HangLength,
                     Quaternion.LookRotation(course.Forward));
+                // 높은 출발 봉(줄 위 발 3.5m)은 목마로만 잡는다(2026-11-26). 낮은 연습 봉·복귀 봉은 일반 봉이다.
+                poles[i].Physics.PiggybackOnly = !practiceLowPoles && RestingSlot(i) == 0;
             }
         }
         void Update()

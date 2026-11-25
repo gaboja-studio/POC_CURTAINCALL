@@ -160,15 +160,32 @@ namespace CurtainCall.HumanCannon
             return closest;
         }
 
+        /// <summary>대포·봉 비행 중이 아닌 잡기. 목마 전용 높은 봉은 이때만 판정 상자·목마 조건을 쓴다.</summary>
+        static bool FromGround(NetworkPlayer player) => player != null
+            && (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsFlying(player.OwnerClientId));
+
+        /// <summary>
+        /// 목마 전용 높은 봉의 바닥 잡기 자격(2026-11-26 사용자: 높은 그네는 반드시 목마로만).
+        /// 목마 맨 위 사람이거나 목마에서 막 분리 점프한 사람만 허용한다. 혼자 점프·2단 점프는 높이와 관계없이 거부한다.
+        /// </summary>
+        internal static bool PiggybackGrabAllowed(NetworkPlayer player)
+        {
+            if (!GameSettings.Poles.PiggybackOnlyRequiresStack) return true;
+            var stack = PiggybackSystem.Current;
+            return stack != null && stack.CanEnterTrapeze(player);
+        }
+
         int FindSeat(NetworkPlayer player, int index, double observedElapsed = -1d)
         {
             var state = states[index].State;
             if (player == null || !state.HasFreeSeat) return -1;
             int closest = -1;
             float distance = float.PositiveInfinity;
+            bool fromGround = FromGround(player);
             for (int seat = 0; seat < state.Capacity; seat++)
             {
                 if (seat > 0 && state.OccupantAt(seat - 1) == CannonSeatState.Nobody) continue;
+                if (seat == 0 && fromGround && poles[index].PiggybackOnly && !PiggybackGrabAllowed(player)) continue;
                 if (state.OccupantAt(seat) != CannonSeatState.Nobody
                     || !poles[index].IsSeatInReach(player, GrabAngle(index), seat, observedElapsed)) continue;
                 float candidate = (poles[index].GrabPoint(GrabAngle(index), seat) - PlayerInteraction.LatestCenter(player)).sqrMagnitude;

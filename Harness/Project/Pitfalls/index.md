@@ -1,4 +1,5 @@
 # Project Pitfalls
+- [camera-occlusion-moving-mesh.md](camera-occlusion-moving-mesh.md) — 그네 탑승·빠른 카메라 이동 때 프레임 드랍·GC 급증(움직이는 메시 매 프레임 재생성)을 확인할 때
 - [tightrope-burn-surface.md](tightrope-burn-surface.md) — 외줄 소각 중 경고가 끝나기 전에 줄이 통째로 사라지거나 재질이 그대로일 때
 - [Pursuit/](Pursuit/index.md) — 난간 벽 지지·환풍구 링크 갱신·플레이어 동작과 팔다리 봉합을 수정할 때
 - [escape-remake-parent-scale.md](escape-remake-parent-scale.md) — 탈출로 복사 씬에 새 경로·바닥·추격자 출구를 만들 때 부모 스케일과 절단 잔여물을 검사한다

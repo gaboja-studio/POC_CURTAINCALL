@@ -124,6 +124,7 @@ namespace CurtainCall.Cameras
         {
             refreshSceneAt = float.NegativeInfinity;
             meshChecks.Clear();
+            CameraMeshCollision.ClearSharedCache();
             foregroundOccluders.Clear();
             ClearForegroundFades();
         }
@@ -412,8 +413,8 @@ namespace CurtainCall.Cameras
             if (!meshChecks.TryGetValue(renderer, out var check)) meshChecks[renderer] = check = new CameraMeshCollision();
             Vector3 segment = target - origin;
             float distance = segment.magnitude;
-            if (!check.Intersect(filter.sharedMesh, renderer.localToWorldMatrix, origin, segment / distance, radius, distance, out float meshHit)
-                || meshHit >= distance) { hit = float.PositiveInfinity; return false; }
+            if (!check.Intersect(filter.sharedMesh, renderer.localToWorldMatrix, origin, segment / distance, radius, distance, out float meshHit,
+                    deferrable: true) || meshHit >= distance) { hit = float.PositiveInfinity; return false; }
             hit = meshHit;
             return true;
         }

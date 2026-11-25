@@ -13,6 +13,13 @@ namespace CurtainCall.HumanCannon
         [Header("반동 — Grip은 중립점, 천장 앵커는 회전 중심")]
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [SerializeField, Min(.1f)] float warningSeconds = 2f;
+        [Header("목마 전용 높은 봉 — 바닥에서 잡는 판정 (공중 비행 잡기는 기존 반경 유지)")]
+        [SerializeField, InspectorName("목마 전용 높은 봉"), Tooltip("켜면 바닥·발판·목마 위에서 이 봉을 잡을 때 아래 판정 상자를 쓰고, GameSettings 봉 설정의 '목마 탑승자만 바닥에서 잡기'가 켜져 있으면 목마 맨 위 사람(또는 목마에서 막 도약한 사람)만 잡을 수 있다. 대포·봉 비행 중 공중에서 잡기와 매달린 동료 잡기는 기존 반경 그대로다. 씬 뷰에서 노란 상자로 보인다.")]
+        bool piggybackOnly;
+        [SerializeField, InspectorName("개별 판정 상자 사용"), Tooltip("끄면 GameSettings › 봉 설정의 '기본 바닥 잡기 영역'을 쓴다. 켜면 아래 상자를 이 봉에만 쓴다. 씬 뷰 상자 핸들로 크기를 조절할 수 있다.")]
+        bool customGrabZone;
+        [SerializeField, InspectorName("개별 판정 상자")]
+        PoleGrabZone grabZone = PoleGrabZone.Default;
         HumanCannonPoleLoop loop;
         bool loopSearched;
 
@@ -33,6 +40,14 @@ namespace CurtainCall.HumanCannon
         public HumanCannonSawGate LinkedGate => linkedGate;
         public bool InteractionAvailable { get; set; } = true;
         public bool IsSwitch { get; set; }
+        /// <summary>바닥에서 잡을 때 판정 상자와 목마 조건을 쓰는 높은 봉. 런타임 생성 봉(외줄 공중그네 첫 봉)은 코드가 켠다.</summary>
+        public bool PiggybackOnly { get => piggybackOnly; set => piggybackOnly = value; }
+        public bool UsesCustomGrabZone => customGrabZone;
+        public PoleGrabZone GroundGrabZone => customGrabZone ? grabZone : Rules.PiggybackGrabZone;
+        /// <summary>봉의 수평 방향(판정 상자 회전). 부모 기울기·크기와 무관하다.</summary>
+        public Quaternion ZoneRotation => Forward.sqrMagnitude > .0001f ? Quaternion.LookRotation(Forward, Vector3.up) : Quaternion.identity;
+        /// <summary>바닥 잡기 판정: 몸 중심이 흔들리는 봉을 따라가는 상자 안에 있는가.</summary>
+        public bool GroundZoneContains(Vector3 center, float angle, float reach = 1f) => GroundGrabZone.Contains(BarPosition(angle), ZoneRotation, center, reach);
         static PoleSettings Rules => GameSettings.Poles;
         public float HoldSeconds => Rules.HoldSeconds;
         public float WarningSeconds => warningSeconds;
@@ -147,20 +162,32 @@ namespace CurtainCall.HumanCannon
             return PlayerInteraction.InRange(player, target, GrabRadius(player), transform, ignoreRope: true);
         }
 
+        /// <summary>
+        /// 자리 잡기 거리. 목마 전용 높은 봉의 맨 위 자리를 대포·봉 비행이 아닌 상태(바닥·발판·외줄·목마 위·일반 점프)에서
+        /// 잡을 때는 판정 상자를 쓰고, 그 밖은 기존 구 판정이다.
+        /// </summary>
         internal bool IsSeatInReach(NetworkPlayer player, float angle, int seat, double observedElapsed = -1d)
         {
+            bool fromGround = player != null && (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.IsFlying(player.OwnerClientId));
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || seat < 0 || seat >= RiderCapacity) return false;
             var route = Loop;
             if (route != null && !route.IsSynchronized) return false;
             RefreshMovingPose();
             Vector3 target = GrabPoint(angle, seat);
+            Vector3 zoneOffset = Vector3.zero;
             if (observedElapsed >= 0d)
             {
                 if (route == null || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
                     || route.Elapsed - observedElapsed > .35d) return false;
-                target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
+                Vector3 moved = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
+                zoneOffset = moved - target;
+                target = moved;
             }
-            return PlayerInteraction.InRangeFrom(player, PlayerInteraction.LatestCenter(player), target,
+            Vector3 center = PlayerInteraction.LatestCenter(player);
+            if (seat == 0 && fromGround && piggybackOnly)
+                return GroundZoneContains(center - zoneOffset, angle, ReachOf(player))
+                    && PlayerInteraction.ClearPathFrom(center, target, transform, player, ignoreRope: true);
+            return PlayerInteraction.InRangeFrom(player, center, target,
                 GrabRadius(player, passenger: seat > 0), transform, ignoreRope: true);
         }
 
@@ -177,10 +204,22 @@ namespace CurtainCall.HumanCannon
             return PlayerInteraction.InRange(player, target, GrabRadius(player), transform, ignoreRope: true);
         }
 
-        static float GrabRadius(NetworkPlayer player, bool passenger = false)
+#if UNITY_EDITOR
+        // 선택하지 않아도 목마 전용 봉의 판정 상자를 보이게 한다. 선택하면 HumanCannonPoleEditor가 핸들을 그린다.
+        void OnDrawGizmos()
         {
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return (passenger ? Rules.PassengerGrabRadius : Rules.GrabRadius) * Mathf.Clamp01(reach);
+            if (!piggybackOnly) return;
+            var zone = GroundGrabZone;
+            var previous = Gizmos.matrix;
+            Gizmos.color = new Color(1f, .82f, .2f, .55f);
+            Gizmos.matrix = Matrix4x4.TRS(BarPosition(0f), ZoneRotation, Vector3.one);
+            Gizmos.DrawWireCube(zone.center, zone.SafeSize);
+            Gizmos.matrix = previous;
         }
+#endif
+
+        static float ReachOf(NetworkPlayer player) => player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
+        static float GrabRadius(NetworkPlayer player, bool passenger = false)
+            => (passenger ? Rules.PassengerGrabRadius : Rules.GrabRadius) * Mathf.Clamp01(ReachOf(player));
     }
 }

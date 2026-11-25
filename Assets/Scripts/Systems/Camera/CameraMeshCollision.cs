@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CurtainCall.Cameras
 {
     /// <summary>Camera-only, two-sided swept sphere against a static decorative mesh.
     /// World-space triangles preserve openings and support non-uniform/negative scale.
-    /// No physics colliders, mesh copies, or per-frame allocations.</summary>
+    /// No physics colliders and no per-frame allocations: the mesh data is read once per mesh,
+    /// and a moving renderer (swing bar, spotlight beam) re-transforms the same triangle array in place.
+    /// 2026-11-26 그네 탑승 프레임 드랍: 움직이는 메시를 매 프레임 새 배열로 다시 만들고(프레임당 수백 KB 할당),
+    /// 카메라가 흔들리며 처음 보는 대형 메시(3만 삼각형 이상)를 한 프레임에 몰아서 만들던 비용을 줄인다.</summary>
     internal sealed class CameraMeshCollision
     {
         struct Triangle
@@ -13,17 +17,38 @@ namespace CurtainCall.Cameras
             public Bounds Bounds;
         }
 
+        sealed class LocalMesh
+        {
+            public Vector3[] Vertices;
+            public int[] Indices;
+            public int VertexCount;
+            public Bounds Bounds;
+            // 코스 재생성처럼 같은 Mesh 객체의 내용을 다시 채운 경우를 할당 없이 알아챈다.
+            public bool Matches(Mesh mesh) => mesh.vertexCount == VertexCount && mesh.bounds == Bounds;
+        }
+
+        /// <summary>한 프레임에 월드 좌표로 바꾸는 삼각형 수 상한. 넘으면 다음 프레임에 만든다.
+        /// 가림 표시는 원래 35ms 확인 지연을 거치므로 1~2프레임 늦게 판정해도 화면 차이가 없다.</summary>
+        internal const int TriangleBudgetPerFrame = 24000;
+        static readonly Dictionary<Mesh, LocalMesh> localMeshes = new();
+        static int budgetFrame = -1, budgetUsed;
+
         Mesh cachedMesh;
         Matrix4x4 cachedMatrix;
         Triangle[] triangles;
         Bounds bounds;
+        bool built;
 
+        /// <summary>씬이 바뀌면 메시별 원본 캐시를 비운다(파괴된 런타임 메시를 붙잡지 않는다).</summary>
+        internal static void ClearSharedCache() => localMeshes.Clear();
+
+        /// <param name="deferrable">가림 표시처럼 한두 프레임 늦어도 되는 검사만 true. 카메라 벽 충돌은 항상 즉시 계산한다.</param>
         public bool Intersect(Mesh mesh, Matrix4x4 matrix, Vector3 origin, Vector3 direction,
-            float radius, float maximum, out float distance)
+            float radius, float maximum, out float distance, bool deferrable = false)
         {
             distance = maximum;
             if (mesh == null || !mesh.isReadable || direction.sqrMagnitude < .000001f) return false;
-            if (triangles == null || cachedMesh != mesh || cachedMatrix != matrix) Build(mesh, matrix);
+            if ((!built || cachedMesh != mesh || cachedMatrix != matrix) && !TryBuild(mesh, matrix, deferrable)) return false;
             direction.Normalize();
             var ray = new Ray(origin, direction);
             if (!MayHit(bounds, ray, radius, distance)) return false;
@@ -54,20 +79,40 @@ namespace CurtainCall.Cameras
             return found;
         }
 
-        void Build(Mesh mesh, Matrix4x4 matrix)
+        /// <summary>이번 프레임 예산 안이면 월드 삼각형을 만든다. 첫 메시는 크기와 관계없이 허용해 항상 진행한다.</summary>
+        bool TryBuild(Mesh mesh, Matrix4x4 matrix, bool deferrable)
         {
-            var vertices = mesh.vertices;
-            for (int i = 0; i < vertices.Length; i++) vertices[i] = matrix.MultiplyPoint3x4(vertices[i]);
-            var indices = mesh.triangles;
-            triangles = new Triangle[indices.Length / 3];
-            bounds = new Bounds(matrix.MultiplyPoint3x4(mesh.bounds.center), Vector3.zero);
-            for (int i = 0; i < triangles.Length; i++) {
-                var a = vertices[indices[i * 3]]; var b = vertices[indices[i * 3 + 1]]; var c = vertices[indices[i * 3 + 2]];
+            var local = Local(mesh);
+            int count = local.Indices.Length / 3;
+            if (budgetFrame != Time.frameCount) { budgetFrame = Time.frameCount; budgetUsed = 0; }
+            if (deferrable && budgetUsed > 0 && budgetUsed + count > TriangleBudgetPerFrame) return false;
+            budgetUsed += Mathf.Max(1, count);
+            Build(local, count, matrix);
+            cachedMesh = mesh; cachedMatrix = matrix; built = true;
+            return true;
+        }
+
+        static LocalMesh Local(Mesh mesh)
+        {
+            if (localMeshes.TryGetValue(mesh, out var local) && local.Matches(mesh)) return local;
+            local = new LocalMesh { Vertices = mesh.vertices, Indices = mesh.triangles, VertexCount = mesh.vertexCount, Bounds = mesh.bounds };
+            localMeshes[mesh] = local;
+            return local;
+        }
+
+        void Build(LocalMesh local, int count, Matrix4x4 matrix)
+        {
+            if (triangles == null || triangles.Length != count) triangles = new Triangle[count];
+            var vertices = local.Vertices; var indices = local.Indices;
+            bounds = new Bounds(matrix.MultiplyPoint3x4(count > 0 ? vertices[indices[0]] : Vector3.zero), Vector3.zero);
+            for (int i = 0; i < count; i++) {
+                var a = matrix.MultiplyPoint3x4(vertices[indices[i * 3]]);
+                var b = matrix.MultiplyPoint3x4(vertices[indices[i * 3 + 1]]);
+                var c = matrix.MultiplyPoint3x4(vertices[indices[i * 3 + 2]]);
                 var box = new Bounds(a, Vector3.zero); box.Encapsulate(b); box.Encapsulate(c);
                 triangles[i] = new Triangle { A = a, B = b, C = c, Normal = Vector3.Cross(b - a, c - a).normalized, Bounds = box };
                 bounds.Encapsulate(box);
             }
-            cachedMesh = mesh; cachedMatrix = matrix;
         }
 
         static bool MayHit(Bounds box, Ray ray, float radius, float maximum)

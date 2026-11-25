@@ -75,7 +75,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Physics.SyncTransforms();
             var pilot = player.GetComponent(GameType("CurtainCall.HumanCannon.HumanCannonPilot"));
             Assert.IsNotNull(pilot);
-            Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, player), "첫 봉도 공통 거리 안이면 목마 없이 잡는다.");
+            // 2026-11-26 사용자(Task-204): 높은 첫 봉은 반드시 목마로만 잡는다. 공통 잡기·비행 흐름은 낮은 복귀 봉으로 검사한다.
+            Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, player), "높은 첫 봉은 목마 없이 잡히지 않는다.");
+            point = (Vector3)Call(trapeze, "PoleFeet", 1, false);
+            Call(mover, "SetStartPose", point, course.transform.rotation, true);
+            Physics.SyncTransforms();
+            Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 1, player), "낮은 봉은 공통 거리 안이면 목마 없이 잡는다.");
             Assert.IsTrue((bool)Call(pilot, "TryRequestNearbyPole"));
             yield return Until(() => (bool)Call(trapeze, "IsHeld", player), 2, "공통 봉 잡기");
             int shared = (int)Call(common, "HeldBy", (ulong)Get(player, "OwnerClientId"));

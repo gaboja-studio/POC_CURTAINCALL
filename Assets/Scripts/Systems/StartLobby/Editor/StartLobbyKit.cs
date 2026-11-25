@@ -94,12 +94,15 @@ namespace CurtainCall.StartLobby.EditorTools
         }
 
         /// <summary>보이지 않는 벽·바닥(콜라이더만).</summary>
-        public static void Blocker(string name, Transform parent, Vector3 center, Vector3 size)
+        public static GameObject Blocker(string name, Transform parent, Vector3 center, Vector3 size)
         {
             var go = new GameObject(name, typeof(BoxCollider));
             go.transform.SetParent(parent, false);
             go.transform.localPosition = center;
             go.GetComponent<BoxCollider>().size = size;
+            // 이동만 막는다. 카메라→안내 대상 시야(CommonInteractionUI)를 가리지 않는다.
+            go.AddComponent<CurtainCall.Player.InteractionPassThrough>();
+            return go;
         }
 
         /// <summary>Synty 프리팹을 참조로 놓는다. 원래 콜라이더는 떼고, <paramref name="solid"/>면 겉 크기 상자 콜라이더를 붙인다. 없으면 상자로 대체.</summary>

@@ -30,9 +30,17 @@ namespace CurtainCall.Network.PlayerSync
         float reportedPeak;
         bool fallTeleportPending;
         Vector3 fallTeleportDestination;
+        // 2026-11-26 사용자: 목마에서 해제해 떨어지는 것은 부상 규칙의 예외. 목마 위에 있던 높이(맨 아래 단원 발 기준)를
+        // 이번 낙하 구간에서 빼고 판정한다. 4인 목마 맨 위(발 약 4.5m)가 내려와도 같은 바닥이면 다치지 않는다.
+        // 구덩이로 떨어진 실제 낙차와 연쇄 추락(아래 단원 추락)은 기존 규칙대로다(PrepareNaturalFall이 지운다).
+        float stackFallCredit;
+        /// <summary>현재 낙하 구간에서 부상 판정 높이에서 빼는 목마 높이(m). 0이면 일반 낙하.</summary>
+        public float StackFallCredit => stackFallCredit;
+        float DamagePeak(float peak) => peak - stackFallCredit;
 
         public void ResetFallTracking()
         {
+            stackFallCredit = 0f;
             fallPeak = transform.position.y;
             reportedPeak = fallPeak;
             ownerPeakSequence = 0; ownerFallPeak = fallPeak;
@@ -119,6 +127,15 @@ namespace CurtainCall.Network.PlayerSync
             return true;
         }
 
+        /// <summary>목마 위에 서 있으면 맨 아래 단원 발부터 내 발까지의 높이. 목마가 아니면 0.</summary>
+        float StackDismountCredit()
+        {
+            var stack = PiggybackSystem.Current;
+            if (stack == null || stack.GetSupportingPlayer(this) == null) return 0f;
+            var carrier = stack.GetCarrier(this);
+            return carrier != null && carrier != this ? Mathf.Max(0f, transform.position.y - carrier.transform.position.y) : 0f;
+        }
+
         bool HeldAboveGround() => IsBeingRescued || restingBed.Value >= 0
             || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(OwnerClientId) >= 0
             || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsSeated(OwnerClientId)
@@ -139,7 +156,14 @@ namespace CurtainCall.Network.PlayerSync
                 || EscapeSceneTransfer.HoldingForDeparture || EscapeDevelopmentSession.AwaitingEntrance)
             { ResetFallTracking(); return; }
             if (CheckWorldDeath()) return;
-            if (HeldAboveGround()) { ResetFallTracking(); return; }
+            if (HeldAboveGround())
+            {
+                // 목마 위에서는 매 프레임 구간을 새로 시작하되, 해제 직후 낙하에 쓸 목마 높이는 남긴다.
+                float credit = StackDismountCredit();
+                ResetFallTracking();
+                stackFallCredit = credit;
+                return;
+            }
 
             Vector3 feet = transform.position;
             bool flying = HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(OwnerClientId);
@@ -155,7 +179,7 @@ namespace CurtainCall.Network.PlayerSync
                 fallAirborne = true;
                 fallPeak = Mathf.Max(fallPeak, feet.y);
                 if (IsOwner && !IsServer && fallPeak > reportedPeak + .1f)
-                { reportedPeak = fallPeak; ReportFallPeakRpc(fallPeak, RestartVersion, reviveCount.Value, fallSequence + 1u); }
+                { reportedPeak = fallPeak; ReportFallPeakRpc(DamagePeak(fallPeak), RestartVersion, reviveCount.Value, fallSequence + 1u); }
                 return;
             }
             if (!fallAirborne)
@@ -223,6 +247,9 @@ namespace CurtainCall.Network.PlayerSync
         {
             fallSequence++;
             landingPending = true;
+            // 목마 해제 구간은 목마 높이를 뺀 높이로 보고한다. 착지점보다 낮게 보내면 호스트가 거부하므로 착지 높이로 제한한다.
+            peak = Mathf.Max(feet.y, DamagePeak(peak));
+            stackFallCredit = 0f;
             pendingLandingPeak = peak; pendingLandingFeet = feet;
             // The host owner does not send peak RPCs to itself. Preserve its measured segment before
             // starting the next one, so the server's upper-bound check still accepts a real high fall.
@@ -296,7 +323,7 @@ namespace CurtainCall.Network.PlayerSync
 
         static bool FiniteFallPoint(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
 
-        public float FallHeightAt(Vector3 feet) => Mathf.Max(0f, (fallTracking ? fallPeak : transform.position.y) - feet.y);
+        public float FallHeightAt(Vector3 feet) => Mathf.Max(0f, (fallTracking ? DamagePeak(fallPeak) : transform.position.y) - feet.y);
 
         /// <summary>모든 착지의 피해/장비 순서. 반동이 성공하면 착지 종료와 피해를 실행하지 않는다.</summary>
         public bool CompleteFall(float height, Vector3 feet, Func<bool> rebound = null, Action land = null)

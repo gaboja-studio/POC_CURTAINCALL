@@ -57,6 +57,13 @@ namespace CurtainCall.UI.SceneIntegration
             public bool Legacy, LowGuide;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
+        // 2026-11-26 그네 탑승 프레임 드랍: 첫 장치 안내(봉 잡기·도약)를 띄우는 프레임에 배치 부품을 만들던 비용(TMP 배열·글리프 준비)을 씬 시작으로 옮긴다.
+        NotificationTextLayout EnsurePromptLayout()
+        {
+            if (prompt == null) return null;
+            var layout = prompt.GetComponent<NotificationTextLayout>();
+            return layout != null ? layout : prompt.gameObject.AddComponent<NotificationTextLayout>();
+        }
         void Awake()
         {
             var shader = Resources.Load<Shader>("TightropeOutline");
@@ -82,6 +89,7 @@ namespace CurtainCall.UI.SceneIntegration
             InputSystem.onActionChange += BindingChanged;
             InputSystem.onDeviceChange += DeviceChanged;
             Refresh();
+            if (Application.isPlaying) EnsurePromptLayout();
         }
         void BindingChanged(object _, InputActionChange change)
         {
@@ -145,6 +153,7 @@ namespace CurtainCall.UI.SceneIntegration
             for (int i = legacyFrom; i < candidates.Count; i++) candidates[i].Legacy = true;
             AddEscapeCooperativeButton(feet);
             AddCannon(feet);
+            AddPiggybackOnlyPoleHint(feet);
             AddPiggyback(feet);
             // 2026-11-16 상호작용 고도화: 플레이어 상호작용 거리 안 대상은 얇게, F 대상(공통 선택)은 강조한다. 기준점은 선택 순서만 정한다.
             SyncOutlineMaterials();
@@ -245,8 +254,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
             bool presented = HudUIManager.ShowInteraction(actionLabel, prompt, key, availability, focused.Hold, progress, helper);
             SetKeyBadgeVisible(!focused.NoKey);
-            var layout = prompt.GetComponent<NotificationTextLayout>();
-            if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
+            var layout = EnsurePromptLayout();
             string deviceText = key + actionLabel + helper;
             if (cannonOrPole && deviceText != warmedDeviceText && TryGetComponent(out UiRuntimeFontFallback fonts))
             {
@@ -495,6 +503,26 @@ namespace CurtainCall.UI.SceneIntegration
                 candidates[candidates.Count - 1].Pole = true;
             }
         }
+        /// <summary>
+        /// 2026-11-26 사용자: 높은 그네(목마 전용)의 조작법을 모른다. 가까이 있지만 아직 잡을 수 없으면
+        /// 혼자/목마 위/목마 아래 상태에 맞는 순서를 화면 아래 안내로 보여 준다. 다른 안내·선택 대상보다 뒤(LowGuide)다.
+        /// 문구는 GameSettings › 봉 설정(PoleSettings)에서 고친다.
+        /// </summary>
+        void AddPiggybackOnlyPoleHint(Vector3 feet)
+        {
+            var player = NetworkPlayer.Local;
+            var poles = HumanCannonPoleSystem.Current;
+            if (player == null || poles == null || player.State != PlayerState.Normal || poles.FindPiggybackOnlyHint(player) < 0) return;
+            var stack = PiggybackSystem.Current;
+            bool carrier = stack != null && stack.GetAbove(player) != null;
+            bool top = !carrier && stack != null && stack.GetBelow(player) != null;
+            var rules = GameSettings.Poles;
+            candidates.Add(new Candidate { Root = player.transform, Point = feet, Key = "F",
+                Action = carrier ? rules.CarrierHintTitle : top ? rules.TopHintTitle : rules.SoloHintTitle,
+                Helper = carrier ? rules.CarrierHintBody : top ? rules.TopHintBody : rules.SoloHintBody,
+                Available = false, Focused = true, ScreenGuide = true, LowGuide = true });
+        }
+
         static bool UsingTightropeDevice(NetworkPlayer player) =>
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
             || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
@@ -606,13 +634,17 @@ namespace CurtainCall.UI.SceneIntegration
                             && CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.IsHelperPole(pole);
                         int crewCapacity = Mathf.Min(pole != null ? pole.RiderCapacity : 1,
                             Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
-                        string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
+                        // 2026-11-26: 이미 매달린 동료 아래에 매달리는 경우를 봉 잡기와 구분해 알려 준다.
+                        bool teammate = poles.GrabTeammate(i, player) != CannonSeatState.Nobody;
+                        string label = relay ? "연결 장치 봉 잡기" : teammate
+                            ? $"매달린 동료 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : pole.RiderCapacity > 1
                             ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
                         Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
                             poles.InteractionPoint(i, player), label, true, false, feet);
                         candidates[candidates.Count - 1].Pole = true;
                         candidates[candidates.Count - 1].Device = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
+                        else if (teammate) candidates[candidates.Count - 1].Helper = "F로 동료 몸을 잡아 아래에 매달립니다 · 위 사람이 W/S로 흔들고 Space로 각자 도약";
                         else if (pole.RiderCapacity > 1) candidates[candidates.Count - 1].Helper = "W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다";
                         if (i == focused) AddHangingTeammate(poles.GrabTeammate(i, player), feet);
                     }
@@ -677,6 +709,8 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 var hit = hits[i].transform;
                 if (hit.IsChildOf(target.Root) || hit.IsChildOf(local)) continue;
+                // 이동만 막는 보이지 않는 벽(로비 경계 등)은 안내·외곽선 시야를 가리지 않는다.
+                if (hits[i].collider.TryGetComponent<InteractionPassThrough>(out _)) continue;
                 return false;
             }
             return true;

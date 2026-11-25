@@ -25,6 +25,8 @@ namespace CurtainCall.StartLobby.EditorTools
         const string LobbyPath = Folder + "/Lobby.unity";
         const string SettingsPath = "Assets/Resources/Settings/GameSettings/BaseGameSettings.asset";
         const string Lobby = "Lobby";
+        /// <summary>로비 보이지 않는 벽 높이(m). 4인 목마(발 약 4.5m)+목마 점프·소품 위 목마로도 넘지 못하는 높이.</summary>
+        const float BoundHeight = 40f;
 
         [MenuItem("Tools/CurtainCall/Build Start·Lobby Scenes")]
         public static void BuildAll()
@@ -220,11 +222,12 @@ namespace CurtainCall.StartLobby.EditorTools
             Stripes(env, 5.15f, tent, cream);
             Rope(env, gold, velvet);
 
-            // 보이지 않는 벽(맵 밖으로 못 나감)
-            Blocker("Bound Left", env, new Vector3(-5.4f, 1.5f, 3f), new Vector3(0.6f, 4f, 9f));
-            Blocker("Bound Right", env, new Vector3(5.4f, 1.5f, 3f), new Vector3(0.6f, 4f, 9f));
-            Blocker("Bound Back", env, new Vector3(0, 1.5f, 7.7f), new Vector3(11f, 4f, 0.6f));
-            Blocker("Bound Front", env, new Vector3(0, 1.5f, -1.5f), new Vector3(11f, 4f, 0.6f));
+            // 보이지 않는 벽(맵 밖으로 못 나감). 2026-11-26: 4인 목마+점프·상자 위 목마로 벽 위를 넘지 못하게 바닥 아래 0.5m부터 높이 BoundHeight까지 막는다.
+            float boundY = BoundHeight * .5f - .5f;
+            Blocker("Bound Left", env, new Vector3(-5.4f, boundY, 3f), new Vector3(0.6f, BoundHeight, 9f));
+            Blocker("Bound Right", env, new Vector3(5.4f, boundY, 3f), new Vector3(0.6f, BoundHeight, 9f));
+            Blocker("Bound Back", env, new Vector3(0, boundY, 7.7f), new Vector3(11f, BoundHeight, 0.6f));
+            Blocker("Bound Front", env, new Vector3(0, boundY, -1.5f), new Vector3(11f, BoundHeight, 0.6f));
 
             // 소품
             Prop(GenericProps + "SM_Gen_Prop_Barrel_Wood_01", env, new Vector3(-4.4f, 0, 6.4f), 20f, 1f, true, new Vector3(0.7f, 1f, 0.7f));
