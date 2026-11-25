@@ -33,5 +33,6 @@
 - 공중그네 첫 봉 '매달린 동료 잡기' 표시는 보조 설명 줄 없이 나옴(왼쪽 첫날 안내 카드가 설명).
 - 사용자 요청: 혼자일 때 높은 그네 안내를 제목 '높은 그네' / 내용 '높은 그네는 목마를 통해 잡을 수 있어요'로 줄임(PoleSettings 기본값·에셋). Confluence v8에서 1-0a 캡처·1-1 영상만 교체.
 - 제출 전 origin/dev 확인: 새 커밋 없음(합칠 것 없음). Play 부산물 에셋 3개·_ThirdParty는 커밋 제외.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/488 (dev, Squash). new-pr.ps1은 제외한 부산물 에셋 때문에 멈춰 같은 제목·본문 형식으로 gh 직접 등록.
 
 - 2026-11-26 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
