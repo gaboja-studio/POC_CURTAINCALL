@@ -41,3 +41,4 @@
   - 확인: 외줄 씬 합성 동료 3명(앞 매달림·뒤 낙하 부상·옆 절단) 녹화. 합성 동료는 외줄 참가자가 아니라 피해 허용 검사에 막혀 확인 중에만 검사를 끄고 바로 복원.
   - 검사: 가장자리 배치 EditMode 4/4, SilhouetteOutline 4/4, check-work PASS. `TightropeInjuryFeedbackTests` 4개 실패는 기존 문제(테스트가 PlayerInteraction 없이 읽음, 11-12 이후 변경 없음).
 - Confluence M3 v14: '위험한 동료 찾기 방식' 펼치기 안에 '구현 결과'(영상 1·이미지 3) 추가. Atlassian 연결이 세션에서 빠져 Chrome에서 Confluence REST v2(ADF)로 해당 펼치기만 수정·확인.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/489 (dev, 지정 팀원 검토 대기). new-pr.ps1는 커밋 제외한 에디터 부산물 3개 때문에 멈춰 gh로 같은 형식 등록.

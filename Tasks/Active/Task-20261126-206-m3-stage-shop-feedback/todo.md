@@ -15,4 +15,4 @@
 - [x] Confluence M3 4·5절 펼치기에 결과 기록(v11, 캡처·영상 8 + 위험한 동료 찾기 목업 3)
 - [x] check-work 1회, 관련 테스트 결과 기록
 - [x] push: 서브모듈 private main d7d109d9 + 포인터 갱신
-- [ ] PR(dev) — 요청 시
+- [x] PR(dev) #489 — 검토 대기
