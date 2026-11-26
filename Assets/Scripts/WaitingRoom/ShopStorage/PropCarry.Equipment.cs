@@ -45,16 +45,31 @@ namespace CurtainCall.WaitingRoom
         static bool WaitingRoomScene => CurtainCall.Campaign.CampaignRun.Instance?.State.Phase is not (CurtainCall.Campaign.CampaignPhase.Escape or CurtainCall.Campaign.CampaignPhase.Performance)
             && CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
-        /// <summary>발 위치 기준 공연 기물 장소. 대기실이면 지역명 "연습실" 구역만 연습으로 허용한다.</summary>
+        // 2026-11-26 M3 피드백: 런 성공 뒤 로비(시작 씬)로 돌아가면 대기실 밖이라 공연 기물이 그대로 발동됐다.
+        // 시작 씬(Hub)이 떠 있고 공연·대기실·탈출로 같은 공간 씬이 없으면 막는다. 장소 지정이 없는 개발 확인 씬은 그대로 둔다.
+        internal static bool HubScene
+        {
+            get
+            {
+                var settings = CurtainCall.Settings.GameSettings.Base.SpaceTransition;
+                var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                if (!CurtainCall.SpaceLink.SpaceRoute.TryFind(active.name, settings, out var space) || space != CurtainCall.SpaceLink.SpaceId.Hub)
+                    return false;
+                var director = CurtainCall.SpaceLink.SpaceLinkDirector.Instance;
+                return director == null || director.Current == CurtainCall.SpaceLink.SpaceId.Hub;
+            }
+        }
+
+        /// <summary>발 위치 기준 공연 기물 장소. 대기실이면 지역명 "연습실" 구역만 연습으로 허용한다. 로비(시작 씬)에서는 쓸 수 없다.</summary>
         public static EquipmentPlace PlaceAt(Vector3 feet) =>
-            !WaitingRoomScene ? EquipmentPlace.Normal
+            !WaitingRoomScene ? (HubScene ? EquipmentPlace.Blocked : EquipmentPlace.Normal)
                 : CurtainCall.Campaign.CampaignRun.RehearsalPendingOrActive || ExplorationTimerZones.IsPracticeRoom(feet)
                     ? EquipmentPlace.Practice : EquipmentPlace.Blocked;
 
         /// <summary>이 플레이어가 지금 공연 기물을 쓰는 장소. 대기실에서 캐릭터를 못 찾으면 막는다.</summary>
         public static EquipmentPlace PlaceOf(ulong player)
         {
-            if (!WaitingRoomScene) return EquipmentPlace.Normal;
+            if (!WaitingRoomScene) return HubScene ? EquipmentPlace.Blocked : EquipmentPlace.Normal;
             var body = FindBody(player);
             return body != null ? PlaceAt(body.position) : EquipmentPlace.Blocked;
         }

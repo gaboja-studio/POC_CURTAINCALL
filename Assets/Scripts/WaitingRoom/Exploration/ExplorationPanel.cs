@@ -84,13 +84,15 @@ namespace CurtainCall.WaitingRoom
         }
         /// <summary>
         /// 관리실 컴퓨터(대기실 최종본, 2026-11-12 사용자): 과거 공연 준비자가 해킹해 급히 만든 프로그램처럼 보이는 화면.
-        /// 위 칸은 숫자, 아래 칸은 글자(최대 8자). 둘을 "숫자\n글자"로 묶어 한 번에 판정을 요청한다.
-        /// 틀리면 붉은 Error를 띄우고 입력을 모두 지운다. 꾸밈 없는 판·단색 버튼만 쓴다.
+        /// 2026-11-26 사용자: 암호 두 개(날짜·암구호)를 각각 따로 입력하고 저장한다(<see cref="TerminalEntry"/>, 단말기가 보관해 닫아도 유지).
+        /// 입력란은 정답 글자 수만큼 칸만 보이고, 두 칸 모두 자판의 모든 글자를 받는다. 위·아래 방향키나 클릭으로 입력란을 바꾼다.
+        /// 칸을 다 채우면 그 칸만 확인해 맞으면 줄을 긋고 다음 칸으로, 틀리면 붉은 Error 뒤 그 칸만 비운다. 둘 다 맞으면 판정을 요청한다.
+        /// 꾸밈 없는 판·단색 버튼만 쓴다.
         /// </summary>
-        public void OpenTerminal(string heading, int digits, Action<string> onSubmit, Action onClose)
+        public void OpenTerminal(string heading, TerminalEntry state, Action<string> onSubmit, Action onClose)
         {
             if (canvasRoot != null) Destroy(canvasRoot);
-            submit = onSubmit; close = onClose; entered = ""; word = ""; codeLength = Mathf.Max(1, digits); terminal = true;
+            submit = onSubmit; close = onClose; entered = ""; word = ""; entry = state; terminal = true;
             canvasRoot = new GameObject("ExplorationPanelCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasRoot.transform.SetParent(transform, false);
             var canvas = canvasRoot.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 360;
@@ -107,7 +109,9 @@ namespace CurtainCall.WaitingRoom
             Place((RectTransform)Box(screen, "Rule", TerminalGreen), 28, -58, w - 56, 2);
             codeLabel = Line("Code", "", -84, 34, TerminalGreen);
             wordLabel = Line("Word", "", -140, 34, TerminalGreen);
-            message = Line("Message", "", -198, 30, TerminalRed);
+            // 입력란을 눌러 고른다.
+            Clickable(codeLabel, 0); Clickable(wordLabel, 1);
+            message = Line("Message", "", -198, 26, TerminalGreen);
             // 자판: 숫자 한 줄 + 글자 세 줄. 일부러 줄마다 조금씩 어긋나게 놓는다.
             const float key = 72, gap = 8;
             string[] rows = { "1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM" };
@@ -119,12 +123,11 @@ namespace CurtainCall.WaitingRoom
                     Key(screen, "Key" + ch, ch, font, indent[r] + c * (key + gap), -262 - r * (56 + gap), key, 56, () => PressKey(ch));
                 }
             // 한 글자 지우기(2026-11-15 사용자: 모두 지우기만 있었다). 셋째 줄 끝, 모두 지우기 바로 위.
-            typed = "";
             Key(screen, "Back", WaitingRoomText.Get("gate.terminal-back", "DEL"), font, 789, -262 - 2 * (56 + gap), 83, 56, Backspace);
             Key(screen, "Clear", WaitingRoomText.Get("gate.terminal-clear", "CLR"), font, 700, -262 - 3 * (56 + gap), 172, 56, ClearCode);
             Key(screen, "Submit", WaitingRoomText.Get("gate.terminal-submit", "ENTER"), font, 28, -h + 76, 300, 56, SubmitCode);
             Key(screen, "Close", WaitingRoomText.Get("gate.terminal-close", "EXIT"), font, w - 228, -h + 76, 200, 56, () => close?.Invoke());
-            RefreshCode();
+            RefreshCode(); ShowHelp();
             // 실제 키보드로도 친다(2026-11-16 버그 리포트). 창을 연 키 입력은 다음 프레임부터 무시한다.
             typingFrom = Time.frameCount + 1; ListenKeyboard(true);
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
@@ -141,14 +144,15 @@ namespace CurtainCall.WaitingRoom
         void OnTextInput(char c)
         {
             if (!Typing || Time.frameCount < typingFrom) return;
-            if (c >= '0' && c <= '9') PressDigit(c.ToString());
-            else if (char.IsLetter(c) && c < 128) PressKey(char.ToUpperInvariant(c).ToString());
+            if (c < 128 && char.IsLetterOrDigit(c)) PressKey(char.ToUpperInvariant(c).ToString());
         }
         void Update()
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             if (!Typing || keyboard == null || Time.frameCount < typingFrom) return;
-            if (keyboard.backspaceKey.wasPressedThisFrame) Backspace();
+            if (keyboard.upArrowKey.wasPressedThisFrame) SelectField(entry.Active - 1);
+            else if (keyboard.downArrowKey.wasPressedThisFrame) SelectField(entry.Active + 1);
+            else if (keyboard.backspaceKey.wasPressedThisFrame) Backspace();
             else if (keyboard.deleteKey.wasPressedThisFrame) ClearCode();
             else if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame) SubmitCode();
         }
@@ -185,47 +189,93 @@ namespace CurtainCall.WaitingRoom
         }
         /// <summary>영상 화면의 상태 문구만 바꾼다(문이 열리는 순간 갱신).</summary>
         public void SetFeedStatus(string text) { if (message != null && message.text != text) message.text = text; }
-        /// <summary>단말기 자판. 숫자는 위 칸, 글자는 아래 칸으로 들어간다.</summary>
+        TerminalEntry entry;
+        /// <summary>단말기 입력 상태(테스트·연출 확인용).</summary>
+        public TerminalEntry Terminal => terminal ? entry : null;
+
+        /// <summary>자판 한 글자. 단말기는 지금 입력란에 모든 글자(숫자·영문)를 넣고, 숫자 자판은 숫자만 받는다.</summary>
         public void PressKey(string key)
         {
             if (key == null || key.Length != 1) return;
-            if (key[0] >= '0' && key[0] <= '9') PressDigit(key);
-            else if (terminal && key[0] >= 'A' && key[0] <= 'Z' && word.Length < MaxWord) { word += key; typed += 'w'; SetMessage(""); RefreshCode(); }
+            if (!terminal || entry == null) { if (key[0] >= '0' && key[0] <= '9') PressDigit(key); return; }
+            Report(entry.Type(key[0]));
         }
         public void PressDigit(string digit)
         {
+            if (terminal) { PressKey(digit); return; }
             if (digit == null || digit.Length != 1 || digit[0] < '0' || digit[0] > '9' || entered.Length >= codeLength) return;
-            entered += digit; typed += 'd'; if (terminal) SetMessage(""); RefreshCode();
+            entered += digit; RefreshCode();
         }
-        public void ClearCode() { entered = ""; word = ""; typed = ""; RefreshCode(); }
-        // 마지막에 누른 한 글자를 지운다(숫자 칸·글자 칸 중 마지막으로 친 쪽).
-        string typed = "";
+        /// <summary>단말기: 지금 입력란만 비운다(맞힌 칸은 그대로). 판정 화면이 거절하면 <see cref="ResetTerminal"/>.</summary>
+        public void ClearCode()
+        {
+            if (terminal && entry != null) entry.ClearActive(); else { entered = ""; word = ""; }
+            RefreshCode();
+        }
+        public void ResetTerminal() { entry?.Reset(); RefreshCode(); }
         public void Backspace()
         {
-            bool wordLast = typed.Length > 0 ? typed[typed.Length - 1] == 'w' : word.Length > 0;
-            if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1);
-            if (wordLast && word.Length > 0) word = word.Substring(0, word.Length - 1);
+            if (terminal && entry != null) { entry.Backspace(); ShowHelp(); }
             else if (entered.Length > 0) entered = entered.Substring(0, entered.Length - 1);
-            else if (word.Length > 0) word = word.Substring(0, word.Length - 1);
             RefreshCode();
+        }
+        public void SelectField(int index)
+        {
+            if (!terminal || entry == null) return;
+            entry.Select(Mathf.Clamp(index, 0, TerminalEntry.Count - 1));
+            ShowHelp(); RefreshCode();
         }
         public void SubmitCode()
         {
             if (!terminal) { if (ExplorationPuzzleRules.IsFourDigits(entered)) submit?.Invoke(entered); return; }
-            // 덜 채운 입력은 판정 화면에 묻지 않고 바로 틀린 것으로 처리한다.
-            if (entered.Length != codeLength || word.Length == 0) { SetMessage(ExplorationState.WrongCode); ClearCode(); return; }
-            submit?.Invoke(entered + "\n" + word);
+            if (entry == null) return;
+            if (entry.AllSolved) { submit?.Invoke(entry.Combined); return; }
+            Report(entry.Check());
+        }
+        void Report(TerminalCheck result)
+        {
+            if (result == TerminalCheck.Wrong) SetMessage(ExplorationState.WrongCode);
+            else if (result == TerminalCheck.Incomplete || result == TerminalCheck.Correct) ShowHelp();
+            RefreshCode();
+            // 두 암호를 모두 맞히면 기존 판정 요청으로 문을 연다.
+            if (result == TerminalCheck.Correct && entry.AllSolved) submit?.Invoke(entry.Combined);
+        }
+        void ShowHelp()
+        {
+            if (message == null || !terminal) return;
+            message.color = TerminalGreen;
+            message.text = WaitingRoomText.Get("gate.terminal-help", "암호 2개 · ↑↓ 또는 클릭으로 입력란 선택");
+        }
+        void Clickable(TMP_Text row, int index)
+        {
+            row.raycastTarget = true;
+            var button = row.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.onClick.AddListener(() => SelectField(index));
+        }
+        string Row(int index, string label)
+        {
+            string value = entry.Value(index);
+            string slots = "<mspace=.62em>[" + (entry.IsSolved(index) ? "<s>" + value + "</s>" : value.PadRight(entry.Length(index), '_')) + "]</mspace>";
+            return (entry.Active == index && !entry.IsSolved(index) ? "> " : "  ") + label + " " + slots + (entry.IsSolved(index) ? "  OK" : "");
         }
         void RefreshCode()
         {
             if (codeLabel == null) return;
             if (!terminal) { codeLabel.text = entered.PadRight(4, '_'); return; }
-            codeLabel.text = "> " + WaitingRoomText.Get("gate.terminal-code", "DATE") + " <mspace=.62em>[" + entered.PadRight(codeLength, '_') + "]</mspace>";
-            if (wordLabel != null) wordLabel.text = "> " + WaitingRoomText.Get("gate.terminal-word", "CMD") + "  <mspace=.62em>[" + word.PadRight(MaxWord, '_') + "]</mspace>";
+            if (entry == null) return;
+            codeLabel.text = Row(0, WaitingRoomText.Get("gate.terminal-code", "DATE"));
+            codeLabel.alpha = entry.IsSolved(0) ? .6f : 1f;
+            if (wordLabel != null)
+            {
+                wordLabel.text = Row(1, WaitingRoomText.Get("gate.terminal-word", "CMD") + " ");
+                wordLabel.alpha = entry.IsSolved(1) ? .6f : 1f;
+            }
         }
         public void SetMessage(string text)
         {
             if (message == null) return;
+            if (terminal) message.color = string.IsNullOrEmpty(text) ? TerminalGreen : TerminalRed;
             message.text = terminal && text == ExplorationState.WrongCode ? WaitingRoomText.Get("gate.terminal-error", "Error") : text;
         }
         public void Hide() { ListenKeyboard(false); if (canvasRoot != null) canvasRoot.SetActive(false); submit = null; close = null; }

@@ -184,6 +184,9 @@ namespace CurtainCall.WaitingRoom
             bool carrier = course.Trampoline.Carrier == id;
             if (course.Cannon.FindBoardableStation(local) >= 0 || course.Cannon.IsSeated(id))
                 QueueGuide("cannon", "인간대포 발사하기", "인간대포 앞에서 {interact}를 눌러 탑승합니다. 다시 {interact}를 누르면 대포가 발사됩니다. 발사 후에는 트램펄린에 착지해야 합니다.");
+            // 2026-11-26 M3 피드백: 대포에서 내리는 방법(해제) 안내가 없었다. 탑승하면 발사 안내 다음에 이어서 보여 준다.
+            if (course.Cannon.IsSeated(id))
+                QueueGuide("cannon-exit", "대포에서 내리기", "탑승한 채 {interact}를 길게 누르면 발사하지 않고 대포에서 내립니다. 짧게 누르면 발사합니다.");
             if (shared.middle.Contains(id) && Vector3.Distance(local.transform.position, course.Trampoline.transform.position) < 4f)
                 QueueGuide("trampoline", "트램펄린 이용하기", "트램펄린 앞에서 {interact}를 눌러 트램펄린을 잡습니다. 트램펄린 이용자는 대포로 발사되는 다른 공연 준비자를 안전하게 받아줘야 합니다.");
             if (carrier)

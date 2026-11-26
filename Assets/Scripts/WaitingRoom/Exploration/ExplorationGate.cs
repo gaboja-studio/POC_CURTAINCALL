@@ -254,6 +254,27 @@ namespace CurtainCall.WaitingRoom
         }
         public bool MatchesPassword(string value) => !passwordPending && (IsTerminal ? value == password + "\n" + terminalWord
             : ExplorationPuzzleRules.IsFourDigits(password) && value == password);
+        /// <summary>단말기 암호 하나(0 = 날짜, 1 = 암구호)만 맞는지. 화면에서 칸을 다 채울 때 줄을 긋는 데 쓴다. 문 열기는 여전히 판정 화면이 정한다.</summary>
+        public bool MatchesTerminalPart(int index, string value) => IsTerminal && !passwordPending
+            && string.Equals(value, index == 0 ? password : terminalWord, System.StringComparison.OrdinalIgnoreCase);
+
+        // 2026-11-26 사용자: 단말기 입력은 닫아도 남는다(내 화면 기준, 런이 바뀌면 처음부터).
+        TerminalEntry terminalEntry;
+        int terminalEntryGeneration = -1;
+        internal TerminalEntry TerminalState
+        {
+            get
+            {
+                int generation = CurtainCall.Campaign.CampaignRun.Instance != null ? CurtainCall.Campaign.CampaignRun.Instance.State.Generation : 0;
+                if (terminalEntry == null || terminalEntryGeneration != generation
+                    || terminalEntry.Length(0) != Mathf.Max(1, password.Length) || terminalEntry.Length(1) != Mathf.Max(1, terminalWord.Length))
+                {
+                    terminalEntry = new TerminalEntry(password.Length, terminalWord.Length, MatchesTerminalPart);
+                    terminalEntryGeneration = generation;
+                }
+                return terminalEntry;
+            }
+        }
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= (kind == ExplorationGateKind.Breakable ? requiredHits : 1);
         public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
             : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
@@ -282,7 +303,7 @@ namespace CurtainCall.WaitingRoom
                 // 조작법은 오버뷰·TV와 같은 방식으로 설명 아래 한 줄 띄우고 적는다(2026-11-17 사용자: 감시 화면에 조작법 누락).
                 if (look) panelView.Open(Label, (string.IsNullOrEmpty(MonitorText) ? "" : MonitorText + "\n\n") + "<color=#B8B29C>"
                     + WaitingRoomText.Get("gate.monitor-help", "ESC·F·마우스 우클릭: 나가기") + "</color>", false, null, ClosePanel, true);
-                else if (IsTerminal) panelView.OpenTerminal(Label, password.Length, value => {
+                else if (IsTerminal) panelView.OpenTerminal(Label, TerminalState, value => {
                     if (!PanelOwnerCanUse) { ClosePanel(); return; }
                     ExplorationState.Instance?.RequestCode(targetId, value);
                 }, ClosePanel);
@@ -354,7 +375,12 @@ namespace CurtainCall.WaitingRoom
         {
             if (!panel || panelView == null) return;
             panelView.SetMessage(text); lastPanelMessage = text;
-            if (text == ExplorationState.WrongCode) { Play(ref buzz, "KeypadWrong", .45f, 180f, true); panelView.ClearCode(); }
+            if (text == ExplorationState.WrongCode)
+            {
+                Play(ref buzz, "KeypadWrong", .45f, 180f, true);
+                // 단말기는 칸별로 맞힌 뒤 보내므로, 판정 화면이 거절하면(암호가 바뀐 경우 등) 처음부터 다시 입력한다.
+                if (IsTerminal) panelView.ResetTerminal(); else panelView.ClearCode();
+            }
         }
         const float FeedTextSeconds = 3f;
         bool feedHidden; float feedShownAt, closedAt = -10f;

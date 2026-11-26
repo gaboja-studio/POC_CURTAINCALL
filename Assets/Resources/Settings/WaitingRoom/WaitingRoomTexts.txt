@@ -77,6 +77,7 @@ gate.terminal-title | door_override.bat
 gate.terminal-code | DATE
 gate.terminal-word | CMD
 gate.terminal-error | Error
+gate.terminal-help | 암호 2개 · ↑↓ 또는 클릭으로 입력란 선택
 gate.terminal-clear | CLR
 gate.terminal-back | DEL
 gate.terminal-submit | ENTER
@@ -740,7 +741,7 @@ target.final:post-it.name | 떨어진 포스트잇
 target.final:post-it.desc | 바닥에 떨어진 포스트잇 낱장. 짧은 메모가 적혀 있다.
 gate.socket-insert | {label} — {tool} 꽂기
 gate.socket-remove | {label} — {tool} 빼기
-explore.socket-in | {tool:을} 꽂았습니다.
+explore.socket-in | {tool:을} 꽂았습니다. 다시 F를 누르면 빼서 다른 곳에 쓸 수 있습니다.
 explore.socket-out | {tool:을} 뺐습니다.
 # 누군가 기물을 처음 습득해 상점에 추가될 때(모든 화면, 2026-11-18). {items} = 추가된 기물 이름
 shop.items-added.title | 상점에 기물 추가
@@ -785,6 +786,39 @@ guide.practice.title | 연습실
 guide.practice.body | 연습실에서 자유롭게 공연을 연습할 수 있습니다.
 guide.pursuer.title | 추격자
 guide.pursuer.body | 시간이 지나면 추격자가 나타납니다. 추격자를 피해 공연장까지 가야 합니다.
+# M3 피드백 가이드(2026-11-26). F·Space·W/S는 실제 키 이름으로 바뀝니다. {item} = 장치 이름, {use} = 장치 사용 키
+guide.pole-holder.title | 그네 조작
+guide.pole-holder.body | 그네를 잡은 사람이 W/S로 직접 반동을 줍니다 · Space로 흔들리는 방향으로 도약 · F 길게 눌러 그네 놓기
+guide.pole-hanger.title | 동료에게 매달리기
+guide.pole-hanger.body | 반동은 그네를 잡은 위 동료가 W/S로 줍니다 · 아래에서는 반동을 줄 수 없어요 · Space로 도약 · F 길게 눌러 놓기
+guide.pole-hanger-shared.body | W/S로 함께 반동을 줄 수 있어요 · Space로 도약 · F 길게 눌러 놓기
+guide.saw-fire.title | {item} 사용법
+guide.saw-fire.body | 갖다 대는 게 아니라 쏘는 장치입니다. 목표를 조준하고 {use}로 톱날을 발사하세요.
+cannon-rehearsal.guide.cannon-exit.title | 대포에서 내리기
+cannon-rehearsal.guide.cannon-exit.body | 탑승한 채 {interact}를 길게 누르면 발사하지 않고 대포에서 내립니다. 짧게 누르면 발사합니다.
+# 기물을 처음 얻을 때 가운데 배너(런마다 기물별 1회). 최대 4줄: 위 = 설명(guide.item.<ID>), 아래 = 조작법(guide.item.<ID>.controls, 항목은 | 로 나눔, 회색으로 표시).
+# {item} = 기물 이름, {key} = 그 칸의 공연 기물 사용 키. 배너가 사라지면 왼쪽에 기존 설명이 이어집니다.
+guide.item.title | {item} 획득
+guide.item.magician-hairpin | 잠긴 상자·캐비닛의 자물쇠를 땁니다.
+guide.item.magician-hairpin.controls | 손에 들고 F: 자물쇠 따기
+guide.item.stake-puller | 나무 상자를 뜯어 열고, 약한 벽을 부숩니다.
+guide.item.stake-puller.controls | 손에 들고 F: 뜯기·부수기
+guide.item.uv-lamp | 비추면 숨겨진 낙서가 드러납니다.
+guide.item.uv-lamp.controls | 우클릭 누르는 동안: 비추기
+guide.item.power-battery | 동력 소켓에 꽂으면 전력이 연결되어 문이 열리고, 빼면 문이 닫힙니다.
+guide.item.power-battery.controls | 소켓 앞에서 F: 꽂기 | 다시 F: 빼기
+guide.item.keycard-copy | 관리실 문을 여는 카드입니다.
+guide.item.video-tape | 재생할 기기가 필요할 것 같다.
+guide.item.video-tape-1 | 재생할 기기가 필요할 것 같다.
+guide.item.video-tape-2 | 재생할 기기가 필요할 것 같다.
+guide.item.rescue-gloves | 안전한 바닥에서 앞쪽 가까운 동료를 내 곁으로 끌어옵니다.
+guide.item.rescue-gloves.controls | {key}: 사용 | 연습실·공연장에서 사용
+guide.item.sticky-gloves | 매달린 동안 쓰면 3초 동안 매달림 시간이 줄지 않습니다.
+guide.item.sticky-gloves.controls | {key}: 사용 | 연습실·공연장에서 사용
+guide.item.balloon-pants | 공중에서 펼치면 최대 3초 동안 천천히 내려옵니다.
+guide.item.balloon-pants.controls | {key}: 사용 | 연습실·공연장에서 사용
+guide.item.spring-shoes | 공중에서 한 번 더 점프합니다.
+guide.item.spring-shoes.controls | {key}: 사용 | 연습실·공연장에서 사용
 
 
 # 나가는 길 개방 연출(2026-11-14). 화면 위 시스템 알림.

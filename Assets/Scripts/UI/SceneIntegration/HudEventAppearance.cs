@@ -39,6 +39,10 @@ namespace CurtainCall.UI.SceneIntegration
             line.font=c.body.font;line.color=c.body.color;line.fontSize=c.body.fontSize;
             string prefix=head.Length==0?"":"<color=#"+ColorUtility.ToHtmlStringRGBA(theme.color)+"><size="+c.title.fontSize.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture)+"><b>"+HudText.FormatLiteral(head)+"</b></size></color>";
             line.text=prefix+(head.Length>0 && body.Length>0?"\n":"")+HudText.FormatLiteral(body);
+            // 보조 줄(Condition)이 있으면 맨 아래 줄에 그 줄의 색으로 덧붙인다(기물 첫 획득 배너의 회색 조작법, 2026-11-26 사용자). 비어 있으면 기존과 같다.
+            string detail=c.condition!=null && c.condition.gameObject.activeSelf?c.condition.text:"";
+            if(detail.Length>0)
+                line.text+=(line.text.Length>0?"\n":"")+"<color=#"+ColorUtility.ToHtmlStringRGBA(c.condition.color)+">"+HudText.FormatLiteral(detail)+"</color>";
             if(!c.rows || !c.rows.enabled)return;
             float chrome=c.rows.padding.horizontal+strip.padding.horizontal+LayoutUtility.GetPreferredWidth(symbol.rectTransform)+strip.spacing;
             float limit=Mathf.Max(c.minWidth,c.maxWidth);

@@ -330,7 +330,7 @@ namespace CurtainCall.WaitingRoom
                 book.Attempt(targetId, true, out _, out _);
                 Debug.Log($"[Exploration] {targetId} 배터리 꽂음 — {WaitingRoomShop.PlayerLabel(player)}");
                 DeliverRewards(); Publish();
-                return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".in") ? "target." + targetId + ".in" : "explore.socket-in", "{tool:을} 꽂았습니다.", ("tool", toolName)), "OPENED");
+                return (true, WaitingRoomText.Format(WaitingRoomText.Has("target." + targetId + ".in") ? "target." + targetId + ".in" : "explore.socket-in", "{tool:을} 꽂았습니다. 다시 F를 누르면 빼서 다른 곳에 쓸 수 있습니다.", ("tool", toolName)), "OPENED");
             }
             var refusal = carry.CanReceive(player);
             if (refusal != CarryRefusal.None) return (false, PropCarry.Explain(refusal), "HANDS_FULL");

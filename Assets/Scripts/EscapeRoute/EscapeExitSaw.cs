@@ -194,10 +194,32 @@ namespace CurtainCall.EscapeRoute
         }
         // AddComponent 직후 필드를 연결하는 편집 도구도 첫 런타임 프레임에는 완성된 배치를 기준으로 한다.
         void Start() { initialized = false; InitializePose(); }
+        // 2026-11-26 M3 피드백: 휴대 절단기를 발사가 아니라 "갖다 대는" 장치로 알았다.
+        // 발사형 절단기를 내가 처음 잡으면 화면 위 시스템 알림으로 사용법을 한 번 알린다(게임 실행 중 1회). 문구: 대기실 문구 파일 `guide.saw-fire.*`.
+        static bool fireGuideShown;
+        bool localCarrying;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetFireGuide() => fireGuideShown = false;
+        public static (string title, string body) FireGuideText(string name, string useKey) =>
+            (CurtainCall.WaitingRoom.WaitingRoomText.Get("guide.saw-fire.title", "{item} 사용법").Replace("{item}", name),
+             CurtainCall.WaitingRoom.WaitingRoomText.Get("guide.saw-fire.body", "갖다 대는 게 아니라 쏘는 장치입니다. 목표를 조준하고 {use}로 톱날을 발사하세요.").Replace("{use}", useKey));
+        void ShowFireGuideOnGrab()
+        {
+            var local = NetworkPlayer.Local;
+            bool carrying = Ready && local != null && Carrier == local.OwnerClientId;
+            if (carrying && !localCarrying && ProjectileMode && !fireGuideShown)
+            {
+                fireGuideShown = true;
+                var (title, body) = FireGuideText(CarryName, UseKey);
+                CurtainCall.WaitingRoom.WaitingRoomGuidePanel.ShowAs(title, body, 8f, CurtainCall.WaitingRoom.RoomNotice.Notice);
+            }
+            localCarrying = carrying;
+        }
         void Update()
         {
             ApplyCommonSize();
             Attach();
+            ShowFireGuideOnGrab();
             WatchObjectiveZone();
             if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
             else if (!scaleWithCrew && carryRoot != null && carryRoot != transform && carryRoot.gameObject.activeSelf == Suppressed) carryRoot.gameObject.SetActive(!Suppressed);

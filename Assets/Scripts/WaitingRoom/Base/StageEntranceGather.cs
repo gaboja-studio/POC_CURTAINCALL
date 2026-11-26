@@ -6,6 +6,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Survival;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -60,8 +61,17 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>이 플레이어가 무대 입구 통로 판정 상자 안에 있는지.</summary>
-        public bool IsInside(NetworkPlayer player) => player != null && IsInsideAt(player.transform.position);
+        public bool IsInside(NetworkPlayer player) => player != null && IsInsideAt(JudgedFeet(player));
         internal bool IsInsideAt(Vector3 feet) => area != null && Contains(feet);
+
+        // 2026-11-26 M3 피드백: 목마 3층 이상은 발이 판정 상자(높이 3m) 위로 나가 집결에서 빠졌다.
+        // 목마에 탄 사람은 맨 아래 사람의 발 위치로 판정한다(같은 자리에 서 있는 것으로 본다).
+        internal static Vector3 JudgedFeet(NetworkPlayer player)
+        {
+            var stack = PiggybackSystem.Current;
+            var carrier = stack != null && stack.IsInStack(player) ? stack.GetCarrier(player) : null;
+            return (carrier != null ? carrier : player).transform.position;
+        }
 
         void OnValidate() => ApplyArea();
 
@@ -150,7 +160,7 @@ namespace CurtainCall.WaitingRoom
                 {
                     if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired || Pursuit.PursuitDirector.IsCaptured(player)) continue;
                     alive++;
-                    if (Contains(player.transform.position)) inside++;
+                    if (Contains(JudgedFeet(player))) inside++;
                 }
             }
             else

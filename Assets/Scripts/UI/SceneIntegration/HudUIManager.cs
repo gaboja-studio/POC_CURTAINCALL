@@ -34,8 +34,46 @@ namespace CurtainCall.UI.SceneIntegration
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset() => instance = null;
 
-        HudRoleCard Add(HudRole role, string content, Transform owner, string title, string condition, float? seconds,HudRoleCard skin=null,HudEventKind kind=HudEventKind.Notice,string badgeKey=null,Camera camera=null,bool upperRightEvent=false)
+        // 2026-11-26 사용자: 가운데 시스템 배너는 한 번에 하나만 띄우고, 앞 배너가 화면에서 사라지기 전에는 다음 배너를 띄우지 않고 차례대로 낸다.
+        // 기다리는 배너는 카드를 미리 만들어 꺼 둔 채 줄을 세운다(호출한 쪽이 받은 카드로 문구를 바꾸거나 닫을 수 있게). 오른쪽 위 사망 경고는 따로 뜬다.
+        sealed class WaitingEvent { public HudRoleCard card; public Transform owner; public string content, title, condition, sound; public float? seconds; }
+        readonly Queue<WaitingEvent> waitingEvents = new();
+        /// <summary>줄 서 있는(아직 화면에 나오지 않은) 시스템 배너 수.</summary>
+        public int WaitingSystemEvents => waitingEvents.Count;
+        bool SystemEventOnScreen()
         {
+            foreach (var c in cards)
+                if (c && c.gameObject.activeSelf && c.role == HudRole.SystemEvent && !c.UpperRightEvent) return true;
+            return false;
+        }
+        void ReleaseWaitingEvent()
+        {
+            if (SystemEventOnScreen()) return;
+            while (waitingEvents.Count > 0)
+            {
+                var next = waitingEvents.Dequeue();
+                if (!next.card || next.card.Closing) continue; // 기다리는 동안 호출한 쪽이 닫았다
+                next.card.gameObject.SetActive(true);
+                cards.Insert(0, next.card);
+                next.card.Open(next.owner, next.content, next.title, next.condition, next.seconds);
+                if (next.sound != null) SoundManager.Play(next.sound);
+                Arrange();
+                return;
+            }
+        }
+
+        HudRoleCard Add(HudRole role, string content, Transform owner, string title, string condition, float? seconds,HudRoleCard skin=null,HudEventKind kind=HudEventKind.Notice,string badgeKey=null,Camera camera=null,bool upperRightEvent=false,string sound=null)
+        {
+            if (role == HudRole.SystemEvent && !upperRightEvent && (SystemEventOnScreen() || waitingEvents.Count > 0))
+            {
+                var waiting = Instantiate(skin ? skin : prefabs[(int)role], transform, false);
+                if (waiting.TryGetComponent<HudEventAppearance>(out var waitingStyle)) waitingStyle.Select(kind);
+                waiting.BadgeKey = badgeKey; waiting.WorldCamera = camera;
+                waiting.gameObject.SetActive(false);
+                waitingEvents.Enqueue(new WaitingEvent { card = waiting, owner = owner, content = content, title = title, condition = condition, seconds = seconds, sound = sound });
+                return waiting;
+            }
+            if (sound != null) SoundManager.Play(sound);
             // Remove older cards (including cards still playing their exit) before the new card enters.
             int kept=0, capacity=presentation.For(role).Capacity;
             foreach(var old in cards)
@@ -66,12 +104,24 @@ namespace CurtainCall.UI.SceneIntegration
         public HudRoleCard ShowSystemEvent(string content, Transform owner, string title, float? seconds = null,
             HudEventKind kind = HudEventKind.Notice) => ShowSystemEventWithSound(content, owner, title, seconds, kind, null);
 
+        /// <summary>
+        /// 시스템 배너 + 아래 보조 줄(배너 프리팹의 Condition 줄). 기물 첫 획득 배너가 설명은 본문, 조작법은 보조 줄에 다른 색으로 쓴다(2026-11-26 사용자).
+        /// 배너 본문은 서식 태그를 글자 그대로 보여 주므로 색은 줄 단위로 바꾼다.
+        /// </summary>
+        public HudRoleCard ShowSystemEventDetail(string content, Transform owner, string title, string detail, float? seconds, Color detailColor,
+            HudEventKind kind = HudEventKind.Notice)
+        {
+            var card = Add(HudRole.SystemEvent, content, owner, title, detail ?? "", seconds, kind: kind);
+            if (card && card.condition) card.condition.color = detailColor;
+            return card;
+        }
+
         internal HudRoleCard ShowSystemEventWithSound(string content, Transform owner, string title, float? seconds,
             HudEventKind kind, string sound)
         {
-            var card = Add(HudRole.SystemEvent, content, owner, title, "", seconds, kind: kind);
-            if (kind == HudEventKind.Warning) SoundManager.Play(sound ?? SoundSituations.WarningBanner);
-            return card;
+            // 경고음은 배너가 실제로 화면에 나올 때 울린다(줄을 서면 차례가 올 때).
+            return Add(HudRole.SystemEvent, content, owner, title, "", seconds, kind: kind,
+                sound: kind == HudEventKind.Warning ? sound ?? SoundSituations.WarningBanner : null);
         }
         /// <param name="sound">개인 사망음이 있으면 일반 경고음 대신 사용한다.</param>
         internal HudRoleCard ShowDeathWarning(string content, Transform owner, string title, float seconds, string sound = null)
@@ -129,6 +179,10 @@ namespace CurtainCall.UI.SceneIntegration
             if (!instance) return;
             foreach (var c in instance.cards)
                 if (c && c.Owner==owner && c.role==role && !c.Closing) c.Close(true);
+            // 줄 서 있던 같은 주인의 배너도 함께 치운다(나오지 않은 채로 사라짐).
+            if (role==HudRole.SystemEvent)
+                foreach (var w in instance.waitingEvents)
+                    if (w.card && w.owner==owner && !w.card.Closing) w.card.Close(true);
         }
 
         InputActionAsset voteInput;
@@ -163,6 +217,7 @@ namespace CurtainCall.UI.SceneIntegration
             modalMask.alpha=covered ? 0f : 1f;
             modalMask.blocksRaycasts=modalMask.interactable=!covered;
             cards.RemoveAll(c => c == null || !c.gameObject.activeSelf);
+            ReleaseWaitingEvent();
             foreach (var card in cards) card.Tick(covered ? 0 : Time.unscaledDeltaTime);
             Arrange();
             // A choice may synchronously dismiss/replace cards; dispatch after enumeration, once to the newest vote.

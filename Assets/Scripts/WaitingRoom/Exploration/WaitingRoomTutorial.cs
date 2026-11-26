@@ -371,6 +371,8 @@ namespace CurtainCall.WaitingRoom
                 // 앞 클로즈업이 플레이어 시점으로 돌아오고 원래 카메라 전환까지 끝난 뒤에만 다음 안내를 띄운다.
                 if (closeUp.IsBusy) { hiddenAt = Time.unscaledTime; return; }
                 if (WaitingRoomTutorialPanel.IsVisible) { hiddenAt = Time.unscaledTime; return; }
+                // 기물을 처음 얻으면 가운데 배너(요약)가 먼저 나오고, 배너가 사라진 뒤 왼쪽 안내를 띄운다(2026-11-26 사용자).
+                if (ItemPickupGuide.Busy) { hiddenAt = Time.unscaledTime; return; }
                 // 앞 안내가 사라진 뒤 쉬는 시간은 패널 설정 파일의 "간격".
                 if (Time.unscaledTime - hiddenAt < WaitingRoomTutorialPanel.Settings.Gap) return;
             }
