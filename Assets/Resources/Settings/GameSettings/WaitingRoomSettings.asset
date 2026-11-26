@@ -46,6 +46,9 @@ MonoBehaviour:
     escapeObjective: "- \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00 \uD0C8\uCD9C\uB85C\uB85C
       \uC9C4\uC785\uD574 \uD0C8\uCD9C \uC2DC\uB3C4"
     sleepObjective: 
+    closingChase: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uC138\uC694."
+    closingEscape: "\uD0C8\uCD9C\uB85C \uC785\uAD6C\uB85C \uBAA8\uC5EC \uC11C\uCEE4\uC2A4\uB97C
+      \uD0C8\uCD9C\uD558\uC138\uC694."
   maintenancePresentation:
     minute:
       title: "\uC815\uBE44 \uC2DC\uAC04 1\uBD84 \uB0A8\uC74C"
@@ -77,9 +80,11 @@ MonoBehaviour:
       \uD0C8\uCD9C\uB85C\uB85C \uC9C4\uC785\uD574 \uD0C8\uCD9C \uC2DC\uB3C4"
     sleepObjective: "- \uC0DD\uC874\uD55C \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00
       \uC219\uC18C \uCE68\uB300\uC5D0\uC11C \uC218\uBA74"
+    closingChase: "\uCD94\uACA9\uC790\uB97C \uD53C\uD574 \uB2EC\uC544\uB098\uC138\uC694."
+    closingEscape: "\uD0C8\uCD9C\uB85C \uC785\uAD6C\uB85C \uBAA8\uC5EC \uC11C\uCEE4\uC2A4\uB97C
+      \uD0C8\uCD9C\uD558\uC138\uC694."
   closeStageCorridorDuringMaintenance: 1
   bodyRestoreBasePrice: 50
-  bodyRestorePriceStep: 25
   bodyRestoreMaxParts: 3
   pursuit:
     Enabled: 1

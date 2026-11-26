@@ -364,6 +364,19 @@ namespace CurtainCall.Player
             RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
         }
 
+        /// <summary>
+        /// 동료를 끌어올리는 데 성공한 구조자의 균형을 중앙으로 되돌린다(2026-11-26 M3: 구조 직후 구조자가 같이 추락).
+        /// 구조 중에는 균형이 멈춰 있어, 위험한 상태로 달려가 구조하면 끝나는 순간 그 위험 그대로 떨어졌다.
+        /// 구조된 사람과 같은 기준(균형·추락 게이지 0)으로 맞춘다. 추락 상태·활성 여부는 바꾸지 않는다.
+        /// </summary>
+        public void StabilizeAfterRescue()
+        {
+            if (!IsActive || HasFallen) return;
+            Value = 0f;
+            CurrentSway = 0f;
+            RedTime = 0f;
+        }
+
         /// <summary>균형과 상관없이 바로 추락시킨다(예: 줄이 아닌 곳에 착지). 이미 추락했으면 무시한다. <see cref="Fell"/>을 보낸다.</summary>
         public void ForceFall()
         {

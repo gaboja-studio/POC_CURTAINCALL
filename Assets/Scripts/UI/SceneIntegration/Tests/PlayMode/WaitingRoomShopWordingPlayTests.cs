@@ -12,8 +12,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     /// <summary>
     /// Task-092 상점 문구(2026-11-01 사용자):
     /// - 문구는 코드가 아니라 설정에서 온다: 창 제목은 프리팹 TMP, 바뀌는 문구는 ShopUiTexts 에셋, 기물 설명은 기물 목록.
-    /// - 가격 줄은 가격만("개당 n 토큰", "잘린 팔·다리 한 개당 n 토큰"), 신체 복구 설명 첫 줄은 가격 인상 주의, 수 고르기 버튼은 "팔·다리 n/m".
-    /// - 탭 위 안내줄과 창 아래 고정 안내("설명과 이용 불가 사유…", "기록의 상세 내용…")는 보이지 않는다.
+    /// - 가격 줄은 가격만("개당 n 토큰", "잘린 팔·다리 한 개당 n 토큰"), 신체 복구는 고정 가격 안내(2026-11-26 M3: 가격 인상 제거), 수 고르기 버튼은 "팔·다리 n/m".
+    /// - 탭 위 안내줄과 창 아래 고정 안내("설명과 이용 불가 사유…")는 보이지 않는다.
+    /// - 2026-11-26 M3: 탭은 탐색/공연/서비스(장부 탭 제거). 공연 기물은 공연 탭, 신체 복구는 서비스 탭.
     /// </summary>
     public sealed partial class DevStartLauncherPlayTests
     {
@@ -48,7 +49,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             StringAssert.DoesNotContain("팀 이용", (string)Get(medical, "PriceDetail"));
             var shopTexts = adapter.GetType().GetField("texts", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(adapter);
             Assert.AreEqual(shopTexts.GetType().GetField("medicalDescription").GetValue(shopTexts), Get(medical, "Description"), "신체 복구 설명은 상점 문구 설정에서");
-            StringAssert.Contains("가격 인상", (string)Get(medical, "Description"), "이용할 때마다 가격이 오른다는 안내");
+            StringAssert.DoesNotContain("가격 인상", (string)Get(medical, "Description"), "이용할 때마다 가격이 오르지 않는다(고정 가격)");
+            Assert.AreEqual("Ledger", Get(medical, "Tab").ToString(), "신체 복구는 셋째(서비스) 탭");
             var count = ((IEnumerable)Get(medical, "Actions")).Cast<object>().Single(a => (string)Get(a, "Id") == "count");
             StringAssert.StartsWith("팔·다리 ", (string)Get(count, "Label"));
 
@@ -62,17 +64,20 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
             var footer = (TMP_Text)view.GetType().GetField("footerMessage", Hidden).GetValue(view);
             var context = (TMP_Text)view.GetType().GetField("context", Hidden).GetValue(view);
-            Call(view, "SelectTab", Enum.Parse(tabType, "Services"));
+            Call(view, "SelectTab", Enum.Parse(tabType, "Ledger"));
             Call(view, "SelectEntry", "medical"); yield return null; yield return null;
             Assert.IsFalse((bool)Get(Entry(adapter, "medical"), "Available"), "잃은 신체가 없어 이용 불가인 항목");
             Assert.AreEqual("", footer.text, "이용 불가 항목에도 아래 고정 안내 없음");
             Assert.AreEqual("", context.text, "서비스 탭 위 안내줄 없음");
 
-            Call(view, "SelectTab", Enum.Parse(tabType, "Ledger"));
-            var ledger = Entries(adapter).First(e => Get(e, "Tab").ToString() == "Ledger");
-            Call(view, "SelectEntry", (string)Get(ledger, "Id")); yield return null; yield return null;
-            Assert.AreEqual("", footer.text, "장부 아래 고정 안내 없음");
-            Assert.AreEqual("", context.text, "장부 탭 위 안내줄 없음");
+            // 공연 탭(둘째 칸): 공연 기물만, 해금 전 기물은 실루엣·안내만 보이고 살 수 없다.
+            Call(view, "SelectTab", Enum.Parse(tabType, "Services"));
+            var performance = Entries(adapter).Where(e => Get(e, "Tab").ToString() == "Services").ToArray();
+            Assert.IsNotEmpty(performance, "공연 탭에 공연 기물");
+            foreach (var e in performance) StringAssert.DoesNotStartWith("medical", (string)Get(e, "Id"));
+            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:") || ((string)Get(e, "Id")).StartsWith("delivery:")), "장부 줄 없음");
+            Call(view, "SelectEntry", (string)Get(performance[0], "Id")); yield return null; yield return null;
+            Assert.AreEqual("", context.text, "공연 탭 위 안내줄 없음");
             Call(view, "Close"); yield return null;
         }
     }

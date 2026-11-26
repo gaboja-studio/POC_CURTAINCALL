@@ -114,6 +114,8 @@ namespace CurtainCall.Tightrope
             if (IsHost) { RetryPendingHangs(); ServerTick(Time.deltaTime); }
             else RetryRoundSync();
             UpdateLocal();
+            // 구조 중에는 균형이 멈춘다. 쌓인 추락 위험은 봉에 매달렸을 때처럼 천천히 줄인다(취소돼도 바로 떨어지지 않게).
+            if (rescuerBalance != null) rescuerBalance.RecoverWhileSupported(Time.deltaTime);
         }
 
         int lastRound = int.MinValue;
@@ -480,8 +482,14 @@ namespace CurtainCall.Tightrope
         }
 
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>
-        void ApplyRescued(ulong id, int lane, float distance)
+        void ApplyRescued(ulong id, int lane, float distance, ulong rescuerId = ulong.MaxValue)
         {
+            // 구조 성공: 이 화면의 구조자도 균형을 안정시킨다(위험한 채로 구조를 시작해도 끝나자마자 떨어지지 않게).
+            if (rescuerId == ulong.MaxValue && book.TryGet(id, out var finished)) rescuerId = finished.Rescuer;
+            var rescuer = NetworkPlayer.Local;
+            if (rescuer != null && rescuer.OwnerClientId != id && rescuerId == rescuer.OwnerClientId
+                && rescuer.TryGetComponent(out PlayerBalance rescuerSteady))
+                rescuerSteady.StabilizeAfterRescue();
             book.Remove(id);
             UpdateRescuerBalance();
             var local = NetworkPlayer.Local;

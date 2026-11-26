@@ -15,8 +15,20 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static object Member(object target, string name) => target.GetType().GetField(name)?.GetValue(target) ?? Get(target, name);
         static object[] Entries(object adapter) => ((IEnumerable)Get(Call(adapter, "Build"), "Entries")).Cast<object>().ToArray();
         static object Entry(object adapter, string id) => Entries(adapter).Single(e => (string)Get(e, "Id") == id);
+        /// <summary>
+        /// 처음부터 팔지 않는 기물(2026-11-18 첫 습득 해금)을 해금해 둔다. 이 테스트들은 구매·문구를 보므로 해금 전 상태가 아닌 판매 상태가 필요하다.
+        /// 해금 전 표시는 W2_ShopWording·상점 캡처에서 따로 본다.
+        /// </summary>
+        static void UnlockShopItems()
+        {
+            var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
+            if (state == null) return;
+            foreach (var item in (IEnumerable)Get(Static("CurtainCall.WaitingRoom.ItemCatalog", "Current"), "Items"))
+                if (!(bool)Member(item, "shopUnlockedFromStart")) Call(state, "MarkVisited", "shop-unlock:" + (string)Member(item, "id"));
+        }
         static void SeedShopFunds(long amount)
         {
+            UnlockShopItems();
             // Fixture funds only; all debits, orders, service reservations and responses use production paths.
             var rewards = Find("CurtainCall.Reward.PerformanceRewards");
             var model = Private(rewards, "model");
@@ -121,8 +133,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             permission.SetValue(settings, false);
             Assert.AreEqual(false, Get(Entry(adapter, "item:" + id), "Available"));
             Assert.AreEqual("기물은 밤 정비에만 구매할 수 있습니다.", Get(Entry(adapter, "item:" + id), "UnavailableReason"));
-            int ledgerCount = ((IEnumerable)Get(Call(adapter, "Build"), "Entries")).Cast<object>()
-                .Count(e => ((string)Get(e, "Id")).StartsWith("fund:"));
             // UI를 거치지 않는 요청도 자금 차감·배송 생성 전에 거절한다.
             Call(shop, "RequestPurchase", id);
             yield return new WaitForSecondsRealtime(.35f);
@@ -130,7 +140,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(0, ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Count());
             Assert.AreEqual(0, ((IEnumerable)Get(shop, "Receipts")).Cast<object>().Count());
             Assert.AreEqual("기물은 밤 정비에만 구매할 수 있습니다.", Get(shop, "LastMessage"));
-            Assert.AreEqual(ledgerCount, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("fund:")));
             permission.SetValue(settings, true);
             Assert.AreEqual(true, Get(Entry(adapter, "item:" + id), "Available"));
             Call(shop, "RequestPurchase", id);
@@ -152,6 +161,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var item = ((IEnumerable)Get(shop, "Catalog")).Cast<object>().First();
             string id = (string)Member(item, "Id");
             long price = Convert.ToInt64(Member(item, "Price"));
+            // 2026-11-26 M3: 기물이 탐색/공연 탭으로 나뉘었으므로 그 기물의 탭을 먼저 연다.
+            Call(view, "SelectTab", Get(Entry(adapter, "item:" + id), "Tab"));
             Call(view, "SelectEntry", "item:" + id);
             // Invoke the prefab's wired button; a second request in the same frame must not double-charge.
             var button = Private(view, "primaryButton");
@@ -161,13 +172,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(100 - price, Get(shop, "Balance"));
             Assert.AreEqual(1, ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Count());
             Assert.IsNull(Get(view, "PendingRequest"));
-            Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:")));
-            Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("delivery:")));
+            // 2026-11-26 M3: 장부 탭 제거. 주문·수령 기록은 상점 상태로 확인한다.
+            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:") || ((string)Get(e, "Id")).StartsWith("delivery:")));
             var delivery = ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Single();
             Call(shop, "RequestClaim", (int)Member(delivery, "Order"));
             yield return new WaitForSecondsRealtime(.35f);
-            Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("receipt:")));
-            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("delivery:")));
+            Assert.AreEqual(1, ((IEnumerable)Get(shop, "Receipts")).Cast<object>().Count());
+            Assert.AreEqual(0, ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Count());
             // UI still shows sufficient funds, but host changes before the click: reject and unlock pending.
             SeedShopFunds(0);
             Call(view, "RequestAction", "buy");
@@ -203,7 +214,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");
-            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
+            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Ledger"));
             Call(view, "SelectEntry", "medical");
             var book = (UnityEngine.UI.Button)Private(view, "primaryButton");
             var count = (UnityEngine.UI.Button)Private(view, "secondaryButton");
@@ -236,11 +247,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Get(service, "BookedLimbs"));
             Assert.AreEqual(0L, Get(service, "Balance"));
             Assert.IsFalse(book.interactable);
-            Assert.IsFalse(count.interactable, "예약 후에는 수량도 잠근다");
+            // 2026-11-18 사용자: 예약자는 입장 전까지 남은 팔다리를 같은 버튼으로 추가 예약한다(잃은 3 - 예약 1 = 2개 더 고를 수 있음).
+            Assert.IsTrue(count.interactable, "입장 전 추가 예약용 수량 선택은 남는다");
         }
 
         [UnityTest]
-        public IEnumerator W2_BodyRestore_ChoosesPartsAndRaisesTeamPrice()
+        public IEnumerator W2_BodyRestore_ChoosesPartsAtFixedPrice()
         {
             yield return Launch(1, "Night", 0, "", "WaitingRoom");
             SeedShopFunds(1000);
@@ -255,7 +267,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("medical")), "신체 복구는 한 항목");
             Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
             Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "facility"));
-            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
+            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Ledger"));
             Call(view, "SelectEntry", "medical");
             Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
             yield return null;
@@ -266,11 +278,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(2, Get(service, "BookedLimbs"));
             Assert.AreEqual(1000 - unit * 2, Get(service, "Balance"));
             Assert.AreEqual(1, Get(service, "TeamUses"), "2개를 고쳐도 팀 이용은 1회");
-            Assert.AreEqual(unit + 25, Get(service, "MedicalPrice"), "다음 1개당 가격 +25");
+            Assert.AreEqual(unit, Get(service, "MedicalPrice"), "이용 뒤에도 1개당 가격은 그대로(2026-11-26 M3 고정 가격)");
             Assert.AreEqual(unit * 2, Get(service, "BookedCost"));
-            Assert.AreEqual(false, Get(Entry(adapter, "medical"), "Available"));
+            Assert.AreEqual(true, Get(Entry(adapter, "medical"), "Available"), "입장 전에는 남은 1개를 추가 예약할 수 있다(2026-11-18)");
             Assert.IsNull(Get(view, "PendingRequest"));
-            Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:")));
         }
 
         [UnityTest]
@@ -286,7 +297,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var view = Get(adapter, "View");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
             Assert.AreEqual(true, Get(Entry(adapter, "medical"), "Available"), (string)Get(Entry(adapter, "medical"), "UnavailableReason"));
-            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
+            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Ledger"));
             Call(view, "SelectEntry", "medical");
             Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
             yield return null;

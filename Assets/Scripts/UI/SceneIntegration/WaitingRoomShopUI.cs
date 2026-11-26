@@ -19,6 +19,12 @@ namespace CurtainCall.UI.SceneIntegration
     /// </summary>
     public sealed class WaitingRoomShopUI : MonoBehaviour
     {
+        // 2026-11-26 M3 피드백: 장부 탭을 없애고 기물을 '탐색'·'공연'으로 나눠 판다. 상점 키트는 탭이 3칸(Items/Services/Ledger) 고정이라
+        // 칸 이름은 그대로 두고 용도만 바꾼다. 탭 글자는 상점 프리팹(00~02_Tab)에서 탐색/공연/서비스로 적는다.
+        public const ShopTab ExplorationTab = ShopTab.Items;
+        public const ShopTab PerformanceTab = ShopTab.Services;
+        public const ShopTab ServiceTab = ShopTab.Ledger;
+
         [SerializeField] ShopPanelView view;
         [SerializeField, Min(5)] float responseTimeout = 15;
         [Tooltip("상점 문구·아이콘 키 설정")]
@@ -81,8 +87,8 @@ namespace CurtainCall.UI.SceneIntegration
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + .2f;
             var model = Build();
-            string key = model.GetContext(ShopTab.Items) + model.GetContext(ShopTab.Services) + string.Join("|", model.Entries.Select(e =>
-                e.Id + e.Title + e.Subtitle + e.PriceText + e.Description + e.UnavailableReason + e.StatusText + e.Available));
+            string key = model.GetContext(ExplorationTab) + model.GetContext(PerformanceTab) + model.GetContext(ServiceTab) + string.Join("|", model.Entries.Select(e =>
+                e.Id + e.IconKey + e.Title + e.Subtitle + e.PriceText + e.Description + e.UnavailableReason + e.StatusText + e.Available));
             if (fingerprint == key) return;
             fingerprint = key; view.SetPresentation(model); ObserveSelection(false); ApplyFonts();
         }
@@ -122,12 +128,18 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var item in shop.Catalog)
                 {
-                    // 아직 상점에 추가되지 않은 기물은 목록에 넣지 않는다. 누군가 처음 습득하면 알림과 함께 추가된다(2026-11-18 사용자).
-                    if (WaitingRoomShop.ShopLocked(item.Id)) continue;
+                    var tab = ItemCatalog.Get(item.Id)?.use == ItemUse.Performance ? PerformanceTab : ExplorationTab;
+                    if (WaitingRoomShop.ShopLocked(item.Id))
+                    {
+                        // 아직 상점에 추가되지 않은 기물. 누군가 처음 습득하면 알림과 함께 추가된다(2026-11-18 사용자).
+                        // 공연 탭에는 검은 실루엣과 '해금되지 않은 기물' 안내로 미리 보여 준다(2026-11-26 M3). 살 수 없다.
+                        if (tab == PerformanceTab) entries.Add(LockedEntry(item.Id, tab));
+                        continue;
+                    }
                     string reason = !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? Fill(texts.reasonNoFunds) : "";
                     string icon = view.ResolveIcon(item.Id) != null ? item.Id : texts.itemFallbackIcon;
                     string description = string.Join("\n", new[] { ItemCatalog.Description(item.Id), Fill(texts.itemDescriptionFooter) }.Where(line => !string.IsNullOrEmpty(line)));
-                    entries.Add(new ShopEntryPresentation("item:" + item.Id, ShopTab.Items, icon, item.Name, Fill(texts.itemSubtitle), item.Price.ToString(),
+                    entries.Add(new ShopEntryPresentation("item:" + item.Id, tab, icon, item.Name, Fill(texts.itemSubtitle), item.Price.ToString(),
                         description,
                         Fill(texts.itemPriceDetail, ("price", item.Price)), reason.Length == 0, reason,
                         Fill(texts.itemWaiting, ("n", shop.Waiting.Count)), texts.itemStatusIcon,
@@ -135,33 +147,24 @@ namespace CurtainCall.UI.SceneIntegration
                 }
             }
             AddServices(entries);
-            var state = PerformanceRewards.Instance != null ? PerformanceRewards.Instance.State : null;
-            if (state != null)
-                foreach (var entry in state.Ledger.Reverse())
-                    entries.Add(new ShopEntryPresentation("fund:" + entry.Number, ShopTab.Ledger, texts.ledgerIcon, entry.Description,
-                        Fill(texts.ledgerSubtitle, ("number", entry.Number), ("day", entry.Day)), entry.Amount.ToString("+#;-#;0"), entry.Description,
-                        Fill(texts.ledgerBalance, ("before", entry.Balance - entry.Amount), ("after", entry.Balance)), true, "",
-                        Fill(texts.ledgerSettled), texts.ledgerIcon));
-            if (shop != null)
-            {
-                foreach (var d in shop.Waiting.Reverse())
-                    entries.Add(new ShopEntryPresentation("delivery:" + d.Order, ShopTab.Ledger, texts.deliveryIcon, d.ItemName,
-                        Fill(texts.deliverySubtitle, ("order", d.Order), ("player", WaitingRoomShop.PlayerLabel(d.Buyer))),
-                        Fill(texts.deliveryWaiting), Fill(texts.deliveryDescription), "", true));
-                foreach (var r in shop.Receipts.Reverse())
-                    entries.Add(new ShopEntryPresentation("receipt:" + r.Delivery.Order, ShopTab.Ledger, texts.deliveryIcon, r.Delivery.ItemName,
-                        Fill(texts.receiptSubtitle, ("order", r.Delivery.Order)), Fill(texts.receiptDone),
-                        Fill(texts.receiptDescription, ("buyer", WaitingRoomShop.PlayerLabel(r.Delivery.Buyer)), ("claimer", WaitingRoomShop.PlayerLabel(r.Claimer))), "", true));
-            }
             long balance = shop?.Balance ?? 0;
-            return new ShopPresentation(session ?? "unopened", (++revision).ToString(), title, ShopTab.Items, "",
-                Fill(texts.itemsContext, ("balance", balance), ("n", shop?.Waiting.Count ?? 0)),
-                Fill(texts.servicesContext, ("balance", balance), ("day", ExpertService.Day)),
-                Fill(texts.ledgerContext, ("balance", balance)), entries.ToArray());
+            int waiting = shop?.Waiting.Count ?? 0;
+            return new ShopPresentation(session ?? "unopened", (++revision).ToString(), title, ExplorationTab, "",
+                Fill(texts.itemsContext, ("balance", balance), ("n", waiting)),
+                Fill(texts.performanceContext, ("balance", balance), ("n", waiting)),
+                Fill(texts.servicesContext, ("balance", balance), ("day", ExpertService.Day)), entries.ToArray());
+        }
+        /// <summary>해금 전 공연 기물 한 줄: 검은 실루엣 아이콘(키 "locked:기물ID"), 이름·가격 가림, 구매 버튼 없음.</summary>
+        ShopEntryPresentation LockedEntry(string itemId, ShopTab tab)
+        {
+            string icon = view.ResolveIcon("locked:" + itemId) != null ? "locked:" + itemId : texts.lockedFallbackIcon;
+            // 설명 칸에만 안내를 한 번 적는다(이용 불가 사유 줄은 비워 같은 문장이 두 번 보이지 않게).
+            return new ShopEntryPresentation("locked:" + itemId, tab, icon, Fill(texts.lockedTitle), Fill(texts.lockedSubtitle),
+                Fill(texts.lockedPrice), Fill(texts.lockedDescription), "", false);
         }
         // M2: 서비스는 신체 복구 하나(시설 서비스 삭제). 한 항목에서 1~최대(잃은 부위, 3개) 수량을 고르고 예약한다. 비용은 지금 1개당 가격 × 개수.
         // 상점 템플릿은 항목당 버튼 2개까지라 [예약]·[수량 변경] 두 버튼을 쓴다. 수량은 이 화면에만 있는 선택값이다.
-        // 예약한 사람은 입장 전까지 남은 팔다리를 같은 두 버튼으로 추가 예약한다(2026-11-18 사용자). 추가분은 예약 때 단가.
+        // 예약한 사람은 입장 전까지 남은 팔다리를 같은 두 버튼으로 추가 예약한다(2026-11-18 사용자). 1개당 가격은 고정(2026-11-26).
         int medicalParts = 1;
         int MedicalMax => Mathf.Max(1, service != null ? service.LocalSelectableParts : ExpertService.LocalMaxParts);
         void AddServices(List<ShopEntryPresentation> entries)
@@ -184,12 +187,12 @@ namespace CurtainCall.UI.SceneIntegration
             string bookLabel = adding && !string.IsNullOrEmpty(texts.addBookButton)
                 ? Fill(texts.addBookButton, ("n", parts), ("booked", booked))
                 : Fill(texts.bookButton, ("n", parts));
-            entries.Add(new ShopEntryPresentation("medical", ShopTab.Services, texts.medicalIcon,
+            entries.Add(new ShopEntryPresentation("medical", ServiceTab, texts.medicalIcon,
                 Fill(texts.medicalTitle, ("n", parts)),
                 subtitle,
                 service == null ? "—" : cost.ToString(),
                 Fill(texts.medicalDescription),
-                service == null ? "" : Fill(texts.medicalPriceDetail, ("price", adding && parts > 0 ? cost / parts : service.MedicalPrice)),
+                service == null ? "" : Fill(texts.medicalPriceDetail, ("price", service.MedicalPrice)),
                 // Entry availability gates both buttons. Keep quantity selection usable when only funds are short.
                 canBook || canChangeCount, reason, status, texts.medicalIcon,
                 new ShopActionPresentation("medical", bookLabel, canBook),

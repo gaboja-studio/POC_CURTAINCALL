@@ -36,8 +36,8 @@ namespace CurtainCall.WaitingRoom
 
         static WaitingRoomSettings Prices => GameSettings.WaitingRoom;
 
-        /// <summary>지금 팔다리 1개당 가격(팀 이용 횟수 반영).</summary>
-        public long MedicalPrice => ExpertServiceBook.UnitPrice(book.TeamUses, Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep);
+        /// <summary>팔다리 1개당 가격. 이용 횟수와 무관한 고정 가격(2026-11-26 M3).</summary>
+        public long MedicalPrice => Prices.BodyRestoreBasePrice;
 
         /// <summary>이번 런에서 팀 전체가 신체 복구를 이용한 횟수.</summary>
         public int TeamUses => book.TeamUses;
@@ -107,20 +107,19 @@ namespace CurtainCall.WaitingRoom
         /// <summary>내가 지금 고를 수 있는 최대 개수(추가 예약이면 남은 수, 남이 이용 중이면 0).</summary>
         public int LocalSelectableParts => book.SelectableParts(channel.LocalClientId, LocalLostLimbs, MaxPartsPerUse);
 
-        /// <summary><paramref name="parts"/>개 복구 비용(지금 단가 × 개수).</summary>
-        public long MedicalCost(int parts) => ExpertServiceBook.Cost(parts, book.TeamUses, Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep);
+        /// <summary><paramref name="parts"/>개 복구 비용(고정 단가 × 개수).</summary>
+        public long MedicalCost(int parts) => ExpertServiceBook.Cost(parts, MedicalPrice);
 
-        /// <summary>내가 <paramref name="parts"/>개를 살 때의 비용. 추가 예약은 예약 때 단가를 쓴다.</summary>
+        /// <summary>내가 <paramref name="parts"/>개를 살 때의 비용.</summary>
         public long LocalCost(int parts) => CostFor(channel.LocalClientId, parts);
 
-        long CostFor(ulong buyer, int parts) => ExpertServiceBook.Cost(parts, book.PriceUses(buyer), Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep);
+        long CostFor(ulong buyer, int parts) => MedicalCost(parts);
 
         /// <summary>내가 고를 수 있는 최대 개수의 비용.</summary>
         public long LocalMedicalCost => MedicalCost(LocalMaxParts);
 
-        /// <summary>지금 예약에 낸 비용(예약 때 단가 × 개수). 예약이 없으면 0.</summary>
-        public long BookedCost => book.HasBuyer
-            ? ExpertServiceBook.Cost(book.BookedLimbs, book.TeamUses - 1, Prices.BodyRestoreBasePrice, Prices.BodyRestorePriceStep) : 0;
+        /// <summary>지금 예약에 낸 비용(고정 단가 × 개수). 예약이 없으면 0.</summary>
+        public long BookedCost => book.HasBuyer ? MedicalCost(book.BookedLimbs) : 0;
 
         void Awake()
         {
@@ -238,7 +237,7 @@ namespace CurtainCall.WaitingRoom
             var refusal = book.BookMedical(buyer, IsServiceTime, alive, lost, parts, MaxPartsPerUse,
                 () => rewards.TrySpend(cost, ledger), cost);
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
-            Debug.Log($"[Expert] 신체 복구 {parts}개 {(adding ? "추가 " : "")}구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 예약 {book.BookedLimbs}개 / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
+            Debug.Log($"[Expert] 신체 복구 {parts}개 {(adding ? "추가 " : "")}구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 예약 {book.BookedLimbs}개 / 잔액 {rewards.Balance} / 단가 {MedicalPrice}");
             Publish(before);
             if (adding)
                 return (true, WaitingRoomText.Format("expert.bought-more", "추가 예약 완료(+{n}개, {price}) — 총 {total}개를 복구합니다.",

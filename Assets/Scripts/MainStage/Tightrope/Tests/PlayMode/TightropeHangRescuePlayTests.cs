@@ -129,7 +129,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 
                 yield return new WaitForSeconds(.25f);
                 Assert.That((float)Get(balance, "Value"), Is.EqualTo(80f));
-                Assert.That((float)Get(balance, "RedTime"), Is.EqualTo(.5f));
+                // 2026-11-26 M3: 구조 중에는 쌓인 추락 위험이 늘지 않고 천천히 줄어든다(취소돼도 바로 떨어지지 않게).
+                Assert.That((float)Get(balance, "RedTime"), Is.LessThan(.5f));
                 // 위의 높이 경계 검사 뒤 CharacterController가 줄에 수직으로 붙는 보정은 이동 입력과 별개다.
                 Vector3 displacement = player.transform.position - origin;
                 Assert.That(Vector3.ProjectOnPlane(displacement, Vector3.up).magnitude, Is.LessThan(.05f), $"구조 중 수평 이동을 막는다. 실제 변위={displacement}");
@@ -140,8 +141,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, cancel));
                 Assert.IsFalse((bool)Call(hangs, "IsRescuing", player));
                 Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
+                float redBeforeStep = (float)Get(balance, "RedTime");
                 Call(balance, "Step", .1f);
-                Assert.That((float)Get(balance, "RedTime"), Is.GreaterThan(.5f), "취소하면 일반 균형·위험 계산을 복원한다.");
+                Assert.That((float)Get(balance, "RedTime"), Is.GreaterThan(redBeforeStep), "취소하면 일반 균형·위험 계산을 복원한다.");
             }
             finally
             {
@@ -195,7 +197,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.AreEqual(beforeRescue, LocalAudienceAmount(), "구조 시작에는 지급하지 않는다.");
                 yield return new WaitForSeconds(.3f);
                 Assert.That((float)Get(balance, "Value"), Is.EqualTo(90f));
-                Assert.That((float)Get(balance, "RedTime"), Is.EqualTo(.5f));
+                Assert.That((float)Get(balance, "RedTime"), Is.LessThan(.5f), "구조 중 추락 위험은 늘지 않고 줄어든다(2026-11-26 M3)");
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
                 yield return Until(() => !(bool)Call(hangs, "IsRescuing", player), 4f, "동료 끌어올리기 완료");
                 Assert.IsFalse((bool)Call(hangs, "IsHanging", target));
@@ -204,8 +206,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.AreEqual(beforeRescue + cheer, LocalAudienceAmount(), "실제 구조 완료에 현재 단계의 협동 환호를 한 번 지급한다.");
                 Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
-                Call(balance, "Step", .1f);
-                Assert.That((float)Get(balance, "RedTime"), Is.GreaterThan(.5f));
+                // 2026-11-26 M3: 구조에 성공한 구조자는 균형을 가운데로 되돌린다(예전에는 위험 그대로 재개돼 같이 떨어졌다).
+                // 완료 뒤 몇 프레임은 일반 흔들림이 다시 돌기 때문에 가운데 근처인지 본다.
+                Assert.That(Mathf.Abs((float)Get(balance, "Value")), Is.LessThan(5f));
+                Assert.That((float)Get(balance, "RedTime"), Is.LessThan(.05f));
             }
             finally
             {
