@@ -77,7 +77,6 @@ gate.terminal-title | door_override.bat
 gate.terminal-code | DATE
 gate.terminal-word | CMD
 gate.terminal-error | Error
-gate.terminal-help | 암호 2개 · ↑↓ 또는 클릭으로 입력란 선택
 gate.terminal-clear | CLR
 gate.terminal-back | DEL
 gate.terminal-submit | ENTER

@@ -79,6 +79,38 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.AreEqual(Date + "\nABC", e.Combined);
         }
 
+        // 2026-11-26 사용자: 위아래로 입력란을 바꿀 때 줄이 한 칸씩 밀리지 않아야 한다. 힌트 문구는 띄우지 않는다.
+        [Test]
+        public void SwitchingFields_KeepsBothRowsAligned_AndShowsNoHint()
+        {
+            var e = New();
+            var root = new GameObject("TerminalAlign") { hideFlags = HideFlags.HideAndDontSave };
+            try
+            {
+                var panel = root.AddComponent<ExplorationPanel>();
+                panel.OpenTerminal("관리실", e, v => { }, () => { });
+                var texts = root.GetComponentsInChildren<TMPro.TMP_Text>(true);
+                var code = System.Array.Find(texts, t => t.name == "Code");
+                var word = System.Array.Find(texts, t => t.name == "Word");
+                var message = System.Array.Find(texts, t => t.name == "Message");
+                Assert.AreEqual("", message.text, "힌트 문구 없음");
+                float Bracket(TMPro.TMP_Text t)
+                {
+                    t.ForceMeshUpdate();
+                    var info = t.textInfo;
+                    for (int i = 0; i < info.characterCount; i++)
+                        if (info.characterInfo[i].character == '[') return info.characterInfo[i].origin;
+                    Assert.Fail(t.name + " 칸 시작 없음"); return 0;
+                }
+                float codeBefore = Bracket(code), wordBefore = Bracket(word);
+                Assert.AreEqual(codeBefore, wordBefore, .5f, "두 줄의 칸 시작 위치가 같다");
+                panel.SelectField(1);
+                Assert.AreEqual(codeBefore, Bracket(code), .5f, "입력란을 바꿔도 위 줄이 밀리지 않는다");
+                Assert.AreEqual(wordBefore, Bracket(word), .5f, "입력란을 바꿔도 아래 줄이 밀리지 않는다");
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void PanelReopen_KeepsTypedValues_AndStrikesSolved()
         {

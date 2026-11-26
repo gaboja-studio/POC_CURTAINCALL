@@ -243,8 +243,9 @@ namespace CurtainCall.WaitingRoom
         void ShowHelp()
         {
             if (message == null || !terminal) return;
+            // 힌트 문구는 일단 띄우지 않는다(2026-11-26 사용자). 오류가 지나가면 줄을 비운다.
             message.color = TerminalGreen;
-            message.text = WaitingRoomText.Get("gate.terminal-help", "암호 2개 · ↑↓ 또는 클릭으로 입력란 선택");
+            message.text = "";
         }
         void Clickable(TMP_Text row, int index)
         {
@@ -257,8 +258,12 @@ namespace CurtainCall.WaitingRoom
         {
             string value = entry.Value(index);
             string slots = "<mspace=.62em>[" + (entry.IsSolved(index) ? "<s>" + value + "</s>" : value.PadRight(entry.Length(index), '_')) + "]</mspace>";
-            return (entry.Active == index && !entry.IsSolved(index) ? "> " : "  ") + label + " " + slots + (entry.IsSolved(index) ? "  OK" : "");
+            // 선택 표시(>)와 칸 시작 위치를 고정해, 입력란을 바꿔도 두 줄이 밀리지 않게 한다(2026-11-26 사용자).
+            string marker = entry.Active == index && !entry.IsSolved(index) ? ">" : " ";
+            return "<mspace=.62em>" + marker + "</mspace> " + label + "<pos=" + SlotsAt + ">" + slots + (entry.IsSolved(index) ? "  OK" : "");
         }
+        // 칸 묶음([ ])이 시작하는 가로 위치. DATE·CMD 중 긴 쪽 뒤로 같은 자리에 맞춘다.
+        const string SlotsAt = "4.2em";
         void RefreshCode()
         {
             if (codeLabel == null) return;
@@ -268,7 +273,7 @@ namespace CurtainCall.WaitingRoom
             codeLabel.alpha = entry.IsSolved(0) ? .6f : 1f;
             if (wordLabel != null)
             {
-                wordLabel.text = Row(1, WaitingRoomText.Get("gate.terminal-word", "CMD") + " ");
+                wordLabel.text = Row(1, WaitingRoomText.Get("gate.terminal-word", "CMD"));
                 wordLabel.alpha = entry.IsSolved(1) ? .6f : 1f;
             }
         }
