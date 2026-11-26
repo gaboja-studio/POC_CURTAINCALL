@@ -42,3 +42,15 @@
   - 검사: 가장자리 배치 EditMode 4/4, SilhouetteOutline 4/4, check-work PASS. `TightropeInjuryFeedbackTests` 4개 실패는 기존 문제(테스트가 PlayerInteraction 없이 읽음, 11-12 이후 변경 없음).
 - Confluence M3 v14: '위험한 동료 찾기 방식' 펼치기 안에 '구현 결과'(영상 1·이미지 3) 추가. Atlassian 연결이 세션에서 빠져 Chrome에서 Confluence REST v2(ADF)로 해당 펼치기만 수정·확인.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/489 (dev, 지정 팀원 검토 대기). new-pr.ps1는 커밋 제외한 에디터 부산물 3개 때문에 멈춰 gh로 같은 형식 등록.
+- 기물 5 팔·다리 여러 개 예약 UI: 레퍼런스(Fallout 4·Tarkov·Darkest Dungeon·Project Zomboid·Cyberpunk 2077) 조사 → Confluence M3 v15 5절에 '검토안 (방법 3개)' 펼치기(A 인체 그림+기본 전부 추천 · B 개수별 줄 · C 그림 직접 누르기, 목업 3장). 사용자 결정 대기.
+- 기물 5 A안 적용(사용자 결정: A안 + 깔끔한 픽토그램). 브랜치 fix/m3-limb-booking-figure(#489 dev 병합 뒤 새로).
+  - 설명 칸 인체 픽토그램 `LimbBookingFigure`(머리·몸통·팔다리 레이어 6장 + 범례·안내), 상점 프리팹에 빌더로 넣음(Tools/Curtain Call/상점/신체 복구 인체 그림 넣기). 보이는 동안 설명 칸을 160 내림.
+  - 처음 선택 = 잃은 전부(돈 부족 시 살 수 있는 최대), 수량 버튼은 하나씩 줄임(3→2→1→3). 규칙·서버·키트 변경 없음.
+  - 함정: 레이어 스프라이트는 캔버스 전체 크기라 범례 점에 머리 레이어를 쓰면 거의 안 보임 → 전용 limb-dot.
+  - 검사: PlayMode W2_ 12/15(BodyRestore 3/3 통과, 실패 3개는 기존 HandRules·InventoryDurability·PropCollision), check-work PASS.
+  - 기존 표시 문제(미수정): 전부 예약하면 둘째 줄이 '추가 가능 1개'(MedicalMax 최소 1).
+  - Confluence v16: 5절 '수정 결과' 5-5(영상 1·이미지 4), 검토안 결정됨. live 페이지 초안이 v15로 남아 있어 초안도 v16 본문으로 맞춤.
+  - 에디터 부산물(커밋 제외 예정): Sounds/EscapeRouteMaterials/escape-labels.asset(SaveAssets로 재저장), 글꼴 아틀라스 2개.
+- 2026-11-26 상점 신체 복구 성인형 승인 시안 저장. 160×256 PNG 6장을 승인본과 바이트 단위로 대조하고 상점 프리팹의 기존 GUID 참조를 확인했다. check-work 안전성·문서 통과. Unity 컴파일은 에디터 상태 조회 소켓 제한으로 ENV_BLOCKED, 자동 테스트 생략.
+- 2026-11-27 신체 그림을 사용자 제공 관절 마네킹(LimbFigure 6장, 같은 160×256 캔버스)으로 교체. 배치 변경: 그림을 설명 칸 왼쪽 세로 한 줄로 크게, 뒤 조명(limb-spot)·발밑 그림자(limb-floor)·부위별 Shadow, 설명 글은 오른쪽 아래로(descriptionInset 112,138). 밉맵·삼선형 필터로 축소 가장자리 정리. W2_BodyRestore 3/3 통과. Confluence v17(5-5 영상·이미지 교체, live 초안도 맞춤).
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/490 (팔·다리 예약 UI A안, dev, 지정 팀원 검토 대기). 제외: 글꼴 아틀라스 2개·escape-labels.asset(에디터 부산물).

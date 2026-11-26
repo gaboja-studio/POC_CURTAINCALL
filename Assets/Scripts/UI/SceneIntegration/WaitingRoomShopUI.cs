@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
 using CurtainCall.Reward;
 using CurtainCall.Sound;
 using CurtainCall.WaitingRoom;
@@ -42,6 +44,7 @@ namespace CurtainCall.UI.SceneIntegration
         EventSystem ownedEvents;
         ShopTab observedTab;
         string observedEntry;
+        LimbBookingFigure limbFigure;
         public ShopPanelView View => view;
         public ShopUiTexts Texts => texts;
         public void Configure(ShopPanelView panel) => view = panel;
@@ -72,16 +75,18 @@ namespace CurtainCall.UI.SceneIntegration
             if (phone == null && room != null)
                 phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault(p => p.isActiveAndEnabled);
             bool open = room != null && phone != null && phone.isActiveAndEnabled && phone.IsOpen && shop != null && !WaitingRoomShop.InPerformance;
-            if (!open) { if (view != null && view.IsVisible) view.Hide(); return; }
+            if (!open) { if (view != null && view.IsVisible) view.Hide(); UpdateLimbFigure(false); return; }
             if (!view.IsVisible)
             {
                 EnsureEvents();
                 session = Guid.NewGuid().ToString("N"); revision = 0; fingerprint = null;
+                medicalDefaultPending = true;
                 view.Open(Build());
                 ObserveSelection(false);
                 ApplyFonts();
             }
             ObserveSelection(true);
+            UpdateLimbFigure(true);
             if (pending != null && Time.unscaledTime - sentAt > responseTimeout)
                 Answer(requestId, false, Fill(texts.responseTimeout));
             if (Time.unscaledTime < nextRefresh) return;
@@ -98,6 +103,17 @@ namespace CurtainCall.UI.SceneIntegration
                 SoundManager.Play(SoundSituations.ShopSelection);
             observedTab = view.CurrentTab;
             observedEntry = view.SelectedEntryId;
+        }
+        /// <summary>서비스 탭에서 신체 복구를 고르고 있을 때만 설명 칸에 인체 그림(초록 = 이번에 복구 · 빨강 = 복구 안 함 · 흰색 = 원래 있음).</summary>
+        void UpdateLimbFigure(bool open)
+        {
+            if (limbFigure == null && view != null) limbFigure = view.GetComponentInChildren<LimbBookingFigure>(true);
+            if (limbFigure == null) return;
+            var local = NetworkPlayer.Local;
+            bool show = open && view.IsVisible && local != null && view.CurrentTab == ServiceTab && view.SelectedEntryId == "medical";
+            if (!show) { if (limbFigure.Showing) limbFigure.Hide(); return; }
+            int booked = service != null && service.LocalIsAdding ? service.BookedLimbs : 0;
+            limbFigure.Show(local.LostParts, LimbBookingFigure.RestoreSet(local.LostParts, booked + Mathf.Clamp(medicalParts, 1, MedicalMax)));
         }
         void EnsureEvents()
         {
@@ -165,17 +181,32 @@ namespace CurtainCall.UI.SceneIntegration
         // M2: 서비스는 신체 복구 하나(시설 서비스 삭제). 한 항목에서 1~최대(잃은 부위, 3개) 수량을 고르고 예약한다. 비용은 지금 1개당 가격 × 개수.
         // 상점 템플릿은 항목당 버튼 2개까지라 [예약]·[수량 변경] 두 버튼을 쓴다. 수량은 이 화면에만 있는 선택값이다.
         // 예약한 사람은 입장 전까지 남은 팔다리를 같은 두 버튼으로 추가 예약한다(2026-11-18 사용자). 1개당 가격은 고정(2026-11-26).
+        // 2026-11-26 M3 A안: 여러 개를 고를 수 있다는 걸 모르는 경우가 있어, 창을 열 때·고를 수 있는 수가 바뀔 때 '잃은 전부'(돈이 모자라면 살 수 있는 최대)를 먼저 고른다.
+        // 수량 버튼은 하나씩 줄인다(3 → 2 → 1 → 3). 어느 부위가 돌아오는지는 설명 칸 인체 그림(LimbBookingFigure)으로 보여 준다.
         int medicalParts = 1;
+        bool medicalDefaultPending = true;
+        int lastMedicalMax = -1, lastMedicalBooked = -1;
         int MedicalMax => Mathf.Max(1, service != null ? service.LocalSelectableParts : ExpertService.LocalMaxParts);
+        int DefaultMedicalParts(int max)
+        {
+            if (service == null || service.MedicalPrice <= 0) return max;
+            return Mathf.Clamp((int)Math.Min(max, service.Balance / service.MedicalPrice), 1, max);
+        }
         void AddServices(List<ShopEntryPresentation> entries)
         {
             string status = service == null || service.Phase == ExpertRoomPhase.Idle ? ""
                 : Fill(texts.serviceStatus, ("player", WaitingRoomShop.PlayerLabel(service.Buyer)), ("phase", ExpertServicePhonePanel.PhaseLabel(service.Phase)));
             int max = MedicalMax;
-            medicalParts = Mathf.Clamp(medicalParts, 1, max);
-            int parts = medicalParts;
             bool adding = service != null && service.LocalIsAdding;
             int booked = adding ? service.BookedLimbs : 0;
+            if (medicalDefaultPending || max != lastMedicalMax || booked != lastMedicalBooked)
+            {
+                medicalParts = DefaultMedicalParts(max);
+                medicalDefaultPending = service == null; // 서비스 정보를 받기 전이면 받은 뒤 다시 고른다.
+                lastMedicalMax = max; lastMedicalBooked = booked;
+            }
+            medicalParts = Mathf.Clamp(medicalParts, 1, max);
+            int parts = medicalParts;
             var refusal = service != null ? service.LocalMedicalRefusal(parts) : ExpertRefusal.InPerformance;
             long cost = service?.LocalCost(parts) ?? 0;
             string reason = service == null ? Fill(texts.serviceLoading) : refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : service.Balance < cost ? Fill(texts.reasonNoFunds) : "";
@@ -203,9 +234,9 @@ namespace CurtainCall.UI.SceneIntegration
             if (phone == null || !phone.IsOpen || pending != null) { view.RejectAction(request, Fill(texts.reopenWindow)); return; }
             if (request.EntryId == "medical" && request.ActionId == "count")
             {
-                // 수량 변경은 서버 요청 없이 이 화면에서 1 → 최대 → 1 순서로 돈다.
+                // 수량 변경은 서버 요청 없이 이 화면에서 하나씩 줄이고, 1 다음은 최대로 돌아간다(처음 값이 '잃은 전부').
                 int max = MedicalMax;
-                medicalParts = medicalParts % max + 1;
+                medicalParts = medicalParts <= 1 ? max : Mathf.Min(medicalParts, max) - 1;
                 view.AcceptAction(request, Fill(texts.countSelected, ("n", medicalParts)), Build()); fingerprint = null; nextRefresh = 0; ApplyFonts();
                 return;
             }
