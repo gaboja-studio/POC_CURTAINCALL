@@ -99,10 +99,8 @@ namespace CurtainCall.Settings
         }
 
         [Header("신체 복구")]
-        [Tooltip("팔다리 1개당 기본 가격(토큰). 런(세대)이 새로 시작되면 이 값으로 돌아간다.")]
-        [SerializeField, Min(1), InspectorName("최초 부위당 가격")] int bodyRestoreBasePrice = 50;
-        [Tooltip("팀 전체가 한 번 이용할 때마다 오르는 다음 1개당 가격(토큰). 여러 개를 고쳐도 한 번만 오른다.")]
-        [SerializeField, Min(0), InspectorName("이용 1회당 단가 상승")] int bodyRestorePriceStep = 25;
+        [Tooltip("팔다리 1개당 가격(토큰). 이용 횟수와 관계없이 고정이다(2026-11-26 M3: 이용할 때마다 오르던 가격 인상 제거).")]
+        [SerializeField, Min(1), InspectorName("부위당 가격 (고정)")] int bodyRestoreBasePrice = 50;
         [Tooltip("한 번에 복구할 수 있는 최대 팔다리 수.")]
         [SerializeField, Range(1, 4)] int bodyRestoreMaxParts = 3;
 
@@ -214,7 +212,6 @@ namespace CurtainCall.Settings
 
         public int DummySpendAmount => Mathf.Max(1, dummySpendAmount);
         public int BodyRestoreBasePrice => Mathf.Max(1, bodyRestoreBasePrice);
-        public int BodyRestorePriceStep => Mathf.Max(0, bodyRestorePriceStep);
         public int BodyRestoreMaxParts => Mathf.Clamp(bodyRestoreMaxParts, 1, 4);
     }
 }

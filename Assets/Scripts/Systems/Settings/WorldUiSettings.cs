@@ -49,5 +49,28 @@ namespace CurtainCall.Settings
         [Min(.05f)] public float waitingPursuerShadowRadius = .8f, escapePursuerShadowRadius = 1.8f;
         [Range(0, 1)] public float shadowOpacity = .38f;
         [Range(.03f, .5f)] public float shadowRefreshSeconds = .1f;
+
+        [Header("위험한 동료 표시 (2026-11-26 M3 결정: 화면 밖 = 가장자리 원형 아이콘, 화면 안 = 벽 너머 테두리 + 머리 위 아이콘)")]
+        [InspectorName("위험한 동료 표시 사용"), Tooltip("내 화면에만 표시합니다. 매달림·방금 다침·낙하 부상인 동료가 대상입니다. 공연·탈출로·추격 공통.")]
+        public bool teammateDangerEnabled = true;
+        [InspectorName("표시 화면 프리팹"), Tooltip("TeammateDangerHudView가 붙은 화면 UI. 원형 아이콘 한 벌을 보이는 상태로 둡니다.")]
+        public GameObject teammateDangerHud;
+        [InspectorName("아이콘 · 매달림")] public Sprite dangerHangIcon;
+        [InspectorName("아이콘 · 방금 다침(절단)")] public Sprite dangerCutIcon;
+        [InspectorName("아이콘 · 낙하 부상")] public Sprite dangerFallIcon;
+        [InspectorName("색 · 매달림")] public Color dangerHangColor = new(.93f, .27f, .22f, 1f);
+        [InspectorName("색 · 방금 다침")] public Color dangerCutColor = new(1f, .55f, .16f, 1f);
+        [InspectorName("색 · 낙하 부상")] public Color dangerFallColor = new(1f, .78f, .25f, 1f);
+        [InspectorName("부상 표시 시간(초)"), Min(.5f), Tooltip("팔다리를 잃은 뒤 이 시간 동안 표시합니다. 원 테두리·몸 테두리가 이 시간에 맞춰 줄어듭니다.")]
+        public float dangerInjurySeconds = 6f;
+        [InspectorName("가장자리 원 크기(px, 1080p 기준)"), Min(16f)] public float dangerEdgeSize = 40f;
+        [InspectorName("머리 위 아이콘 크기(px, 1080p 기준)"), Min(12f)] public float dangerHeadSize = 30f;
+        [InspectorName("가장자리 여백(px)"), Min(0f), Tooltip("화면 위·양옆 끝에서 원 중심까지의 거리.")] public float dangerEdgeMargin = 48f;
+        [InspectorName("아래 가장자리 여백(px)"), Min(0f), Tooltip("화면 아래 끝에서 원 중심까지의 거리. 균형 막대·슬롯 등 아래 HUD를 피한다.")] public float dangerEdgeBottomMargin = 175f;
+        [InspectorName("머리 위 높이(m)"), Min(0f), Tooltip("보이는 몸(모델) 꼭대기 위로 아이콘을 띄우는 높이.")] public float dangerHeadOffset = .35f;
+        [InspectorName("몸 테두리 두께(px)"), Range(1f, 8f)] public float dangerOutlinePixels = 3f;
+        [InspectorName("화면 안으로 보는 범위"), Range(0f, .2f), Tooltip("화면 끝에서 이 비율 안쪽에 있어야 '화면에 보이는 동료'로 봅니다. 밖이면 가장자리 원으로 표시합니다.")]
+        public float dangerOnScreenInset = .04f;
+        [InspectorName("남은 시간 적을 때 깜빡임 시작 비율"), Range(0f, 1f)] public float dangerUrgentRatio = .3f;
     }
 }

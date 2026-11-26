@@ -216,6 +216,13 @@ namespace CurtainCall.Network.PlayerSync
         void SetDeathOrigin(DeathOrigin origin,string obstacle=null){deathObstacle.Value=new Unity.Collections.FixedString64Bytes(obstacle??"");deathOrigin.Value=origin;}
         readonly NetworkVariable<DeathOrigin> deathOrigin = new(DeathOrigin.Fall);
         public DeathOrigin LastDeathOrigin => deathOrigin.Value;
+        /// <summary>
+        /// 마지막 팔다리 손실의 순번(위 비트)과 원인(아래 8비트). 다른 화면이 '방금 다침·낙하 부상'을 구분해 표시한다(2026-11-26 M3 위험한 동료 표시).
+        /// 값이 바뀌면 새 부상이다. 처음 본 값은 과거 부상이므로 표시하지 않는다.
+        /// </summary>
+        public int InjuryMark => injuryMark.Value;
+        public static DeathOrigin InjuryOrigin(int mark) => (DeathOrigin)(mark & 0xFF);
+        readonly NetworkVariable<int> injuryMark = new();
         public PlayerState State => state.Value;
 
         /// <summary>상태가 바뀌었을 때(모든 화면). 인자는 (이전, 새 상태).</summary>
@@ -437,6 +444,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!IsServer || part == BodyPart.None || !ServerCanTakeDamage()) return BodyPart.None;
             lostParts.Value |= part;
+            injuryMark.Value = (((injuryMark.Value >> 8) + 1 & 0xFFFFFF) << 8) | (byte)origin;
             if (PlayerCondition.IsAllLimbsLost(lostParts.Value)) SetDeathOrigin(origin,obstacle);
             if (PlayerCondition.IsAllLimbsLost(lostParts.Value))
                 state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace); // 네 팔다리 모두 잃으면 사망(탈출로는 리타이어)

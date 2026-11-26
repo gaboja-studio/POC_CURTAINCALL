@@ -50,3 +50,20 @@ MonoBehaviour:
   escapePursuerShadowRadius: 1.8
   shadowOpacity: 0.38
   shadowRefreshSeconds: 0.1
+  teammateDangerEnabled: 1
+  teammateDangerHud: {fileID: 8802229447532230145, guid: a0ca5f799f685474f8f9fe30af1850ac, type: 3}
+  dangerHangIcon: {fileID: 21300000, guid: 3c695b96a791e104d9096e7fa2f3d60d, type: 3}
+  dangerCutIcon: {fileID: 21300000, guid: eeba86e4189b7654788dc7cac795af87, type: 3}
+  dangerFallIcon: {fileID: 21300000, guid: e1c2dc15c8678fd4cb107f18bf802518, type: 3}
+  dangerHangColor: {r: 0.93, g: 0.27, b: 0.22, a: 1}
+  dangerCutColor: {r: 1, g: 0.55, b: 0.16, a: 1}
+  dangerFallColor: {r: 1, g: 0.78, b: 0.25, a: 1}
+  dangerInjurySeconds: 6
+  dangerEdgeSize: 40
+  dangerHeadSize: 30
+  dangerEdgeMargin: 48
+  dangerEdgeBottomMargin: 175
+  dangerHeadOffset: 0.35
+  dangerOutlinePixels: 3
+  dangerOnScreenInset: 0.04
+  dangerUrgentRatio: 0.3

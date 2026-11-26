@@ -27,6 +27,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = (Component)Get(adapter, "View");
+            // 2026-11-26 M3: 스프링 신발은 공연 탭(키트 칸 Services)에 있다.
+            Call(view, "SelectTab", System.Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
             Call(view, "SelectEntry", "item:spring-shoes");
             yield return null; yield return null;
 
@@ -68,6 +70,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.Less(more.alpha, .1f, "끝까지 내리면 화살표가 사라진다");
             Assert.Less(mask.padding.y, -1f, "끝에서는 아래 가장자리를 흐리지 않는다");
             Assert.AreEqual(0f, mask.padding.w, .5f, "위로 지나간 글이 있으면 위 가장자리가 흐리다");
+            Call(view, "SelectTab", System.Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Items")); // 머리핀은 탐색 탭
             Call(view, "SelectEntry", "item:magician-hairpin"); yield return null; yield return null;
             // 짧은 설명은 스크롤할 길이가 없어 normalizedPosition이 0이 되므로 글 위치로 맨 위인지 본다.
             Assert.Less(rect.content.anchoredPosition.y, 1f, "다른 항목을 고르면 맨 위부터");

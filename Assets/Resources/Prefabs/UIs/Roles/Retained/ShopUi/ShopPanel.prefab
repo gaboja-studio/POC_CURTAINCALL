@@ -1063,7 +1063,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC11C\uBE44\uC2A4"
+  m_text: "\uACF5\uC5F0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
   m_sharedMaterial: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
@@ -4286,7 +4286,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC7A5\uBD80"
+  m_text: "\uC11C\uBE44\uC2A4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
   m_sharedMaterial: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
@@ -8555,7 +8555,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAE30\uBB3C"
+  m_text: "\uD0D0\uC0C9"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
   m_sharedMaterial: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
@@ -10270,6 +10270,14 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 3b591f45ff5137e498bf9168aa465b9a, type: 3}
   - key: route-key
     sprite: {fileID: 21300000, guid: 473ece111fbb58f46914d642606a8253, type: 3}
+  - key: locked:rescue-gloves
+    sprite: {fileID: 21300000, guid: a76019e034e1f8c418317e3e945231cf, type: 3}
+  - key: locked:sticky-gloves
+    sprite: {fileID: 21300000, guid: 96849244673baa048867b5b7a50e71e3, type: 3}
+  - key: locked:balloon-pants
+    sprite: {fileID: 21300000, guid: 45371423874135b458c3d2e7a6d33430, type: 3}
+  - key: locked:spring-shoes
+    sprite: {fileID: 21300000, guid: f59e1067dbcd3c54fb4e90464226f853, type: 3}
 --- !u!1 &8138498180004831942
 GameObject:
   m_ObjectHideFlags: 0

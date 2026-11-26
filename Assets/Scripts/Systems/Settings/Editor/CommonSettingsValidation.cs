@@ -53,6 +53,7 @@ namespace CurtainCall.Settings.EditorTools
             (typeof(CurtainCall.EscapeRoute.EscapeCooperativeRopes), "buttonDistance"),
             (typeof(CurtainCall.EscapeRoute.EscapeExitSaw), "grabDistance"),
             (typeof(CurtainCall.StartLobby.LobbyInteractable), "reach"),
+            (typeof(WaitingRoomSettings), "bodyRestorePriceStep"), // 2026-11-26 M3: 신체 복구 가격 인상 제거(고정 가격)
         };
 
         public static string[] Validate(GameSettings settings = null, bool checkSources = true, bool checkSerializedAssets = true)

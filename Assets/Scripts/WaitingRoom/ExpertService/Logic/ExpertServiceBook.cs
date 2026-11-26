@@ -64,7 +64,7 @@ namespace CurtainCall.WaitingRoom
 
         public bool HasBuyer => Phase != ExpertRoomPhase.Idle;
 
-        /// <summary>이번 런에서 팀 전체가 신체 복구를 이용한 횟수. 다음 단가를 정한다.</summary>
+        /// <summary>이번 런에서 팀 전체가 신체 복구를 이용한 횟수(기록·표시용. 2026-11-26부터 가격에는 쓰지 않는다).</summary>
         public int TeamUses { get; private set; }
 
         /// <summary>상태가 바뀔 때마다 1씩 오른다(참가자 동기화용).</summary>
@@ -73,19 +73,18 @@ namespace CurtainCall.WaitingRoom
         /// <summary>공연 중이 아니면(쉬는 시간·밤 정비) 이용할 수 있다.</summary>
         public static ExpertRefusal Availability(bool serviceTime) => serviceTime ? ExpertRefusal.None : ExpertRefusal.InPerformance;
 
-        /// <summary>팀 이용 <paramref name="teamUses"/>회 뒤의 1개당 가격.</summary>
-        public static long UnitPrice(int teamUses, long basePrice, long priceStep) => basePrice + priceStep * Math.Max(0, teamUses);
-
-        /// <summary>복구 비용 = 지금 1개당 가격 × 고른 수.</summary>
-        public static long Cost(int parts, int teamUses, long basePrice, long priceStep) =>
-            parts <= 0 ? 0 : parts * UnitPrice(teamUses, basePrice, priceStep);
+        /// <summary>
+        /// 복구 비용 = 1개당 고정 가격 × 고른 수.
+        /// 2026-11-26 M3 피드백: 이용할 때마다 단가가 오르던 규칙을 없애고 최초 가격으로 고정한다.
+        /// </summary>
+        public static long Cost(int parts, long unitPrice) => parts <= 0 ? 0 : parts * Math.Max(0, unitPrice);
 
         /// <summary>고를 수 있는 최대 개수 = 잃은 수와 한 번 최대치 중 작은 값.</summary>
         public static int MaxParts(int lostLimbs, int maxPerUse) => Math.Max(0, Math.Min(lostLimbs, maxPerUse));
 
         /// <summary>
         /// 예약자가 입장 전(<see cref="ExpertRoomPhase.Booked"/>)에 팔다리를 더 예약하는 중인가(2026-11-18 사용자).
-        /// 추가분은 같은 이용 1회로 치므로 예약 때 단가를 쓰고 팀 이용 횟수를 올리지 않는다.
+        /// 추가분은 같은 이용 1회로 치므로 팀 이용 횟수를 올리지 않는다.
         /// </summary>
         public bool IsAddition(ulong buyer) => Phase == ExpertRoomPhase.Booked && Buyer == buyer;
 
@@ -95,9 +94,6 @@ namespace CurtainCall.WaitingRoom
             if (!HasBuyer) return MaxParts(lostLimbs, maxPerUse);
             return IsAddition(buyer) ? Math.Max(0, MaxParts(lostLimbs, maxPerUse) - BookedLimbs) : 0;
         }
-
-        /// <summary><paramref name="buyer"/>에게 적용할 단가 기준 팀 이용 횟수. 추가 예약은 예약 때 단가(이용 횟수 -1)다.</summary>
-        public int PriceUses(ulong buyer) => IsAddition(buyer) ? Math.Max(0, TeamUses - 1) : TeamUses;
 
         /// <summary>신체 복구를 살 수 있는지. 자금 확인은 <see cref="BookMedical"/>의 spend가 한다.</summary>
         public ExpertRefusal CanBuyMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse)
@@ -117,7 +113,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
-        /// 신체 복구 구매. 조건을 모두 통과하면 <paramref name="spend"/>(공동 자금에서 지금 단가 × 개수 차감)를 부르고,
+        /// 신체 복구 구매. 조건을 모두 통과하면 <paramref name="spend"/>(공동 자금에서 고정 단가 × 개수 차감)를 부르고,
         /// 성공하면 방을 예약하고 팀 이용 횟수를 한 번 올린다. 입장 전 예약자의 추가 예약이면 예약 수와 결제액만 늘린다.
         /// </summary>
         public ExpertRefusal BookMedical(ulong buyer, bool serviceTime, bool alive, int lostLimbs, int parts, int maxPerUse, Func<bool> spend)

@@ -26,6 +26,34 @@ namespace CurtainCall.Settings
         [InspectorName("위로 회수하는 가속도"), Min(1)] public float cheerRetractAcceleration = 36f;
         [InspectorName("위로 회수하는 최고 속도"), Min(1)] public float cheerRetractSpeed = 28f;
         [InspectorName("숨기기 전 최소 상승 높이"), Min(3)] public float cheerHideMinHeight = 18f;
+        [Header("환호 고리 — 주변보다 밝게 (2026-11-26 M3: 배경과 겹쳐 잘 안 보임)")]
+        [InspectorName("불 고리 발광 사용")]
+        [Tooltip("켜면 불 고리 외형 위에 발광 고리·빛 번짐·주변 조명을 실행 중에 덧입힌다. 외부 에셋 프리팹은 바꾸지 않는다.")]
+        public bool cheerGlow = true;
+        [InspectorName("발광 색"), ColorUsage(false, false)] public Color cheerGlowColor = new(1f, .55f, .16f);
+        [InspectorName("고리 발광 세기"), Min(0f), Tooltip("고리 재질의 HDR 발광 배율. 1 이상이면 화면 빛 번짐이 생긴다.")]
+        public float cheerGlowEmission = 1.1f;
+        [InspectorName("빛 번짐 크기(고리 지름 배율)"), Min(1f)] public float cheerHaloScale = 1.5f;
+        [InspectorName("빛 번짐 세기"), Min(0f)] public float cheerHaloStrength = .55f;
+        [InspectorName("주변 조명 밝기"), Min(0f)] public float cheerGlowLight = 3f;
+        [InspectorName("주변 조명 범위(m)"), Min(.5f)] public float cheerGlowLightRange = 7f;
+        [InspectorName("깜빡임 폭(0~1)"), Range(0f, 1f)] public float cheerGlowPulse = .08f;
+        [InspectorName("깜빡임 속도"), Min(0f)] public float cheerGlowPulseSpeed = 1.2f;
+        [InspectorName("가까울 때 빛 번짐 줄이는 거리(m)"), Min(0f), Tooltip("카메라가 이 거리 안으로 들어오면 빛 번짐·발광을 점점 줄인다(통과할 때 눈부심 방지). 0이면 줄이지 않는다.")]
+        public float cheerGlowNearFade = 8f;
+        [Header("큰 호응 연출 — 공연장 옆 아래에서 불꽃 (2026-11-26 M3)")]
+        [InspectorName("큰 호응 불꽃 사용")] public bool bigCheerFireworks = true;
+        [InspectorName("불꽃이 터지는 한 번의 호응량"), Min(1)]
+        [Tooltip("팀 호응 게이지가 한 번에 이만큼 이상 오르면 화면 양옆 아래에서 불꽃을 쏜다. 기본 15 = 불 고리 1개(구조 성공 20도 포함).")]
+        public int bigCheerThreshold = 15;
+        [InspectorName("불꽃 재질(가산 파티클)")] public Material fireworkMaterial;
+        [InspectorName("한쪽 불꽃 수"), Range(1, 6)] public int fireworkPerSide = 3;
+        [InspectorName("카메라 앞 거리(m)"), Min(4f)] public float fireworkAhead = 24f;
+        [InspectorName("양옆 거리(m)"), Min(2f)] public float fireworkSide = 10f;
+        [InspectorName("카메라 아래 발사 높이(m)"), Min(0f)] public float fireworkBelow = 13f;
+        [InspectorName("상승 높이(m)"), Min(2f)] public float fireworkRise = 11f;
+        [InspectorName("불꽃 색 A"), ColorUsage(false, true)] public Color fireworkColorA = new(1f, .72f, .2f);
+        [InspectorName("불꽃 색 B"), ColorUsage(false, true)] public Color fireworkColorB = new(1f, .18f, .12f);
         [Header("수동 공연 기물")]
         [InspectorName("신발 추가 점프 높이"), Min(.1f)] public float extraJumpHeight = 2f;
         [InspectorName("구조 장갑 수평 범위"), Min(.1f)]

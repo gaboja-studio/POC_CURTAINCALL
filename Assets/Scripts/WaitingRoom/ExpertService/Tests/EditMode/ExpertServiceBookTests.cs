@@ -108,21 +108,22 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
-        public void 가격은_100에서_팀_이용_1회마다_25씩_오르고_여러_개도_한_번만_오른다()
+        public void 가격은_이용_횟수와_무관하게_고정_단가_곱하기_개수다()
         {
-            Assert.AreEqual(200, ExpertServiceBook.Cost(2, 0, 100, 25), "처음 2개 = 100 × 2");
+            // 2026-11-26 M3: 이용할 때마다 단가가 오르던 규칙 제거.
+            Assert.AreEqual(200, ExpertServiceBook.Cost(2, 100), "2개 = 100 × 2");
             var book = NewBook();
             Assert.AreEqual(ExpertRefusal.None, BookMedical(book, lost: 3, parts: 2));
             Assert.AreEqual(1, book.TeamUses, "2개를 고쳐도 1회");
-            Assert.AreEqual(125, ExpertServiceBook.UnitPrice(book.TeamUses, 100, 25), "다음 1개 = 125");
             book.Clear();
             Assert.AreEqual(ExpertRefusal.None, BookMedical(book, buyer: Other, lost: 1, parts: 1));
-            Assert.AreEqual(150, ExpertServiceBook.UnitPrice(book.TeamUses, 100, 25), "팀 전체가 같은 가격을 쓴다");
-            Assert.AreEqual(0, ExpertServiceBook.Cost(0, 5, 100, 25));
+            Assert.AreEqual(2, book.TeamUses);
+            Assert.AreEqual(100, ExpertServiceBook.Cost(1, 100), "이용 뒤에도 같은 가격");
+            Assert.AreEqual(0, ExpertServiceBook.Cost(0, 100));
         }
 
         [Test]
-        public void 새_판이면_가격이_처음으로_돌아간다()
+        public void 새_판이면_이용_기록이_처음으로_돌아간다()
         {
             var book = NewBook();
             BookMedical(book, lost: 2, parts: 2);
@@ -170,14 +171,12 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
-        public void 예약자는_입장_전에_남은_팔다리를_예약_때_단가로_추가_예약한다()
+        public void 예약자는_입장_전에_남은_팔다리를_추가_예약한다()
         {
             var book = NewBook();
             Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Buyer, true, true, 3, 1, MaxPerUse, () => true, 100));
             Assert.AreEqual(2, book.SelectableParts(Buyer, 3, MaxPerUse));
             Assert.AreEqual(0, book.SelectableParts(Other, 3, MaxPerUse));
-            Assert.AreEqual(0, book.PriceUses(Buyer), "추가분은 예약 때 단가를 쓴다.");
-            Assert.AreEqual(1, book.PriceUses(Other));
             Assert.AreEqual(ExpertRefusal.BadChoice, book.BookMedical(Buyer, true, true, 3, 3, MaxPerUse, () => true, 300));
             Assert.AreEqual(ExpertRefusal.None, book.BookMedical(Buyer, true, true, 3, 2, MaxPerUse, () => true, 200));
             Assert.AreEqual(3, book.BookedLimbs);

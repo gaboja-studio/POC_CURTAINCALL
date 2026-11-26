@@ -40,6 +40,8 @@ namespace CurtainCall.MainStage.CheerPoints
                 if (visual) Destroy(visual);
                 source = prefab; visual = prefab ? Instantiate(prefab,transform) : null;
                 presentation = visual ? visual.AddComponent<CheerPointPresentation>() : null;
+                // 불 고리만 주변보다 밝게 덧입힌다(2026-11-26 M3).
+                if (visual && style == CheerPointStyle.FireHoop) visual.AddComponent<CheerPointGlow>();
             }
             if (!visual) return;
             presentation.Sample(taken ? Time.unscaledTime-collectedAt : 0,taken,Camera.main);

@@ -30,7 +30,7 @@ namespace CurtainCall.MainStage.CheerPoints
         bool pointsEnabled;
         PerformanceRewards Rewards => PerformanceRewards.Instance;
         bool Active => Rewards != null && Rewards.State?.IsOpen == true;
-        void Awake() { current=this; channel = new ShopChannel("CurtainCall.CheerPoints", (sender,_) => Publish(sender), Read, _=>{}, Reset, ()=>channel.Request("sync")); }
+        void Awake() { current=this; if (!GetComponent<PerformanceFireworks>()) gameObject.AddComponent<PerformanceFireworks>(); channel =new ShopChannel("CurtainCall.CheerPoints", (sender,_) => Publish(sender), Read, _=>{}, Reset, ()=>channel.Request("sync")); }
         void Reset() { attempt=null; pointsEnabled=false; taken.Clear(); previous.Clear(); }
         void OnDestroy() { channel?.Dispose(); if(current==this) current=null; }
         void Update()

@@ -14,12 +14,12 @@ namespace CurtainCall.UI.SceneIntegration
     public sealed class ShopUiTexts : ScriptableObject
     {
         [Header("탭 위 안내줄 (빈 칸이면 숨김)")]
-        [Tooltip("{balance} = 공동 자금, {n} = 배송구 대기 개수")]
+        [Tooltip("탐색 탭. {balance} = 공동 자금, {n} = 배송구 대기 개수")]
         public string itemsContext;
-        [Tooltip("{balance} = 공동 자금, {day} = 일차")]
+        [Tooltip("공연 탭. {balance} = 공동 자금, {n} = 배송구 대기 개수")]
+        public string performanceContext;
+        [Tooltip("서비스 탭. {balance} = 공동 자금, {day} = 일차")]
         public string servicesContext;
-        [Tooltip("{balance} = 공동 자금")]
-        public string ledgerContext;
 
         [Header("창 아래 줄")]
         [Tooltip("선택한 항목을 이용할 수 있을 때. 빈 칸이면 숨김")]
@@ -28,8 +28,6 @@ namespace CurtainCall.UI.SceneIntegration
         public string footerBusy;
         [Tooltip("선택한 항목을 이용할 수 없을 때. 빈 칸이면 숨김")]
         public string footerUnavailable;
-        [Tooltip("장부 탭에서. 빈 칸이면 숨김")]
-        public string footerLedger;
         [Tooltip("응답이 오지 않을 때")]
         public string responseTimeout;
         [Tooltip("창이 닫힌 뒤 요청했을 때")]
@@ -37,7 +35,7 @@ namespace CurtainCall.UI.SceneIntegration
         [Tooltip("처리할 수 없는 요청")]
         public string invalidRequest;
 
-        [Header("기물 탭")]
+        [Header("탐색·공연 탭 (기물)")]
         [Tooltip("목록 줄의 둘째 줄")]
         public string itemSubtitle;
         [Tooltip("모든 기물 설명 아래에 붙는 안내. 빈 칸이면 붙이지 않음")]
@@ -50,6 +48,18 @@ namespace CurtainCall.UI.SceneIntegration
         public string buyButton;
         [Tooltip("공동 자금이 모자랄 때 (기물·서비스 공통)")]
         public string reasonNoFunds;
+
+        [Header("공연 탭 · 해금 전 기물 (2026-11-26 M3)")]
+        [Tooltip("해금 전 기물의 이름 자리")]
+        public string lockedTitle = "???";
+        [Tooltip("해금 전 기물 목록 줄의 둘째 줄")]
+        public string lockedSubtitle = "해금되지 않음";
+        [Tooltip("해금 전 기물의 가격 자리")]
+        public string lockedPrice = "—";
+        [Tooltip("해금 전 기물 설명. 추후 위치 힌트를 덧붙일 수 있다")]
+        [TextArea(1, 4)] public string lockedDescription = "해금되지 않은 기물입니다.";
+        [Tooltip("'locked:기물ID' 실루엣 그림이 없을 때 쓰는 아이콘 키")]
+        public string lockedFallbackIcon = "lock";
 
         [Header("서비스 탭 · 신체 복구")]
         [Tooltip("{n} = 고른 팔·다리 수")]
@@ -75,22 +85,6 @@ namespace CurtainCall.UI.SceneIntegration
         [Tooltip("설명 칸의 상태 줄. {player} = 이용 중인 공연 준비자, {phase} = 진행 단계")]
         public string serviceStatus;
 
-        [Header("장부 탭")]
-        [Tooltip("공동 자금 기록 둘째 줄. {number} = 기록 번호, {day} = 일차")]
-        public string ledgerSubtitle;
-        [Tooltip("{before} = 이전 잔액, {after} = 이후 잔액")]
-        public string ledgerBalance;
-        public string ledgerSettled;
-        [Tooltip("배송구 도착(수령 전) 둘째 줄. {order} = 주문 번호, {player} = 주문한 공연 준비자")]
-        public string deliverySubtitle;
-        public string deliveryWaiting;
-        [TextArea(1, 4)] public string deliveryDescription;
-        [Tooltip("{order} = 주문 번호")]
-        public string receiptSubtitle;
-        public string receiptDone;
-        [Tooltip("{buyer} = 주문한 공연 준비자, {claimer} = 받아 간 공연 준비자")]
-        public string receiptDescription;
-
         [Header("목록에 마우스를 올렸을 때 설명")]
         [Tooltip("{description} = 항목 설명(기물은 기물 목록의 Shop Tooltip, 비어 있으면 Shop Description), {price} = 가격, {reason} = 이용 불가 사유(없으면 빈 줄)")]
         [TextArea(2, 6)] public string rowTooltip;
@@ -101,7 +95,5 @@ namespace CurtainCall.UI.SceneIntegration
         [Tooltip("기물 설명 칸 상태 줄 아이콘")]
         public string itemStatusIcon;
         public string medicalIcon;
-        public string ledgerIcon;
-        public string deliveryIcon;
     }
 }

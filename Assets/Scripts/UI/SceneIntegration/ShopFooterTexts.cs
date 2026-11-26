@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration
     {
         // 키트가 쓰는 원래 문구(ShopPanelView.RefreshDetails). 키트가 바뀌면 여기도 맞춘다.
         const string KitIdle = "플레이는 계속됩니다", KitBusy = "요청 처리 중…",
-            KitLedger = "기록의 상세 내용을 확인할 수 있습니다.", KitUnavailable = "설명과 이용 불가 사유를 확인하세요.";
+            KitUnavailable = "설명과 이용 불가 사유를 확인하세요.";
 
         [SerializeField] ShopUiTexts texts;
         [Tooltip("상점 창 아래 줄 TMP(ShopPanelView의 Footer Message)")]
@@ -25,7 +25,6 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 KitIdle => texts.footerIdle,
                 KitBusy => texts.footerBusy,
-                KitLedger => texts.footerLedger,
                 KitUnavailable => texts.footerUnavailable,
                 _ => null,
             };

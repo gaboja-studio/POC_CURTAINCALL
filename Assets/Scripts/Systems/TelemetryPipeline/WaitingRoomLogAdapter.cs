@@ -81,7 +81,7 @@ namespace CurtainCall.Telemetry.Pipeline
             shopOpen = newShop;
             string selectedService = shopView != null && shopView.View != null ? shopView.View.SelectedEntryId : null;
             bool newService = InWaitingRoom && shopView != null && shopView.View != null && shopView.View.IsVisible
-                && shopView.View.CurrentTab == ShopTab.Services && selectedService is not null && selectedService.StartsWith("medical");
+                && shopView.View.CurrentTab == WaitingRoomShopUI.ServiceTab && selectedService is not null && selectedService.StartsWith("medical");
             if (newService && (!serviceOpen || serviceEntry != selectedService))
             { serviceScreenFlow = Guid.NewGuid().ToString("D"); log.Emit("SERVICE_OPENED", new() { ["flowId"] = serviceScreenFlow,
                 ["serviceType"] = "RESTORE_BODY" }); }

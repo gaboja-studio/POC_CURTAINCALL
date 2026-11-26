@@ -30,6 +30,26 @@ MonoBehaviour:
   cheerRetractAcceleration: 36
   cheerRetractSpeed: 28
   cheerHideMinHeight: 18
+  cheerGlow: 1
+  cheerGlowColor: {r: 1, g: 0.55, b: 0.16, a: 1}
+  cheerGlowEmission: 1.1
+  cheerHaloScale: 1.5
+  cheerHaloStrength: 0.55
+  cheerGlowLight: 3
+  cheerGlowLightRange: 7
+  cheerGlowPulse: 0.08
+  cheerGlowPulseSpeed: 1.2
+  cheerGlowNearFade: 8
+  bigCheerFireworks: 1
+  bigCheerThreshold: 15
+  fireworkMaterial: {fileID: 2100000, guid: 10b6d3973b270e746923401cdec244f2, type: 2}
+  fireworkPerSide: 3
+  fireworkAhead: 24
+  fireworkSide: 10
+  fireworkBelow: 13
+  fireworkRise: 11
+  fireworkColorA: {r: 1, g: 0.72, b: 0.2, a: 1}
+  fireworkColorB: {r: 1, g: 0.18, b: 0.12, a: 1}
   extraJumpHeight: 2
   rescueRange: 8
   rescueHeightRange: 6

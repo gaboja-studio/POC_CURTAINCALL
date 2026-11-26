@@ -4,7 +4,9 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
     {
         _SilhouetteColor ("Color", Color) = (0,1,1,1)
         _SilhouettePixels ("Width", Float) = 3
-        _SilhouetteOccludedOnly ("Occluded only", Float) = 0
+        _SilhouetteOccludedOnly ("Mode (0 visible outline, 1 occluded fill, 2 outline through walls)", Float) = 0
+        _SilhouetteTimer ("Remaining ratio (<0 off)", Float) = -1
+        _SilhouetteTimerRange ("Timer bottom Y, height (world)", Vector) = (0,1.8,0,0)
     }
     SubShader
     {
@@ -22,17 +24,30 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
                 float4 _SilhouetteColor;
                 float _SilhouettePixels;
                 float _SilhouetteOccludedOnly;
+                float _SilhouetteTimer;
+                float4 _SilhouetteTimerRange;
             CBUFFER_END
             struct Attributes { float4 positionOS:POSITION; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct Varyings { float4 positionCS:SV_POSITION; float eye:TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
+            struct Varyings { float4 positionCS:SV_POSITION; float eye:TEXCOORD0; float worldY:TEXCOORD1; UNITY_VERTEX_OUTPUT_STEREO };
             Varyings Vert(Attributes input)
             {
                 Varyings o;UNITY_SETUP_INSTANCE_ID(input);UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 float3 world=TransformObjectToWorld(input.positionOS.xyz);
-                o.positionCS=TransformWorldToHClip(world);o.eye=-TransformWorldToView(world).z;return o;
+                o.positionCS=TransformWorldToHClip(world);o.eye=-TransformWorldToView(world).z;
+                o.worldY=world.y;return o;
             }
             struct Output { float4 color:SV_Target0;float4 info:SV_Target1; };
-            Output Frag(Varyings i){Output o;o.color=_SilhouetteColor;o.info=float4(_SilhouettePixels,i.eye,_SilhouetteOccludedOnly,1);return o;}
+            Output Frag(Varyings i)
+            {
+                Output o;o.color=_SilhouetteColor;
+                // 남은 시간: 발끝부터 남은 비율 높이까지만 선명하고 그 위는 흐리게(시간이 줄면 머리부터 흐려짐, 2026-11-26 M3).
+                if(_SilhouetteTimer>=0)
+                {
+                    float level=(i.worldY-_SilhouetteTimerRange.x)/max(.01,_SilhouetteTimerRange.y);
+                    if(level>saturate(_SilhouetteTimer))o.color.a*=.22;
+                }
+                o.info=float4(_SilhouettePixels,i.eye,_SilhouetteOccludedOnly,1);return o;
+            }
             ENDHLSL
         }
         Pass
@@ -76,7 +91,8 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
                 if(center.a>.5)
                 {
                     // The frontmost model surface prevents drawing its own hidden backs or seams.
-                    if(center.z<.5 || center.y<=EyeDepth(i.uv)+max(.04,center.y*.002))return 0;
+                    // Mode 2 (outline through walls) never fills the body; only mode 1 fills hidden pixels.
+                    if(center.z<.5 || center.z>1.5 || center.y<=EyeDepth(i.uv)+max(.04,center.y*.002))return 0;
                     return SAMPLE_TEXTURE2D_X(_SilhouetteMask,sampler_PointClamp,i.uv);
                 }
                 if(_SilhouetteHasExterior<.5)return 0;
@@ -90,9 +106,10 @@ Shader "Hidden/CurtainCall/SilhouetteOutline"
                         float2 uv=i.uv+float2(cos(angle),sin(angle))*radius*_SilhouetteTexel.xy;
                         if(any(uv<0)||any(uv>1))continue;
                         float4 info=SAMPLE_TEXTURE2D_X(_SilhouetteInfo,sampler_PointClamp,uv);
-                        if(info.a<.5||info.z>.5||radius>info.x+.5||radius>=bestDistance)continue;
+                        if(info.a<.5||(info.z>.5&&info.z<1.5)||radius>info.x+.5||radius>=bestDistance)continue;
                         float tolerance=max(.025,info.y*.001);
-                        if(info.y>EyeDepth(uv)+tolerance||info.y>sceneAtPixel+tolerance)continue;
+                        // Mode 2 draws the contour even when walls hide the body or the contour pixel.
+                        if(info.z<.5&&(info.y>EyeDepth(uv)+tolerance||info.y>sceneAtPixel+tolerance))continue;
                         best=SAMPLE_TEXTURE2D_X(_SilhouetteMask,sampler_PointClamp,uv);
                         bestDistance=radius;
                     }

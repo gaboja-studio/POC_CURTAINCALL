@@ -106,7 +106,7 @@ namespace CurtainCall.EditorTools
                 for(int tile=0;tile<3;tile++)Place(Factory+"Structure/SM_Catwalk_Grate_2m.prefab",group,new Vector3(0,0,(tile-1)*15),20,Quaternion.identity);
                 Place(Factory+"Structure/SM_Column_IBeam.prefab",group,new Vector3(0,-65,0),65,Quaternion.identity);
                 Place(Factory+"Structure/SM_Railing_Steel_2m.prefab",group,new Vector3(side*9,1,0),35,Quaternion.Euler(0,90,0));
-                Place(Carnival+"Vehicles/SM_Veh_Wagon_Cage_01.prefab",group,new Vector3(0,4,6),18,Quaternion.Euler(0,side*15,0));
+                // 2026-11-26 M3: 섬 위 철창 마차는 공연장 곳곳 허공에 떠 보여 제거(플레이테스트 피드백).
                 Place(Factory+"Machines/SM_Hoist_Chain.prefab",group,new Vector3(0,22,6),12,Quaternion.identity);
                 Place(Factory+"Machines/SM_Chain_Hanging.prefab",group,new Vector3(0,16,6),12,Quaternion.identity);
                 Place(Conveyor+"Conveyor/ConveyorElevator.prefab",group,new Vector3(0,1,-24),22,Quaternion.Euler(0,90,0));

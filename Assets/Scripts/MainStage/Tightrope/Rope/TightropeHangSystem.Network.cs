@@ -202,7 +202,7 @@ namespace CurtainCall.Tightrope
                 writer.WriteValueSafe(target.ReviveVersion);
                 messaging.SendNamedMessageToAll(RescuedMessage, writer, NetworkDelivery.ReliableSequenced);
             }
-            ApplyRescued(hang.Id, hang.Lane, hang.Distance);
+            ApplyRescued(hang.Id, hang.Lane, hang.Distance, hang.Rescuer);
         }
 
         internal static bool MatchesRescueArrival(NetworkPlayer target, ulong avatar, int restart, int revive) =>
