@@ -53,3 +53,4 @@
   - 에디터 부산물(커밋 제외 예정): Sounds/EscapeRouteMaterials/escape-labels.asset(SaveAssets로 재저장), 글꼴 아틀라스 2개.
 - 2026-11-26 상점 신체 복구 성인형 승인 시안 저장. 160×256 PNG 6장을 승인본과 바이트 단위로 대조하고 상점 프리팹의 기존 GUID 참조를 확인했다. check-work 안전성·문서 통과. Unity 컴파일은 에디터 상태 조회 소켓 제한으로 ENV_BLOCKED, 자동 테스트 생략.
 - 2026-11-27 신체 그림을 사용자 제공 관절 마네킹(LimbFigure 6장, 같은 160×256 캔버스)으로 교체. 배치 변경: 그림을 설명 칸 왼쪽 세로 한 줄로 크게, 뒤 조명(limb-spot)·발밑 그림자(limb-floor)·부위별 Shadow, 설명 글은 오른쪽 아래로(descriptionInset 112,138). 밉맵·삼선형 필터로 축소 가장자리 정리. W2_BodyRestore 3/3 통과. Confluence v17(5-5 영상·이미지 교체, live 초안도 맞춤).
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/490 (팔·다리 예약 UI A안, dev, 지정 팀원 검토 대기). 제외: 글꼴 아틀라스 2개·escape-labels.asset(에디터 부산물).
