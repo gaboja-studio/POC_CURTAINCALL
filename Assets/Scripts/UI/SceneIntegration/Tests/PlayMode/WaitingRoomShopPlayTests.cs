@@ -218,8 +218,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(view, "SelectEntry", "medical");
             var book = (UnityEngine.UI.Button)Private(view, "primaryButton");
             var count = (UnityEngine.UI.Button)Private(view, "secondaryButton");
+            // 2026-11-26 M3 A안: 처음 선택은 살 수 있는 최대(돈이 1개 값뿐이라 1개). 수량 버튼은 하나씩 줄이고 1 다음은 최대(3)로.
+            Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"), "돈이 1개 값뿐이면 처음 선택은 1개");
             Assert.IsTrue(book.interactable);
-            for (int parts = 2; parts <= 3; parts++)
+            foreach (int parts in new[] { 3, 2 })
             {
                 count.onClick.Invoke();
                 yield return null;
@@ -265,13 +267,22 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             long unit = (long)Get(service, "MedicalPrice");
             Assert.AreEqual(50L, unit);
             Assert.AreEqual(1, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("medical")), "신체 복구는 한 항목");
-            Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
+            // 2026-11-26 M3 A안: 여러 개를 고를 수 있다는 걸 모르는 경우가 있어 처음 선택은 잃은 전부(3개).
+            Assert.AreEqual((unit * 3).ToString(), Get(Entry(adapter, "medical"), "PriceText"), "처음 선택은 잃은 팔·다리 전부");
             Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "facility"));
             Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Ledger"));
             Call(view, "SelectEntry", "medical");
+            yield return null;
+            var figureType = T("CurtainCall.UI.SceneIntegration.LimbBookingFigure");
+            var figure = Object.FindAnyObjectByType(figureType, FindObjectsInactive.Include);
+            Assert.IsTrue(figure != null && (bool)Get(figure, "Showing"), "신체 복구를 고르면 설명 칸에 인체 그림");
+            Assert.AreEqual(Get(figure, "Lost"), Get(figure, "Restoring"), "처음엔 잃은 부위가 모두 초록(이번에 복구)");
             Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
             yield return null;
-            Assert.AreEqual((unit * 2).ToString(), Get(Entry(adapter, "medical"), "PriceText"), "수량 2개 선택 시 합계");
+            Assert.AreEqual((unit * 2).ToString(), Get(Entry(adapter, "medical"), "PriceText"), "수량 버튼 한 번 → 2개");
+            yield return null;
+            Assert.AreEqual(figureType.GetMethod("RestoreSet").Invoke(null, new[] { Get(figure, "Lost"), (object)2 }), Get(figure, "Restoring"), "최근에 잃은 2개만 초록");
+            Assert.AreNotEqual(Get(figure, "Lost"), Get(figure, "Restoring"), "나머지 1개는 빨강(이번엔 복구 안 함)");
             Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
             Assert.AreEqual("Booked", Get(service, "Phase").ToString());
