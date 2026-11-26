@@ -5,6 +5,7 @@
 - [interaction-focus.md](interaction-focus.md) — F 대상 선택(화면 기준점·분류 우선순위)·아웃라인·T 기물 내려놓기·대기실 목마 상태 규칙(2026-11-16). 상호작용 대상을 추가하거나 선택·안내를 바꿀 때
 - [common-poles.md](common-poles.md) — 봉·스위치 봉·연습 봉의 조작/물리/인원/시간을 바꿀 때 읽는 공통 규칙
 - [high-pole-piggyback-release.md](high-pole-piggyback-release.md) — 높은 그네 목마 전용(판정 상자 에디터 조절)·목마 해제 낙하 부상 예외·침대 목마 해제·로비 경계(2026-11-26). 높은 봉·목마 해제·낙하 피해를 바꿀 때
+- [teammate-danger-indicator.md](teammate-danger-indicator.md) — 위험한 동료 표시(2026-11-26): 화면 밖 가장자리 원형 아이콘·화면 안 벽 너머 몸 테두리+머리 위 아이콘, 글자·프로필 없음, 테두리로 남은 시간. 동료 위험 안내를 바꿀 때
 
 이 POC에서 사람이 확정한 결정. 상황에 맞는 파일 1개만 연다. AI 추천안은 여기가 아니라 Task의 Open Decisions에 둔다.
 

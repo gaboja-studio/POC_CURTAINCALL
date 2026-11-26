@@ -25,9 +25,19 @@
     - W6_Learning: "동료 구출" 문구 기대.
     - CircusMotion: SetUp 실패.
     - RescueGlovesTwoSpawnedPlayers: 착지 받아주기.
-- 다음: Chrome 확장 연결 뒤 Confluence 4·5절 기록, 방법 찾기 3건 사용자 승인 대기.
-- push(사용자 요청): 서브모듈 `CURTAINCALL_PaidAssets` 브랜치 `fix/m3-stage-shop-feedback` 129a79f9(배경 씬·상점 키트 3파일만) + 본 저장소 같은 이름 브랜치.
+- Confluence M3(50659329) v11: 4·5절 결과 + "위험한 동료 찾기 방식 — 검토안" 펼치기(목업 A/B/C). Chrome 확장 연결이 한동안 끊겨 v10은 글만, v11에 첨부 추가.
+- 다음: 방법 찾기 3건(위험한 동료 표시·팔다리 UI·기물 사용 유도) 사용자 결정 대기.
+- push(사용자 요청): 서브모듈 `CURTAINCALL_PaidAssets` private main d7d109d9(배경 씬·상점 키트 3파일만, 사용자 승인으로 main 직접 반영) + 본 저장소 `fix/m3-stage-shop-feedback` af99b59d·9b53d75e.
   - 제외(에디터 부산물로 판단, 작업 트리에 남김): `TightropeCourse.prefab` 시작점 이동, `CheerGauge/Pretendard-Bold SDF.asset`·`Graffiti_Brush.asset` 글꼴 아틀라스.
-  - 서브모듈 main 병합은 PR로 따로 필요.
+  - 첫 push는 훅이 거부(포인터가 private main에 없음) → main 위로 옮겨 반영 후 포인터 갱신.
 
 - 2026-11-26 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-26 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 공연 4 위험한 동료 표시 구현(결정은 Confluence v12 검토안 안에 기록).
+  - 공용 SilhouetteOutline에 벽 너머 모드(xray)·남은 시간(발끝부터 선명) 추가. 기존 모드는 그대로(기존 테스트 4/4).
+  - `NetworkPlayer.InjuryMark`(부상 순번+원인) 추가 → 화면마다 절단/낙하 구분.
+  - 함정: 매달림 자세는 다른 LateUpdate가 모델을 내리므로 표시 코드는 `DefaultExecutionOrder(10000)`, 몸 범위는 사람형 뼈(머리·발)로 계산(스킨 렌더러 범위는 자세를 안 따라감).
+  - 확인: 외줄 씬 합성 동료 3명(앞 매달림·뒤 낙하 부상·옆 절단) 녹화. 합성 동료는 외줄 참가자가 아니라 피해 허용 검사에 막혀 확인 중에만 검사를 끄고 바로 복원.
+  - 검사: 가장자리 배치 EditMode 4/4, SilhouetteOutline 4/4, check-work PASS. `TightropeInjuryFeedbackTests` 4개 실패는 기존 문제(테스트가 PlayerInteraction 없이 읽음, 11-12 이후 변경 없음).
+- Confluence M3 v14: '위험한 동료 찾기 방식' 펼치기 안에 '구현 결과'(영상 1·이미지 3) 추가. Atlassian 연결이 세션에서 빠져 Chrome에서 Confluence REST v2(ADF)로 해당 펼치기만 수정·확인.

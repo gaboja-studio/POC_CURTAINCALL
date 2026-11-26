@@ -15,7 +15,7 @@ M3 플레이테스트 피드백(2026-11-26 사용자 요청). 결과는 Confluen
 1. 떨어지려는 동료를 끌어올리다 같이 떨어짐 → 구조 중 구조자 균형 위험 시간 회복, 구조 성공 시 구조자 균형 안정화(`PlayerBalance.StabilizeAfterRescue`).
 2. 불 고리 배경과 겹쳐 안 보임 → 실행 중 덧입히는 발광(`CheerPointGlow`). 밝기 과하다는 후속 의견 반영해 낮춤 + 가까우면 줄임. 수치는 GameSettings › 공연 장비.
 3. 큰 호응 시 공연장 양옆 아래 불꽃(`PerformanceFireworks`, 공유 보상 상태로 각 화면이 연출, 네트워크 메시지 추가 없음).
-4. (방법 찾기) 위험 동료 방향 표시 — 조사·보고 대기.
+4. 위험한 동료 표시 — 2026-11-26 결정(화면 밖 A 가장자리 원형 아이콘 · 화면 안 B 벽 너머 몸 테두리+머리 위 아이콘, 글자·프로필 없음). 규칙: `Harness/Project/Decisions/teammate-danger-indicator.md`.
 5. 배경 허공 마차 제거 — 비공개 서브모듈 `performance_background.unity`의 철창 마차 6개 삭제 + 제작 도구에서 배치 제거.
 
 기물/서비스

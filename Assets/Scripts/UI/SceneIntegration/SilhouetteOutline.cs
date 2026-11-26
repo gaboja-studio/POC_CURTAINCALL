@@ -27,6 +27,7 @@ namespace CurtainCall.UI.SceneIntegration
         readonly List<Material> materials = new();
         readonly Material mask;
         readonly bool occludedOnly;
+        readonly bool xray;
         float nextRefresh;
         bool disposed;
         public Transform Target { get; }
@@ -35,11 +36,21 @@ namespace CurtainCall.UI.SceneIntegration
         public float Pixels { get; set; }
         public int Priority { get; }
         public static int ActiveCount => active.Count;
+        /// <summary>
+        /// 남은 시간 비율(0~1). 0 이상이면 몸 발끝부터 이 비율 높이까지만 선명하고 그 위는 흐리게 그린다(시간이 줄면 머리부터 흐려짐).
+        /// 음수면 시간 표시 없이 전체를 같은 색으로 그린다(2026-11-26 M3 위험한 동료 표시).
+        /// </summary>
+        public float Timer { get; set; } = -1f;
+        /// <summary>시간 표시의 발끝 높이(월드 Y)와 몸 높이(m). 비우면 대상 위치부터 1.8m.</summary>
+        public float? TimerBottom { get; set; }
+        public float TimerHeight { get; set; } = 1.8f;
 
-        public SilhouetteOutline(Transform target, Color color, float pixels=3, int priority=0, bool occludedOnly=false)
+        /// <param name="xray">켜면 벽·구조물 뒤에 가려져도 바깥 테두리를 그린다(위험한 동료 표시). occludedOnly와 함께 쓰지 않는다.</param>
+        public SilhouetteOutline(Transform target, Color color, float pixels=3, int priority=0, bool occludedOnly=false, bool xray=false)
         {
             Target=target;Color=color;Pixels=pixels;Priority=priority;
             this.occludedOnly = occludedOnly;
+            this.xray = xray && !occludedOnly;
             var shader=Resources.Load<Shader>("SilhouetteOutline");
             if(shader!=null)mask=new Material(shader){hideFlags=HideFlags.HideAndDontSave};
             Refresh();active.Add(this);
@@ -65,7 +76,10 @@ namespace CurtainCall.UI.SceneIntegration
                 if(Time.unscaledTime>=entry.nextRefresh)entry.Refresh();
                 entry.mask.SetColor("_SilhouetteColor",entry.Color);
                 entry.mask.SetFloat("_SilhouettePixels",Mathf.Clamp(entry.Pixels,0,8));
-                entry.mask.SetFloat("_SilhouetteOccludedOnly", entry.occludedOnly ? 1f : 0f);
+                // 0 = 보이는 곳만 테두리, 1 = 가려진 곳만 채움, 2 = 가려져도 테두리(벽 너머).
+                entry.mask.SetFloat("_SilhouetteOccludedOnly", entry.occludedOnly ? 1f : entry.xray ? 2f : 0f);
+                entry.mask.SetFloat("_SilhouetteTimer", entry.Timer);
+                entry.mask.SetVector("_SilhouetteTimerRange", new Vector4(entry.TimerBottom ?? entry.Target.position.y, Mathf.Max(.01f, entry.TimerHeight), 0f, 0f));
                 foreach(var source in entry.sources)
                 {
                     if(source==null||source.name.StartsWith("__")||!source.enabled||source.forceRenderingOff||!source.gameObject.activeInHierarchy
