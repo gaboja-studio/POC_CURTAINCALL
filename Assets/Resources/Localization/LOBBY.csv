@@ -1,0 +1,119 @@
+﻿key,source,ko,en
+LOBBY_TEXT_ENVIRONMENT-PROP-ASSETS-SYNTY-STUDIOS,Synty Studios의 환경 및 소품 에셋.,Synty Studios의 환경 및 소품 에셋.,Environment and prop assets from Synty Studios.
+LOBBY_TEXT_DZENDOR-FACTORY-WORKSHOP-ENVIRONMENT-ASSET,Dzendor의 공장 작업장 환경 에셋.,Dzendor의 공장 작업장 환경 에셋.,Dzendor factory workshop environment asset.
+LOBBY_TEXT_SOLODREAM-S-SMOKE-FLAME-STEAM-EFFECT,Solodream의 연기·불꽃·증기 이펙트 에셋.,Solodream의 연기·불꽃·증기 이펙트 에셋.,"Solodream's Smoke, Flame, and Steam Effect Assets."
+LOBBY_TEXT_DISSOLVE-BURN-SHADER-ASSETS-DEADLEAF-GAMES,Deadleaf Games의 디졸브·연소 셰이더 에셋.,Deadleaf Games의 디졸브·연소 셰이더 에셋.,Dissolve and Burn shader assets by Deadleaf Games.
+LOBBY_TEXT_FACTORY-CONVEYOR-ASSETS-NEBULA-FORMS,Nebula Forms의 공장·컨베이어 에셋.,Nebula Forms의 공장·컨베이어 에셋.,Factory and Conveyor Assets from Nebula Forms.
+LOBBY_TEXT_HORROR-CARNIVAL-ENVIRONMENT-PROP-ASSETS-SYNTY,Synty Studios의 호러 카니발 환경 및 소품 에셋.,Synty Studios의 호러 카니발 환경 및 소품 에셋.,Horror Carnival environment and prop assets by Synty Studios.
+LOBBY_TEXT_CURTAIN-RISES,막이 오릅니다,막이 오릅니다,The curtain rises
+LOBBY_TEXT_NEW-GENERATION-TAKES-STAGE,새 세대가 무대에 섭니다,새 세대가 무대에 섭니다,A new generation takes the stage.
+LOBBY_TEXT_CURTAIN-CALL,커튼 콜!,커튼 콜!,Curtain Call!
+LOBBY_TEXT_PREPARE-FIRST-PERFORMANCE,첫 공연을 준비하세요,첫 공연을 준비하세요,Prepare for the first performance
+LOBBY_TEXT_I-SUCCEEDED-ESCAPING,탈출에 성공했습니다.,탈출에 성공했습니다.,I succeeded in escaping.
+LOBBY_TEXT_CAST-LIST-SIGN,출연 명단 서명,출연 명단 서명,Cast List Sign
+LOBBY_TEXT_PLEASE-APPROACH-CAST-LIST-SIGN,출연 명단에 다가가 서명하세요,출연 명단에 다가가 서명하세요,Please approach the cast list and sign.
+LOBBY_TEXT_SIGNED-HOST-STARTS-CURTAIN-LEVER,서명 완료 · 방장이 커튼 레버로 시작합니다,서명 완료 · 방장이 커튼 레버로 시작합니다,Signed · The host starts with the curtain lever
+LOBBY_TEXT_OFFLINE,OFFLINE,오프라인,OFFLINE
+LOBBY_TEXT_EXPERT-WAITING-ROOM,08 전문가 대기실,08 전문가 대기실,08 Expert Waiting Room
+LOBBY_TEXT_WEST-CORRIDOR-STUDIO-STAIRS,서쪽 복도 · 10 작업실 · 계단,서쪽 복도 · 10 작업실 · 계단,West Corridor · Studio 10 · Stairs
+LOBBY_TEXT_STAGE-SET,11 무대 장치,11 무대 장치,11 Stage Set
+LOBBY_TEXT_PROPS-ROOM,04 소품실,04 소품실,04 Props Room
+LOBBY_TEXT_STAGE-SET-STORAGE-ROOM,11 무대 장치 보관실,11 무대 장치 보관실,11 Stage Set Storage Room
+LOBBY_TEXT_CARGO-LOADING-AREA,12 화물 적재 장소,12 화물 적재 장소,12 Cargo Loading Area
+LOBBY_TEXT_CARGO-LOADING,12 화물 적재,12 화물 적재,12 Cargo Loading
+LOBBY_TEXT_ACCOMMODATION-RESTROOM,02 숙소 / 화장실,02 숙소 / 화장실,02 Accommodation / Restroom
+LOBBY_TEXT_STUDIOS,10 작업실,10 작업실,10 studios
+LOBBY_TEXT_ROOM-CODE,방 코드,방 코드,Room Code
+LOBBY_TEXT_ROOM-MANAGER_2,방장 —,방장 —,Room Manager —
+LOBBY_TEXT_EMPTY-SEAT_1,2.  빈 자리,2.  빈 자리,2. Empty seat
+LOBBY_TEXT_EMPTY-SEAT_0,1.  빈 자리,1.  빈 자리,1. Empty seat
+LOBBY_TEXT_EMPTY-SEAT_3,4.  빈 자리,4.  빈 자리,4. Empty seat
+LOBBY_TEXT_EMPTY-SEAT_2,3.  빈 자리,3.  빈 자리,3. Empty seat
+LOBBY_TEXT_CURTAIN-LEVER,커튼 레버,커튼 레버,curtain lever
+LOBBY_TEXT_SIGNATURE,서명 0 / 0,서명 0 / 0,Signature 0 / 0
+LOBBY_TEXT_CAST-LIST,출연 명단,출연 명단,Cast List
+LOBBY_TEXT_BACK,뒤로,뒤로,Back
+LOBBY_TEXT_QUIT,종료,종료,Quit
+LOBBY_TEXT_ROOM-CODE-E-G-ABC,방 코드 (예: ABC123),방 코드 (예: ABC123),Room code (e.g. ABC123)
+LOBBY_TEXT_IP-PORT,IP:포트,IP:포트,IP:port
+LOBBY_TEXT_ADDRESS-IP-PORT-SAME-PC,주소 (IP:포트) · 같은 PC: 127.0.0.1:7777,주소 (IP:포트) · 같은 PC: 127.0.0.1:7777,Address (IP:port) · Same PC: 127.0.0.1:7777
+LOBBY_TEXT_CONNECT-VIA-LAN,LAN 접속,LAN 접속,Connect via LAN
+LOBBY_TEXT_JOIN-ROOM-CODE,방 코드로 참가,방 코드로 참가,Join with Room Code
+LOBBY_TEXT_PARTICIPATION,참가,참가,Participation
+LOBBY_TEXT_CREATING-LAN-ROOM,LAN 방 만들기,LAN 방 만들기,Creating a LAN room
+LOBBY_TEXT_CREATE-ROOM,방 만들기,방 만들기,Create Room
+LOBBY_TEXT_PREPARING-NEXT-PERFORMANCE,다음 공연 준비,다음 공연 준비,Preparing for the next performance
+LOBBY_TEXT_PLEASE-PREPARE-AGAIN-CURTAIN-LEVER,커튼 레버로 다시 준비하세요,커튼 레버로 다시 준비하세요,Please prepare again with the curtain lever.
+LOBBY_TEXT_PLEASE-WAIT-UNTIL-HOST-READY-AGAIN,방장이 다시 준비할 때까지 기다려주세요,방장이 다시 준비할 때까지 기다려주세요,Please wait until the host is ready again.
+LOBBY_TEXT_SIGNATURE-FIRST-ARGUMENT-SECOND-ARGUMENT,서명 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT},서명 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT},Signature {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+LOBBY_TEXT_I-COPIED-CONNECTION-INFORMATION,접속 정보를 복사했습니다,접속 정보를 복사했습니다,I have copied the connection information.
+LOBBY_TEXT_OUTFIT-SELECTION,의상 선택,의상 선택,Outfit selection
+LOBBY_TEXT_MODEL-CHANGE,모델 변경,모델 변경,Model change
+LOBBY_TEXT_COSTUME-CHANGE,의상 변경,의상 변경,costume change
+LOBBY_TEXT_NETWORKMANAGER-PREFAB-NOT-FOUND,NetworkManager 프리팹을 찾지 못했습니다.,NetworkManager 프리팹을 찾지 못했습니다.,NetworkManager prefab not found.
+LOBBY_TEXT_CONNECTION-FIRST-ARGUMENT,접속: {COMMON_VALUE_FIRST-ARGUMENT},접속: {COMMON_VALUE_FIRST-ARGUMENT},Connection: {COMMON_VALUE_FIRST-ARGUMENT}
+LOBBY_TEXT_CONNECTING_0,연결 중...,연결 중...,Connecting...
+LOBBY_TEXT_QUIT-GAME,== 게임 종료 ==,== 게임 종료 ==,== 게임 종료 ==
+LOBBY_TEXT_LAN-DIRECT-IP,LAN(직접 IP),LAN(직접 IP),LAN (Direct IP)
+LOBBY_TEXT_LAST-TERMINATED-FIRST-ARGUMENT,마지막 종료: {COMMON_VALUE_FIRST-ARGUMENT},마지막 종료: {COMMON_VALUE_FIRST-ARGUMENT},Last terminated: {COMMON_VALUE_FIRST-ARGUMENT}
+LOBBY_TEXT_CREATE-ROOM-LAN-HOST,방 만들기 (LAN Host),방 만들기 (LAN Host),Create Room (LAN Host)
+LOBBY_TEXT_ADDRESS-IP-PORT,주소 (IP:포트),주소 (IP:포트),Address (IP:Port)
+LOBBY_TEXT_PARTICIPATION-LAN-CLIENT,참가 (LAN Client),참가 (LAN Client),Participation (LAN Client)
+LOBBY_TEXT_ACCESS-ADDRESS,접속 주소,접속 주소,Access address
+LOBBY_TEXT_COPY-ROOM-CODE,방 코드 복사,방 코드 복사,Copy room code
+LOBBY_TEXT_GAME-STATUS-FIRST-ARGUMENT,게임 상태: {COMMON_VALUE_FIRST-ARGUMENT},게임 상태: {COMMON_VALUE_FIRST-ARGUMENT},Game Status: {COMMON_VALUE_FIRST-ARGUMENT}
+LOBBY_TEXT_USERS-FIRST-ARGUMENT-SECOND-ARGUMENT,접속 인원: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT},접속 인원: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT},Users: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+LOBBY_TEXT_START-GAME-MINIMUM-FIRST-ARGUMENT-PLAYERS,게임 시작 (최소 {COMMON_VALUE_FIRST-ARGUMENT}명),게임 시작 (최소 {COMMON_VALUE_FIRST-ARGUMENT}명),Start Game (Minimum {COMMON_VALUE_FIRST-ARGUMENT} players)
+LOBBY_TEXT_GAME-END-HOST-VERIFICATION-TEST,게임 종료 (호스트 판정 테스트),게임 종료 (호스트 판정 테스트),Game End (Host Verification Test)
+LOBBY_TEXT_CLOSE-ROOM,방 닫기,방 닫기,Close the room
+LOBBY_TEXT_NETWORK-RESPONSE-TOOK-LONG-TIME-CONNECTION,네트워크 응답이 오래 멈춰 연결이 끊겼습니다(로딩 중 정지).,네트워크 응답이 오래 멈춰 연결이 끊겼습니다(로딩 중 정지).,The network response took a long time and the connection was lost (frozen while loading).
+LOBBY_TEXT_THERE-NO-ROOMS-AVAILABLE-OR-NETWORK,방이 없거나 네트워크 연결이 불안정 합니다,방이 없거나 네트워크 연결이 불안정 합니다,There are no rooms available or the network connection is unstable.
+LOBBY_PROMPT_I-COULDN-T-OPEN-ROOM,방을 열지 못했습니다.,방을 열지 못했습니다.,I couldn't open the room.
+LOBBY_PROMPT_I-WAS-UNABLE-PREPARE-PERFORMANCE-BACKGROUND,공연 배경을 준비하지 못했습니다.,공연 배경을 준비하지 못했습니다.,I was unable to prepare the performance background.
+LOBBY_TEXT_I-CANCELED-CONNECTION,접속을 취소했습니다.,접속을 취소했습니다.,I canceled the connection.
+LOBBY_TEXT_GAME-ALREADY-PROGRESS,게임이 이미 진행 중입니다.,게임이 이미 진행 중입니다.,The game is already in progress.
+LOBBY_TEXT_ROOM-FULL,방이 가득 찼습니다.,방이 가득 찼습니다.,The room is full.
+LOBBY_PROMPT_FAILED-CONNECT-CHECK-ADDRESS-FIREWALL,연결하지 못했습니다(주소·방화벽 확인).,연결하지 못했습니다(주소·방화벽 확인).,Failed to connect (Check address and firewall).
+LOBBY_PROMPT_PLEASE-SELECT-DIFFICULTY-LEVEL,난이도는 1~3단계에서 선택하세요.,난이도는 1~3단계에서 선택하세요.,Please select a difficulty level from 1 to 3.
+LOBBY_TEXT_PRIMARY-CANNOT-SELECTED,선택할 수 없는 일차입니다.,선택할 수 없는 일차입니다.,It is a primary that cannot be selected.
+LOBBY_TEXT_POINT-WHERE-CANNOT-CHOOSE,선택할 수 없는 시점입니다.,선택할 수 없는 시점입니다.,It is a point where you cannot choose.
+LOBBY_TEXT_FIRST-REHEARSAL-ONLY-DAY,최초 리허설은 1일차에만 있습니다.,최초 리허설은 1일차에만 있습니다.,The first rehearsal is only on Day 1.
+LOBBY_TEXT_LAST-DAY-THERE-ONLY-MORNING-BREAK,마지막 날에는 아침 쉬는 시간만 있습니다.,마지막 날에는 아침 쉬는 시간만 있습니다.,"On the last day, there is only a morning break."
+LOBBY_TEXT_DAY-STARTS-PERFORMANCE-MORNING-WITHOUT-BREAK,1일차는 아침 쉬는 시간 없이 공연으로 시작합니다.,1일차는 아침 쉬는 시간 없이 공연으로 시작합니다.,Day 1 starts with a performance in the morning without a break.
+LOBBY_TEXT_PLEASE-CHECK-PERFORMANCE-ORDER,공연 순번을 확인해 주세요.,공연 순번을 확인해 주세요.,Please check the performance order.
+LOBBY_TEXT_PLEASE-SELECT-NEXT-PERFORMANCE-DURING-BREAK,공연 사이 쉬는 시간의 다음 공연을 선택해 주세요.,공연 사이 쉬는 시간의 다음 공연을 선택해 주세요.,Please select the next performance during the break.
+LOBBY_TEXT_PLEASE-SELECT-IMPLEMENTED-PERFORMANCE,구현된 공연을 선택해 주세요.,구현된 공연을 선택해 주세요.,Please select an implemented performance.
+LOBBY_TEXT_DEVELOPMENT,개발,개발,development
+LOBBY_TEXT_DEVELOPMENT-LICENSING,개발 및 라이선스,개발 및 라이선스,Development and Licensing
+LOBBY_TEXT_BACK-LIST,목록으로,목록으로,Back to list
+LOBBY_TEXT_PEOPLE-WHO-PARTICIPATED-DEVELOPMENT,개발에 참여한 사람들,개발에 참여한 사람들,People who participated in the development
+LOBBY_TEXT_ASSETS-TOOLS-USED-TOGETHER,함께 사용한 에셋과 도구,함께 사용한 에셋과 도구,Assets and tools used together
+LOBBY_TEXT_VIEW-FULL-LICENSE,라이선스 전문 보기,라이선스 전문 보기,View full license
+LOBBY_TEXT_PROVIDER-ORIGINAL-LICENSE,제공처 · 라이선스 원문 ↗,제공처 · 라이선스 원문 ↗,Provider · Original License ↗
+LOBBY_PROMPT_PLEASE-ENTER-ROOM-CODE,방 코드를 입력하세요.,방 코드를 입력하세요.,Please enter the room code.
+LOBBY_TEXT_CONNECTING_1,연결하는 중...,연결하는 중...,Connecting...
+LOBBY_PROMPT_FAILED-CONNECT,연결하지 못했습니다.,연결하지 못했습니다.,Failed to connect.
+LOBBY_TEXT_I-COULDN-T-CONFIRM-CURTAIN-WAS,커튼 닫힘을 확인하지 못해 씬 전환을 취소했습니다.,커튼 닫힘을 확인하지 못해 씬 전환을 취소했습니다.,"I couldn't confirm that the curtain was closed, so I canceled the scene transition."
+LOBBY_PROMPT_FAILED-OPEN-LOBBY-FIRST-ARGUMENT,로비를 열지 못했습니다: {COMMON_VALUE_FIRST-ARGUMENT},로비를 열지 못했습니다: {COMMON_VALUE_FIRST-ARGUMENT},Failed to open lobby: {COMMON_VALUE_FIRST-ARGUMENT}
+LOBBY_TEXT_LAN-ADDRESS,LAN 주소,LAN 주소,LAN address
+LOBBY_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}  ·  {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT}명,{COMMON_VALUE_FIRST-ARGUMENT}  ·  {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT}명,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} people
+LOBBY_TEXT_ROOM-MANAGER_0,방장,방장,Room Manager
+LOBBY_TEXT_EXITING-ROOM,방 나가기,방 나가기,Exiting the room
+LOBBY_TEXT_HOUSEHOLD-FIRST-ARGUMENT-DAY,세대 {COMMON_VALUE_FIRST-ARGUMENT}  ·  1일차,세대 {COMMON_VALUE_FIRST-ARGUMENT}  ·  1일차,Household {COMMON_VALUE_FIRST-ARGUMENT} · Day 1
+LOBBY_TEXT_FIRST-ARGUMENT-DAY-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}일차 {COMMON_VALUE_SECOND-ARGUMENT}  ·  ,{COMMON_VALUE_FIRST-ARGUMENT}일차 {COMMON_VALUE_SECOND-ARGUMENT}  ·  ,{COMMON_VALUE_FIRST-ARGUMENT} Day {COMMON_VALUE_SECOND-ARGUMENT} ·
+LOBBY_TEXT_IF-LIFT-CURTAIN-LEVER-GETS-READY,커튼 레버를 올리면 다시 준비해요,커튼 레버를 올리면 다시 준비해요,"If you lift the curtain lever, it gets ready again."
+LOBBY_TEXT_PLEASE-WAIT-UNTIL-ROOM-HOST-READY,방장이 다시 준비할 때까지 기다려요,방장이 다시 준비할 때까지 기다려요,Please wait until the room host is ready again.
+LOBBY_TEXT_PREPARING-PERFORMANCE,공연 준비 중,공연 준비 중,Preparing for the performance
+LOBBY_TEXT_F-REMOVE-SIGNATURE-CAST-LIST,[F] 출연 명단에서 서명 지우기,[F] 출연 명단에서 서명 지우기,[F] Remove signature from cast list
+LOBBY_TEXT_F-SIGN-CAST-LIST-PREPARE,[F] 출연 명단에 서명하기 (준비),[F] 출연 명단에 서명하기 (준비),[F] Sign the cast list (prepare)
+LOBBY_TEXT_FIRST-ARGUMENT-EMPTY-SPACE,<color=#7A6A5C>{COMMON_VALUE_FIRST-ARGUMENT}.  빈 자리</color>,<color=#7A6A5C>{COMMON_VALUE_FIRST-ARGUMENT}.  빈 자리</color>,<color=#7A6A5C> {COMMON_VALUE_FIRST-ARGUMENT} . Empty space </color>
+LOBBY_TEXT_FIRST-ARGUMENT-UNIT-SECOND-ARGUMENT-THIRD_1,{COMMON_VALUE_FIRST-ARGUMENT}.  단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}   <color=#C8102E><b>서명 완료</b></color>,{COMMON_VALUE_FIRST-ARGUMENT}.  단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}   <color=#C8102E><b>서명 완료</b></color>,{COMMON_VALUE_FIRST-ARGUMENT} . Unit {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT} <color=#C8102E> <b> Signature Completed </b> </color>
+LOBBY_TEXT_FIRST-ARGUMENT-UNIT-SECOND-ARGUMENT-THIRD_0,{COMMON_VALUE_FIRST-ARGUMENT}.  단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}   <color=#7A6A5C>서명 전</color>,{COMMON_VALUE_FIRST-ARGUMENT}.  단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}   <color=#7A6A5C>서명 전</color>,{COMMON_VALUE_FIRST-ARGUMENT} . Unit {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT} <color=#7A6A5C> Before Signature </color>
+LOBBY_TEXT_SIGN-ONCE-JOIN-ROOM,방에 접속하면 서명할 수 있어요,방에 접속하면 서명할 수 있어요,You can sign in once you join the room.
+LOBBY_TEXT_HOST-PREPARE-AGAIN-LEVER,방장이 레버로 다시 준비할 수 있어요,방장이 레버로 다시 준비할 수 있어요,The host can prepare again with the lever.
+LOBBY_TEXT_F-RAISE-CURTAIN-LEVER-PREPARE-AGAIN,[F] 커튼 레버 올리기 (다시 준비),[F] 커튼 레버 올리기 (다시 준비),[F] Raise curtain lever (prepare again)
+LOBBY_TEXT_ONLY-ROOM-MANAGER-PULL-CURTAIN-LEVER,방장만 커튼 레버를 당길 수 있어요,방장만 커튼 레버를 당길 수 있어요,Only the room manager can pull the curtain lever.
+LOBBY_TEXT_WE-NEED-GATHER-LEAST-FIRST-ARGUMENT,단원이 {COMMON_VALUE_FIRST-ARGUMENT}명 이상 모여야 해요,단원이 {COMMON_VALUE_FIRST-ARGUMENT}명 이상 모여야 해요,We need to gather at least {COMMON_VALUE_FIRST-ARGUMENT} members.
+LOBBY_TEXT_EVERYONE-MUST-SIGN-CAST-LIST-FIRST,모두 출연 명단에 서명해야 해요 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),모두 출연 명단에 서명해야 해요 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),Everyone must sign the cast list ( {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} )
+LOBBY_TEXT_F-PULL-CURTAIN-LEVER-START-PERFORMANCE,[F] 커튼 레버 당기기 (공연 시작),[F] 커튼 레버 당기기 (공연 시작),[F] Pull the curtain lever (Start performance)
+LOBBY_TEXT_ROOM-MANAGER_1,방장 ,방장 ,Room Manager

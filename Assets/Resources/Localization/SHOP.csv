@@ -1,0 +1,479 @@
+﻿key,source,ko,en
+SHOP_VALUE_ITEM-NAME,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_VALUE_ITEM-LIST,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_VALUE_PRICE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_VALUE_ORDER-NUMBER,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_VALUE_ITEM-DESCRIPTION,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_VALUE_UNAVAILABLE-REASON,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SHOP_PROMPT_OPEN-SHOP,상점 이용,상점 이용,Open Shop
+SHOP_PROMPT_PICK-UP-ITEM,{SHOP_VALUE_ITEM-NAME} 줍기,{SHOP_VALUE_ITEM-NAME} 줍기,Pick up {SHOP_VALUE_ITEM-NAME}
+SHOP_PROMPT_RECEIVE-DELIVERY,{SHOP_VALUE_ITEM-NAME} 받기,{SHOP_VALUE_ITEM-NAME} 받기,Collect {SHOP_VALUE_ITEM-NAME}
+SHOP_PROMPT_RECEIVE-DELIVERY-HELPER,#{SHOP_VALUE_ORDER-NUMBER} · {COMMON_VALUE_PLAYER-NAME} 주문,#{SHOP_VALUE_ORDER-NUMBER} · {COMMON_VALUE_PLAYER-NAME} 주문,Order #{SHOP_VALUE_ORDER-NUMBER} · {COMMON_VALUE_PLAYER-NAME}
+SHOP_PROMPT_PERFORMANCE-PROP-PICKUP,{SCHEDULE_VALUE_PERFORMANCE} 기물 획득 (공연 해금),{SCHEDULE_VALUE_PERFORMANCE} 기물 획득 (공연 해금),Collect {SCHEDULE_VALUE_PERFORMANCE} equipment (unlocks the act)
+SHOP_TEXT_ITEM_MAGICIAN-HAIRPIN-HINT,가늘고 뾰족한 도구로 열 수 있을 것 같다.,가늘고 뾰족한 도구로 열 수 있을 것 같다.,"It seems like it can be opened with a thin, pointed tool."
+SHOP_TEXT_ITEM_STAKE-PULLER-WORN,낡은 천막 말뚝 뽑개,낡은 천막 말뚝 뽑개,old tent stake puller
+SHOP_TEXT_ITEM_STAKE-PULLER-HINT,부수거나 비틀 수 있는 도구가 필요할 것 같다.,부수거나 비틀 수 있는 도구가 필요할 것 같다.,It seems like a tool that can break or twist is needed.
+SHOP_NAME_ITEM_RESCUE-GLOVES,구조 장갑,구조 장갑,Rescue Gloves
+SHOP_TEXT_ITEM_RESCUE-GLOVES-WORN,낡은 구조 장갑,낡은 구조 장갑,Worn Rescue Gloves
+SHOP_NAME_ITEM_STICKY-GLOVES,끈끈이 장갑,끈끈이 장갑,Sticky gloves
+SHOP_TEXT_ITEM_STICKY-GLOVES-WORN,낡은 끈끈이 장갑,낡은 끈끈이 장갑,old sticky gloves
+SHOP_NAME_ITEM_BALLOON-PANTS,광대 벌룬 바지,광대 벌룬 바지,Clown balloon pants
+SHOP_TEXT_ITEM_BALLOON-PANTS-WORN,낡은 광대 벌룬 바지,낡은 광대 벌룬 바지,old clown balloon pants
+SHOP_NAME_ITEM_SPRING-SHOES,스프링 신발,스프링 신발,Spring shoes
+SHOP_TEXT_ITEM_SPRING-SHOES-WORN,낡은 스프링 신발,낡은 스프링 신발,old spring shoes
+SHOP_TEXT_SHELF_PUT,{SHOP_VALUE_ITEM-NAME} 선반 {COMMON_VALUE_COUNT}칸에 올리기,{SHOP_VALUE_ITEM-NAME} 선반 {COMMON_VALUE_COUNT}칸에 올리기,Place {SHOP_VALUE_ITEM-NAME} in shelf slot {COMMON_VALUE_COUNT}
+SHOP_TEXT_SHELF_TAKE,선반 위 칸에서 꺼내기,선반 위 칸에서 꺼내기,Take from the top shelf
+SHOP_TEXT_SHELF_EMPTY,선반이 비어 있습니다,선반이 비어 있습니다,The shelf is empty.
+SHOP_TEXT_SHELF_CHOOSE,1·2로 올릴 기물을 고르세요,1·2로 올릴 기물을 고르세요,Please select the item to place on 1 or 2.
+SHOP_TEXT_CARRY_OFFLINE-SHELF,접속 중이 아니라 선반을 이용할 수 없습니다.,접속 중이 아니라 선반을 이용할 수 없습니다.,You cannot use the shelf because you are not connected.
+SHOP_TEXT_CARRY_OFFLINE-DROP,접속 중이 아니라 내려놓을 수 없습니다.,접속 중이 아니라 내려놓을 수 없습니다.,I cannot put it down because I am not connected.
+SHOP_TEXT_CARRY_OFFLINE-PICK,접속 중이 아니라 수령할 수 없습니다.,접속 중이 아니라 수령할 수 없습니다.,You cannot receive it because you are not logged in.
+SHOP_TEXT_CARRY_HANDS-FULL,손이 가득 찼습니다.,손이 가득 찼습니다.,My hands are full.
+SHOP_TEXT_CARRY_NOTHING-HELD,고른 기물이 없습니다. 1·2로 칸을 고르세요.,고른 기물이 없습니다. 1·2로 칸을 고르세요.,There are no selected pieces. Select a square with 1 or 2.
+SHOP_TEXT_CARRY_NOT-CARRYABLE,오브제는 슬롯에 넣을 수 없습니다.,오브제는 슬롯에 넣을 수 없습니다.,Objects cannot be placed in slots.
+SHOP_TEXT_CARRY_FLOOR-FULL,바닥에 더 놓을 수 없습니다.,바닥에 더 놓을 수 없습니다.,You cannot place any more on the floor.
+SHOP_TEXT_CARRY_SHELF-FULL,선반 4칸이 모두 찼고 손에도 자리가 없습니다.,선반 4칸이 모두 찼고 손에도 자리가 없습니다.,"All four shelves are full, and there is no room in my hands either."
+SHOP_TEXT_CARRY_SHELF-EMPTY,선반이 비어 있습니다.,선반이 비어 있습니다.,The shelf is empty.
+SHOP_TEXT_CARRY_USED-UP,더 이상 사용할 수 없는 기물입니다.,더 이상 사용할 수 없는 기물입니다.,This is an item that can no longer be used.
+SHOP_TEXT_CARRY_GONE,이미 사라진 기물입니다.,이미 사라진 기물입니다.,It is an object that has already disappeared.
+SHOP_TEXT_CARRY_NO-CHARACTER,캐릭터를 찾지 못했습니다.,캐릭터를 찾지 못했습니다.,Could not find the character.
+SHOP_TEXT_CARRY_TOO-FAR,기물에 가까이 다가가세요.,기물에 가까이 다가가세요.,Please approach the object.
+SHOP_TEXT_CARRY_SHELF-IN-PERFORMANCE,공연 중에는 선반을 사용할 수 없습니다.,공연 중에는 선반을 사용할 수 없습니다.,Shelves cannot be used during the performance.
+SHOP_TEXT_CARRY_DROPPED,{SHOP_VALUE_ITEM-NAME}(을/를) 내려놓았습니다.,{SHOP_VALUE_ITEM-NAME}(을/를) 내려놓았습니다.,{SHOP_VALUE_ITEM-NAME} put down.
+SHOP_TEXT_CARRY_PICKED,{SHOP_VALUE_ITEM-NAME}(을/를) 주웠습니다.,{SHOP_VALUE_ITEM-NAME}(을/를) 주웠습니다.,I found {SHOP_VALUE_ITEM-NAME}.
+SHOP_TEXT_CARRY_SHELF-PLACED,{SHOP_VALUE_ITEM-NAME}(을/를) 선반 {COMMON_VALUE_COUNT}칸에 올렸습니다.,{SHOP_VALUE_ITEM-NAME}(을/를) 선반 {COMMON_VALUE_COUNT}칸에 올렸습니다.,I placed it on shelf {SHOP_VALUE_ITEM-NAME} and on compartment {COMMON_VALUE_COUNT}.
+SHOP_TEXT_CARRY_SHELF-TAKEN,선반 {COMMON_VALUE_COUNT}칸에서 {SHOP_VALUE_ITEM-NAME}(을/를) 꺼냈습니다.,선반 {COMMON_VALUE_COUNT}칸에서 {SHOP_VALUE_ITEM-NAME}(을/를) 꺼냈습니다.,{SHOP_VALUE_ITEM-NAME} was taken out of shelf {COMMON_VALUE_COUNT}.
+SHOP_TEXT_OFFLINE-ORDER,접속 중이 아니라 주문할 수 없습니다.,접속 중이 아니라 주문할 수 없습니다.,You cannot place an order because you are not online.
+SHOP_TEXT_OFFLINE-CLAIM,접속 중이 아니라 수령할 수 없습니다.,접속 중이 아니라 수령할 수 없습니다.,You cannot receive it because you are not logged in.
+SHOP_TEXT_PURCHASE-NIGHT-ONLY,기물은 밤 정비에만 구매할 수 있습니다.,기물은 밤 정비에만 구매할 수 있습니다.,Items can only be purchased during night maintenance.
+SHOP_TEXT_PURCHASE-REST-NIGHT-ONLY,기물은 쉬는 시간과 밤 정비에만 구매할 수 있습니다.,기물은 쉬는 시간과 밤 정비에만 구매할 수 있습니다.,Items can only be purchased during break times and night maintenance.
+SHOP_TEXT_IN-PERFORMANCE,공연 중에는 상점을 이용할 수 없습니다.,공연 중에는 상점을 이용할 수 없습니다.,The shop is not available during the performance.
+SHOP_TEXT_ORDERED,{SHOP_VALUE_ITEM-NAME} 주문 완료 — 배송구를 확인하세요.,{SHOP_VALUE_ITEM-NAME} 주문 완료 — 배송구를 확인하세요.,{SHOP_VALUE_ITEM-NAME} Order Complete — Please check the shipping address.
+SHOP_TEXT_CLAIMED,{SHOP_VALUE_ITEM-NAME} 수령,{SHOP_VALUE_ITEM-NAME} 수령,{SHOP_VALUE_ITEM-NAME} Received
+SHOP_TEXT_UNKNOWN-ITEM,없는 품목입니다.,없는 품목입니다.,This item is not available.
+SHOP_TEXT_SLOT-FULL,배송구가 가득 찼습니다. 먼저 물건을 받아 주세요.,배송구가 가득 찼습니다. 먼저 물건을 받아 주세요.,The delivery slot is full. Please take the item first.
+SHOP_TEXT_ALREADY-CLAIMED,이미 다른 공연 준비자가 수령했습니다.,이미 다른 공연 준비자가 수령했습니다.,Another performer has already received it.
+SHOP_TEXT_NOT-IN-SLOT,배송구에 없는 물건입니다.,배송구에 없는 물건입니다.,This item is not available in the shipping area.
+SHOP_TEXT_PLAYER-SLOT,공연 준비자 {COMMON_VALUE_COUNT},공연 준비자 {COMMON_VALUE_COUNT},Performance Preparer {COMMON_VALUE_COUNT}
+SHOP_TEXT_PLAYER-ID,공연 준비자 #{COMMON_VALUE_IDENTIFIER},공연 준비자 #{COMMON_VALUE_IDENTIFIER},Performer #{COMMON_VALUE_IDENTIFIER}
+SHOP_TEXT_PLAYER-ME,나,나,me
+SHOP_TEXT_ITEM_KEYCARD-COPY-HINT,키 카드가 있어야 열 수 있을 것 같다.,키 카드가 있어야 열 수 있을 것 같다.,It seems like you need a key card to open it.
+SHOP_TITLE_ITEMS-ADDED,상점에 기물 추가,상점에 기물 추가,Add items to the shop
+SHOP_DESCRIPTION_ITEMS-ADDED,{SHOP_VALUE_ITEM-LIST}(을/를) 처음 습득해 이제 상점에서 구매할 수 있습니다.,{SHOP_VALUE_ITEM-LIST}(을/를) 처음 습득해 이제 상점에서 구매할 수 있습니다.,{SHOP_VALUE_ITEM-LIST} You can now purchase it at the store after acquiring it for the first time.
+SHOP_TEXT_ITEM-LOCKED,아직 상점에 추가되지 않은 기물입니다.,아직 상점에 추가되지 않은 기물입니다.,This is an item that has not yet been added to the store.
+SHOP_TITLE_EQUIPMENT_PLACE-BLOCKED,여기서는 쓸 수 없습니다,여기서는 쓸 수 없습니다,You cannot use it here
+SHOP_DESCRIPTION_EQUIPMENT_PLACE-BLOCKED,공연 기물은 연습실이나 공연장에서 사용할 수 있습니다.,공연 기물은 연습실이나 공연장에서 사용할 수 있습니다.,Performance equipment can be used in rehearsal rooms or performance venues.
+SHOP_NAME_ITEM_VIDEO-TAPE_2,비디오 테이프,비디오 테이프,video tape
+SHOP_NAME_ITEM_VIDEO-TAPE_0,낡은 비디오 테이프1,낡은 비디오 테이프1,Old Video Tape 1
+SHOP_NAME_ITEM_VIDEO-TAPE_1,낡은 비디오 테이프2,낡은 비디오 테이프2,Old Video Tape 2
+SHOP_NAME_KEY_0,열쇠 1,열쇠 1,Key 1
+SHOP_NAME_BOX-BLOCKED-PLANKS,판자로 막힌 상자,판자로 막힌 상자,A box blocked with planks
+SHOP_NAME_KEY_1,열쇠 2,열쇠 2,Key 2
+SHOP_TEXT_GENTLY-PULLS-TEAMMATE-WITHIN-M-CLOSEST,"안전한 바닥에서 화면 가운데 조준점에 가장 가까이 보이는 동료(8m 안)를 내 곁으로 부드럽게 끌어옵니다. 당길 수 있는 동료에게는 나에게만 장갑 아이콘과 사용키가 보입니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 5
+• 길과 도착할 자리가 안전해 실제로 당길 때 내구도 소모","안전한 바닥에서 화면 가운데 조준점에 가장 가까이 보이는 동료(8m 안)를 내 곁으로 부드럽게 끌어옵니다. 당길 수 있는 동료에게는 나에게만 장갑 아이콘과 사용키가 보입니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 5
+• 길과 도착할 자리가 안전해 실제로 당길 때 내구도 소모","Gently pulls the teammate (within 8m) closest to the crosshair in the center of the screen from a safe surface to your side. The glove icon and use key are visible only to you for the teammate you can pull.
+
+• Applicable: Performance · Rehearsal Room (Practice consumes no durability)
+• Use: Slot Use Key (Slot 1 Q · Slot 2 E)
+• Durability: 5
+• Durability is consumed when actually pulling, provided the path and destination are safe."
+SHOP_TEXT_WHEN-USED-WHILE-HANGING-REMAINING-HANGING,"매달린 상태에서 사용하면 남은 매달림 시간이 3초 동안 줄어들지 않습니다. 주변 위험물은 멈추지 않습니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 3
+• 한 번 매달리는 동안 한 번, 사용할 때 내구도 소모","매달린 상태에서 사용하면 남은 매달림 시간이 3초 동안 줄어들지 않습니다. 주변 위험물은 멈추지 않습니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 3
+• 한 번 매달리는 동안 한 번, 사용할 때 내구도 소모","When used while hanging, the remaining hanging time will not decrease for 3 seconds. Nearby hazards will not be stopped.
+
+• Applicable to: Performance · Practice Room (Practice consumes no durability)
+• Use: Slot Key (Slot 1 Q · Slot 2 E)
+• Durability: 3
+• Once while hanging, consumes durability upon use"
+SHOP_TEXT_WHILE-MID-AIR-PANTS-INFLATE-SLOWLY,"공중에서 바지가 부풀어 최대 3초 동안 천천히 내려오고 좌우로 더 쉽게 움직입니다. 같은 키를 다시 누르거나 착지하면 접힙니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 4
+• 착지 전 한 번, 펼칠 때 내구도 소모(접을 때는 소모 없음)","공중에서 바지가 부풀어 최대 3초 동안 천천히 내려오고 좌우로 더 쉽게 움직입니다. 같은 키를 다시 누르거나 착지하면 접힙니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 4
+• 착지 전 한 번, 펼칠 때 내구도 소모(접을 때는 소모 없음)","While in mid-air, the pants inflate and slowly descend for up to 3 seconds, making it easier to move left and right. They fold back up when the same key is pressed again or upon landing.
+
+• Applicable to: Performance · Practice Room (No durability consumed during practice)
+• Use: Slot Key (Slot 1 Q · Slot 2 E)
+• Durability: 4
+• Once before landing, consumes durability when unfolding (no durability consumed when folding)"
+SHOP_TEXT_JUMP-ONE-MORE-TIME-AIR-CANNOT,"공중에서 한 번 더 점프합니다. 착지 전에는 다시 사용할 수 없습니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 2
+• 실제로 추가 점프할 때 내구도 소모","공중에서 한 번 더 점프합니다. 착지 전에는 다시 사용할 수 없습니다.
+
+• 적용: 공연 · 연습실(연습은 내구도 소모 없음)
+• 사용: 슬롯 사용키(1슬롯 Q · 2슬롯 E)
+• 내구도: 2
+• 실제로 추가 점프할 때 내구도 소모","Jump one more time in the air. Cannot be used again before landing.
+
+• Applies to: Performance · Practice Room (Practice consumes no durability)
+• Uses: Slot Key (Slot 1 Q · Slot 2 E)
+• Durability: 2
+• Durability is consumed when actually performing the additional jump"
+SHOP_TEXT_PICK-LOCKS-OPENS-CHANCE-FIRST-ATTEMPT,"자물쇠를 딸 수 있습니다. 한 번에 50% 확률로 열리고, 같은 자물쇠는 세 번째 시도에 반드시 열립니다.
+
+• 적용: 대기실 탐색
+• 사용: 손에 들고 F
+• 내구도: 5
+• 자물쇠를 열 때 내구도 소모","자물쇠를 딸 수 있습니다. 한 번에 50% 확률로 열리고, 같은 자물쇠는 세 번째 시도에 반드시 열립니다.
+
+• 적용: 대기실 탐색
+• 사용: 손에 들고 F
+• 내구도: 5
+• 자물쇠를 열 때 내구도 소모","You can pick locks. It opens with a 50% chance on the first attempt, and the same lock is guaranteed to open on the third attempt.
+
+• Applied: Lobby Search
+• Used: Hold in hand and press F
+• Durability: 5
+• Consumes durability when opening a lock"
+SHOP_TEXT_PRY-OPEN-PLANKS-COVERS-BLOCKED-DRAWERS,"판자·덮개·걸린 서랍을 뜯어 열고, 녹슨 벽을 부술 수 있습니다.
+
+• 적용: 대기실 탐색
+• 사용: 손에 들고 F
+• 내구도: 4
+• 열거나 부술 때 내구도 소모","판자·덮개·걸린 서랍을 뜯어 열고, 녹슨 벽을 부술 수 있습니다.
+
+• 적용: 대기실 탐색
+• 사용: 손에 들고 F
+• 내구도: 4
+• 열거나 부술 때 내구도 소모","You can pry open planks, covers, and blocked drawers, and break rusty walls.
+
+• Apply: Lobby Search
+• Use: Hold in hand and press F
+• Durability: 4
+• Consumes durability when opening or breaking"
+SHOP_TEXT_ILLUMINATES-PATH-AHEAD-PURPLE-LIGHT-HIDDEN,"보라색 빛으로 앞을 비춥니다. 빛이 닿으면 숨겨진 낙서가 노랗게 드러납니다.
+
+• 적용: 대기실 탐색
+• 사용: 우클릭을 누르는 동안
+• 내구도: 없음
+• 내구도를 소모하지 않음","보라색 빛으로 앞을 비춥니다. 빛이 닿으면 숨겨진 낙서가 노랗게 드러납니다.
+
+• 적용: 대기실 탐색
+• 사용: 우클릭을 누르는 동안
+• 내구도: 없음
+• 내구도를 소모하지 않음","Illuminates the path ahead with a purple light. Hidden graffiti is revealed in yellow upon contact.
+
+• Apply: Lobby Search
+• Use: While holding down Right-click
+• Durability: None
+• Does not consume durability"
+SHOP_TEXT_BATTERY,배터리,배터리,battery
+SHOP_TEXT_RECEIVE-DELIVERY-POINT-AFTER-PURCHASE,구매 후 배송구에서 수령,구매 후 배송구에서 수령,Receive at the delivery point after purchase
+SHOP_TEXT_NOT-UNLOCKED,해금되지 않음,해금되지 않음,Not unlocked
+SHOP_TEXT_UNRELEASED-ARTIFACT,해금되지 않은 기물입니다.,해금되지 않은 기물입니다.,It is an unreleased artifact.
+SHOP_TEXT_COUNT-MEDICAL-SERVICES,의료용 서비스 {COMMON_VALUE_COUNT}개,의료용 서비스 {COMMON_VALUE_COUNT}개,{COMMON_VALUE_COUNT} medical services
+SHOP_TEXT_LOST-LIMBS-LOST-BODIES-MAX-MAXIMUM,잃은 신체 {MEDICAL_VALUE_LOST-LIMBS}개 · 최대 {COMMON_VALUE_MAXIMUM}개,잃은 신체 {MEDICAL_VALUE_LOST-LIMBS}개 · 최대 {COMMON_VALUE_MAXIMUM}개,{MEDICAL_VALUE_LOST-LIMBS} lost bodies · Max {COMMON_VALUE_MAXIMUM}
+SHOP_TEXT_RESTORES-RECENTLY-LOST-LIMBS-FIRST-USAGE,"최근에 잃은 팔·다리부터 복구합니다.
+• 사용: 예약 후 로비 의료용 승강기에서 F
+• 가격: 이용 횟수와 관계없이 한 개당 같은 가격","최근에 잃은 팔·다리부터 복구합니다.
+• 사용: 예약 후 로비 의료용 승강기에서 F
+• 가격: 이용 횟수와 관계없이 한 개당 같은 가격","Restores recently lost limbs first.
+• Usage: After booking, use the medical elevator in the lobby F
+• Price: Same price per item regardless of usage frequency."
+SHOP_TEXT_BOOKED-COUNT-RESERVATIONS-MAXIMUM-AVAILABLE,예약 {MEDICAL_VALUE_BOOKED-COUNT}개 · 추가 가능 {COMMON_VALUE_MAXIMUM}개,예약 {MEDICAL_VALUE_BOOKED-COUNT}개 · 추가 가능 {COMMON_VALUE_MAXIMUM}개,{MEDICAL_VALUE_BOOKED-COUNT} Reservations · {COMMON_VALUE_MAXIMUM} Available
+SHOP_NAME_OPEN-DOOR-KEY,열쇠로 문 열기,열쇠로 문 열기,Open the door with a key
+SHOP_NAME_LOCKED-BOX,잠긴 상자,잠긴 상자,Locked box
+SHOP_NAME_PICKING-UP-KEY,열쇠 줍기,열쇠 줍기,Picking up the key
+SHOP_TEXT_ORIGINALLY-EXISTS,원래 있음,원래 있음,It originally exists
+SHOP_TEXT_EQUIPMENT-HUMAN-CANNON-WHEN-HIT-INJURIOUS,"장비. 인간 대포: 다칠 바닥에 떨어지면 부상 대신 트램펄린처럼 다시 튀어 오른다. 실제 반동 시 1 소모, 쿨타임 3초.
+공동 자금으로 주문합니다. 배송구에서 수령하세요.","장비. 인간 대포: 다칠 바닥에 떨어지면 부상 대신 트램펄린처럼 다시 튀어 오른다. 실제 반동 시 1 소모, 쿨타임 3초.
+공동 자금으로 주문합니다. 배송구에서 수령하세요.","Equipment. Human Cannon: When hit by an injurious ground, you bounce back up like a trampoline instead of taking damage. Consumes 1 on actual recoil, 3-second cooldown. Ordered with
+Shared Funds. Please pick up at the delivery point."
+SHOP_TEXT_PURCHASE_0,구매,구매,purchase
+SHOP_PROMPT_THERE-NO-ITEMS-DISPLAY,표시할 항목이 없습니다,표시할 항목이 없습니다,There are no items to display.
+SHOP_TEXT_SERVICE,서비스,서비스,service
+SHOP_TEXT_NO-RECOVERY,복구 안 함,복구 안 함,No recovery
+SHOP_TEXT_ITEMS-WAITING-DELIVERY,배송구 대기 0개,배송구 대기 0개,0 items waiting for delivery
+SHOP_TEXT_TIME-RECOVERY,이번에 복구,이번에 복구,"This time, the recovery"
+SHOP_BUTTON_REDUCE-ONE-ONE-USING-ARMS-LEGS,"아래 '팔·다리' 버튼으로
+하나씩 줄일 수 있어요","아래 '팔·다리' 버튼으로
+하나씩 줄일 수 있어요","You can reduce
+one by one using the 'Arms & Legs' button below."
+SHOP_TEXT_QUEST,탐색,탐색,quest
+SHOP_TEXT_TOKENS-PER-ITEM,개당 175 토큰,개당 175 토큰,175 tokens per item
+SHOP_TEXT_CLOSE-DOOR,문 닫기,문 닫기,Close the door
+SHOP_TEXT_SWING,휘두르기,휘두르기,Swing
+SHOP_TEXT_MANUAL-OPERATION,손으로 조작,손으로 조작,Manual operation
+SHOP_TEXT_PULLING,잡아당기기,잡아당기기,Pulling
+SHOP_TEXT_FRONTAL-AIMING,정면 조준,정면 조준,Frontal aiming
+SHOP_TEXT_ONE-HANDED-LIFT,한손 들기,한손 들기,One-handed lift
+SHOP_TEXT_TAKE-OUT,꺼내기,꺼내기,Take out
+SHOP_TEXT_INSERT,넣기,넣기,Insert
+SHOP_TEXT_CRAWLING-RIGHT-HAND,오른손 기어가기,오른손 기어가기,Crawling with the right hand
+SHOP_TEXT_NORMAL,정상,정상,normal
+SHOP_TEXT_NO-LEFT-LEG,왼다리 없음,왼다리 없음,No left leg
+SHOP_TEXT_NO-TWO-LEGGED,양다리 없음,양다리 없음,No two-legged
+SHOP_TEXT_ONLY-RIGHT-ARM-REMAINS,오른팔만 남음,오른팔만 남음,Only the right arm remains
+SHOP_TEXT_RABBIT,토끼,토끼,rabbit
+SHOP_TEXT_BEAR,곰,곰,bear
+SHOP_TEXT_BLUE-CLOWN,파랑 삐에로,파랑 삐에로,Blue Clown
+SHOP_TEXT_PINK-GIRL,분홍 소녀,분홍 소녀,Pink Girl
+SHOP_TEXT_SELECT-ITEM-PUT-DOWN-TRY-PICKING,기물을 선택해 내려놓고 다시 주워 보세요. 장비는 선택해도 손에 들지 않습니다.,기물을 선택해 내려놓고 다시 주워 보세요. 장비는 선택해도 손에 들지 않습니다.,"Select an item, put it down, and try picking it up again. Equipment cannot be held in your hand even if you select it."
+SHOP_TEXT_PAYMENT_0, 지급, 지급,payment
+SHOP_TEXT_TWO-SLOTS-FULL-PLEASE-PUT-DOWN,두 슬롯이 찼습니다. 먼저 내려놓으세요.,두 슬롯이 찼습니다. 먼저 내려놓으세요.,Two slots are full. Please put it down first.
+SHOP_PROMPT_F-OR-PICK-UP-BUTTON, / F 또는 줍기 버튼, / F 또는 줍기 버튼,/ F or pick up button
+SHOP_TEXT_TWO-SLOTS-FULL,두 슬롯이 찼습니다.,두 슬롯이 찼습니다.,Two slots are full.
+SHOP_TEXT_PALLET-HIT-RECOVERY,판자 타격 → 회복,판자 타격 → 회복,Pallet hit → Recovery
+SHOP_TEXT_LOCK-ACCESS-WRIST-MANIPULATION-RECOVERY,자물쇠 접근 → 손목 조작 → 회복,자물쇠 접근 → 손목 조작 → 회복,Lock Access → Wrist Manipulation → Recovery
+SHOP_TEXT_BOX-DOOR-HANDLE-OPERATION,상자 / 문 손잡이 조작,상자 / 문 손잡이 조작,Box / Door Handle Operation
+SHOP_TEXT_CURTAIN-CALL-PIECE-RIGHT-HAND-INTERACTION,CURTAIN CALL  |  기물 · 오른손 상호작용 검증실,CURTAIN CALL  |  기물 · 오른손 상호작용 검증실,CURTAIN CALL | Piece · Right-hand Interaction Verification Room
+SHOP_TEXT_TYPES-COMPARISON-INDIVIDUAL-ZOOM,16종 비교 → 개별 확대,16종 비교 → 개별 확대,16 Types Comparison → Individual Zoom
+SHOP_TEXT_INDIVIDUAL-ZOOM-COMPARE-TYPES,개별 확대 → 16종 비교,개별 확대 → 16종 비교,Individual Zoom → Compare 16 Types
+SHOP_TEXT_REPRODUCTION,재생,재생,reproduction
+SHOP_TEXT_TARGET-HEIGHT,대상 높이 ,대상 높이 ,Target height
+SHOP_TEXT_PLAYBACK-LOCATION,재생 위치,재생 위치,Playback location
+SHOP_TEXT_SELECT-PUT-G-DROP-F-PICK,1·2 선택/넣기  |  G 내려놓기  |  F 줍기  |  E 상호작용  |  우클릭 홀드: 소지한 UV 등 조준,1·2 선택/넣기  |  G 내려놓기  |  F 줍기  |  E 상호작용  |  우클릭 홀드: 소지한 UV 등 조준,"1·2 Select/Put | G Drop | F Pick Up | E Interact | Right-click Hold: Aim at held UV, etc."
+SHOP_TEXT_EMPTY-SLOT_1,빈 슬롯,빈 슬롯,Empty slot
+SHOP_TEXT_LETTING-GO,내려놓기,내려놓기,Letting go
+SHOP_TEXT_PICKING-UP-FLOOR-DEBRIS,바닥 줍기 (,바닥 줍기 (,Picking up floor debris (
+SHOP_PROMPT_SELECT-TOOL-TEST-BELOW-WHEN-TWO,시험할 도구를 아래에서 선택하세요. 두 칸이 차면 선택 기물을 내려놓고 교체합니다.,시험할 도구를 아래에서 선택하세요. 두 칸이 차면 선택 기물을 내려놓고 교체합니다.,"Select the tool to test from below. When two spaces are filled, place the selected piece down and replace it."
+SHOP_TEXT_SELECT, 선택, 선택, select
+SHOP_TEXT_PAYMENT_1, 지급 / , 지급 / ,Payment /
+SHOP_TEXT_ACTUAL-PLAYER-VERIFICATION-OFFLINE-TEST-RUN,실제 PLAYER 검증 · 오프라인 테스트 런,실제 PLAYER 검증 · 오프라인 테스트 런,Actual Player Verification · Offline Test Run
+SHOP_PROMPT_WASD-MOVE-F-INTERACT-PICK-UP,WASD 이동 · F 상호작용/줍기 · F 길게 또는 G 내려놓기 · 1/2 선택/넣기 · 우클릭 UV,WASD 이동 · F 상호작용/줍기 · F 길게 또는 G 내려놓기 · 1/2 선택/넣기 · 우클릭 UV,WASD Move · F Interact/Pick Up · F Hold or G Drop · 1/2 Select/Drop · Right-click UV
+SHOP_TEXT_ONE-LEG,외발,외발,One leg
+SHOP_TEXT_ONLY-RIGHT-ARM,오른팔만,오른팔만,only the right arm
+SHOP_TEXT_TOWARD-IMPACT-WALL,타격 벽 앞으로,타격 벽 앞으로,Toward the impact wall
+SHOP_TEXT_TOWARD-LOCKED-BOX,잠긴 상자 앞으로,잠긴 상자 앞으로,Toward the locked box
+SHOP_TEXT_FRONT-GENERAL-DOOR,일반 문 앞으로,일반 문 앞으로,In front of the general door
+SHOP_TEXT_KEY-PICKING-TEST,열쇠 줍기 시험대,열쇠 줍기 시험대,Key Picking Test
+SHOP_TEXT_KEY-DOOR-TEST-STAND,열쇠 문 시험대,열쇠 문 시험대,Key door test stand
+SHOP_TEXT_EMPTY-SLOT_0, 빈 슬롯, 빈 슬롯,Empty slot
+SHOP_TEXT_PLACE-SELECTED-ITEM,선택 기물 내려놓기,선택 기물 내려놓기,Place selected item
+SHOP_PROMPT_MOVE-FRONT-TARGET-PRESS-F,대상 앞으로 이동해 F를 누르세요.,대상 앞으로 이동해 F를 누르세요.,Move in front of the target and press F.
+SHOP_PROMPT_HAIRPIN-SELECT-OPEN-LOCKED-BOX-F,머리핀: 선택 후 잠긴 상자에서 F  |  열쇠: 버튼으로 손동작 / 열쇠 시험대에서 획득·문 열기,머리핀: 선택 후 잠긴 상자에서 F  |  열쇠: 버튼으로 손동작 / 열쇠 시험대에서 획득·문 열기,Hairpin: Select and open locked box with F | Key: Hand gesture with button / Obtain from key test bench · Open door
+SHOP_TEXT_TEMPORARY-PERFORMANCE-TOOL,임시 공연 도구 A,임시 공연 도구 A,Temporary performance tool A
+SHOP_TEXT_TEMPORARY-PERFORMANCE-TOOL-B,임시 공연 도구 B,임시 공연 도구 B,Temporary performance tool B
+SHOP_TEXT_TEMPORARY-ESCAPE-TOOL,임시 탈출 도구,임시 탈출 도구,Temporary escape tool
+SHOP_PROMPT_I-CANNOT-RECEIVE-BECAUSE-I-AM,접속 중이 아니라 받을 수 없습니다.,접속 중이 아니라 받을 수 없습니다.,I cannot receive it because I am not connected.
+SHOP_TEXT_PLAYER-COUNT,플레이어 {COMMON_VALUE_COUNT},플레이어 {COMMON_VALUE_COUNT},Player {COMMON_VALUE_COUNT}
+SHOP_TEXT_PLAYER-IDENTIFIER,플레이어 #{COMMON_VALUE_IDENTIFIER},플레이어 #{COMMON_VALUE_IDENTIFIER},Player #{COMMON_VALUE_IDENTIFIER}
+SHOP_PROMPT_CANNOT-USE-SHOP-DURING-PERFORMANCE,공연 중에는 상점을 쓸 수 없습니다.,공연 중에는 상점을 쓸 수 없습니다.,You cannot use the shop during the performance.
+SHOP_TEXT_ONLY-LIVING-PEOPLE-PLACE-ORDER,살아 있는 사람만 주문할 수 있습니다.,살아 있는 사람만 주문할 수 있습니다.,Only living people can place an order.
+SHOP_TEXT_ONLY-LIVING-PEOPLE-RECEIVE-ITEM,살아 있는 사람만 물건을 받을 수 있습니다.,살아 있는 사람만 물건을 받을 수 있습니다.,Only living people can receive the item.
+SHOP_TEXT_SOMEONE-ELSE-ALREADY-RECEIVED,이미 다른 사람이 받았습니다.,이미 다른 사람이 받았습니다.,Someone else has already received it.
+SHOP_PROMPT_LACK-JOINT-FUNDS,공동 자금 부족,공동 자금 부족,Lack of joint funds
+SHOP_TEXT_EXPAND-STORE-TEST-PANEL,상점 테스트 패널 펴기,상점 테스트 패널 펴기,Expand store test panel
+SHOP_TEXT_FOLD-STORE-TEST-PANEL,상점 테스트 패널 접기,상점 테스트 패널 접기,Fold store test panel
+SHOP_TEXT_PREPARING-SOLO-TEST,1인 테스트 준비 중…,1인 테스트 준비 중…,Preparing for solo test…
+SHOP_TEXT_STEP-FIRST-ARGUMENT,단계: {COMMON_VALUE_FIRST-ARGUMENT},단계: {COMMON_VALUE_FIRST-ARGUMENT},Step: {COMMON_VALUE_FIRST-ARGUMENT}
+SHOP_PROMPT_ONLY-HOST-USE-BUTTON-BELOW,호스트만 아래 버튼을 쓸 수 있습니다.,호스트만 아래 버튼을 쓸 수 있습니다.,Only the host can use the button below.
+SHOP_TEXT_RECEIVING-TEST-FUNDS-SETTLEMENT-SUCCESSFUL-PERFORMANCE,테스트 자금 받기(공연 성공 정산),테스트 자금 받기(공연 성공 정산),Receiving test funds (settlement for successful performance)
+SHOP_TEXT_MAKING-ONE-ARMED-PERSON,외팔 만들기,외팔 만들기,Making a one-armed person
+SHOP_TEXT_I-CHANGED-ONE-ARMED-STATE,외팔 상태로 바꿨습니다.,외팔 상태로 바꿨습니다.,I changed it to a one-armed state.
+SHOP_TEXT_BODY-RECOVERY,몸 복구,몸 복구,Body recovery
+SHOP_TEXT_I-RESTORED-MY-BODY,몸을 복구했습니다.,몸을 복구했습니다.,I restored my body.
+SHOP_TEXT_GO-STORE, — ③ 상점으로 가 보세요., — ③ 상점으로 가 보세요.,— ③ Go to the store.
+SHOP_PROMPT_ONLY-AVAILABLE-DURING-PERFORMANCE-PHASE-PRESS,공연 단계에서만 됩니다. 런 진행 패널에서 '전원 무대 입구 통로 진입'을 누르세요.,공연 단계에서만 됩니다. 런 진행 패널에서 '전원 무대 입구 통로 진입'을 누르세요.,This is only available during the performance phase. Press 'Enter Stage Entrance Passage' on the run progress panel.
+SHOP_TEXT_STORE-TEST-FUNDS,상점 테스트 자금,상점 테스트 자금,Store test funds
+SHOP_TEXT_PICK-UP-RECEIVER-SHOP,수화기 들기 (상점),수화기 들기 (상점),Pick up the receiver (shop)
+SHOP_TEXT_F-PICK-UP-RECEIVER-SHOP,[F] 수화기 들기 (상점),[F] 수화기 들기 (상점),[F] Pick up the receiver (shop)
+SHOP_TEXT_STORE-LEDGER-USAGE-HISTORY,③ 상점 — 장부(사용 내역),③ 상점 — 장부(사용 내역),③ Store — Ledger (Usage History)
+SHOP_TEXT_SHOP-HANDSET-TEMPORARY-ITEMS-PRICES,③ 상점 — 수화기 (임시 품목·가격),③ 상점 — 수화기 (임시 품목·가격),③ Shop — Handset (Temporary Items · Prices)
+SHOP_TEXT_VIEW-ITEMS,품목 보기,품목 보기,View items
+SHOP_TEXT_VIEW-LEDGER,장부 보기,장부 보기,View ledger
+SHOP_TEXT_DELIVERY-WAITING-FIRST-ARGUMENT-ITEMS,배송구 대기 {COMMON_VALUE_FIRST-ARGUMENT}개,배송구 대기 {COMMON_VALUE_FIRST-ARGUMENT}개,Delivery waiting {COMMON_VALUE_FIRST-ARGUMENT} items
+SHOP_TEXT_LEDGER-EMPTY,장부가 비어 있습니다.,장부가 비어 있습니다.,The ledger is empty.
+SHOP_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-DAY-THIRD,#{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}일차 {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT}  {COMMON_VALUE_FIFTH-ARGUMENT},#{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}일차 {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT}  {COMMON_VALUE_FIFTH-ARGUMENT},#{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Day {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT} {COMMON_VALUE_FIFTH-ARGUMENT}
+SHOP_TEXT_DELIVERY-RECEIPT-RECORD,— 배송구 수령 기록 —,— 배송구 수령 기록 —,— Delivery Receipt Record —
+SHOP_TEXT_FIRST-ARGUMENT-ORDER-SECOND-ARGUMENT-RECEIPT,{COMMON_VALUE_FIRST-ARGUMENT} 주문 → {COMMON_VALUE_SECOND-ARGUMENT} 수령,{COMMON_VALUE_FIRST-ARGUMENT} 주문 → {COMMON_VALUE_SECOND-ARGUMENT} 수령,{COMMON_VALUE_FIRST-ARGUMENT} Order → {COMMON_VALUE_SECOND-ARGUMENT} Receipt
+SHOP_TEXT_F-FIRST-ARGUMENT-GET-SECOND-ARGUMENT,"[F] {COMMON_VALUE_FIRST-ARGUMENT} 받기 (#{COMMON_VALUE_SECOND-ARGUMENT}, {COMMON_VALUE_THIRD-ARGUMENT} 주문)","[F] {COMMON_VALUE_FIRST-ARGUMENT} 받기 (#{COMMON_VALUE_SECOND-ARGUMENT}, {COMMON_VALUE_THIRD-ARGUMENT} 주문)","[F] {COMMON_VALUE_FIRST-ARGUMENT} Get (#{COMMON_VALUE_SECOND-ARGUMENT} , {COMMON_VALUE_THIRD-ARGUMENT} Order)"
+SHOP_PROMPT_CANNOT-USE-SHELF-BECAUSE-NOT-CONNECTED,접속 중이 아니라 선반을 쓸 수 없습니다.,접속 중이 아니라 선반을 쓸 수 없습니다.,You cannot use the shelf because you are not connected.
+SHOP_PROMPT_CANNOT-PICK-UP-BECAUSE-NOT-CONNECTED,접속 중이 아니라 주울 수 없습니다.,접속 중이 아니라 주울 수 없습니다.,You cannot pick it up because you are not connected.
+SHOP_TEXT_MY-HAND-FULL-PLEASE-PUT-DOWN,손이 가득 찼습니다. T로 내려놓은 뒤 받으세요.,손이 가득 찼습니다. T로 내려놓은 뒤 받으세요.,My hand is full. Please put it down with T and take it.
+SHOP_TEXT_SHELF-EMPTY-PLEASE-BRING-ITEMS,선반이 비어 있습니다. 기물을 들고 오세요.,선반이 비어 있습니다. 기물을 들고 오세요.,The shelf is empty. Please bring the items.
+SHOP_TEXT_ITEM-NO-LONGER-USED-BECAUSE-BEEN,다 써서 더 쓸 수 없는 기물입니다.,다 써서 더 쓸 수 없는 기물입니다.,It is an item that can no longer be used because it has been completely used up.
+SHOP_TEXT_ITEM-NO-LONGER-EXISTS,이미 없는 기물입니다.,이미 없는 기물입니다.,It is an item that no longer exists.
+SHOP_TEXT_PROCESSING-EQUIPMENT-USAGE,기물 사용 처리 중입니다.,기물 사용 처리 중입니다.,Processing of equipment usage.
+SHOP_TEXT_WE-PREPARING-FUND-PROCESSING,자금 처리를 준비 중입니다.,자금 처리를 준비 중입니다.,We are preparing for fund processing.
+SHOP_TEXT_ACQUIRE-PERFORMANCE-TOKENS-SHARED-FUNDS-FIRST,공연 토큰 획득 · 공동 자금 +{COMMON_VALUE_FIRST-ARGUMENT}원,공연 토큰 획득 · 공동 자금 +{COMMON_VALUE_FIRST-ARGUMENT}원,Acquire Performance Tokens · Shared Funds + {COMMON_VALUE_FIRST-ARGUMENT} Won
+SHOP_PROMPT_CANNOT-USE-SHELVES-DURING-PERFORMANCE,공연 중에는 선반을 쓸 수 없습니다.,공연 중에는 선반을 쓸 수 없습니다.,You cannot use the shelves during the performance.
+SHOP_TEXT_PLEASE-APPROACH-SHELF,선반 앞에 가까이 다가가세요.,선반 앞에 가까이 다가가세요.,Please approach the shelf.
+SHOP_TEXT_POSSESSION-FIRST-ARGUMENT-SECOND-ARGUMENT-T,소지 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}  [T] 내려놓기,소지 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}  [T] 내려놓기,Possession {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} [T] Put down
+SHOP_TEXT_FIRST-ARGUMENT-KHAN-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}칸 {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}칸 {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Khan {COMMON_VALUE_SECOND-ARGUMENT}
+SHOP_TEXT_F-FIRST-ARGUMENT-SHELF-SECOND-ARGUMENT,[F] {COMMON_VALUE_FIRST-ARGUMENT} 선반 {COMMON_VALUE_SECOND-ARGUMENT}칸에 올리기,[F] {COMMON_VALUE_FIRST-ARGUMENT} 선반 {COMMON_VALUE_SECOND-ARGUMENT}칸에 올리기,[F] {COMMON_VALUE_FIRST-ARGUMENT} Shelf {COMMON_VALUE_SECOND-ARGUMENT} Place on compartment
+SHOP_TEXT_F-TAKE-OUT-TOP-SHELF,[F] 선반 위 칸에서 꺼내기,[F] 선반 위 칸에서 꺼내기,[F] Take out from the top shelf
+SHOP_TEXT_FIRST-ARGUMENT-SHELF-HANDED-DOWN-SECOND,{COMMON_VALUE_FIRST-ARGUMENT} (물려줄 선반 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}),{COMMON_VALUE_FIRST-ARGUMENT} (물려줄 선반 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}),{COMMON_VALUE_FIRST-ARGUMENT} (Shelf to be handed down {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT})
+SHOP_TEXT_F-FIRST-ARGUMENT-PICK-UP-SECOND,[F] {COMMON_VALUE_FIRST-ARGUMENT} 줍기 (#{COMMON_VALUE_SECOND-ARGUMENT}),[F] {COMMON_VALUE_FIRST-ARGUMENT} 줍기 (#{COMMON_VALUE_SECOND-ARGUMENT}),[F] {COMMON_VALUE_FIRST-ARGUMENT} Pick up (#{COMMON_VALUE_SECOND-ARGUMENT} )
+SHOP_TEXT_KEY,열쇠,열쇠,key
+SHOP_TEXT_COUNT-ADDITIONAL-RESERVATIONS,{COMMON_VALUE_COUNT}개 추가 예약,{COMMON_VALUE_COUNT}개 추가 예약,{COMMON_VALUE_COUNT} additional reservations
+SHOP_TEXT_PROCESSING-REQUEST,요청 처리 중…,요청 처리 중…,Processing request…
+SHOP_PROMPT_PLEASE-CHECK-EXPLANATION-REASON-UNAVAILABILITY,설명과 이용 불가 사유를 확인하세요.,설명과 이용 불가 사유를 확인하세요.,Please check the explanation and the reason for unavailability.
+SHOP_TEXT_PLEASE-EXPLICITLY-CLICK-OPEN-DEMO-START,데모 열기를 명시적으로 눌러 시작하세요,데모 열기를 명시적으로 눌러 시작하세요,Please explicitly click Open Demo to start.
+SHOP_TEXT_W-DISPLAY-REQUEST-RESPONSE-EXAMPLE-ACTUAL,"W2 표시·요청 응답 예시 / 실제 거래·경제 계산·저장 없음
+","W2 표시·요청 응답 예시 / 실제 거래·경제 계산·저장 없음
+","W2 Display/Request Response Example / Actual Transaction/Economy Calculation/Save None
+"
+SHOP_PROMPT_START-PLAY-HIDDEN-AFTER-OPENING-DEMO,Play 시작 Hidden · 데모를 연 뒤 행/탭/버튼을 마우스·키보드로 확인하세요,Play 시작 Hidden · 데모를 연 뒤 행/탭/버튼을 마우스·키보드로 확인하세요,"Start Play Hidden · After opening the demo, check rows/tabs/buttons with the mouse/keyboard"
+SHOP_TEXT_HUD-AREA-OUTSIDE-PANEL-NOT-OBSCURED,"패널 바깥 HUD 영역은 가리지 않습니다 · 1920×1080 / 1920×1200
+","패널 바깥 HUD 영역은 가리지 않습니다 · 1920×1080 / 1920×1200
+","The HUD area outside the panel is not obscured · 1920×1080 / 1920×1200
+"
+SHOP_TEXT_ALLOW-TABS-ROWS-CLOSES-DURING-REQUEST,요청 중 탭·행·닫기 허용 · 성공/거절은 응답만 전달 · 닫기는 이미 보낸 거래 취소가 아닙니다,요청 중 탭·행·닫기 허용 · 성공/거절은 응답만 전달 · 닫기는 이미 보낸 거래 취소가 아닙니다,"Allow tabs, rows, and closes during the request · Success/Rejection only delivers the response · Closing is not canceling an already sent transaction"
+SHOP_TEXT_START-EXPLICITLY-CLICKING-OPEN-DEMO-EXAMPLE,데모 열기를 명시적으로 눌러 시작하세요 예시 요청 수신 응답 보류 성공 응답 거절 응답 이전 응답 무시 확인 ,데모 열기를 명시적으로 눌러 시작하세요 예시 요청 수신 응답 보류 성공 응답 거절 응답 이전 응답 무시 확인 ,Start by explicitly clicking Open Demo. Example Request Receive Response Pending Successful Response Rejected Response Ignore Previous Response Confirm
+SHOP_PROMPT_OPEN-SAME-SESSION-DISPLAY-DATA-UPDATE,열린 같은 세션 표시 자료 갱신 실패 기물 서비스 장부 전체 비움 긴 목록 긴 설명 거래 불가 긴 가격 ,열린 같은 세션 표시 자료 갱신 실패 기물 서비스 장부 전체 비움 긴 목록 긴 설명 거래 불가 긴 가격 ,Open Same Session Display Data Update Failure Equipment Service Ledger Entire Empty Long List Long Description Transaction Unavailable Long Price
+SHOP_TEXT_NO-REQUESTS-OR-PREVIOUS-TOKENS-NO,요청 없음 또는 이전 토큰 실제 거래 처리 없음 복구 완료 Hidden busy 선택 timeScale runInBackground ,요청 없음 또는 이전 토큰 실제 거래 처리 없음 복구 완료 Hidden busy 선택 timeScale runInBackground ,"No requests or previous tokens, no actual transaction processing, recovery complete, Hidden busy, select timeScale runInBackground"
+SHOP_TEXT_ROW-INACTIVE-ACTIVE-ACTUAL-PURCHASE-SALE,행 비활성 활성 실제 구매 판매 경제 계산 없음 예시 목록 갱신 항목 제거 검증용 요청 거절 0123456789.-/ :·…−+<>,행 비활성 활성 실제 구매 판매 경제 계산 없음 예시 목록 갱신 항목 제거 검증용 요청 거절 0123456789.-/ :·…−+<>,Row Inactive Active Actual Purchase Sale Economy No Calculation Update Example List Remove Item Rejected Verification Request 0123456789.-/ :·… −+<>
+SHOP_TEXT_EXAMPLE-REQUEST-RECEIVED-RESPONSE-PENDING-NO,예시 요청 수신 · 응답 보류 · 실제 거래 처리 없음,예시 요청 수신 · 응답 보류 · 실제 거래 처리 없음,Example: Request received · Response pending · No actual transaction processing
+SHOP_TEXT_EXAMPLE-DISPLAY-DATA-NO-ACTUAL-PURCHASES,예시 표시 자료 · 실제 구매·판매·경제 계산 없음,예시 표시 자료 · 실제 구매·판매·경제 계산 없음,"Example display data · No actual purchases, sales, or economic calculations"
+SHOP_TEXT_EXAMPLE-SUCCESS-RESPONSE-NO-ACTUAL-TRANSACTION,예시 성공 응답 · 실제 거래 처리 없음,예시 성공 응답 · 실제 거래 처리 없음,Example Success Response · No Actual Transaction Processing
+SHOP_TEXT_SUCCESS-RESPONSE,성공 응답,성공 응답,Success response
+SHOP_TEXT_NO-REQUEST-OR-PREVIOUS-TOKEN,요청 없음 또는 이전 토큰,요청 없음 또는 이전 토큰,No request or previous token
+SHOP_TEXT_VERIFICATION-REQUEST-REJECTED-NO-ACTUAL-TRANSACTION,검증용 요청 거절 · 실제 거래 처리 없음,검증용 요청 거절 · 실제 거래 처리 없음,Verification request rejected · No actual transaction processing
+SHOP_TEXT_REJECTION-RESPONSE,거절 응답,거절 응답,Rejection response
+SHOP_TEXT_RESPONSE-PENDING,응답 보류,응답 보류,Response pending
+SHOP_TEXT_PREVIOUS-RESPONSE,이전 응답,이전 응답,Previous response
+SHOP_TEXT_PREVIOUS-RESPONSE-ACCEPTANCE-VALIDATION-REQUIRED,이전 응답 수락 · 검증 필요,이전 응답 수락 · 검증 필요,Previous response acceptance · Validation required
+SHOP_TEXT_CONFIRM-IGNORE-PREVIOUS-RESPONSE,이전 응답 무시 확인,이전 응답 무시 확인,Confirm Ignore previous response
+SHOP_TEXT_UPDATE-OPEN-SAME-SESSION-DISPLAY-DATA,열린 같은 세션 표시 자료 갱신,열린 같은 세션 표시 자료 갱신,Update open same session display data
+SHOP_PROMPT_FAILED-UPDATE-DISPLAY-DATA,표시 자료 갱신 실패,표시 자료 갱신 실패,Failed to update display data
+SHOP_TEXT_RECOVERY-COMPLETE-HIDDEN,복구 완료 · Hidden,복구 완료 · Hidden,Recovery Complete · Hidden
+SHOP_TEXT_INACTIVE-ROW,행 비활성,행 비활성,Inactive row
+SHOP_TEXT_ROW-ACTIVE,행 활성,행 활성,Row active
+SHOP_TEXT_UPDATE-EXAMPLE-LIST-REMOVE-ITEM,예시 목록 갱신 · 항목 제거,예시 목록 갱신 · 항목 제거,Update example list · Remove item
+SHOP_TEXT_EXAMPLE-OBJECTS,예시 기물 ,예시 기물 ,Example objects
+SHOP_TEXT_VIEW-ITEM-DESCRIPTION,기물 설명 보기,기물 설명 보기,View item description
+SHOP_TEXT_EXAMPLE-PURCHASE-SALE,예시 구매 60 · 판매 30,예시 구매 60 · 판매 30,Example: Purchase 60 · Sale 30
+SHOP_TEXT_SHIPPING-INFORMATION,배송 안내,배송 안내,Shipping Information
+SHOP_TEXT_SALE,판매,판매,sale
+SHOP_PROMPT_CANNOT-REQUEST-PRESENT,현재 요청할 수 없습니다.,현재 요청할 수 없습니다.,Cannot request at present.
+SHOP_PROMPT_FAILED-DELIVER-REQUEST,요청을 전달하지 못했습니다,요청을 전달하지 못했습니다,Failed to deliver the request
+SHOP_PROMPT_FAILED-PROCESS,처리하지 못했습니다,처리하지 못했습니다,Failed to process
+SHOP_TEXT_CHECK-DETAILS-RECORD,기록의 상세 내용을 확인할 수 있습니다.,기록의 상세 내용을 확인할 수 있습니다.,You can check the details of the record.
+SHOP_TEXT_BACKSTAGE-RECEIVER,백스테이지 수화기,백스테이지 수화기,Backstage receiver
+SHOP_TEXT_LIST-ITEMS,기물 목록,기물 목록,List of items
+SHOP_TEXT_SERVICE-LIST,서비스 목록,서비스 목록,Service List
+SHOP_TEXT_TRANSACTION-RECORDS,거래 기록,거래 기록,Transaction records
+SHOP_TEXT_BREAD-WRAPPED-PACKAGING-PLEASE-CHECK-TERMS,"포장지에 싸인 빵입니다.
+거래 조건을 확인하세요.","포장지에 싸인 빵입니다.
+거래 조건을 확인하세요.","It is bread wrapped in packaging. Please check the terms of transaction for
+."
+SHOP_TEXT_BUY-SELL_0,구매 40 · 판매 20,구매 40 · 판매 20,Buy 40 · Sell 20
+SHOP_TEXT_WATER-BOTTLE-LID-CLOSED-PLEASE-CHECK,"뚜껑이 닫힌 물병입니다.
+거래 조건을 확인하세요.","뚜껑이 닫힌 물병입니다.
+거래 조건을 확인하세요.","It is a water bottle with the lid closed. Please check the transaction terms for
+."
+SHOP_TEXT_PURCHASE_1,구매 25,구매 25,Purchase 25
+SHOP_TEXT_ROLL-SHAPED-CLOTH-BANDAGE-PLEASE-CHECK,"두루마리 형태의 천 붕대입니다.
+구매·판매 가격을 확인하세요.","두루마리 형태의 천 붕대입니다.
+구매·판매 가격을 확인하세요.","This is a roll-shaped cloth bandage. Please check the buy and sell prices for
+."
+SHOP_TEXT_BUY-SELL_1,구매 60 · 판매 30,구매 60 · 판매 30,Buy 60 · Sell 30
+SHOP_PROMPT_CURRENTLY-UNAVAILABLE-TRADING-VIEW-REASON,현재 거래 불가 · 사유 보기,현재 거래 불가 · 사유 보기,Currently unavailable for trading · View reason
+SHOP_TEXT_BACKPACK-CARRYING-ITEMS-PLEASE-CHECK-TRANSACTION,"물품을 담는 배낭입니다.
+거래 조건을 확인하세요.","물품을 담는 배낭입니다.
+거래 조건을 확인하세요.","This is a backpack for carrying items. Please check the transaction conditions for
+."
+SHOP_TEXT_PURCHASE_2,구매 180,구매 180,Purchase 180
+SHOP_TEXT_CONDITIONS-WERE-NOT-MET,조건을 충족하지 않았습니다.,조건을 충족하지 않았습니다.,The conditions were not met.
+SHOP_TEXT_MEDICAL-SERVICES,의료 서비스,의료 서비스,medical services
+SHOP_TEXT_CHECK-TERMS-USE,이용 조건 확인,이용 조건 확인,Check Terms of Use
+SHOP_TEXT_REQUESTING-MEDICAL-SERVICES-PLEASE-CHECK-TERMS,"의료 서비스를 요청합니다.
+이용 조건을 먼저 확인하세요.","의료 서비스를 요청합니다.
+이용 조건을 먼저 확인하세요.","Requesting medical services. Please check the terms and conditions of
+first."
+SHOP_TEXT_DISPLAYED-COST_0,표시 비용 120,표시 비용 120,Displayed cost 120
+SHOP_TEXT_REQUEST,요청,요청,request
+SHOP_TEXT_FACILITY-SERVICES,시설 서비스,시설 서비스,Facility Services
+SHOP_PROMPT_CURRENTLY-UNAVAILABLE-VIEW-REASON,현재 이용 불가 · 사유 보기,현재 이용 불가 · 사유 보기,Currently Unavailable · View Reason
+SHOP_TEXT_SERVICE-RELATED-PERFORMANCE-FACILITIES-PLEASE-CHECK,"공연 시설 관련 서비스입니다.
+이용 가능 상태를 확인하세요.","공연 시설 관련 서비스입니다.
+이용 가능 상태를 확인하세요.","This is a service related to performance facilities. Please check the availability of
+."
+SHOP_TEXT_DISPLAYED-COST_1,표시 비용 200,표시 비용 200,Displayed cost 200
+SHOP_PROMPT_CURRENTLY-UNAVAILABLE,현재 이용할 수 없습니다.,현재 이용할 수 없습니다.,It is currently unavailable.
+SHOP_TEXT_BUY-BANDAGES,붕대 구매,붕대 구매,Buy bandages
+SHOP_TEXT_RECORDED-TIME_2,기록 시각 · 02:14,기록 시각 · 02:14,Recorded time · 02:14
+SHOP_TEXT_BANDAGE-PURCHASE-RECORD-CHECK-PROCESSING-STATUS,"붕대 구매 기록입니다.
+처리 상태를 확인할 수 있습니다.","붕대 구매 기록입니다.
+처리 상태를 확인할 수 있습니다.","This is the bandage purchase record. You can check the processing status of
+."
+SHOP_TEXT_TRANSACTION-AMOUNT_1,거래 금액 −60,거래 금액 −60,Transaction amount −60
+SHOP_TEXT_PREPARING-SHIPMENT,배송 준비 중,배송 준비 중,Preparing for shipment
+SHOP_TEXT_SALE-ITEMS,기물 판매,기물 판매,Sale of items
+SHOP_TEXT_RECORDED-TIME_1,기록 시각 · 02:02,기록 시각 · 02:02,Recorded time · 02:02
+SHOP_TEXT_ITEM-SALES-RECORD-PLEASE-CHECK-AMOUNT,"기물 판매 기록입니다.
+금액과 처리 상태를 확인하세요.","기물 판매 기록입니다.
+금액과 처리 상태를 확인하세요.","This is an item sales record. Please check the amount and processing status for
+."
+SHOP_TEXT_TRANSACTION-AMOUNT_0,거래 금액 +30,거래 금액 +30,Transaction amount +30
+SHOP_TEXT_PROCESSING-COMPLETE,처리 완료,처리 완료,Processing complete
+SHOP_TEXT_SERVICE-USAGE,서비스 이용,서비스 이용,Service Usage
+SHOP_TEXT_RECORDED-TIME_0,기록 시각 · 01:47,기록 시각 · 01:47,Recorded time · 01:47
+SHOP_TEXT_MEDICAL-SERVICE-USAGE-RECORD-PLEASE-CHECK,"의료 서비스 이용 기록입니다.
+금액과 처리 상태를 확인하세요.","의료 서비스 이용 기록입니다.
+금액과 처리 상태를 확인하세요.","This is a medical service usage record. Please check the amount and processing status for
+."
+SHOP_TEXT_TRANSACTION-AMOUNT_2,거래 금액 −120,거래 금액 −120,Transaction amount −120
+SHOP_TEXT_DROPPED,내려놓음: ,내려놓음: ,Dropped: 
+SHOP_TEXT_PICKED-UP,주움: ,주움: ,Picked up: 
+SHOP_TEXT_UI-RESPONSE-TIMEOUT,응답 미확인 · 재구매 전 배송구를 확인하세요.,응답 미확인 · 재구매 전 배송구를 확인하세요.,No response received. Check the delivery hatch before buying again.
+SHOP_PROMPT_UI-REOPEN-WINDOW,창을 다시 열어 주세요.,창을 다시 열어 주세요.,Please reopen the window.
+SHOP_PROMPT_UI-INVALID-REQUEST,사용할 수 없는 요청입니다.,사용할 수 없는 요청입니다.,This request is unavailable.
+SHOP_TEXT_UI-ITEM-PRICE-DETAIL,개당 {SHOP_VALUE_PRICE} 토큰,개당 {SHOP_VALUE_PRICE} 토큰,{SHOP_VALUE_PRICE} tokens each
+SHOP_TEXT_UI-ITEM-WAITING,배송구 대기 {COMMON_VALUE_COUNT}개,배송구 대기 {COMMON_VALUE_COUNT}개,Waiting at the hatch: {COMMON_VALUE_COUNT}
+SHOP_TEXT_UI-MEDICAL-PRICE-DETAIL,잘린 팔·다리 한 개당 {SHOP_VALUE_PRICE} 토큰,잘린 팔·다리 한 개당 {SHOP_VALUE_PRICE} 토큰,{SHOP_VALUE_PRICE} tokens per lost limb
+SHOP_BUTTON_UI-BOOK-BUTTON,{COMMON_VALUE_COUNT}개 예약,{COMMON_VALUE_COUNT}개 예약,Reserve {COMMON_VALUE_COUNT}
+SHOP_BUTTON_UI-COUNT-BUTTON,팔·다리 {COMMON_VALUE_COUNT}/{COMMON_VALUE_MAXIMUM},팔·다리 {COMMON_VALUE_COUNT}/{COMMON_VALUE_MAXIMUM},Limbs: {COMMON_VALUE_COUNT}/{COMMON_VALUE_MAXIMUM}
+SHOP_TEXT_UI-COUNT-SELECTED,팔·다리 {COMMON_VALUE_COUNT}개 선택,팔·다리 {COMMON_VALUE_COUNT}개 선택,Selected limbs: {COMMON_VALUE_COUNT}
+SHOP_TEXT_UI-SERVICE-LOADING,서비스 정보를 불러오는 중입니다.,서비스 정보를 불러오는 중입니다.,Loading service information…
+SHOP_TEXT_UI-SERVICE-STATUS,{COMMON_VALUE_PLAYER-NAME} · {MEDICAL_VALUE_SERVICE-PHASE},{COMMON_VALUE_PLAYER-NAME} · {MEDICAL_VALUE_SERVICE-PHASE},{COMMON_VALUE_PLAYER-NAME} · {MEDICAL_VALUE_SERVICE-PHASE}
+SHOP_TEXT_UI-ROW-TOOLTIP,"{SHOP_VALUE_ITEM-DESCRIPTION}
+가격: {SHOP_VALUE_PRICE}
+{SHOP_VALUE_UNAVAILABLE-REASON}","{SHOP_VALUE_ITEM-DESCRIPTION}
+가격: {SHOP_VALUE_PRICE}
+{SHOP_VALUE_UNAVAILABLE-REASON}","{SHOP_VALUE_ITEM-DESCRIPTION}
+Price: {SHOP_VALUE_PRICE}
+{SHOP_VALUE_UNAVAILABLE-REASON}"
+SHOP_DESCRIPTION_TOOLTIP-RESCUE-GLOVES,"조준점에 가장 가까이 보이는 동료를 내 곁으로 끌어옵니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 5","조준점에 가장 가까이 보이는 동료를 내 곁으로 끌어옵니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 5","Pull the teammate closest to your crosshair to your side.
+Use: slot 1 {SETTINGS_INPUT_FIRST-SLOT} · slot 2 {SETTINGS_INPUT_SECOND-SLOT} · Durability: 5"
+SHOP_DESCRIPTION_TOOLTIP-STICKY-GLOVES,"매달려 있을 때 3초 동안 매달림 시간이 멈춥니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 3","매달려 있을 때 3초 동안 매달림 시간이 멈춥니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 3","Pause the hang timer for 3 seconds while hanging.
+Use: slot 1 {SETTINGS_INPUT_FIRST-SLOT} · slot 2 {SETTINGS_INPUT_SECOND-SLOT} · Durability: 3"
+SHOP_DESCRIPTION_TOOLTIP-BALLOON-PANTS,"공중에서 천천히 내려오며 좌우로 더 쉽게 움직입니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 4","공중에서 천천히 내려오며 좌우로 더 쉽게 움직입니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 4","Descend slowly in the air and steer more easily.
+Use: slot 1 {SETTINGS_INPUT_FIRST-SLOT} · slot 2 {SETTINGS_INPUT_SECOND-SLOT} · Durability: 4"
+SHOP_DESCRIPTION_TOOLTIP-SPRING-SHOES,"공중에서 한 번 더 점프합니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 2","공중에서 한 번 더 점프합니다.
+사용: 슬롯 사용키(1슬롯 {SETTINGS_INPUT_FIRST-SLOT} · 2슬롯 {SETTINGS_INPUT_SECOND-SLOT}) · 내구도: 2","Jump once more in midair.
+Use: slot 1 {SETTINGS_INPUT_FIRST-SLOT} · slot 2 {SETTINGS_INPUT_SECOND-SLOT} · Durability: 2"
+SHOP_DESCRIPTION_TOOLTIP-MAGICIAN-HAIRPIN,"자물쇠를 딸 수 있습니다. 세 번째 시도에는 반드시 열립니다.
+사용: 손에 들고 {SETTINGS_INPUT_INTERACT} · 내구도: 5","자물쇠를 딸 수 있습니다. 세 번째 시도에는 반드시 열립니다.
+사용: 손에 들고 {SETTINGS_INPUT_INTERACT} · 내구도: 5","Pick a lock. The third attempt always succeeds.
+Use: press {SETTINGS_INPUT_INTERACT} while holding · Durability: 5"
+SHOP_DESCRIPTION_TOOLTIP-STAKE-PULLER,"막힌 곳을 뜯어 열고 녹슨 벽을 부술 수 있습니다.
+사용: 손에 들고 {SETTINGS_INPUT_INTERACT} · 내구도: 4","막힌 곳을 뜯어 열고 녹슨 벽을 부술 수 있습니다.
+사용: 손에 들고 {SETTINGS_INPUT_INTERACT} · 내구도: 4","Pry open blocked passages and break rusty walls.
+Use: press {SETTINGS_INPUT_INTERACT} while holding · Durability: 4"
+SHOP_DESCRIPTION_TOOLTIP-UV-LAMP,"숨겨진 낙서를 비춰 드러냅니다.
+사용: {SETTINGS_INPUT_UV-LIGHT} 누르는 동안 · 내구도: 없음","숨겨진 낙서를 비춰 드러냅니다.
+사용: {SETTINGS_INPUT_UV-LIGHT} 누르는 동안 · 내구도: 없음","Shine the UV lamp to reveal hidden graffiti.
+Use: hold {SETTINGS_INPUT_UV-LIGHT} · Durability: unlimited"

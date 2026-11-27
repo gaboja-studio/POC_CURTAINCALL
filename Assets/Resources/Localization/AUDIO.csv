@@ -1,0 +1,194 @@
+﻿key,source,ko,en
+AUDIO_TEXT_UNIT_1,단원 2,단원 2,Unit 2
+AUDIO_TEXT_VOICE-FIRST-ARGUMENT-LOGIN-SECOND-ARGUMENT,음성: {COMMON_VALUE_FIRST-ARGUMENT}   로그인 {COMMON_VALUE_SECOND-ARGUMENT},음성: {COMMON_VALUE_FIRST-ARGUMENT}   로그인 {COMMON_VALUE_SECOND-ARGUMENT},Voice: {COMMON_VALUE_FIRST-ARGUMENT} Login {COMMON_VALUE_SECOND-ARGUMENT}
+AUDIO_TEXT_MIKE-FIRST-ARGUMENT-SECOND-ARGUMENT-SURVIVAL,마이크: {COMMON_VALUE_FIRST-ARGUMENT} ({COMMON_VALUE_SECOND-ARGUMENT})   생존 {COMMON_VALUE_THIRD-ARGUMENT}~{COMMON_VALUE_FOURTH-ARGUMENT}m,마이크: {COMMON_VALUE_FIRST-ARGUMENT} ({COMMON_VALUE_SECOND-ARGUMENT})   생존 {COMMON_VALUE_THIRD-ARGUMENT}~{COMMON_VALUE_FOURTH-ARGUMENT}m,Mike: {COMMON_VALUE_FIRST-ARGUMENT} ( {COMMON_VALUE_SECOND-ARGUMENT} ) Survival {COMMON_VALUE_THIRD-ARGUMENT} ~ {COMMON_VALUE_FOURTH-ARGUMENT} m
+AUDIO_TEXT_OFF_1,꺼짐,꺼짐,Off
+AUDIO_TEXT_ON,켜짐,켜짐,On
+AUDIO_TEXT_ERROR-FIRST-ARGUMENT,오류: {COMMON_VALUE_FIRST-ARGUMENT},오류: {COMMON_VALUE_FIRST-ARGUMENT},Error: {COMMON_VALUE_FIRST-ARGUMENT}
+AUDIO_TEXT_FIRST-ARGUMENT-NA,{COMMON_VALUE_FIRST-ARGUMENT} (나),{COMMON_VALUE_FIRST-ARGUMENT} (나),{COMMON_VALUE_FIRST-ARGUMENT} (Na)
+AUDIO_TEXT_MUTE, [음소거], [음소거],[Mute]
+AUDIO_TEXT_SURVIVOR-DISTANCE-ATTENUATION,생존자(거리 감쇠),생존자(거리 감쇠),Survivor (Distance Attenuation)
+AUDIO_TEXT_DEATHS-REGARDLESS-DISTANCE,사망자(거리 무관),사망자(거리 무관),Deaths (regardless of distance)
+AUDIO_TEXT_READY,준비,준비,Ready
+AUDIO_TEXT_WAIT-I-HEARD-SOUND-BEHIND-DOOR,"잠깐, 저쪽 문 뒤에서 무슨 소리가 났어.","잠깐, 저쪽 문 뒤에서 무슨 소리가 났어.","Wait, I heard a sound from behind that door over there."
+AUDIO_TEXT_PERFORMANCE-PREPARATIONS-COMPLETE-MEMBERS-PLEASE-GATHER,"공연 준비가 끝났습니다.
+단원들은 무대로 모여 주십시오.","공연 준비가 끝났습니다.
+단원들은 무대로 모여 주십시오.","The performance preparations are complete. Members of
+, please gather on the stage."
+AUDIO_TEXT_SOUND-OLD-MUSIC-BOX-HEARD-BEYOND,커튼 너머로 낡은 오르골 소리가 들려온다.,커튼 너머로 낡은 오르골 소리가 들려온다.,The sound of an old music box can be heard from beyond the curtain.
+AUDIO_TEXT_VERY-LONG-SPEAKER-NAMES-TRUNCATED-SINGLE,아주 긴 화자 이름은 화자 칸 안에서 한 줄로 말줄임됩니다,아주 긴 화자 이름은 화자 칸 안에서 한 줄로 말줄임됩니다,Very long speaker names are truncated to a single line within the speaker box.
+AUDIO_TEXT_DIALOGUE-N-LITERALLY,<b>대사</b> \n 문자 그대로 …,<b>대사</b> \n 문자 그대로 …,<b> Dialogue </b> \n Literally …
+AUDIO_TEXT_DIRECTOR-S-BROADCAST,단장 방송,단장 방송,Director's Broadcast
+AUDIO_TEXT_CHECK-BROADCAST-SPEAKER-DEFAULTS,방송 화자 기본값 확인,방송 화자 기본값 확인,Check broadcast speaker defaults
+AUDIO_TEXT_CONFIRM-SPEAKER-NAME-ONLY-ONE-LINE,화자 이름만 한 줄 말줄임 확인,화자 이름만 한 줄 말줄임 확인,"Confirm speaker name only, one-line ellipsis"
+AUDIO_TEXT_FIRST-LINE-SECOND-LINE,"첫 번째 줄입니다.
+두 번째 줄입니다.","첫 번째 줄입니다.
+두 번째 줄입니다.","This is the first line.
+This is the second line."
+AUDIO_TEXT_DISPLAY-AGAIN-DURING-EXIT,퇴장 도중 다시 표시,퇴장 도중 다시 표시,Display again during exit
+AUDIO_TEXT_UNIT_0,"단원
+2","단원
+2","Unit
+2"
+AUDIO_TEXT_C-SYNTHESIS-EXAMPLE-NO-GAME-CONNECTION,C9 · 합성 예시 / 게임 연결 없음 · 입력 ,C9 · 합성 예시 / 게임 연결 없음 · 입력 ,C9 · Synthesis Example / No Game Connection · Input
+AUDIO_TEXT_EPISODE,회 · ,회 · ,episode · 
+AUDIO_NAME_CALL-UP-ALERT-BROADCAST,소집 경보 방송,소집 경보 방송,Call-up alert broadcast
+AUDIO_TEXT_WHEN-BANNER-CALLING-STAGE-RETURN-APPEARS,쉬는 시간 종료 60초 전 무대 복귀 소집 배너가 뜰 때. ExplorationTimerView.Show,쉬는 시간 종료 60초 전 무대 복귀 소집 배너가 뜰 때. ExplorationTimerView.Show,When the banner calling for stage return appears 60 seconds before the end of break. ExplorationTimerView.Show
+AUDIO_NAME_MY-DEATH-DURING-PERFORMANCE,공연 중 내 사망,공연 중 내 사망,My death during the performance
+AUDIO_TEXT_WHEN-MY-TROUPE-MEMBER-DIES-DURING,공연 중 내 단원이 죽어 '사망했습니다' 카드가 뜰 때. PerformanceEndingPresentation.ObserveDeath,공연 중 내 단원이 죽어 '사망했습니다' 카드가 뜰 때. PerformanceEndingPresentation.ObserveDeath,When my troupe member dies during a performance and the 'Deceased' card appears. PerformanceEndingPresentation.ObserveDeath
+AUDIO_NAME_DEATH-BACKSTAGE,대기실 내 사망,대기실 내 사망,Death in the backstage
+AUDIO_TEXT_WHEN-MY-MEMBER-DIES-BACKSTAGE-I,대기실에서 내 단원이 죽어 '나 사망' 카드가 뜰 때. CommonWaitingRoomUI.ObserveDeaths,대기실에서 내 단원이 죽어 '나 사망' 카드가 뜰 때. CommonWaitingRoomUI.ObserveDeaths,When my member dies in the backstage and the 'I died' card appears. CommonWaitingRoomUI.ObserveDeaths
+AUDIO_NAME_DEATHS-CAPTURES-WITHIN-ESCAPE-ROUTE,탈출로 내 사망·포획,탈출로 내 사망·포획,Deaths and captures within the escape route
+AUDIO_TEXT_WHEN-MY-UNIT-DIES-OR-CAPTURED,탈출로에서 내 단원이 사망·포획돼 관전으로 바뀔 때(카드 없음). EscapeLocalDeathSound,탈출로에서 내 단원이 사망·포획돼 관전으로 바뀔 때(카드 없음). EscapeLocalDeathSound,When my unit dies or is captured in the escape route and switches to Spectator mode (No Card). EscapeLocalDeathSound
+AUDIO_NAME_SECOND-TIMER-WARNING,타이머 30초 경고,타이머 30초 경고,30-second timer warning
+AUDIO_TEXT_WHEN-REST-NIGHT-MAINTENANCE-TIMER-CHANGES,휴식·밤 정비 타이머가 30초 경고(붉은 테두리) 상태로 바뀔 때. RestTimerView.Show,휴식·밤 정비 타이머가 30초 경고(붉은 테두리) 상태로 바뀔 때. RestTimerView.Show,When the Rest/Night Maintenance Timer changes to the 30-second warning (red border) state. RestTimerView.Show
+AUDIO_NAME_LAST-SECOND-TICK-TIMER,타이머 마지막 10초 틱,타이머 마지막 10초 틱,Last 10-second tick of the timer
+AUDIO_TEXT_REST-NIGHT-MAINTENANCE-TIMER-EVERY-SECOND,휴식·밤 정비 타이머 10초~1초 동안 초마다. RestTimerView.Show,휴식·밤 정비 타이머 10초~1초 동안 초마다. RestTimerView.Show,Rest/Night Maintenance Timer every second for 10 to 1 second. RestTimerView.Show
+AUDIO_NAME_WARNING-BANNER-SOUND,경고 배너음,경고 배너음,Warning banner sound
+AUDIO_TEXT_PLAY-WHEN-RED-TRIANGLE-WARNING-BANNER,사망·연결 실패·추격 시작 같은 빨간 삼각형 경고 배너가 뜰 때 재생.,사망·연결 실패·추격 시작 같은 빨간 삼각형 경고 배너가 뜰 때 재생.,"Play when a red triangle warning banner appears, such as Death, Connection Failed, or Pursuit Started."
+AUDIO_NAME_INTERACTION-CONFIRMATION-SOUND,상호작용 확인 결정음,상호작용 확인 결정음,Interaction confirmation sound
+AUDIO_TEXT_PLAY-WHEN-F-INPUT-ACCEPTED-SUCH,서명·줍기·상점 열기 등 F 입력이 받아들여졌을 때 재생.,서명·줍기·상점 열기 등 F 입력이 받아들여졌을 때 재생.,"Play when F input is accepted, such as signing, picking up, or opening a shop."
+AUDIO_NAME_HANGING-COUNTDOWN,매달림 카운트다운,매달림 카운트다운,Hanging Countdown
+AUDIO_TEXT_HANGING-STRING-PLAY-EVERY-SECOND-WHILE,줄에 매달려 '남은 N초'가 표시되는 동안 초마다 재생.,줄에 매달려 '남은 N초'가 표시되는 동안 초마다 재생.,"Hanging from a string, play every second while 'N seconds remaining' is displayed."
+AUDIO_NAME_PERFORMANCE-SUCCESS-RESULT,공연 성공 결과,공연 성공 결과,Performance success result
+AUDIO_TEXT_PLAY-WHEN-PERFORMANCE-SUCCESSFUL-APPEARS-RESULTS,결과 패널에 '공연 성공'이 뜰 때 재생.,결과 패널에 '공연 성공'이 뜰 때 재생.,Play when 'Performance Successful' appears on the results panel.
+AUDIO_NAME_PERFORMANCE-FAILURE-RESULT,공연 실패 결과,공연 실패 결과,Performance failure result
+AUDIO_TEXT_PLAY-WHEN-PERFORMANCE-FAILED-APPEARS-RESULTS,결과 패널에 '공연 실패'가 뜰 때 재생.,결과 패널에 '공연 실패'가 뜰 때 재생.,Play when 'Performance Failed' appears on the results panel.
+AUDIO_NAME_BALANCE-RISK-WARNING-SOUND,균형 위험 경고음,균형 위험 경고음,Balance risk warning sound
+AUDIO_TEXT_PLAY-WHILE-SINGLE-LINE-BALANCE-NEEDLE,외줄 균형 바늘이 주황·빨강 구간에 있는 동안 재생.,외줄 균형 바늘이 주황·빨강 구간에 있는 동안 재생.,Play while the single-line balance needle is in the orange/red section.
+AUDIO_NAME_TIMER-END-SOUND,타이머 종료음,타이머 종료음,Timer end sound
+AUDIO_TEXT_PLAY-WHEN-TIME-LIMIT-BREAK-ESCAPE,휴식 시간·탈출로 제한 시간이 0이 됐을 때 재생.,휴식 시간·탈출로 제한 시간이 0이 됐을 때 재생.,Play when the time limit for the break/escape reaches 0.
+AUDIO_BUTTON_BUTTON-MOUSE-CLICK-SOUND,버튼 마우스 올림음,버튼 마우스 올림음,Button mouse click sound
+AUDIO_TEXT_PLAY-VERY-QUIETLY-WHEN-HOVERING-MOUSE,메인 메뉴·ESC 메뉴·설정·확인창의 공용 버튼에 마우스를 올릴 때 아주 작게 재생.,메인 메뉴·ESC 메뉴·설정·확인창의 공용 버튼에 마우스를 올릴 때 아주 작게 재생.,"Play very quietly when hovering the mouse over the common buttons in the main menu, ESC menu, settings, and confirmation window."
+AUDIO_BUTTON_BUTTON-CLICK-SOUND,버튼 클릭음,버튼 클릭음,button click sound
+AUDIO_TEXT_PLAY-WHEN-MENU-SETTINGS-CONFIRMATION-OR,메뉴·설정·확인창·결과창 버튼을 눌렀을 때 재생. 월드 F 입력(UI-302)과 구분.,메뉴·설정·확인창·결과창 버튼을 눌렀을 때 재생. 월드 F 입력(UI-302)과 구분.,"Play when the Menu, Settings, Confirmation, or Results buttons are pressed. Distinguished from World F Input (UI-302)."
+AUDIO_NAME_PANEL-OPENING-SOUND,패널 열림음,패널 열림음,Panel opening sound
+AUDIO_TEXT_PLAY-WHEN-ESC-MENU-SETTINGS-WINDOW,ESC 메뉴·설정 창·나가기 확인창이 열릴 때 재생.,ESC 메뉴·설정 창·나가기 확인창이 열릴 때 재생.,"Play when the ESC menu, settings window, or exit confirmation window opens."
+AUDIO_NAME_PANEL-CLOSING-SOUND,패널 닫힘음,패널 닫힘음,Panel closing sound
+AUDIO_TEXT_PLAY-WHEN-RETURNING-PREVIOUS-SCREEN-CLOSING,패널을 닫거나 확인창에서 취소해 이전 화면으로 돌아갈 때 재생.,패널을 닫거나 확인창에서 취소해 이전 화면으로 돌아갈 때 재생.,Play when returning to the previous screen by closing the panel or canceling in the confirmation window.
+AUDIO_NAME_SETTINGS-TAB-SWITCHING-SOUND,설정 탭 전환음,설정 탭 전환음,Settings tab switching sound
+AUDIO_TEXT_PLAY-WHEN-SWITCHING-TABS-SETTINGS-WINDOW,설정 창에서 탭을 바꿀 때 재생.,설정 창에서 탭을 바꿀 때 재생.,Play when switching tabs in the settings window.
+AUDIO_NAME_VOLUME-PREVIEW-SOUND,볼륨 미리듣기음,볼륨 미리듣기음,Volume preview sound
+AUDIO_TEXT_PLAY-CHECK-CHANGED-VOLUME-WHEN-ADJUSTING,설정에서 효과음·UI 볼륨 슬라이더를 조절할 때 바뀐 크기를 확인하도록 재생.,설정에서 효과음·UI 볼륨 슬라이더를 조절할 때 바뀐 크기를 확인하도록 재생.,Play to check the changed volume when adjusting the Sound Effects/UI volume slider in Settings.
+AUDIO_NAME_TOGGLE-SOUND,토글 전환음,토글 전환음,Toggle sound
+AUDIO_TEXT_PLAY-WHEN-CHANGING-OFF-TOGGLE-SETTINGS,설정의 켜기·끄기 토글을 바꿀 때 재생.,설정의 켜기·끄기 토글을 바꿀 때 재생.,Play when changing the On/Off toggle in the settings.
+AUDIO_NAME_PERFORMANCE-CHANGE-SOUND,공연 변경음,공연 변경음,Performance change sound
+AUDIO_TEXT_PRESS-SCHEDULE-TICKET-SLOT-CHANGE-PERFORMANCE,일정판 티켓 슬롯을 눌러 공연이 바뀌고 체크·테두리가 표시될 때 재생.,일정판 티켓 슬롯을 눌러 공연이 바뀌고 체크·테두리가 표시될 때 재생.,Press the schedule ticket slot to change the performance and play when the check mark and border are displayed.
+AUDIO_NAME_DIFFICULTY-CHANGE-SOUND,난이도 변경음,난이도 변경음,Difficulty change sound
+AUDIO_TEXT_PLAY-WHEN-CHANGING-PERFORMANCE-DIFFICULTY-USING,일정판 화살표로 공연 난이도를 바꿀 때 재생. 바꿀 수 없는 칸은 UI-303 사용.,일정판 화살표로 공연 난이도를 바꿀 때 재생. 바꿀 수 없는 칸은 UI-303 사용.,Play when changing performance difficulty using the schedule arrow. Use UI-303 for unchangeable cells.
+AUDIO_NAME_STORE-TAB-ITEM-SELECTION-SOUND,상점 탭·품목 선택음,상점 탭·품목 선택음,Store tab/item selection sound
+AUDIO_TEXT_PLAY-WHEN-SWITCHING-TABS-OR-SELECTING,상점 패널에서 탭을 바꾸거나 품목을 고를 때 재생.,상점 패널에서 탭을 바꾸거나 품목을 고를 때 재생.,Play when switching tabs or selecting items in the store panel.
+AUDIO_NAME_TRANSACTION-COMPLETION-SOUND,거래 완료음,거래 완료음,Transaction completion sound
+AUDIO_TEXT_PLAYED-WHEN-PURCHASE-OR-SALE-EQUIPMENT,기물 구매·판매나 서비스 결제가 승인될 때 재생. 공동 자금 증감음(UI-507·508)과 함께 재생.,기물 구매·판매나 서비스 결제가 승인될 때 재생. 공동 자금 증감음(UI-507·508)과 함께 재생.,Played when the purchase or sale of equipment or service payment is approved. Played together with the joint fund increase/decrease sound (UI-507·508).
+AUDIO_NAME_TRANSACTION-REFUSAL,거래 거절음,거래 거절음,Transaction refusal
+AUDIO_TEXT_REPLAY-WHEN-TRANSACTION-REJECTED-DUE-INSUFFICIENT,공동 자금 부족 등으로 거래가 거절될 때 재생.,공동 자금 부족 등으로 거래가 거절될 때 재생.,"Replay when a transaction is rejected due to insufficient funds, etc."
+AUDIO_NAME_RESULT-HUGE-SUCCESS-PERFORMANCE,공연 대성공 결과,공연 대성공 결과,The result of a huge success of the performance
+AUDIO_TEXT_PLAY-WHEN-GREAT-SUCCESS-RIBBON-APPEARS,결과 패널에 '대성공' 리본이 뜰 때 재생. 공연 성공(UI-703)보다 화려하게.,결과 패널에 '대성공' 리본이 뜰 때 재생. 공연 성공(UI-703)보다 화려하게.,Play when the 'Great Success' ribbon appears on the results panel. More spectacular than a successful performance (UI-703).
+AUDIO_NAME_REWARD-COIN-MOVEMENT-SOUND,보상 동전 이동음,보상 동전 이동음,Reward coin movement sound
+AUDIO_TEXT_PLAYS-EACH-REWARD-COIN-FLIES-TOWARD,"결과창에서 보상 동전이 공동 자금 쪽으로 날아갈 때 동전마다 재생. (2~8개, 0.064초 간격)","결과창에서 보상 동전이 공동 자금 쪽으로 날아갈 때 동전마다 재생. (2~8개, 0.064초 간격)","Plays for each reward coin as it flies toward the common fund in the results screen. (2–8 coins, 0.064 second intervals)"
+AUDIO_NAME_PURSUIT-PHASE-RISING-SOUND,추격 단계 상승음,추격 단계 상승음,Pursuit phase rising sound
+AUDIO_TEXT_PLAY-NOTIFICATION-WHEN-CHASE-LEVEL-INCREASES,"추격 시작 1분 뒤 시야 확대, 2분 뒤 벽 투시, 3분 뒤 최인접 추격처럼 추격 단계가 오를 때 알림과 함께 재생.","추격 시작 1분 뒤 시야 확대, 2분 뒤 벽 투시, 3분 뒤 최인접 추격처럼 추격 단계가 오를 때 알림과 함께 재생.","Play with a notification when the chase level increases, such as zoomed-in 1 minute after the chase starts, wall penetration 2 minutes after, and nearest chase 3 minutes after."
+AUDIO_NAME_PURSUER-S-CLOSE-PULSE,추격자 근접 맥박,추격자 근접 맥박,Pursuer's close pulse
+AUDIO_TEXT_PLAY-WHILE-EDGES-SCREEN-PULSE-RED,추격자가 가까워져 화면 가장자리가 붉게 맥박치는 동안 재생. 가까울수록 크게. 대기실·탈출로 공용.,추격자가 가까워져 화면 가장자리가 붉게 맥박치는 동안 재생. 가까울수록 크게. 대기실·탈출로 공용.,Play while the edges of the screen pulse red as the pursuer approaches. Louder the closer. Shared with Waiting Room and Escape Route.
+AUDIO_NAME_TURN-MICROPHONE,마이크 켬,마이크 켬,Turn on microphone
+AUDIO_TEXT_PLAY-WHEN-I-TURN-MY-MICROPHONE,단축키나 마이크 아이콘으로 내 마이크를 켤 때 재생.,단축키나 마이크 아이콘으로 내 마이크를 켤 때 재생.,Play when I turn on my microphone using a shortcut key or the microphone icon.
+AUDIO_NAME_TURN-OFF-MICROPHONE,마이크 끔,마이크 끔,Turn off microphone
+AUDIO_TEXT_PLAY-WHEN-TURNING-OFF-MY-MICROPHONE,단축키나 마이크 아이콘으로 내 마이크를 끌 때 재생. UI-1501 끔 변형.,단축키나 마이크 아이콘으로 내 마이크를 끌 때 재생. UI-1501 끔 변형.,Play when turning off my microphone with a shortcut key or microphone icon. UI-1501 Off variant.
+AUDIO_NAME_INTERACTION-REFUSAL-SOUND,상호작용 거부음,상호작용 거부음,Interaction refusal sound
+AUDIO_TEXT_PLAY-WHEN-DIFFICULTY-CURRENT-SCHEDULE-CANNOT,현재 일정 칸의 난이도를 변경할 수 없을 때 재생.,현재 일정 칸의 난이도를 변경할 수 없을 때 재생.,Play when the difficulty of the current schedule cannot be changed.
+AUDIO_PROMPT_SOUND-THERE-NO-SITUATION-SOUND-MATCHING,[Sound] '{COMMON_VALUE_FIRST-ARGUMENT}'에 맞는 상황·사운드가 없습니다. Tools/CurtainCall/사운드 설정에서 추가하세요. ({COMMON_VALUE_SECOND-ARGUMENT}:{COMMON_VALUE_THIRD-ARGUMENT}),[Sound] '{COMMON_VALUE_FIRST-ARGUMENT}'에 맞는 상황·사운드가 없습니다. Tools/CurtainCall/사운드 설정에서 추가하세요. ({COMMON_VALUE_SECOND-ARGUMENT}:{COMMON_VALUE_THIRD-ARGUMENT}),[Sound] There is no situation/sound matching '{COMMON_VALUE_FIRST-ARGUMENT}'. Please add it in Tools/CurtainCall/Sound Settings. ( {COMMON_VALUE_SECOND-ARGUMENT} : {COMMON_VALUE_THIRD-ARGUMENT} )
+AUDIO_TEXT_I-DIED,나 사망,나 사망,I died
+AUDIO_TEXT_UNIT-DEATH,단원 2 사망,단원 2 사망,Unit 2 Death
+AUDIO_TEXT_UI-SOUND-VERIFICATION-REPRODUCING-APPLICATION-SITUATION,UI 사운드 확인 · 적용 상황 재현,UI 사운드 확인 · 적용 상황 재현,UI Sound Verification · Reproducing Application Situation
+AUDIO_TEXT_CALLS-FUNCTION-SIMILAR-GAME-CODE-PLAY,"게임 코드와 같은 함수를 불러 카드·배너와 소리를 함께 냅니다. 숫자키 1~5 = 위에서부터, T = 타이머 35초, Space = 타이머 멈춤.","게임 코드와 같은 함수를 불러 카드·배너와 소리를 함께 냅니다. 숫자키 1~5 = 위에서부터, T = 타이머 35초, Space = 타이머 멈춤.","Calls a function similar to the game code to play cards, banners, and sounds simultaneously. Number keys 1–5 = from top, T = Timer 35 seconds, Space = Stop timer."
+AUDIO_TEXT_USER-DEFINED-VOLUME-ALL-FIRST-ARGUMENT,사용자 설정 음량: 전체 {COMMON_VALUE_FIRST-ARGUMENT} · 효과음 {COMMON_VALUE_SECOND-ARGUMENT},사용자 설정 음량: 전체 {COMMON_VALUE_FIRST-ARGUMENT} · 효과음 {COMMON_VALUE_SECOND-ARGUMENT},User-defined volume: All {COMMON_VALUE_FIRST-ARGUMENT} · Sound effects {COMMON_VALUE_SECOND-ARGUMENT}
+AUDIO_TEXT_SOUND-SETTINGS-UI-FIRST-ARGUMENT, · 사운드 설정 UI {COMMON_VALUE_FIRST-ARGUMENT}, · 사운드 설정 UI {COMMON_VALUE_FIRST-ARGUMENT},· Sound Settings UI {COMMON_VALUE_FIRST-ARGUMENT}
+AUDIO_TEXT_HUDUIMANAGER-SHOWDEATHWARNING-PERFORMANCE,HudUIManager.ShowDeathWarning (공연),HudUIManager.ShowDeathWarning (공연),HudUIManager.ShowDeathWarning (Performance)
+AUDIO_TEXT_HUDUIMANAGER-SHOWDEATHWARNING-WAITING-ROOM-ME,HudUIManager.ShowDeathWarning (대기실 '나'),HudUIManager.ShowDeathWarning (대기실 '나'),HudUIManager.ShowDeathWarning (Waiting Room 'Me')
+AUDIO_TEXT_WAITING-ROOM-COLLEAGUE-DEATH-CARD-NORMAL,대기실 동료 사망 카드 — 소리 없어야 정상(UI-102 미결정),대기실 동료 사망 카드 — 소리 없어야 정상(UI-102 미결정),Waiting Room Colleague Death Card — Normal to be silent (UI-102 undetermined)
+AUDIO_TEXT_COLLEAGUE-DIED-NO-SOUND,동료 사망 (소리 없음),동료 사망 (소리 없음),Colleague died (no sound)
+AUDIO_TEXT_ESCAPELOCALDEATHSOUND-CAPTURE-RETIRED,EscapeLocalDeathSound: 포획 → Retired,EscapeLocalDeathSound: 포획 → Retired,EscapeLocalDeathSound: Capture → Retired
+AUDIO_TEXT_CAPTURE-CONFIRMED-WITHIN-ESCAPE-ROUTE,탈출로 내 포획 확정,탈출로 내 포획 확정,Capture confirmed within the escape route
+AUDIO_TEXT_RESTTIMERVIEW-SHOW-REPLAY-TIMER-SECONDS_1,RestTimerView.Show (35초부터 타이머 재현),RestTimerView.Show (35초부터 타이머 재현),RestTimerView.Show (Replay timer from 35 seconds)
+AUDIO_TEXT_RESTTIMERVIEW-SHOW-REPLAY-TIMER-SECONDS_0,RestTimerView.Show (12초부터 타이머 재현),RestTimerView.Show (12초부터 타이머 재현),RestTimerView.Show (Replay timer from 12 seconds)
+AUDIO_TEXT_NO-REPRODUCTION-FUNCTION-PLAY-DIRECTLY-CONTEXT,재현 함수 없음 → 상황 키로 바로 재생,재현 함수 없음 → 상황 키로 바로 재생,No reproduction function → Play directly with context key
+AUDIO_TEXT_RECREATE-REST-TIMER,휴식 타이머 재현,휴식 타이머 재현,Recreate the rest timer
+AUDIO_TEXT_TIMER-UI-NOT-CONNECTED,<color=#ff8080>타이머 UI가 연결되지 않았습니다.</color>,<color=#ff8080>타이머 UI가 연결되지 않았습니다.</color>,<color=#ff8080> Timer UI is not connected. </color>
+AUDIO_TEXT_TIME-REMAINING-FIRST-ARGUMENT-SECONDS-SPEED,남은 시간 {COMMON_VALUE_FIRST-ARGUMENT}초 · 속도 x{COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT},남은 시간 {COMMON_VALUE_FIRST-ARGUMENT}초 · 속도 x{COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT},Time remaining {COMMON_VALUE_FIRST-ARGUMENT} seconds · Speed ​​x {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+AUDIO_TEXT_STOP-NO-SOUND,· <color=#ffb060>멈춤(소리 없음)</color>,· <color=#ffb060>멈춤(소리 없음)</color>,· <color=#ffb060> Stop (No Sound) </color>
+AUDIO_TEXT_STOPPED-STATE-RIGHT-TIMER-TURNS-RED,"정지 상태. 오른쪽 타이머가 30초에서 붉게(경고음), 10초부터 깜박이며 초마다 틱.","정지 상태. 오른쪽 타이머가 30초에서 붉게(경고음), 10초부터 깜박이며 초마다 틱.","Stopped state. The right timer turns red (warning sound) at 30 seconds, blinks from 10 seconds, and ticks every second."
+AUDIO_TEXT_T-FIRST-ARGUMENT-SECONDS,T  {COMMON_VALUE_FIRST-ARGUMENT}초부터,T  {COMMON_VALUE_FIRST-ARGUMENT}초부터,From T {COMMON_VALUE_FIRST-ARGUMENT} seconds
+AUDIO_TEXT_SECONDS,12초부터,12초부터,From 12 seconds
+AUDIO_TEXT_RESUMPTION,재개,재개,resumption
+AUDIO_TEXT_NO-SOUND_0,<color=#a0a0a0>소리 없음</color>,<color=#a0a0a0>소리 없음</color>,<color=#a0a0a0> No sound </color>
+AUDIO_TEXT_NO-SITUATION-RESTORE-SETTINGS-WINDOW,<color=#ff8080>상황 없음(설정 창에서 복원)</color>,<color=#ff8080>상황 없음(설정 창에서 복원)</color>,<color=#ff8080> No situation (Restore from settings window) </color>
+AUDIO_TEXT_STATUS-OFF,<color=#ffb060>상황 꺼짐</color>,<color=#ffb060>상황 꺼짐</color>,<color=#ffb060> Status Off </color>
+AUDIO_TEXT_NO-SOUND_1,<color=#ff8080>사운드 없음</color>,<color=#ff8080>사운드 없음</color>,<color=#ff8080> No sound </color>
+AUDIO_TEXT_OFF_0, <color=#ffb060>(꺼짐)</color>, <color=#ffb060>(꺼짐)</color>,<color=#ffb060> (Off) </color>
+AUDIO_TEXT_NO-CLIP, <color=#ff8080>(클립 없음)</color>, <color=#ff8080>(클립 없음)</color>,<color=#ff8080> (No clip) </color>
+AUDIO_TEXT_REENACTMENT,▶ 재현,▶ 재현,▶ Reenactment
+AUDIO_TEXT_SOUND-SHEET-ID,사운드 (시트 ID),사운드 (시트 ID),Sound (Sheet ID)
+AUDIO_TEXT_LOOP, <color=#7fd4ff>루프</color>, <color=#7fd4ff>루프</color>,<color=#7fd4ff> Loop </color>
+AUDIO_TEXT_RECENT-PLAYBACK-HISTORY,최근 재생 기록,최근 재생 기록,Recent Playback History
+AUDIO_NAME_BROADCAST-BANNER-SOUND,방송 배너음,방송 배너음,Broadcast banner sound
+AUDIO_TEXT_BANNER-STAGE-RETURN-BROADCAST-SECONDS-BEFORE,쉬는 시간 종료 60초 전 무대 복귀 소집 방송 배너. 임시 합성 종소리를 대체.,쉬는 시간 종료 60초 전 무대 복귀 소집 방송 배너. 임시 합성 종소리를 대체.,Banner for the stage return broadcast 60 seconds before the end of break. Replaces the temporary synthesized bell sound.
+AUDIO_NAME_PERSONAL-DEATH-SOUND,개인 사망음,개인 사망음,Personal death sound
+AUDIO_NAME_PLAY-WHEN-MY-UNIT-DIES-DEATH,내 단원이 사망해 사망 카드가 뜰 때 재생.,내 단원이 사망해 사망 카드가 뜰 때 재생.,Play when my unit dies and the death card appears.
+AUDIO_NAME_TIMER-SECONDS-WARNING-SOUND,타이머 30초 경고음,타이머 30초 경고음,Timer 30 seconds warning sound
+AUDIO_TEXT_PLAY-WHEN-REST-MAINTENANCE-TIMER-CHANGES,휴식·정비 타이머가 30초 경고 상태로 바뀔 때 재생.,휴식·정비 타이머가 30초 경고 상태로 바뀔 때 재생.,Play when the rest/maintenance timer changes to the 30-second warning state.
+AUDIO_NAME_LAST-SECOND-TICK,마지막 10초 틱,마지막 10초 틱,Last 10 second tick
+AUDIO_NAME_PLAY-EVERY-SECOND-DURING-LAST-SECONDS,타이머 마지막 10초 동안 초마다 재생.,타이머 마지막 10초 동안 초마다 재생.,Play every second during the last 10 seconds of the timer.
+AUDIO_NAME_CHASER-APPEARANCE-WALL-COLLAPSE,추격자 등장벽 붕괴,추격자 등장벽 붕괴,Chaser Appearance Wall Collapse
+AUDIO_TEXT_MOMENT-WALL-COLLAPSES-INCLUDING-REVERBERATION-CONCRETE,벽이 무너지는 순간. 콘크리트 파편 잔향 포함.,벽이 무너지는 순간. 콘크리트 파편 잔향 포함.,The moment the wall collapses. Including the reverberation of concrete debris.
+AUDIO_NAME_SOUND-PURSUER-WALKING-FOOTSTEPS,추격자 걷기 발소리,추격자 걷기 발소리,The sound of a pursuer walking footsteps
+AUDIO_TEXT_MOMENT-PURSUER-S-FOOT-TOUCHES-GROUND,추격자의 발이 바닥에 닿는 순간.,추격자의 발이 바닥에 닿는 순간.,The moment the pursuer's foot touches the ground.
+AUDIO_NAME_CHASER-ROAR,추격자 포효,추격자 포효,Chaser Roar
+AUDIO_TEXT_WHEN-SIGNALING-CHARGE-AFTER-FIRST-APPEARANCE,첫 등장 후 돌진을 예고할 때.,첫 등장 후 돌진을 예고할 때.,When signaling a charge after the first appearance.
+AUDIO_NAME_CHASER-JUMP-LANDING,추격자 도약 착지,추격자 도약 착지,Chaser jump landing
+AUDIO_TEXT_MOMENT-LANDING-GROUND-AFTER-JUMP,도약 후 바닥에 내려앉는 순간.,도약 후 바닥에 내려앉는 순간.,The moment of landing on the ground after a jump.
+AUDIO_NAME_CHASER-ARM-ATTACK-WARNING,추격자 팔 공격 예고,추격자 팔 공격 예고,Chaser Arm Attack Warning
+AUDIO_TEXT_WHEN-TARGET-DIRECTION-ARM-ATTACK-DISPLAYED,팔 공격의 대상과 방향이 표시될 때.,팔 공격의 대상과 방향이 표시될 때.,When the target and direction of the arm attack are displayed.
+AUDIO_NAME_CAPTURE-PURSUER,추격자 포획,추격자 포획,Capture the pursuer
+AUDIO_TEXT_MOMENT-OUTSTRETCHED-HAND-GRABS-PLAYER,뻗은 손이 플레이어를 붙잡는 순간.,뻗은 손이 플레이어를 붙잡는 순간.,The moment the outstretched hand grabs the player.
+AUDIO_NAME_PURSUER-THROW,추격자 투척,추격자 투척,Pursuer throw
+AUDIO_TEXT_MOMENT-PLAYER-RELEASED-HAND,손에서 플레이어가 놓이는 순간.,손에서 플레이어가 놓이는 순간.,The moment the player is released from the hand.
+AUDIO_NAME_LOSS-SINGLE-LINE-ELECTRIC-WARNING,소실 외줄 전기 경고,소실 외줄 전기 경고,Loss single-line electric warning
+AUDIO_TEXT_EVERY-ELECTRIC-FLASH-WARNING-SINGLE-LINE,외줄 소실 예고의 전기 점멸마다.,외줄 소실 예고의 전기 점멸마다.,With every electric flash of the warning of the single line's loss.
+AUDIO_NAME_LOSS-SINGLE-ROPE,외줄 소실,외줄 소실,Loss of the single rope
+AUDIO_TEXT_MOMENT-DISAPPEARANCE-EFFECT-ABOUT-SECOND-TIGHTROPE,외줄이 타며 사라지는 소실 연출(약 1초)이 시작되는 순간. 연출이 끝나면 지지가 사라진다.,외줄이 타며 사라지는 소실 연출(약 1초)이 시작되는 순간. 연출이 끝나면 지지가 사라진다.,"The moment the disappearance effect (about 1 second) of the tightrope burning and vanishing begins. When the effect ends, the support disappears."
+AUDIO_NAME_SINGLE-ROPE-RESTORATION,외줄 복원,외줄 복원,Single rope restoration
+AUDIO_TEXT_MOMENT-VANISHED-TIGHTROPE-REAPPEARS,사라진 외줄이 다시 나타나는 순간.,사라진 외줄이 다시 나타나는 순간.,The moment the vanished tightrope reappears.
+AUDIO_NAME_WARNING-CHASE-BEGIN-SECOND-HALF,후반 추격불 시작 경고,후반 추격불 시작 경고,Warning that the chase will begin in the second half
+AUDIO_TEXT_PREDICTING-IGNITION-CHASE-SECOND-HALF,후반 추격불의 점화 예고 중.,후반 추격불의 점화 예고 중.,Predicting the ignition of a chase in the second half.
+AUDIO_NAME_IGNITION-PURSUIT-FIRE-SECTION,추격불 구간 점화,추격불 구간 점화,Ignition of the pursuit fire section
+AUDIO_TEXT_MOMENT-EACH-SECTION-FLAME-WALL-IGNITED,각 화염벽 구간이 점화되는 순간.,각 화염벽 구간이 점화되는 순간.,The moment each section of the flame wall is ignited.
+AUDIO_NAME_PURSUIT-FIRE-FLAME-WALL-COMBUSTION,추격불 화염벽 연소,추격불 화염벽 연소,Pursuit fire flame wall combustion
+AUDIO_TEXT_SPACE-COMBUSTION-LOOP-FOLLOWING-IGNITION,점화 후 이어지는 공간 연소 루프.,점화 후 이어지는 공간 연소 루프.,Space combustion loop following ignition.
+AUDIO_NAME_FOLDING-BRIDGE-DEPLOYMENT-DRIVE,접이교 전개 구동,접이교 전개 구동,Folding bridge deployment drive
+AUDIO_TEXT_DRIVE-LOOP-WHILE-FOLDING-BRIDGE-UNFOLDING,접이교가 펼쳐지는 동안의 구동 루프.,접이교가 펼쳐지는 동안의 구동 루프.,Drive loop while the folding bridge is unfolding.
+AUDIO_NAME_FOLDING-BRIDGE-DEPLOYMENT-COMPLETED,접이교 전개 완료,접이교 전개 완료,Folding bridge deployment completed
+AUDIO_TEXT_WHEN-FOLDING-BRIDGE-FULLY-EXTENDED-BECOMES,접이교가 완전히 펼쳐져 통과 가능해질 때.,접이교가 완전히 펼쳐져 통과 가능해질 때.,When the folding bridge is fully extended and becomes passable.
+AUDIO_NAME_PORTABLE-SAW-LAUNCHER,휴대 톱 발사,휴대 톱 발사,Portable saw launcher
+AUDIO_TEXT_MOMENT-CIRCULAR-SAW-BLADE-FIRED,원형 톱날이 발사되는 순간.,원형 톱날이 발사되는 순간.,The moment the circular saw blade is fired.
+AUDIO_NAME_EXIT-SHUTTER-OPEN,출구 셔터 개방,출구 셔터 개방,Exit shutter open
+AUDIO_TEXT_WHEN-FINAL-EXIT-ACTUALLY-STARTS-OPEN,최종 출구가 실제로 열리기 시작할 때.,최종 출구가 실제로 열리기 시작할 때.,When the final exit actually starts to open.
+AUDIO_TEXT_ONLY-MEASURED-ACTIVE-PLAY-INSTANCES,활성 Play 인스턴스에서만 측정할 수 있습니다.,활성 Play 인스턴스에서만 측정할 수 있습니다.,It can only be measured in active Play instances.
+AUDIO_TEXT_CHANGE-WIDTH-ONLY-ACTIVE-PLAY-INSTANCE,활성 Play 인스턴스에서만 폭을 바꿀 수 있습니다.,활성 Play 인스턴스에서만 폭을 바꿀 수 있습니다.,You can change the width only in the active Play instance.
+AUDIO_PROMPT_THERE-NO-C-REFERENCE-OR-TMP,C9 참조 또는 TMP 폰트가 없습니다.,C9 참조 또는 TMP 폰트가 없습니다.,There is no C9 reference or TMP font.
+AUDIO_TEXT_BAND-WIDTH-MUST-UI-SPEAKER-WIDTH,"띠 폭은 960~1536 UI, 화자 폭은 128~320 UI여야 합니다.","띠 폭은 960~1536 UI, 화자 폭은 128~320 UI여야 합니다.","The band width must be 960–1536 UI, and the speaker width must be 128–320 UI."
+AUDIO_PROMPT_ACTIVE-PLAY-INSTANCE-REQUIRED,활성 Play 인스턴스가 필요합니다.,활성 Play 인스턴스가 필요합니다.,An active Play instance is required.
+AUDIO_TEXT_UTTERANCES-ONLY-DISPLAYED-CONFIGURED-ACTIVE-PLAY,구성된 활성 Play 인스턴스에서만 발화를 표시할 수 있습니다.,구성된 활성 Play 인스턴스에서만 발화를 표시할 수 있습니다.,Utterances can only be displayed in the configured active Play instance.
+AUDIO_PROMPT_C-CONFIGURATION-STABLE-ROOT-ACTIVE-STATE,측정 전에 C9 구성과 안정된 루트 활성 상태가 필요합니다.,측정 전에 C9 구성과 안정된 루트 활성 상태가 필요합니다.,C9 configuration and a stable root active state are required before measurement.
+AUDIO_TEXT_UNKNOWN-SUBTITLE-TYPE,알 수 없는 자막 종류입니다.,알 수 없는 자막 종류입니다.,This is an unknown subtitle type.
+AUDIO_TEXT_C-WIDTH-OUTSIDE-ALLOWABLE-RANGE,C9 폭이 허용 범위를 벗어났습니다.,C9 폭이 허용 범위를 벗어났습니다.,The C9 width is outside the allowable range.
+AUDIO_TEXT_CONTENT-EMPTY-CLOSE-EXPLICITLY-CALL-HIDE,본문이 비었습니다. 닫으려면 Hide를 명시적으로 호출하세요.,본문이 비었습니다. 닫으려면 Hide를 명시적으로 호출하세요.,"The content is empty. To close it, explicitly call Hide."
+AUDIO_TEXT_EXPLICIT-NUMBER-LINES-EXCEEDS-TWO-SPLIT,명시적 줄 수가 두 줄을 넘습니다. 발화를 분할하세요.,명시적 줄 수가 두 줄을 넘습니다. 발화를 분할하세요.,The explicit number of lines exceeds two. Split the utterance.
+AUDIO_TEXT_PLEASE-ACTIVATE-C-ROOT-BEFORE-MEASUREMENT,측정 전에 C9 루트를 활성화하세요.,측정 전에 C9 루트를 활성화하세요.,Please activate the C9 root before measurement.
+AUDIO_TEXT_ROW-HEIGHT,줄 / 높이 ,줄 / 높이 ,Row / Height
+AUDIO_TEXT_UI-MAX-LINES-UI-SPLIT-UTTERANCES, UI. 최대 두 줄·64 UI입니다. 발화를 분할하거나 띠를 넓히세요., UI. 최대 두 줄·64 UI입니다. 발화를 분할하거나 띠를 넓히세요.,UI. Max 2 lines · 64 UI. Split utterances or widen the bands.
+AUDIO_TEXT_DENIED,거부: ,거부: ,Denied: 
+AUDIO_PROMPT_SOUND-CATALOG-NOT-FOUND-RESOURCES-FIRST,[Sound] Resources/{COMMON_VALUE_FIRST-ARGUMENT} 카탈로그가 없습니다.,[Sound] Resources/{COMMON_VALUE_FIRST-ARGUMENT} 카탈로그가 없습니다.,[Sound] Catalog not found at Resources/{COMMON_VALUE_FIRST-ARGUMENT}.
+AUDIO_TEXT_RESOURCES-SETTINGS-SOUND-SOUNDCATALOG-MISSING,<color=#ff8080>Resources/Settings/Sound/SoundCatalog 가 없습니다.</color>,<color=#ff8080>Resources/Settings/Sound/SoundCatalog 가 없습니다.</color>,<color=#ff8080>Resources/Settings/Sound/SoundCatalog is missing.</color>
+AUDIO_TEXT_BODY-TEXT-EXCEEDS-LIMIT,본문 초과: ,본문 초과: ,Body text exceeds the limit: 
+AUDIO_PROMPT_TMP-MEASUREMENT-FAILED,TMP 측정 실패: ,TMP 측정 실패: ,TMP measurement failed: 
+AUDIO_PROMPT_COULD-NOT-RESTORE-TMP-MESH,TMP 메시 복원 실패: ,TMP 메시 복원 실패: ,Could not restore the TMP mesh: 

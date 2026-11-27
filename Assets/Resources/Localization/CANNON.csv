@@ -1,0 +1,145 @@
+﻿key,source,ko,en
+CANNON_NAME_CANNON-BOARDING-LOCATION_0,대포 5 탑승 위치,대포 5 탑승 위치,Cannon 5 boarding location
+CANNON_NAME_CANNON-BOARDING-LOCATION_1,대포 6 탑승 위치,대포 6 탑승 위치,Cannon 6 boarding location
+CANNON_NAME_CANNON-BOARDING-LOCATION_2,대포 7 탑승 위치,대포 7 탑승 위치,Cannon 7 boarding location
+CANNON_NAME_CANNON-BOARDING-LOCATION_3,대포 8 탑승 위치,대포 8 탑승 위치,Cannon 8 boarding location
+CANNON_NAME_CANNON-BOARDING-LOCATION_4,대포 9 탑승 위치,대포 9 탑승 위치,Cannon 9 boarding location
+CANNON_NAME_CANNON-BOARDING-LOCATION_5,대포 10 탑승 위치,대포 10 탑승 위치,Cannon 10 boarding location
+CANNON_NAME_CANNON-FINAL-DESTINATION,대포 · 최종 목적지,대포 · 최종 목적지,Cannon · Final destination
+CANNON_PROMPT_LONG, 길게, 길게,long
+CANNON_TEXT_PLACE, 놓기, 놓기,Place
+CANNON_TEXT_GET-OFF,내리기,내리기,Get off
+CANNON_TEXT_FIRING,발사,발사,firing
+CANNON_TEXT_F-CATCH,[F] 잡기,[F] 잡기,[F] Catch
+CANNON_TEXT_COOPERATIVE-SWING-FIRST-ARGUMENT-SECOND-ARGUMENT,협동 그네 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},협동 그네 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},Cooperative Swing {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+CANNON_TEXT_POLE,봉,봉,pole
+CANNON_TEXT_F-RIDE,[F] 타기,[F] 타기,[F] Ride
+CANNON_TEXT_PLATFORM-OPEN-PLEASE-EXERCISE-CAUTION-WHEN,발판이 열려 있습니다. 접근에 주의하세요,발판이 열려 있습니다. 접근에 주의하세요,The platform is open. Please exercise caution when approaching.
+CANNON_TEXT_MOVE-PLEASE-WAIT-UNTIL-ARRIVAL,이동 중 · 도착할 때까지 대기하세요,이동 중 · 도착할 때까지 대기하세요,On the move · Please wait until arrival
+CANNON_TEXT_ARRIVAL-PLEASE-GET-OFF-FOOT,도착 · 걸어서 내리세요,도착 · 걸어서 내리세요,Arrival · Please get off on foot
+CANNON_TEXT_RETURNING-STARTING-POINT,출발점으로 돌아가는 중,출발점으로 돌아가는 중,Returning to the starting point
+CANNON_TEXT_RIDING-CONDITIONS-TRAMPOLINE-REQUIRED,탑승 조건 · 트램펄린 필요,탑승 조건 · 트램펄린 필요,Riding conditions · Trampoline required
+CANNON_TEXT_TRAMPOLINE-CARRIERS-AVAILABLE,트램펄린 운반자가 이용할 수 있습니다,트램펄린 운반자가 이용할 수 있습니다,Trampoline carriers are available.
+CANNON_TEXT_PLEASE-WAIT-UNTIL-MEMBERS-ARRIVE-SHELTER,단원들이 쉼터에 도착할 때까지 대기하세요,단원들이 쉼터에 도착할 때까지 대기하세요,Please wait until the members arrive at the shelter.
+CANNON_TEXT_FIRST-ARGUMENT-SECONDS-UNTIL-AUTOMATIC-START_0,자동 출발까지 {COMMON_VALUE_FIRST-ARGUMENT}초,자동 출발까지 {COMMON_VALUE_FIRST-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT} seconds until automatic start
+CANNON_TEXT_AUTOMATIC-DEPARTURE-PREPARATION,자동 출발 준비,자동 출발 준비,Automatic departure preparation
+CANNON_TEXT_FIRST-ARGUMENT-SECONDS-UNTIL-AUTOMATIC-START_1,자동 출발까지 {COMMON_VALUE_FIRST-ARGUMENT}초 · 발판에서 대기하세요,자동 출발까지 {COMMON_VALUE_FIRST-ARGUMENT}초 · 발판에서 대기하세요,{COMMON_VALUE_FIRST-ARGUMENT} seconds until automatic start · Please wait on the footrest
+CANNON_TEXT_READY-AUTOMATIC-DEPARTURE-PLEASE-WAIT-PLATFORM,자동 출발 준비 · 발판에서 대기하세요,자동 출발 준비 · 발판에서 대기하세요,Ready for automatic departure · Please wait on the platform
+CANNON_TEXT_BOARDING-CONDITIONS-CARRIER,탑승 조건 · 운반자 1명,탑승 조건 · 운반자 1명,Boarding Conditions · 1 Carrier
+CANNON_TEXT_HOLD-TRAMPOLINE-STEP-ONTO-PLATFORM-YOURSELF,트램펄린을 들고 혼자 발판에 올라가세요,트램펄린을 들고 혼자 발판에 올라가세요,Hold the trampoline and step onto the platform by yourself.
+CANNON_TEXT_LIFT,리프트,리프트,lift
+CANNON_TEXT_TRAMPOLINE,트램펄린,트램펄린,trampoline
+CANNON_TEXT_COLLAPSE-OPERATION-GUIDE,조작 안내 접기,조작 안내 접기,Collapse Operation Guide
+CANNON_TEXT_EXPAND-OPERATION-GUIDE,조작 안내 펼치기,조작 안내 펼치기,Expand operation guide
+CANNON_TEXT_HUMAN-CANNON-MINUTE-GOAL-CONTINUOUS-COURSE,인간 대포 / 10분 목표 연속 코스,인간 대포 / 10분 목표 연속 코스,Human Cannon / 10-Minute Goal Continuous Course
+CANNON_TEXT_GOAL-PROGRESS-FIRST-ARGUMENT-DIFFICULTY-SECOND,목표 10:00 / 경과 {COMMON_VALUE_FIRST-ARGUMENT} / 난도 {COMMON_VALUE_SECOND-ARGUMENT},목표 10:00 / 경과 {COMMON_VALUE_FIRST-ARGUMENT} / 난도 {COMMON_VALUE_SECOND-ARGUMENT},Goal 10:00 / Progress {COMMON_VALUE_FIRST-ARGUMENT} / Difficulty {COMMON_VALUE_SECOND-ARGUMENT}
+CANNON_TEXT_DIFFICULTY,난도 ,난도 ,Difficulty
+CANNON_TEXT_HOST-SELECT-DIFFICULTY-BEFORE-PERFORMANCE-STARTS,호스트: 공연 시작 전 난도 선택 / 1인 연습은 첫 발사 전 또는 R 초기화 후,호스트: 공연 시작 전 난도 선택 / 1인 연습은 첫 발사 전 또는 R 초기화 후,"Host: Select difficulty before the performance starts / For solo practice, before the first shot or after resetting R"
+CANNON_TEXT_NORMAL-TRAP-SPEED-FIRST-ARGUMENT,일반 함정 속도 ×{COMMON_VALUE_FIRST-ARGUMENT},일반 함정 속도 ×{COMMON_VALUE_FIRST-ARGUMENT},Normal Trap Speed ​​× {COMMON_VALUE_FIRST-ARGUMENT}
+CANNON_TEXT_SPINY-DRILLING-ROTARY-BLADE-GROUND-SAW,가시추·회전 날개·지상 톱: 접촉마다 1부위 절단,가시추·회전 날개·지상 톱: 접촉마다 1부위 절단,Spiny Drilling · Rotary Blade · Ground Saw: Cuts 1 section per contact
+CANNON_TEXT_GROUND-SAW-WAIT-UNTIL-PASSES-OR,지상 톱: 지나갈 때까지 기다리기 또는 넓은 옆 공간으로 회피,지상 톱: 지나갈 때까지 기다리기 또는 넓은 옆 공간으로 회피,Ground Saw: Wait until it passes or evade into a wide space to the side.
+CANNON_TEXT_POLES-PER-SECTION-UNLIMITED-HANGING-DODGE,구간별 봉 5개 · 매달림 무제한 · W/S 반동으로 몸통 높이 왕복 톱 회피,구간별 봉 5개 · 매달림 무제한 · W/S 반동으로 몸통 높이 왕복 톱 회피,5 poles per section · Unlimited hanging · Dodge torso-high shuttle saw with W/S recoil
+CANNON_PROMPT_SHORT-F-FRONT-CANNON-BOARD-SHORT,대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사,대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사,Short F in front of the cannon: Board → Short F again: Fire
+CANNON_PROMPT_LONG-PRESS-F-WHILE-BOARDING-RETURN,탑승 중 F 길게: 탑승 전 위치로 복귀,탑승 중 F 길게: 탑승 전 위치로 복귀,Long press F while boarding: Return to pre-boarding position
+CANNON_TEXT_WASD-DURING-FLIGHT-RECOIL-LEVELING-RELATIVE,비행·반동 중 WASD: 보는 방향 기준 수평 조절 / 놓으면 보정 종료,비행·반동 중 WASD: 보는 방향 기준 수평 조절 / 놓으면 보정 종료,WASD during flight/recoil: Leveling relative to viewing direction / Release to end calibration
+CANNON_TEXT_GROUND-SPACE-JUMPS-ALSO-RECOIL-NO,지상 Space 점프도 반동 / 반동 후 무입력은 수직 이동,지상 Space 점프도 반동 / 반동 후 무입력은 수직 이동,Ground Space jumps also have recoil / No input after recoil is vertical movement
+CANNON_TEXT_R-RESET-PLAYER-DEVICE-KEEP-ROOM,R: 플레이어·장치 초기화 (방 접속 유지),R: 플레이어·장치 초기화 (방 접속 유지),R: Reset Player/Device (Keep room connected)
+CANNON_TEXT_ORANGE-CUSHION-SAFE-LANDING-NORMAL-FLOOR,주황 쿠션: 안전 착지 / 비행 후 일반 바닥: 사망,주황 쿠션: 안전 착지 / 비행 후 일반 바닥: 사망,Orange cushion: Safe landing / Normal floor after flight: Death
+CANNON_TEXT_BLUE-CANNONS-BEHIND-CUSHION-INDIVIDUAL-LAUNCH,쿠션 뒤 파란 대포 4대: 개별 출발 / 발사 힘·높이 동일,쿠션 뒤 파란 대포 4대: 개별 출발 / 발사 힘·높이 동일,4 blue cannons behind the cushion: Individual launch / Identical launch power and height
+CANNON_TEXT_CANNON-RIDING-RD-PERSON-FIRING-ST,대포 탑승: 3인칭 / 발사: 1인칭,대포 탑승: 3인칭 / 발사: 1인칭,Cannon Riding: 3rd Person / Firing: 1st Person
+CANNON_TEXT_FINAL-TOP-SHARING-CYCLE-FIRST-ENTRY,최종 톱: 첫 진입부터 공유 주기 / 초록 FINISH가 목적지,최종 톱: 첫 진입부터 공유 주기 / 초록 FINISH가 목적지,Final Top: Sharing cycle from first entry / Green FINISH is the destination
+CANNON_TEXT_BOTTOM-PORT-M-M-SCALE-M,바닥: 포구 0m / 1m 눈금 · 5m 거리 숫자,바닥: 포구 0m / 1m 눈금 · 5m 거리 숫자,Bottom: Port 0m / 1m scale · 5m distance number
+CANNON_TEXT_YELLOW-HANDLE-F-GRAB-MOUSE-ROTATE,노란 손잡이 F: 잡기 / 마우스: 운반 방향 회전,노란 손잡이 F: 잡기 / 마우스: 운반 방향 회전,Yellow handle F: Grab / Mouse: Rotate carrying direction
+CANNON_TEXT_TRANSPORT-W-S-FORWARD-BACKWARD-RELATIVE,운반 W/S: 시점 기준 앞뒤 / A/D: 옆걸음,운반 W/S: 시점 기준 앞뒤 / A/D: 옆걸음,Transport W/S: Forward/Backward relative to the viewpoint / A/D: Sideways movement
+CANNON_PROMPT_WHILE-CARRYING-SPACE-JUMP-BODY-DEVICE,운반 중 Space: 몸과 장치 점프 / F 길게: 놓기,운반 중 Space: 몸과 장치 점프 / F 길게: 놓기,While carrying Space: Jump body and device / Hold F: Release
+CANNON_TEXT_CARRY-FREE-RD-PERSON-AUTO-ZOOM,운반: 자유 3인칭 · 가까운 공중 동료까지 자동 줌 / 놓기: 1인칭,운반: 자유 3인칭 · 가까운 공중 동료까지 자동 줌 / 놓기: 1인칭,Carry: Free 3rd person · Auto zoom to nearby aerial companions / Place: 1st person
+CANNON_TEXT_VACANCY,빈자리,빈자리,vacancy
+CANNON_TEXT_BOARDING,탑승,탑승,Boarding
+CANNON_TEXT_FIRST-ARGUMENT-M-FORWARD-SECOND-ARGUMENT,발사점 기준 전방 {COMMON_VALUE_FIRST-ARGUMENT} m / 좌우 {COMMON_VALUE_SECOND-ARGUMENT} m,발사점 기준 전방 {COMMON_VALUE_FIRST-ARGUMENT} m / 좌우 {COMMON_VALUE_SECOND-ARGUMENT} m,{COMMON_VALUE_FIRST-ARGUMENT} m forward / {COMMON_VALUE_SECOND-ARGUMENT} m left and right relative to launch point
+CANNON_TEXT_FLIGHT, / 비행, / 비행,/ Flight
+CANNON_TEXT_SAFE-LANDING-FIRST-ARGUMENT-TIMES, / 안전 착지 {COMMON_VALUE_FIRST-ARGUMENT}회, / 안전 착지 {COMMON_VALUE_FIRST-ARGUMENT}회,/ Safe landing {COMMON_VALUE_FIRST-ARGUMENT} times
+CANNON_TEXT_OWNERLESS,무주인,무주인,Ownerless
+CANNON_TEXT_I-AM-CARRYING,내가 운반 중,내가 운반 중,I am carrying
+CANNON_TEXT_CARRYING-ANOTHER-PLAYER,다른 플레이어 운반 중,다른 플레이어 운반 중,Carrying another player
+CANNON_TEXT_TRAMPOLINE-FIRST-ARGUMENT-MY-BOUNCES-SECOND,트램폴린: {COMMON_VALUE_FIRST-ARGUMENT} / 내 반동 횟수: {COMMON_VALUE_SECOND-ARGUMENT},트램폴린: {COMMON_VALUE_FIRST-ARGUMENT} / 내 반동 횟수: {COMMON_VALUE_SECOND-ARGUMENT},Trampoline: {COMMON_VALUE_FIRST-ARGUMENT} / My bounces: {COMMON_VALUE_SECOND-ARGUMENT}
+CANNON_TEXT_ELEVATOR-BOARD-ALONE-HOLDING-TRAMPOLINE-AUTOMATICALLY,승강기: 트램폴린을 들고 혼자 탑승 → 1.5초 후 자동 출발,승강기: 트램폴린을 들고 혼자 탑승 → 1.5초 후 자동 출발,Elevator: Board alone holding the trampoline → Automatically starts after 1.5 seconds
+CANNON_TEXT_GREEN-WAITING-DEPARTURE-MOVING-BLUE-DEPARTURE,초록: 출발 대기·이동 중 / 파랑: 출발 조건 미충족·도착 완료,초록: 출발 대기·이동 중 / 파랑: 출발 조건 미충족·도착 완료,Green: Waiting for departure/Moving / Blue: Departure conditions not met/Arrival completed
+CANNON_TEXT_ALL-LIFTS-SINGLE-PERSON-IF-THERE,모든 리프트는 1인용: 2명 이상이면 양쪽 바닥 개방 / 비우면 복귀,모든 리프트는 1인용: 2명 이상이면 양쪽 바닥 개방 / 비우면 복귀,"All lifts are single-person: if there are 2 or more people, both floors open / return when empty."
+CANNON_TEXT_FIRST-START-BELOW-SAFETY-FLOOR-RETURN,첫 출발 아래 안전 바닥 → 왼쪽 계단으로 다시 출발점,첫 출발 아래 안전 바닥 → 왼쪽 계단으로 다시 출발점,First start below the safety floor → return to the starting point via the stairs on the left.
+CANNON_TEXT_SHELTER-SURVIVING-FLYERS-FIRST-ARGUMENT-SECOND,쉼터: 생존 비행자 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} 합류 (쉼터 대포 대기 포함) / 전원 도착 뒤 자동 상승,쉼터: 생존 비행자 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} 합류 (쉼터 대포 대기 포함) / 전원 도착 뒤 자동 상승,Shelter: Surviving Flyers {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} join (including shelter cannon standby) / Auto-ascend after full power arrives
+CANNON_PROMPT_IF-GET-OFF-OR-RELEASE-DEVICE,대기 중 내리거나 장치를 놓으면 출발 취소 / 위에서 F 길게 놓고 F로 교대,대기 중 내리거나 장치를 놓으면 출발 취소 / 위에서 F 길게 놓고 F로 교대,"If you get off or release the device while waiting, the departure is canceled / Hold F from above and switch to F"
+CANNON_TEXT_AFTER-ASCENDING-START-NEXT-SECTION-USING,상승 후: 위 대포 3대·파란 발판으로 다음 구간 출발,상승 후: 위 대포 3대·파란 발판으로 다음 구간 출발,After ascending: Start the next section using the 3 cannons above and the blue platform.
+CANNON_TEXT_MOVING-DEVICE-FIRST-ARGUMENT-SECOND-ARGUMENT,이동장치 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT},이동장치 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT},Moving device {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT}
+CANNON_TEXT_OVERCROWDING-FLOOR-OPENING,과승 · 바닥 열림,과승 · 바닥 열림,Overcrowding · Floor opening
+CANNON_TEXT_AUTOMATIC-START-FIRST-ARGUMENT-SECONDS,자동 출발 {COMMON_VALUE_FIRST-ARGUMENT}초,자동 출발 {COMMON_VALUE_FIRST-ARGUMENT}초,Automatic start {COMMON_VALUE_FIRST-ARGUMENT} seconds
+CANNON_TEXT_FLAME-FIRST-ARGUMENT-FLAME-SECOND-ARGUMENT,불꽃 1: {COMMON_VALUE_FIRST-ARGUMENT} / 불꽃 2: {COMMON_VALUE_SECOND-ARGUMENT},불꽃 1: {COMMON_VALUE_FIRST-ARGUMENT} / 불꽃 2: {COMMON_VALUE_SECOND-ARGUMENT},Flame 1: {COMMON_VALUE_FIRST-ARGUMENT} / Flame 2: {COMMON_VALUE_SECOND-ARGUMENT}
+CANNON_TEXT_F-GRAB-UNDER-POLE-WHILE-FLYING,비행 중 봉 아래 F: 잡기 / W·S: 반동,비행 중 봉 아래 F: 잡기 / W·S: 반동,F: Grab under pole while flying / W·S: Recoil
+CANNON_PROMPT_POLE-SPACE-JUMP-HOLD-F-COME,봉에서 Space: 도약 / F 길게: 아래로 내려오기,봉에서 Space: 도약 / F 길게: 아래로 내려오기,"On the pole, Space: Jump / Hold F: Come down"
+CANNON_TEXT_MAINTAIN-YELLOW-BLACK-POLE-GROUND-GATEWAY,노랑·검정 봉 유지: 지상 관문 톱 수납 / 놓기·사망: 예고 후 재동작,노랑·검정 봉 유지: 지상 관문 톱 수납 / 놓기·사망: 예고 후 재동작,Maintain Yellow/Black Pole: Ground Gateway Saw Storage / Place/Death: Re-operate after warning
+CANNON_TEXT_BODY-HEIGHT-RECIPROCATING-SAW-KEEPS-MOVING,몸통 높이 왕복 톱은 계속 이동 / W·S로 앞뒤 회피,몸통 높이 왕복 톱은 계속 이동 / W·S로 앞뒤 회피,Body-height reciprocating saw keeps moving / Use W·S to evade forward and backward.
+CANNON_TEXT_CO-OP-GRAB-POLE-ABOVE-PASS,협동: 위 봉 잡기 → 지상 담당 통과 → 너머에서 다시 받기,협동: 위 봉 잡기 → 지상 담당 통과 → 너머에서 다시 받기,Co-op: Grab the pole above → Pass through the ground team → Receive again from the other side
+CANNON_TEXT_PERSONNEL-DEATH-CENTRAL-RE-RECOIL-TRANSFER,담당 사망: 중앙 재반동 → 공중에서 외곽 손잡이 F로 인계,담당 사망: 중앙 재반동 → 공중에서 외곽 손잡이 F로 인계,Personnel Death: Central Re-recoil → Transfer to Outer Handle F in mid-air
+CANNON_TEXT_CONNECTING-ROD,연결 봉,연결 봉,connecting rod
+CANNON_TEXT_REGULAR-BAR,일반 봉,일반 봉,Regular bar
+CANNON_TEXT_HANGING-NO-TIME-LIMIT,매달림 · 시간 제한 없음,매달림 · 시간 제한 없음,Hanging · No time limit
+CANNON_TEXT_MAINTAIN-FIRST-ARGUMENT-SECONDS,유지 {COMMON_VALUE_FIRST-ARGUMENT}초,유지 {COMMON_VALUE_FIRST-ARGUMENT}초,Maintain {COMMON_VALUE_FIRST-ARGUMENT} seconds
+CANNON_TEXT_RE-OPERATION-NOTICE-FIRST-ARGUMENT-SECONDS,재동작 예고 {COMMON_VALUE_FIRST-ARGUMENT}초,재동작 예고 {COMMON_VALUE_FIRST-ARGUMENT}초,Re-operation notice {COMMON_VALUE_FIRST-ARGUMENT} seconds
+CANNON_TEXT_GATEWAY-GROUND-PASSAGE-CONFIRMED-MOVE-BEYOND,관문: 지상 통과 확인 / 비행자도 너머로 이동 가능,관문: 지상 통과 확인 / 비행자도 너머로 이동 가능,Gateway: Ground passage confirmed / Can move beyond the flight path
+CANNON_TEXT_GATEWAY-WAITING-GROUND-PERSONNEL-PASS-FLYERS,관문: 지상 담당 통과 대기 / 비행자는 위·옆 우회 불가,관문: 지상 담당 통과 대기 / 비행자는 위·옆 우회 불가,Gateway: Waiting for ground personnel to pass / Flyers cannot bypass above or to the side
+CANNON_TEXT_NOT-USE,사용 안 함,사용 안 함,Not in use
+CANNON_TEXT_BOUNDARY-TERMINATION,경계 종료,경계 종료,Boundary termination
+CANNON_TEXT_PREVIEW-FIRST-ARGUMENT-SECONDS,예고 {COMMON_VALUE_FIRST-ARGUMENT}초,예고 {COMMON_VALUE_FIRST-ARGUMENT}초,Preview {COMMON_VALUE_FIRST-ARGUMENT} seconds
+CANNON_TEXT_ADVANCING-FIRST-ARGUMENT-M-S-SECOND,전진 중 {COMMON_VALUE_FIRST-ARGUMENT}m/s({COMMON_VALUE_SECOND-ARGUMENT}구간),전진 중 {COMMON_VALUE_FIRST-ARGUMENT}m/s({COMMON_VALUE_SECOND-ARGUMENT}구간),Advancing at {COMMON_VALUE_FIRST-ARGUMENT} m/s ({COMMON_VALUE_SECOND-ARGUMENT} segment)
+CANNON_TEXT_MOVING-FORWARD,전진 중,전진 중,Moving Forward
+CANNON_TEXT_IF-ADD-BOT-PRACTICE-COOPERATIVELY-YOURSELF,봇을 추가하면 혼자 협동 연습을 할 수 있습니다.,봇을 추가하면 혼자 협동 연습을 할 수 있습니다.,"If you add a bot, you can practice cooperatively by yourself."
+CANNON_TEXT_BOT-CONNECTION-TIMED-OUT-PLEASE-CHECK,봇 연결 시간이 초과되었습니다. 봇 실행 로그를 확인해 주세요.,봇 연결 시간이 초과되었습니다. 봇 실행 로그를 확인해 주세요.,The bot connection timed out. Please check the bot execution log.
+CANNON_TEXT_MUST-PREPARE-BOT-EXECUTABLE-FILE-FIRST,봇 실행파일을 먼저 준비해야 합니다.,봇 실행파일을 먼저 준비해야 합니다.,You must prepare the bot executable file first.
+CANNON_TEXT_ROLE-CHANGE-RE-PREPARING-STARTING-POINT,역할 교대 · 출발점에서 다시 준비 중,역할 교대 · 출발점에서 다시 준비 중,Role change · Re-preparing at the starting point
+CANNON_TEXT_HUMAN-CANNON-PRACTICE-BOT,인간대포 · 연습 봇 1명,인간대포 · 연습 봇 1명,Human Cannon · 1 Practice Bot
+CANNON_TEXT_BOT-TRAMPOLINE-TRANSPORT,봇: 트램폴린 운반,봇: 트램폴린 운반,Bot: Trampoline transport
+CANNON_TEXT_BOT-AERIAL-MOVEMENT,봇: 공중 이동,봇: 공중 이동,Bot: Aerial movement
+CANNON_TEXT_FULL-RESTART-UPON-ROLE-SWAP-R,역할 교대 시 전체 재시작 · 사망하면 R,역할 교대 시 전체 재시작 · 사망하면 R,Full restart upon role swap · R if dead
+CANNON_TEXT_FINAL-TOP-WAITING-FIRST-ENTRY,최종 톱: 첫 진입 대기,최종 톱: 첫 진입 대기,Final Top: Waiting for first entry
+CANNON_TEXT_ROUND-TRIP-TOP-FORECAST-FIRST-ARGUMENT,왕복 톱 예고 {COMMON_VALUE_FIRST-ARGUMENT}초,왕복 톱 예고 {COMMON_VALUE_FIRST-ARGUMENT}초,Round trip top forecast {COMMON_VALUE_FIRST-ARGUMENT} seconds
+CANNON_TEXT_FIRST-ARGUMENT-SECONDS-UNTIL-EXITING-SHUTTLE,왕복 톱 통과 중 · 퇴장까지 {COMMON_VALUE_FIRST-ARGUMENT}초,왕복 톱 통과 중 · 퇴장까지 {COMMON_VALUE_FIRST-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT} seconds until exiting the shuttle top
+CANNON_TEXT_CANNON-FIRST-ARGUMENT-BOARDING-LOCATION,대포 {COMMON_VALUE_FIRST-ARGUMENT} 탑승 위치,대포 {COMMON_VALUE_FIRST-ARGUMENT} 탑승 위치,Cannon {COMMON_VALUE_FIRST-ARGUMENT} boarding location
+CANNON_TEXT_PERFORMANCE-FIRST-ARGUMENT-REVENUE-SECOND-ARGUMENT,공연 {COMMON_VALUE_FIRST-ARGUMENT} · 수입 {COMMON_VALUE_SECOND-ARGUMENT} · 공용 정산 완료,공연 {COMMON_VALUE_FIRST-ARGUMENT} · 수입 {COMMON_VALUE_SECOND-ARGUMENT} · 공용 정산 완료,Performance {COMMON_VALUE_FIRST-ARGUMENT} · Revenue {COMMON_VALUE_SECOND-ARGUMENT} · Shared Settlement Completed
+CANNON_TEXT_SUCCESSFULLY-ARRIVED-PRACTICE-RESTARTING-R-NO,연습 도착 성공! R로 다시 시작 (공용 정산 없음),연습 도착 성공! R로 다시 시작 (공용 정산 없음),Successfully arrived at practice! Restarting with R (no shared settlement)
+CANNON_PROMPT_PRACTICE-FAILED-RESTART-R-NO-SHARED,연습 실패 · R로 다시 시작 (공용 정산 없음),연습 실패 · R로 다시 시작 (공용 정산 없음),Practice failed · Restart with R (No shared settlement)
+CANNON_PROMPT_SURVIVOR-LANDS-DESTINATION-PERFORMANCE-SUCCESS-ANNIHILATION,살아 있는 1명 목적지 착지 → 공연 성공 / 전멸 → 실패,살아 있는 1명 목적지 착지 → 공연 성공 / 전멸 → 실패,1 Survivor Lands at Destination → Performance Success / Annihilation → Failure
+CANNON_TEXT_PRACTICE-CHECK-WHILE-GREEN-FINISH-LANDING,초록 FINISH 착지판이 목적지 · 대기 중에는 연습 판정,초록 FINISH 착지판이 목적지 · 대기 중에는 연습 판정,Practice check while the green FINISH landing pad is the destination or waiting
+CANNON_TEXT_CURRENT-SECTION-DEPARTURE,현재 구간  ·  출발,현재 구간  ·  출발,Current Section · Departure
+CANNON_TEXT_CURRENT-SECTION-SECTION_0,현재 구간  ·  1구간,현재 구간  ·  1구간,Current Section · Section 1
+CANNON_TEXT_CURRENT-SECTION-REST-AREA,현재 구간  ·  쉼터,현재 구간  ·  쉼터,Current Section · Rest Area
+CANNON_TEXT_CURRENT-SECTION-SECTION_1,현재 구간  ·  2구간,현재 구간  ·  2구간,Current Section · Section 2
+CANNON_TEXT_CURRENT-SECTION-FINAL-SECTION,현재 구간  ·  최종구간,현재 구간  ·  최종구간,Current section · Final section
+CANNON_TEXT_SPACE-LEAP,<color=#FFE08A><b>Space</b></color>  ·  도약,<color=#FFE08A><b>Space</b></color>  ·  도약,<color=#FFE08A> <b> Space </b> </color> · Leap
+CANNON_TEXT_W-S-MOVE-FORWARD-BACKWARD-D,"<color=#FFE08A><b>W/S</b></color> 앞뒤 이동   ·   <color=#FFE08A><b>A/D</b></color> 옆걸음
+","<color=#FFE08A><b>W/S</b></color> 앞뒤 이동   ·   <color=#FFE08A><b>A/D</b></color> 옆걸음
+","<color=#FFE08A> <b> W/S </b> </color> Move Forward/Backward · <color=#FFE08A> <b> A/D </b> </color> Sidestep
+"
+CANNON_PROMPT_MOUSE-CHANGE-DIRECTION-F-PRESS-HOLD,<color=#FFE08A><b>마우스</b></color> 방향 전환   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 놓기,<color=#FFE08A><b>마우스</b></color> 방향 전환   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 놓기,<color=#FFE08A> <b> Mouse </b> </color> Change Direction · <color=#FFE08A> <b> F </b> </color> Press and hold
+CANNON_PROMPT_F-LAUNCH-F-PRESS-HOLD-SCROLL,<color=#FFE08A><b>F</b></color>로 발사   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 내리기,<color=#FFE08A><b>F</b></color>로 발사   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 내리기,<color=#FFE08A> <b> F </b> </color> Launch · <color=#FFE08A> <b> F </b> </color> Press and hold to scroll down
+CANNON_TEXT_HUMAN-CANNON-RIDING-FLYING,인간 대포 탑승·비행,인간 대포 탑승·비행,Human Cannon Riding and Flying
+CANNON_TEXT_PREPARING-STARTING-POINT,출발점에서 준비 중,출발점에서 준비 중,Preparing at the starting point
+CANNON_TEXT_BOT-DIES-RESTART-R,봇 사망 · R로 다시 시작,봇 사망 · R로 다시 시작,Bot dies · Restart with R
+CANNON_TEXT_TEAMMATE-STANDBY-R-IF-DEAD,동료 대기 · 사망하면 R,동료 대기 · 사망하면 R,Teammate Standby · R if dead
+CANNON_TEXT_PLEASE-PUT-TRAMPOLINE-DOWN,트램폴린을 내려놓아 주세요,트램폴린을 내려놓아 주세요,Please put the trampoline down.
+CANNON_TEXT_MOVING-CATCH-TRAMPOLINE,트램폴린 잡으러 이동 중,트램폴린 잡으러 이동 중,Moving to catch the trampoline
+CANNON_TEXT_WHILE-MOVING-LIFT,리프트 이동 중,리프트 이동 중,While moving on the lift
+CANNON_TEXT_WHILE-BOARDING-DEPARTURE-LIFT,출발 리프트 탑승 중,출발 리프트 탑승 중,While boarding the departure lift
+CANNON_TEXT_MOVE-SECOND-DEPARTURE-LIFT,두 번째 출발 리프트로 이동,두 번째 출발 리프트로 이동,Move to the second departure lift
+CANNON_TEXT_MOVING-SHELTER-ELEVATOR,쉼터 승강기로 이동 중,쉼터 승강기로 이동 중,Moving to the shelter elevator
+CANNON_TEXT_PASSING-THROUGH-BONG-GATE,봉 관문 통과 중,봉 관문 통과 중,Passing through Bong Gate
+CANNON_TEXT_MOVING-TRAMPOLINE-UNDER-COLLEAGUE,동료 아래로 트램폴린 이동 중,동료 아래로 트램폴린 이동 중,Moving the trampoline under the colleague
+CANNON_TEXT_WAITING-RECOIL-CARRIER-PASS-POLE,봉에서 반동 · 운반자 통과 대기,봉에서 반동 · 운반자 통과 대기,Waiting for recoil and carrier to pass at the pole
+CANNON_TEXT_AERIAL-MOVEMENT-PLEASE-SUPPORT-TRAMPOLINE,공중 이동 · 트램폴린으로 받쳐 주세요,공중 이동 · 트램폴린으로 받쳐 주세요,Aerial movement · Please support with a trampoline
+CANNON_TEXT_CANNON-STANDBY-PLEASE-START-HOLDING-TRAMPOLINE,대포 대기 · 트램폴린을 들고 출발해 주세요,대포 대기 · 트램폴린을 들고 출발해 주세요,Cannon standby · Please start holding the trampoline
+CANNON_TEXT_ARRIVAL-DESTINATION,목적지 도착,목적지 도착,Arrival at destination
+CANNON_TEXT_PREPARING-BOARD-CANNON,대포 탑승 준비 중,대포 탑승 준비 중,Preparing to board the cannon
+CANNON_TEXT_WAIT-BEHIND-DEPARTURE-ELEVATOR,출발 승강기 뒤에서 대기,출발 승강기 뒤에서 대기,Wait behind the departure elevator
+CANNON_TEXT_FALLING-BACK-ONTO-TRAMPOLINE,트램폴린 위로 다시 낙하,트램폴린 위로 다시 낙하,Falling back onto the trampoline
+CANNON_TEXT_ATTEMPTING-RIDE-TOGETHER-TRAMPOLINE,트램폴린으로 동승 시도,트램폴린으로 동승 시도,Attempting to ride together on a trampoline
+CANNON_TEXT_APPROACH-CANNON,앞 구간 대포: ,앞 구간 대포: ,Approach cannon: 
+CANNON_TEXT_FINAL-CANNON,최종 대포: ,최종 대포: ,Final cannon: 
+CANNON_TEXT_MY-STATUS,내 상태: ,내 상태: ,My status: 

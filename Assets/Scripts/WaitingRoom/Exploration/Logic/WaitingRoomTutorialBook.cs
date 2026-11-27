@@ -178,6 +178,6 @@ namespace CurtainCall.WaitingRoom
         }
 
         public static string Format(string text, string interactKey, string uvKey, string dropKey = "T") =>
-            (text ?? "").Replace(InteractToken, interactKey).Replace(UvToken, uvKey).Replace(DropToken, dropKey);
+            WaitingRoomText.Fill(text, new (string, object)[] { ("interact", interactKey), ("uv", uvKey), ("drop", dropKey) });
     }
 }

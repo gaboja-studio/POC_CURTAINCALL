@@ -185,7 +185,7 @@ namespace CurtainCall.Tightrope
                 var sign = new GameObject($"SectionSign{i + 1}");
                 sign.transform.SetParent(generated, false);
                 sign.transform.localPosition = new Vector3(side, 1.1f, start);
-                var text = sign.AddComponent<TextMesh>();
+                var text = CurtainCall.Localization.LocalizedDisplays.BindLegacy(sign.AddComponent<TextMesh>());
                 text.text = $"{i + 1}구간 · {sections[i].label}\n{start:0}m";
                 text.fontSize = 64;
                 text.characterSize = .035f;

@@ -89,7 +89,7 @@ namespace CurtainCall.UI.SceneIntegration
             if(entry.Id!=null && entry.Id.StartsWith(itemPrefix))
             {
                 var tooltip=CurtainCall.WaitingRoom.ItemCatalog.Tooltip(entry.Id.Substring(itemPrefix.Length));
-                if(!string.IsNullOrEmpty(tooltip)) return tooltip;
+                if(!string.IsNullOrEmpty(tooltip)) return CurtainCall.WaitingRoom.WaitingRoomHudProfile.FormatLocalKeys(tooltip);
             }
             return entry.Description;
         }

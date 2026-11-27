@@ -1,0 +1,775 @@
+﻿key,source,ko,en
+COMMON_VALUE_CURRENT,실제 전달값,실제 전달값,Current value
+COMMON_VALUE_COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_TOTAL,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_READY-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_REQUIRED-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_SECONDS,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_INSIDE-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_PLAYER-NAME,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_ALIVE-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_VOTES,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_TITLE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_MAXIMUM,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_IDENTIFIER,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_METERS,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_CONDITION,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_CONTENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_CHOICE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_ARRIVED-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_LIMIT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_FIRST-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_SECOND-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_THIRD-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_FOURTH-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_FIFTH-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_SIXTH-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_SEVENTH-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_VALUE_EIGHTH-ARGUMENT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+COMMON_TEXT_TOOL_NAME-HAIRPIN,마술사의 머리핀,마술사의 머리핀,Magician's Hairpin
+COMMON_TEXT_TOOL_NAME-STAKE-PULLER,천막 말뚝 뽑개,천막 말뚝 뽑개,Tent Stake Puller
+COMMON_TEXT_UV_NAME-LAMP,서커스 UV 등,서커스 UV 등,Circus UV light
+COMMON_NAME_ITEM_MAGICIAN-HAIRPIN,마술사의 머리핀,마술사의 머리핀,Magician's Hairpin
+COMMON_NAME_ITEM_STAKE-PULLER,천막 말뚝 뽑개,천막 말뚝 뽑개,Tent Stake Puller
+COMMON_NAME_ITEM_UV-LAMP,서커스 UV 등,서커스 UV 등,Circus UV light
+COMMON_NAME_ITEM_STRUCTURE-A-ESCAPE-KEY_0,은색 열쇠 1,은색 열쇠 1,Silver Key 1
+COMMON_NAME_ITEM_STRUCTURE-A-ESCAPE-KEY_1,은색 열쇠 2,은색 열쇠 2,Silver Key 2
+COMMON_TEXT_EXPLORE_NEED-TOOL,{EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_HINT}
+COMMON_TEXT_SHOP_NOT-ENOUGH-FUNDS,"공동 자금이 부족하거나, 사용할 수 없는 상태입니다.","공동 자금이 부족하거나, 사용할 수 없는 상태입니다.",The joint funds are insufficient or unavailable.
+COMMON_TEXT_EXPERT_NOT-ENOUGH-FUNDS,"공동 자금이 부족하거나, 사용할 수 없는 상태입니다.","공동 자금이 부족하거나, 사용할 수 없는 상태입니다.",The joint funds are insufficient or unavailable.
+COMMON_TEXT_SCHEDULE_CONTEXT-FIRST-DAY,1일차 · 두 번째 공연 선택,1일차 · 두 번째 공연 선택,Day 1 · Select Second Performance
+COMMON_NAME_TARGET_STRUCTURE-A-ESCAPE-DOOR,탈출로 문,탈출로 문,Escape route door
+COMMON_NAME_TARGET_STRUCTURE-A-ESCAPE-KEY_0,은색 열쇠 1,은색 열쇠 1,Silver Key 1
+COMMON_NAME_TARGET_STRUCTURE-A-ESCAPE-KEY_1,은색 열쇠 2,은색 열쇠 2,Silver Key 2
+COMMON_OBJECTIVE_REHEARSAL_QUEST-BALANCE,균형 잡기,균형 잡기,Balancing
+COMMON_OBJECTIVE_FIRST-DAY_QUEST-SECOND-PICK,1일차 · 두 번째 공연 선택,1일차 · 두 번째 공연 선택,Day 1 · Select Second Performance
+COMMON_TITLE_CANNON-REHEARSAL_GUIDE-TRAMPOLINE,트램펄린 잡기,트램펄린 잡기,Catching the trampoline
+COMMON_TITLE_CANNON-REHEARSAL_GUIDE-CARRY,트램펄린 운반,트램펄린 운반,Trampoline transport
+COMMON_OBJECTIVE_REHEARSAL_QUEST-TRAPEZE,{EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_HINT}
+COMMON_NAME_ITEM_KEYCARD-COPY,키 카드 복제본,키 카드 복제본,Key card duplicate
+COMMON_NAME_TARGET_FINAL-KEYCARD-OVERVIEW,키 카드 복제본,키 카드 복제본,Key card duplicate
+COMMON_TUTORIAL-TITLE_MAGICIAN-S-HAIRPIN,마술사의 머리핀,마술사의 머리핀,Magician's Hairpin
+COMMON_TUTORIAL-TITLE_TENT-STAKE-PULLER,천막 말뚝 뽑개,천막 말뚝 뽑개,Tent Stake Puller
+COMMON_TUTORIAL-TITLE_ESCAPE-ROUTE-DOOR,탈출로 문,탈출로 문,Escape route door
+COMMON_NAME_CRACKED-WALL,금 간 벽,금 간 벽,cracked wall
+COMMON_TEXT_UNIT-BACKSTAGE,단원 대기실,단원 대기실,Unit backstage
+COMMON_TEXT_MAINTENANCE-TOOLS,정비 도구,정비 도구,Maintenance tools
+COMMON_TEXT_OLD-NOTE,낡은 쪽지,낡은 쪽지,old note
+COMMON_TEXT_WHEN-STAGE-QUIETS-DOWN-CHECK-BACK,"무대가 조용해지면
+뒤쪽 통로를 살펴봐.
+서두르지 마.","무대가 조용해지면
+뒤쪽 통로를 살펴봐.
+서두르지 마.","When the stage quiets down, check the back aisle,
+. Don't rush,
+."
+COMMON_TEXT_STAGE-ENTRANCE,무대 입구,무대 입구,Stage entrance
+COMMON_TEXT_HIGH-SWING,높은 그네,높은 그네,high swing
+COMMON_TEXT_CLIMB-ONTO-TEAMMATE-S-SHOULDERS-REACH,높은 그네는 목마를 통해 잡을 수 있어요,높은 그네는 목마를 통해 잡을 수 있어요,Climb onto a teammate's shoulders to reach the high trapeze.
+COMMON_TEXT_GRAB-TRAPEZE-TEAMMATE-S-SHOULDERS,목마 위에서 그네 잡기,목마 위에서 그네 잡기,Grab the trapeze from your teammate's shoulders
+COMMON_TEXT_MOVE-DIRECTLY-UNDER-SWING-GRAB-F,그네 바로 아래로 이동해 F로 잡기 · 닿지 않으면 W+Space로 뛰어오른 뒤 공중에서 F,그네 바로 아래로 이동해 F로 잡기 · 닿지 않으면 W+Space로 뛰어오른 뒤 공중에서 F,"Move directly under the swing and grab with F. If you can't reach it, jump up with W+Space and then use F in mid-air."
+COMMON_TEXT_TAKING-COLLEAGUE-ABOVE-UNDER-SWING,위 동료를 그네 아래로 데려가기,위 동료를 그네 아래로 데려가기,Taking the colleague above under the swing
+COMMON_TEXT_STACK-SEPARATES-WHEN-TEAMMATE-GRABS-TRAPEZE,동료가 그네를 잡으면 목마가 풀립니다 · 매달린 동료 가까이에서 F로 동료를 잡아 함께 매달리기,동료가 그네를 잡으면 목마가 풀립니다 · 매달린 동료 가까이에서 F로 동료를 잡아 함께 매달리기,The stack separates when your teammate grabs the trapeze. Press F near them to hang from their legs.
+COMMON_TITLE_TIGHTROPE,외줄 타기,외줄 타기,Tightrope
+COMMON_DESCRIPTION_MAINTAIN-BALANCE-AVOID-OBSTACLES-REACH-OTHER,"균형을 유지하고 장애물을 회피하여
+외줄의 반대편까지 도착","균형을 유지하고 장애물을 회피하여
+외줄의 반대편까지 도착","Maintain balance and avoid obstacles to reach the other side of the
+tightrope."
+COMMON_TEXT_PERFORMANCE_0,공연,공연,Performance
+COMMON_TEXT_HUMAN-CANNON,인간 대포,인간 대포,Human Cannon
+COMMON_DESCRIPTION_REACH-DESTINATION-TRACK-USING-CANNON-TRAMPOLINE,"대포와 트램펄린을 사용하여
+트랙의 목적지까지 도착","대포와 트램펄린을 사용하여
+트랙의 목적지까지 도착","Reach the destination of track
+using a cannon and a trampoline"
+COMMON_DESCRIPTION_PRESS-FORWARD-BACK-LINE-MOVE-BACK,줄 위에서 {SETTINGS_INPUT_FORWARD-BACK}를 눌러 앞뒤로 이동합니다.,줄 위에서 {SETTINGS_INPUT_FORWARD-BACK}를 눌러 앞뒤로 이동합니다.,Press {SETTINGS_INPUT_FORWARD-BACK} on the line to move back and forth.
+COMMON_TITLE_BALANCING,균형 잡기,균형 잡기,Balancing
+COMMON_DESCRIPTION_MAINTAINS-BALANCE-BALANCE,{SETTINGS_INPUT_BALANCE}로 균형을 유지합니다.,{SETTINGS_INPUT_BALANCE}로 균형을 유지합니다.,Maintains balance with {SETTINGS_INPUT_BALANCE}.
+COMMON_TITLE_MOVE-SIDE-LINE,옆 줄 이동,옆 줄 이동,Move to the side line
+COMMON_DESCRIPTION_JUMP-SIDE-STEP-SWITCH-FORWARD-BACKWARD,{SETTINGS_INPUT_SIDE-STEP}로 점프합니다. {SETTINGS_INPUT_TURN-AROUND}으로 앞뒤를 전환합니다.,{SETTINGS_INPUT_SIDE-STEP}로 점프합니다. {SETTINGS_INPUT_TURN-AROUND}으로 앞뒤를 전환합니다.,Jump to {SETTINGS_INPUT_SIDE-STEP}. Switch forward and backward to {SETTINGS_INPUT_TURN-AROUND}.
+COMMON_TITLE_SAW-BLADE-AVOIDANCE,톱날 회피,톱날 회피,Saw blade avoidance
+COMMON_DESCRIPTION_CLIMB-ONTO-TEAMMATE-OR-SWITCH-ROPES,"목마를 이용하거나 옆줄로 이동해
+다가오는 톱날 뒤 버튼을 밟습니다.","목마를 이용하거나 옆줄로 이동해
+다가오는 톱날 뒤 버튼을 밟습니다.","Climb onto a teammate or switch ropes
+to step on the button behind the approaching saw."
+COMMON_DESCRIPTION_JUMP-JUMP-TIME-APPROACHING-SAW-BLADE,다가오는 톱날에 맞춰 {SETTINGS_INPUT_JUMP}로 점프합니다.,다가오는 톱날에 맞춰 {SETTINGS_INPUT_JUMP}로 점프합니다.,Jump to {SETTINGS_INPUT_JUMP} in time with the approaching saw blade.
+COMMON_TITLE_SWITCH-ROD,스위치 봉,스위치 봉,switch rod
+COMMON_DESCRIPTION_HANG-UP-SECONDS-SECONDS,최대 {COMMON_VALUE_SECONDS}초 동안 매달릴 수 있습니다.,최대 {COMMON_VALUE_SECONDS}초 동안 매달릴 수 있습니다.,Can hang for up to {COMMON_VALUE_SECONDS} seconds.
+COMMON_DESCRIPTION_HANG-POLE-INTERACT-CREATE-PATH-COLLEAGUE,{SETTINGS_INPUT_INTERACT}로 봉에 매달려 동료가 건널 길을 만듭니다.,{SETTINGS_INPUT_INTERACT}로 봉에 매달려 동료가 건널 길을 만듭니다.,Hang from the pole at {SETTINGS_INPUT_INTERACT} to create a path for a colleague to cross.
+COMMON_TITLE_JUMP-NEXT-POLE,다음 봉으로 점프,다음 봉으로 점프,Jump to the next pole
+COMMON_DESCRIPTION_JUMP-JUMP-RIGHT-TIMING-THEN-GRAB,"타이밍에 맞춰 {SETTINGS_INPUT_JUMP}로 점프한 뒤
+다음 봉을 {SETTINGS_INPUT_INTERACT}로 잡습니다.","타이밍에 맞춰 {SETTINGS_INPUT_JUMP}로 점프한 뒤
+다음 봉을 {SETTINGS_INPUT_INTERACT}로 잡습니다.","Jump to {SETTINGS_INPUT_JUMP} at the right timing, then grab the next pole after
+with {SETTINGS_INPUT_INTERACT}."
+COMMON_TITLE_SHAKING-POLE,봉 흔들기,봉 흔들기,Shaking the pole
+COMMON_DESCRIPTION_MOVE-BACK-FORTH-FORWARD-BACK-CREATE,{SETTINGS_INPUT_FORWARD-BACK}로 앞뒤로 움직여 반동 만듭니다.,{SETTINGS_INPUT_FORWARD-BACK}로 앞뒤로 움직여 반동 만듭니다.,Move back and forth with {SETTINGS_INPUT_FORWARD-BACK} to create recoil.
+COMMON_DESCRIPTION_APPROACH-HANGING-COLLEAGUE-PRESS-INTERACT-HANG,매달린 동료에게 가까이 가서 {SETTINGS_INPUT_INTERACT}를 눌러 다리에 매달립니다.,매달린 동료에게 가까이 가서 {SETTINGS_INPUT_INTERACT}를 눌러 다리에 매달립니다.,Approach the hanging colleague and press {SETTINGS_INPUT_INTERACT} to hang onto their leg.
+COMMON_TITLE_CATCHING-TRAPEZE,공중그네 잡기,공중그네 잡기,Catching the trapeze
+COMMON_DESCRIPTION_PRESS-INTERACT-NEAR-POLE-GRAB-EVEN,"봉 가까이에서 {SETTINGS_INPUT_INTERACT}를 누릅니다.
+점프 중에도 잡을 수 있습니다.","봉 가까이에서 {SETTINGS_INPUT_INTERACT}를 누릅니다.
+점프 중에도 잡을 수 있습니다.","Press {SETTINGS_INPUT_INTERACT} near the pole.
+You can grab it even while jumping."
+COMMON_TITLE_CANNON-BOARDING,대포 탑승,대포 탑승,Cannon boarding
+COMMON_DESCRIPTION_PRESS-INTERACT-NEAR-CANNON,대포 가까이에서 {SETTINGS_INPUT_INTERACT}를 누릅니다.,대포 가까이에서 {SETTINGS_INPUT_INTERACT}를 누릅니다.,Press {SETTINGS_INPUT_INTERACT} near the cannon.
+COMMON_TITLE_LAUNCH-DROP,발사 / 내리기,발사 / 내리기,Launch / Drop
+COMMON_DESCRIPTION_PRESS-INTERACT-BRIEFLY-FIRE-PRESS-HOLD,"{SETTINGS_INPUT_INTERACT}를 짧게 눌러 발사하고, 길게 눌러 내립니다.","{SETTINGS_INPUT_INTERACT}를 짧게 눌러 발사하고, 길게 눌러 내립니다.","Press {SETTINGS_INPUT_INTERACT} briefly to fire, and press and hold to lower."
+COMMON_TITLE_TRAMPOLINE-TRANSPORT,트램펄린 운반,트램펄린 운반,Trampoline transport
+COMMON_DESCRIPTION_CARRY-TRAMPOLINE-LANDING-LOCATION-TEAMMATE-PRESS,"동료가 착지할 위치로 트램펄린을 운반합니다.
+{SETTINGS_INPUT_INTERACT}를 길게 누르면 내려놓을 수 있습니다.","동료가 착지할 위치로 트램펄린을 운반합니다.
+{SETTINGS_INPUT_INTERACT}를 길게 누르면 내려놓을 수 있습니다.","Carry the trampoline to the landing location for your teammate. Press and hold
+{SETTINGS_INPUT_INTERACT} to put it down."
+COMMON_TITLE_CATCHING-TRAMPOLINE,트램펄린 잡기,트램펄린 잡기,Catching the trampoline
+COMMON_DESCRIPTION_PRESS-HOLD-INTERACT-NEAR-HANDLE,손잡이 가까이에서 {SETTINGS_INPUT_INTERACT}를 눌러 잡습니다.,손잡이 가까이에서 {SETTINGS_INPUT_INTERACT}를 눌러 잡습니다.,Press and hold {SETTINGS_INPUT_INTERACT} near the handle.
+COMMON_TITLE_JUMPING-OFF-POLE,봉에서 뛰어내리기,봉에서 뛰어내리기,Jumping off a pole
+COMMON_DESCRIPTION_PRESS-INTERACT-WHILE-HANGING-RELEASE-POLE,매달린 상태로 {SETTINGS_INPUT_INTERACT}를 눌러 봉을 놓습니다.,매달린 상태로 {SETTINGS_INPUT_INTERACT}를 눌러 봉을 놓습니다.,Press {SETTINGS_INPUT_INTERACT} while hanging to release the pole.
+COMMON_TITLE_BOARDING-LIFT,리프트 탑승,리프트 탑승,Boarding the lift
+COMMON_DESCRIPTION_MOVE-LIFT-ALONE-WHILE-HOLDING-TRAMPOLINE,트램펄린을 든 채 혼자 리프트로 이동합니다.,트램펄린을 든 채 혼자 리프트로 이동합니다.,Move to the lift alone while holding the trampoline.
+COMMON_TITLE_LIFT-MOVEMENT,리프트 이동,리프트 이동,Lift movement
+COMMON_DESCRIPTION_IF-WAIT-PLATFORM-LIFT-START-AUTOMATICALLY,발판 위에서 기다리면 리프트가 자동으로 출발합니다.,발판 위에서 기다리면 리프트가 자동으로 출발합니다.,"If you wait on the platform, the lift will start automatically."
+COMMON_NAME_SCENE-STARTING-POINT,씬 출발점,씬 출발점,Scene starting point
+COMMON_NAME_CANNON-BOARDING-LOCATION_0,대포 1 탑승 위치,대포 1 탑승 위치,Cannon 1 boarding location
+COMMON_NAME_CANNON-BOARDING-LOCATION_2,대포 3 탑승 위치,대포 3 탑승 위치,Cannon 3 boarding location
+COMMON_NAME_CANNON-BOARDING-LOCATION_1,대포 2 탑승 위치,대포 2 탑승 위치,Cannon 2 boarding location
+COMMON_NAME_SINGLE-ROPE-BALANCE-JUMP-START,외줄 · 균형과 점프 시작,외줄 · 균형과 점프 시작,Single rope · Balance and jump start
+COMMON_NAME_SINGLE-ROPE-RELEASE-POLE-ROTATION-BEGINS,외줄 · 해제봉 교대 시작,외줄 · 해제봉 교대 시작,Single rope and release pole rotation begins
+COMMON_NAME_TIGHTROPE-PIGGYBACK-HIGH-BAR-START,외줄 · 목마와 높은 봉 시작,외줄 · 목마와 높은 봉 시작,Tightrope · Piggyback and high bar start
+COMMON_NAME_SINGLE-ROPE-TRAPEZE-START,외줄 · 공중그네 시작,외줄 · 공중그네 시작,Single rope · Trapeze start
+COMMON_NAME_SINGLE-ROPE-ONE-LINE-FINAL-COOPERATION,외줄 · 한 줄 최종 협동 시작,외줄 · 한 줄 최종 협동 시작,Single rope · One line final cooperation start
+COMMON_NAME_CANNON-BOARDING-LOCATION_3,대포 4 탑승 위치,대포 4 탑승 위치,Cannon 4 boarding location
+COMMON_TEXT_PRACTICE-ROOM,09 연습실,09 연습실,09 Practice Room
+COMMON_TEXT_ACCOMMODATION-RESTROOM,02 숙소 · 화장실,02 숙소 · 화장실,02 Accommodation · Restroom
+COMMON_TEXT_STAIRS-B,계단 · B1,계단 · B1,Stairs · B1
+COMMON_TEXT_SCHEDULE,스케줄표,스케줄표,Schedule
+COMMON_TEXT_STORE,③ 상점,③ 상점,③ Store
+COMMON_TEXT_FIRE,불,불,fire
+COMMON_TEXT_COPY,복사,복사,copy
+COMMON_TEXT_MEDICAL-CROSS,의료 십자,의료 십자,Medical Cross
+COMMON_TEXT_CHEERS-STARS,환호 별,환호 별,"Cheers, Stars"
+COMMON_TEXT_SKELETON,해골,해골,skeleton
+COMMON_TEXT_SHIPPING-BOX,배송 상자,배송 상자,Shipping box
+COMMON_TEXT_FACILITY-TOOLS,시설 공구,시설 공구,Facility tools
+COMMON_TEXT_LOUD-SPEAKER,확성기,확성기,loud speaker
+COMMON_TEXT_TELEPHONE-RECEIVER,전화 수화기,전화 수화기,telephone receiver
+COMMON_TEXT_CLOCK,시계,시계,clock
+COMMON_TEXT_EYE-OPENING,눈 열림,눈 열림,Eye opening
+COMMON_TEXT_EYES-CLOSED,눈 닫힘,눈 닫힘,Eyes closed
+COMMON_TEXT_BRIGHT-BACKGROUND-DIRECT-DISPLAY-LOCAL-SUPPORT,밝은 배경 · 직접 표시 / 국소 받침,밝은 배경 · 직접 표시 / 국소 받침,Bright background · Direct display / Local support
+COMMON_TEXT_ARRIVAL-FLAG,도착 깃발,도착 깃발,Arrival flag
+COMMON_TEXT_BANDAGE,붕대,붕대,bandage
+COMMON_TEXT_PERSONNEL,인원,인원,personnel
+COMMON_TEXT_X-CHANGE-SAME-PNG-IMAGE-COLOR,64×64 @2x · 같은 PNG를 Image 색으로 변경 · 비교용 화면,64×64 @2x · 같은 PNG를 Image 색으로 변경 · 비교용 화면,64×64 @2x · Change the same PNG to Image color · Comparison screen
+COMMON_TEXT_RECTTRANSFORM-INCLUDING-ORIGINAL-MARGINS,원본 여백을 포함한 RectTransform 32×32,원본 여백을 포함한 RectTransform 32×32,RectTransform 32×32 including original margins
+COMMON_TEXT_BREAD,빵,빵,bread
+COMMON_TEXT_LOCK,자물쇠,자물쇠,lock
+COMMON_TEXT_BACKPACK,배낭,배낭,backpack
+COMMON_TEXT_CURTAIN-CALL-COMMON-ICONS-UI-PX,CURTAIN CALL · 공용 아이콘 25종 · 32 UI px,CURTAIN CALL · 공용 아이콘 25종 · 32 UI px,CURTAIN CALL · 25 Common Icons · 32 UI px
+COMMON_TEXT_WARNING,경고,경고,warning
+COMMON_TEXT_LOCAL-SUPPORT-BASIC-IMAGE-COMPARISON-PLEASE,국소 받침은 비교용 기본 Image입니다. 실제 HUD 받침에 연결해 사용하세요.,국소 받침은 비교용 기본 Image입니다. 실제 HUD 받침에 연결해 사용하세요.,The local support is a basic image for comparison. Please connect it to an actual HUD support for use.
+COMMON_TEXT_COLOR-CHANGES-APPLIED-SINGLE-SILHOUETTE-NOT,색 변경은 실루엣 한 장에 적용합니다. 25종이 상시 HUD에 함께 뜨는 구성이 아닙니다.,색 변경은 실루엣 한 장에 적용합니다. 25종이 상시 HUD에 함께 뜨는 구성이 아닙니다.,Color changes are applied to a single silhouette. It is not configured so that 25 types always appear together on the HUD.
+COMMON_TEXT_MONEY,화폐,화폐,money
+COMMON_TEXT_BOO-THUMBS,야유 엄지,야유 엄지,Boo Thumbs
+COMMON_TEXT_LEFT-EACH-CELL-DIRECT-MARKING-RIGHT,각 칸 왼쪽: 직접 표시 · 오른쪽: 48×48 받침 위,각 칸 왼쪽: 직접 표시 · 오른쪽: 48×48 받침 위,Left of each cell: Direct marking · Right: 48×48 on base
+COMMON_TEXT_DARK-BACKGROUND-DIRECT-DISPLAY,어두운 배경 · 직접 표시,어두운 배경 · 직접 표시,Dark background · Direct display
+COMMON_TEXT_UNIT_2,단원 4,단원 4,Unit 4
+COMMON_TEXT_UNIT_1,단원 3,단원 3,Unit 3
+COMMON_PROMPT_TITLE_0,{COMMON_VALUE_TITLE},{COMMON_VALUE_TITLE},{COMMON_VALUE_TITLE}
+COMMON_PROMPT_CONDITION,{COMMON_VALUE_CONDITION},{COMMON_VALUE_CONDITION},{COMMON_VALUE_CONDITION}
+COMMON_PROMPT_CONTENT,{COMMON_VALUE_CONTENT},{COMMON_VALUE_CONTENT},{COMMON_VALUE_CONTENT}
+COMMON_PROMPT_TIP,TIP,도움말,TIP
+COMMON_TEXT_MENU,메뉴,메뉴,menu
+COMMON_TEXT_SHALL-WE-LEAVE-ROOM,방에서 나갈까요?,방에서 나갈까요?,Shall we leave the room?
+COMMON_TEXT_PERFORMANCE-STILL-ONGOING,공연은 계속 진행 중입니다,공연은 계속 진행 중입니다,The performance is still ongoing.
+COMMON_TEXT_IF-LEAVE-PROCESSED-DEAD-EXIT-ROOM,"나가면 사망 처리되고
+방에서 나갑니다.","나가면 사망 처리되고
+방에서 나갑니다.","If you leave, you will be processed as dead and exit room
+."
+COMMON_TEXT_LEAVE_0,나가기,나가기,Leave
+COMMON_TEXT_CONTINUE,계속하기,계속하기,Continue
+COMMON_TEXT_CANCEL,취소,취소,Cancel
+COMMON_TEXT_COMMON,일반,일반,common
+COMMON_PROMPT_PICKING-UP-RECEIVER,수화기 들기,수화기 들기,Picking up the receiver
+COMMON_PROMPT_M-REMAINING,남은 62 m,남은 62 m,62 m remaining
+COMMON_TEXT_COMMON-TAB,공용 탭,공용 탭,Common tab
+COMMON_TEXT_OLD-RECEIVER_1,낡은 수화기,낡은 수화기,old receiver
+COMMON_TEXT_ORDER-NECESSARY-ITEMS-DELIVERY-ARRIVE-SHORTLY,"필요한 물품을 주문합니다.
+배달은 잠시 뒤 도착합니다.","필요한 물품을 주문합니다.
+배달은 잠시 뒤 도착합니다.","Order the necessary items. Delivery
+will arrive shortly."
+COMMON_TEXT_CHANGING-LOCATIONS,장소 전환 중,장소 전환 중,Changing locations
+COMMON_TEXT_SYSTEM-NOTIFICATION,시스템 알림,시스템 알림,System notification
+COMMON_PROMPT_CHOICE,{COMMON_VALUE_CHOICE},{COMMON_VALUE_CHOICE},{COMMON_VALUE_CHOICE}
+COMMON_TEXT_PROPS-ROOM,소품실,소품실,Props Room
+COMMON_TEXT_LAUGH-TODAY-TOO,오늘도 웃어라,오늘도 웃어라,Laugh today too.
+COMMON_TEXT_BACKSTAGE-NO-ENTRY,백스테이지 2 — 출입금지,백스테이지 2 — 출입금지,Backstage 2 — No Entry
+COMMON_TEXT_ACCOMMODATION_11,숙소 A-6,숙소 A-6,Accommodation A-6
+COMMON_TEXT_ACCOMMODATION_0,숙소 1,숙소 1,Accommodation 1
+COMMON_TEXT_ACCOMMODATION_2,숙소 3,숙소 3,Accommodation 3
+COMMON_TEXT_PERFORMANCE-PREPARATION-ROOM,공연 준비실,공연 준비실,Performance preparation room
+COMMON_TEXT_TODAY-S-RATIONS-BREAD-WATER-BANDAGES,"오늘의 배급
+빵 ··· 3
+물 ··· 2
+붕대 ··· 5","오늘의 배급
+빵 ··· 3
+물 ··· 2
+붕대 ··· 5","Today's Rations
+Bread ··· 3
+Water ··· 2
+Bandages ··· 5"
+COMMON_TEXT_ACCOMMODATION_6,숙소 A-1,숙소 A-1,Accommodation A-1
+COMMON_TEXT_RESTROOM,화장실,화장실,restroom
+COMMON_TEXT_ACCOMMODATION_13,숙소 A-8,숙소 A-8,Accommodation A-8
+COMMON_TEXT_ACCOMMODATION_3,숙소 4,숙소 4,Accommodation 4
+COMMON_TEXT_WOULD-LIKE-EXIT-GAME,게임을 종료하시겠습니까?,게임을 종료하시겠습니까?,Would you like to exit the game?
+COMMON_TEXT_ACCOMMODATION_12,숙소 A-7,숙소 A-7,Accommodation A-7
+COMMON_TEXT_STAGE-SET-WORKSHOP,무대장치 작업실,무대장치 작업실,Stage set workshop
+COMMON_TEXT_NO,No,No,No
+COMMON_TEXT_ACCOMMODATION_7,숙소 A-2,숙소 A-2,Accommodation A-2
+COMMON_TEXT_YES,Yes,Yes,Yes
+COMMON_TEXT_EQUIPMENT-STORAGE,장비 보관소,장비 보관소,Equipment storage
+COMMON_TEXT_DRESSING-ROOM,분장실,분장실,dressing room
+COMMON_TEXT_ACCOMMODATION_9,숙소 A-4,숙소 A-4,Accommodation A-4
+COMMON_TEXT_ACCOMMODATION_1,숙소 2,숙소 2,Accommodation 2
+COMMON_TEXT_ACCOMMODATION_8,숙소 A-3,숙소 A-3,Accommodation A-3
+COMMON_TEXT_ACCOMMODATION_5,숙소 6,숙소 6,Accommodation 6
+COMMON_TEXT_ACCOMMODATION_4,숙소 5,숙소 5,Accommodation 5
+COMMON_TEXT_TODAY-S-ACTS-TIGHTROPE-FOUR-PERFORMERS,"오늘의 순서
+1. 줄타기 — 네 명이 한 줄로
+2. 불붙은 로프 건너기
+3. 톱날 사이 저글링
+
+실수하면 퇴장","오늘의 순서
+1. 줄타기 — 네 명이 한 줄로
+2. 불붙은 로프 건너기
+3. 톱날 사이 저글링
+
+실수하면 퇴장","Today's acts
+1. Tightrope — four performers on one rope
+2. Cross the burning rope
+3. Juggle between saw blades
+
+One mistake and you're out."
+COMMON_TEXT_PERFORMANCE-NOT-OVER-YET,공연은 아직 끝나지 않았습니다…,공연은 아직 끝나지 않았습니다…,The performance is not over yet…
+COMMON_TEXT_ACCOMMODATION_10,숙소 A-5,숙소 A-5,Accommodation A-5
+COMMON_TEXT_DANGER-DO-NOT-TOUCH,위험 — 손대지 마시오,위험 — 손대지 마시오,Danger — Do not touch
+COMMON_TEXT_HEAVY,HEAVY,무거운,HEAVY
+COMMON_TEXT_LIGHT,LIGHT,빛,LIGHT
+COMMON_TEXT_CLEAN,CLEAN,깨끗한,CLEAN
+COMMON_TEXT_REHEARSAL-WAYFINDING,REHEARSAL / WAYFINDING,리허설/길찾기,REHEARSAL / WAYFINDING
+COMMON_TEXT_DESTINATION,DESTINATION,목적지,DESTINATION
+COMMON_TEXT_PULSE-ARROW,PULSE ARROW,펄스 애로우,PULSE ARROW
+COMMON_TEXT_DESTINATION-RING,03  DESTINATION RING,03 목적지 링,03  DESTINATION RING
+COMMON_TEXT_DIRECTION-MASK,01  DIRECTION MASK,01 방향 마스크,01  DIRECTION MASK
+COMMON_TEXT_S-LOOP-PLAYER-GOAL-EDIT-MODE,4.2s LOOP  PLAYER > GOAL  EDIT MODE PREVIEW,4.2초 루프 플레이어 > 목표 편집 모드 미리보기,4.2s LOOP  PLAYER > GOAL  EDIT MODE PREVIEW
+COMMON_TEXT_THEATRE-SPARK,04  THEATRE SPARK,04 극장 스파크,04  THEATRE SPARK
+COMMON_TEXT_GUIDING-PULSE-MONOCHROME-SIGNAL,GUIDING PULSE  /  MONOCHROME SIGNAL,유도 펄스/흑색 신호,GUIDING PULSE  /  MONOCHROME SIGNAL
+COMMON_TEXT_SOFT-AURA,02  SOFT AURA,02 소프트 아우라,02  SOFT AURA
+COMMON_PROMPT_EXPOSURE-TIME,노출 시간,노출 시간,Exposure time
+COMMON_PROMPT_CANCEL,취소​,취소​,Cancel
+COMMON_PROMPT_OPTION_0,Option A,옵션 A,Option A
+COMMON_PROMPT_TEAL-PLAYER-FLOOR-CIRCLE-REACH-WASD,청록: 플레이어 · 바닥 원: 도달 범위 · WASD: 이동,청록: 플레이어 · 바닥 원: 도달 범위 · WASD: 이동,Teal: Player · Floor Circle: Reach · WASD: Move
+COMMON_PROMPT_ALARM,알림,알림,alarm
+COMMON_PROMPT_TARGET_2,대상 →,대상 →,Target →
+COMMON_PROMPT_SWITCHING-BARRIER-WALL,가림벽 전환,가림벽 전환,Switching to a barrier wall
+COMMON_PROMPT_FOLD-PANEL,패널 접기,패널 접기,Fold panel
+COMMON_PROMPT_EXECUTE-ACTION,행동 실행,행동 실행,Execute action
+COMMON_PROMPT_WITHIN-RANGE,범위 안,범위 안,within range
+COMMON_PROMPT_TARGET_0,대상,대상,Target
+COMMON_PROMPT_ROLE,역할,역할,role
+COMMON_PROMPT_DELETE-ALL,모두 지우기,모두 지우기,Delete all
+COMMON_PROMPT_OPTION_2,선택지 2,선택지 2,Option 2
+COMMON_PROMPT_TEAM-GOAL,① 팀 목표,① 팀 목표,① Team Goal
+COMMON_PROMPT_OUT-RANGE,범위 밖,범위 밖,Out of range
+COMMON_PROMPT_CONDITION-HINT,조건 / 힌트,조건 / 힌트,Condition / Hint
+COMMON_PROMPT_OPTION_1,선택지 1,선택지 1,Option 1
+COMMON_PROMPT_TARGET_1,대상 ←,대상 ←,Target ←
+COMMON_PROMPT_TYPES-INCIDENTS,사건 종류,사건 종류,Types of incidents
+COMMON_PROMPT_ORANGE-BOX,A · 주황 상자,A · 주황 상자,A · Orange box
+COMMON_PROMPT_AGREEMENT_0,동의,동의,agreement
+COMMON_PROMPT_TITLE_1,제목,제목,title
+COMMON_PROMPT_AGREEMENT_1,동의​,동의​,Agree
+COMMON_PROMPT_DISPLAY-KEY,표시 키,표시 키,Display key
+COMMON_PROMPT_OUTPUT-POWER_0,출력,출력,output of power
+COMMON_PROMPT_TEXT,본문,본문,text
+COMMON_PROMPT_HUD-ROLE-TEST,HUD  /  역할 테스트,HUD  /  역할 테스트,HUD / Role Test
+COMMON_PROMPT_SECONDS-BLANK-DEFAULT-KEEP,초 · 빈칸: 기본값 / 0: 유지,초 · 빈칸: 기본값 / 0: 유지,Seconds · Blank: Default / 0: Keep
+COMMON_PROMPT_RADIAL-AREA,RADIAL AREA,방사형 영역,RADIAL AREA
+COMMON_PROMPT_AIRBORNE-GRAB,AIRBORNE GRAB,공중 강탈,AIRBORNE GRAB
+COMMON_PROMPT_HAZARD-TRAVEL,HAZARD TRAVEL,위험 여행,HAZARD TRAVEL
+COMMON_PROMPT_RECTANGULAR-AREA,RECTANGULAR AREA,직사각형 영역,RECTANGULAR AREA
+COMMON_TEXT_TOP-SELECT-FONT-APPLIED-IMMEDIATELY-BOTTOM,"상단: 선택 폰트 즉시 적용
+하단: 11종 고정 표본
+
+모두 3D 월드 글씨입니다.","상단: 선택 폰트 즉시 적용
+하단: 11종 고정 표본
+
+모두 3D 월드 글씨입니다.","Top: Select font applied immediately
+Bottom: 11 fixed samples
+
+All are 3D World text."
+COMMON_TEXT_WAITING-ROOM-TICKET-OFFICE-PERFORMANCE-PREPARATION,"대기실 · 매표소
+공연 준비 0123","대기실 · 매표소
+공연 준비 0123","Waiting Room · Ticket Office
+Performance Preparation 0123"
+COMMON_TEXT_BAEMIN-EULJIRO,배민 을지로,배민 을지로,Baemin Euljiro
+COMMON_TEXT_BAEMIN-EULJIRO-OREORE,배민 을지로 오래오래,배민 을지로 오래오래,Baemin Euljiro Oreore
+COMMON_TEXT_BAEMIN-DOHYEON,배민 도현,배민 도현,Baemin Dohyeon
+COMMON_TEXT_BAEMIN-SOFTCORE,배민 연성,배민 연성,Baemin softcore
+COMMON_TEXT_BAEMIN-JUA,배민 주아,배민 주아,Baemin Jua
+COMMON_TEXT_WALL-SIGN,벽면 간판,벽면 간판,Wall sign
+COMMON_TEXT_TOOLS-CURTAINCALL-WORLD-SIGNS-FONT-COMPARISON,Tools > CurtainCall > World Signs > Font Comparison,도구 > 커튼콜 > 세계 기호 > 글꼴 비교,Tools > CurtainCall > World Signs > Font Comparison
+COMMON_TEXT_BAEMIN-HANNA-FONT-AIR,배민 한나체 Air,배민 한나체 Air,Baemin Hanna Font Air
+COMMON_TEXT_BAEMIN-HANNA-PRO,배민 한나체 Pro,배민 한나체 Pro,Baemin Hanna Pro
+COMMON_TEXT_BAEMIN-EULJIRO-YEARS-LATER,배민 을지로 10년후,배민 을지로 10년후,Baemin Euljiro 10 Years Later
+COMMON_TEXT_BAEMIN-HANNA-ELEVEN-YEARS-OLD,배민 한나는 열한살,배민 한나는 열한살,Baemin Hanna is eleven years old
+COMMON_TEXT_STANDING-SIGN,입간판,입간판,Standing sign
+COMMON_TEXT_WORLD-SIGNAGE-FONT-COMPARISON,월드 간판 · 폰트 비교,월드 간판 · 폰트 비교,World Signage · Font Comparison
+COMMON_TEXT_BAEMIN-GIRANGHAERANG,배민 기랑해랑,배민 기랑해랑,Baemin Giranghaerang
+COMMON_TEXT_BAEMIN-CURVY,배민 꾸불림,배민 꾸불림,Baemin Curvy
+COMMON_TEXT_CHALKBOARD-SIGN,칠판 간판,칠판 간판,chalkboard sign
+COMMON_TEXT_WASD-MOVE-SPACE-JUMP-F-INTERACT,"WASD 이동 · Space 점프 · F 상호작용
+ESC 메뉴/뒤로 · M 마이크 음소거","WASD 이동 · Space 점프 · F 상호작용
+ESC 메뉴/뒤로 · M 마이크 음소거","WASD Move · Space Jump · F Interact
+ESC Menu/Back · M Mute Microphone"
+COMMON_TEXT_VOICE-UNIT,단원별 음성,단원별 음성,Voice by unit
+COMMON_TEXT_VOLUME-MUTE-UNIT,단원별 음량 · 음소거,단원별 음량 · 음소거,Volume and Mute by Unit
+COMMON_TEXT_OPEN-DOOR,문 열기,문 열기,Open the door
+COMMON_PROMPT_GUIDE,안내,안내,guide
+COMMON_TEXT_RED,빨강,빨강,red
+COMMON_TEXT_BLUE,파랑,파랑,blue
+COMMON_TEXT_YELLOW,노랑,노랑,yellow
+COMMON_TEXT_ABSTRACT,초록,초록,abstract
+COMMON_PROMPT_WE-SHORT-JOINT-FUNDS-OR-CANNOT,공동 자금이 모자라거나 지금은 쓸 수 없습니다.,공동 자금이 모자라거나 지금은 쓸 수 없습니다.,We are short on joint funds or cannot use them right now.
+COMMON_TEXT_RUNNING,달리기,달리기,running
+COMMON_TEXT_DURING-PERFORMANCE,공연 중,공연 중,During the performance
+COMMON_TEXT_SHORT-TEXT-PLEASE-CHECK-CHANNEL,"짧은 본문입니다.
+통로를 확인하세요.","짧은 본문입니다.
+통로를 확인하세요.","This is a short text. Please check channel
+."
+COMMON_TEXT_REVIEW-TEXT-CONVERSION-NOT-ACTUAL-GAME,검토 문구 전환 / 실제 게임 문구 아님,검토 문구 전환 / 실제 게임 문구 아님,Review text conversion / Not actual in-game text
+COMMON_TEXT_DOOR,문,문,door
+COMMON_TEXT_ONE-LINE,한 줄,한 줄,One line
+COMMON_TEXT_CHECK-MINIMUM-SIZE-SHORT-PHRASE-SUGGEST,짧은 문구로 최소 크기 확인 · 기본/최소 크기는 검토 제안,짧은 문구로 최소 크기 확인 · 기본/최소 크기는 검토 제안,Check minimum size with a short phrase · Suggest reviewing default/minimum size
+COMMON_TEXT_RESTORE-DEFAULT-SIZE,기본 크기 복원,기본 크기 복원,Restore default size
+COMMON_TEXT_EXCESS-EXAMPLE,초과 예시,초과 예시,Excess example
+COMMON_TEXT_PASS-REJECT-EXCESS-CONTENT-PRESERVE-PREVIOUS,PASS · 초과 내용 거부 / 이전 내용 보존,PASS · 초과 내용 거부 / 이전 내용 보존,PASS · Reject excess content / Preserve previous content
+COMMON_TEXT_FAIL-EXCESSIVE-REFUSAL,FAIL · 초과 거부,FAIL · 초과 거부,FAIL · Excessive refusal
+COMMON_TEXT_PASS-REJECT-INVALID-SIZE-PRESERVE-PREVIOUS,PASS · 무효 크기 거부 / 이전 크기 보존,PASS · 무효 크기 거부 / 이전 크기 보존,PASS · Reject invalid size / Preserve previous size
+COMMON_TEXT_FAIL-INVALID-SIZE,FAIL · 무효 크기,FAIL · 무효 크기,FAIL · Invalid Size
+COMMON_TEXT_SWITCH-ONLY-SURFACES-PROPS-KEEP-TMP,소품 3종 표면만 전환 · TMP/아이콘 유지 · Item/Shelf 판 유지,소품 3종 표면만 전환 · TMP/아이콘 유지 · Item/Shelf 판 유지,Switch only the surfaces of the 3 props · Keep TMP/Icons · Keep Item/Shelf boards
+COMMON_TEXT_OBSERVER-DISTANCE,Observer 거리 ,Observer 거리 ,Observer distance
+COMMON_TEXT_ENTER-EXIT-SUGGESTED-VALUE-NEXT-FRAME, · enter 2 / exit 2.4 제안값 · 다음 프레임 판정, · enter 2 / exit 2.4 제안값 · 다음 프레임 판정,· enter 2 / exit 2.4 Suggested value · Next frame determination
+COMMON_TEXT_DISABLE-OBSERVER-HIDE-ITEM-SHELF,Observer 해제 → Item/Shelf 숨김,Observer 해제 → Item/Shelf 숨김,Disable Observer → Hide Item/Shelf
+COMMON_TEXT_SPECIFY-CAMERA-ROTATE-COPY,ON · 명시 Camera 회전 복사,ON · 명시 Camera 회전 복사,ON · Specify Camera Rotate Copy
+COMMON_TEXT_OFF-INSTALL-ROTATE-RESTORE,OFF · 설치 회전 복원,OFF · 설치 회전 복원,OFF · Install Rotate Restore
+COMMON_TEXT_SPECIFIED-CAMERA-ROTATION-SWITCH-PROP-DIRECTION,명시 Camera 회전 전환 · 소품 방향 고정 / Billboard 비교,명시 Camera 회전 전환 · 소품 방향 고정 / Billboard 비교,Specified Camera Rotation Switch · Prop Direction Fixed / Billboard Comparison
+COMMON_TEXT_CONFIRM-SCENE-BACKGROUND-TRANSITION,확인 씬 배경 전환,확인 씬 배경 전환,Confirm scene background transition
+COMMON_TEXT_INDEPENDENT-COMPOSITE-REVIEW-NO-ACTUAL-GAME,독립 합성 검토 · 실제게임 연결 없음 · Item/Shelf Observer 미지정 숨김 · 거리/크기/scale은 제안값,독립 합성 검토 · 실제게임 연결 없음 · Item/Shelf Observer 미지정 숨김 · 거리/크기/scale은 제안값,"Independent composite review · No actual game connection · Item/Shelf Observer unspecified, hidden · Distance/Size/Scale are suggested values"
+COMMON_TEXT_SOLO-TEST-BEGINS-ROOMS-CHARACTERS-FUNDS,1인 테스트 시작(방·캐릭터·자금),1인 테스트 시작(방·캐릭터·자금),"Solo Test Begins (Rooms, Characters, Funds)"
+COMMON_PROMPT_PRESS-BUTTON-ABOVE-AFTER-PLAYING,Play 후 위 버튼을 누르세요.,Play 후 위 버튼을 누르세요.,Press the button above after playing.
+COMMON_TEXT_CREATING-LAN-ROOM,LAN 방을 만드는 중…,LAN 방을 만드는 중…,Creating a LAN room…
+COMMON_TEXT_COULD-NOT-CREATE-ROOM-PORT-MAY,방을 만들지 못했습니다(포트 사용 중일 수 있음).,방을 만들지 못했습니다(포트 사용 중일 수 있음).,Could not create room (port may be in use).
+COMMON_TEXT_START-GAME,게임 시작…,게임 시작…,Start game…
+COMMON_TEXT_FAILED-START-GAME-LEAST-FIRST-ARGUMENT,게임을 시작하지 못했습니다(최소 {COMMON_VALUE_FIRST-ARGUMENT}명).,게임을 시작하지 못했습니다(최소 {COMMON_VALUE_FIRST-ARGUMENT}명).,Failed to start the game (at least {COMMON_VALUE_FIRST-ARGUMENT} people).
+COMMON_TEXT_RUN-DID-NOT-START,런이 시작되지 않았습니다.,런이 시작되지 않았습니다.,The run did not start.
+COMMON_TEXT_DID-NOT-PROCEED-PERFORMANCE-STAGE,공연 단계로 넘어가지 않았습니다.,공연 단계로 넘어가지 않았습니다.,It did not proceed to the performance stage.
+COMMON_TEXT_WE-WERE-UNABLE-HOLD-PERFORMANCE-SETTLEMENT,공연을 열지 못했습니다(이미 정산 중일 수 있음).,공연을 열지 못했습니다(이미 정산 중일 수 있음).,We were unable to hold the performance (settlement may already be in progress).
+COMMON_TEXT_I-WAS-UNABLE-SETTLE-PAYMENT,정산하지 못했습니다.,정산하지 못했습니다.,I was unable to settle the payment.
+COMMON_TEXT_JOINT-FUNDS-FIRST-ARGUMENT-SECOND-ARGUMENT,공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT},공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT},Joint Funds {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}
+COMMON_TEXT_JOINT-FUND-FIRST-ARGUMENT,공동 자금 {COMMON_VALUE_FIRST-ARGUMENT},공동 자금 {COMMON_VALUE_FIRST-ARGUMENT},Joint Fund {COMMON_VALUE_FIRST-ARGUMENT}
+COMMON_TEXT_CLOSE-ESC,닫기 (ESC),닫기 (ESC),Close (ESC)
+COMMON_PROMPT_ESCAPE-FAILED,탈출 실패,탈출 실패,Escape failed
+COMMON_TEXT_PREPARING,준비 중…,준비 중…,preparing…
+COMMON_TEXT_READY,준비 완료,준비 완료,Ready
+COMMON_TEXT_END-INTRODUCTION_0,도입 끝,도입 끝,End of introduction
+COMMON_TEXT_END-PERFORMANCE,공연 종료,공연 종료,End of performance
+COMMON_TEXT_UNIT-FIRST-ARGUMENT,단원 {COMMON_VALUE_FIRST-ARGUMENT},단원 {COMMON_VALUE_FIRST-ARGUMENT},Unit {COMMON_VALUE_FIRST-ARGUMENT}
+COMMON_TEXT_PASSAGE,통로,통로,passage
+COMMON_TEXT_ONLY-USED-WHILE-PLAYING-ESCAPE-ROUTE,탈출로 플레이 중에만 사용할 수 있습니다.,탈출로 플레이 중에만 사용할 수 있습니다.,It can only be used while playing the escape route.
+COMMON_TEXT_ATMOSPHERE,대기,대기,atmosphere
+COMMON_TEXT_FIRST-ARGUMENT-SECONDS,{COMMON_VALUE_FIRST-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT} seconds
+COMMON_PROMPT_FAILED-STUNT,묘기 실패,묘기 실패,Failed stunt
+COMMON_TEXT_LEAVE_1,이탈,이탈,leave
+COMMON_TEXT_SUCCESSFUL-PERFORMANCE,공연 성공,공연 성공,Successful performance
+COMMON_PROMPT_PERFORMANCE-FAILURE,공연 실패,공연 실패,Performance failure
+COMMON_TEXT_FSPACEADFINISHM-LONG-LAUNCH-LOWERING-TRAMPOLINE-LAUNCHING,FSpaceADFINISHm길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+-→공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요관전대상없음플레이어중일차외줄타기잔액초합류반동과회피기본보상이번명×환호야유손잡아줌−,FSpaceADFINISHm길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+-→공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요관전대상없음플레이어중일차외줄타기잔액초합류반동과회피기본보상이번명×환호야유손잡아줌−,FSpaceADFINISHm Long Launch Lowering Trampoline Launching Pole Grabbing Cannon Riding Current Section Start Shelter Final 0123456789[] ·+-→ Performance Success Failure Team Response Funds Income Members Failed This individual is fixed as Survival Connection Fee Move to Next Shortly Unable to complete screen transition Please check status No Spectator Players First Tightrope Walking Balance Initial Joining Recoil and Evasion Basic Reward This Name × Cheers Booing Holding Hand−
+COMMON_TEXT_BODY-REPAIR,신체 복구,신체 복구,Body repair
+COMMON_TEXT_PREPARING-NEXT-SPACE,다음 공간 준비 중,다음 공간 준비 중,Preparing the next space
+COMMON_TEXT_PLAYER-FIRST-ARGUMENT,플레이어 {COMMON_VALUE_FIRST-ARGUMENT},플레이어 {COMMON_VALUE_FIRST-ARGUMENT},Player {COMMON_VALUE_FIRST-ARGUMENT}
+COMMON_TEXT_NO-SPECTATOR,관전 대상 없음,관전 대상 없음,No spectator
+COMMON_TEXT_I-FINISHED-RACE,완주했습니다,완주했습니다,I finished the race.
+COMMON_TEXT_HE-DIED,사망했습니다,사망했습니다,He died
+COMMON_TEXT_WATCHING_1,관전 중,관전 중,Watching
+COMMON_TEXT_WANJU,완주,완주,Wanju
+COMMON_PROMPT_CROSS-ARRIVAL-PLATFORM,도착 발판까지 건너기,도착 발판까지 건너기,Cross to the arrival platform
+COMMON_PROMPT_PASS-SINGLE-ROPE-OBSTACLE-REACH-ARRIVAL,외줄의 장애물을 지나 반대편 도착 발판에 도달하세요.,외줄의 장애물을 지나 반대편 도착 발판에 도달하세요.,Pass the single-rope obstacle and reach the arrival platform on the opposite side.
+COMMON_PROMPT_LANDING-DESTINATION,목적지에 착지하기,목적지에 착지하기,Landing at the destination
+COMMON_PROMPT_CROSS-COURSE-USING-CANNONS-TRAMPOLINES-SUCCEED,대포와 트램펄린으로 코스를 건너세요. 살아 있는 단원 한 명이 마지막 착지판에 닿으면 성공합니다.,대포와 트램펄린으로 코스를 건너세요. 살아 있는 단원 한 명이 마지막 착지판에 닿으면 성공합니다.,Cross the course using cannons and trampolines. You succeed if one surviving member touches the final landing plate.
+COMMON_PROMPT_CLIMBING-TIGHTROPE,외줄에 올라가기,외줄에 올라가기,Climbing the tightrope
+COMMON_PROMPT_IF-WALK-ONTO-ROPE-AUTOMATICALLY-GET,줄 위로 걸어가면 자동으로 올라탑니다.,줄 위로 걸어가면 자동으로 올라탑니다.,"If you walk onto the rope, you will automatically get on."
+COMMON_PROMPT_MOVE-NEXT-LINE,옆줄로 이동하기,옆줄로 이동하기,Move to the next line
+COMMON_PROMPT_JUMP-SIDE-STEP-SWITCH-BACK-FORTH,{SETTINGS_INPUT_SIDE-STEP}로 점프하세요. {SETTINGS_INPUT_TURN-AROUND}으로 앞뒤를 전환합니다.,{SETTINGS_INPUT_SIDE-STEP}로 점프하세요. {SETTINGS_INPUT_TURN-AROUND}으로 앞뒤를 전환합니다.,Jump to {SETTINGS_INPUT_SIDE-STEP}. Switch back and forth to {SETTINGS_INPUT_TURN-AROUND}.
+COMMON_PROMPT_PRESS-BUTTON-BEHIND-SAW-BLADE,톱날 뒤 버튼 누르기,톱날 뒤 버튼 누르기,Press the button behind the saw blade
+COMMON_PROMPT_STACK-UP-OR-SWITCH-ROPES-REACH,목마를 이용하거나 옆줄로 이동해 톱날 뒤의 버튼을 누르세요.,목마를 이용하거나 옆줄로 이동해 톱날 뒤의 버튼을 누르세요.,Stack up or switch ropes to reach the button behind the saw.
+COMMON_PROMPT_JUMPING-OVER-SAW-BLADE,톱날 뛰어넘기,톱날 뛰어넘기,Jumping over the saw blade
+COMMON_PROMPT_JUMP-JUMP-TIME-APPROACHING-SAW-BLADE,다가오는 톱날에 맞춰 {SETTINGS_INPUT_JUMP}로 점프하세요.,다가오는 톱날에 맞춰 {SETTINGS_INPUT_JUMP}로 점프하세요.,Jump to {SETTINGS_INPUT_JUMP} in time with the approaching saw blade.
+COMMON_PROMPT_HOLD-OUT-UNTIL-COLLEAGUE-CROSSES,동료가 건너도록 버티기,동료가 건너도록 버티기,Hold out until a colleague crosses
+COMMON_PROMPT_LAST-UP-SECONDS-SECONDS,최대 {COMMON_VALUE_SECONDS}초 동안 버틸 수 있습니다.,최대 {COMMON_VALUE_SECONDS}초 동안 버틸 수 있습니다.,It can last for up to {COMMON_VALUE_SECONDS} seconds.
+COMMON_PROMPT_HANGING-RELAY-POLE,중계봉에 매달리기,중계봉에 매달리기,Hanging from the relay pole
+COMMON_PROMPT_HANG-POLE-INTERACT-MAKE-PATH-COLLEAGUE,{SETTINGS_INPUT_INTERACT}로 봉에 매달려 동료가 건널 길을 만드세요.,{SETTINGS_INPUT_INTERACT}로 봉에 매달려 동료가 건널 길을 만드세요.,Hang from the pole with {SETTINGS_INPUT_INTERACT} and make a path for your colleague to cross.
+COMMON_PROMPT_CROSS-NEXT-PEAK,다음 봉으로 건너가기,다음 봉으로 건너가기,Cross to the next peak
+COMMON_PROMPT_JUMP-RIGHT-TIMING-GRAB-NEXT-POLE,타이밍에 맞춰 점프한 뒤 다음 봉을 잡으세요.,타이밍에 맞춰 점프한 뒤 다음 봉을 잡으세요.,Jump at the right timing and grab the next pole.
+COMMON_PROMPT_SWINGING-TRAPEZE,공중그네 흔들기,공중그네 흔들기,swinging the trapeze
+COMMON_PROMPT_CREATE-RECOIL-FORWARD-BACK,{SETTINGS_INPUT_FORWARD-BACK}로 반동을 만드세요.,{SETTINGS_INPUT_FORWARD-BACK}로 반동을 만드세요.,Create recoil with {SETTINGS_INPUT_FORWARD-BACK}.
+COMMON_PROMPT_APPROACH-HANGING-COLLEAGUE-PRESS-INTERACT,매달린 동료에게 가까이 가서 {SETTINGS_INPUT_INTERACT}를 누르세요.,매달린 동료에게 가까이 가서 {SETTINGS_INPUT_INTERACT}를 누르세요.,Approach the hanging colleague and press {SETTINGS_INPUT_INTERACT}.
+COMMON_PROMPT_GRAB-INTERACT-NEAR-POLE-GRAB-EVEN,봉 가까이에서 {SETTINGS_INPUT_INTERACT}로 잡으세요. 점프 중에도 잡을 수 있습니다.,봉 가까이에서 {SETTINGS_INPUT_INTERACT}로 잡으세요. 점프 중에도 잡을 수 있습니다.,Grab it with {SETTINGS_INPUT_INTERACT} near the pole. You can grab it even while jumping.
+COMMON_PROMPT_BOARDING-CANNON,대포에 탑승하기,대포에 탑승하기,Boarding the cannon
+COMMON_PROMPT_PRESS-INTERACT-NEAR-CANNON,대포 가까이에서 {SETTINGS_INPUT_INTERACT}를 누르세요.,대포 가까이에서 {SETTINGS_INPUT_INTERACT}를 누르세요.,Press {SETTINGS_INPUT_INTERACT} near the cannon.
+COMMON_PROMPT_LAUNCH-OR-LOWER,발사하거나 내리기,발사하거나 내리기,Launch or lower
+COMMON_PROMPT_PRESS-INTERACT-BRIEFLY-FIRE-PRESS-HOLD,"{SETTINGS_INPUT_INTERACT}를 짧게 눌러 발사하고, 길게 눌러 내리세요.","{SETTINGS_INPUT_INTERACT}를 짧게 눌러 발사하고, 길게 눌러 내리세요.","Press {SETTINGS_INPUT_INTERACT} briefly to fire, and press and hold to lower."
+COMMON_PROMPT_TRANSPORTING-TRAMPOLINE,트램펄린 운반하기,트램펄린 운반하기,Transporting a trampoline
+COMMON_PROMPT_MOVE-TRAMPOLINE-LANDING-POSITION-TEAMMATE-PRESS,동료가 착지할 위치로 트램펄린을 옮기세요. {SETTINGS_INPUT_INTERACT}를 길게 누르면 내려놓습니다.,동료가 착지할 위치로 트램펄린을 옮기세요. {SETTINGS_INPUT_INTERACT}를 길게 누르면 내려놓습니다.,Move the trampoline to the landing position for your teammate. Press and hold {SETTINGS_INPUT_INTERACT} to put it down.
+COMMON_PROMPT_PRESS-INTERACT-NEAR-HANDLE-LIFT-TRAMPOLINE,손잡이 가까이에서 {SETTINGS_INPUT_INTERACT}를 눌러 트램펄린을 드세요.,손잡이 가까이에서 {SETTINGS_INPUT_INTERACT}를 눌러 트램펄린을 드세요.,Press {SETTINGS_INPUT_INTERACT} near the handle to lift the trampoline.
+COMMON_PROMPT_PRESS-JUMP-RELEASE-POLE,{SETTINGS_INPUT_JUMP}를 눌러 봉을 놓으세요.,{SETTINGS_INPUT_JUMP}를 눌러 봉을 놓으세요.,Press {SETTINGS_INPUT_JUMP} to release the pole.
+COMMON_PROMPT_USING-LIFT,리프트 이용하기,리프트 이용하기,Using the lift
+COMMON_PROMPT_HOLD-TRAMPOLINE-STEP-ONTO-PLATFORM-YOURSELF,트램펄린을 들고 혼자 발판에 올라가세요.,트램펄린을 들고 혼자 발판에 올라가세요.,Hold the trampoline and step onto the platform by yourself.
+COMMON_PROMPT_WAITING-AUTOMATIC-DEPARTURE,자동 출발 기다리기,자동 출발 기다리기,Waiting for automatic departure
+COMMON_TEXT_HOLDING-HANDS,손 잡아줌,손 잡아줌,Holding hands
+COMMON_TEXT_DEATH, 사망, 사망,death
+COMMON_TEXT_RESPONSE-RATE-DECEASED-MEMBER-REDUCED-HALF,사망한 단원의 호응도가 절반으로 줄어듭니다,사망한 단원의 호응도가 절반으로 줄어듭니다,The response rate of the deceased member is reduced by half.
+COMMON_TEXT_JACKPOT,공동 자금,공동 자금,jackpot
+COMMON_TEXT_GA-GA,"가
+가","가
+가","Ga
+Ga"
+COMMON_TEXT_GA-GA-GA,"가
+가
+가","가
+가
+가","Ga
+Ga
+Ga"
+COMMON_TEXT_POLE-PLACEMENT,봉 놓기,봉 놓기,Pole placement
+COMMON_TEXT_CANNON,대포,대포,Cannon
+COMMON_PROMPT_ALL-MEMBERS-PLEASE-GATHER-STAGE-ENTRANCE,모든 단원이 무대 입구에 모이세요.,모든 단원이 무대 입구에 모이세요.,"All members, please gather at the stage entrance."
+COMMON_PROMPT_PLEASE-RETURN-STAGE-ENTRANCE,무대 입구로 복귀하세요.,무대 입구로 복귀하세요.,Please return to the stage entrance.
+COMMON_PROMPT_MOVE-W-S-BALANCE-D,W/S로 이동하고 A/D로 균형을 잡으세요.,W/S로 이동하고 A/D로 균형을 잡으세요.,Move with W/S and balance with A/D.
+COMMON_PROMPT_OPEN-BOX,상자 열기,상자 열기,Open the box
+COMMON_PROMPT_OBTAINED-SILVER-KEY,은색 열쇠를 획득했습니다.,은색 열쇠를 획득했습니다.,You obtained a silver key.
+COMMON_PROMPT_IF-MAJORITY-AGREES-MOVE-NEXT-SECTION,과반이 동의하면 다음 구간으로 이동합니다.,과반이 동의하면 다음 구간으로 이동합니다.,"If the majority agrees, move to the next section."
+COMMON_PROMPT_FINISHERS-DEATH,완주 2명 · 사망 1명,완주 2명 · 사망 1명,2 finishers · 1 death
+COMMON_PROMPT_TIGHTROPE-WALKING,외줄 건너기,외줄 건너기,tightrope walking
+COMMON_PROMPT_ACQUIRE-ITEM,아이템 획득,아이템 획득,Acquire Item
+COMMON_PROMPT_POSSESSIONS,소지 기물,소지 기물,Possessions
+COMMON_PROMPT_SHALL-WE-GO-NEXT-SECTION,다음 구간으로 갈까요?,다음 구간으로 갈까요?,Shall we go to the next section?
+COMMON_PROMPT_PERFORMANCE-SETTLEMENT,공연 정산,공연 정산,Performance settlement
+COMMON_PROMPT_OPEN-TEST-PANEL,테스트 패널 열기,테스트 패널 열기,Open test panel
+COMMON_PROMPT_PERFORMANCE-COMPENSATION,공연 보상,공연 보상,Performance compensation
+COMMON_PROMPT_PREPARE-REHEARSAL,리허설을 준비하세요.,리허설을 준비하세요.,Prepare for the rehearsal.
+COMMON_PROMPT_JOINT-FUNDS,공동 자금 +200,공동 자금 +200,Joint Funds +200
+COMMON_PROMPT_PLEASE-PRESS-BUTTON-VOTE,버튼을 눌러 투표하세요.,버튼을 눌러 투표하세요.,Please press the button to vote.
+COMMON_PROMPT_GATHERING,집결 1/3,집결 1/3,Gathering 1/3
+COMMON_PROMPT_WHEN-PRESS-OUTPUT-UI-TURNS-OFF,출력을 누르면 접근·이탈에 따라 UI가 켜지고 꺼집니다.,출력을 누르면 접근·이탈에 따라 UI가 켜지고 꺼집니다.,"When you press Output, the UI turns on and off depending on approach and departure."
+COMMON_PROMPT_PRESS-OUTPUT-AFTER-ENTERING-INPUT-DISPLAY,입력 후 출력을 누르세요. 여러 역할을 함께 띄울 수 있습니다.,입력 후 출력을 누르세요. 여러 역할을 함께 띄울 수 있습니다.,Press Output after entering the input. You can display multiple roles simultaneously.
+COMMON_PROMPT_PLEASE-ENTER-TEXT,본문을 입력하세요.,본문을 입력하세요.,Please enter the text.
+COMMON_PROMPT_EXPOSURE-TIME-NUMBER-GREATER-THAN-OR,노출 시간은 0 이상의 숫자입니다. 비워 두면 프리팹 기본값입니다.,노출 시간은 0 이상의 숫자입니다. 비워 두면 프리팹 기본값입니다.,"Exposure time is a number greater than or equal to 0. If left blank, it is the prefab default."
+COMMON_PROMPT_PLEASE-ENTER-KEY-DISPLAY,표시할 키를 입력하세요.,표시할 키를 입력하세요.,Please enter the key to display.
+COMMON_PROMPT_PLEASE-ENTER-ONE-OR-MORE-OPTIONS,선택지를 하나 이상 입력하세요.,선택지를 하나 이상 입력하세요.,Please enter one or more options.
+COMMON_PROMPT_WHILE-MONITORING-DISTANCE-TRY-MOVING-TARGET,거리 감시 중 · 대상 좌우 이동 또는 범위 안/밖을 눌러 보세요.,거리 감시 중 · 대상 좌우 이동 또는 범위 안/밖을 눌러 보세요.,"While monitoring distance · Try moving the target left or right, or pressing inside/out of the range."
+COMMON_PROMPT_PATH-BLOCKAGE,경로 막힘,경로 막힘,Path blockage
+COMMON_PROMPT_OFF-SCREEN,화면 밖,화면 밖,Off-screen
+COMMON_PROMPT_REACHABLE,도달 가능,도달 가능,Reachable
+COMMON_PROMPT_FIRST-ARGUMENT-TEST-INPUT-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT} · 테스트 입력 {COMMON_VALUE_SECOND-ARGUMENT}회,{COMMON_VALUE_FIRST-ARGUMENT} · 테스트 입력 {COMMON_VALUE_SECOND-ARGUMENT}회,{COMMON_VALUE_FIRST-ARGUMENT} · Test input {COMMON_VALUE_SECOND-ARGUMENT} times
+COMMON_PROMPT_I-CLEARED-DISPLAYED-UI,표시한 UI를 지웠습니다.,표시한 UI를 지웠습니다.,I cleared the displayed UI.
+COMMON_TEXT_WE-BEGIN-PERFORMANCE,공연을 시작합니다,공연을 시작합니다,We begin the performance.
+COMMON_TEXT_COLLEAGUE-PARTICIPATED,동료가 참가했습니다,동료가 참가했습니다,A colleague participated.
+COMMON_TEXT_UNIT-FALLING_1,단원 2 추락,단원 2 추락,Unit 2 Falling
+COMMON_TEXT_CHECK-COLLEAGUE-S-SITUATION-STAGE,무대에서 동료의 상황을 확인하세요,무대에서 동료의 상황을 확인하세요,Check your colleague's situation on stage.
+COMMON_TEXT_PLEASE-GATHER-STAGE-ENTRANCE,무대 입구로 집결하세요,무대 입구로 집결하세요,Please gather at the stage entrance.
+COMMON_TEXT_PURCHASE-COMPLETED,구매 완료,구매 완료,Purchase completed
+COMMON_PROMPT_WE-SHORT-JOINT-FUNDS,공동 자금이 부족합니다,공동 자금이 부족합니다,We are short on joint funds.
+COMMON_TEXT_VERY-LONG-NOTIFICATION-TITLE-VERY-LONG,아주 긴 알림 제목입니다 아주 긴 알림 제목입니다 아주 긴 알림 제목입니다,아주 긴 알림 제목입니다 아주 긴 알림 제목입니다 아주 긴 알림 제목입니다,This is a very long notification title. This is a very long notification title. This is a very long notification title.
+COMMON_TEXT_GANADARAMABASA-GANADARAMABASA-GANADARAMABASA-GANADARAMABASA-GANADARAMABASA,가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사,가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사 가나다라마바사,GaNaDaRaMaBaSa GaNaDaRaMaBaSa GaNaDaRaMaBaSa GaNaDaRaMaBaSa GaNaDaRaMaBaSa
+COMMON_TEXT_VERY-LONG-NOTIFICATION-MESSAGE-VERY-LONG,아주 긴 알림 내용입니다 아주 긴 알림 내용입니다 아주 긴 알림 내용입니다,아주 긴 알림 내용입니다 아주 긴 알림 내용입니다 아주 긴 알림 내용입니다,This is a very long notification message. This is a very long notification message. This is a very long notification message.
+COMMON_TEXT_NOTIFICATION-NEXT-LINE,"<b>알림</b>
+다음	줄","<b>알림</b>
+다음	줄","<b> Notification </b>
+Next line"
+COMMON_TEXT_CONTROL-CHARACTER,"제어
+문자","제어
+문자","Control
+Character"
+COMMON_TEXT_LITERALLY-N-NOTIFICATION,문자 그대로 \n <color=red>알림</color>,문자 그대로 \n <color=red>알림</color>,Literally \n <color=red> Notification </color>
+COMMON_TEXT_COMPOSITE-UI-NO-GAME-CONNECTION-EXAMPLE,합성 UI · 게임 연결 없음 / 예시 유지 3초 / 샘플 ,합성 UI · 게임 연결 없음 / 예시 유지 3초 / 샘플 ,Composite UI · No game connection / Example maintains 3 seconds / Sample
+COMMON_TEXT_INPUT, / 입력 , / 입력 ,/ Input
+COMMON_TEXT_STOP-TIME_1,시간 정지,시간 정지,Stop time
+COMMON_TEXT_NORMAL-TIME,시간 정상,시간 정상,Normal time
+COMMON_TEXT_STOP,정지,정지,stop
+COMMON_TEXT_DOESN-T-EXIST,없음,없음,doesn't exist
+COMMON_TEXT_BOT-ENDED-ADD-AGAIN,봇이 종료되었습니다. 다시 추가할 수 있습니다.,봇이 종료되었습니다. 다시 추가할 수 있습니다.,The bot has ended. You can add it again.
+COMMON_PROMPT_UNABLE-OPEN-LOCAL-PRACTICE-ROOM,로컬 연습방을 열지 못했습니다.,로컬 연습방을 열지 못했습니다.,Unable to open the local practice room.
+COMMON_TEXT_CONNECTING-BOT,봇 접속 중…,봇 접속 중…,Connecting bot…
+COMMON_TEXT_I-SENT-OUT-BOT,봇을 내보냈습니다.,봇을 내보냈습니다.,I sent out the bot.
+COMMON_TEXT_EXPORT-BOT,봇 내보내기,봇 내보내기,Export bot
+COMMON_TEXT_ADD-BOT-LOCAL-PRACTICE,봇 추가 · 로컬 연습,봇 추가 · 로컬 연습,Add Bot · Local Practice
+COMMON_TEXT_CONNECTION-COMPLETE-ROLE-WAITING,접속 완료 · 역할 대기,접속 완료 · 역할 대기,Connection complete · Role waiting
+COMMON_PROMPT_CANNON-FIRING,대포 발사,대포 발사,Cannon firing
+COMMON_TEXT_DEMO-PLAY-ENDED-THANK-PLAYING,데모 플레이가 종료되었습니다. 플레이해주셔서 감사합니다.,데모 플레이가 종료되었습니다. 플레이해주셔서 감사합니다.,The demo play has ended. Thank you for playing.
+COMMON_TEXT_CONFIRMATION-COMPLETE,확인 완료,확인 완료,Confirmation complete
+COMMON_TEXT_DAY-CONFIRMED,1234일차확인완료,1234일차확인완료,Day 1234 confirmed
+COMMON_TEXT_NO-RESTRICTIONS,제한 없음,제한 없음,No restrictions
+COMMON_TEXT_RESET,초기화,초기화,reset
+COMMON_TEXT_IF-ROOM-HOST-LEAVES-ROOM-CLOSES,"방장이 나가면 방이 종료되고
+모든 단원이 시작 화면으로 돌아갑니다.","방장이 나가면 방이 종료되고
+모든 단원이 시작 화면으로 돌아갑니다.","If the room host leaves, the room closes and all members of
+return to the start screen."
+COMMON_TEXT_EXIT-ONGOING-PERFORMANCE-RETURN-START-SCREEN,"진행 중인 공연에서 이탈하고
+시작 화면으로 돌아갑니다.","진행 중인 공연에서 이탈하고
+시작 화면으로 돌아갑니다.","Exit the ongoing performance and return to the
+start screen."
+COMMON_TEXT_EXIT-ROOM-RETURN-START-SCREEN,"방에서 나가고
+시작 화면으로 돌아갑니다.","방에서 나가고
+시작 화면으로 돌아갑니다.","Exit the room and return to the
+start screen."
+COMMON_TEXT_GAME-STILL-PROGRESS,게임은 계속 진행 중입니다,게임은 계속 진행 중입니다,The game is still in progress.
+COMMON_PROMPT_ONLY-CUSTOMERS-WHO-PURCHASED-SERVICE-USE,서비스를 구매한 고객만 이용 가능합니다,서비스를 구매한 고객만 이용 가능합니다,Only customers who have purchased the service can use it.
+COMMON_PROMPT_PLEASE-COME-CLOSER,가까이 다가가세요,가까이 다가가세요,Please come closer
+COMMON_PROMPT_JUMP-POLE,봉에서 점프,봉에서 점프,Jump from the pole
+COMMON_PROMPT_GRAB-POLE-OR-TEAMMATE-F-AIR,공중에서 F로 봉 또는 동료를 잡으세요,공중에서 F로 봉 또는 동료를 잡으세요,Grab the pole or a teammate with F in the air.
+COMMON_PROMPT_FOLLOWING-UNIT-MUST-JUMPED-FIRST,아래 단원이 먼저 점프해야 합니다,아래 단원이 먼저 점프해야 합니다,The following unit must be jumped to first.
+COMMON_PROMPT_GRABBING-POLE,봉 잡기,봉 잡기,Grabbing the pole
+COMMON_PROMPT_CATCH-HANGING-COMRADE,매달린 동료 잡기,매달린 동료 잡기,Catch the hanging comrade
+COMMON_PROMPT_GRAB-POLE-OR-PARTNER,봉 또는 동료 잡기,봉 또는 동료 잡기,Grab a pole or a partner
+COMMON_PROMPT_MOVE-CLOSER-POLE-OR-COLLEAGUE,봉이나 동료 가까이 이동하세요,봉이나 동료 가까이 이동하세요,Move closer to the pole or your colleague.
+COMMON_PROMPT_F-F-HOLD,F / F 홀드,F / F 홀드,F / F Hold
+COMMON_PROMPT_PLACE-SPACE,SPACE로도 놓기,SPACE로도 놓기,Place as SPACE
+COMMON_PROMPT_PLACE-SPACE-FIRST-ARGUMENT-SECONDS-REMAINING,SPACE로도 놓기 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,SPACE로도 놓기 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,Place as SPACE · {COMMON_VALUE_FIRST-ARGUMENT} seconds remaining
+COMMON_PROMPT_HANGING-MAKING-PATH,매달려 길 만들기,매달려 길 만들기,Hanging and making a path
+COMMON_PROMPT_PLEASE-MOVE-CLOSER-NEXT-SWING,다음 그네 가까이 이동하세요,다음 그네 가까이 이동하세요,Please move closer to the next swing.
+COMMON_PROMPT_MY-COLLEAGUE-PULLING-ME-UP,동료가 끌어올리는 중,동료가 끌어올리는 중,My colleague is pulling me up
+COMMON_PROMPT_HANGING-ROPE,줄에 매달려 버티는 중,줄에 매달려 버티는 중,Hanging from a rope
+COMMON_PROMPT_BOOST-FIRST-ARGUMENT,끌어올리기 {COMMON_VALUE_FIRST-ARGUMENT}%,끌어올리기 {COMMON_VALUE_FIRST-ARGUMENT}%,Boost {COMMON_VALUE_FIRST-ARGUMENT}%
+COMMON_PROMPT_COLLEAGUE-MUST-PULL-UP-F-FIRST,동료가 F로 끌어올려야 합니다 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,동료가 F로 끌어올려야 합니다 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,A colleague must pull up to F · {COMMON_VALUE_FIRST-ARGUMENT} seconds remaining
+COMMON_PROMPT_F-HOLD,F 홀드,F 홀드,F hold
+COMMON_PROMPT_PULLING-UP,끌어올리는 중,끌어올리는 중,Pulling up
+COMMON_PROMPT_CANCELED-IF-LET-GO,손을 떼면 취소됩니다,손을 떼면 취소됩니다,It will be canceled if you let go.
+COMMON_PROMPT_HOLDING-ROPE,줄을 잡는 중,줄을 잡는 중,Holding the rope
+COMMON_PROMPT_UPLOAD-PLAYER-FIRST-ARGUMENT,플레이어 {COMMON_VALUE_FIRST-ARGUMENT} 올리기,플레이어 {COMMON_VALUE_FIRST-ARGUMENT} 올리기,Upload Player {COMMON_VALUE_FIRST-ARGUMENT}
+COMMON_PROMPT_UPGRADING-COLLEAGUES,동료 올리기,동료 올리기,Upgrading colleagues
+COMMON_PROMPT_PRESS-HOLD-FIRST-ARGUMENT-SECONDS-REMAINING,계속 누르기 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,계속 누르기 · 남은 {COMMON_VALUE_FIRST-ARGUMENT}초,Press and hold · {COMMON_VALUE_FIRST-ARGUMENT} seconds remaining
+COMMON_PROMPT_DISMOUNT,목마 해제,목마 해제,Dismount
+COMMON_PROMPT_PRESS-HOLD-F,F를 길게 누르세요,F를 길게 누르세요,Press and hold F
+COMMON_PROMPT_UNLOCK-AFTER-ABOVE-UNIT-DOWN,위 단원이 내려온 뒤 해제할 수 있습니다,위 단원이 내려온 뒤 해제할 수 있습니다,You can unlock it after the above unit is down.
+COMMON_PROMPT_GETTING-OFF-CANNON,대포에서 내리기,대포에서 내리기,Getting off the cannon
+COMMON_PROMPT_CANNON-STANDBY-OPERATION,대포 가동 대기,대포 가동 대기,Cannon on standby for operation
+COMMON_PROMPT_JUMPING-SWING,그네에서 도약,그네에서 도약,Jumping from the swing
+COMMON_PROMPT_LAUNCH-SPACE-OR-F-PRESS-HOLD,Space 또는 F로 발사 · F를 길게 눌러 내리기,Space 또는 F로 발사 · F를 길게 눌러 내리기,Launch with Space or F · Press and hold F to launch
+COMMON_PROMPT_WAIT-POWER-BARREL-ACTIVATION-PRESS-HOLD,전원·포신 가동을 기다리세요 · F를 길게 눌러 내리기,전원·포신 가동을 기다리세요 · F를 길게 눌러 내리기,Wait for power/barrel activation · Press and hold F to lower
+COMMON_PROMPT_PRESS-W-S-RECOIL-PRESS-SPACE,W/S로 반동 · Space로 도약 · F를 길게 눌러 아래로 내려오기,W/S로 반동 · Space로 도약 · F를 길게 눌러 아래로 내려오기,Press W/S for recoil · Press Space to jump · Press and hold F to come down
+COMMON_PROMPT_LETTING-GO, 내려놓기, 내려놓기,Letting go
+COMMON_PROMPT_PRESS-HOLD-F-LOWER-DEVICE,F를 길게 눌러 장치를 내려놓습니다,F를 길게 눌러 장치를 내려놓습니다,Press and hold F to lower the device.
+COMMON_PROMPT_RIDING-CANNON,대포 타기,대포 타기,Riding a cannon
+COMMON_PROMPT_CATCH, 잡기, 잡기,Catch
+COMMON_PROMPT_UNLOCK-EXIT,출구 잠금 해제,출구 잠금 해제,Unlock Exit
+COMMON_PROMPT_EXIT-LOCK-WIRING,출구 잠금 배선,출구 잠금 배선,Exit lock wiring
+COMMON_PROMPT_TAKE-PORTABLE-CUTTER-CUT-WIRING-ROTARY,휴대 절단기를 가져와 회전 날로 배선을 자르세요,휴대 절단기를 가져와 회전 날로 배선을 자르세요,Take a portable cutter and cut the wiring with the rotary blade.
+COMMON_PROMPT_CANNON-NOT-ACTIVATED,대포가 활성화 되지 않았습니다,대포가 활성화 되지 않았습니다,The cannon is not activated.
+COMMON_PROMPT_BOARD-ONCE-GUN-BARREL-FULLY-RAISED,포신이 완전히 올라오면 탑승할 수 있습니다,포신이 완전히 올라오면 탑승할 수 있습니다,You can board once the gun barrel is fully raised.
+COMMON_PROMPT_WAITING-COLLEAGUE-DEVICE-RELEASED,동료 장치 해제를 기다립니다,동료 장치 해제를 기다립니다,Waiting for the colleague device to be released
+COMMON_PROMPT_CONNECTING-DEVICE-ROD-GRIP,연결 장치 봉 잡기,연결 장치 봉 잡기,Connecting device rod grip
+COMMON_PROMPT_CATCH-HANGING-COMPANION-FIRST-ARGUMENT-SECOND,매달린 동료 잡기 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),매달린 동료 잡기 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),Catch Hanging Companion ( {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} )
+COMMON_PROMPT_SWINGING-TOGETHER-FIRST-ARGUMENT-SECOND-ARGUMENT,함께 그네 잡기 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),함께 그네 잡기 ({COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}),Swinging Together ( {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} )
+COMMON_PROMPT_GRAB-TEAMMATE-S-BODY-F-HANG,F로 동료 몸을 잡아 아래에 매달립니다 · 위 사람이 W/S로 흔들고 Space로 각자 도약,F로 동료 몸을 잡아 아래에 매달립니다 · 위 사람이 W/S로 흔들고 Space로 각자 도약,Grab a teammate's body with F and hang below · The person above shakes with W/S and each jumps with Space.
+COMMON_PROMPT_SHAKE-BEAT-W-S-EACH-LEAP,W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다,W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다,Shake to the beat of W/S and each leap into Space.
+COMMON_BUTTON_PRESS-F-NEAR-BUTTON,버튼 가까이에서 F를 누르세요,버튼 가까이에서 F를 누르세요,Press F near the button.
+COMMON_PROMPT_RETURN-STAIRS-OPEN,복귀 계단 · 열림,복귀 계단 · 열림,Return Stairs · Open
+COMMON_PROMPT_OPEN-RETURN-STAIRS,복귀 계단 열기,복귀 계단 열기,Open the return stairs
+COMMON_PROMPT_FOLLOWING-SECTION-ALSO-JOINED-VIA-STAIRS,아래 단원도 계단으로 합류할 수 있습니다,아래 단원도 계단으로 합류할 수 있습니다,The following section can also be joined via stairs.
+COMMON_PROMPT_NEARBY-F-RETURN-STAIRS-DOOR-OPEN,가까이에서 F → 복귀 계단 문 열림,가까이에서 F → 복귀 계단 문 열림,Nearby F → Return stairs door open
+COMMON_TEXT_ROOM-CODE-SESSION,방 코드(세션),방 코드(세션),Room Code (Session)
+COMMON_TEXT_I-CLOSED-ROOM,방을 닫았습니다.,방을 닫았습니다.,I closed the room.
+COMMON_TEXT_I-LEFT-ROOM,방에서 나갔습니다.,방에서 나갔습니다.,I left the room.
+COMMON_TEXT_CONNECTION-HOST-BEEN-LOST,호스트와 연결이 끊겼습니다.,호스트와 연결이 끊겼습니다.,The connection with the host has been lost.
+COMMON_TEXT_CHANGING-LOCATION-CHANGING-LOCATION-CHANGING-LOCATION,장소 전환 중 장소 전환 중 장소 전환 중 장소 전환 중,장소 전환 중 장소 전환 중 장소 전환 중 장소 전환 중,Changing location Changing location Changing location
+COMMON_PROMPT_UNAVAILABLE,사용 불가,사용 불가,Unavailable
+COMMON_TEXT_BASE-HEIGHT-INCREASES-ACCORDING-LENGTH-DESCRIPTION,"설명 내용의 길이에 따라 받침 높이가 늘어납니다.
+한계 높이 이후에는 말줄임 처리됩니다. 글자 크기는 줄이지 않습니다. 이 문구는 긴 내용을 확인하기 위한 예시입니다. 아래 꼬리는 고정 크기로 유지됩니다.","설명 내용의 길이에 따라 받침 높이가 늘어납니다.
+한계 높이 이후에는 말줄임 처리됩니다. 글자 크기는 줄이지 않습니다. 이 문구는 긴 내용을 확인하기 위한 예시입니다. 아래 꼬리는 고정 크기로 유지됩니다.","The base height increases according to the length of the description. Text is truncated after the height limit of
+. The font size is not reduced. This text is an example to check for long content. The bottom tail remains at a fixed size."
+COMMON_TEXT_EFFECTS-USAGE-CONDITIONS-ITEM-DISPLAYED-HERE,"품목의 효과와 사용 조건을
+이곳에 표시합니다.","품목의 효과와 사용 조건을
+이곳에 표시합니다.","The effects and usage conditions of the item are displayed here
+."
+COMMON_TEXT_EXAMPLE-SHOWING-LONG-ITEM-DESCRIPTION,긴 품목 설명이 표시되는 예제,긴 품목 설명이 표시되는 예제,Example showing a long item description
+COMMON_TEXT_MINIMUM-WIDTH,최소 폭,최소 폭,minimum width
+COMMON_TEXT_MAXIMUM-WIDTH,최대 폭,최대 폭,maximum width
+COMMON_TEXT_LOWER-TAIL-MAINTAINED-FIXED-SIZE,아래 꼬리는 고정 크기로 유지됩니다.,아래 꼬리는 고정 크기로 유지됩니다.,The lower tail is maintained at a fixed size.
+COMMON_TEXT_OLD-HANDSET-EXAMPLE,"낡은
+수화기	예제","낡은
+수화기	예제","Old
+Handset Example"
+COMMON_TEXT_FIRST-LINE-SECOND-LINE-THIRD-LINE,"첫 줄
+둘째 줄셋째 줄","첫 줄
+둘째 줄셋째 줄","First line
+Second lineThird line"
+COMMON_TEXT_FOURTH-LINE,넷째 줄,넷째 줄,Fourth line
+COMMON_TEXT_FIFTH-LINE-EXAMPLE,다섯째 줄	예제,다섯째 줄	예제,Fifth line example
+COMMON_TEXT_OLD-RECEIVER_0,<b>낡은 수화기</b>,<b>낡은 수화기</b>,<b> Old receiver </b>
+COMMON_TEXT_ITEM-N-TEXT,<color=red>물품</color> \n 문자 …,<color=red>물품</color> \n 문자 …,<color=red> Item </color> \n Text …
+COMMON_TEXT_C-PANEL-ITEM-DESCRIPTION-COMPOSITE-DISPLAY,C15 / 패널 품목 설명 · 합성 표시 / 게임 연결 없음 · ,C15 / 패널 품목 설명 · 합성 표시 / 게임 연결 없음 · ,C15 / Panel Item Description · Composite Display / No Game Connection ·
+COMMON_TEXT_UNSET,미설정,미설정,Unset
+COMMON_TEXT_STOP-TIME_0, · 시간 정지, · 시간 정지,· Stop time
+COMMON_TEXT_OFFLINE,오프라인,오프라인,offline
+COMMON_PROMPT_C-SYNTHESIS-DISPLAY-NO-GAME-CONNECTION,C6 합성 표시 · 게임 연결 없음 · ,C6 합성 표시 · 게임 연결 없음 · ,C6 Synthesis Display · No Game Connection ·
+COMMON_PROMPT_CALL, · 호출 , · 호출 ,· Call
+COMMON_PROMPT_GENERAL-AVAILABILITY,일반 가능,일반 가능,General availability
+COMMON_PROMPT_LONG-POSSIBLE,길게 가능,길게 가능,Long possible
+COMMON_PROMPT_GENERAL-UNAVAILABLE,일반 불가,일반 불가,General unavailable
+COMMON_PROMPT_I-NEED-KEY,열쇠가 필요합니다,열쇠가 필요합니다,I need a key.
+COMMON_PROMPT_LONG-IMPOSSIBLE,길게 불가,길게 불가,Long impossible
+COMMON_PROMPT_DEVICE-OPERATION,장치 작동,장치 작동,Device operation
+COMMON_PROMPT_POWER-REQUIRED,전원이 필요합니다,전원이 필요합니다,Power is required
+COMMON_PROMPT_PROGRESS,진행 ,진행 ,progress 
+COMMON_PROMPT_NEW-TARGET,새 대상 0%,새 대상 0%,New target 0%
+COMMON_PROMPT_REPEAT-SHOW,반복 Show,반복 Show,Repeat Show
+COMMON_PROMPT_LONG-PHRASE,긴 문구,긴 문구,long phrase
+COMMON_PROMPT_PICK-UP-RECEIVER-OPERATE-DEVICE-BACKSTAGE,수화기를 들어 무대 뒤쪽의 장치를 작동하고 문을 여세요,수화기를 들어 무대 뒤쪽의 장치를 작동하고 문을 여세요,"Pick up the receiver, operate the device at the backstage, and open the door."
+COMMON_PROMPT_LONG-AUXILIARY-PHRASES-EXCEED-DISPLAY-AREA,표시 영역을 넘는 긴 보조 문구는 한 줄에서 말줄임으로 표시합니다,표시 영역을 넘는 긴 보조 문구는 한 줄에서 말줄임으로 표시합니다,Long auxiliary phrases that exceed the display area are displayed as ellipses on a single line.
+COMMON_PROMPT_CONTROL-CHARACTERS,제어 문자,제어 문자,Control characters
+COMMON_PROMPT_OPENING,열기,열기,opening
+COMMON_PROMPT_CONFIRM,<b>확인</b>,<b>확인</b>,<b> Confirm </b>
+COMMON_PROMPT_LONG,길게,길게,long
+COMMON_PROMPT_PRESSURE,누르기,누르기,pressure
+COMMON_PROMPT_MAINTAIN,유지,유지,maintain
+COMMON_PROMPT_BASIC-AUXILIARY,기본 보조,기본 보조,Basic auxiliary
+COMMON_PROMPT_ASSISTANCE-AVAILABLE,보조 있음,보조 있음,Assistance available
+COMMON_PROMPT_EJECTION,퇴장,퇴장,ejection
+COMMON_PROMPT_HIDE-IMMEDIATELY,즉시 숨김,즉시 숨김,Hide immediately
+COMMON_PROMPT_TIME-STOP-SWITCH,시간 정지 전환,시간 정지 전환,Time Stop Switch
+COMMON_PROMPT_BACKGROUND-TRANSITION,배경 전환,배경 전환,Background transition
+COMMON_PROMPT_HUD-SWITCHING,HUD 전환,HUD 전환,HUD switching
+COMMON_TEXT_COLLECTION-START-AUTOMATIC-TRANSMISSION-SETTINGS-COMPLETE,수집 시작 · 자동 전송 설정 완료,수집 시작 · 자동 전송 설정 완료,Collection Start · Automatic Transmission Settings Complete
+COMMON_TEXT_START-COLLECTION-TRANSMISSION-NOT-SET-SAVE,"수집 시작 · 전송 미설정, PC에만 저장","수집 시작 · 전송 미설정, PC에만 저장","Start collection · Transmission not set, save only to PC"
+COMMON_TEXT_LOCAL-STORAGE-WAITING-TRANSFER-FIRST-ARGUMENT,로컬 저장 · 전송 대기 {COMMON_VALUE_FIRST-ARGUMENT}묶음 · {COMMON_VALUE_SECOND-ARGUMENT},로컬 저장 · 전송 대기 {COMMON_VALUE_FIRST-ARGUMENT}묶음 · {COMMON_VALUE_SECOND-ARGUMENT},Local Storage · Waiting for Transfer {COMMON_VALUE_FIRST-ARGUMENT} Bundle · {COMMON_VALUE_SECOND-ARGUMENT}
+COMMON_TEXT_CHECK-DRIVE-SAVE-BATCH-FIRST-ARGUMENT,Drive 저장 확인 · batch={COMMON_VALUE_FIRST-ARGUMENT},Drive 저장 확인 · batch={COMMON_VALUE_FIRST-ARGUMENT},Check Drive save · batch= {COMMON_VALUE_FIRST-ARGUMENT}
+COMMON_TEXT_DRIVE-TRANSFER-UNCONFIRMED-AUTOMATICALLY-RETRY-AFTER,Drive 전송 미확인 · 기록 보관 후 자동 재시도,Drive 전송 미확인 · 기록 보관 후 자동 재시도,Drive Transfer Unconfirmed · Automatically Retry After Archive
+COMMON_TEXT_TIGHTROPE,외줄 ,외줄 ,tightrope
+COMMON_TEXT_ENDING,엔딩,엔딩,Ending
+COMMON_TEXT_FINISH-OFFLINE-RUN,오프라인 런 끝내기,오프라인 런 끝내기,Finish offline run
+COMMON_PROMPT_LONG-ACTION-INSTRUCTIONS-TRUNCATED-IF-THEY,긴 행동 안내 문구는 한 줄의 고정 영역을 넘으면 말줄임 처리됩니다. 글자 크기와 가이드 크기는 바뀌지 않습니다. 실제 입력이나 게임 연결은 없는 확인 예시입니다.,긴 행동 안내 문구는 한 줄의 고정 영역을 넘으면 말줄임 처리됩니다. 글자 크기와 가이드 크기는 바뀌지 않습니다. 실제 입력이나 게임 연결은 없는 확인 예시입니다.,Long action instructions are truncated if they exceed a fixed line area. The font size and guide size do not change. This is a verification example with no actual input or game connection.
+COMMON_PROMPT_ACTION-GUIDE,행동 안내,행동 안내,Action Guide
+COMMON_PROMPT_JUMP,점프,점프,Jump
+COMMON_PROMPT_MAIN-ACTIONS,주 행동,주 행동,Main actions
+COMMON_PROMPT_AUXILIARY-ACTION,보조 행동,보조 행동,Auxiliary Action
+COMMON_PROMPT_BROWSE,둘러보기,둘러보기,Browse
+COMMON_PROMPT_VERY-LONG-KEY-NAME,아주 긴 키 이름,아주 긴 키 이름,A very long key name
+COMMON_PROMPT_ACTION-N-LITERALLY,<color=red>행동</color> \n 문자 그대로 …,<color=red>행동</color> \n 문자 그대로 …,<color=red> Action </color> \n Literally …
+COMMON_PROMPT_CONTROL-TEXT-MESSAGE-GUIDE,"제어
+문자	안내","제어
+문자	안내","Control
+Text Message Guide"
+COMMON_TEXT_MARK,표시,표시,mark
+COMMON_TEXT_REPEAT-DISPLAY,반복 표시,반복 표시,Repeat display
+COMMON_PROMPT_REJECT-DISPLAY-WHILE-BLOCKED,차단 중 표시 거부,차단 중 표시 거부,Reject display while blocked
+COMMON_PROMPT_C-CONTROLS-GUIDE-SYNTHESIS-DISPLAY-NO,C7 / 조작 가이드 · 합성 표시 / 게임 연결 없음 · ,C7 / 조작 가이드 · 합성 표시 / 게임 연결 없음 · ,C7 / Controls Guide · Synthesis Display / No Game Connection ·
+COMMON_PROMPT_BLOCK,차단,차단,block
+COMMON_TEXT_HIDING,숨김,숨김,hiding
+COMMON_TEXT_BASIC,기본,기본,basic
+COMMON_TEXT_DANGER,위험,위험,danger
+COMMON_TEXT_INACTIVE-INFORMATION,비활성 정보,비활성 정보,Inactive information
+COMMON_TEXT_UNIT_0,단원 1,단원 1,Unit 1
+COMMON_TEXT_WHITE,흰색,흰색,white
+COMMON_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-PX-BUTTON,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}px · 버튼 입력 {COMMON_VALUE_THIRD-ARGUMENT} · 그림 승인 전 확인용,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}px · 버튼 입력 {COMMON_VALUE_THIRD-ARGUMENT} · 그림 승인 전 확인용,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} px · Button Input {COMMON_VALUE_THIRD-ARGUMENT} · Image for verification before approval
+COMMON_TEXT_GENERATIONAL-CHANGE,세대 교체,세대 교체,generational change
+COMMON_PROMPT_COMMON-BUTTON-CONFIRMATION-MOUSE-LEFT-RIGHT,공용 버튼 확인 · 마우스 / 좌우 방향키 / Enter 또는 Space,공용 버튼 확인 · 마우스 / 좌우 방향키 / Enter 또는 Space,Common Button Confirmation · Mouse / Left/Right Arrow Keys / Enter or Space
+COMMON_TEXT_ACTIVATE-ALL,모두 활성화,모두 활성화,Activate all
+COMMON_TEXT_DISABLE-ALL,모두 비활성화,모두 비활성화,Disable all
+COMMON_TEXT_RESET-CLICK-COUNT,클릭 횟수 초기화,클릭 횟수 초기화,Reset click count
+COMMON_TEXT_SPECTATING-PLAYER-FIRST-ARGUMENT-D-CHANGE,"<b>플레이어 {COMMON_VALUE_FIRST-ARGUMENT}</b>를 관전 중입니다
+<size=15>A / D : 대상 변경 · 마우스 : 시점 회전</size>","<b>플레이어 {COMMON_VALUE_FIRST-ARGUMENT}</b>를 관전 중입니다
+<size=15>A / D : 대상 변경 · 마우스 : 시점 회전</size>","Spectating Player <b> {COMMON_VALUE_FIRST-ARGUMENT} </b>
+<size=15> A/D: Change Target · Mouse: Rotate Camera </size>"
+COMMON_PROMPT_THERE-NO-PLAYERS-SPECTATE,관전할 수 있는 플레이어가 없습니다,관전할 수 있는 플레이어가 없습니다,There are no players to spectate.
+COMMON_TEXT_START-OFFLINE-RUN,오프라인 런 시작,오프라인 런 시작,Start offline run
+COMMON_TEXT_END-INTRODUCTION_1,도입 종료,도입 종료,End of introduction
+COMMON_TEXT_RULE-PREVIEW,규칙 미리보기,규칙 미리보기,Rule Preview
+COMMON_TEXT_PERFORMANCE-HALL,공연장,공연장,performance hall
+COMMON_TEXT_NO-REJECTION-CHANGE,거절/변화 없음,거절/변화 없음,No rejection/change
+COMMON_TEXT_VERY-LONG-OBSERVATION-SUBJECT-NAMES-DISPLAYED,아주 긴 관전 대상 이름은 고정 크기 한 줄 말줄임으로 표시되지만 전체 원문은 보존됩니다. 단원 이름 확인용 합성 예시입니다.,아주 긴 관전 대상 이름은 고정 크기 한 줄 말줄임으로 표시되지만 전체 원문은 보존됩니다. 단원 이름 확인용 합성 예시입니다.,"Very long observation subject names are displayed as a fixed-size single-line truncation, but the full original text is preserved. This is a composite example for verifying unit names."
+COMMON_TEXT_WATCHING_0,관전,관전,Watching
+COMMON_TEXT_C-SYNTHESIS-SLOT-EXAMPLE,C7 합성 슬롯 예시,C7 합성 슬롯 예시,C7 Synthesis Slot Example
+COMMON_TEXT_C-COMPOSITE-DISPLAY-NO-GAME-LINK,"C11 합성 표시 / 게임 연결 없음 · Game View 1920×1080 / 1920×1200에서 확인
+","C11 합성 표시 / 게임 연결 없음 · Game View 1920×1080 / 1920×1200에서 확인
+","C11 Composite Display / No Game Link · Check in Game View 1920×1080 / 1920×1200
+"
+COMMON_TEXT_C-SUPPRESSION-USES-ONLY-EXPLICIT-CALL, · C7 억제는 이 데모의 명시적 호출만 사용, · C7 억제는 이 데모의 명시적 호출만 사용,· C7 suppression uses only the explicit call in this demo
+COMMON_TEXT_PANEL-VERIFICATION-ONLY-ACTUAL-SETTINGS-ROOM,패널 확인 전용 · 실제 설정/방 이탈/사망 기능은 연결하지 않았습니다.,패널 확인 전용 · 실제 설정/방 이탈/사망 기능은 연결하지 않았습니다.,Panel verification only · Actual settings/room exit/death functions are not connected.
+COMMON_TEXT_SET-SIGNAL-FIRST-ARGUMENT-EXIT-CONFIRMATION,설정 신호: {COMMON_VALUE_FIRST-ARGUMENT} / 나가기 확정 신호: {COMMON_VALUE_SECOND-ARGUMENT},설정 신호: {COMMON_VALUE_FIRST-ARGUMENT} / 나가기 확정 신호: {COMMON_VALUE_SECOND-ARGUMENT},Set signal: {COMMON_VALUE_FIRST-ARGUMENT} / Exit confirmation signal: {COMMON_VALUE_SECOND-ARGUMENT}
+COMMON_TEXT_REOPEN-MENU,메뉴 다시 열기,메뉴 다시 열기,Reopen menu
+COMMON_TEXT_CLOSE-ALL,모두 닫기,모두 닫기,Close all
+COMMON_TEXT_COUNTER-RESET,카운터 초기화,카운터 초기화,Counter reset
+COMMON_TEXT_SAME-SESSION-UPDATE,같은 세션 갱신,같은 세션 갱신,Same session update
+COMMON_TEXT_RENEWAL-REFUSAL,갱신 거절,갱신 거절,Renewal refusal
+COMMON_TEXT_REJECT-OTHER-SESSIONS,다른 세션 거절,다른 세션 거절,Reject other sessions
+COMMON_PROMPT_CLEAR,해제,해제,clear
+COMMON_TEXT_CHEERS,환호,환호,cheers
+COMMON_TEXT_PICNIC,야유,야유,picnic
+COMMON_TEXT_USUALLY,평소,평소,Usually
+COMMON_TEXT_UNRECEIVED,미수신,미수신,Unreceived
+COMMON_TEXT_PLEASE-EXPLICITLY-CLICK-OPEN-START,명시적으로 열기를 눌러 시작하세요,명시적으로 열기를 눌러 시작하세요,Please explicitly click Open to start.
+COMMON_TEXT_C-PERFORMANCE-RESULT-DISPLAY-EXAMPLE-NO,"C12 공연 결과 표시 예시 / 판정·정산·게임 흐름 연결 없음
+Play 시작 Hidden · 확인은 의도만 전달하며 자동으로 닫지 않습니다","C12 공연 결과 표시 예시 / 판정·정산·게임 흐름 연결 없음
+Play 시작 Hidden · 확인은 의도만 전달하며 자동으로 닫지 않습니다","C12 Performance Result Display Example / No Connection to Judgment, Settlement, or Game Flow
+Start Play Hidden · Confirmation only conveys intent and does not close automatically"
+COMMON_TEXT_FULL-SCREEN-NO-DIMMING-REVISION-ORDER,"1920×1080 / 1920×1200 · 전체 화면 딤 없음 · 리비전 순서는 호출자 책임
+동전은 C12 내부 장식이며 자금 값을 변경하지 않습니다","1920×1080 / 1920×1200 · 전체 화면 딤 없음 · 리비전 순서는 호출자 책임
+동전은 C12 내부 장식이며 자금 값을 변경하지 않습니다","1920×1080 / 1920×1200 · Full screen no dimming · Revision order is the caller's responsibility
+The coin is C12 internal decoration and does not change the fund value"
+COMMON_TEXT_START-EXPLICITLY-PRESSING-OPEN-RENEW-SAME, 명시적으로 열기를 눌러 시작하세요 같은 세션 갱신 다른 세션 거절 갱신 거절 복구 완료 확인 의도 , 명시적으로 열기를 눌러 시작하세요 같은 세션 갱신 다른 세션 거절 갱신 거절 복구 완료 확인 의도 ,Start by explicitly pressing Open. Renew same session. Reject other session. Reject renewal. Confirm recovery complete. Intent.
+COMMON_TEXT_FAILURE-SUCCESS-GREAT-SUCCESS-DAY-TIGHTROPE,실패 성공 대성공 1일차 외줄타기 공연이 끝났습니다. 공연을 무사히 마쳤습니다. 관객의 뜨거운 환호가 쏟아집니다. ,실패 성공 대성공 1일차 외줄타기 공연이 끝났습니다. 공연을 무사히 마쳤습니다. 관객의 뜨거운 환호가 쏟아집니다. ,Failure Success Great Success Day 1 tightrope walking performance has ended. The performance was completed safely. Enthusiastic cheers from the audience pour out.
+COMMON_TEXT_REACH-DISTANCE-PER-UNIT-TOTAL-M,단원별 도달 거리 전체 160 m 기본 보상 추가 보상 공동 자금 이번 공연 확인 후 다음 안내를 기다려 주세요. ,단원별 도달 거리 전체 160 m 기본 보상 추가 보상 공동 자금 이번 공연 확인 후 다음 안내를 기다려 주세요. ,"Reach distance per unit: Total 160 m. Basic rewards, additional rewards, and shared funds. Please wait for the next announcement after checking this performance."
+COMMON_TEXT_CHAPTER-B-FALL-EXAMPLE-LONG-PHRASE,단원 나 추락 예시 긴 문구 가 확인 Hidden True False timeScale runInBackground action intent session revision ,단원 나 추락 예시 긴 문구 가 확인 Hidden True False timeScale runInBackground action intent session revision ,Chapter B Fall Example Long Phrase Check Hidden True False timeScale runInBackground action intent session revision
+COMMON_TEXT_INTENTION-CONFIRM,확인 의도 ,확인 의도 ,Intention to confirm
+COMMON_TEXT_STOPPAGE,멈춤,멈춤,stoppage
+COMMON_PROMPT_CLASH,겹침,겹침,clash
+COMMON_PROMPT_CHECK-PERFORMANCE-HUD-SYNTHESIS-DATA-GAME,공연 HUD 확인 · 합성 데이터(게임 미연결) · {COMMON_VALUE_FIRST-ARGUMENT} / P1 {COMMON_VALUE_SECOND-ARGUMENT} · 공연 {COMMON_VALUE_THIRD-ARGUMENT} / 외줄 {COMMON_VALUE_FOURTH-ARGUMENT} / 관전 {COMMON_VALUE_FIFTH-ARGUMENT},공연 HUD 확인 · 합성 데이터(게임 미연결) · {COMMON_VALUE_FIRST-ARGUMENT} / P1 {COMMON_VALUE_SECOND-ARGUMENT} · 공연 {COMMON_VALUE_THIRD-ARGUMENT} / 외줄 {COMMON_VALUE_FOURTH-ARGUMENT} / 관전 {COMMON_VALUE_FIFTH-ARGUMENT},Check Performance HUD · Synthesis Data (Game Not Connected) · {COMMON_VALUE_FIRST-ARGUMENT} / P1 {COMMON_VALUE_SECOND-ARGUMENT} · Performance {COMMON_VALUE_THIRD-ARGUMENT} / Tightrope {COMMON_VALUE_FOURTH-ARGUMENT} / Spectator {COMMON_VALUE_FIFTH-ARGUMENT}
+COMMON_TEXT_POSE-TIME-AMPUTATION,절단 당시 포즈,절단 당시 포즈,Pose at the time of amputation
+COMMON_PROMPT_PRESS-HOLD,길게 누르기,길게 누르기,Press and hold
+COMMON_TEXT_DAY-TIGHTROPE-WALKING,"1일차
+외줄타기","1일차
+외줄타기","Day 1
+Tightrope Walking"
+COMMON_TEXT_PERFORMANCE-ENDED,공연이 끝났습니다.,공연이 끝났습니다.,The performance has ended.
+COMMON_TEXT_REACH-DISTANCE-PER-UNIT,단원별 도달 거리,단원별 도달 거리,Reach distance per unit
+COMMON_TEXT_TOTAL-M,전체 160 m,전체 160 m,Total 160 m
+COMMON_TEXT_BASIC-REWARDS,기본 보상,기본 보상,Basic rewards
+COMMON_TEXT_ADDITIONAL-REWARDS,추가 보상,추가 보상,Additional rewards
+COMMON_TEXT_PERFORMANCE_1,이번 공연 +80,이번 공연 +80,This performance +80
+COMMON_TEXT_PLEASE-WAIT-NEXT-INSTRUCTIONS-AFTER-VERIFICATION,확인 후 다음 안내를 기다려 주세요.,확인 후 다음 안내를 기다려 주세요.,Please wait for the next instructions after verification.
+COMMON_TEXT_UNIT-B-FALLING,단원 1 · 나 · 추락,단원 1 · 나 · 추락,Unit 1 · B · Falling
+COMMON_TEXT_UNIT-FALLING_0,단원 2 · 추락,단원 2 · 추락,Unit 2 · Falling
+COMMON_TEXT_UNIT-FALLING_2,단원 3 · 추락,단원 3 · 추락,Unit 3 · Falling
+COMMON_TEXT_UNIT-FALLING_3,단원 4 · 추락,단원 4 · 추락,Unit 4 · Falling
+COMMON_TEXT_WE-FINISHED-PERFORMANCE-SAFELY,공연을 무사히 마쳤습니다.,공연을 무사히 마쳤습니다.,We finished the performance safely.
+COMMON_TEXT_PERFORMANCE_2,이번 공연 +240,이번 공연 +240,This performance +240
+COMMON_TEXT_GREAT-SUCCESS,대성공,대성공,great success
+COMMON_TEXT_AUDIENCE-ERUPTS-ENTHUSIASTIC-CHEERS,관객의 뜨거운 환호가 쏟아집니다.,관객의 뜨거운 환호가 쏟아집니다.,The audience erupts in enthusiastic cheers.
+COMMON_TEXT_PERFORMANCE_3,이번 공연 +480,이번 공연 +480,This performance +480
+COMMON_PROMPT_LABEL-TMP-FONT-ACTIVE-GENERAL-SCENE,활성 일반 씬의 라벨과 TMP 폰트가 필요합니다.,활성 일반 씬의 라벨과 TMP 폰트가 필요합니다.,The label and TMP font of the active general scene are required.
+COMMON_PROMPT_TITLE-CANNOT-EMPTY,제목은 비어 있을 수 없습니다.,제목은 비어 있을 수 없습니다.,The title cannot be empty.
+COMMON_TEXT_TEXT-ONLY-INCLUDED-PAPER-LABELS,본문은 Paper 라벨에만 넣을 수 있습니다.,본문은 Paper 라벨에만 넣을 수 있습니다.,The text can only be included on paper labels.
+COMMON_TEXT_PAPER-SHELF-LABELS-DO-NOT-USE,Paper / Shelf 라벨은 아이콘을 사용하지 않습니다.,Paper / Shelf 라벨은 아이콘을 사용하지 않습니다.,Paper / Shelf labels do not use icons.
+COMMON_TEXT_CHANGE-REGULAR-SCENE-INSTANCE,일반 씬 인스턴스에서 변경하세요.,일반 씬 인스턴스에서 변경하세요.,Change it in a regular scene instance.
+COMMON_TEXT_ITEM-SHELF-INFORMATION-UI-MAINTAINS-COMMON,Item / Shelf 정보 UI는 공용 판을 유지합니다.,Item / Shelf 정보 UI는 공용 판을 유지합니다.,The Item / Shelf information UI maintains a common board.
+COMMON_PROMPT_THERE-NO-SURFACE-LAYER-REFERENCE-PLEASE,표면 레이어 참조가 없습니다. V2 조립기로 다시 조립하세요.,표면 레이어 참조가 없습니다. V2 조립기로 다시 조립하세요.,There is no surface layer reference. Please reassemble using the V2 assembler.
+COMMON_TEXT_SURFACE-LAYER-REFERENCE-LOST,표면 레이어 참조가 손실되었습니다.,표면 레이어 참조가 손실되었습니다.,Surface layer reference lost.
+COMMON_TEXT_I-REVERTED-SIZE-CHANGE,크기 변경을 되돌렸습니다. ,크기 변경을 되돌렸습니다. ,I reverted the size change.
+COMMON_TEXT_MINIMUM-SIZE, 최소 크기는 , 최소 크기는 ,The minimum size is
+COMMON_TEXT_UI, UI입니다., UI입니다.,This is the UI.
+COMMON_TEXT_ENABLE-ROOT-PARENT-TMP-MEASUREMENTS-USE,TMP 실측을 위해 루트와 부모를 활성화하세요. 숨기기는 SetVisible(false)를 사용하세요.,TMP 실측을 위해 루트와 부모를 활성화하세요. 숨기기는 SetVisible(false)를 사용하세요.,Enable the root and parent for TMP measurements. Use SetVisible(false) to hide them.
+COMMON_TEXT_EXCEEDING-AREA-ACTUAL-MEASUREMENT,이 영역을 벗어납니다. 실측 ,이 영역을 벗어납니다. 실측 ,Exceeding this area. Actual measurement
+COMMON_TEXT_LINE-ALLOW,"줄, 허용 ","줄, 허용 ","Line, allow"
+COMMON_TEXT_UI-MAX, UI / 최대 , UI / 최대 ,UI / Max
+COMMON_TEXT_LINE-REDUCE-TEXT-OR-WIDEN-LABEL,줄. 문구를 줄이거나 라벨을 넓히세요.,줄. 문구를 줄이거나 라벨을 넓히세요.,Line. Reduce the text or widen the label.
+COMMON_PROMPT_SELECTED,선택: ,선택: ,Selected: 
+COMMON_PROMPT_OUTPUT-POWER_1,출력: ,출력: ,Output: 
+COMMON_PROMPT_BOT-FAILED-START,봇 실행 실패: ,봇 실행 실패: ,Bot failed to start: 
+COMMON_PROMPT_TMP-MEASUREMENT-FAILED, TMP 실측 실패: , TMP 실측 실패: , TMP measurement failed: 
+COMMON_PROMPT_COULD-NOT-RESTORE-ORIGINAL-TMP-MESH,기존 TMP 메시 복원 실패: ,기존 TMP 메시 복원 실패: ,Could not restore the original TMP mesh: 

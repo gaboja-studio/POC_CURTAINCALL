@@ -1,0 +1,481 @@
+﻿key,source,ko,en
+WAITING-ROOM_PROMPT_COME-CLOSER,가까이 다가가세요.,가까이 다가가세요.,Move closer.
+WAITING-ROOM_TEXT_NARRATION_EXPERT-BOOKED-TITLE,의료용 서비스 예약 완료,의료용 서비스 예약 완료,Treatment booked
+WAITING-ROOM_TEXT_NARRATION_EXPERT-BOOKED-BODY,"의료 서비스 {COMMON_VALUE_COUNT}개를 예약했습니다.
+의료 서비스를 이용하려면 로비의 의료용 승강기로 이동해 F를 누르세요.","의료 서비스 {COMMON_VALUE_COUNT}개를 예약했습니다.
+의료 서비스를 이용하려면 로비의 의료용 승강기로 이동해 F를 누르세요.","Booked {COMMON_VALUE_COUNT} treatments.
+Press F at the medical lift in the lobby to receive treatment."
+WAITING-ROOM_TEXT_NARRATION_PERFORMANCE-UNLOCKED-TITLE,{SCHEDULE_VALUE_PERFORMANCE} 획득!,{SCHEDULE_VALUE_PERFORMANCE} 획득!,{SCHEDULE_VALUE_PERFORMANCE} acquired!
+WAITING-ROOM_TEXT_NARRATION_CANNON-UNLOCKED-BODY,"리허설을 마치면 스케줄표에서 이 공연을 선택할 수 있습니다.
+{SCHEDULE_VALUE_PERFORMANCE}·트램펄린은 연습실로 옮겨졌습니다.","리허설을 마치면 스케줄표에서 이 공연을 선택할 수 있습니다.
+{SCHEDULE_VALUE_PERFORMANCE}·트램펄린은 연습실로 옮겨졌습니다.","Complete rehearsal to add this act to the schedule.
+The {SCHEDULE_VALUE_PERFORMANCE} and trampoline are now in the rehearsal room."
+WAITING-ROOM_TEXT_NARRATION_PERFORMANCE-UNLOCKED-BODY,"'{SCHEDULE_VALUE_PERFORMANCE}' 공연이 해금되었습니다. 이제 스케줄표에서 {SCHEDULE_VALUE_PERFORMANCE} 공연을 편성할 수 있습니다.
+획득한 {SCHEDULE_VALUE_PERFORMANCE}·트램펄린은 연습실로 옮겨졌습니다.","'{SCHEDULE_VALUE_PERFORMANCE}' 공연이 해금되었습니다. 이제 스케줄표에서 {SCHEDULE_VALUE_PERFORMANCE} 공연을 편성할 수 있습니다.
+획득한 {SCHEDULE_VALUE_PERFORMANCE}·트램펄린은 연습실로 옮겨졌습니다.","Unlocked '{SCHEDULE_VALUE_PERFORMANCE}'! You can now schedule {SCHEDULE_VALUE_PERFORMANCE}.
+Find the {SCHEDULE_VALUE_PERFORMANCE} and trampoline in the rehearsal room."
+WAITING-ROOM_TEXT_BANNER_NIGHT-TITLE,밤 정비,밤 정비,Night Maintenance
+WAITING-ROOM_TEXT_BANNER_NIGHT-UNLIMITED,밤 정비 · 제한 시간 없음,밤 정비 · 제한 시간 없음,Night maintenance · No time limit
+WAITING-ROOM_TEXT_BANNER_NIGHT-TIMED,밤 정비 · 제한 시간 뒤 추격이 시작됩니다,밤 정비 · 제한 시간 뒤 추격이 시작됩니다,Night maintenance · The pursuit begins after the time limit.
+WAITING-ROOM_TEXT_BANNER_RECALL-TITLE,소집 경보!,소집 경보!,Stage call!
+WAITING-ROOM_TEXT_BANNER_RECALL-BODY,공연 시작을 위해 무대 입구로 모이세요.,공연 시작을 위해 무대 입구로 모이세요.,Gather at the stage entrance for the next act.
+WAITING-ROOM_TEXT_BANNER_BROADCAST-TITLE,방송,방송,Announcement
+WAITING-ROOM_TEXT_BROADCAST_RECALL,소집 경보! 무대 입구로 모이세요 — {COMMON_VALUE_SECONDS}초,소집 경보! 무대 입구로 모이세요 — {COMMON_VALUE_SECONDS}초,Stage call! Gather at the stage entrance — {COMMON_VALUE_SECONDS}s
+WAITING-ROOM_TEXT_BROADCAST_NOTICE,공연 {COMMON_VALUE_SECONDS}초 전입니다,공연 {COMMON_VALUE_SECONDS}초 전입니다,The show starts in {COMMON_VALUE_SECONDS}s
+WAITING-ROOM_PROMPT_NIGHT_BED-TITLE,잠자기,잠자기,Sleeping
+WAITING-ROOM_TEXT_NIGHT_BED-UNSCHEDULED-NOTICE,리허설이나 포획 중에는 잠들 수 없습니다.,리허설이나 포획 중에는 잠들 수 없습니다.,You cannot fall asleep during rehearsals or captures.
+WAITING-ROOM_PROMPT_NIGHT_BED-NOT-NIGHT,밤 정비 때 이용할 수 있습니다,밤 정비 때 이용할 수 있습니다,It is available during night maintenance.
+WAITING-ROOM_TEXT_NIGHT_BED-NEED-SCHEDULE,스케줄표에서 공연 일정을 확정해주세요.,스케줄표에서 공연 일정을 확정해주세요.,Please confirm the performance schedule on the schedule.
+WAITING-ROOM_TEXT_NIGHT_BED-GET-UP,일어나기 (준비 취소 · {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),일어나기 (준비 취소 · {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),Get up (Cancel ready · {COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL} )
+WAITING-ROOM_TEXT_NIGHT_BED-LIE-DOWN,침대에 눕기 (준비 완료 · {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),침대에 눕기 (준비 완료 · {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),Lying down in bed (Ready · {COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL} )
+WAITING-ROOM_TEXT_NOTICE_ITEM-BROKEN-TITLE,{SHOP_VALUE_ITEM-NAME},{SHOP_VALUE_ITEM-NAME},{SHOP_VALUE_ITEM-NAME}
+WAITING-ROOM_TEXT_NOTICE_ITEM-BROKEN,{SHOP_VALUE_ITEM-NAME}(이/가) 파괴되었습니다.,{SHOP_VALUE_ITEM-NAME}(이/가) 파괴되었습니다.,{SHOP_VALUE_ITEM-NAME} has been destroyed.
+WAITING-ROOM_TEXT_TUTORIAL_TEAM-WAIT-TITLE,동료 기다리는 중,동료 기다리는 중,Waiting for a colleague
+WAITING-ROOM_TEXT_TUTORIAL_TEAM-WAIT,모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],All performers can move once they confirm the instructions. [{COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL}]
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-TUTORIAL_1,대기실,대기실,Backstage
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-TUTORIAL_0,"대기실 안내를 확인하세요.
+전원이 안내를 마치면 탐색 시간이 시작됩니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}]","대기실 안내를 확인하세요.
+전원이 안내를 마치면 탐색 시간이 시작됩니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}]","Please check the backstage instructions. Search time will begin once the
+power is finished. [{COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL}]"
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-GATHER_1,1일차 · 두 번째 공연 준비,1일차 · 두 번째 공연 준비,Day 1 · Preparation for the second performance
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-GATHER_0,"다음 공연을 준비하세요.
+무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다.[{COMMON_VALUE_INSIDE-COUNT}/{COMMON_VALUE_ALIVE-COUNT}]","다음 공연을 준비하세요.
+무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다.[{COMMON_VALUE_INSIDE-COUNT}/{COMMON_VALUE_ALIVE-COUNT}]","Prepare for the next performance.
+The second performance begins when everyone gathers in the stage entrance aisle. [{COMMON_VALUE_INSIDE-COUNT} / {COMMON_VALUE_ALIVE-COUNT}]"
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-SECOND-PICK,"다음 공연이 기본 편성되어 있습니다. 스케줄표에서 변경할 수 있고, 전원이 무대 입구에 모이면 바로 시작합니다.","다음 공연이 기본 편성되어 있습니다. 스케줄표에서 변경할 수 있고, 전원이 무대 입구에 모이면 바로 시작합니다.","The next performance is pre-set. It can be changed on the schedule, and the show starts immediately once everyone gathers at the stage entrance."
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-SECOND-PICK-WAIT_1,1일차 · 두 번째 공연 선택 대기,1일차 · 두 번째 공연 선택 대기,Day 1 · Waiting to select the second performance
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-SECOND-PICK-WAIT_0,"호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.
+확정되면 무대 입구 통로로 모이세요.","호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.
+확정되면 무대 입구 통로로 모이세요.","The host is determining the second performance on the schedule. Please gather at the stage entrance aisle once
+is confirmed."
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-SCHEDULE_1,1일차 밤 · 다음 날 일정 정하기,1일차 밤 · 다음 날 일정 정하기,Day 1 Night · Planning the Next Day's Schedule
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-SCHEDULE_0,스케줄표에서 다음 공연을 변경할 수 있습니다. 선택 즉시 적용됩니다.,스케줄표에서 다음 공연을 변경할 수 있습니다. 선택 즉시 적용됩니다.,You can change the next performance on the schedule. The selection is applied immediately.
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-SCHEDULE-WAIT_1,1일차 밤 · 일정 확정,1일차 밤 · 일정 확정,Day 1 Night · Schedule Confirmed
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-SCHEDULE-WAIT_0,호스트가 다음 날 일정을 확정해야 합니다.,호스트가 다음 날 일정을 확정해야 합니다.,The host must confirm the schedule for the next day.
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-BED_1,1일차 밤 · 취침 준비,1일차 밤 · 취침 준비,Day 1 Night · Getting Ready for Bed
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-BED_0,다음 날 일정이 확정됐습니다. 정비를 마치고 침대에 누우면 하루 일정을 마무리합니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],다음 날 일정이 확정됐습니다. 정비를 마치고 침대에 누우면 하루 일정을 마무리합니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],"The schedule for the next day has been confirmed. Once I finish getting ready and lie down in bed, I wrap up the day's schedule.[{COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL}]"
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-WAIT_1,1일차 밤 · 일정 마무리하기,1일차 밤 · 일정 마무리하기,Day 1 Night · Wrapping up the schedule
+WAITING-ROOM_OBJECTIVE_FIRST-DAY_QUEST-NIGHT-WAIT_0,모든 공연 대기자가 준비하면 다음 날로 넘어갑니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],모든 공연 대기자가 준비하면 다음 날로 넘어갑니다.[{COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}],"Once all waiting performers are ready, it moves to the next day.[{COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL}]"
+WAITING-ROOM_PROMPT_GUIDE_TITLE-COLOR,#FFD5A0,#FFD5A0,#FFD5A0
+WAITING-ROOM_TEXT_NIGHT_BED-UNAVAILABLE,리허설이나 포획 중에는 잠들 수 없습니다.,리허설이나 포획 중에는 잠들 수 없습니다.,You cannot fall asleep during rehearsals or captures.
+WAITING-ROOM_PROMPT_BARE-HOLD,F키로 상호작용 하기,F키로 상호작용 하기,Interact with the F key
+WAITING-ROOM_TITLE_GUIDE_POWER-DOOR,잠긴 문,잠긴 문,locked door
+WAITING-ROOM_DESCRIPTION_GUIDE_POWER-DOOR,잠긴 문을 열려면 전력이 필요합니다. 전력을 공급할 도구를 찾아보세요.,잠긴 문을 열려면 전력이 필요합니다. 전력을 공급할 도구를 찾아보세요.,You need power to open the locked door. Look for a tool to supply power.
+WAITING-ROOM_TITLE_GUIDE_POWER-CIRCUIT,잠긴 문,잠긴 문,locked door
+WAITING-ROOM_DESCRIPTION_GUIDE_POWER-CIRCUIT,"잠긴 문을 열린 채로 유지하려면 전력을 끊어 문을 고장내거나, 배터리를 삽입해야 합니다.","잠긴 문을 열린 채로 유지하려면 전력을 끊어 문을 고장내거나, 배터리를 삽입해야 합니다.","To keep a locked door open, you must cut off the power to break the door or insert a battery."
+WAITING-ROOM_TITLE_GUIDE_VENT-CROUCH,좁은 통로,좁은 통로,bottleneck
+WAITING-ROOM_DESCRIPTION_GUIDE_VENT-CROUCH,좁은 곳에서는 Ctrl키로 앉아서 이동하세요.,좁은 곳에서는 Ctrl키로 앉아서 이동하세요.,"In confined spaces, use the Ctrl key to move while sitting."
+WAITING-ROOM_TITLE_GUIDE_PRACTICE,연습실,연습실,Rehearsal Room
+WAITING-ROOM_DESCRIPTION_GUIDE_PRACTICE,연습실에서 자유롭게 공연을 연습할 수 있습니다.,연습실에서 자유롭게 공연을 연습할 수 있습니다.,You can freely practice your performance in the practice room.
+WAITING-ROOM_TITLE_GUIDE_PURSUER,추격자,추격자,The Chaser
+WAITING-ROOM_DESCRIPTION_GUIDE_PURSUER,시간이 지나면 추격자가 나타납니다. 추격자를 피해 공연장까지 가야 합니다.,시간이 지나면 추격자가 나타납니다. 추격자를 피해 공연장까지 가야 합니다.,A pursuer will appear as time passes. You must reach the concert hall while avoiding the pursuer.
+WAITING-ROOM_TITLE_CUTSCENE_ESCAPE-OPEN,나가는 길,나가는 길,Way out
+WAITING-ROOM_DESCRIPTION_CUTSCENE_ESCAPE-OPEN,나가는 길이 개방되었습니다. 서커스장에서 탈출하세요.,나가는 길이 개방되었습니다. 서커스장에서 탈출하세요.,The exit is open. Escape the circus.
+WAITING-ROOM_TITLE_CUTSCENE_DORM-DOOR,숙소 문,숙소 문,Accommodation door
+WAITING-ROOM_DESCRIPTION_CUTSCENE_DORM-DOOR,절단기를 이용해 배선을 끊어 숙소 문을 여세요.,절단기를 이용해 배선을 끊어 숙소 문을 여세요.,Use wire cutters to cut the wiring and open the accommodation door.
+WAITING-ROOM_TITLE_CUTSCENE_RUST-DOOR,상호작용 가능한 기물,상호작용 가능한 기물,Interactive objects
+WAITING-ROOM_DESCRIPTION_CUTSCENE_RUST-DOOR,"상호작용 가능한 기물이 존재합니다. 맨몸, 혹은 적합한 도구를 선택한 후 F를 눌러 대상에 상호작용하세요.","상호작용 가능한 기물이 존재합니다. 맨몸, 혹은 적합한 도구를 선택한 후 F를 눌러 대상에 상호작용하세요.","Interactive objects exist. Select your bare body or a suitable tool, then press F to interact with the object."
+WAITING-ROOM_TUTORIAL-TITLE_BACKSTAGE,대기실,대기실,Backstage
+WAITING-ROOM_TUTORIAL-GUIDE_SPACE-PREPARING-PERFORMANCES-USING-SHOPS-SERVICES,"공연을 준비하고, 상점과 서비스를 이용하는 공간","공연을 준비하고, 상점과 서비스를 이용하는 공간",A space for preparing performances and using shops and services
+WAITING-ROOM_TUTORIAL-TITLE_PREPARATION-TIME,준비 시간,준비 시간,Preparation time
+WAITING-ROOM_TUTORIAL-GUIDE_EXPLORE-WHILE-TIME-PREPARE-WHEN-TIME,"정해진 공연 준비 시간동안 탐색이 가능하며 
+시간이 지나면 감시자들의 추격이 시작됩니다.","정해진 공연 준비 시간동안 탐색이 가능하며 
+시간이 지나면 감시자들의 추격이 시작됩니다.","Explore while you have time to prepare.
+When time runs out, the watchers begin the chase."
+WAITING-ROOM_TUTORIAL-TITLE_INTERACT,상호작용,상호작용,Interact
+WAITING-ROOM_TUTORIAL-GUIDE_PRESS-INTERACT-INVESTIGATE-OR-COLLECT-INTERACTIVE,상호작용 가능한 대상을 [{SETTINGS_INPUT_INTERACT}]를 눌러 조사하거나 수집합니다.,상호작용 가능한 대상을 [{SETTINGS_INPUT_INTERACT}]를 눌러 조사하거나 수집합니다.,Press [{SETTINGS_INPUT_INTERACT}] to investigate or collect interactive objects.
+WAITING-ROOM_TUTORIAL-TITLE_OVERVIEW,살펴보기,살펴보기,Overview
+WAITING-ROOM_TUTORIAL-GUIDE_EXAMINE-LEFT-MOUSE-CLICK-INTERACT-PRESS,마우스 좌클릭으로 살펴볼 수 있습니다. [{SETTINGS_INPUT_INTERACT}]·ESC로 내려놓습니다.,마우스 좌클릭으로 살펴볼 수 있습니다. [{SETTINGS_INPUT_INTERACT}]·ESC로 내려놓습니다.,You can examine it with a left mouse click. [{SETTINGS_INPUT_INTERACT}] · Press ESC to minimize.
+WAITING-ROOM_TUTORIAL-TITLE_PUTTING-DOWN-OBJECTS,기물 내려놓기,기물 내려놓기,Putting down objects
+WAITING-ROOM_TUTORIAL-GUIDE_PRESS-DROP-ITEM-PLACE-SELECTED-ITEM,[{SETTINGS_INPUT_DROP-ITEM}]를 누르면 고른 기물을 내려놓습니다.,[{SETTINGS_INPUT_DROP-ITEM}]를 누르면 고른 기물을 내려놓습니다.,Press [{SETTINGS_INPUT_DROP-ITEM}] to place the selected item down.
+WAITING-ROOM_TUTORIAL-GUIDE_ATTEMPT-OPEN-LOCKED-BOX-OR-CABINET,잠긴 상자·캐비넷 앞에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 열기를 시도할 수 있습니다.,잠긴 상자·캐비넷 앞에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 열기를 시도할 수 있습니다.,You can attempt to open a locked box or cabinet by pressing [{SETTINGS_INPUT_INTERACT}] in front of it.
+WAITING-ROOM_TUTORIAL-GUIDE_BREAK-WOODEN-BOXES-OR-RUSTY-WALLS,나무 상자나 녹슨 벽에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 부술 수 있습니다.,나무 상자나 녹슨 벽에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 부술 수 있습니다.,You can break wooden boxes or rusty walls by pressing [{SETTINGS_INPUT_INTERACT}].
+WAITING-ROOM_TUTORIAL-TITLE_UV-LIGHT,UV 등,UV 등,UV light
+WAITING-ROOM_TUTORIAL-GUIDE_PRESS-UV-LIGHT-EXAMINE-TARGET,[{SETTINGS_INPUT_UV-LIGHT}]을/를 눌러 대상을 조사합니다.,[{SETTINGS_INPUT_UV-LIGHT}]을/를 눌러 대상을 조사합니다.,Press [{SETTINGS_INPUT_UV-LIGHT}] to examine the target.
+WAITING-ROOM_TUTORIAL-TITLE_PROVISO,단서,단서,proviso
+WAITING-ROOM_TUTORIAL-GUIDE_FIND-CLUES-LEFT-OTHER-PERFORMERS-THROUGHOUT,대기실 곳곳에서 다른 공연 준비자들이 남긴 단서를 발견할 수 있습니다.,대기실 곳곳에서 다른 공연 준비자들이 남긴 단서를 발견할 수 있습니다.,You can find clues left by other performers throughout the backstage.
+WAITING-ROOM_TUTORIAL-TITLE_PERFORMANCE-EQUIPMENT,공연 장비,공연 장비,Performance Equipment
+WAITING-ROOM_TUTORIAL-GUIDE_FIND-PERFORMANCE-EQUIPMENT-UNLOCK-NEW-PERFORMANCES,공연 장비를 찾아 새로운 공연을 해금하세요.,공연 장비를 찾아 새로운 공연을 해금하세요.,Find performance equipment to unlock new performances.
+WAITING-ROOM_TUTORIAL-TITLE_SHOP,상점,상점,Shop
+WAITING-ROOM_TUTORIAL-GUIDE_PURCHASE-OR-USE-ITEMS-SERVICES-STORE,상점에서 기물·서비스를 구매하거나 이용할 수 있습니다.,상점에서 기물·서비스를 구매하거나 이용할 수 있습니다.,You can purchase or use items and services at the store.
+WAITING-ROOM_TUTORIAL-TITLE_MEDICAL-SERVICES,의료용 서비스,의료용 서비스,Medical services
+WAITING-ROOM_TUTORIAL-GUIDE_LOST-BODY-PARTS-TREATED-STORE-S,잃은 신체는 상점의 의료용 서비스로 치료할 수 있습니다.,잃은 신체는 상점의 의료용 서비스로 치료할 수 있습니다.,Lost body parts can be treated with the store's medical services.
+WAITING-ROOM_TUTORIAL-TITLE_RETURN-STAGE,무대 복귀,무대 복귀,Return to the stage
+WAITING-ROOM_TUTORIAL-GUIDE_ONCE-ALL-MEMBERS-ENTER-PERFORMANCE-STAGE,모든 단원이 공연 무대 입구로 들어서면 다음 공연을 진행합니다.,모든 단원이 공연 무대 입구로 들어서면 다음 공연을 진행합니다.,"Once all members enter the performance stage entrance, the next performance will proceed."
+WAITING-ROOM_TUTORIAL-TITLE_CALL-UP-ALERT,소집 경보,소집 경보,Call-up alert
+WAITING-ROOM_TUTORIAL-GUIDE_PLEASE-GATHER-ENTRANCE-STAGE-PERFORMANCE-WITHIN,제한 시간 안에 무대 공연 입구에 모이세요.,제한 시간 안에 무대 공연 입구에 모이세요.,Please gather at the entrance to the stage performance within the time limit.
+WAITING-ROOM_TUTORIAL-GUIDE_TWO-PERFORMERS-MUST-INTERACT,두 명의 공연 준비자가 상호작용 해야 합니다.,두 명의 공연 준비자가 상호작용 해야 합니다.,Two performers must interact.
+WAITING-ROOM_TUTORIAL-TITLE_MAINTENANCE-TIME,정비 시간,정비 시간,Maintenance time
+WAITING-ROOM_TUTORIAL-GUIDE_WRAP-UP-DAY-S-PERFORMANCE-PREPARE,하루의 공연을 마무리 하고 다음 날을 위한 정비를 취합니다.,하루의 공연을 마무리 하고 다음 날을 위한 정비를 취합니다.,Wrap up the day's performance and prepare for the next day.
+WAITING-ROOM_TUTORIAL-TITLE_PURCHASE-UTENSILS,기물 구매,기물 구매,Purchase of utensils
+WAITING-ROOM_TUTORIAL-GUIDE_SPEND-TOKENS-PURCHASE-ITEMS-SERVICES-PHONE,토큰을 소모해 전화기로 기물과 서비스를 구매할 수 있으며 아래 배송구를 통해 배출됩니다.,토큰을 소모해 전화기로 기물과 서비스를 구매할 수 있으며 아래 배송구를 통해 배출됩니다.,"You can spend tokens to purchase items and services on your phone, and they will be discharged through the delivery slot below."
+WAITING-ROOM_TUTORIAL-TITLE_CREATING-PERFORMANCE-SCHEDULE,공연 스케줄 작성,공연 스케줄 작성,Creating a performance schedule
+WAITING-ROOM_TUTORIAL-GUIDE_ROOM-MANAGER-MODIFY-FOLLOWING-SCHEDULE-SCHEDULE,방장은 스케줄표에서 다음 일정을 수정할 수 있습니다.,방장은 스케줄표에서 다음 일정을 수정할 수 있습니다.,The room manager can modify the following schedule in the schedule.
+WAITING-ROOM_TUTORIAL-TITLE_PROP-ROOM-SHELF,소품실 선반,소품실 선반,Prop room shelf
+WAITING-ROOM_TUTORIAL-GUIDE_STORES-PIECES-SHELF-STORED-PIECES-REMAIN,"선반에 기물을 보관합니다.
+보관된 기물은 게임 종료 전까지 유지됩니다.","선반에 기물을 보관합니다.
+보관된 기물은 게임 종료 전까지 유지됩니다.","Stores pieces on the shelf.
+Stored pieces remain until the end of the game."
+WAITING-ROOM_TUTORIAL-TITLE_SLEEPING,잠자기,잠자기,Sleeping
+WAITING-ROOM_TUTORIAL-GUIDE_WHEN-PREPARATIONS-COMPLETE-ALL-MEMBERS-PRESS,"준비가 끝나면 모든 단원은 침대에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 수면을 취합니다.
+모든 단원이 잠들면 다음 날이 됩니다.","준비가 끝나면 모든 단원은 침대에서 [{SETTINGS_INPUT_INTERACT}]를 눌러 수면을 취합니다.
+모든 단원이 잠들면 다음 날이 됩니다.","When preparations are complete, all members press [{SETTINGS_INPUT_INTERACT}] on their beds to sleep.
+When all members fall asleep, it becomes the next day."
+WAITING-ROOM_TUTORIAL-TITLE_OPENING-ACCOMMODATION-DOOR,숙소 문 열기,숙소 문 열기,Opening the accommodation door
+WAITING-ROOM_TUTORIAL-GUIDE_ACCOMMODATION-DOOR-CLOSED-LIE-DOWN-BED,숙소 문이 닫혀 있습니다. 침대에 누우려면 먼저 숙소 문을 열어야 합니다.,숙소 문이 닫혀 있습니다. 침대에 누우려면 먼저 숙소 문을 열어야 합니다.,"The accommodation door is closed. To lie down on the bed, you must first open the accommodation door."
+WAITING-ROOM_TUTORIAL-TITLE_INJURY-DURING-PERFORMANCE,공연 중 부상,공연 중 부상,Injury during performance
+WAITING-ROOM_TUTORIAL-GUIDE_INJURIES-SUSTAINED-DURING-PERFORMANCE-REMAIN-UPON,"공연에서 입은 부상은 복귀 시에도 유지됩니다.
+부상은 서비스를 통해 회복할 수 있습니다.","공연에서 입은 부상은 복귀 시에도 유지됩니다.
+부상은 서비스를 통해 회복할 수 있습니다.","Injuries sustained during a performance remain upon return.
+Injuries can be recovered through service."
+WAITING-ROOM_TUTORIAL-TITLE_INJURED-COLLEAGUE,부상 당한 동료,부상 당한 동료,injured colleague
+WAITING-ROOM_TUTORIAL-GUIDE_EVEN-AFTER-RETURNING-PERFORMANCE-COLLEAGUE-S,공연에서 복귀한 뒤에도 동료의 부상은 유지됩니다.,공연에서 복귀한 뒤에도 동료의 부상은 유지됩니다.,"Even after returning to the performance, the colleague's injury persists."
+WAITING-ROOM_TUTORIAL-TITLE_HANDS-FULL,손이 가득 참,손이 가득 참,Hands full
+WAITING-ROOM_TUTORIAL-GUIDE_NO-LONGER-CARRY-ITEMS-PRESS-HOLD,"더 이상 기물을 소지할 수 없습니다.
+[{SETTINGS_INPUT_INTERACT}]를 길게 눌러 기물을 버리거나 소품실에 보관할 수 있습니다.","더 이상 기물을 소지할 수 없습니다.
+[{SETTINGS_INPUT_INTERACT}]를 길게 눌러 기물을 버리거나 소품실에 보관할 수 있습니다.","You can no longer carry items. Press and hold
+[{SETTINGS_INPUT_INTERACT}] to discard items or store them in the prop room."
+WAITING-ROOM_TUTORIAL-TITLE_DURABILITY-CONSUMPTION,내구도 소모,내구도 소모,Durability consumption
+WAITING-ROOM_TUTORIAL-GUIDE_ITEMS-ALL-THEIR-DURABILITY-DEPLETED-DESTROYED,내구도가 모두 소모된 기물은 파괴됩니다.,내구도가 모두 소모된 기물은 파괴됩니다.,Items with all their durability depleted are destroyed.
+WAITING-ROOM_NAME_MANAGEMENT-OFFICE-DRAWER,관리실 서랍,관리실 서랍,Management office drawer
+WAITING-ROOM_TITLE_SEIZED-NOTEBOOK,압수한 노트,압수한 노트,seized notebook
+WAITING-ROOM_NAME_VENT-COVER,환풍구 덮개,환풍구 덮개,Vent cover
+WAITING-ROOM_NAME_HIDDEN-DOODLE-UV,숨겨진 낙서 1 — UV,숨겨진 낙서 1 — UV,Hidden Doodle 1 — UV
+WAITING-ROOM_TITLE_BACKSTAGE-OLD-MAP,대기실 낡은 지도,대기실 낡은 지도,Backstage old map
+WAITING-ROOM_TITLE_FIRST-TWO-DIGITS-PASSWORD,암호 앞 두 자리,암호 앞 두 자리,First two digits of the password
+WAITING-ROOM_NAME_LOCKED-TRUNK,자물쇠 잠긴 트렁크,자물쇠 잠긴 트렁크,Locked trunk
+WAITING-ROOM_TEXT_NIGHT-MAINTENANCE-BACKSTAGE-DOOR-LOCKED-NO,밤 정비 — 대기실 문이 잠겼습니다 · 탐색 시간 없음,밤 정비 — 대기실 문이 잠겼습니다 · 탐색 시간 없음,Night Maintenance — Backstage door is locked · No search time
+WAITING-ROOM_TEXT_CABINET-STAGE-SET-STORAGE-ROOM,무대 장치 보관실의 캐비넷 3,무대 장치 보관실의 캐비넷 3,Cabinet 3 in the stage set storage room
+WAITING-ROOM_NAME_LOCKED-DOOR-STAIRS,계단 잠긴 문,계단 잠긴 문,Locked door on the stairs
+WAITING-ROOM_TITLE_MINUTE-LEFT-BREAK-TIME,쉬는 시간 1분 남음,쉬는 시간 1분 남음,1 minute left of break time
+WAITING-ROOM_DESCRIPTION_THERE-MINUTE-LEFT-BREAK-TIME-CHASE,쉬는 시간이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,쉬는 시간이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,There is 1 minute left of break time. The chase begins when the time limit runs out.
+WAITING-ROOM_TITLE_SECONDS-LEFT-BREAK_1,쉬는 시간 30초 남음,쉬는 시간 30초 남음,30 seconds left of break
+WAITING-ROOM_DESCRIPTION_THERE-SECONDS-LEFT-BREAK-ALL-MEMBERS,쉬는 시간이 30초 남았습니다. 모든 단원들은 공연장 앞으로 모이세요.,쉬는 시간이 30초 남았습니다. 모든 단원들은 공연장 앞으로 모이세요.,"There are 30 seconds left of the break. All members, please gather at the front of the performance hall."
+WAITING-ROOM_TITLE_SECONDS-LEFT-BREAK_0,쉬는 시간 10초 남음,쉬는 시간 10초 남음,10 seconds left of break time
+WAITING-ROOM_DESCRIPTION_THERE-SECONDS-SECONDS-LEFT-BREAK-CHASE,쉬는 시간이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,쉬는 시간이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,There are {COMMON_VALUE_SECONDS} seconds left on break. The chase will begin soon.
+WAITING-ROOM_TITLE_MINUTE-REMAINING-MAINTENANCE,정비 시간 1분 남음,정비 시간 1분 남음,1 minute remaining for maintenance
+WAITING-ROOM_DESCRIPTION_THERE-MINUTE-LEFT-MAINTENANCE-CHASE-BEGIN,정비 시간이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,정비 시간이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,There is 1 minute left for maintenance. The chase will begin once the time limit expires.
+WAITING-ROOM_TITLE_MAINTENANCE-TIME-REMAINING-SECONDS_1,정비 시간 30초 남음,정비 시간 30초 남음,Maintenance time remaining 30 seconds
+WAITING-ROOM_DESCRIPTION_THERE-SECONDS-LEFT-MAINTENANCE-ALL-MEMBERS,정비 시간이 30초 남았습니다. 모든 단원들은 즉시 취침을 취하세요.,정비 시간이 30초 남았습니다. 모든 단원들은 즉시 취침을 취하세요.,"There are 30 seconds left for maintenance. All members, please go to sleep immediately."
+WAITING-ROOM_TITLE_MAINTENANCE-TIME-REMAINING-SECONDS_0,정비 시간 10초 남음,정비 시간 10초 남음,Maintenance time remaining 10 seconds
+WAITING-ROOM_DESCRIPTION_MAINTENANCE-TIME-SECONDS-SECONDS-REMAINING-CHASE,정비 시간이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,정비 시간이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,Maintenance time is {COMMON_VALUE_SECONDS} seconds remaining. The chase will begin soon.
+WAITING-ROOM_NAME_LOBBY-ENTRANCE,로비 입구,로비 입구,Lobby entrance
+WAITING-ROOM_NAME_LOUNGE-ENTRANCE,휴게실 입구,휴게실 입구,Lounge entrance
+WAITING-ROOM_NAME_SHOP-ENTRANCE,상점 입구,상점 입구,Shop entrance
+WAITING-ROOM_NAME_ACCOMMODATION-ENTRANCE,숙소 입구,숙소 입구,Accommodation entrance
+WAITING-ROOM_NAME_RESTROOM-ENTRANCE,화장실 입구,화장실 입구,restroom entrance
+WAITING-ROOM_NAME_ENTRANCE-PROP-ROOM,소품실 입구,소품실 입구,Entrance to the prop room
+WAITING-ROOM_NAME_STAGE-ENTRANCE-PASSAGEWAY,무대 입구 통로,무대 입구 통로,Stage entrance passageway
+WAITING-ROOM_NAME_PERFORMANCE-STAGE-ENTRANCE,공연 스테이지 입구,공연 스테이지 입구,Performance stage entrance
+WAITING-ROOM_NAME_ENTRANCE-EXPERT-BACKSTAGE,전문가 대기실 입구,전문가 대기실 입구,Entrance to the expert backstage
+WAITING-ROOM_NAME_PRACTICE-ROOM-ENTRANCE,연습실 입구,연습실 입구,Practice room entrance
+WAITING-ROOM_NAME_STUDIO-ENTRANCE,작업실 입구,작업실 입구,Studio entrance
+WAITING-ROOM_NAME_CARGO-LOADING-AREA-ENTRANCE,화물 적재장 입구,화물 적재장 입구,Cargo loading area entrance
+WAITING-ROOM_NAME_ENTRANCE-STAGE-EQUIPMENT-STORAGE-ROOM,무대 장치 보관실 입구,무대 장치 보관실 입구,Entrance to the stage equipment storage room
+WAITING-ROOM_NAME_PIPING-AREA-ENTRANCE,배관 구역 입구,배관 구역 입구,Piping area entrance
+WAITING-ROOM_NAME_WASTE-STORAGE-ENTRANCE,폐기물 보관소 입구,폐기물 보관소 입구,Waste storage entrance
+WAITING-ROOM_NAME_STAIRWAY-ENTRANCE,계단 입구,계단 입구,Stairway entrance
+WAITING-ROOM_NAME_MACHINE-ROOM-ENTRANCE,기계실 입구,기계실 입구,Machine room entrance
+WAITING-ROOM_NAME_ENTRANCE-PASSAGEWAY-CONNECTING-MANAGEMENT-OFFICE,관리실 연결 통로 입구,관리실 연결 통로 입구,Entrance to the passageway connecting to the management office
+WAITING-ROOM_NAME_MANAGEMENT-OFFICE-ENTRANCE,관리실 입구,관리실 입구,Management office entrance
+WAITING-ROOM_NAME_CHANGING-ROOM-ENTRANCE,탈의실 입구,탈의실 입구,Changing room entrance
+WAITING-ROOM_NAME_ENTRANCE-ESCAPE-ROUTE-CONNECTING-PASSAGE,탈출로 연결 통로 입구,탈출로 연결 통로 입구,Entrance to the escape route connecting passage
+WAITING-ROOM_NAME_LONG-CORRIDOR-ENTRANCE,긴 복도 입구,긴 복도 입구,long corridor entrance
+WAITING-ROOM_NAME_ENTRANCE-PREVIOUS-GENERATION-ACCOMMODATION,이전 세대 숙소 입구,이전 세대 숙소 입구,Entrance to the previous generation accommodation
+WAITING-ROOM_NAME_PREVIOUS-GENERATION-BATHROOM-ENTRANCE,이전 세대 화장실 입구,이전 세대 화장실 입구,Previous generation bathroom entrance
+WAITING-ROOM_NAME_ENTRANCE-PREVIOUS-GENERATION-PROP-ROOM,이전 세대 소품실 입구,이전 세대 소품실 입구,Entrance to the previous generation prop room
+WAITING-ROOM_NAME_WAREHOUSE-ENTRANCE,창고 입구,창고 입구,warehouse entrance
+WAITING-ROOM_NAME_EQUIPMENT-ROOM-ENTRANCE,설비실 입구,설비실 입구,Equipment room entrance
+WAITING-ROOM_DESCRIPTION_CUT-OFF-POWER-BREAK-DOOR-OR,"전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요.","전력을 끊어 문을 고장내거나, 배터리를 계속 삽입하세요.","Cut off the power to break the door, or keep the battery inserted."
+WAITING-ROOM_NAME_ELECTRIC-DOOR,전기 문,전기 문,Electric door
+WAITING-ROOM_NAME_RUSTY-DOOR,녹슨 문,녹슨 문,rusty door
+WAITING-ROOM_TEXT_PIPING-AREA,배관 구역,배관 구역,Piping area
+WAITING-ROOM_TEXT_ACCOMMODATION-RESTROOM,숙소 · 화장실,숙소 · 화장실,Accommodation · Restroom
+WAITING-ROOM_TEXT_WORKSHOP,작업실,작업실,Workshop
+WAITING-ROOM_TEXT_REHEARSAL-STAGE,연습 공연장,연습 공연장,Rehearsal Stage
+WAITING-ROOM_TEXT_STAGE-PASSAGE,무대 통로,무대 통로,Stage Passage
+WAITING-ROOM_TEXT_MAIN-PIPE-JUNCTION,주 배관 분배실,주 배관 분배실,Main Pipe Junction
+WAITING-ROOM_TEXT_LOBBY,로비,로비,Lobby
+WAITING-ROOM_TEXT_WAREHOUSE,물류 창고,물류 창고,Warehouse
+WAITING-ROOM_TEXT_CAM-LOBBY,CAM 01  로비,CAM 01  로비,CAM 01 Lobby
+WAITING-ROOM_TEXT_CAM-ACCOMMODATION,CAM 07  숙소,CAM 07  숙소,CAM 07 Accommodation
+WAITING-ROOM_TEXT_CAM-PRACTICE-ROOM,CAM 04  연습실,CAM 04  연습실,CAM 04 Practice Room
+WAITING-ROOM_TEXT_PROPS-ROOM-WORKSHOP,04 소품실 · 10 작업실,04 소품실 · 10 작업실,04 Props Room · 10 Workshop
+WAITING-ROOM_TEXT_STAGE-ENTRANCE-PASSAGE,06 무대 입구 통로,06 무대 입구 통로,06 Stage Entrance Passage
+WAITING-ROOM_TEXT_CARGO-STAGE-SET_0,12 화물 · 11 무대 장치,12 화물 · 11 무대 장치,12 Cargo · 11 Stage Set
+WAITING-ROOM_TEXT_SHELF-HANDED-DOWN-COMPARTMENTS,물려줄 선반(4칸),물려줄 선반(4칸),Shelf to be handed down (4 compartments)
+WAITING-ROOM_TEXT_RETIRED_3,04 / RETIRED,04 / 은퇴,04 / RETIRED
+WAITING-ROOM_TEXT_RETIRED_1,02 / RETIRED,02 / 은퇴,02 / RETIRED
+WAITING-ROOM_TEXT_RETIRED-TROUPE-ARCHIVE,RETIRED TROUPE / ARCHIVE,은퇴한 극단 / 아카이브,RETIRED TROUPE / ARCHIVE
+WAITING-ROOM_TEXT_RETIRED_2,03 / RETIRED,03 / 은퇴,03 / RETIRED
+WAITING-ROOM_TEXT_RETIRED_0,01 / RETIRED,01 / 은퇴,01 / RETIRED
+WAITING-ROOM_TEXT_BOX-OFFICE,매표소,매표소,Box Office
+WAITING-ROOM_TEXT_OPEN,열림,열림,Open
+WAITING-ROOM_TEXT_STAGE,무대 →,무대 →,Stage →
+WAITING-ROOM_TEXT_CLOSED,닫힘,닫힘,Closed
+WAITING-ROOM_TEXT_CURTAIN-CALL,CURTAIN CALL,커튼콜,CURTAIN CALL
+WAITING-ROOM_TEXT_PENALTY-BEING-LATE,늦으면 벌칙,늦으면 벌칙,Penalty for being late
+WAITING-ROOM_TEXT_SILENCE-DURING-PERFORMANCE,정숙! 공연 중,정숙! 공연 중,Silence! During the performance
+WAITING-ROOM_TEXT_PERFORMANCE-STAGE-ENTRANCE,⑦ 공연 스테이지 입구,⑦ 공연 스테이지 입구,⑦ Performance Stage Entrance
+WAITING-ROOM_TEXT_STAGE-ENTRANCE-PASSAGEWAY-ALTERNATIVE,⑥ 무대 입구 통로 (대체),⑥ 무대 입구 통로 (대체),⑥ Stage entrance passageway (alternative)
+WAITING-ROOM_TEXT_LOCKED-NIGHT-MAINTENANCE-PROGRESS,"잠김
+밤 정비 중","잠김
+밤 정비 중","Locked
+Night maintenance in progress"
+WAITING-ROOM_TEXT_GATHERING-JUDGMENT-AREA,집결 판정 영역,집결 판정 영역,Gathering Judgment Area
+WAITING-ROOM_TEXT_EXPERT,⑧  전문가,⑧  전문가,⑧ Expert
+WAITING-ROOM_TEXT_EXPERT-WAITING-ROOM,⑧ 전문가 대기실,⑧ 전문가 대기실,⑧ Expert Waiting Room
+WAITING-ROOM_TEXT_SOFA-TABLE,소파·탁자,소파·탁자,Sofa and table
+WAITING-ROOM_TEXT_CARGO-ELEVATOR,화물 승강기,화물 승강기,Cargo elevator
+WAITING-ROOM_TEXT_MAX-KG,MAX  2000kg,최대 2000kg,MAX  2000kg
+WAITING-ROOM_TEXT_SCENERY-RIGGING,11  SCENERY / RIGGING,11. 무대 장치/장비 설치,11  SCENERY / RIGGING
+WAITING-ROOM_TEXT_STAGE-SET-STORAGE_0,11  무대 장치 보관,11  무대 장치 보관,11 Stage Set Storage
+WAITING-ROOM_TEXT_STAGE-SET,11  무대 장치,11  무대 장치,11 Stage Set
+WAITING-ROOM_TEXT_CARGO-LOADING_0,12  화물 적재,12  화물 적재,12 Cargo Loading
+WAITING-ROOM_TEXT_CARGO-DISPATCH,12  CARGO / DISPATCH,12 화물/발송,12  CARGO / DISPATCH
+WAITING-ROOM_TEXT_GATHER,집결,집결,Gather
+WAITING-ROOM_TEXT_DAYS-UNTIL-CLOSING-CEREMONY,폐막까지 3일,폐막까지 3일,3 days until the closing ceremony
+WAITING-ROOM_TEXT_COME-DEEP-INTO-MACHINE-ROOM-I,"기계실 깊은 곳으로 와.
+거기서 기다리고 있을게.","기계실 깊은 곳으로 와.
+거기서 기다리고 있을게.","Come deep into the machine room.
+I'll be waiting there."
+WAITING-ROOM_TEXT_HINT-SHEET,힌트 낱장,힌트 낱장,Hint sheet
+WAITING-ROOM_TEXT_RESTROOM,② 화장실,② 화장실,② Restroom
+WAITING-ROOM_TEXT_WARDROBE,옷장,옷장,wardrobe
+WAITING-ROOM_TEXT_SPACES_1,2칸,2칸,2 spaces
+WAITING-ROOM_TEXT_I-DON-T-WANT-GO-I,"가고 싶지 않아.
+가고 싶지 않아.
+가고 싶지 않아.","가고 싶지 않아.
+가고 싶지 않아.
+가고 싶지 않아.","I don't want to go.
+I don't want to go.
+I don't want to go."
+WAITING-ROOM_TEXT_CIRCUS-RELATED-RECORDS,서커스 관련 기록물,서커스 관련 기록물,Circus-related records
+WAITING-ROOM_TEXT_ORGANIZED-STORAGE-SHELF,정리된 보관 선반,정리된 보관 선반,Organized storage shelf
+WAITING-ROOM_TEXT_BUSINESS-DURING-NIGHT-MAINTENANCE,밤 정비 때 영업,밤 정비 때 영업,Business during night maintenance
+WAITING-ROOM_TEXT_CARGO-LOADING_2,화물 적재 ,화물 적재 ,Cargo loading
+WAITING-ROOM_TEXT_DRESSING-TABLE-MIRROR,분장대·거울,분장대·거울,Dressing table and mirror
+WAITING-ROOM_TEXT_ACCOMMODATION,② 숙소,② 숙소,② Accommodation
+WAITING-ROOM_TEXT_I-MADE-TWO-PASSWORDS-KNOW-WHAT,"두 개의 암호를 만들었어.
+뭘 해야 하는지 알지?
+도망쳐.","두 개의 암호를 만들었어.
+뭘 해야 하는지 알지?
+도망쳐.","I made two passwords.
+You know what to do, right?
+Run away."
+WAITING-ROOM_TEXT_PERFORMANCE-RECORD-NOTES,공연 기록 노트,공연 기록 노트,Performance Record Notes
+WAITING-ROOM_TEXT_PROPS-ROOM,④ 소품실,④ 소품실,④ Props Room
+WAITING-ROOM_TEXT_RUN,20240912  RUN,20240912 런,20240912  RUN
+WAITING-ROOM_TEXT_DELIVERY-POINT,배송구,배송구,Delivery point
+WAITING-ROOM_TEXT_SPACES_2,3칸,3칸,3 spaces
+WAITING-ROOM_TEXT_WASTE-STORAGE-AREA,⑤ 폐기물 보관소,⑤ 폐기물 보관소,⑤ Waste storage area
+WAITING-ROOM_PROMPT_INFORMATION-BOARD,안내판,안내판,Information board
+WAITING-ROOM_TEXT_UNUSED-ITEMS,사용하지 않는 기물,사용하지 않는 기물,unused items
+WAITING-ROOM_TEXT_DAY-NO-ONE-COMING-YET-TOLD,"4일째.
+여전히 아무도 오지 않아.
+여기서 기다리라며…?
+다들 어디로 간 거야?","4일째.
+여전히 아무도 오지 않아.
+여기서 기다리라며…?
+다들 어디로 간 거야?","Day 4.
+No one is coming yet.
+You told us to wait here…?
+Where did everyone go?"
+WAITING-ROOM_TEXT_DRESSING-ROOM-CLOSET,분장실 옷장,분장실 옷장,dressing room closet
+WAITING-ROOM_TEXT_CLOTHING-STORAGE,의상 보관,의상 보관,Clothing storage
+WAITING-ROOM_TEXT_DOODLE,낙서,낙서,doodle
+WAITING-ROOM_TEXT_BACKSTAGE-DOOR,대기실 문 → ⑥,대기실 문 → ⑥,Backstage door → ⑥
+WAITING-ROOM_TEXT_IF-WE-CUT-OFF-POWER-SUPPLY,"전력 공급원을 끊고
+더 깊은 곳으로 가면
+나갈 수 있을까?","전력 공급원을 끊고
+더 깊은 곳으로 가면
+나갈 수 있을까?","If we cut off the power supply and go
+deeper,
+will we be able to get out?"
+WAITING-ROOM_TEXT_SPACES_0,1칸,1칸,1 square
+WAITING-ROOM_TEXT_STAGE-EQUIPMENT-STORAGE-ROOM,무대 장치 보관실,무대 장치 보관실,Stage equipment storage room
+WAITING-ROOM_TEXT_SMALL-SHELF,소품 선반,소품 선반,small shelf
+WAITING-ROOM_TEXT_STAIRS-BASEMENT,계단 · 지하,계단 · 지하,Stairs · Basement
+WAITING-ROOM_TEXT_CARGO-STAGE-SET_1,화물 · 무대 장치,화물 · 무대 장치,Cargo · Stage Equipment
+WAITING-ROOM_TEXT_RECEIVER,수화기,수화기,receiver
+WAITING-ROOM_TEXT_OLD-DOLLS-MASKED-FIGURES,낡은 인형·인형탈,낡은 인형·인형탈,old dolls/masked figures
+WAITING-ROOM_TEXT_PREVIOUS-GENERATION-COSTUMES,이전 세대 코스튬,이전 세대 코스튬,Previous generation costumes
+WAITING-ROOM_TEXT_SOME-DAY-NEW-HISTORY-BEGAN-OTHERS,"누군가에게는
+새 역사가 시작된 날,
+누군가에게는 기일.
+그 날을 기억해. 항상.","누군가에게는
+새 역사가 시작된 날,
+누군가에게는 기일.
+그 날을 기억해. 항상.","To some,
+the day a new history began; to others,
+an anniversary of death.
+Remember that day. Always."
+WAITING-ROOM_TEXT_DAY-FRIEND-DISAPPEARED-NEXT-DAY-ANOTHER,"2일째. 친구가 없어졌어.
+다음날 또 한명 없어졌어.
+항상 누군가 지켜보고 있는 것 같아.
+조심해.","2일째. 친구가 없어졌어.
+다음날 또 한명 없어졌어.
+항상 누군가 지켜보고 있는 것 같아.
+조심해.","Day 2. A friend disappeared.
+The next day, another person disappeared.
+It feels like someone is always watching.
+Be careful."
+WAITING-ROOM_TEXT_STAGE-SET-STORAGE_1,무대 장치 보관,무대 장치 보관,Stage equipment storage
+WAITING-ROOM_TEXT_SPACES_3,4칸,4칸,4 spaces
+WAITING-ROOM_TEXT_SEA-CHEST,사물함,사물함,sea ​​chest
+WAITING-ROOM_TEXT_GO-MANAGEMENT-OFFICE-COMPUTER-I-VE,"관리실 컴퓨터로 가.
+필요한 건 다 준비해놨어.
+여기서 나갈 방법을 찾아.","관리실 컴퓨터로 가.
+필요한 건 다 준비해놨어.
+여기서 나갈 방법을 찾아.","Go to the management office computer.
+, I've prepared everything you need.
+, find a way to get out of here."
+WAITING-ROOM_TEXT_PERFORMANCE-SLEEPING-PERFORMANCE-SLEEPING-PERFORMANCE,"공연.. 잠자기…
+공연.. 잠자기…
+공연?","공연.. 잠자기…
+공연.. 잠자기…
+공연?","Performance.. Sleeping…
+Performance.. Sleeping…
+Performance?"
+WAITING-ROOM_TEXT_WAITING-ROOM-LOBBY,① 대기실 로비,① 대기실 로비,① Waiting Room Lobby
+WAITING-ROOM_TEXT_ESCAPE-PREPARATION-DEPART-WHEN-ALL-PLAYERS,"탈출 준비
+플레이 중인 전원이 모이면 출발","탈출 준비
+플레이 중인 전원이 모이면 출발","Escape Preparation
+. Depart when all players have gathered."
+WAITING-ROOM_TEXT_CARGO-LOADING_1,화물 적재,화물 적재,Cargo loading
+WAITING-ROOM_TEXT_SECOND,을,을,second
+WAITING-ROOM_TEXT_CAST,를,를,cast
+WAITING-ROOM_TEXT_THIS,이,이,this
+WAITING-ROOM_TEXT_GO,가,가,go
+WAITING-ROOM_TEXT_SILVER,은,은,silver
+WAITING-ROOM_TEXT_IS,는,는,Is
+WAITING-ROOM_TEXT_CLASS,과,과,class
+WAITING-ROOM_TEXT_AND,와,와,and
+WAITING-ROOM_TEXT_AM,이다,이다,am
+WAITING-ROOM_TEXT_ALL,다,다,all
+WAITING-ROOM_TEXT_BY,으로,으로,by
+WAITING-ROOM_TEXT_AS,로,로,as
+WAITING-ROOM_TEXT_CAM-FIRST-ARGUMENT-SECOND-ARGUMENT,CAM {COMMON_VALUE_FIRST-ARGUMENT}  {COMMON_VALUE_SECOND-ARGUMENT},CAM {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT},CAM {COMMON_VALUE_FIRST-ARGUMENT}  {COMMON_VALUE_SECOND-ARGUMENT}
+WAITING-ROOM_TEXT_ASSEMBLE-STAGE-ENTRANCE-FIRST-ARGUMENT-SECOND,⑥ 무대 입구 집결 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},⑥ 무대 입구 집결 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},⑥ Assemble at stage entrance {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+WAITING-ROOM_TEXT_RUSTY-PORTABLE-CUTTER,녹슨 휴대 절단기,녹슨 휴대 절단기,Rusty portable cutter
+WAITING-ROOM_TEXT_BED-WHERE-ANOTHER-MEMBER-LYING-PLEASE,다른 단원이 누운 침대입니다. 빈 침대를 쓰세요.,다른 단원이 누운 침대입니다. 빈 침대를 쓰세요.,This is the bed where another member is lying. Please use the empty bed.
+WAITING-ROOM_TEXT_USED-DURING-NIGHT-MAINTENANCE,밤 정비 때 쓸 수 있습니다,밤 정비 때 쓸 수 있습니다,It can be used during night maintenance.
+WAITING-ROOM_TEXT_ANOTHER-UNIT-USING,다른 단원이 사용 중,다른 단원이 사용 중,Another unit is using it
+WAITING-ROOM_TEXT_PATH-SEGMENT-FIRST-ARGUMENT-SECOND-ARGUMENT,경로 구간 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT},경로 구간 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT},Path segment {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}
+WAITING-ROOM_TEXT_NO-BOTTOM-PATH-FIRST-ARGUMENT-SECOND,"바닥 경로 없음: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}, {COMMON_VALUE_THIRD-ARGUMENT}","바닥 경로 없음: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}, {COMMON_VALUE_THIRD-ARGUMENT}","No bottom path: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT} , {COMMON_VALUE_THIRD-ARGUMENT}"
+WAITING-ROOM_TEXT_NO-CANDIDATES,후보 없음,후보 없음,No candidates
+WAITING-ROOM_PROMPT_THERE-NO-MAIN-NOTICE-YET,아직 본 안내가 없습니다.,아직 본 안내가 없습니다.,There is no main notice yet.
+WAITING-ROOM_PROMPT_GUIDE_0, · 안내 켜짐=, · 안내 켜짐=,· Guide On=
+WAITING-ROOM_TEXT_LINKING, 연계중=, 연계중=,Linking
+WAITING-ROOM_TEXT_PANEL, 패널=, 패널=,Panel=
+WAITING-ROOM_PROMPT_GUIDE_1, 본안내=[, 본안내=[,This guide=[
+WAITING-ROOM_TEXT_CURTAIN, · 커튼=, · 커튼=,· Curtain=
+WAITING-ROOM_TEXT_CAMPAIGN-DAY-FIRST-ARGUMENT-SECOND-ARGUMENT, · 캠페인 {COMMON_VALUE_FIRST-ARGUMENT}일차 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT} 준비 {COMMON_VALUE_FIFTH-ARGUMENT}/{COMMON_VALUE_SIXTH-ARGUMENT} 호스트={COMMON_VALUE_SEVENTH-ARGUMENT}, · 캠페인 {COMMON_VALUE_FIRST-ARGUMENT}일차 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT} 준비 {COMMON_VALUE_FIFTH-ARGUMENT}/{COMMON_VALUE_SIXTH-ARGUMENT} 호스트={COMMON_VALUE_SEVENTH-ARGUMENT},· Campaign Day {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT} Preparation {COMMON_VALUE_FIFTH-ARGUMENT} / {COMMON_VALUE_SIXTH-ARGUMENT} Host= {COMMON_VALUE_SEVENTH-ARGUMENT}
+WAITING-ROOM_TEXT_ME-CLIENT-FIRST-ARGUMENT-SLOT-SECOND, · 나 client={COMMON_VALUE_FIRST-ARGUMENT} slot={COMMON_VALUE_SECOND-ARGUMENT} 입력읽기={COMMON_VALUE_THIRD-ARGUMENT}, · 나 client={COMMON_VALUE_FIRST-ARGUMENT} slot={COMMON_VALUE_SECOND-ARGUMENT} 입력읽기={COMMON_VALUE_THIRD-ARGUMENT},· Me client= {COMMON_VALUE_FIRST-ARGUMENT} slot= {COMMON_VALUE_SECOND-ARGUMENT} inputread= {COMMON_VALUE_THIRD-ARGUMENT}
+WAITING-ROOM_TEXT_SCENE, · 씬[, · 씬[,· Scene[
+WAITING-ROOM_TEXT_ALL-PERFORMERS-MOVE-ONCE-THEY-CONFIRMED,모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL}),All performers can move once they have confirmed the instructions. ( {COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL} )
+WAITING-ROOM_TEXT_PREPARING-NEXT-PERFORMANCE,다음 공연 준비하기,다음 공연 준비하기,Preparing for the next performance
+WAITING-ROOM_TEXT_FIND-RECORDS-LEFT-OTHER-PERFORMERS-BACKSTAGE,대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요.,대기실에서 다른 공연 준비자들이 남긴 기록을 발견할 수 있습니다. 그러나 공연은 계속되어야 합니다. 다음 공연을 준비하세요.,"You can find records left by other performers in the backstage. However, the performance must go on. Please prepare for the next performance."
+WAITING-ROOM_TEXT_TODAY-S-TASKS,오늘 할 일,오늘 할 일,Today's tasks
+WAITING-ROOM_TEXT_PLEASE-FOLLOW-SCREEN-INSTRUCTIONS-PROCEED-TODAY,화면 안내에 따라 오늘 일정을 진행하세요.,화면 안내에 따라 오늘 일정을 진행하세요.,Please follow the on-screen instructions to proceed with today's schedule.
+WAITING-ROOM_TEXT_LOCATION-X,위치X,위치X,Location X
+WAITING-ROOM_TEXT_LOCATION-Y,위치Y,위치Y,Location Y
+WAITING-ROOM_TEXT_WIDTH,너비,너비,width
+WAITING-ROOM_TEXT_DISPLAY-TIME,표시시간,표시시간,Display time
+WAITING-ROOM_TEXT_INTERVAL,간격,간격,interval
+WAITING-ROOM_TEXT_TITLE-SIZE,제목크기,제목크기,Title size
+WAITING-ROOM_TEXT_TEXT-SIZE,본문크기,본문크기,Text size
+WAITING-ROOM_TEXT_BREAK-TIME,쉬는 시간,쉬는 시간,break time
+WAITING-ROOM_TEXT_LOOK-AROUND-BACKSTAGE-UNTIL-NEXT-PERFORMANCE,다음 공연까지 대기실을 둘러볼 수 있습니다. 남은 시간은 오른쪽 아래 시계에 보입니다.,다음 공연까지 대기실을 둘러볼 수 있습니다. 남은 시간은 오른쪽 아래 시계에 보입니다.,You can look around the backstage until the next performance. The remaining time is displayed on the clock in the bottom right corner.
+WAITING-ROOM_TEXT_IF-GO-DEEP-TIME-FLOWS,깊이 들어가면 시간이 흐릅니다,깊이 들어가면 시간이 흐릅니다,"If you go deep, time flows."
+WAITING-ROOM_TEXT_CLOCKS-STOP-LIVING-AREAS-SUCH-LOBBIES,로비·숙소 같은 생활 구역에서는 시계가 멈춥니다. 배관·기계실·지하처럼 깊은 곳에 들어가면 시계가 흐릅니다.,로비·숙소 같은 생활 구역에서는 시계가 멈춥니다. 배관·기계실·지하처럼 깊은 곳에 들어가면 시계가 흐릅니다.,"Clocks stop in living areas such as lobbies and accommodations. Clocks run when you go deep into places like plumbing, machine rooms, or basements."
+WAITING-ROOM_PROMPT_IF-LOOK-OBJECT-GLOWING-OUTLINE-PRESS,외곽선이 빛나는 물건을 바라보고 [{SETTINGS_INPUT_INTERACT}]를 누르면 조사하거나 집을 수 있습니다.,외곽선이 빛나는 물건을 바라보고 [{SETTINGS_INPUT_INTERACT}]를 누르면 조사하거나 집을 수 있습니다.,"If you look at an object with a glowing outline and press [{SETTINGS_INPUT_INTERACT}], you can examine or pick it up."
+WAITING-ROOM_TEXT_VIEW-DETAILS,자세히 보기,자세히 보기,View details
+WAITING-ROOM_TEXT_DRAG-LEFT-ROTATE-USE-WHEEL-ZOOM,왼쪽 끌기로 돌려 보고 휠로 확대합니다. [{SETTINGS_INPUT_INTERACT}]·ESC로 내려놓습니다. 화면을 보는 동안에도 시간은 흐릅니다.,왼쪽 끌기로 돌려 보고 휠로 확대합니다. [{SETTINGS_INPUT_INTERACT}]·ESC로 내려놓습니다. 화면을 보는 동안에도 시간은 흐릅니다.,Drag left to rotate and use the wheel to zoom in. Press [{SETTINGS_INPUT_INTERACT}] · ESC to minimize. Time continues to run while you view the screen.
+WAITING-ROOM_TEXT_CARRYING-AROUND,들고 다니기,들고 다니기,Carrying around
+WAITING-ROOM_PROMPT_CARRY-UP-SLOTS-ITEMS-DEFAULT-CARRY,"기물은 기본 2칸까지 들 수 있고, 배낭이 있으면 더 들 수 있습니다. [{SETTINGS_INPUT_DROP-ITEM}]를 누르면 고른 기물을 내려놓습니다.","기물은 기본 2칸까지 들 수 있고, 배낭이 있으면 더 들 수 있습니다. [{SETTINGS_INPUT_DROP-ITEM}]를 누르면 고른 기물을 내려놓습니다.","You can carry up to 2 slots of items by default, and can carry more if you have a backpack. Press [{SETTINGS_INPUT_DROP-ITEM}] to put down the selected item."
+WAITING-ROOM_TEXT_HAIRPIN,머리핀,머리핀,hairpin
+WAITING-ROOM_TEXT_TRY-UNLOCKING-LOCKED-BOX-OR-CABINET,"잠긴 상자·캐비닛 앞에서 [{SETTINGS_INPUT_INTERACT}]로 따 봅니다. 한 번에 안 열릴 수 있고, 열렸을 때만 닳습니다.","잠긴 상자·캐비닛 앞에서 [{SETTINGS_INPUT_INTERACT}]로 따 봅니다. 한 번에 안 열릴 수 있고, 열렸을 때만 닳습니다.","Try unlocking a locked box or cabinet with [{SETTINGS_INPUT_INTERACT}]. It may not open on the first try, and it only wears out when opened."
+WAITING-ROOM_TEXT_STAKE-PULLER,말뚝 뽑개,말뚝 뽑개,Stake puller
+WAITING-ROOM_TEXT_HIT-WOODEN-BOX-OR-WEAK-LOOKING,나무 상자나 약해 보이는 벽을 [{SETTINGS_INPUT_INTERACT}]로 내리칩니다. 여러 번 쳐야 부서지는 것도 있습니다.,나무 상자나 약해 보이는 벽을 [{SETTINGS_INPUT_INTERACT}]로 내리칩니다. 여러 번 쳐야 부서지는 것도 있습니다.,Hit a wooden box or a weak-looking wall with [{SETTINGS_INPUT_INTERACT}]. Some require several hits to break.
+WAITING-ROOM_PROMPT_TURNS-WHILE-HOLD-UV-LIGHT-TRY,[{SETTINGS_INPUT_UV-LIGHT}]을 누르고 있는 동안 켜집니다. 맨눈에 안 보이는 낙서를 비춰 보세요.,[{SETTINGS_INPUT_UV-LIGHT}]을 누르고 있는 동안 켜집니다. 맨눈에 안 보이는 낙서를 비춰 보세요.,It turns on while you hold [{SETTINGS_INPUT_UV-LIGHT}]. Try shining it on scribbles invisible to the naked eye.
+WAITING-ROOM_TEXT_SCATTERED-CLUES-CONNECT-EACH-OTHER-COLLECT,흩어진 단서는 서로 이어집니다. 숫자·그림·열쇠를 모아 잠긴 문과 숨은 길을 열어 보세요.,흩어진 단서는 서로 이어집니다. 숫자·그림·열쇠를 모아 잠긴 문과 숨은 길을 열어 보세요.,"The scattered clues connect to each other. Collect numbers, pictures, and keys to unlock locked doors and hidden paths."
+WAITING-ROOM_TEXT_HIDDEN-PERFORMANCE-EQUIPMENT,숨은 공연 장비,숨은 공연 장비,Hidden performance equipment
+WAITING-ROOM_TEXT_THERE-UNUSED-PERFORMANCE-EQUIPMENT-SOMEWHERE-BACKSTAGE,대기실 어딘가에 아직 쓰지 않은 공연 장비가 있습니다. 찾아서 챙기면 새 공연이 열립니다.,대기실 어딘가에 아직 쓰지 않은 공연 장비가 있습니다. 찾아서 챙기면 새 공연이 열립니다.,"There is unused performance equipment somewhere in the backstage. If you find and take it, a new performance will begin."
+WAITING-ROOM_TEXT_DURING-BREAK-TIMES-ONLY-BODY-RECOVERY,쉬는 시간에는 신체 복구 서비스만 이용할 수 있습니다. 기물 구매는 밤 정비에 열립니다.,쉬는 시간에는 신체 복구 서비스만 이용할 수 있습니다. 기물 구매는 밤 정비에 열립니다.,"During break times, only body recovery services are available. Item purchases open during night maintenance."
+WAITING-ROOM_TEXT_LOST-LIMBS-RECOVERED-USING-SHOP-S,잃은 팔다리는 상점의 신체 복구 서비스로 되찾을 수 있습니다. 예약한 뒤 승강기로 가세요. 비용은 팀 토큰입니다.,잃은 팔다리는 상점의 신체 복구 서비스로 되찾을 수 있습니다. 예약한 뒤 승강기로 가세요. 비용은 팀 토큰입니다.,Lost limbs can be recovered using the shop's body repair service. Please make a reservation and then head to the elevator. The cost is Team Tokens.
+WAITING-ROOM_TEXT_WHEN-BELL-RINGS-RETURN-STAGE-ENTRANCE,종이 울리면 무대 입구 통로로 돌아가세요. 시간이 끝났을 때 통로 밖에 있으면 팔 하나를 잃고 무대로 끌려갑니다. 모두 모이면 바로 공연이 시작됩니다.,종이 울리면 무대 입구 통로로 돌아가세요. 시간이 끝났을 때 통로 밖에 있으면 팔 하나를 잃고 무대로 끌려갑니다. 모두 모이면 바로 공연이 시작됩니다.,"When the bell rings, return to the stage entrance aisle. If you are outside the aisle when time runs out, you will lose an arm and be dragged onto the stage. The performance begins immediately once everyone is gathered."
+WAITING-ROOM_TEXT_BELL-RUNG-PLEASE-RETURN-STAGE-ENTRANCE,종이 울렸습니다. 시간이 끝나기 전에 무대 입구 통로로 돌아가세요.,종이 울렸습니다. 시간이 끝나기 전에 무대 입구 통로로 돌아가세요.,The bell has rung. Please return to the stage entrance aisle before time runs out.
+WAITING-ROOM_TEXT_KEYHOLE,열쇠 구멍,열쇠 구멍,keyhole
+WAITING-ROOM_TEXT_SEE-TWO-KEYHOLES,2개의 열쇠 구멍이 보입니다.,2개의 열쇠 구멍이 보입니다.,You can see two keyholes.
+WAITING-ROOM_TEXT_NEXT-PERFORMANCE-CHANGED-ANY-TIME-SCHEDULE,다음 공연은 스케줄표에서 언제든 바꿀 수 있습니다. 탐색과 준비를 마치고 숙소 침대에서 하루를 마무리하세요.,다음 공연은 스케줄표에서 언제든 바꿀 수 있습니다. 탐색과 준비를 마치고 숙소 침대에서 하루를 마무리하세요.,"The next performance can be changed at any time on the schedule. Finish exploring and getting ready, then wrap up your day in your bed at the accommodation."
+WAITING-ROOM_TEXT_POTTERY,기물 사기,기물 사기,pottery
+WAITING-ROOM_TEXT_PURCHASE-ITEMS-USING-SHOP-RECEIVER-PURCHASED,상점 수화기로 기물을 살 수 있습니다. 산 물건은 아래 배송구로 떨어집니다. 토큰은 팀이 함께 씁니다.,상점 수화기로 기물을 살 수 있습니다. 산 물건은 아래 배송구로 떨어집니다. 토큰은 팀이 함께 씁니다.,You can purchase items using the shop receiver. Purchased items drop into the delivery slot below. The team uses the tokens together.
+WAITING-ROOM_TEXT_DECIDING-TOMORROW-S-PERFORMANCE,내일 공연 정하기,내일 공연 정하기,Deciding on tomorrow's performance
+WAITING-ROOM_TEXT_SELECTING-PERFORMANCE-DIFFICULTY-LEVEL-LOBBY-SCHEDULE,로비 스케줄표에서 공연과 난이도를 고르면 바로 적용됩니다. 공연 입장 전까지 변경할 수 있습니다.,로비 스케줄표에서 공연과 난이도를 고르면 바로 적용됩니다. 공연 입장 전까지 변경할 수 있습니다.,Selecting a performance and difficulty level from the lobby schedule applies it immediately. You can change it until just before entering the performance.
+WAITING-ROOM_TEXT_SHELF-HANDED-DOWN,물려줄 선반,물려줄 선반,A shelf to be handed down
+WAITING-ROOM_PROMPT_PIECES-PLACED-TH-SHELF-REMAIN-EVEN,선반 4칸에 올린 기물은 런에 실패해 처음부터 다시 시작해도 남습니다.,선반 4칸에 올린 기물은 런에 실패해 처음부터 다시 시작해도 남습니다.,Pieces placed on the 4th shelf remain even if you fail the run and start over from the beginning.
+WAITING-ROOM_TEXT_DRAGONFLY,잠자리,잠자리,dragonfly
+WAITING-ROOM_PROMPT_WHEN-READY-PRESS-INTERACT-BED-ACCOMMODATION,준비가 끝나면 숙소의 자기 침대에서 [{SETTINGS_INPUT_INTERACT}]를 누르세요. 모두 누우면 다음 날이 됩니다.,준비가 끝나면 숙소의 자기 침대에서 [{SETTINGS_INPUT_INTERACT}]를 누르세요. 모두 누우면 다음 날이 됩니다.,"When you are ready, press [{SETTINGS_INPUT_INTERACT}] on your bed at the accommodation. Once everyone is lying down, it will be the next day."
+WAITING-ROOM_TEXT_WAKING-UP-AGAIN,다시 깨어남,다시 깨어남,Waking up again
+WAITING-ROOM_TEXT_HE-COLLAPSED-DURING-PERFORMANCE-BUT-RETURNED,공연에서 쓰러졌지만 팔 하나만 남은 채 돌아왔습니다. 신체 복구로 잃은 팔다리를 되찾을 수 있습니다.,공연에서 쓰러졌지만 팔 하나만 남은 채 돌아왔습니다. 신체 복구로 잃은 팔다리를 되찾을 수 있습니다.,He collapsed during a performance but returned with only one arm remaining. You can regain your lost limbs through body restoration.
+WAITING-ROOM_TEXT_FALLEN-COMRADE,쓰러진 동료,쓰러진 동료,fallen comrade
+WAITING-ROOM_TEXT_COLLEAGUE-WHO-COLLAPSED-DURING-PERFORMANCE-RETURNS,공연에서 쓰러진 동료는 다음 쉬는 시간에 팔 하나만 남은 채 돌아옵니다.,공연에서 쓰러진 동료는 다음 쉬는 시간에 팔 하나만 남은 채 돌아옵니다.,The colleague who collapsed during the performance returns during the next break with only one arm remaining.
+WAITING-ROOM_PROMPT_CANNOT-LIFTED-FURTHER-PLEASE-PUT-DOWN,더 들 수 없습니다. [{SETTINGS_INPUT_DROP-ITEM}]로 내려놓거나 소품실에 보관하세요.,더 들 수 없습니다. [{SETTINGS_INPUT_DROP-ITEM}]로 내려놓거나 소품실에 보관하세요.,Cannot be lifted further. Please put it down at [{SETTINGS_INPUT_DROP-ITEM}] or store it in the prop room.
+WAITING-ROOM_TEXT_USED-TOOLS,다 쓴 도구,다 쓴 도구,Used tools
+WAITING-ROOM_TEXT_TOOL-WORN-OUT-BUY-NEW-ONE,도구가 닳아 없어졌습니다. 밤 정비에 상점에서 새로 살 수 있습니다.,도구가 닳아 없어졌습니다. 밤 정비에 상점에서 새로 살 수 있습니다.,The tool has worn out. You can buy a new one at the store during night maintenance.
+WAITING-ROOM_TEXT_CLOSING-DATE-TBD,폐막일 미정,폐막일 미정,Closing date TBD
+WAITING-ROOM_TEXT_FIRST-ARGUMENT-DAYS-UNTIL-CLOSING,폐막까지 {COMMON_VALUE_FIRST-ARGUMENT}일,폐막까지 {COMMON_VALUE_FIRST-ARGUMENT}일,{COMMON_VALUE_FIRST-ARGUMENT} days until closing
+WAITING-ROOM_TEXT_CLOSING-DAY,폐막 당일,폐막 당일,Closing day
+WAITING-ROOM_TEXT_BACKSTAGE-DOOR-LOCKED-NO-TIME-LIMIT,대기실 문이 잠겼습니다 · 제한 시간 없음,대기실 문이 잠겼습니다 · 제한 시간 없음,The backstage door is locked · No time limit
+WAITING-ROOM_TEXT_BACKSTAGE-DOOR-LOCKED-MAINTENANCE-TIME-BEGINS,대기실 문이 잠겼습니다 · 정비 시간 시작,대기실 문이 잠겼습니다 · 정비 시간 시작,The backstage door is locked · Maintenance time begins
+WAITING-ROOM_TEXT_EXPENSE-VERIFICATION-FIRST-ARGUMENT-TRYSPEND-NO,지출 검증 {COMMON_VALUE_FIRST-ARGUMENT} → 031 TrySpend (기물 지급 없음),지출 검증 {COMMON_VALUE_FIRST-ARGUMENT} → 031 TrySpend (기물 지급 없음),Expense Verification {COMMON_VALUE_FIRST-ARGUMENT} → 031 TrySpend (No equipment provided)
+WAITING-ROOM_TEXT_DUMMY-EXPENSE-VERIFICATION-NOT-MATERIAL-PAYMENT,더미 지출 검증 — 기물 지급/치료 아님,더미 지출 검증 — 기물 지급/치료 아님,Dummy Expense Verification — Not Material Payment/Treatment
+WAITING-ROOM_TEXT_BACKSTAGE-EXIT-MANUAL-SIGNAL-TIMER-STARTS,대기실 출구 수동 신호(타이머는 쉬는 시간 시작부터 흐름),대기실 출구 수동 신호(타이머는 쉬는 시간 시작부터 흐름),Backstage exit manual signal (timer starts from the beginning of the break)
+WAITING-ROOM_TEXT_NIGHT-PREPARATION-SETREADY,밤 준비 → 028 SetReady,밤 준비 → 028 SetReady,Night Preparation → 028 SetReady
+WAITING-ROOM_TEXT_OPENING-SCENE,시작 씬,시작 씬,Opening scene
+WAITING-ROOM_TEXT_ADDITIONAL-LOAD,추가 로드,추가 로드,Additional load
+WAITING-ROOM_TEXT_COMPLETE-REPLACEMENT,통째 교체,통째 교체,Complete replacement
+WAITING-ROOM_TEXT_SYNTHETIC-LOBBY-COPY-REQUEST,합성 로비 · 복사 요청 ,합성 로비 · 복사 요청 ,Synthetic Lobby · Copy Request
+WAITING-ROOM_TEXT_NO-CLIPBOARD-WRITES,회 · 클립보드 쓰기 없음,회 · 클립보드 쓰기 없음,No clipboard writes
+WAITING-ROOM_TEXT_VERY-LONG-ROOM-MANAGER-NAME-GANADARAMABASA,아주긴방장이름가나다라마바사,아주긴방장이름가나다라마바사,Very long room manager name GaNaDaRaMaBaSa
+WAITING-ROOM_TEXT_HEARTBREAK,단장,단장,heartbreak
+WAITING-ROOM_TEXT_SYNTHETIC-DATA-NO-GAME-CONNECTION,합성 데이터 · 게임 연결 없음 · ,합성 데이터 · 게임 연결 없음 · ,Synthetic data · No game connection ·
+WAITING-ROOM_TEXT_PAUSE-REDUCE-FUNDS,멈춤/자금 감소,멈춤/자금 감소,Pause/Reduce Funds
+WAITING-ROOM_TEXT_INCREASE-MOBILIZATION-FUNDING,소집/자금 증가,소집/자금 증가,Increase in mobilization/funding
+WAITING-ROOM_TEXT_VARIABLE-SLOTS-EMPTY-SPACES,가변 슬롯/빈칸,가변 슬롯/빈칸,Variable slots/empty spaces
+WAITING-ROOM_TEXT_TOP-BOTTOM-UI-PRIORITY,상위 하단 UI 우선,상위 하단 UI 우선,Top and bottom UI priority
+WAITING-ROOM_TEXT_LOBBY-COVER,로비 가림,로비 가림,Lobby cover
+WAITING-ROOM_TEXT_LOBBY-LONG-VALUE,로비 긴 값,로비 긴 값,Lobby long value
+WAITING-ROOM_TEXT_LOBBY-INACTIVE,로비 비활성,로비 비활성,Lobby inactive
+WAITING-ROOM_TEXT_SLOT-CONTAINER,슬롯 컨테이너,슬롯 컨테이너,Slot Container
+WAITING-ROOM_TEXT_LONG-TERM-FUNDING-VALUE,자금 긴 값,자금 긴 값,Long-term funding value
+WAITING-ROOM_TEXT_MUSTER,소집,소집,muster
+WAITING-ROOM_TEXT_MINUTE-REMAINING, 1분 남음, 1분 남음,1 minute remaining
+WAITING-ROOM_TEXT_THERE-MINUTE-LEFT-CHASE-BEGINS-WHEN,이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,이 1분 남았습니다. 제한 시간이 끝나면 추격이 시작됩니다.,There is 1 minute left. The chase begins when the time limit expires.
+WAITING-ROOM_TEXT_SECONDS-REMAINING_1, 30초 남음, 30초 남음,30 seconds remaining
+WAITING-ROOM_TEXT_THERE-SECONDS-LEFT,이 30초 남았습니다. ,이 30초 남았습니다. ,There are 30 seconds left.
+WAITING-ROOM_TEXT_SLEEP-ACCOMMODATION-BEDS-COLLEAGUES-OR-MOVE,동료들과 숙소 침대에서 잠들거나 출구로 이동하세요.,동료들과 숙소 침대에서 잠들거나 출구로 이동하세요.,Sleep in the accommodation beds with your colleagues or move to the exit.
+WAITING-ROOM_TEXT_PLEASE-PROCEED-THEATER-ENTRANCE-OR-ESCAPE,공연장 입구나 탈출로로 이동하세요.,공연장 입구나 탈출로로 이동하세요.,Please proceed to the theater entrance or the escape route.
+WAITING-ROOM_TEXT_SECONDS-REMAINING_0, 10초 남음, 10초 남음,10 seconds remaining
+WAITING-ROOM_TEXT_THERE-SECONDS-SECONDS-LEFT-CHASE-BEGIN,이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,이 {COMMON_VALUE_SECONDS}초 남았습니다. 곧 추격이 시작됩니다.,There are {COMMON_VALUE_SECONDS} seconds left. The chase will begin soon.
+WAITING-ROOM_TEXT_RUN-AWAY-PURSUERS,추격자를 피해 달아나세요.,추격자를 피해 달아나세요.,Run away from your pursuers.
+WAITING-ROOM_TEXT_GATHER-ESCAPE-ROUTE-ENTRANCE-ESCAPE-CIRCUS,탈출로 입구로 모여 서커스를 탈출하세요.,탈출로 입구로 모여 서커스를 탈출하세요.,Gather at the escape route entrance and escape the circus.
+WAITING-ROOM_TEXT_USE-TIME-BACKSTAGE-PREPARE-NEXT-ACT,대기실은 다음 공연까지 대기하는 장소입니다. 다음 공연을 준비하세요.,대기실은 다음 공연까지 대기하는 장소입니다. 다음 공연을 준비하세요.,Use your time backstage to prepare for the next act.
+WAITING-ROOM_TEXT_PREPARATION-TIME,공연 준비 시간,공연 준비 시간,Preparation Time
+WAITING-ROOM_TEXT_ENTERING-RESTRICTED-AREA-DRAWS-RINGMASTER-S,"출입이 허용되지 않은 장소에 들어가면 서커스 단장의 감시가 시작되며, 제한 시간 안에 돌아오지 않으면 추격이 시작됩니다.","출입이 허용되지 않은 장소에 들어가면 서커스 단장의 감시가 시작되며, 제한 시간 안에 돌아오지 않으면 추격이 시작됩니다.",Entering a restricted area draws the ringmaster's attention. Return before time runs out or the chase begins.
+WAITING-ROOM_TEXT_PRESS-INTERACT-USE-LOCKED-CHEST-OR,잠긴 상자·캐비닛 앞에서 [{SETTINGS_INPUT_INTERACT}]로 사용합니다.,잠긴 상자·캐비닛 앞에서 [{SETTINGS_INPUT_INTERACT}]로 사용합니다.,Press [{SETTINGS_INPUT_INTERACT}] to use it on a locked chest or cabinet.
+WAITING-ROOM_TEXT_PRESS-INTERACT-USE-WOODEN-CRATE-OR,나무 상자나 약해 보이는 벽에 [{SETTINGS_INPUT_INTERACT}]로 상호작용합니다.,나무 상자나 약해 보이는 벽에 [{SETTINGS_INPUT_INTERACT}]로 상호작용합니다.,Press [{SETTINGS_INPUT_INTERACT}] to use it on a wooden crate or weakened wall.
+WAITING-ROOM_TEXT_BUY-EQUIPMENT-SERVICES-SHOP-AVAILABLE-SERVICES,상점에서 기물·서비스를 구매합니다. 시간대 별로 이용 가능한 서비스가 달라집니다.,상점에서 기물·서비스를 구매합니다. 시간대 별로 이용 가능한 서비스가 달라집니다.,Buy equipment and services at the shop. Available services change with the time of day.
+WAITING-ROOM_TEXT_RETURN-STAGE,무대로 복귀,무대로 복귀,Return to the stage
+WAITING-ROOM_TEXT_RETURN-STAGE-ENTRANCE-NEXT-SHOW-SHOW,다음 공연을 위해 무대 입구 통로로 돌아가세요. 모든 공연 준비자가 모이면 공연이 시작됩니다.,다음 공연을 위해 무대 입구 통로로 돌아가세요. 모든 공연 준비자가 모이면 공연이 시작됩니다.,Return to the stage entrance for the next show. The show starts when everyone arrives.
+WAITING-ROOM_TEXT_RETURN-STAGE-ENTRANCE-BEFORE-TIME-RUNS,제한 시간 안에 무대 입구 통로로 돌아가세요.,제한 시간 안에 무대 입구 통로로 돌아가세요.,Return to the stage entrance before time runs out.
+WAITING-ROOM_TEXT_TONIGHT-S-TASKS,오늘 밤 할 일,오늘 밤 할 일,Tonight's tasks
+WAITING-ROOM_TEXT_CHANGE-NEXT-ACT-SCHEDULE-ANY-TIME,다음 공연은 스케줄표에서 언제든 변경할 수 있습니다. 탐색과 준비를 마치고 숙소 침대에서 하루를 마무리하세요.,다음 공연은 스케줄표에서 언제든 변경할 수 있습니다. 탐색과 준비를 마치고 숙소 침대에서 하루를 마무리하세요.,"Change the next act on the schedule at any time. When you've finished exploring and preparing, end the day at a dormitory bed."
+WAITING-ROOM_TEXT_SPEND-TOKENS-EQUIPMENT-SHOP-COLLECT-PURCHASES,토큰을 소모해 상점에서 기물을 살 수 있습니다. 구매한 기물은 아래 배송구를 통해 배출됩니다.,토큰을 소모해 상점에서 기물을 살 수 있습니다. 구매한 기물은 아래 배송구를 통해 배출됩니다.,Spend tokens on equipment at the shop. Collect your purchases from the delivery slot below.
+WAITING-ROOM_TEXT_USE-SCHEDULE-PLAN-TOMORROW-S-ACTS,스케줄표에서 다음날 공연 일정을 작성합니다.,스케줄표에서 다음날 공연 일정을 작성합니다.,Use the schedule to plan tomorrow's acts.
+WAITING-ROOM_TEXT_STORE-EQUIPMENT-SHELF-STAYS-THERE-UNTIL,선반에 기물을 보관합니다. 보관된 기물은 게임 종료 전까지 사라지지 않습니다.,선반에 기물을 보관합니다. 보관된 기물은 게임 종료 전까지 사라지지 않습니다.,Store equipment on the shelf. It stays there until the game ends.
+WAITING-ROOM_PROMPT_PRESS-INTERACT-DORMITORY-BED-WHEN-RE,준비가 끝나면 숙소 침대에서 [{SETTINGS_INPUT_INTERACT}]를 누르세요. 살아 있는 동료가 모두 잠들면 다음 날이 됩니다.,준비가 끝나면 숙소 침대에서 [{SETTINGS_INPUT_INTERACT}]를 누르세요. 살아 있는 동료가 모두 잠들면 다음 날이 됩니다.,Press [{SETTINGS_INPUT_INTERACT}] at a dormitory bed when you're ready. The next day starts when all living teammates are asleep.
+WAITING-ROOM_PROMPT_IF-FAIL-ACT-LL-RETURN-BACKSTAGE,공연에 실패하면 부상 당한 상태로 대기실로 복귀합니다. 부상은 상점을 통해 치료할 수 있습니다.,공연에 실패하면 부상 당한 상태로 대기실로 복귀합니다. 부상은 상점을 통해 치료할 수 있습니다.,"If you fail an act, you'll return backstage injured. Buy treatment at the shop."
+WAITING-ROOM_PROMPT_TEAMMATES-WHO-FAIL-ACT-RETURN-BACKSTAGE,공연에 실패한 동료는 부상 당한 상태로 대기실로 복귀합니다.,공연에 실패한 동료는 부상 당한 상태로 대기실로 복귀합니다.,Teammates who fail an act return backstage injured.
+WAITING-ROOM_PROMPT_T-CARRY-ANY-MORE-EQUIPMENT-PRESS,더 이상 기물을 들 수 없습니다. [{SETTINGS_INPUT_DROP-ITEM}]로 기물을 내려놓거나 소품실에 보관하세요.,더 이상 기물을 들 수 없습니다. [{SETTINGS_INPUT_DROP-ITEM}]로 기물을 내려놓거나 소품실에 보관하세요.,You can't carry any more equipment. Press [{SETTINGS_INPUT_DROP-ITEM}] to drop an item or store it in the props room.

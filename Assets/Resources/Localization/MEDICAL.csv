@@ -1,0 +1,151 @@
+﻿key,source,ko,en
+MEDICAL_VALUE_LOST-LIMBS,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+MEDICAL_VALUE_BOOKED-COUNT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+MEDICAL_VALUE_SERVICE-PHASE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+MEDICAL_PROMPT_EXPERT-ROOM-NOT-BOUGHT,서비스를 구매한 공연 준비자만 이용 가능합니다.,서비스를 구매한 공연 준비자만 이용 가능합니다.,Only performers who have purchased the service can use it.
+MEDICAL_TEXT_EXPERT-ROOM_RIDE-LIFT,의료용 승강기 탑승,의료용 승강기 탑승,Ride the medical lift
+MEDICAL_TEXT_EXPERT-ROOM_ABSENT,담당자가 부재중입니다.,담당자가 부재중입니다.,The attendant is away.
+MEDICAL_TEXT_EXPERT-ROOM_OCCUPIED,다른 공연 준비자가 서비스를 이용 중입니다.,다른 공연 준비자가 서비스를 이용 중입니다.,Another performer is using the service.
+MEDICAL_TEXT_EXPERT-ROOM_BUY-FIRST,상점에서 의료 서비스를 구매하세요.,상점에서 의료 서비스를 구매하세요.,Book treatment at the shop.
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-PREPARING,준비 중,준비 중,Preparing
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-WAITING-ENTRY,{COMMON_VALUE_PLAYER-NAME} 입장 대기중...,{COMMON_VALUE_PLAYER-NAME} 입장 대기중...,Waiting for {COMMON_VALUE_PLAYER-NAME} to enter...
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-IN-USE,이용 중...,이용 중...,In use...
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-DONE,복구 완료,복구 완료,Recovery complete
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-OPEN,의료 서비스 이용 가능,의료 서비스 이용 가능,Medical services available
+MEDICAL_TEXT_EXPERT-ROOM_STATUS-CLOSED-SHOW,공연 중 이용 불가,공연 중 이용 불가,Not available during the performance
+MEDICAL_TEXT_EXPERT-ROOM_BOOKED-HINT-DISTANCE,서비스 예약됨 — 의료용 승강기 앞에서 F · {COMMON_VALUE_METERS}m,서비스 예약됨 — 의료용 승강기 앞에서 F · {COMMON_VALUE_METERS}m,Treatment booked — press F at the medical lift · {COMMON_VALUE_METERS} m
+MEDICAL_TEXT_EXPERT-ROOM_BOOKED-HINT,서비스 예약됨 — 의료용 승강기 앞에서 F,서비스 예약됨 — 의료용 승강기 앞에서 F,Treatment booked — press F at the medical lift
+MEDICAL_TEXT_EXPERT_OFFLINE-BUY,접속 중이 아니라 구매할 수 없습니다.,접속 중이 아니라 구매할 수 없습니다.,You cannot purchase because you are not online.
+MEDICAL_TEXT_EXPERT_OFFLINE-ENTER,접속 중이 아니라 이용할 수 없습니다.,접속 중이 아니라 이용할 수 없습니다.,You cannot use this service as you are not currently connected.
+MEDICAL_TEXT_EXPERT_BOUGHT,"구매 완료({COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 의료용 승강기 앞으로 이동하세요.","구매 완료({COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 의료용 승강기 앞으로 이동하세요.","Purchase complete ( {COMMON_VALUE_COUNT} pieces, {SHOP_VALUE_PRICE} ) — Please move to the medical elevator."
+MEDICAL_TEXT_EXPERT_BOUGHT-MORE,"추가 예약 완료(+{COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 총 {COMMON_VALUE_TOTAL}개를 복구합니다.","추가 예약 완료(+{COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 총 {COMMON_VALUE_TOTAL}개를 복구합니다.","Additional reservation completed (+ {COMMON_VALUE_COUNT}, {SHOP_VALUE_PRICE}) — Recovering a total of {COMMON_VALUE_TOTAL} items."
+MEDICAL_TEXT_EXPERT_GO-TO-LIFT,의료용 승강기 앞에서 상호작용하세요.,의료용 승강기 앞에서 상호작용하세요.,Interact in front of the medical elevator.
+MEDICAL_TEXT_EXPERT_SERVICE-TIME-ONLY,쉬는 시간·밤 정비에만 이용할 수 있습니다.,쉬는 시간·밤 정비에만 이용할 수 있습니다.,It is available only during break times and night maintenance.
+MEDICAL_TEXT_EXPERT_WHOLE-BODY,잃은 신체가 없습니다.,잃은 신체가 없습니다.,There is no lost body.
+MEDICAL_TEXT_EXPERT_NOT-ALIVE,살아 있는 공연 준비자만 이용할 수 있습니다.,살아 있는 공연 준비자만 이용할 수 있습니다.,Only live performers can use this.
+MEDICAL_TEXT_EXPERT_BUSY,다른 공연 준비자가 의료용 승강기를 이용 중입니다.,다른 공연 준비자가 의료용 승강기를 이용 중입니다.,Another performer is using the medical elevator.
+MEDICAL_TEXT_EXPERT_ALREADY-BOOKED,이미 구매했습니다 — 의료용 승강기 앞에서 F로 상호작용 하세요.,이미 구매했습니다 — 의료용 승강기 앞에서 F로 상호작용 하세요.,Already purchased — Interact with F in front of the medical elevator.
+MEDICAL_TEXT_EXPERT_NOT-BUYER,서비스를 구매한 공연 준비자만 들어갈 수 있습니다.,서비스를 구매한 공연 준비자만 들어갈 수 있습니다.,Only performers who have purchased the service can enter.
+MEDICAL_TEXT_EXPERT_WRONG-PHASE,지금은 이용할 수 없습니다.,지금은 이용할 수 없습니다.,It is not available right now.
+MEDICAL_TEXT_EXPERT_BAD-CHOICE,복구할 신체의 수를 다시 고르세요.,복구할 신체의 수를 다시 고르세요.,Please choose the number of bodies to restore again.
+MEDICAL_TEXT_SERVICE_PHASE-BOOKED,입장 대기중...,입장 대기중...,Waiting to enter...
+MEDICAL_TEXT_SERVICE_PHASE-WORKING,복구 중...,복구 중...,Restoring...
+MEDICAL_TEXT_SERVICE_PHASE-EXITING,퇴실 중...,퇴실 중...,Checking out...
+MEDICAL_TEXT_SERVICE_PHASE-IDLE,비어 있음,비어 있음,Empty
+MEDICAL_PROMPT_I-NO-MISSING-LIMBS,잃은 팔다리가 없습니다.,잃은 팔다리가 없습니다.,I have no missing limbs.
+MEDICAL_TEXT_ONLY-LIVING-PEOPLE-USE,살아 있는 사람만 이용할 수 있습니다.,살아 있는 사람만 이용할 수 있습니다.,Only living people can use it.
+MEDICAL_TEXT_ANOTHER-PERSON-USING-BODY-RECOVERY-ELEVATOR,다른 사람이 신체 복구 승강기를 이용 중입니다.,다른 사람이 신체 복구 승강기를 이용 중입니다.,Another person is using the body recovery elevator.
+MEDICAL_PROMPT_ALREADY-PURCHASED-LOBBY-PRESS-F-FRONT,이미 구매했습니다 — 로비 ⑧ 신체 복구 승강기 앞에서 F를 누르세요.,이미 구매했습니다 — 로비 ⑧ 신체 복구 승강기 앞에서 F를 누르세요.,Already purchased — Lobby ⑧ Press F in front of the Body Recovery elevator.
+MEDICAL_TEXT_ONLY-THOSE-WHO-PURCHASED-SERVICE-ENTER,서비스를 구매한 사람만 들어갈 수 있습니다.,서비스를 구매한 사람만 들어갈 수 있습니다.,Only those who have purchased the service can enter.
+MEDICAL_PROMPT_CANNOT-ENTER-RIGHT-NOW,지금은 들어갈 수 없습니다.,지금은 들어갈 수 없습니다.,You cannot enter right now.
+MEDICAL_TEXT_PLEASE-CHOOSE-NUMBER-LIMBS-RESTORE-AGAIN,복구할 팔다리 수를 다시 고르세요.,복구할 팔다리 수를 다시 고르세요.,Please choose the number of limbs to restore again.
+MEDICAL_TEXT_EXPAND-EXPERT-SERVICE-TEST-PANEL,전문가 서비스 테스트 패널 펴기,전문가 서비스 테스트 패널 펴기,Expand Expert Service Test Panel
+MEDICAL_TEXT_COLLAPSE-EXPERT-SERVICE-TEST-PANEL,전문가 서비스 테스트 패널 접기,전문가 서비스 테스트 패널 접기,Collapse Expert Service Test Panel
+MEDICAL_TEXT_NO-EXPERTSERVICE-RUN-SCENE-CONFIGURATION-MENU,ExpertService 없음 — 씬 구성 메뉴를 실행하세요.,ExpertService 없음 — 씬 구성 메뉴를 실행하세요.,No ExpertService — Run the Scene Configuration menu.
+MEDICAL_TEXT_BODY-RECOVERY-AVAILABLE,신체 복구 이용 가능,신체 복구 이용 가능,Body recovery available
+MEDICAL_TEXT_SHARED-FUNDS-FIRST-ARGUMENT-RECOVERY-SECOND, · 공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} · 복구 {COMMON_VALUE_SECOND-ARGUMENT}/개 (팀 이용 {COMMON_VALUE_THIRD-ARGUMENT}회), · 공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} · 복구 {COMMON_VALUE_SECOND-ARGUMENT}/개 (팀 이용 {COMMON_VALUE_THIRD-ARGUMENT}회),· Shared Funds {COMMON_VALUE_FIRST-ARGUMENT} · Recovery {COMMON_VALUE_SECOND-ARGUMENT} / item (Team used {COMMON_VALUE_THIRD-ARGUMENT} times)
+MEDICAL_TEXT_THERE-NO-CONNECTED-CHARACTERS,접속한 캐릭터가 없습니다.,접속한 캐릭터가 없습니다.,There are no connected characters.
+MEDICAL_TEXT_ME, (나), (나), (me)
+MEDICAL_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-LOST-LIMBS,{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT}: 잃은 팔다리 {COMMON_VALUE_THIRD-ARGUMENT} {COMMON_VALUE_FOURTH-ARGUMENT} · {COMMON_VALUE_FIFTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT}: 잃은 팔다리 {COMMON_VALUE_THIRD-ARGUMENT} {COMMON_VALUE_FOURTH-ARGUMENT} · {COMMON_VALUE_FIFTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} : Lost limbs {COMMON_VALUE_THIRD-ARGUMENT} {COMMON_VALUE_FOURTH-ARGUMENT} · {COMMON_VALUE_FIFTH-ARGUMENT}
+MEDICAL_TEXT_CUT_0,절단 1,절단 1,Cut 1
+MEDICAL_TEXT_CUT-BUTTON-USED-ONLY-HOST,절단 버튼은 호스트만 씁니다.,절단 버튼은 호스트만 씁니다.,The cut button is used only by the host.
+MEDICAL_TEXT_ESC-RELEASE-CURSOR-PANEL-CLICK,ESC: 커서 풀기(패널 클릭),ESC: 커서 풀기(패널 클릭),ESC: Release cursor (panel click)
+MEDICAL_TEXT_CLICK-EMPTY-AREA-SCREEN-RELOCK-MOUSE,화면 빈 곳 클릭: 마우스 시점 다시 잠금,화면 빈 곳 클릭: 마우스 시점 다시 잠금,Click on an empty area of ​​the screen: Relock mouse viewpoint
+MEDICAL_TEXT_NEXT-GO-RED-CURTAIN-F,다음: ⑧ 붉은 커튼 앞으로 가서 F,다음: ⑧ 붉은 커튼 앞으로 가서 F,Next: ⑧ Go to the red curtain and F
+MEDICAL_TEXT_WAITING-BUYER-ENTER,⑧: 구매자 입장 대기 중,⑧: 구매자 입장 대기 중,⑧: Waiting for buyer to enter
+MEDICAL_TEXT_USE_0,⑧ 이용 중,⑧ 이용 중,⑧ In use
+MEDICAL_TEXT_NEXT-USE-AFTER-BREAK-OR-NIGHT,다음: 쉬는 시간이나 밤 정비로 넘어간 뒤 이용,다음: 쉬는 시간이나 밤 정비로 넘어간 뒤 이용,Next: Use after the break or night maintenance begins.
+MEDICAL_TEXT_NEXT-AFTER-LOSING-LIMBS-DUE-AMPUTATION,다음: [절단 1]로 팔다리를 잃은 뒤 ③ 수화기,다음: [절단 1]로 팔다리를 잃은 뒤 ③ 수화기,Next: After losing limbs due to [Amputation 1] ③ Receiver
+MEDICAL_TEXT_ONLY-USED-WHILE-ALIVE,살아 있을 때만 이용할 수 있습니다,살아 있을 때만 이용할 수 있습니다,It can only be used while alive.
+MEDICAL_TEXT_NEXT-HANDSET-F-SELECT-QUANTITY-BODY,다음: ③ 수화기(F) → 오른쪽 '신체 복구'에서 개수를 골라 구매,다음: ③ 수화기(F) → 오른쪽 '신체 복구'에서 개수를 골라 구매,Next: ③ Handset (F) → Select quantity from 'Body Restoration' on the right and purchase
+MEDICAL_TEXT_LEFT-LEG_1,왼다리 ,왼다리 ,left leg
+MEDICAL_TEXT_RIGHT-LEG_1,오른다리 ,오른다리 ,right leg
+MEDICAL_TEXT_LEFT-ARM_1,왼팔 ,왼팔 ,left arm
+MEDICAL_TEXT_RIGHT-ARM_1,오른팔 ,오른팔 ,right arm
+MEDICAL_TEXT_BODY-RECOVERY-SERVICE-FIRST-ARGUMENT,신체 복구 서비스 — {COMMON_VALUE_FIRST-ARGUMENT},신체 복구 서비스 — {COMMON_VALUE_FIRST-ARGUMENT},Body Recovery Service — {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_AVAILABLE,이용 가능,이용 가능,Available
+MEDICAL_TEXT_USE-FIRST-ARGUMENT-SECOND-ARGUMENT,⑧ 이용: {COMMON_VALUE_FIRST-ARGUMENT} ({COMMON_VALUE_SECOND-ARGUMENT}),⑧ 이용: {COMMON_VALUE_FIRST-ARGUMENT} ({COMMON_VALUE_SECOND-ARGUMENT}),⑧ Use: {COMMON_VALUE_FIRST-ARGUMENT} ( {COMMON_VALUE_SECOND-ARGUMENT} )
+MEDICAL_TEXT_BODY-REPAIR-FIRST-ARGUMENT-PER-UNIT,신체 복구 — 1개당 {COMMON_VALUE_FIRST-ARGUMENT} (팀 이용 {COMMON_VALUE_SECOND-ARGUMENT}회),신체 복구 — 1개당 {COMMON_VALUE_FIRST-ARGUMENT} (팀 이용 {COMMON_VALUE_SECOND-ARGUMENT}회),Body Repair — {COMMON_VALUE_FIRST-ARGUMENT} per unit (Team usage {COMMON_VALUE_SECOND-ARGUMENT} times)
+MEDICAL_TEXT_FIRST-ARGUMENT-ITEMS-SECOND-ARGUMENT,"{COMMON_VALUE_FIRST-ARGUMENT}개
+{COMMON_VALUE_SECOND-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT}개
+{COMMON_VALUE_SECOND-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT} items
+{COMMON_VALUE_SECOND-ARGUMENT}"
+MEDICAL_TEXT_FIRST-ARGUMENT-LOST-LIMBS-UP-SECOND,잃은 팔다리 {COMMON_VALUE_FIRST-ARGUMENT}개 · 이번에 최대 {COMMON_VALUE_SECOND-ARGUMENT}개,잃은 팔다리 {COMMON_VALUE_FIRST-ARGUMENT}개 · 이번에 최대 {COMMON_VALUE_SECOND-ARGUMENT}개,{COMMON_VALUE_FIRST-ARGUMENT} lost limbs · Up to {COMMON_VALUE_SECOND-ARGUMENT} this time
+MEDICAL_TEXT_WAITING-ENTER,입장 대기,입장 대기,Waiting to enter
+MEDICAL_TEXT_RESTORING,복구 중,복구 중,Restoring
+MEDICAL_TEXT_CHECKING-OUT,퇴실 중,퇴실 중,Checking out
+MEDICAL_TEXT_ZARI-BODY-RESTORATION-PURCHASE-REQUEST-LOST,자리1 신체 복구 구매 요청(잃은 {COMMON_VALUE_FIRST-ARGUMENT}),자리1 신체 복구 구매 요청(잃은 {COMMON_VALUE_FIRST-ARGUMENT}),Zari 1 Body Restoration Purchase Request (Lost {COMMON_VALUE_FIRST-ARGUMENT})
+MEDICAL_TEXT_MOVE-SEAT-FORWARD-CURTAIN,자리1 커튼 앞으로 이동,자리1 커튼 앞으로 이동,"Move to seat 1, forward of the curtain."
+MEDICAL_TEXT_REQUEST-ENTRY-SEAT-CURTAIN-FIRST-ARGUMENT,자리1 입장 요청(커튼 {COMMON_VALUE_FIRST-ARGUMENT}),자리1 입장 요청(커튼 {COMMON_VALUE_FIRST-ARGUMENT}),Request entry to Seat 1 (Curtain {COMMON_VALUE_FIRST-ARGUMENT})
+MEDICAL_TEXT_SEAT-FRONT-CURTAIN-F-NOT-BUYER,자리2 커튼 앞 F(구매자 아님) → '{COMMON_VALUE_FIRST-ARGUMENT}',자리2 커튼 앞 F(구매자 아님) → '{COMMON_VALUE_FIRST-ARGUMENT}',Seat 2 Front of Curtain F (Not Buyer) → ' {COMMON_VALUE_FIRST-ARGUMENT} '
+MEDICAL_TEXT_ATTEMPTING-PURCHASE-ZARI-BODY-RESTORATION-CURRENTLY,자리2 신체 복구 구매 시도(예약 중),자리2 신체 복구 구매 시도(예약 중),Attempting to purchase Zari 2 body restoration (currently reserved)
+MEDICAL_TEXT_PLACE-FIRST-ARGUMENT-SECOND-ARGUMENT-DAY,자리{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}일 {COMMON_VALUE_THIRD-ARGUMENT} ⑧={COMMON_VALUE_FOURTH-ARGUMENT},자리{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}일 {COMMON_VALUE_THIRD-ARGUMENT} ⑧={COMMON_VALUE_FOURTH-ARGUMENT},Place {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Day {COMMON_VALUE_THIRD-ARGUMENT} ⑧= {COMMON_VALUE_FOURTH-ARGUMENT}
+MEDICAL_TEXT_PURCHASED-FIRST-ARGUMENT-SECOND-ARGUMENT-ITEMS,"(구매 {COMMON_VALUE_FIRST-ARGUMENT}, {COMMON_VALUE_SECOND-ARGUMENT}개)","(구매 {COMMON_VALUE_FIRST-ARGUMENT}, {COMMON_VALUE_SECOND-ARGUMENT}개)","(Purchased {COMMON_VALUE_FIRST-ARGUMENT}, {COMMON_VALUE_SECOND-ARGUMENT} items)"
+MEDICAL_TEXT_CURTAIN-FIRST-ARGUMENT-TEAM-USAGE-SECOND, 커튼={COMMON_VALUE_FIRST-ARGUMENT} 팀이용={COMMON_VALUE_SECOND-ARGUMENT} 자금={COMMON_VALUE_THIRD-ARGUMENT} |, 커튼={COMMON_VALUE_FIRST-ARGUMENT} 팀이용={COMMON_VALUE_SECOND-ARGUMENT} 자금={COMMON_VALUE_THIRD-ARGUMENT} |,Curtain= {COMMON_VALUE_FIRST-ARGUMENT} Team Usage= {COMMON_VALUE_SECOND-ARGUMENT} Funds= {COMMON_VALUE_THIRD-ARGUMENT} |
+MEDICAL_PROMPT_NOTICE-FIRST-ARGUMENT, | 안내='{COMMON_VALUE_FIRST-ARGUMENT}', | 안내='{COMMON_VALUE_FIRST-ARGUMENT}',| Notice=' {COMMON_VALUE_FIRST-ARGUMENT} '
+MEDICAL_TEXT_REFUND-UNPERFORMED-PHYSICAL-RECOVERY,미수행 신체 복구 환급,미수행 신체 복구 환급,Refund for unperformed physical recovery
+MEDICAL_PROMPT_CANNOT-ENTER-BECAUSE-NOT-CONNECTED,접속 중이 아니라 들어갈 수 없습니다.,접속 중이 아니라 들어갈 수 없습니다.,You cannot enter because you are not connected.
+MEDICAL_TEXT_ADDED-COUNT-BODY-REPAIR-ITEMS-PLAYER,신체 복구 {COMMON_VALUE_COUNT}개 추가 — {COMMON_VALUE_PLAYER-NAME},신체 복구 {COMMON_VALUE_COUNT}개 추가 — {COMMON_VALUE_PLAYER-NAME},Added {COMMON_VALUE_COUNT} Body Repair items — {COMMON_VALUE_PLAYER-NAME}
+MEDICAL_TEXT_BODY-REPAIR-COUNT-PIECES-PLAYER-NAME,신체 복구 {COMMON_VALUE_COUNT}개 — {COMMON_VALUE_PLAYER-NAME},신체 복구 {COMMON_VALUE_COUNT}개 — {COMMON_VALUE_PLAYER-NAME},Body Repair {COMMON_VALUE_COUNT} pieces — {COMMON_VALUE_PLAYER-NAME}
+MEDICAL_TEXT_PURCHASE-COMPLETE-COUNT-PRICE-PLEASE-PROCEED,"구매 완료({COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 신체 복구 승강기 앞으로 가세요.","구매 완료({COMMON_VALUE_COUNT}개, {SHOP_VALUE_PRICE}) — 신체 복구 승강기 앞으로 가세요.","Purchase complete ( {COMMON_VALUE_COUNT}, {SHOP_VALUE_PRICE} ) — Please proceed to the Body Recovery Elevator."
+MEDICAL_TEXT_PLEASE-USE-BODY-RECOVERY-ELEVATOR-AFTER,리허설을 마친 뒤 신체 복구 승강기를 이용하세요.,리허설을 마친 뒤 신체 복구 승강기를 이용하세요.,Please use the body recovery elevator after finishing the rehearsal.
+MEDICAL_TEXT_PLEASE-USE-FRONT-BODY-RECOVERY-ELEVATOR,신체 복구 승강기 앞에서 이용하세요.,신체 복구 승강기 앞에서 이용하세요.,Please use it in front of the body recovery elevator.
+MEDICAL_TEXT_TAKING-BODY-RECOVERY-ELEVATOR,신체 복구 승강기 타기,신체 복구 승강기 타기,Taking the body recovery elevator
+MEDICAL_TEXT_PERSON-CHARGE-ABSENT,담당자 부재중,담당자 부재중,Person in charge is absent
+MEDICAL_TEXT_ANOTHER-PERSON-UNDERGOING-PHYSICAL-RECOVERY,다른 사람이 신체 복구를 받고 있습니다.,다른 사람이 신체 복구를 받고 있습니다.,Another person is undergoing physical recovery.
+MEDICAL_TEXT_PLEASE-PURCHASE-BODY-REPAIR-FIRST-STORE,신체 복구는 ③ 상점 수화기에서 먼저 구매하세요.,신체 복구는 ③ 상점 수화기에서 먼저 구매하세요.,Please purchase body repair first at ③ the store receiver.
+MEDICAL_TEXT_BODY-RECOVERY-APPOINTMENT-COMPLETED,신체 복구 예약 완료,신체 복구 예약 완료,Body recovery appointment completed
+MEDICAL_PROMPT_BOOKED-BODY-RECOVERY-COUNT-USE-MEDICAL,"신체 복구 {COMMON_VALUE_COUNT}개를 예약했습니다.
+의료 서비스를 이용하려면 로비의 ⑧ 신체 복구 승강기로 이동해 F를 누르세요.","신체 복구 {COMMON_VALUE_COUNT}개를 예약했습니다.
+의료 서비스를 이용하려면 로비의 ⑧ 신체 복구 승강기로 이동해 F를 누르세요.","You have booked Body Recovery {COMMON_VALUE_COUNT}. To use the
+medical service, go to the ⑧ Body Recovery elevator in the lobby and press F."
+MEDICAL_TEXT_PLAYER-NAME-WAITING-ENTRY,{COMMON_VALUE_PLAYER-NAME} 입장 대기,{COMMON_VALUE_PLAYER-NAME} 입장 대기,{COMMON_VALUE_PLAYER-NAME} Waiting for entry
+MEDICAL_TEXT_USE_1,이용 중,이용 중,In use
+MEDICAL_TEXT_BODY-REPAIR-BUSINESS-OPEN,신체 복구 영업 중,신체 복구 영업 중,Body repair business open
+MEDICAL_TEXT_BODY-RESTORATION-SCHEDULED-LOBBY-FRONT-BODY,신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F · {COMMON_VALUE_METERS}m,신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F · {COMMON_VALUE_METERS}m,Body Restoration Scheduled — Lobby ⑧ In front of the Body Restoration Elevator F · {COMMON_VALUE_METERS} m
+MEDICAL_TEXT_BODY-RECOVERY-SCHEDULED-LOBBY-FRONT-BODY,신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F,신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F,Body Recovery Scheduled — Lobby ⑧ In front of the Body Recovery elevator F
+MEDICAL_TEXT_F-PHYSICAL-RECOVERY-TAKING-ELEVATOR,[F] ⑧ 신체 복구 승강기 타기,[F] ⑧ 신체 복구 승강기 타기,[F] ⑧ Physical Recovery: Taking the Elevator
+MEDICAL_TEXT_F-BODY-RECOVERY-ELEVATOR-FIRST-ARGUMENT,[F] ⑧ 신체 복구 승강기 — {COMMON_VALUE_FIRST-ARGUMENT},[F] ⑧ 신체 복구 승강기 — {COMMON_VALUE_FIRST-ARGUMENT},[F] ⑧ Body Recovery Elevator — {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_CUTTING-OFF-LEFT-ARM,왼팔 자르기,왼팔 자르기,Cutting off the left arm
+MEDICAL_TEXT_CUTTING-OFF-RIGHT-ARM,오른팔 자르기,오른팔 자르기,Cutting off the right arm
+MEDICAL_TEXT_CUTTING-OFF-LEFT-LEG,왼다리 자르기,왼다리 자르기,Cutting off the left leg
+MEDICAL_TEXT_CUTTING-OFF-RIGHT-LEG,오른다리 자르기,오른다리 자르기,Cutting off the right leg
+MEDICAL_TEXT_CUTTING-ORDER-SAW-BLADES,톱날 순서로 자르기,톱날 순서로 자르기,Cutting in the order of the saw blades
+MEDICAL_TEXT_FIRST-ARGUMENT-MOVEMENT-SECOND-ARGUMENT-SHAKE,{COMMON_VALUE_FIRST-ARGUMENT}이동 ×{COMMON_VALUE_SECOND-ARGUMENT} · 흔들림 ×{COMMON_VALUE_THIRD-ARGUMENT} · 착지 ×{COMMON_VALUE_FOURTH-ARGUMENT}/옆줄 ×{COMMON_VALUE_FIFTH-ARGUMENT} · 거리 ×{COMMON_VALUE_SIXTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}이동 ×{COMMON_VALUE_SECOND-ARGUMENT} · 흔들림 ×{COMMON_VALUE_THIRD-ARGUMENT} · 착지 ×{COMMON_VALUE_FOURTH-ARGUMENT}/옆줄 ×{COMMON_VALUE_FIFTH-ARGUMENT} · 거리 ×{COMMON_VALUE_SIXTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Movement × {COMMON_VALUE_SECOND-ARGUMENT} · Shake × {COMMON_VALUE_THIRD-ARGUMENT} · Landing × {COMMON_VALUE_FOURTH-ARGUMENT} /Sideline × {COMMON_VALUE_FIFTH-ARGUMENT} · Distance × {COMMON_VALUE_SIXTH-ARGUMENT}
+MEDICAL_TEXT_CRAWLING,기어가기 · ,기어가기 · ,Crawling ·
+MEDICAL_TEXT_BODY-INJURY-FIRST-ARGUMENT-SECOND-ARGUMENT,"[신체 손상] {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} 왼팔/오른팔, {COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT} 왼다리/오른다리, {COMMON_VALUE_FIFTH-ARGUMENT} 톱날 순서","[신체 손상] {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} 왼팔/오른팔, {COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT} 왼다리/오른다리, {COMMON_VALUE_FIFTH-ARGUMENT} 톱날 순서","[Body Injury] {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} Left Arm/Right Arm, {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT} Left Leg/Right Leg, {COMMON_VALUE_FIFTH-ARGUMENT} Saw Blade Sequence"
+MEDICAL_TEXT_LOST-PART-FIRST-ARGUMENT-STATUS-SECOND,잃은 부위: {COMMON_VALUE_FIRST-ARGUMENT} · 상태: {COMMON_VALUE_SECOND-ARGUMENT},잃은 부위: {COMMON_VALUE_FIRST-ARGUMENT} · 상태: {COMMON_VALUE_SECOND-ARGUMENT},Lost Part: {COMMON_VALUE_FIRST-ARGUMENT} · Status: {COMMON_VALUE_SECOND-ARGUMENT}
+MEDICAL_TEXT_DISADVANTAGE-COMMON-SINGLE-LINE-FIRST-ARGUMENT,불이익(공통+외줄): {COMMON_VALUE_FIRST-ARGUMENT},불이익(공통+외줄): {COMMON_VALUE_FIRST-ARGUMENT},Disadvantage (Common + Single Line): {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_P-FIRST-ARGUMENT-RESURRECTED-SECOND-ARGUMENT,P{COMMON_VALUE_FIRST-ARGUMENT} 되살아남 · {COMMON_VALUE_SECOND-ARGUMENT},P{COMMON_VALUE_FIRST-ARGUMENT} 되살아남 · {COMMON_VALUE_SECOND-ARGUMENT},P {COMMON_VALUE_FIRST-ARGUMENT} Resurrected · {COMMON_VALUE_SECOND-ARGUMENT}
+MEDICAL_TEXT_INJURY-SURVIVAL-TEST,<b>부상·생존 테스트</b>,<b>부상·생존 테스트</b>,<b> Injury and Survival Test </b>
+MEDICAL_TEXT_USE-AFTER-CONNECTING-START-HOST-CONNECTION,접속 후 사용합니다(왼쪽 접속 화면에서 호스트 시작).,접속 후 사용합니다(왼쪽 접속 화면에서 호스트 시작).,Use after connecting (start host from the connection screen on the left).
+MEDICAL_PROMPT_HOST-TRIGGERS-JUDGMENT-BUTTON,호스트: 버튼으로 판정을 일으킵니다.,호스트: 버튼으로 판정을 일으킵니다.,Host: Triggers a judgment with the button.
+MEDICAL_TEXT_CLIENT-VIEW-ONLY-HOST-MAKES-JUDGMENT,클라이언트: 보기만 합니다(판정은 호스트).,클라이언트: 보기만 합니다(판정은 호스트).,Client: View only (Host makes the judgment).
+MEDICAL_TEXT_LOCATION-FIRST-ARGUMENT_1,장소: {COMMON_VALUE_FIRST-ARGUMENT},장소: {COMMON_VALUE_FIRST-ARGUMENT},Location: {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_LOCATION-FIRST-ARGUMENT_0,장소 → {COMMON_VALUE_FIRST-ARGUMENT},장소 → {COMMON_VALUE_FIRST-ARGUMENT},Location → {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_BREAK-TIME-BEGINS,쉬는 시간 시작,쉬는 시간 시작,Break time begins
+MEDICAL_TEXT_NIGHT-MAINTENANCE-BEGINS,밤 정비 시작,밤 정비 시작,Night maintenance begins
+MEDICAL_TEXT_TIME-ZONE-MIMIC-FIRST-ARGUMENT,시간대 흉내: {COMMON_VALUE_FIRST-ARGUMENT},시간대 흉내: {COMMON_VALUE_FIRST-ARGUMENT},Time zone mimic: {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_MY-PENALTY-FIRST-ARGUMENT,내 패널티: {COMMON_VALUE_FIRST-ARGUMENT},내 패널티: {COMMON_VALUE_FIRST-ARGUMENT},My penalty: {COMMON_VALUE_FIRST-ARGUMENT}
+MEDICAL_TEXT_SEARCHING,탐색 중,탐색 중,Searching
+MEDICAL_TEXT_FIRST-ARGUMENT-MOVEMENT-SECOND-ARGUMENT-REACH,{COMMON_VALUE_FIRST-ARGUMENT}이동 ×{COMMON_VALUE_SECOND-ARGUMENT} · 손 닿는 거리 ×{COMMON_VALUE_THIRD-ARGUMENT} · 점프 높이 ×{COMMON_VALUE_FOURTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}이동 ×{COMMON_VALUE_SECOND-ARGUMENT} · 손 닿는 거리 ×{COMMON_VALUE_THIRD-ARGUMENT} · 점프 높이 ×{COMMON_VALUE_FOURTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Movement × {COMMON_VALUE_SECOND-ARGUMENT} · Reach × {COMMON_VALUE_THIRD-ARGUMENT} · Jump Height × {COMMON_VALUE_FOURTH-ARGUMENT}
+MEDICAL_TEXT_P-FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD,P{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT} · 잃은 팔다리 {COMMON_VALUE_FOURTH-ARGUMENT} ({COMMON_VALUE_FIFTH-ARGUMENT}) · {COMMON_VALUE_SIXTH-ARGUMENT},P{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT} · 잃은 팔다리 {COMMON_VALUE_FOURTH-ARGUMENT} ({COMMON_VALUE_FIFTH-ARGUMENT}) · {COMMON_VALUE_SIXTH-ARGUMENT},P {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT} · Lost limbs {COMMON_VALUE_FOURTH-ARGUMENT} ( {COMMON_VALUE_FIFTH-ARGUMENT} ) · {COMMON_VALUE_SIXTH-ARGUMENT}
+MEDICAL_TEXT_PIECE-FIRST-ARGUMENT-CHEST, · 기물 {COMMON_VALUE_FIRST-ARGUMENT}칸, · 기물 {COMMON_VALUE_FIRST-ARGUMENT}칸,· Piece {COMMON_VALUE_FIRST-ARGUMENT} Chest
+MEDICAL_TEXT_CUT_1,절단 2,절단 2,Cutting 2
+MEDICAL_TEXT_REFUSAL,거절,거절,refusal
+MEDICAL_TEXT_CAUGHT,잡힘,잡힘,Caught
+MEDICAL_TEXT_ONE-ARM-SETTING,외팔 설정,외팔 설정,One-arm setting
+MEDICAL_TEXT_RESURRECTION,부활,부활,resurrection
+MEDICAL_TEXT_ONE-ARM-CONDITION,외팔 상태,외팔 상태,One arm condition
+MEDICAL_TEXT_NOT-DECEASED-PERSON,사망자가 아님,사망자가 아님,Not a deceased person
+MEDICAL_TEXT_RECOVERY,복구 1,복구 1,Recovery 1
+MEDICAL_TEXT_WHOLE-BODY,온전한 몸,온전한 몸,Whole body
+MEDICAL_TEXT_EXPLORATION-BACKSTAGE,탐색(백스테이지),탐색(백스테이지),Exploration (Backstage)
+MEDICAL_TEXT_ONE-ARM,외팔,외팔,One arm
+MEDICAL_TEXT_INJURY,부상,부상,injury
+MEDICAL_TEXT_LEFT-LEG_0,왼다리,왼다리,left leg
+MEDICAL_TEXT_RIGHT-LEG_0,오른다리,오른다리,right leg
+MEDICAL_TEXT_LEFT-ARM_0,왼팔,왼팔,left arm
+MEDICAL_TEXT_RIGHT-ARM_0,오른팔,오른팔,right arm
+MEDICAL_TEXT_EXPLORATIONBODYPENALTY-SHARED,ExplorationBodyPenalty (공용),ExplorationBodyPenalty (공용),ExplorationBodyPenalty (Shared)
+MEDICAL_TEXT_FIRST-ARGUMENT-SEVERED-PART,{COMMON_VALUE_FIRST-ARGUMENT} (잘린 부위),{COMMON_VALUE_FIRST-ARGUMENT} (잘린 부위),{COMMON_VALUE_FIRST-ARGUMENT} (severed part)

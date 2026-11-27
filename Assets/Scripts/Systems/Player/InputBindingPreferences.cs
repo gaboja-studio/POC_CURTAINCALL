@@ -62,6 +62,8 @@ namespace CurtainCall.Player
             if (string.Equals(path, LeftClickPath, StringComparison.OrdinalIgnoreCase)) return LeftClickLabel;
             if (string.Equals(path, RightClickPath, StringComparison.OrdinalIgnoreCase)) return "우클릭";
             if (string.Equals(path, MiddleClickPath, StringComparison.OrdinalIgnoreCase)) return "휠 클릭";
+            if (string.Equals(path, "<Mouse>/backButton", StringComparison.OrdinalIgnoreCase)) return "마우스 뒤로 버튼";
+            if (string.Equals(path, "<Mouse>/forwardButton", StringComparison.OrdinalIgnoreCase)) return "마우스 앞으로 버튼";
             string label = InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice);
             return string.IsNullOrWhiteSpace(label) ? fallback : label;
         }

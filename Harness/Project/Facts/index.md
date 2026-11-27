@@ -1,5 +1,7 @@
 # Project Facts
 
+- [게임 문구 현지화](text-localization.md) — 한국어·영어 번역 수정, Google 시트 변경분 가져오기, 문구 위치 재수집.
+
 - [Sound/](Sound/index.md) — 탈출로 사운드 클립·3D 재생·시트 보류 상태를 수정하거나 확인할 때.
 
 - [보유 에셋 패키지 조사](asset-package-inventory.md) — 외부 에셋과 Unity 패키지를 찾거나 탈출로 공장 설비 교체 후보를 고를 때
