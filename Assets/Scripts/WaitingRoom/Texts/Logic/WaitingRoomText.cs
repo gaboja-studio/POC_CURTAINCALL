@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CurtainCall.WaitingRoom
@@ -14,6 +15,24 @@ namespace CurtainCall.WaitingRoom
     public static class WaitingRoomText
     {
         static Dictionary<string, string> table = new();
+        // Keep the original sentence and its arguments for as long as a display holds the
+        // formatted string. Equal strings from different prompts can have different meanings.
+        public sealed class FormattedText
+        {
+            public readonly string Key, Template;
+            public readonly Func<string, string> MarkControls;
+            readonly Dictionary<string, string> arguments;
+            public string Argument(string name) => arguments.TryGetValue(name, out var value) ? value : null;
+
+            internal FormattedText(string key, string template, Dictionary<string, string> arguments, Func<string, string> markControls)
+            { Key = key; Template = template; this.arguments = arguments; MarkControls = markControls; }
+
+            public string Render(string translated, Func<string, string, string> translateValue, bool korean) =>
+                Substitute(MarkControls == null ? translated : MarkControls(translated),
+                    name => arguments.TryGetValue(name, out string value) ? translateValue(name, value) : null, korean);
+        }
+        static readonly ConditionalWeakTable<string, FormattedText> formatted = new();
+        public static bool TryGetFormat(string value, out FormattedText format) => formatted.TryGetValue(value, out format);
 
         public static int Count => table.Count;
         public static bool Has(string key) => key != null && table.ContainsKey(key);
@@ -44,15 +63,32 @@ namespace CurtainCall.WaitingRoom
         public static string Get(string key, string fallback) => Fill(Raw(key, fallback), null);
 
         public static string Format(string key, string fallback, params (string name, object value)[] values) =>
-            Fill(Raw(key, fallback), values);
+            Fill(Raw(key, fallback), values, key: key);
 
         static string Raw(string key, string fallback) =>
             key != null && table.TryGetValue(key, out var text) ? text : fallback ?? "";
 
         /// <summary>{이름}·{이름:조사}를 값으로 바꾼다. 모르는 이름은 그대로 둔다.</summary>
-        public static string Fill(string template, (string name, object value)[] values)
+        public static string Fill(string template, (string name, object value)[] values,
+            Func<string, string> markControls = null, string key = null)
         {
-            if (string.IsNullOrEmpty(template) || values == null || values.Length == 0 || template.IndexOf('{') < 0) return template ?? "";
+            if (string.IsNullOrEmpty(template) || values == null || values.Length == 0) return template ?? "";
+            string marked = markControls == null ? template : markControls(template);
+            if (marked.IndexOf('{') < 0) return template;
+            Dictionary<string, string> used = null;
+            string result = Substitute(marked, name =>
+            {
+                if (!TryValue(values, name, out var value)) return null;
+                (used ??= new Dictionary<string, string>())[name] = value;
+                return value;
+            }, true);
+            if (used == null) return template;
+            if (result.Length > 0) formatted.Add(result, new FormattedText(key, template, used, markControls));
+            return result;
+        }
+
+        static string Substitute(string template, Func<string, string> resolve, bool korean)
+        {
             var sb = new StringBuilder(template.Length + 16);
             int i = 0;
             while (i < template.Length)
@@ -65,10 +101,11 @@ namespace CurtainCall.WaitingRoom
                 string token = template.Substring(open + 1, close - open - 1);
                 int colon = token.IndexOf(':');
                 string name = colon >= 0 ? token.Substring(0, colon) : token;
-                if (TryValue(values, name, out string value))
+                string value = resolve(name);
+                if (value != null)
                 {
                     sb.Append(value);
-                    if (colon >= 0) sb.Append(Particle(value, token.Substring(colon + 1)));
+                    if (korean && colon >= 0) sb.Append(Particle(value, token.Substring(colon + 1)));
                 }
                 else sb.Append('{').Append(token).Append('}');
                 i = close + 1;

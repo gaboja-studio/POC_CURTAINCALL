@@ -78,13 +78,10 @@ namespace CurtainCall.UI.SceneIntegration
             void Bind(TMP_Text label,int i)
             {
                 string format=formats[i] ?? "";
-                bool hasValue=false;
-                string rendered=tokens.Replace(format, match =>
-                {
-                    string value=match.Groups[1].Value switch { "title"=>heading, "content"=>text, _=>detail };
-                    hasValue |= value.Length!=0;
-                    return value;
-                });
+                bool hasValue = heading.Length > 0 && format.Contains("{title}") || text.Length > 0 && format.Contains("{content}")
+                    || detail.Length > 0 && format.Contains("{condition}");
+                string rendered = WaitingRoomText.Fill(format, new (string, object)[] {
+                    ("title", heading), ("content", text), ("condition", detail) });
                 HudText.Configure(label, statusRow: i == 2);
                 label.text=rendered;
                 label.gameObject.SetActive(enabledRows[i] && rendered.Length!=0 && (hasValue || !tokens.IsMatch(format)));
@@ -125,8 +122,9 @@ namespace CurtainCall.UI.SceneIntegration
                 var option=options[i];
                 button.interactable=option.Interactable;
                 var label=button.GetComponentInChildren<TMP_Text>(true);
-                var caption=choiceFormats[i].Replace("{choice}",option.Label ?? "");
-                if (i < shortcutLabels.Length) caption = "[" + shortcutLabels[i] + "] " + caption;
+                var caption=WaitingRoomText.Fill(choiceFormats[i], new (string, object)[] { ("choice", option.Label ?? "") });
+                if (i < shortcutLabels.Length) caption = WaitingRoomText.Fill("[{key}] {choice}",
+                    new (string, object)[] { ("key", shortcutLabels[i]), ("choice", caption) });
                 if(label.text!=caption)
                 {
                     if(fonts) fonts.WarmUpLocalText(button.transform,caption);

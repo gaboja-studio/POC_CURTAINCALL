@@ -1,0 +1,668 @@
+﻿key,source,ko,en
+EXPLORATION_VALUE_TARGET-NAME,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+EXPLORATION_VALUE_TOOL-NAME,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+EXPLORATION_VALUE_HINT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+EXPLORATION_PROMPT_INSPECT-CLUE,{COMMON_VALUE_TITLE} 살펴보기,{COMMON_VALUE_TITLE} 살펴보기,Inspect {COMMON_VALUE_TITLE}
+EXPLORATION_TEXT_CLUE_FOUND,{COMMON_VALUE_TITLE} 발견,{COMMON_VALUE_TITLE} 발견,{COMMON_VALUE_TITLE} found
+EXPLORATION_TEXT_CLUE_INSPECT-HELP,마우스 좌클릭: 회전   휠: 확대/축소   ESC·F·마우스 우클릭: 내려놓기,마우스 좌클릭: 회전   휠: 확대/축소   ESC·F·마우스 우클릭: 내려놓기,"Left click to rotate · Scroll to zoom · Esc, F or right click to put down"
+EXPLORATION_TEXT_CLUE_PAGE-HELP,← →: 쪽 넘기기 ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}),← →: 쪽 넘기기 ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}),← → Turn page ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL})
+EXPLORATION_TEXT_GATE_CONDITIONS-UNMET,{EXPLORATION_VALUE_TARGET-NAME} — 상호작용 가능한 도구(열쇠)가 없습니다.,{EXPLORATION_VALUE_TARGET-NAME} — 상호작용 가능한 도구(열쇠)가 없습니다.,{EXPLORATION_VALUE_TARGET-NAME} — No interactive tools (keys) available.
+EXPLORATION_TEXT_GATE_NEEDS-TWO,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 함께 F를 누르십시오.,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 함께 F를 누르십시오.,{EXPLORATION_VALUE_TARGET-NAME} — two performers must press F together.
+EXPLORATION_TEXT_GATE_NEEDS-TWO-KEYS,{EXPLORATION_VALUE_TARGET-NAME} — 상호작용 하기 위해서는 두 명의 공연 준비자가 필요합니다.,{EXPLORATION_VALUE_TARGET-NAME} — 상호작용 하기 위해서는 두 명의 공연 준비자가 필요합니다.,{EXPLORATION_VALUE_TARGET-NAME} — Two performers are required to interact.
+EXPLORATION_TEXT_GATE_DONE,{EXPLORATION_VALUE_TARGET-NAME} 완료,{EXPLORATION_VALUE_TARGET-NAME} 완료,{EXPLORATION_VALUE_TARGET-NAME} complete
+EXPLORATION_TEXT_GATE_PROGRESS,{EXPLORATION_VALUE_TARGET-NAME} {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} {COMMON_VALUE_COUNT} / {COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}
+EXPLORATION_TEXT_GATE_ENTER-CODE,암호를 입력하세요.,암호를 입력하세요.,Please enter the password.
+EXPLORATION_TEXT_GATE_PANEL-CLEAR,지우기,지우기,Delete
+EXPLORATION_TEXT_GATE_PANEL-SUBMIT,확인,확인,Confirm
+EXPLORATION_TEXT_GATE_PANEL-CLOSE,닫기,닫기,Close
+EXPLORATION_TEXT_GATE_TERMINAL-TITLE,door_override.bat,door_override.bat,door_override.bat
+EXPLORATION_TEXT_GATE_TERMINAL-CODE,DATE,날짜,DATE
+EXPLORATION_TEXT_GATE_TERMINAL-WORD,CMD,CMD,CMD
+EXPLORATION_TEXT_GATE_TERMINAL-ERROR,Error,오류,Error
+EXPLORATION_TEXT_GATE_TERMINAL-CLEAR,CLR,CLR,CLR
+EXPLORATION_TEXT_GATE_TERMINAL-BACK,DEL,DEL,DEL
+EXPLORATION_TEXT_GATE_TERMINAL-SUBMIT,ENTER,입력하다,ENTER
+EXPLORATION_TEXT_GATE_TERMINAL-CLOSE,EXIT,출구,EXIT
+EXPLORATION_TEXT_TOOL_NEEDS-TOOL,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT},{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT}
+EXPLORATION_TEXT_TOOL_PICK-LOCK,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 자물쇠 따기,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 자물쇠 따기,Pick the lock with {EXPLORATION_VALUE_TOOL-NAME}
+EXPLORATION_TEXT_TOOL_PICK-LOCK-ATTEMPT,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 자물쇠 따기 (시도 {COMMON_VALUE_COUNT}),{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 자물쇠 따기 (시도 {COMMON_VALUE_COUNT}),Pick the lock with {EXPLORATION_VALUE_TOOL-NAME} (attempt {COMMON_VALUE_COUNT})
+EXPLORATION_TEXT_TOOL_PRY,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 뜯기,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 뜯기,Pry open with {EXPLORATION_VALUE_TOOL-NAME}
+EXPLORATION_TEXT_TOOL_PRIED-OPEN,{EXPLORATION_VALUE_TARGET-NAME}(을/를) 뜯어 열었습니다.,{EXPLORATION_VALUE_TARGET-NAME}(을/를) 뜯어 열었습니다.,Pried open {EXPLORATION_VALUE_TARGET-NAME}.
+EXPLORATION_TEXT_TOOL_LOCK-OPENED,딸깍 — {EXPLORATION_VALUE_TARGET-NAME}의 자물쇠가 열렸습니다.,딸깍 — {EXPLORATION_VALUE_TARGET-NAME}의 자물쇠가 열렸습니다.,Click — The lock on {EXPLORATION_VALUE_TARGET-NAME} has been unlocked.
+EXPLORATION_TEXT_TOOL_LOCK-FAILED,자물쇠가 헛돌았습니다. (시도 {COMMON_VALUE_COUNT}),자물쇠가 헛돌았습니다. (시도 {COMMON_VALUE_COUNT}),The lock spun freely. (Attempt {COMMON_VALUE_COUNT})
+EXPLORATION_TEXT_WALL_COLLAPSED,무너진 벽,무너진 벽,collapsed wall
+EXPLORATION_TEXT_WALL_STRIKE,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 내려치기 ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}),{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 내려치기 ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}),Strike with {EXPLORATION_VALUE_TOOL-NAME} ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL})
+EXPLORATION_TEXT_WALL_NEEDS-TOOL,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT} ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}),{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT} ( {COMMON_VALUE_COUNT} / {COMMON_VALUE_TOTAL} ),{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_HINT} ({COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL})
+EXPLORATION_TEXT_WALL_BROKEN,{EXPLORATION_VALUE_TARGET-NAME}(이/가) 무너졌습니다.,{EXPLORATION_VALUE_TARGET-NAME}(이/가) 무너졌습니다.,{EXPLORATION_VALUE_TARGET-NAME} collapsed.
+EXPLORATION_TEXT_WALL_HIT-PROGRESS,{EXPLORATION_VALUE_TARGET-NAME} 내려침 {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} 내려침 {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} · hits {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL}
+EXPLORATION_TEXT_UV_REVEALED,숨겨진 단서가 드러났습니다.,숨겨진 단서가 드러났습니다.,A hidden clue has been revealed.
+EXPLORATION_TEXT_EXPLORE_OFFLINE,접속 중이 아니라 내려칠 수 없습니다.,접속 중이 아니라 내려칠 수 없습니다.,I cannot hit it because I am not connected.
+EXPLORATION_TEXT_EXPLORE_NO-TARGET,대상을 찾지 못했습니다.,대상을 찾지 못했습니다.,Could not find the target.
+EXPLORATION_TEXT_EXPLORE_ALREADY-OPEN,이미 열렸습니다.,이미 열렸습니다.,It has already opened.
+EXPLORATION_TEXT_EXPLORE_TOO-FAR,거리가 너무 멉니다.,거리가 너무 멉니다.,Too far away.
+EXPLORATION_TEXT_EXPLORE_CONDITIONS,선행 조건을 충족해야 합니다.,선행 조건을 충족해야 합니다.,You must meet the prerequisites.
+EXPLORATION_TEXT_EXPLORE_PARTNER-SLOT,다른 공연 준비자가 반대쪽 열쇠 구멍에서 함께 상호작용 해야 합니다.,다른 공연 준비자가 반대쪽 열쇠 구멍에서 함께 상호작용 해야 합니다.,Another performer must interact with you at the opposite keyhole.
+EXPLORATION_TEXT_EXPLORE_PARTNER,다른 공연 준비자가 가까이에서 상호작용 해야 합니다.,다른 공연 준비자가 가까이에서 상호작용 해야 합니다.,Other performers must interact nearby.
+EXPLORATION_TEXT_EXPLORE_NO-MORE,더 이상 사용할 수 없습니다.,더 이상 사용할 수 없습니다.,It can no longer be used.
+EXPLORATION_TEXT_EXPLORE_WRONG-CODE,암호가 다릅니다.,암호가 다릅니다.,Incorrect code.
+EXPLORATION_TEXT_EXPLORE_USED-UP,{SHOP_VALUE_ITEM-NAME}(을/를) 모두 소모했습니다.,{SHOP_VALUE_ITEM-NAME}(을/를) 모두 소모했습니다.,You've used up {SHOP_VALUE_ITEM-NAME}.
+EXPLORATION_TEXT_EXPLORE_USES-LEFT,{SHOP_VALUE_ITEM-NAME} 남은 횟수 {COMMON_VALUE_COUNT}회,{SHOP_VALUE_ITEM-NAME} 남은 횟수 {COMMON_VALUE_COUNT}회,{SHOP_VALUE_ITEM-NAME} · {COMMON_VALUE_COUNT} uses left
+EXPLORATION_TEXT_PURSUIT_ALERT-TITLE,추격 경보,추격 경보,Pursuit Alert
+EXPLORATION_TEXT_PURSUIT_STAGE_0,추격자가 움직이기 시작했습니다.,추격자가 움직이기 시작했습니다.,The pursuer started to move.
+EXPLORATION_TEXT_PURSUIT_STAGE_1,추격자의 시야 반경이 크게 늘어납니다.,추격자의 시야 반경이 크게 늘어납니다.,The pursuer's field of vision increases significantly.
+EXPLORATION_TEXT_PURSUIT_STAGE_2,추격자가 벽 뒤까지 투시하여 볼 수 있습니다.,추격자가 벽 뒤까지 투시하여 볼 수 있습니다.,The pursuer can see through walls.
+EXPLORATION_TEXT_PURSUIT_STAGE_3,추격자가 모든 위치를 알고 가장 가까운 단원을 추격합니다.,추격자가 모든 위치를 알고 가장 가까운 단원을 추격합니다.,The pursuer knows all locations and chases the nearest unit.
+EXPLORATION_TEXT_PURSUIT_CAPTURED-TITLE,포획,포획,capture
+EXPLORATION_TEXT_PURSUIT_CAPTURED,추격자에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다.,추격자에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다.,You have been caught by the pursuer. Watch until you move to the next location.
+EXPLORATION_OBJECTIVE_PURSUIT_QUEST,추격자를 피해 달아나기,추격자를 피해 달아나기,Running away from pursuers
+EXPLORATION_OBJECTIVE_PURSUIT_QUEST-STAGE,- 모든 플레이어가 공연장 입구로 가서 공연 진행,- 모든 플레이어가 공연장 입구로 가서 공연 진행,- All players go to the venue entrance and proceed with the performance.
+EXPLORATION_OBJECTIVE_PURSUIT_QUEST-ESCAPE,- 모든 플레이어가 탈출로로 진입해 탈출 시도,- 모든 플레이어가 탈출로로 진입해 탈출 시도,- All players enter the escape route and attempt to escape.
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CARGO-BOX_0,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CARGO-BOX_1,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CARGO-BOX_2,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-DORMITORY-BOX_0,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-DORMITORY-BOX_1,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-ESCAPE-PAD,비밀번호 패드,비밀번호 패드,Password pad
+EXPLORATION_NAME_TARGET_STRUCTURE-A-KEY_0,작은 열쇠 1호,작은 열쇠 1호,Small Key No. 1
+EXPLORATION_NAME_TARGET_STRUCTURE-A-KEY_1,작은 열쇠 2호,작은 열쇠 2호,Little Key No. 2
+EXPLORATION_NAME_TARGET_STRUCTURE-A-LOUNGE-BOX_0,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-LOUNGE-BOX_1,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MACHINE-HIDDEN-DOOR,숨겨진 문,숨겨진 문,Hidden door
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MANAGEMENT-DOOR,관리실 문,관리실 문,Management office door
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MANAGEMENT-KEY,관리실 열쇠,관리실 열쇠,Management office key
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MONITOR,기계실 모니터,기계실 모니터,Machine room monitor
+EXPLORATION_NAME_TARGET_STRUCTURE-A-PIPE-BOX,낡은 상자,낡은 상자,old box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-STAIRS-DOOR,자물쇠가 걸린 문,자물쇠가 걸린 문,locked door
+EXPLORATION_NAME_TARGET_FINAL-STAIRS-BAR,빗장,빗장,bolt
+EXPLORATION_TEXT_TARGET_DORM-VENT-POWER-SOCKET-HINT,전력이 부족합니다. 동력원을 찾아 연결하세요.,전력이 부족합니다. 동력원을 찾아 연결하세요.,There is low power. Find a power source and connect.
+EXPLORATION_NAME_TARGET_FINAL-CARGO-DOOR-BAR,빗장,빗장,bolt
+EXPLORATION_NAME_TARGET_FINAL-OFFICE-COMPUTER,관리실 컴퓨터,관리실 컴퓨터,Management office computer
+EXPLORATION_NAME_TARGET_STRUCTURE-A-STAIRS-KEY,계단 열쇠,계단 열쇠,Stair key
+EXPLORATION_NAME_TARGET_STRUCTURE-A-STEEL-BOX,잠긴 강철 상자,잠긴 강철 상자,Locked steel box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CABINET_0,캐비넷 1,캐비넷 1,Cabinet 1
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CABINET_1,캐비넷 2,캐비넷 2,Cabinet 2
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CABINET_2,캐비넷 3,캐비넷 3,Cabinet 3
+EXPLORATION_NAME_TARGET_STRUCTURE-A-LOCKED-BOX_0,자물쇠가 걸린 트렁크,자물쇠가 걸린 트렁크,Locked trunk
+EXPLORATION_NAME_TARGET_STRUCTURE-A-LOCKED-BOX_1,잠긴 상자 2,잠긴 상자 2,Locked Box 2
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MANAGEMENT-DRAWER,낡은 서랍,낡은 서랍,Old drawer
+EXPLORATION_NAME_TARGET_TRIAL-BOARDED-CRATE,판자가 뜯어진 상자,판자가 뜯어진 상자,A box with torn planks
+EXPLORATION_NAME_TARGET_RESTROOM-BREACH,녹슨 벽,녹슨 벽,rusty wall
+EXPLORATION_NAME_TARGET_LEARNING-DORM-RUST-WALL,녹슨 벽,녹슨 벽,rusty wall
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MACHINE-PIPE-BOX,배관함,배관함,pipe box
+EXPLORATION_NAME_TARGET_STRUCTURE-A-CONFISCATED-NOTEBOOK,압수된 노트,압수된 노트,seized notes
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-CONFISCATED-NOTEBOOK,누군가 작성하던 일기. 낱장이 잔뜩 뜯겨나가 있는 볼품없는 모습이다.,누군가 작성하던 일기. 낱장이 잔뜩 뜯겨나가 있는 볼품없는 모습이다.,A diary that someone was writing. It looks shabby with many pages torn out.
+EXPLORATION_TEXT_TARGET_STRUCTURE-A-CONFISCATED-NOTEBOOK-SECRET,"노트 구석에 ""34""라는 숫자가 새겨져 있다.","노트 구석에 ""34""라는 숫자가 새겨져 있다.","The number ""34"" is engraved in the corner of the notebook."
+EXPLORATION_NAME_TARGET_STRUCTURE-A-GRAFFITI_0,벽의 낙서 1,벽의 낙서 1,Graffiti on the wall 1
+EXPLORATION_NAME_TARGET_STRUCTURE-A-GRAFFITI_1,벽의 낙서 2,벽의 낙서 2,Graffiti on the wall 2
+EXPLORATION_NAME_TARGET_STRUCTURE-A-GRAFFITI_2,벽의 낙서 3,벽의 낙서 3,Graffiti on the wall 3
+EXPLORATION_NAME_TARGET_STRUCTURE-A-GRAFFITI_3,벽의 낙서 4,벽의 낙서 4,Wall Graffiti 4
+EXPLORATION_NAME_TARGET_STRUCTURE-A-HIDDEN-GRAFFITI,숨겨진 낙서 2,숨겨진 낙서 2,Hidden Doodle 2
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-HIDDEN-GRAFFITI,RUN,RUN,RUN
+EXPLORATION_NAME_TARGET_STRUCTURE-A-MAP,서커스장 지도,서커스장 지도,Circus map
+EXPLORATION_NAME_TARGET_STRUCTURE-A-NEWSPAPER,낡은 신문,낡은 신문,old newspaper
+EXPLORATION_NAME_TARGET_STRUCTURE-A-OLD-NOTEBOOK,낡은 노트,낡은 노트,old notebook
+EXPLORATION_NAME_TARGET_STRUCTURE-A-PASSWORD-PREFIX-CLUE,숨겨진 낙서 3,숨겨진 낙서 3,Hidden Doodle 3
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-PASSWORD-PREFIX-CLUE,"누군가에게는 새 역사가 시작된 날, 누군가에게는 기일. 그 날을 기억해. 항상.","누군가에게는 새 역사가 시작된 날, 누군가에게는 기일. 그 날을 기억해. 항상.","For some, it is the day a new history began; for others, it is an anniversary of death. Remember that day. Always."
+EXPLORATION_NAME_TARGET_STRUCTURE-A-PERFORMANCE-RECORD,공연 기록,공연 기록,Performance records
+EXPLORATION_NAME_TARGET_STRUCTURE-A-UV-CLUE,숨겨진 낙서 1,숨겨진 낙서 1,Hidden Doodle 1
+EXPLORATION_NAME_TARGET_STRUCTURE-A-UV_0,숨겨진 단서 1 — UV,숨겨진 단서 1 — UV,Hidden Clue 1 — UV
+EXPLORATION_NAME_TARGET_STRUCTURE-A-UV_1,숨겨진 단서 — UV,숨겨진 단서 — UV,Hidden Clues — UV
+EXPLORATION_NAME_TARGET_STRUCTURE-A-UV-PASSWORD-PREFIX,숨겨진 단서 — UV,숨겨진 단서 — UV,Hidden Clues — UV
+EXPLORATION_OBJECTIVE_PURSUIT_QUEST-SLEEP,- 살아 있는 모든 플레이어가 숙소 침대에서 수면,- 살아 있는 모든 플레이어가 숙소 침대에서 수면,- All living players sleep in the lodging beds
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-GRAFFITI_0,다음은 누구?,다음은 누구?,Who's next?
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-GRAFFITI_1,공연.. 잠자기… 공연.. 잠자기… 공연?,공연.. 잠자기… 공연.. 잠자기… 공연?,Performance.. Sleeping… Performance.. Sleeping… Performance?
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-GRAFFITI_2,2일째. 친구가 없어졌어. 다음날 또 한명 없어졌어. 항상 누군가 지켜보고 있는 것 같아. 조심해.,2일째. 친구가 없어졌어. 다음날 또 한명 없어졌어. 항상 누군가 지켜보고 있는 것 같아. 조심해.,"Day 2. A friend disappeared. The next day, another person disappeared. It feels like someone is always watching. Be careful."
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-GRAFFITI_3,4일째. 여전히 아무도 오지 않아. 여기서 기다리라며…? 다들 어디로 간 거야?,4일째. 여전히 아무도 오지 않아. 여기서 기다리라며…? 다들 어디로 간 거야?,Day 4. Still no one has come. You told us to wait here...? Where did everyone go?
+EXPLORATION_NAME_TARGET_FINAL-GRAFFITI_0,벽의 낙서 5,벽의 낙서 5,Wall Graffiti 5
+EXPLORATION_DESCRIPTION_TARGET_FINAL-GRAFFITI_0,가고 싶지 않아. 가고 싶지 않아. 가고 싶지 않아.,가고 싶지 않아. 가고 싶지 않아. 가고 싶지 않아.,I don't want to go. I don't want to go. I don't want to go.
+EXPLORATION_NAME_TARGET_FINAL-GRAFFITI_1,벽의 낙서 6,벽의 낙서 6,Wall Graffiti 6
+EXPLORATION_DESCRIPTION_TARGET_FINAL-GRAFFITI_1,전력 공급원을 끊고 더 깊은 곳으로 가면 나갈 수 있을까?,전력 공급원을 끊고 더 깊은 곳으로 가면 나갈 수 있을까?,"If we cut off the power supply and go deeper, will we be able to get out?"
+EXPLORATION_DESCRIPTION_TARGET_STRUCTURE-A-UV-CLUE,관리실 컴퓨터로 가. 필요한 건 다 준비해놨어. 여기서 나갈 방법을 찾아.,관리실 컴퓨터로 가. 필요한 건 다 준비해놨어. 여기서 나갈 방법을 찾아.,Go to the computer in the management office. I've prepared everything you need. Find a way to get out of here.
+EXPLORATION_NAME_TARGET_FINAL-UV_0,숨겨진 낙서 — UV,숨겨진 낙서 — UV,Hidden Doodles — UV
+EXPLORATION_NAME_TARGET_FINAL-HIDDEN-GRAFFITI_0,숨겨진 낙서 4,숨겨진 낙서 4,Hidden Doodle 4
+EXPLORATION_DESCRIPTION_TARGET_FINAL-HIDDEN-GRAFFITI_0,두 개의 암호를 만들었어. 뭘 해야 하는지 알지? 도망쳐.,두 개의 암호를 만들었어. 뭘 해야 하는지 알지? 도망쳐.,"I made two passwords. You know what to do, right? Run away."
+EXPLORATION_NAME_TARGET_FINAL-UV_1,숨겨진 낙서 — UV,숨겨진 낙서 — UV,Hidden Doodles — UV
+EXPLORATION_NAME_TARGET_FINAL-HIDDEN-GRAFFITI_1,숨겨진 낙서 5,숨겨진 낙서 5,Hidden Doodle 5
+EXPLORATION_DESCRIPTION_TARGET_FINAL-HIDDEN-GRAFFITI_1,기계실 깊은 곳으로 와. 거기서 기다리고 있을게.,기계실 깊은 곳으로 와. 거기서 기다리고 있을게.,Come deep into the machine room. I'll be waiting there.
+EXPLORATION_NAME_TARGET_FINAL-MANAGEMENT-KEYCARD,키 카드 단말기,키 카드 단말기,Key card terminal
+EXPLORATION_NAME_TARGET_FINAL-MANAGEMENT-LATCH,안쪽 빗장,안쪽 빗장,inner latch
+EXPLORATION_NAME_TARGET_FINAL-QUARTERS-DOOR,낡은 숙소 문,낡은 숙소 문,Old lodging door
+EXPLORATION_NAME_TARGET_FINAL-BROKEN-LAPTOP,망가진 노트북,망가진 노트북,Broken laptop
+EXPLORATION_DESCRIPTION_TARGET_FINAL-BROKEN-LAPTOP,"누군가 사용하던 노트북. 지금은 작동하지 않는다. 먼 옛날, 한 기술자가 노트북을 찾아내 수리했고 시설 관리 프로그램을 해킹했다. 다행히도 시설의 관리인들은 이 사실을 모른다.","누군가 사용하던 노트북. 지금은 작동하지 않는다. 먼 옛날, 한 기술자가 노트북을 찾아내 수리했고 시설 관리 프로그램을 해킹했다. 다행히도 시설의 관리인들은 이 사실을 모른다.","A laptop that someone used. It does not work now. Long ago, a technician found the laptop, repaired it, and hacked into the facility management program. Fortunately, the facility's managers are unaware of this fact."
+EXPLORATION_TEXT_TARGET_FINAL-BROKEN-LAPTOP-SECRET,뒤에 붙은 낡은 포스트잇: 20240912 / RUN,뒤에 붙은 낡은 포스트잇: 20240912 / RUN,Old Post-it note attached to the back: 20240912 / RUN
+EXPLORATION_NAME_TARGET_FINAL-WATER-BOTTLE,물병,물병,water bottle
+EXPLORATION_DESCRIPTION_TARGET_FINAL-WATER-BOTTLE,누군가 사용하던 물병. 안에는 검정색 얼룩이 가득하다.,누군가 사용하던 물병. 안에는 검정색 얼룩이 가득하다.,A water bottle that someone used. The inside is full of black stains.
+EXPLORATION_NAME_TARGET_FINAL-OLD-COSTUME,낡은 곰인형 옷,낡은 곰인형 옷,old teddy bear clothes
+EXPLORATION_DESCRIPTION_TARGET_FINAL-OLD-COSTUME,"이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.","이전 세대 공연자가 사용하던 코스튬. 4일째가 되던 날, 그들은 탈출을 결심했고 그동안 세운 계획대로 탈출을 시도했다. 그리고 실패했다. 이것은 그들이 남긴 유품이자, 과거에 있었던 공연의 흔적이다.","Costumes used by the previous generation of performers. On the fourth day, they decided to escape and attempted to do so according to the plan they had established. And they failed. This is a memento they left behind and a trace of a past performance."
+EXPLORATION_NAME_TARGET_FINAL-OLD-COSTUME-RABBIT,낡은 토끼 인형 옷,낡은 토끼 인형 옷,old rabbit doll clothes
+EXPLORATION_DESCRIPTION_TARGET_FINAL-OLD-COSTUME-RABBIT,이전 세대 공연자가 사용하던 코스튬. 팔이 잘려 있다. 일행의 리더로서 계획을 세우고 사람들을 이끌었지만 실패했다.,이전 세대 공연자가 사용하던 코스튬. 팔이 잘려 있다. 일행의 리더로서 계획을 세우고 사람들을 이끌었지만 실패했다.,"A costume used by a performer of the previous generation. Its arm is severed. As the leader of the group, it devised a plan and led the people, but failed."
+EXPLORATION_NAME_TARGET_FINAL-OLD-COSTUME-PIERROT,낡은 삐에로 인형 옷,낡은 삐에로 인형 옷,Old clown doll clothes
+EXPLORATION_DESCRIPTION_TARGET_FINAL-OLD-COSTUME-PIERROT,이전 세대 공연자가 사용하던 코스튬. 두 다리가 없다. 부러진 머리핀 조각이 옷자락에 박혀 있다. 탈출에 실패하면 미래는 없다.,이전 세대 공연자가 사용하던 코스튬. 두 다리가 없다. 부러진 머리핀 조각이 옷자락에 박혀 있다. 탈출에 실패하면 미래는 없다.,"A costume used by a performer of the previous generation. It is missing two legs. Fragments of broken hairpins are embedded in the hem. If the escape fails, there is no future."
+EXPLORATION_NAME_TARGET_FINAL-OLD-COSTUME-DOLL,낡은 인형 옷,낡은 인형 옷,old doll clothes
+EXPLORATION_DESCRIPTION_TARGET_FINAL-OLD-COSTUME-DOLL,이전 세대 공연자가 사용하던 코스튬. 왼팔이 없다. 희미한 잉크 자국이 남아 있다.,이전 세대 공연자가 사용하던 코스튬. 왼팔이 없다. 희미한 잉크 자국이 남아 있다.,A costume used by a previous generation performer. It is missing its left arm. Faint ink marks remain.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_0,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_0,누군가 쓴 일기. 얼룩이 번져있다. 낙서가 가득하다.,누군가 쓴 일기. 얼룩이 번져있다. 낙서가 가득하다.,A diary written by someone. The stains are smudged. It is full of scribbles.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_1,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_1,누군가 쓴 일기. 고심한 흔적이 보인다.,누군가 쓴 일기. 고심한 흔적이 보인다.,A diary written by someone. It shows signs of deep contemplation.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_2,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_2,누군가 쓴 일기. 글자가 마구잡이로 적혀 있다.,누군가 쓴 일기. 글자가 마구잡이로 적혀 있다.,A diary written by someone. The letters are written haphazardly.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_3,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_3,누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.,누군가 쓴 일기. 짧은 내용에 강조하듯 밑줄이 그어져 있다.,A diary written by someone. Short passages are underlined as if to emphasize them.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_4,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_4,그림이 그려진 노트 낱장이다.,그림이 그려진 노트 낱장이다.,It is a single sheet of paper with a drawing on it.
+EXPLORATION_NAME_TARGET_FINAL-TORN-NOTE_5,찢겨진 노트 낱장,찢겨진 노트 낱장,Torn notebook pages
+EXPLORATION_DESCRIPTION_TARGET_FINAL-TORN-NOTE_5,누군가가 남긴 메모이다.,누군가가 남긴 메모이다.,It is a note left by someone.
+EXPLORATION_TEXT_GATE_TERMINAL-FEED-TITLE,cam_exit.feed,캠_엑시트.피드,cam_exit.feed
+EXPLORATION_TEXT_GATE_TERMINAL-FEED-LOCKED,> 잠금 해제 완료,> 잠금 해제 완료,Unlock complete
+EXPLORATION_TEXT_GATE_MONITOR-HELP,ESC·F·마우스 우클릭: 나가기,ESC·F·마우스 우클릭: 나가기,ESC · F · Right-click: Exit
+EXPLORATION_NAME_TARGET_FINAL-POST-IT,떨어진 포스트잇,떨어진 포스트잇,fallen Post-it
+EXPLORATION_DESCRIPTION_TARGET_FINAL-POST-IT,바닥에 떨어진 포스트잇 낱장. 짧은 메모가 적혀 있다.,바닥에 떨어진 포스트잇 낱장. 짧은 메모가 적혀 있다.,A single Post-it note lying on the floor. A short note is written on it.
+EXPLORATION_TEXT_GATE_SOCKET-INSERT,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 꽂기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 꽂기,Insert {EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME}
+EXPLORATION_TEXT_GATE_SOCKET-REMOVE,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 빼기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 빼기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} minus
+EXPLORATION_TEXT_EXPLORE_SOCKET-IN,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 꽂았습니다.,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 꽂았습니다.,Inserted {EXPLORATION_VALUE_TOOL-NAME}.
+EXPLORATION_TEXT_EXPLORE_SOCKET-OUT,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 뺐습니다.,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 뺐습니다.,{EXPLORATION_VALUE_TOOL-NAME} was removed.
+EXPLORATION_NAME_TARGET_LEARNING-CRAFT-SOCKET,동력 소켓,동력 소켓,Power socket
+EXPLORATION_TEXT_TARGET_LEARNING-CRAFT-SOCKET-HINT,전력이 부족합니다. 동력원을 찾아 연결하세요.,전력이 부족합니다. 동력원을 찾아 연결하세요.,There is low power. Find a power source and connect.
+EXPLORATION_NAME_TARGET_LEARNING-CRAFT-PIPEBOX,배관함,배관함,pipe box
+EXPLORATION_NAME_TARGET_LEARNING-CRAFT-CIRCUIT,회로,회로,circuit
+EXPLORATION_PROMPT_TARGET_LEARNING-CRAFT-CIRCUIT-STRIKING,회로를 망가뜨리는 중...,회로를 망가뜨리는 중...,Destroying the circuit...
+EXPLORATION_DESCRIPTION_TARGET_FINAL-KEYCARD-OVERVIEW,"누군가 복제한 관리실의 키 카드. 관리실의 문을 열 수 있다. 공연 준비자들은 탈출하려 했고, 실패했다. 동료들이 끌려가던 순간, 한 명이 키 카드를 캐비넷에 밀어 넣었다. 부디 다른 사람이 찾아낼 수 있기를.","누군가 복제한 관리실의 키 카드. 관리실의 문을 열 수 있다. 공연 준비자들은 탈출하려 했고, 실패했다. 동료들이 끌려가던 순간, 한 명이 키 카드를 캐비넷에 밀어 넣었다. 부디 다른 사람이 찾아낼 수 있기를.","A duplicated key card from the control room. It can open the control room door. The performers tried to escape, but failed. Just as their colleagues were being dragged away, one of them slipped the key card into a cabinet. Hopefully, someone else will be able to find it."
+EXPLORATION_NAME_TARGET_DORM-TV,낡은 TV,낡은 TV,old TV
+EXPLORATION_TEXT_TARGET_DORM-TV-HINT,재생할 테이프가 필요할 것 같다.,재생할 테이프가 필요할 것 같다.,I think I will need a tape to play.
+EXPLORATION_PROMPT_TARGET_DORM-TV-INSERT,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 넣기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 넣기,Insert {EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME}
+EXPLORATION_PROMPT_TARGET_DORM-TV-REMOVE,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 꺼내기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} 꺼내기,{EXPLORATION_VALUE_TARGET-NAME} — {EXPLORATION_VALUE_TOOL-NAME} Retrieve
+EXPLORATION_PROMPT_TARGET_DORM-TV-VIEW,{EXPLORATION_VALUE_TARGET-NAME} — 화면 보기,{EXPLORATION_VALUE_TARGET-NAME} — 화면 보기,{EXPLORATION_VALUE_TARGET-NAME} — View Screen
+EXPLORATION_PROMPT_TARGET_DORM-TV-VIEW-HELP,ESC·F·마우스 우클릭: 나가기   F 꾹 누르기: 비디오 테이프 꺼내기,ESC·F·마우스 우클릭: 나가기   F 꾹 누르기: 비디오 테이프 꺼내기,ESC · F · Right-click: Exit Press and hold F: Eject video tape
+EXPLORATION_PROMPT_TARGET_DORM-TV-IN,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 넣었습니다. 화면이 켜집니다.,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 넣었습니다. 화면이 켜집니다.,I inserted {EXPLORATION_VALUE_TOOL-NAME}. The screen turns on.
+EXPLORATION_PROMPT_TARGET_DORM-TV-OUT,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 꺼냈습니다.,{EXPLORATION_VALUE_TOOL-NAME}(을/를) 꺼냈습니다.,{EXPLORATION_VALUE_TOOL-NAME} was retrieved.
+EXPLORATION_PROMPT_TARGET_DORM-ENTRY-DOOR-LOCKED,휴대 절단기를 이용해 전력을 끊어야 합니다.,휴대 절단기를 이용해 전력을 끊어야 합니다.,You must cut the power using a portable cutter.
+EXPLORATION_NAME_FIRST-TIGHTROPE-REAPPEARS,첫 외줄 재등장,첫 외줄 재등장,The first tightrope reappears
+EXPLORATION_NAME_SECOND-TIGHTROPE-REAPPEARS,두 번째 외줄 재등장,두 번째 외줄 재등장,The second tightrope reappears
+EXPLORATION_NAME_LOWER-SINGLE-LINE-MAINTENANCE-STAND,하부 외줄 정비대,하부 외줄 정비대,Lower single-line maintenance stand
+EXPLORATION_NAME_PUMP-TRAP,펌프 포획대,펌프 포획대,Pump trap
+EXPLORATION_NAME_REAPPEARED-NEXT-CONVEYOR,컨베이어 옆 재등장,컨베이어 옆 재등장,Reappeared next to the conveyor
+EXPLORATION_NAME_SWITCH-SINGLE-WIRE-PRESSURE,스위치 외줄 압박,스위치 외줄 압박,Switch single-wire pressure
+EXPLORATION_NAME_RETURN-CANNON-PRESSURE,복귀 대포 압박,복귀 대포 압박,Return Cannon Pressure
+EXPLORATION_NAME_TRAMPOLINE-SIDE-PRESSURE,트램폴린 옆 압박,트램폴린 옆 압박,Trampoline side pressure
+EXPLORATION_BUTTON_PRESS-UPPER-BUTTON,상부 버튼 압박,상부 버튼 압박,Press the upper button
+EXPLORATION_NAME_FLAME-SIDE-REAPPEARS,화염 측면 재등장,화염 측면 재등장,Flame side reappears
+EXPLORATION_NAME_RISING-CANNON-PRESSURE,상승 대포 압박,상승 대포 압박,Rising Cannon Pressure
+EXPLORATION_NAME_REAPPEARANCE-EXPORT-BUILDING,반출동 재등장,반출동 재등장,Reappearance of the Export Building
+EXPLORATION_NAME_SHUTTER-BEHIND-FIRST-CANNON,첫 대포 뒤 셔터,첫 대포 뒤 셔터,shutter behind the first cannon
+EXPLORATION_NAME_SOUTH-SLOPE,남측 경사로,남측 경사로,South slope
+EXPLORATION_NAME_SINGLE-ROPE-PARALLEL,외줄 병행,외줄 병행,Single rope parallel
+EXPLORATION_NAME_DESCENDING-BEHIND-BARRIER,가림벽 뒤 하강,가림벽 뒤 하강,Descending behind the barrier
+EXPLORATION_NAME_NEXT-BAR-PRESSURE,다음 봉 압박,다음 봉 압박,Next bar pressure
+EXPLORATION_NAME_CIRCULAR-ROD-CANNON-SIDE,순환 봉 대포 측면,순환 봉 대포 측면,Circular rod cannon side
+EXPLORATION_NAME_CONNECTION-BEHIND-PUMP,펌프 뒤 연결,펌프 뒤 연결,connection behind the pump
+EXPLORATION_NAME_BEHIND-TRANSPORT-RAIL,운반 레일 뒤편,운반 레일 뒤편,Behind the transport rail
+EXPLORATION_NAME_APPROACHING-DROP-OFF-POINT,하차장 접근,하차장 접근,Approaching the drop-off point
+EXPLORATION_NAME_RISING-BEHIND-PIPE,배관 뒤 상승,배관 뒤 상승,Rising behind the pipe
+EXPLORATION_NAME_BEHIND-UPPER-MAINTENANCE-RAMP,상부 정비 경사로 뒤편,상부 정비 경사로 뒤편,Behind the upper maintenance ramp
+EXPLORATION_NAME_UPPER-MAINTENANCE-RAMP,상부 정비 경사로,상부 정비 경사로,Upper maintenance ramp
+EXPLORATION_NAME_ENTERING-COOPERATIVE-SECTION,협동 구간 진입,협동 구간 진입,Entering the cooperative section
+EXPLORATION_NAME_BEHIND-PRESSURE-NEXT-TRAMPOLINE,트램폴린 옆 압박 뒤편,트램폴린 옆 압박 뒤편,Behind the pressure next to the trampoline
+EXPLORATION_BUTTON_BACK-UPPER-BUTTON-PRESSURE,상부 버튼 압박 뒤편,상부 버튼 압박 뒤편,Back of the upper button pressure
+EXPLORATION_NAME_BEHIND-FLAME-CORRIDOR-BYPASS,화염 회랑 우회 뒤편,화염 회랑 우회 뒤편,Behind the Flame Corridor bypass
+EXPLORATION_NAME_BYPASS-FLAME-CORRIDOR,화염 회랑 우회,화염 회랑 우회,Bypass Flame Corridor
+EXPLORATION_NAME_PASSAGEWAY-BEHIND-CORE,코어 뒤 통로,코어 뒤 통로,passageway behind the core
+EXPLORATION_NAME_UPPER-SINGLE-ROPE-DETOUR-REAR,상부 외줄 우회 뒤편,상부 외줄 우회 뒤편,Upper single rope detour rear
+EXPLORATION_NAME_UPPER-SINGLE-LINE-BYPASS,상부 외줄 우회,상부 외줄 우회,Upper single-line bypass
+EXPLORATION_NAME_BEHIND-LAST-PEAK,마지막 봉 옆 뒤편,마지막 봉 옆 뒤편,Behind the last peak
+EXPLORATION_NAME_NEXT-LAST-PEAK,마지막 봉 옆,마지막 봉 옆,Next to the last peak
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_0,후방 직접 추격 47,후방 직접 추격 47,47 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_1,후방 직접 추격 48,후방 직접 추격 48,48 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_2,후방 직접 추격 49,후방 직접 추격 49,49 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_3,후방 직접 추격 50,후방 직접 추격 50,50 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_4,후방 직접 추격 51,후방 직접 추격 51,Direct rear pursuit 51
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_5,후방 직접 추격 52,후방 직접 추격 52,Direct rear pursuit 52
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_6,후방 직접 추격 53,후방 직접 추격 53,Direct rear pursuit 53
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_7,후방 직접 추격 54,후방 직접 추격 54,Direct rear pursuit 54
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_8,후방 직접 추격 55,후방 직접 추격 55,Direct rear pursuit 55
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_9,후방 직접 추격 56,후방 직접 추격 56,56 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_10,후방 직접 추격 57,후방 직접 추격 57,Direct rear pursuit 57
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_11,후방 직접 추격 58,후방 직접 추격 58,Direct rear pursuit 58
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_12,후방 직접 추격 59,후방 직접 추격 59,Direct rear pursuit 59
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_13,후방 직접 추격 60,후방 직접 추격 60,60 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_14,후방 직접 추격 61,후방 직접 추격 61,61 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_15,후방 직접 추격 62,후방 직접 추격 62,62 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_16,후방 직접 추격 63,후방 직접 추격 63,63 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_17,후방 직접 추격 64,후방 직접 추격 64,64 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_18,후방 직접 추격 65,후방 직접 추격 65,65 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_19,후방 직접 추격 66,후방 직접 추격 66,66 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_20,후방 직접 추격 67,후방 직접 추격 67,67 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_21,후방 직접 추격 68,후방 직접 추격 68,68 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_22,후방 직접 추격 69,후방 직접 추격 69,69 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_23,후방 직접 추격 70,후방 직접 추격 70,70 direct rear pursuit
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_24,후방 직접 추격 71,후방 직접 추격 71,Direct rear pursuit 71
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_25,후방 직접 추격 72,후방 직접 추격 72,Direct rear pursuit 72
+EXPLORATION_NAME_DIRECT-REAR-PURSUIT_26,후방 직접 추격 73,후방 직접 추격 73,Direct rear pursuit 73
+EXPLORATION_NAME_BALANCE-JUMP,균형과 점프,균형과 점프,Balance and jump
+EXPLORATION_NAME_PIGGYBACK-HIGH-BAR,목마와 높은 봉,목마와 높은 봉,Piggyback and the high bar
+EXPLORATION_NAME_ONE-LINE-FINAL-COOPERATION,한 줄 최종 협동,한 줄 최종 협동,One-line final cooperation
+EXPLORATION_TEXT_ESCAPE-ROUTE-ENTRANCE,탈출로 입구,탈출로 입구,Escape route entrance
+EXPLORATION_TEXT_PLEASE-PRESS-CURRENT-KEY-KEY-AFTER,벽·천장에서 조금 떨어진 뒤 {SETTINGS_INPUT_CURRENT-KEY} 키를 눌러 주세요.,벽·천장에서 조금 떨어진 뒤 {SETTINGS_INPUT_CURRENT-KEY} 키를 눌러 주세요.,Please press the {SETTINGS_INPUT_CURRENT-KEY} key after standing a little distance away from the wall and ceiling.
+EXPLORATION_PROMPT_TURN-RETURN-CANNON-POWER,복귀 대포 전원 켜기,복귀 대포 전원 켜기,Turn on the return cannon power
+EXPLORATION_PROMPT_CANNON-OPERATION-FIXED,대포 가동 고정,대포 가동 고정,Cannon operation fixed
+EXPLORATION_PROMPT_PRESS-RELEASE-BRIDGE-LEVER,반출교 레버 누르기,반출교 레버 누르기,Press the release bridge lever
+EXPLORATION_PROMPT_KWON-SANG-KYO-SWING-PRESSING,권상교 그네 누르기,권상교 그네 누르기,Kwon Sang-kyo swing pressing
+EXPLORATION_PROMPT_PRESSING-PASSAGEWAY-RETAINER,통로 유지봉 누르기,통로 유지봉 누르기,Pressing the passageway retainer
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-SHUTTER-BEHIND-FIRST,탈출로 · 추격 / 첫 대포 뒤 셔터,탈출로 · 추격 / 첫 대포 뒤 셔터,Escape Route · Pursuit / Shutter behind the first cannon
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-CONNECTION-BEHIND-PUMP,탈출로 · 추격 / 펌프 뒤 연결,탈출로 · 추격 / 펌프 뒤 연결,Escape Route · Pursuit / Connection Behind Pump
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-PRESSURE-BEHIND-TRAMPOLINE,탈출로 · 추격 / 트램폴린 옆 압박 뒤편,탈출로 · 추격 / 트램폴린 옆 압박 뒤편,Escape Route · Pursuit / Pressure behind the trampoline
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-BEHIND-LAST-PEAK,탈출로 · 추격 / 마지막 봉 옆 뒤편,탈출로 · 추격 / 마지막 봉 옆 뒤편,Escape Route · Pursuit / Behind the Last Peak
+EXPLORATION_NAME_ESCAPE-ROUTE-START-SECOND-HALF-SPRINT,탈출로 · 후반 질주 시작,탈출로 · 후반 질주 시작,Escape Route · Start of Second Half Sprint
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-FOLDING-BRIDGE-EXCLUSIVE,탈출로 · 추격 / 접이교 전용 우회,탈출로 · 추격 / 접이교 전용 우회,Escape Route · Pursuit / Folding Bridge Exclusive Bypass
+EXPLORATION_NAME_ESCAPE-ROUTE-SECOND-HALF-SWING-FRONT,탈출로 · 후반 그네 앞,탈출로 · 후반 그네 앞,Escape route · Second half swing front
+EXPLORATION_NAME_ESCAPE-ROUTE-BEHIND-SECOND-HALF-SWING,탈출로 · 후반 그네 뒤,탈출로 · 후반 그네 뒤,Escape route · Behind the second half swing
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-BEHIND-LAST-FOLDING,탈출로 · 추격 / 마지막 접이교 우회 뒤편,탈출로 · 추격 / 마지막 접이교 우회 뒤편,Escape Route · Pursuit / Behind the Last Folding Bridge Bypass
+EXPLORATION_NAME_ESCAPE-ROUTE-FINAL-FLAME-SECTION,탈출로 · 마지막 화염 구간,탈출로 · 마지막 화염 구간,Escape Route · Final Flame Section
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUER-FINAL-BATTLE,탈출로 · 추격자 최종 전투,탈출로 · 추격자 최종 전투,Escape Route · Pursuer Final Battle
+EXPLORATION_NAME_ESCAPE-ROUTE-EXIT-CUTTER-FRONT,탈출로 · 출구 절단기 앞,탈출로 · 출구 절단기 앞,Escape Route · Exit Cutter Front
+EXPLORATION_NAME_ESCAPE-ROUTE-FRONT-LAST-DOOR,탈출로 · 마지막 문 앞,탈출로 · 마지막 문 앞,Escape Route · In Front of the Last Door
+EXPLORATION_NAME_ESCAPE-ROUTE-PURSUIT-EXIT-PRESSURE,탈출로 · 추격 / 출구 압박,탈출로 · 추격 / 출구 압박,Escape Route · Pursuit / Exit Pressure
+EXPLORATION_NAME_ESCAPE-ROUTE-REED-FIELD-REACH-ENDING,탈출로 · 갈대밭 · 엔딩 도착,탈출로 · 갈대밭 · 엔딩 도착,Escape Route · Reed Field · Reach Ending
+EXPLORATION_TEXT_OPEN-ESCAPE-ROUTE,탈출구 열기,탈출구 열기,Open the escape route
+EXPLORATION_TEXT_ARRIVED-REED-FIELD,갈대밭 도착,갈대밭 도착,Arrived at the reed field
+EXPLORATION_TEXT_GO-THROUGH-OBSTACLES-EXIT-CUT-CABLE,장애물을 통과해 출구로 가세요. 절단기로 케이블을 끊으면 문이 열립니다.,장애물을 통과해 출구로 가세요. 절단기로 케이블을 끊으면 문이 열립니다.,Go through the obstacles to the exit. Cut the cable with the cutters to open the door.
+EXPLORATION_TEXT_PASS-THROUGH-OPEN-EXIT-ARRIVE-REED,열린 출구를 지나 갈대밭에 도착하세요.,열린 출구를 지나 갈대밭에 도착하세요.,Pass through the open exit and arrive at the reed field.
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_0,콘크리트 내부 은폐 동선 0,콘크리트 내부 은폐 동선 0,Concealed movement path inside concrete 0
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_1,콘크리트 내부 은폐 동선 1,콘크리트 내부 은폐 동선 1,Concealed circulation path inside concrete 1
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_2,콘크리트 내부 은폐 동선 2,콘크리트 내부 은폐 동선 2,Concealed circulation path inside concrete 2
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_3,콘크리트 내부 은폐 동선 3,콘크리트 내부 은폐 동선 3,Concealed circulation path inside concrete 3
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_4,콘크리트 내부 은폐 동선 4,콘크리트 내부 은폐 동선 4,Concealed circulation path inside concrete 4
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_5,콘크리트 내부 은폐 동선 5,콘크리트 내부 은폐 동선 5,Concealed circulation path inside concrete 5
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_6,콘크리트 내부 은폐 동선 6,콘크리트 내부 은폐 동선 6,Concealed circulation path inside concrete 6
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_7,콘크리트 내부 은폐 동선 7,콘크리트 내부 은폐 동선 7,Concealed circulation path inside concrete 7
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_8,콘크리트 내부 은폐 동선 8,콘크리트 내부 은폐 동선 8,Concealed circulation path inside concrete 8
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_9,콘크리트 내부 은폐 동선 9,콘크리트 내부 은폐 동선 9,Concealed movement path inside concrete 9
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_10,콘크리트 내부 은폐 동선 10,콘크리트 내부 은폐 동선 10,10 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_11,콘크리트 내부 은폐 동선 11,콘크리트 내부 은폐 동선 11,Concealed circulation path inside concrete 11
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_12,콘크리트 내부 은폐 동선 12,콘크리트 내부 은폐 동선 12,Concealed circulation path inside concrete 12
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_13,콘크리트 내부 은폐 동선 13,콘크리트 내부 은폐 동선 13,Concealed circulation path inside concrete 13
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_14,콘크리트 내부 은폐 동선 14,콘크리트 내부 은폐 동선 14,Concealed circulation path inside concrete 14
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_15,콘크리트 내부 은폐 동선 15,콘크리트 내부 은폐 동선 15,Concealed circulation path inside concrete 15
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_16,콘크리트 내부 은폐 동선 16,콘크리트 내부 은폐 동선 16,16 concealed circulation paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_17,콘크리트 내부 은폐 동선 17,콘크리트 내부 은폐 동선 17,Concealed circulation path inside concrete 17
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_18,콘크리트 내부 은폐 동선 18,콘크리트 내부 은폐 동선 18,Concealed circulation path inside concrete 18
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_19,콘크리트 내부 은폐 동선 19,콘크리트 내부 은폐 동선 19,Concealed circulation path inside concrete 19
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_20,콘크리트 내부 은폐 동선 20,콘크리트 내부 은폐 동선 20,Concealed circulation path inside concrete 20
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_21,콘크리트 내부 은폐 동선 21,콘크리트 내부 은폐 동선 21,Concealed circulation path inside concrete 21
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_22,콘크리트 내부 은폐 동선 22,콘크리트 내부 은폐 동선 22,Concealed circulation path inside concrete 22
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_23,콘크리트 내부 은폐 동선 23,콘크리트 내부 은폐 동선 23,Concealed circulation path inside concrete 23
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_24,콘크리트 내부 은폐 동선 24,콘크리트 내부 은폐 동선 24,Concealed circulation path inside concrete 24
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_25,콘크리트 내부 은폐 동선 25,콘크리트 내부 은폐 동선 25,Concealed circulation path inside concrete 25
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_26,콘크리트 내부 은폐 동선 26,콘크리트 내부 은폐 동선 26,Concealed circulation path inside concrete 26
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_27,콘크리트 내부 은폐 동선 27,콘크리트 내부 은폐 동선 27,Concealed circulation path inside concrete 27
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_28,콘크리트 내부 은폐 동선 28,콘크리트 내부 은폐 동선 28,Concealed circulation path inside concrete 28
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_29,콘크리트 내부 은폐 동선 29,콘크리트 내부 은폐 동선 29,Concealed circulation path inside concrete 29
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_30,콘크리트 내부 은폐 동선 30,콘크리트 내부 은폐 동선 30,30 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_31,콘크리트 내부 은폐 동선 31,콘크리트 내부 은폐 동선 31,Concealed circulation path inside concrete 31
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_32,콘크리트 내부 은폐 동선 32,콘크리트 내부 은폐 동선 32,Concealed circulation path inside concrete 32
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_33,콘크리트 내부 은폐 동선 33,콘크리트 내부 은폐 동선 33,Concealed circulation path inside concrete 33
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_34,콘크리트 내부 은폐 동선 34,콘크리트 내부 은폐 동선 34,Concealed circulation path inside concrete 34
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_35,콘크리트 내부 은폐 동선 35,콘크리트 내부 은폐 동선 35,Concealed circulation path inside concrete 35
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_36,콘크리트 내부 은폐 동선 36,콘크리트 내부 은폐 동선 36,Concealed circulation path inside concrete 36
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_37,콘크리트 내부 은폐 동선 37,콘크리트 내부 은폐 동선 37,Concealed circulation path inside concrete 37
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_38,콘크리트 내부 은폐 동선 38,콘크리트 내부 은폐 동선 38,Concealed circulation path inside concrete 38
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_39,콘크리트 내부 은폐 동선 39,콘크리트 내부 은폐 동선 39,Concealed movement path inside concrete 39
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_40,콘크리트 내부 은폐 동선 40,콘크리트 내부 은폐 동선 40,40 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_41,콘크리트 내부 은폐 동선 41,콘크리트 내부 은폐 동선 41,Concealed circulation path inside concrete 41
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_42,콘크리트 내부 은폐 동선 42,콘크리트 내부 은폐 동선 42,Concealed circulation path inside concrete 42
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_43,콘크리트 내부 은폐 동선 43,콘크리트 내부 은폐 동선 43,Concealed circulation path inside concrete 43
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_44,콘크리트 내부 은폐 동선 44,콘크리트 내부 은폐 동선 44,Concealed movement path inside concrete 44
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_45,콘크리트 내부 은폐 동선 45,콘크리트 내부 은폐 동선 45,Concealed circulation path inside concrete 45
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_46,콘크리트 내부 은폐 동선 46,콘크리트 내부 은폐 동선 46,Concealed movement path inside concrete 46
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_47,콘크리트 내부 은폐 동선 47,콘크리트 내부 은폐 동선 47,Concealed movement path inside concrete 47
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_48,콘크리트 내부 은폐 동선 48,콘크리트 내부 은폐 동선 48,Concealed movement path inside concrete 48
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_49,콘크리트 내부 은폐 동선 49,콘크리트 내부 은폐 동선 49,Concealed movement path inside concrete 49
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_50,콘크리트 내부 은폐 동선 50,콘크리트 내부 은폐 동선 50,50 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_51,콘크리트 내부 은폐 동선 51,콘크리트 내부 은폐 동선 51,Concealed circulation path inside concrete 51
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_52,콘크리트 내부 은폐 동선 52,콘크리트 내부 은폐 동선 52,Concealed circulation path inside concrete 52
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_53,콘크리트 내부 은폐 동선 53,콘크리트 내부 은폐 동선 53,Concealed circulation path inside concrete 53
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_54,콘크리트 내부 은폐 동선 54,콘크리트 내부 은폐 동선 54,Concealed circulation path inside concrete 54
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_55,콘크리트 내부 은폐 동선 55,콘크리트 내부 은폐 동선 55,Concealed circulation path inside concrete 55
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_56,콘크리트 내부 은폐 동선 56,콘크리트 내부 은폐 동선 56,Concealed circulation path inside concrete 56
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_57,콘크리트 내부 은폐 동선 57,콘크리트 내부 은폐 동선 57,Concealed movement path inside concrete 57
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_58,콘크리트 내부 은폐 동선 58,콘크리트 내부 은폐 동선 58,Concealed circulation path inside concrete 58
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_59,콘크리트 내부 은폐 동선 59,콘크리트 내부 은폐 동선 59,Concealed movement path inside concrete 59
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_60,콘크리트 내부 은폐 동선 60,콘크리트 내부 은폐 동선 60,60 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_61,콘크리트 내부 은폐 동선 61,콘크리트 내부 은폐 동선 61,Concealed circulation path inside concrete 61
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_62,콘크리트 내부 은폐 동선 62,콘크리트 내부 은폐 동선 62,Concealed circulation path inside concrete 62
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_63,콘크리트 내부 은폐 동선 63,콘크리트 내부 은폐 동선 63,Concealed circulation path inside concrete 63
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_64,콘크리트 내부 은폐 동선 64,콘크리트 내부 은폐 동선 64,64 concealed movement paths inside concrete
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_65,콘크리트 내부 은폐 동선 65,콘크리트 내부 은폐 동선 65,Concealed circulation path inside concrete 65
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_66,콘크리트 내부 은폐 동선 66,콘크리트 내부 은폐 동선 66,Concealed circulation path inside concrete 66
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_67,콘크리트 내부 은폐 동선 67,콘크리트 내부 은폐 동선 67,Concrete interior concealed circulation path 67
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_68,콘크리트 내부 은폐 동선 68,콘크리트 내부 은폐 동선 68,Concealed circulation path inside concrete 68
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_69,콘크리트 내부 은폐 동선 69,콘크리트 내부 은폐 동선 69,Concealed movement path inside concrete 69
+EXPLORATION_NAME_CONCEALED-MOVEMENT-PATH-INSIDE-CONCRETE_70,콘크리트 내부 은폐 동선 70,콘크리트 내부 은폐 동선 70,Concealed movement path inside concrete 70
+EXPLORATION_NAME_EXISTING-BOTTOM-FINAL-CHASE_0,기존 바닥 최종 추격 71,기존 바닥 최종 추격 71,Existing bottom final chase 71
+EXPLORATION_NAME_EXISTING-BOTTOM-FINAL-CHASE_1,기존 바닥 최종 추격 72,기존 바닥 최종 추격 72,Existing bottom final chase 72
+EXPLORATION_NAME_EXISTING-BOTTOM-FINAL-CHASE_2,기존 바닥 최종 추격 73,기존 바닥 최종 추격 73,Existing bottom final chase 73
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_0,벽 돌파 후 기존 기물 구역 추격 1,벽 돌파 후 기존 기물 구역 추격 1,Chase existing piece zone 1 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_1,벽 돌파 후 기존 기물 구역 추격 2,벽 돌파 후 기존 기물 구역 추격 2,Chase existing piece zone after breaking through the wall 2
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_2,벽 돌파 후 기존 기물 구역 추격 3,벽 돌파 후 기존 기물 구역 추격 3,Chase existing piece zone 3 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_3,벽 돌파 후 기존 기물 구역 추격 4,벽 돌파 후 기존 기물 구역 추격 4,Chase existing piece zone 4 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_4,벽 돌파 후 기존 기물 구역 추격 5,벽 돌파 후 기존 기물 구역 추격 5,Chase existing piece zone 5 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_5,벽 돌파 후 기존 기물 구역 추격 6,벽 돌파 후 기존 기물 구역 추격 6,Chase existing piece zone 6 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_6,벽 돌파 후 기존 기물 구역 추격 7,벽 돌파 후 기존 기물 구역 추격 7,Chase existing piece zone after breaking through the wall 7
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_7,벽 돌파 후 기존 기물 구역 추격 8,벽 돌파 후 기존 기물 구역 추격 8,Chase existing piece zone 8 after breaking through the wall
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_8,벽 돌파 후 기존 기물 구역 추격 9,벽 돌파 후 기존 기물 구역 추격 9,Chase existing piece zone after breaking through the wall 9
+EXPLORATION_NAME_CHASE-EXISTING-PIECE-ZONE-AFTER-BREAKING_9,벽 돌파 후 기존 기물 구역 추격 10,벽 돌파 후 기존 기물 구역 추격 10,10 chases to existing piece zones after breaking through the wall
+EXPLORATION_NAME_INSPECTION-TIGHTROPE-DETOUR-CONCRETE-BREAKTHROUGH,검사 외줄 우회로 · 콘크리트 돌파,검사 외줄 우회로 · 콘크리트 돌파,Inspection tightrope detour · Concrete breakthrough
+EXPLORATION_NAME_INSPECTION-CROSSROADS-CONTINUOUS-POLE-MONITORING,검사 갈림길 · 연속 봉 감시,검사 갈림길 · 연속 봉 감시,Inspection Crossroads · Continuous Pole Monitoring
+EXPLORATION_NAME_EXTERNAL-EXTRACTION-ROUTE-FLAME-CHAMBER-WALL,외부 추출로 · 화염실 벽 돌파,외부 추출로 · 화염실 벽 돌파,External extraction route · Flame chamber wall breakthrough
+EXPLORATION_NAME_CENTRAL-OUTLET-EXTERNAL-SINGLE-LINE-PURSUIT,중앙 반출동 · 외부 외줄 추격,중앙 반출동 · 외부 외줄 추격,Central Outlet · External Single-line Pursuit
+EXPLORATION_NAME_PROCESSING-LEAP-FIXED-BAR-BRANCHING-PURSUIT,가공동 도약 · 고정 봉 분기 추격,가공동 도약 · 고정 봉 분기 추격,Processing leap · Fixed bar branching pursuit
+EXPLORATION_NAME_EXTRACTION-CANNON-PLATFORM-PURSUIT-EXISTING-UPPER,추출 대포 승차장 · 기존 상부 합류대 추격,추출 대포 승차장 · 기존 상부 합류대 추격,Extraction Cannon Platform · Pursuit of Existing Upper Junction
+EXPLORATION_PROMPT_PLEASE-ENTER-TEXT,글귀를 입력하세요,글귀를 입력하세요,Please enter the text.
+EXPLORATION_TEXT_ESCAPE-ROUTE_0,탈출로,탈출로,Escape Route
+EXPLORATION_TEXT_UNIT-B,단원 1 · 나,단원 1 · 나,Unit 1 · B
+EXPLORATION_TEXT_ESCAPE,탈출,탈출,escape
+EXPLORATION_TEXT_CLEAR-RATE,클리어율,클리어율,Clear rate
+EXPLORATION_TEXT_WHETHER-ESCAPE,탈출 여부,탈출 여부,Whether to escape
+EXPLORATION_TEXT_PLAYER,플레이어,플레이어,Player
+EXPLORATION_BUTTON_PRESS-BUTTON-GO-LOBBY,버튼을 누르면 로비로 이동합니다,버튼을 누르면 로비로 이동합니다,Press the button to go to the lobby.
+EXPLORATION_TEXT_BEST-TEAM-RESPONSE-PERFORMANCE,한 공연 최고 팀 호응,한 공연 최고 팀 호응,Best team response for a performance
+EXPLORATION_TEXT_UNIT_0,단원,단원,Unit
+EXPLORATION_TEXT_BEST-INDIVIDUAL-RESPONSE-PERFORMANCE,한 공연 최고 개인 호응,한 공연 최고 개인 호응,Best individual response at a performance
+EXPLORATION_TEXT_RUN-ACCUMULATED-TOKENS,런 누적 토큰,런 누적 토큰,Run accumulated tokens
+EXPLORATION_TEXT_DIFFICULTY,어려움,어려움,difficulty
+EXPLORATION_TEXT_UNESCAPED,미탈출,미탈출,Unescaped
+EXPLORATION_TEXT_RETURN-LOBBY,로비로 돌아가기,로비로 돌아가기,Return to the lobby
+EXPLORATION_TEXT_ESCAPE-SUCCESSFUL,탈출 성공,탈출 성공,Escape successful
+EXPLORATION_TEXT_UNIT_1,단원 1 · 340,단원 1 · 340,Unit 1 · 340
+EXPLORATION_TEXT_TOTAL-EARNED,"총 획득 4,280","총 획득 4,280","Total earned 4,280"
+EXPLORATION_TEXT_ESCAPED-FAILED,탈출 3명 · 미탈출 1명,탈출 3명 · 미탈출 1명,3 escaped · 1 failed
+EXPLORATION_TEXT_AVERAGE-RESPONSE,평균 호응,평균 호응,Average response
+EXPLORATION_TEXT_LAST-PIECE,마지막 기물,마지막 기물,Last piece
+EXPLORATION_TEXT_RUN-STATISTICS,런 통계,런 통계,Run statistics
+EXPLORATION_TEXT_COMMONLY,보통,보통,commonly
+EXPLORATION_TEXT_RECORDS-PERFORMANCE,공연별 기록,공연별 기록,Records by performance
+EXPLORATION_TEXT_FACILITY,쉬움,쉬움,facility
+EXPLORATION_TEXT_TOTAL-CONSUMED,"총 소모 2,960","총 소모 2,960","Total consumed 2,960"
+EXPLORATION_TEXT_END,The End?,끝인가요?,The End?
+EXPLORATION_TEXT_D,D-?,D-?,D-?
+EXPLORATION_TEXT_ESCAPE-ROUTE-GO-DOWN-STAIRS,"탈출로
+계단을 내려가세요","탈출로
+계단을 내려가세요","Escape Route
+, go down the stairs."
+EXPLORATION_TEXT_OUT,OUT  /  08,OUT / 08,OUT  /  08
+EXPLORATION_TEXT_STAGE-LIFT-LOWER,무대 리프트 하부,무대 리프트 하부,Stage lift lower
+EXPLORATION_TEXT_DISCHARGE_3,DISCHARGE 04,퇴원 04,DISCHARGE 04
+EXPLORATION_TEXT_DISCHARGE_2,DISCHARGE 03,퇴원 03,DISCHARGE 03
+EXPLORATION_TEXT_S,S +16,S +16,S +16
+EXPLORATION_TEXT_DISCHARGE_1,DISCHARGE 02,퇴원 02,DISCHARGE 02
+EXPLORATION_TEXT_CURRENT-PLAYER-MODEL-M,현재 플레이어 모델 · 1.73m,현재 플레이어 모델 · 1.73m,Current Player Model · 1.73m
+EXPLORATION_TEXT_UNDERSTAGE,UNDERSTAGE  /  01,언더스테이지 / 01,UNDERSTAGE  /  01
+EXPLORATION_TEXT_LOWER-PART-PERFORMANCE-HALL-HIDDEN-PATH,01 · 공연장 하부 / 숨겨진 길,01 · 공연장 하부 / 숨겨진 길,01 · Lower part of the performance hall / Hidden path
+EXPLORATION_TEXT_REED-COLONY-GRAY-BOX,갈대 군락 (그레이박스),갈대 군락 (그레이박스),Reed colony (Gray box)
+EXPLORATION_TEXT_DISPATCH-UNIT-FINAL-SPRINT,07A · 반출동 / 마지막 질주,07A · 반출동 / 마지막 질주,07A · Dispatch Unit / Final Sprint
+EXPLORATION_TEXT_REED-FIELD-SENSE-LIBERATION-STABILITY,08 · 갈대밭 / 해방감과 안정감,08 · 갈대밭 / 해방감과 안정감,08 · Reed Field / Sense of Liberation and Stability
+EXPLORATION_TEXT_EXIT-DEVICE-WORKSPACE,출구 장치 작업 공간,출구 장치 작업 공간,Exit device workspace
+EXPLORATION_TEXT_DISCHARGE_0,DISCHARGE 01,퇴원 01,DISCHARGE 01
+EXPLORATION_TEXT_LOW-CLEARANCE-CROUCH,LOW CLEARANCE / CROUCH,낮은 지상고 / 웅크리기,LOW CLEARANCE / CROUCH
+EXPLORATION_TEXT_WIDE-LANDING-SHORT-RELIEF,06 · 넓은 착지 / 짧은 안도,06 · 넓은 착지 / 짧은 안도,06 · Wide landing / Short relief
+EXPLORATION_TEXT_OUT-M_0,OUT  /  70 m  >,출구 / 70m >,OUT  /  70 m  >
+EXPLORATION_TEXT_TRAMPOLINE-INSTALLATION-SITE,트램폴린 설치 자리,트램폴린 설치 자리,Trampoline installation site
+EXPLORATION_TEXT_SWING-INSTALLATION-GUIDE,그네 설치 가이드,그네 설치 가이드,Swing Installation Guide
+EXPLORATION_TEXT_SINGLE-LINE-CONNECTION-PLANNED-NO-FUNCTION,외줄 연결 예정 · 기능 없음,외줄 연결 예정 · 기능 없음,Single-line connection planned · No function
+EXPLORATION_TEXT_ISOLATED-INTERMEDIATE-PLATFORM-M,03 · 고립 중간 발판  +2m,03 · 고립 중간 발판  +2m,03 · Isolated Intermediate Platform +2m
+EXPLORATION_TEXT_B-FINAL-WORKSPACE-POWER-OFF,07B · 최종 작업 공간 / 전원 이탈,07B · 최종 작업 공간 / 전원 이탈,07B · Final Workspace / Power Off
+EXPLORATION_TEXT_DISPATCH,DISPATCH  >,배차 >,DISPATCH  >
+EXPLORATION_TEXT_TRANSFER,TRANSFER  /  04  >,전송 / 04 >,TRANSFER  /  04  >
+EXPLORATION_BUTTON_BUTTON-DOOR-POSITION,버튼 문 위치,버튼 문 위치,Button door position
+EXPLORATION_TEXT_SERVICE-REFUGE,SERVICE REFUGE,서비스 피난처,SERVICE REFUGE
+EXPLORATION_TEXT_LONG-ENTRY-FIRST-JOINT-REVEAL,02 · 긴 진입 / 첫 공동의 드러남,02 · 긴 진입 / 첫 공동의 드러남,02 · Long Entry / First Joint Reveal
+EXPLORATION_TEXT_OUT-M_1,OUT  /  260 m  >,출구 / 260m >,OUT  /  260 m  >
+EXPLORATION_TEXT_M-DISCONNECTED-COMMUNITY-COMPLEX-CROSSING-SPACE,05 · 25m 단절 공동 / 복합 횡단 공간,05 · 25m 단절 공동 / 복합 횡단 공간,05 · 25m Disconnected Community / Complex Crossing Space
+EXPLORATION_TEXT_CANNON-INSTALLATION-SITE,대포 설치 자리,대포 설치 자리,Cannon installation site
+EXPLORATION_TEXT_EXIT-LOCK,출구 잠금 장치,출구 잠금 장치,Exit lock
+EXPLORATION_TEXT_PROCEEDING-LEVER-POSITION,진행 레버 위치,진행 레버 위치,Proceeding lever position
+EXPLORATION_TEXT_SERVICE,SERVICE 02,서비스 02,SERVICE 02
+EXPLORATION_TEXT_BEND-PROGRESS-LIBERAL-ARTS-DELAY-SHUTTER,04 · 굽이 / 진행 문과 지연 셔터,04 · 굽이 / 진행 문과 지연 셔터,04 · Bend / Progress Liberal Arts Delay Shutter
+EXPLORATION_TEXT_OUTSIDE,OUTSIDE  /  08,외부 / 08,OUTSIDE  /  08
+EXPLORATION_TEXT_M-PROTOTYPE,5m prototype,5m 프로토타입,5m prototype
+EXPLORATION_PROMPT_PROPOSAL-NOT-PLAYABLE,PROPOSAL / NOT PLAYABLE,제안 / 플레이 불가,PROPOSAL / NOT PLAYABLE
+EXPLORATION_TEXT_RESERVE-M-WIDTH-M-HEADROOM,RESERVE: 4.5m width / 6m headroom,예약 구역: 폭 4.5m / 높이 6m,RESERVE: 4.5m width / 6m headroom
+EXPLORATION_TEXT_HUMAN-M,Human 1.73m,사람 키 1.73m,Human 1.73m
+EXPLORATION_TEXT_M-COMPARISON,6m comparison,6m 비교,6m comparison
+EXPLORATION_TEXT_P-FINAL-CHASE-AFTER-ALL-CREW,P5 final chase after all crew bridges / 5m prototype,모든 승무원 다리를 지나는 P5 최종 추격전 / 5m 프로토타입,P5 final chase after all crew bridges / 5m prototype
+EXPLORATION_TEXT_M-PREVIOUS,3.2m previous,320만 전,3.2m previous
+EXPLORATION_TEXT_P-WARNING-BEFORE-CREW-BRIDGE-M,P4 warning before crew bridge / 5m prototype,승무원 선교 앞 P4 경고 / 5m 프로토타입,P4 warning before crew bridge / 5m prototype
+EXPLORATION_TEXT_P-GATE-PRESSURE-M-PROTOTYPE,P3 gate pressure / 5m prototype,P3 게이트 압력 / 5m 프로토타입,P3 gate pressure / 5m prototype
+EXPLORATION_TEXT_P-SERVICE-HATCH-SHAFT-MOTION-UNRESOLVED,P5 service hatch; shaft motion unresolved,P5 서비스 해치; 축 운동 미해결,P5 service hatch; shaft motion unresolved
+EXPLORATION_TEXT_P-UNDERSTAGE-BREACH,P1 / Understage breach in A,P1 / A에서의 언더스테이트 파괴,P1 / Understage breach in A
+EXPLORATION_TEXT_NEW-INDEPENDENT-SUPPORT-ENCLOSURE-REQUIRED,New independent support + enclosure required,새로운 독립적인 지원 및 보호 장치 필요,New independent support + enclosure required
+EXPLORATION_TEXT_P-OUTER-SERVICE-LANE-M-PROTOTYPE,P2 outer service lane / 5m prototype,P2 외부 서비스 차선 / 5m 프로토타입,P2 outer service lane / 5m prototype
+EXPLORATION_TEXT_P-M-THICK-PIER-PASSAGE-BREAKABLE,P3 5m-thick pier passage + breakable gate,P3 5m 두께의 교각 통로 + 파손 가능한 문,P3 5m-thick pier passage + breakable gate
+EXPLORATION_TEXT_DUMMY-SPACE,더미 공간,더미 공간,Dummy space
+EXPLORATION_PROMPT_NO-CHANGES-BEEN-OBSERVED-YET,아직 관찰한 변경값이 없습니다.,아직 관찰한 변경값이 없습니다.,No changes have been observed yet.
+EXPLORATION_TEXT_WAITING-SELECTED-TARGET-CONNECTION,선택 대상 연결 대기,선택 대상 연결 대기,Waiting for selected target connection
+EXPLORATION_TEXT_ESCAPE-BEGINS-ALL-PERSONNEL-GATHER,탈출 개시 · 전원 집결 가정,탈출 개시 · 전원 집결 가정,Escape begins · All personnel gather
+EXPLORATION_TEXT_WAITING-FLOW-CONNECTION,흐름 연결 대기,흐름 연결 대기,Waiting for flow connection
+EXPLORATION_TEXT_SELECT-ROW-RETIRE-INPUT,선택 행 리타이어 입력,선택 행 리타이어 입력,Select row retire input
+EXPLORATION_TEXT_SELECT-ROW-ARRIVAL-INPUT,선택 행 도착 입력,선택 행 도착 입력,Select row arrival input
+EXPLORATION_TEXT_TEMPORARY-VERIFICATION-DUMMY,임시 검증용 더미,임시 검증용 더미,Temporary verification dummy
+EXPLORATION_TEXT_NEED-ACTUAL-SERVER-TARGETS,실제 서버 대상 필요,실제 서버 대상 필요,Need for actual server targets
+EXPLORATION_TEXT_SEPARATE-MANUAL-CONCLUSION-NOT-AUTOMATIC-AGGREGATION,별도 수동 결론 · 자동 집계 아님,별도 수동 결론 · 자동 집계 아님,Separate manual conclusion · Not automatic aggregation
+EXPLORATION_TEXT_MANUAL-PROGRESSION-PREPARE-NEXT-STEP,수동 진행 · 다음 단계 준비,수동 진행 · 다음 단계 준비,Manual Progression · Prepare for Next Step
+EXPLORATION_TEXT_INPUT-COMMON-API-CHECK-CHANGED-VALUES,입력 → 공통 API → 변경값을 이곳에서 확인합니다.,입력 → 공통 API → 변경값을 이곳에서 확인합니다.,Input → Common API → Check the changed values ​​here.
+EXPLORATION_TEXT_WAITING-EXECUTION,실행 대기,실행 대기,Waiting for execution
+EXPLORATION_PROMPT_TRY-PRESSING-BUTTON-CONTROLS-TAB,조작 탭에서 버튼을 눌러 보세요,조작 탭에서 버튼을 눌러 보세요,Try pressing the button on the controls tab.
+EXPLORATION_TEXT_ARRIVAL-PRESENT-ENDING,도착 있음 → 엔딩,도착 있음 → 엔딩,Arrival present → Ending
+EXPLORATION_TEXT_WAITING-SITUATION-RECORD,상황 기록 대기,상황 기록 대기,Waiting for situation record
+EXPLORATION_TEXT_ROW_2,행 3,행 3,Row 3
+EXPLORATION_TEXT_ROW_0,행 1,행 1,Row 1
+EXPLORATION_TEXT_COLLAPSE,"◀
+접기","◀
+접기","◀
+Collapse"
+EXPLORATION_TEXT_RESULT,결과,결과,result
+EXPLORATION_TEXT_DISTINGUISHES-BETWEEN-INPUT-WAITING-ACTUAL-PROCESSING,입력 대기 · 실제 처리 / 더미 입력 / 조회를 구분합니다,입력 대기 · 실제 처리 / 더미 입력 / 조회를 구분합니다,Distinguishes between input waiting · actual processing / dummy input / query.
+EXPLORATION_PROMPT_ONLY-AVAILABLE-BUTTONS-CURRENT-STAGE-ENABLED,현재 단계에서 가능한 버튼만 활성화됩니다.,현재 단계에서 가능한 버튼만 활성화됩니다.,Only available buttons at the current stage are enabled.
+EXPLORATION_TEXT_SELECT-NEXT-DUMMY-ROW,다음 더미 행 선택,다음 더미 행 선택,Select the next dummy row
+EXPLORATION_TEXT_INTRODUCTION-PERFORMANCE-INTERMISSION-NIGHT-ESCAPE-ENDING,도입 / 공연 / 쉬는 시간 / 밤 / 탈출 / 엔딩,도입 / 공연 / 쉬는 시간 / 밤 / 탈출 / 엔딩,Introduction / Performance / Intermission / Night / Escape / Ending
+EXPLORATION_TEXT_RECORD,기록,기록,record
+EXPLORATION_TEXT_OLD-THEATER-LOADING-DOCK,옛 극장 → 하역장,옛 극장 → 하역장,Old Theater → Loading Dock
+EXPLORATION_TEXT_ROW_1,행 2,행 2,Row 2
+EXPLORATION_TEXT_INITIATE-ESCAPE-SELECT-ROW,탈출 개시 / 행 선택,탈출 개시 / 행 선택,Initiate Escape / Select Row
+EXPLORATION_TEXT_ALL-MEMBERS-RETIRE-GENERATIONAL-CHANGE,전원 리타이어 → 세대 교체,전원 리타이어 → 세대 교체,All members retire → Generational change
+EXPLORATION_TEXT_LOADING-DOCK-ESCAPE-SUCCESSFUL,하역장 (탈출 성공),하역장 (탈출 성공),Loading dock (Escape successful)
+EXPLORATION_TEXT_NIGHT-PREPARATION-RELEASE,밤 준비 / 해제,밤 준비 / 해제,Night preparation / Release
+EXPLORATION_TEXT_ROW_3,행 4,행 4,Row 4
+EXPLORATION_TEXT_SITUATION-LOG-NEWEST-RAW-API-DEVELOPER,상황 기록 · 최신순 (원시 API는 개발자 모드 로그),상황 기록 · 최신순 (원시 API는 개발자 모드 로그),Situation Log · Newest (Raw API is Developer Mode Log)
+EXPLORATION_TEXT_WAITING-CONNECTION-STATUS,상태 연결 대기,상태 연결 대기,Waiting for connection status
+EXPLORATION_TEXT_SERVER-CAPTURE-APPLIED-LOCATION-MATCH-REQUIRED,서버 잡힘 적용 · 장소 일치 필요,서버 잡힘 적용 · 장소 일치 필요,Server capture applied · Location match required
+EXPLORATION_TEXT_BEFORE-CHANGE-AFTER-CHANGE,변경 전  →  변경 후,변경 전  →  변경 후,Before change → After change
+EXPLORATION_TEXT_JOINT-FUNDS,공동 자금 0,공동 자금 0,Joint funds 0
+EXPLORATION_TEXT_NEXT-SELECT-REAL-PLAYER,다음 실제 플레이어 선택,다음 실제 플레이어 선택,"Next, select a real player."
+EXPLORATION_TEXT_FLOW-PREPARATION,흐름 준비,흐름 준비,Flow preparation
+EXPLORATION_TEXT_START-NEXT-RUN,다음 런 시작,다음 런 시작,Start next run
+EXPLORATION_TEXT_WAITING-ROOM-HOST-CONFIRM-RESULTS,방장의 결과 확인을 기다리는 중,방장의 결과 확인을 기다리는 중,Waiting for the room host to confirm the results
+EXPLORATION_TEXT_MOVE-MORNING-DAY-NEW-RUN,새 런의 1일차 아침으로 이동합니다,새 런의 1일차 아침으로 이동합니다,Move to the morning of Day 1 of the new run.
+EXPLORATION_TEXT_WHEN-HOST-STARTS-NEXT-RUN-WE,방장이 다음 런을 시작하면 함께 이동합니다,방장이 다음 런을 시작하면 함께 이동합니다,"When the host starts the next run, we move together."
+EXPLORATION_PROMPT_IF-ROOM-HOST-PRESSES-RETURN-LOBBY,방장이 로비로 돌아가기를 누르면 함께 이동합니다,방장이 로비로 돌아가기를 누르면 함께 이동합니다,"If the room host presses ""Return to Lobby,"" you will move together."
+EXPLORATION_PROMPT_THERE-NO-UNIT-RECORDS-DISPLAY,표시할 단원 기록이 없습니다.,표시할 단원 기록이 없습니다.,There are no unit records to display.
+EXPLORATION_TEXT_ESCAPED-FIRST-ARGUMENT-NON-ESCAPED-SECOND,탈출 {COMMON_VALUE_FIRST-ARGUMENT}명 · 미탈출 {COMMON_VALUE_SECOND-ARGUMENT}명,탈출 {COMMON_VALUE_FIRST-ARGUMENT}명 · 미탈출 {COMMON_VALUE_SECOND-ARGUMENT}명,Escaped {COMMON_VALUE_FIRST-ARGUMENT} · Non-escaped {COMMON_VALUE_SECOND-ARGUMENT}
+EXPLORATION_TEXT_FIRST-ARGUMENT-DAY-ESCAPE-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}일차 · 탈출 {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}일차 · 탈출 {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Day · Escape {COMMON_VALUE_SECOND-ARGUMENT}
+EXPLORATION_TEXT_EXAMPLE-DATA-LOBBY-NAVIGATION-NOT-CONNECTED,예시 데이터 · 로비 이동은 연결되지 않았습니다,예시 데이터 · 로비 이동은 연결되지 않았습니다,Example data · Lobby navigation is not connected
+EXPLORATION_TEXT_BREAKING-DOWN-WALLS,벽 부수기,벽 부수기,Breaking down walls
+EXPLORATION_TEXT_WALKING,걷기,걷기,walking
+EXPLORATION_TEXT_TURN-AROUND-CHASE,돌아서 추격,돌아서 추격,Turn around and chase
+EXPLORATION_TEXT_BEND-PASS,숙여 통과,숙여 통과,Bend to pass
+EXPLORATION_TEXT_JUMP-LANDING,점프·착지,점프·착지,Jump and Landing
+EXPLORATION_TEXT_ARM-ATTACK-EVASION,팔 공격·회피,팔 공격·회피,Arm Attack/Evasion
+EXPLORATION_TEXT_CAPTURE-THROW,포획·투척,포획·투척,Capture/Throw
+EXPLORATION_TEXT_CONCRETE-WALL-END-HALLWAY,복도 끝 콘크리트 벽,복도 끝 콘크리트 벽,concrete wall at the end of the hallway
+EXPLORATION_TEXT_END-HALLWAY,복도 끝,복도 끝,end of the hallway
+EXPLORATION_TEXT_CENTRAL-DOOR-FRAME-HALLWAY,복도 중앙 문틀,복도 중앙 문틀,central door frame of the hallway
+EXPLORATION_TEXT_TRAINING-DUMMY-FIXED-WARNING-LINE,훈련 더미 · 고정 예고선,훈련 더미 · 고정 예고선,Training dummy · Fixed warning line
+EXPLORATION_TEXT_TRAINING-DUMMIES-CUTTING-THROWING,훈련 더미 · 절단과 투척,훈련 더미 · 절단과 투척,Training dummies · Cutting and throwing
+EXPLORATION_TEXT_F-CHASER-MODE,F6   추격자 모드,F6   추격자 모드,F6 Chaser Mode
+EXPLORATION_TEXT_ACCESS-PEDESTRIAN-WALKWAY-MAINTENANCE-CART,진입 보행면 정비 카트,진입 보행면 정비 카트,Access pedestrian walkway maintenance cart
+EXPLORATION_TEXT_CHASER-MODE-FIRST-ARGUMENT-R-REPLAY,추격자 모드  /  {COMMON_VALUE_FIRST-ARGUMENT}     ·     R 다시 보기,추격자 모드  /  {COMMON_VALUE_FIRST-ARGUMENT}     ·     R 다시 보기,Chaser Mode / {COMMON_VALUE_FIRST-ARGUMENT} · R Replay
+EXPLORATION_TEXT_F-NORMAL-CHASE,F6   일반 추격,F6   일반 추격,F6 Normal Chase
+EXPLORATION_TEXT_LOBBY-EAST,로비 동쪽,로비 동쪽,Lobby East
+EXPLORATION_TEXT_EASTERN-PASSAGE,동쪽 통로,동쪽 통로,eastern passage
+EXPLORATION_TEXT_EXPERT-ROOM,전문가실,전문가실,Expert Room
+EXPLORATION_TEXT_SERVICE-PASSAGE,서비스 통로,서비스 통로,Service passage
+EXPLORATION_TEXT_STUDIO-CONNECTING-PASSAGEWAY,작업실 연결 통로,작업실 연결 통로,studio connecting passageway
+EXPLORATION_TEXT_DORMITORY,숙소,숙소,Dormitory
+EXPLORATION_TEXT_WASTE-STORAGE,폐기물 보관소,폐기물 보관소,waste storage
+EXPLORATION_TEXT_ELEVATOR-HALL,승강기 홀,승강기 홀,Elevator hall
+EXPLORATION_TEXT_CARGO-LOADING-AREA,화물 적재 구역,화물 적재 구역,Cargo loading area
+EXPLORATION_TEXT_PIPE-CONNECTION-PASSAGE,배관 연결 통로,배관 연결 통로,Pipe connection passage
+EXPLORATION_TEXT_PIPE-PASSAGE,배관 통로,배관 통로,pipe passage
+EXPLORATION_TEXT_STAIRWELL,계단실,계단실,stairwell
+EXPLORATION_TEXT_MACHINE-ROOM,기계실,기계실,machine room
+EXPLORATION_TEXT_MANAGEMENT-OFFICE,관리실,관리실,Management office
+EXPLORATION_TEXT_PASSAGEWAY-CONNECTING-MANAGEMENT-OFFICE,관리실 연결 통로,관리실 연결 통로,Passageway connecting to the management office
+EXPLORATION_TEXT_BATHHOUSE,탈의실,탈의실,bathhouse
+EXPLORATION_TEXT_ESCAPE-ROUTE-PASSAGE,탈출로 통로,탈출로 통로,Escape route passage
+EXPLORATION_TEXT_PRACTICE-ROOM-CONNECTING-PASSAGEWAY,연습실 연결 통로,연습실 연결 통로,Practice room connecting passageway
+EXPLORATION_TEXT_CONNECTING-PASSAGEWAY-STAGE-EQUIPMENT-STORAGE-ROOM,무대 장치 보관실 연결 통로,무대 장치 보관실 연결 통로,connecting passageway to the stage equipment storage room
+EXPLORATION_TEXT_CARGO-LOADING-AREA-CONNECTING-PASSAGEWAY,화물 적재 구역 연결 통로,화물 적재 구역 연결 통로,Cargo loading area connecting passageway
+EXPLORATION_TEXT_PASSAGEWAY-CONNECTING-PROP-ROOM,소품실 연결 통로,소품실 연결 통로,Passageway connecting to the prop room
+EXPLORATION_TEXT_STAIRWAY-CONNECTING-PASSAGE,계단 연결 통로,계단 연결 통로,Stairway connecting passage
+EXPLORATION_TEXT_BACK-HALLWAY,뒤쪽 복도,뒤쪽 복도,back hallway
+EXPLORATION_TEXT_PREVIOUS-GENERATION-LIVING-PLACE,이전 세대 생활 장소,이전 세대 생활 장소,Previous generation living place
+EXPLORATION_TEXT_STORAGE,창고,창고,storage
+EXPLORATION_TEXT_UNIT-FIRST-ARGUMENT-STAGE-MASK,단원 {COMMON_VALUE_FIRST-ARGUMENT} · 무대 가면,단원 {COMMON_VALUE_FIRST-ARGUMENT} · 무대 가면,Unit {COMMON_VALUE_FIRST-ARGUMENT} · Stage Mask
+EXPLORATION_PROMPT_FAILED-ESCAPE-NEW-RUN-DAY-MORNING,"탈출하지 못했습니다.
+새로운 런 · 1일차 아침이 시작됩니다","탈출하지 못했습니다.
+새로운 런 · 1일차 아침이 시작됩니다","Failed to escape.
+New Run · Day 1 Morning Begins"
+EXPLORATION_BUTTON_RETURN-BUTTON-RETURN-STAIRS-OPEN,복귀 버튼 → 복귀 계단 열림,복귀 버튼 → 복귀 계단 열림,Return button → Return stairs open
+EXPLORATION_TEXT_USE-NORMAL-PLAYER-AFTER-GAME-STARTS,게임 시작 후 정상 상태의 플레이어로 사용할 수 있습니다.,게임 시작 후 정상 상태의 플레이어로 사용할 수 있습니다.,You can use it as a normal player after the game starts.
+EXPLORATION_TEXT_PORTABLE-CUTTER,휴대 절단기,휴대 절단기,portable cutter
+EXPLORATION_TEXT_CUT-REMAINING-WIRES-WIRE-CUTTER,절단기로 남은 배선을 끊으세요.,절단기로 남은 배선을 끊으세요.,Cut the remaining wires with a wire cutter.
+EXPLORATION_TEXT_IF-SUBDUE-ALL-PURSUERS-CUT-WIRING,추격자를 모두 제압하고 배선을 끊으면 문이 열립니다.,추격자를 모두 제압하고 배선을 끊으면 문이 열립니다.,"If you subdue all the pursuers and cut the wiring, the door will open."
+EXPLORATION_TEXT_WAITING-PURSUER-APPEAR,추격자 등장 대기,추격자 등장 대기,Waiting for the pursuer to appear
+EXPLORATION_TEXT_SUBDUE-ALL-REMAINING-PURSUERS,남은 추격자를 모두 제압하세요.,남은 추격자를 모두 제압하세요.,Subdue all remaining pursuers.
+EXPLORATION_TEXT_PURSUER-SUBDUED-WIRING-CUT-COMPLETE-PROCEED,추격자 제압 및 배선 절단 완료 · 출구로 이동하세요,추격자 제압 및 배선 절단 완료 · 출구로 이동하세요,Pursuer subdued and wiring cut complete · Proceed to the exit
+EXPLORATION_TEXT_WIRING-CUT-COMPLETE-PLEASE-PROCEED-EXIT,배선 절단 완료 · 출구로 이동하세요,배선 절단 완료 · 출구로 이동하세요,Wiring cut complete · Please proceed to the exit
+EXPLORATION_TEXT_DEVICE-STUCK-EQUIPMENT-TAKE-STEP-BACK,장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요,장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요,The device is stuck on the equipment. Take a step back and change direction.
+EXPLORATION_TEXT_FIRST-ARGUMENT-SINGLE-SHOT-SAW-BLADE,{COMMON_VALUE_FIRST-ARGUMENT} · 톱날 한 발 발사 · 배선 절단용,{COMMON_VALUE_FIRST-ARGUMENT} · 톱날 한 발 발사 · 배선 절단용,{COMMON_VALUE_FIRST-ARGUMENT} · Single-shot saw blade · For cutting wiring
+EXPLORATION_TEXT_AIM-COLOR-WIRE-FIRE-FIRST-ARGUMENT,색 전선을 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,색 전선을 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,Aim at the color wire and fire with {COMMON_VALUE_FIRST-ARGUMENT}
+EXPLORATION_TEXT_CUTTING-WIRE-FIRST-ARGUMENT-KEEP-BLADES,배선 절단 중 {COMMON_VALUE_FIRST-ARGUMENT}% · 날을 계속 맞대세요,배선 절단 중 {COMMON_VALUE_FIRST-ARGUMENT}% · 날을 계속 맞대세요,Cutting wire {COMMON_VALUE_FIRST-ARGUMENT}% · Keep the blades aligned
+EXPLORATION_TEXT_PLACE-ROTATING-BLADE-AGAINST-YELLOW-WIRING,출구 옆 노란 배선에 회전 날을 {COMMON_VALUE_FIRST-ARGUMENT}초 동안 맞대세요,출구 옆 노란 배선에 회전 날을 {COMMON_VALUE_FIRST-ARGUMENT}초 동안 맞대세요,Place the rotating blade against the yellow wiring next to the exit for {COMMON_VALUE_FIRST-ARGUMENT} seconds.
+EXPLORATION_TEXT_CHASER-LANDING-AWAITING,추격자 착지 대기,추격자 착지 대기,Chaser landing awaiting
+EXPLORATION_TEXT_WAITING-ADDITIONAL-PURSUERS-APPEAR,추가 추격자 등장 대기,추가 추격자 등장 대기,Waiting for additional pursuers to appear
+EXPLORATION_TEXT_CUT-WIRING-FIRST-ARGUMENT-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}로 배선 절단,{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}로 배선 절단,Cut the wiring with {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}
+EXPLORATION_TEXT_AIM-PURSUER-FIRE-FIRST-ARGUMENT,추격자를 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,추격자를 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,Aim at the pursuer and fire {COMMON_VALUE_FIRST-ARGUMENT}
+EXPLORATION_TEXT_AIM-PURSUER-OR-WIRING-FIRE-FIRST,추격자 또는 배선을 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,추격자 또는 배선을 조준하고 {COMMON_VALUE_FIRST-ARGUMENT}로 발사,Aim at the pursuer or wiring and fire with {COMMON_VALUE_FIRST-ARGUMENT}
+EXPLORATION_TEXT_EVERYONE-JOINED-MOVING-ESCAPE-ROUTE,"모두 합류했습니다
+탈출로로 이동 중","모두 합류했습니다
+탈출로로 이동 중","Everyone has joined. Moving to the escape route
+"
+EXPLORATION_TEXT_I-AM-PREPARING-MOVE-AGAIN,이동을 다시 준비하고 있습니다,이동을 다시 준비하고 있습니다,I am preparing to move again.
+EXPLORATION_TEXT_PREPARE-ESCAPE-FIRST-ARGUMENT-SECOND-ARGUMENT_1,"탈출 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}
+플레이 중인 전원이 모이면 출발","탈출 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}
+플레이 중인 전원이 모이면 출발","Prepare for escape {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+. Depart when all players have gathered."
+EXPLORATION_TEXT_PREPARE-ESCAPE-FIRST-ARGUMENT-SECOND-ARGUMENT_0,탈출 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},탈출 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},Prepare for Escape {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+EXPLORATION_TEXT_WE-DEPART-ONCE-ALL-PLAYERS-GATHERED,플레이 중인 전원이 모이면 출발합니다.,플레이 중인 전원이 모이면 출발합니다.,We will depart once all players have gathered.
+EXPLORATION_TEXT_ESCAPE-ROUTE_1,탈출로 · ,탈출로 · ,Escape Route ·
+EXPLORATION_TEXT_START-SECOND-HALF-SPRINT,후반 질주 시작,후반 질주 시작,Start of the second half sprint
+EXPLORATION_TEXT_FRONT-SWING-SECOND-HALF,후반 그네 앞,후반 그네 앞,In front of the swing in the second half
+EXPLORATION_TEXT_AFTER-SWING-SECOND-HALF,후반 그네 뒤,후반 그네 뒤,After the swing in the second half
+EXPLORATION_TEXT_FINAL-FLAME-SECTION,마지막 화염 구간,마지막 화염 구간,The final flame section
+EXPLORATION_TEXT_FRONT-EXIT-CUTTER,출구 절단기 앞,출구 절단기 앞,In front of the exit cutter
+EXPLORATION_TEXT_FRONT-LAST-DOOR,마지막 문 앞,마지막 문 앞,In front of the last door
+EXPLORATION_TEXT_REED-FIELD-ENDING-ARRIVAL,갈대밭 · 엔딩 도착,갈대밭 · 엔딩 도착,Reed Field · Ending Arrival
+EXPLORATION_TEXT_ESCAPE-ROUTE-LOADING-CHECKING-POWER-START,탈출로 로딩 · 전원 시작 발판 확인 중,탈출로 로딩 · 전원 시작 발판 확인 중,Escape route loading · Checking power start platform
+EXPLORATION_TEXT_PREPARING-TEST-ALONE,혼자 테스트 준비 중…,혼자 테스트 준비 중…,Preparing for the test alone…
+EXPLORATION_PROMPT_COULD-NOT-FIND-PLAYER-LAUNCH-SETTINGS,플레이어 실행 설정을 찾지 못했습니다. Console을 확인해 주세요.,플레이어 실행 설정을 찾지 못했습니다. Console을 확인해 주세요.,Could not find player launch settings. Please check the Console.
+EXPLORATION_TEXT_DEV-START-DIRECT-ENTRY-ESCAPE-ROUTE,Dev 시작 · 탈출로 직접 진입,Dev 시작 · 탈출로 직접 진입,Dev Start · Direct entry to escape route
+EXPLORATION_TEXT_DEVELOPMENT-TEST,개발 테스트,개발 테스트,Development test
+EXPLORATION_TEXT_PREPARING-CONNECT,접속 준비 중,접속 준비 중,Preparing to connect
+EXPLORATION_PROMPT_DAIN-DEVELOPMENT-CONNECTION-FAILURE-PLEASE-CHECK,다인 개발 접속 실패 · 로그를 확인하세요,다인 개발 접속 실패 · 로그를 확인하세요,Dain Development Connection Failure · Please check the logs
+EXPLORATION_TEXT_DEVELOPMENT-SESSION-FIRST-ARGUMENT-SECOND-ARGUMENT,개발 세션 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}명 · 참가자 대기,개발 세션 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}명 · 참가자 대기,Development Session {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} people · Waiting Participants
+EXPLORATION_PROMPT_DEVELOPMENT-SESSION-FAILED-START,개발 세션 시작 실패,개발 세션 시작 실패,Development session failed to start
+EXPLORATION_TEXT_FIRST-ARGUMENT-INDIVIDUAL-DEVELOPER-PLAY-ORIGINAL,{COMMON_VALUE_FIRST-ARGUMENT}인 개발 플레이 · 원본 호스트 판정,{COMMON_VALUE_FIRST-ARGUMENT}인 개발 플레이 · 원본 호스트 판정,{COMMON_VALUE_FIRST-ARGUMENT} Individual Developer Play · Original Host Judgment
+EXPLORATION_PROMPT_FAILED-START-TEST-ALONE-PLEASE-CHECK,혼자 테스트 시작에 실패했습니다. Console을 확인해 주세요.,혼자 테스트 시작에 실패했습니다. Console을 확인해 주세요.,Failed to start the test alone. Please check the Console.
+EXPLORATION_TEXT_PLAYER-NOT-READY-PLEASE-RUN-PLAY,플레이어 준비가 완료되지 않았습니다. Play를 다시 실행해 주세요.,플레이어 준비가 완료되지 않았습니다. Play를 다시 실행해 주세요.,The player is not ready. Please run Play again.
+EXPLORATION_TEXT_SOLO-TEST-NO-TIME-LIMIT-GAME,혼자 테스트 · 시간제한/게임 오버 없음,혼자 테스트 · 시간제한/게임 오버 없음,Solo Test · No Time Limit/Game Over
+EXPLORATION_BUTTON_PRESS-POWER-BUTTON,전원 버튼 누르기,전원 버튼 누르기,Press the power button
+EXPLORATION_TEXT_PRESS-F-NEARBY-TURN-CONNECTED-DEVICE,가까이에서 F를 눌러 연결 장치를 켭니다,가까이에서 F를 눌러 연결 장치를 켭니다,Press F nearby to turn on the connected device.
+EXPLORATION_TEXT_CONNECTION-DEVICE,연결 장치,연결 장치,connection device
+EXPLORATION_TEXT_LAST-RUNNER-GO-CLOSE-FLOOR-LEVER,마지막 주자 · 바닥 레버에 가까이 가서 F,마지막 주자 · 바닥 레버에 가까이 가서 F,Last runner · Go close to the floor lever and F
+EXPLORATION_TEXT_FIXED-MOVABLE, · 가동 고정, · 가동 고정,· Fixed movable
+EXPLORATION_TEXT_OPERATION, · 가동 중, · 가동 중,· In operation
+EXPLORATION_TEXT_STOP, · 정지, · 정지, · stop
+EXPLORATION_TEXT_ARRIVE-OPPOSITE-SIDE,맞은편 도착,맞은편 도착,Arrive at the opposite side
+EXPLORATION_TEXT_RELEASE, 해제 → , 해제 → ,Release →
+EXPLORATION_PROMPT_PRESS-F-BOARD-PRESS-F-AGAIN,F로 탑승 · 다시 F로 발사 · F 길게 눌러 내리기,F로 탑승 · 다시 F로 발사 · F 길게 눌러 내리기,Press F to board · Press F again to fire · Press and hold F to dismount
+EXPLORATION_TEXT_IF-HOLD-LAST-RUNNER-MAINTENANCE-BAR,마지막 주자 · 유지봉을 잡으면 놓은 뒤에도 가동됩니다,마지막 주자 · 유지봉을 잡으면 놓은 뒤에도 가동됩니다,"If you hold the last runner/maintenance bar, it will continue to operate even after you let go."
+EXPLORATION_TEXT_I-AM-HOLDING-UNTIL-MY-COLLEAGUE,동료가 건널 때까지 잡고 있습니다,동료가 건널 때까지 잡고 있습니다,I am holding on until my colleague crosses.
+EXPLORATION_TEXT_PLEASE-HOST-EXECUTE-AFTER-ESCAPE-ROUTE,탈출로 준비가 끝난 뒤 호스트가 실행해 주세요.,탈출로 준비가 끝난 뒤 호스트가 실행해 주세요.,Please have the host execute this after the escape route is ready.
+EXPLORATION_TEXT_HIDDEN-GRAFFITI,숨겨진 낙서,숨겨진 낙서,Hidden graffiti
+EXPLORATION_TEXT_HIDDEN-GRAFFITI-WAS-REVEALED-FLUORESCENT-LIGHT,숨겨진 낙서가 형광으로 드러났습니다.,숨겨진 낙서가 형광으로 드러났습니다.,The hidden graffiti was revealed in fluorescent light.
+EXPLORATION_TEXT_TARGET-NAME-REMOVAL-COUNT-TOTAL,{EXPLORATION_VALUE_TARGET-NAME} 뜯기 {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} 뜯기 {COMMON_VALUE_COUNT}/{COMMON_VALUE_TOTAL},{EXPLORATION_VALUE_TARGET-NAME} Removal {COMMON_VALUE_COUNT} / {COMMON_VALUE_TOTAL}
+EXPLORATION_TEXT_SAME-COMPONENT-WAS-ASSIGNED-DIFFERENT-PATH,서로 다른 경로 대상에 같은 컴포넌트가 지정되었습니다.,서로 다른 경로 대상에 같은 컴포넌트가 지정되었습니다.,The same component was assigned to different path targets.
+EXPLORATION_TEXT_SAME-TARGET-WAS-ASSIGNED-DIFFERENT-PATHS,서로 다른 경로에 같은 대상이 지정되었습니다.,서로 다른 경로에 같은 대상이 지정되었습니다.,The same target was assigned to different paths.
+EXPLORATION_TEXT_PLEASE-CHECK-KEY-STANDARD-DOOR-PASSWORD,"열쇠/일반 문, 비밀번호 패드, 협력 문 타입을 확인하세요.","열쇠/일반 문, 비밀번호 패드, 협력 문 타입을 확인하세요.","Please check the Key/Standard Door, Password Pad, and Cooperative Door types."
+EXPLORATION_TEXT_ANSWER-MUST-DIGIT-NUMBER,정답은 숫자4자리여야 합니다.,정답은 숫자4자리여야 합니다.,The answer must be a 4-digit number.
+EXPLORATION_TEXT_DIFFERENT-REFERENCE-EXISTING-BATHROOM-WALL-TENT,기존 화장실 벽의 천막 말뚝 뽑개 6타 규칙과 다른 참조입니다.,기존 화장실 벽의 천막 말뚝 뽑개 6타 규칙과 다른 참조입니다.,This is a different reference from the existing bathroom wall tent pile puller 6-stroke rule.
+EXPLORATION_TEXT_SAME-COMPONENT-BEEN-ASSIGNED-DIFFERENT-BOXES,서로 다른 상자/캐비넷에 같은 컴포넌트가 지정되었습니다.,서로 다른 상자/캐비넷에 같은 컴포넌트가 지정되었습니다.,The same component has been assigned to different boxes/cabinets.
+EXPLORATION_TEXT_DESTRUCTION-BOXES-MUST-DESIGNATED-BREAKABLE-TARGETS,파괴 상자는 Breakable 대상으로 지정해야 합니다.,파괴 상자는 Breakable 대상으로 지정해야 합니다.,Destruction boxes must be designated as Breakable targets.
+EXPLORATION_TEXT_CHECK-CABINET-REFERENCE-HIERARCHY-USE-MAP,지도 공개에 사용할 캐비넷 참조/계층을 확인하세요.,지도 공개에 사용할 캐비넷 참조/계층을 확인하세요.,Check the cabinet reference/hierarchy to use for map disclosure.
+EXPLORATION_TEXT_SAME-COMPONENT-WAS-ASSIGNED-DIFFERENT-CLUES,서로 다른 단서에 같은 컴포넌트가 지정되었습니다.,서로 다른 단서에 같은 컴포넌트가 지정되었습니다.,The same component was assigned to different clues.
+EXPLORATION_TEXT_MONITOR-MUST-DESIGNATED-MONITOR-TARGET,모니터는 Monitor 대상으로 지정해야 합니다.,모니터는 Monitor 대상으로 지정해야 합니다.,The monitor must be designated as the Monitor target.
+EXPLORATION_TEXT_CHECK-DISCOVERY-TARGET-HIERARCHY-REFERENCE-UV,UV 조사 내용의 발견 대상/계층 참조를 확인하세요.,UV 조사 내용의 발견 대상/계층 참조를 확인하세요.,Check the discovery target/hierarchy reference of the UV irradiation content.
+EXPLORATION_PROMPT_HIDDEN-SCRIBBLES-CANNOT-PARENT-OBJECT-CONNECTED,숨겨진 낙서가 연결 컴포넌트의 상위 오브젝트일 수 없습니다.,숨겨진 낙서가 연결 컴포넌트의 상위 오브젝트일 수 없습니다.,Hidden scribbles cannot be the parent object of a connected component.
+EXPLORATION_PROMPT_CANNOT-PLACE-OTHER-PATH-TARGETS-UNDER,숨겨진 낙서의 하위에 다른 경로 대상을 둘 수 없습니다.,숨겨진 낙서의 하위에 다른 경로 대상을 둘 수 없습니다.,You cannot place other path targets under hidden graffiti.
+EXPLORATION_TEXT_INSPECTION,조사,조사,inspection
+EXPLORATION_TEXT_TARGET-NAME-CONDITION-NOT-MET,{EXPLORATION_VALUE_TARGET-NAME} — 조건 미충족,{EXPLORATION_VALUE_TARGET-NAME} — 조건 미충족,{EXPLORATION_VALUE_TARGET-NAME} — Condition not met
+EXPLORATION_PROMPT_SELECT-CORRECT-KEY, — 맞는 열쇠를 선택하세요, — 맞는 열쇠를 선택하세요,— Select the correct key
+EXPLORATION_TEXT_TARGET-NAME-TWO-PEOPLE-TOGETHER-THEIR,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 각자 열쇠 구멍에서 함께 F,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 각자 열쇠 구멍에서 함께 F,{EXPLORATION_VALUE_TARGET-NAME} — Two people together in their respective keyholes F
+EXPLORATION_TEXT_TARGET-NAME-TWO-PEOPLE-TOGETHER-F,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 함께 F,{EXPLORATION_VALUE_TARGET-NAME} — 두 명이 함께 F,{EXPLORATION_VALUE_TARGET-NAME} — Two people together F
+EXPLORATION_PROMPT_PLEASE-ENTER-FOUR-DIGIT-NUMBER,숫자 네 자리를 입력하세요.,숫자 네 자리를 입력하세요.,Please enter a four-digit number.
+EXPLORATION_TEXT_DROP-PROBABILITY-RANGE-ERROR,드롭 확률 범위 오류,드롭 확률 범위 오류,Drop probability range error
+EXPLORATION_TEXT_TOTAL-DROP-PROBABILITY-EXCEEDS,드롭 확률 합계가 100%를 초과합니다.,드롭 확률 합계가 100%를 초과합니다.,The total drop probability exceeds 100%.
+EXPLORATION_TEXT_DROP-ITEM-WAS-NOT-SPECIFIED,드랍 아이템이 지정되지 않았습니다.,드랍 아이템이 지정되지 않았습니다.,The drop item was not specified.
+EXPLORATION_TEXT_DROP-UID-MUST-SPECIFIED-WITHOUT-DUPLICATION,드랍 UID는1~99에서 중복 없이 지정해야 합니다.,드랍 UID는1~99에서 중복 없이 지정해야 합니다.,The drop UID must be specified from 1 to 99 without duplication.
+EXPLORATION_TEXT_SILVER-KEY-FIRST-ARGUMENT-OBTAINED-DEBUG,은색 열쇠 {COMMON_VALUE_FIRST-ARGUMENT} 얻음 (디버그),은색 열쇠 {COMMON_VALUE_FIRST-ARGUMENT} 얻음 (디버그),Silver Key {COMMON_VALUE_FIRST-ARGUMENT} obtained (debug)
+EXPLORATION_TEXT_GET-SILVER-KEY-FIRST-ARGUMENT-DEBUG,은색 열쇠 {COMMON_VALUE_FIRST-ARGUMENT} 얻기 (디버그),은색 열쇠 {COMMON_VALUE_FIRST-ARGUMENT} 얻기 (디버그),Get Silver Key {COMMON_VALUE_FIRST-ARGUMENT} (Debug)
+EXPLORATION_TEXT_LEFT-DRAG-ROTATE-WHEEL-ZOOM-OUT_1,왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기,왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기,Left drag: Rotate Wheel: Zoom in/out ESC·F·Right click: Drop
+EXPLORATION_TEXT_LEFT-DRAG-ROTATE-WHEEL-ZOOM-OUT_0,왼쪽 끌기: 돌려 보기   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기,왼쪽 끌기: 돌려 보기   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기,Left drag: Rotate Wheel: Zoom in/out ESC·F·Right click: Drop
+EXPLORATION_TEXT_TOOL-NAME-DOWNWARD-STRIKE,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 내려치기,{EXPLORATION_VALUE_TOOL-NAME}(으로/로) 내려치기,{EXPLORATION_VALUE_TOOL-NAME} Downward strike
+EXPLORATION_TEXT_SEEMS-LIKE-RIGHT-TOOL-NEEDED,알맞은 도구가 필요할 것 같다,알맞은 도구가 필요할 것 같다,It seems like the right tool is needed.
+EXPLORATION_TEXT_PASSWORD-DIFFERENT,비밀번호가 다릅니다.,비밀번호가 다릅니다.,The password is different.
+EXPLORATION_PROMPT_CANNOT-USE-KEY,열쇠를 사용할 수 없습니다.,열쇠를 사용할 수 없습니다.,You cannot use the key.
+EXPLORATION_TEXT_WE-PREPARING-CARRY-EQUIPMENT,기물 소지를 준비 중입니다.,기물 소지를 준비 중입니다.,We are preparing to carry the equipment.
+EXPLORATION_TEXT_KEY-ALREADY-BEEN-OBTAINED,이미 획득한 열쇠입니다.,이미 획득한 열쇠입니다.,This is a key that has already been obtained.
+EXPLORATION_TEXT_ACQUIRE, 획득, 획득,Acquire
+EXPLORATION_PROMPT_NAVIGATION-TOOLS-CANNOT-USED-DURING-PERFORMANCE,공연 중에는 탐색 도구를 사용할 수 없습니다.,공연 중에는 탐색 도구를 사용할 수 없습니다.,Navigation tools cannot be used during the performance.
+EXPLORATION_TEXT_ONLY-LIVING-PEOPLE-INTERACT,살아 있는 사람만 상호작용할 수 있습니다.,살아 있는 사람만 상호작용할 수 있습니다.,Only living people can interact.
+EXPLORATION_TEXT_USE-BACKSTAGE-GUIDE-AFTER-FIRST-PERFORMANCE,첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다.,첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다.,You can use it at the backstage guide after the first performance.
+EXPLORATION_TEXT_TOO-FAR,너무 멉니다.,너무 멉니다.,It is too far.
+EXPLORATION_TEXT_MUST-SELECT-CORRECT-KEY-SLOT,맞는 열쇠를 슬롯에서 선택해야 합니다.,맞는 열쇠를 슬롯에서 선택해야 합니다.,You must select the correct key from the slot.
+EXPLORATION_TEXT_ANOTHER-PERSON-MUST-PRESS-F-TOGETHER,다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다.,다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다.,Another person must press F together at the opposite keyhole.
+EXPLORATION_TEXT_ANOTHER-PERSON-MUST-ALSO-PRESS-F,다른 한 명도 가까이에서 F를 눌러야 합니다.,다른 한 명도 가까이에서 F를 눌러야 합니다.,Another person must also press F nearby.
+EXPLORATION_PROMPT_I-CANNOT-WRITE-ANY-MORE,더 쓸 수 없습니다.,더 쓸 수 없습니다.,I cannot write any more.
+EXPLORATION_TEXT_PERFORMANCE-TOKEN-FUNDS-FIRST-ARGUMENT-KRW,공연 토큰 (자금 {COMMON_VALUE_FIRST-ARGUMENT}원),공연 토큰 (자금 {COMMON_VALUE_FIRST-ARGUMENT}원),Performance Token (Funds {COMMON_VALUE_FIRST-ARGUMENT} KRW)
+EXPLORATION_TEXT_BEEN-CAUGHT-MANNEQUIN-WATCH-UNTIL-MOVE,마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다.,마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다.,You have been caught by a mannequin. Watch until you move to the next location.
+EXPLORATION_TEXT_DUMMY-INPUT,더미 입력,더미 입력,Dummy input
+EXPLORATION_TEXT_EXIT,출구,출구,exit
+EXPLORATION_TEXT_SECTION-ENTRY-REFUSED-NOT-BREAK-TIME,쉬는 시간이 아니므로 구역 입력 거절,쉬는 시간이 아니므로 구역 입력 거절,Section entry refused as it is not break time
+EXPLORATION_TEXT_EXIT-AREA,출구 구역,출구 구역,Exit area
+EXPLORATION_TEXT_BACKSTAGE-NO-MOVEMENT-POSITION-SYNCHRONIZATION-TIMER,"백스테이지 (이동/위치 동기화 없음, 타이머는 이미 흐름)","백스테이지 (이동/위치 동기화 없음, 타이머는 이미 흐름)","Backstage (no movement/position synchronization, timer is already running)"
+EXPLORATION_TEXT_BACKSTAGE-AREA,대기실 구역,대기실 구역,Backstage area
+EXPLORATION_TEXT_SAFETY-STATUS-FIRST-ARGUMENT-COMMON-TIMER,안전 여부 {COMMON_VALUE_FIRST-ARGUMENT}; 공통 타이머는 정지하지 않음,안전 여부 {COMMON_VALUE_FIRST-ARGUMENT}; 공통 타이머는 정지하지 않음,Safety status {COMMON_VALUE_FIRST-ARGUMENT} ; Common timer does not stop
+EXPLORATION_TEXT_STAGE-ENTRANCE-AREA,무대 입구 구역,무대 입구 구역,Stage entrance area
+EXPLORATION_TEXT_INPUT-LOCATION-SINGLE-LINE-POWER-GATHERING,한 줄의 위치 입력. 전원 집결 자동 감지 아님,한 줄의 위치 입력. 전원 집결 자동 감지 아님,Input location for a single line. Power gathering not automatically detected.
+EXPLORATION_TEXT_MANUAL-POWER-ASSEMBLY-SIGNAL-NOTIFYALLATSTAGEENTRANCE,수동 전원 집결 신호 → NotifyAllAtStageEntrance,수동 전원 집결 신호 → NotifyAllAtStageEntrance,Manual Power Assembly Signal → NotifyAllAtStageEntrance
+EXPLORATION_TEXT_EXPLORATIONSETTINGS-LOSS-FIRST-ARGUMENT-RESOLVECATCH-EXPLORATION,ExplorationSettings 손실 {COMMON_VALUE_FIRST-ARGUMENT} → ResolveCatch(Exploration),ExplorationSettings 손실 {COMMON_VALUE_FIRST-ARGUMENT} → ResolveCatch(Exploration),ExplorationSettings loss {COMMON_VALUE_FIRST-ARGUMENT} → ResolveCatch(Exploration)
+EXPLORATION_TEXT_FIRST-ARGUMENT-NO-ACTUAL-PLAYER-CHANGE,{COMMON_VALUE_FIRST-ARGUMENT}; 실제 플레이어 변경/무대 이동 없음,{COMMON_VALUE_FIRST-ARGUMENT}; 실제 플레이어 변경/무대 이동 없음,{COMMON_VALUE_FIRST-ARGUMENT} ; No actual player change/stage movement
+EXPLORATION_TEXT_DEBUG-EXPIRATION-REQUEST-DEBUGSETREMAINING,디버그 만료 요청 → DebugSetRemaining(0),디버그 만료 요청 → DebugSetRemaining(0),Debug expiration request → DebugSetRemaining(0)
+EXPLORATION_TEXT_NO-INPUT,미입력,미입력,No input
+EXPLORATION_TEXT_MANUAL-SIGNAL-ASSUMING-FULL-ASSEMBLY-ENTRANCE,입구 전원 집결을 가정한 수동 신호 → StartEscape,입구 전원 집결을 가정한 수동 신호 → StartEscape,Manual signal assuming full assembly at the entrance → StartEscape
+EXPLORATION_TEXT_INPUT-ARRIVAL-LOADING-DOCK,하역장 도착 입력,하역장 도착 입력,Input arrival at loading dock
+EXPLORATION_TEXT_RETIRE-INPUT,리타이어 입력,리타이어 입력,Retire input
+EXPLORATION_TEXT_ROW-FIRST-ARGUMENT,행 {COMMON_VALUE_FIRST-ARGUMENT},행 {COMMON_VALUE_FIRST-ARGUMENT},Row {COMMON_VALUE_FIRST-ARGUMENT}
+EXPLORATION_TEXT_FIRST-ARGUMENT-ACTUAL-PARTICIPANT-STATUS-NOT,{COMMON_VALUE_FIRST-ARGUMENT}; 실제 참가자 상태/자동 종료 아님,{COMMON_VALUE_FIRST-ARGUMENT}; 실제 참가자 상태/자동 종료 아님,{COMMON_VALUE_FIRST-ARGUMENT} ; Actual participant status / Not auto-terminate
+EXPLORATION_TEXT_MANUAL-CONCLUSION-ARRIVAL-EXISTS-FIRST-ARGUMENT,수동 결론(도착 있음={COMMON_VALUE_FIRST-ARGUMENT}) → EndEscape,수동 결론(도착 있음={COMMON_VALUE_FIRST-ARGUMENT}) → EndEscape,Manual Conclusion (Arrival Exists = {COMMON_VALUE_FIRST-ARGUMENT} ) → EndEscape
+EXPLORATION_TEXT_TIGHTROPE,외줄타기,외줄타기,Tightrope

@@ -27,6 +27,7 @@ namespace CurtainCall.UI.SceneIntegration
             // C10 measures plain, fixed-size, single-line labels before presenting.
             // Generic HUD markup/wrapping makes it reject both cheer and boo events.
             if (label.GetComponentInParent<FeedbackView>() != null) return;
+            CurtainCall.Localization.LocalizedDisplays.Bind(label);
             label.textPreprocessor = new Processor(label.textPreprocessor, !label.richText, statusRow);
             label.richText = true;
             label.textWrappingMode = TextWrappingModes.Normal;

@@ -102,13 +102,13 @@ namespace CurtainCall.Tightrope
             rightRod = Box("RightRod", Vector3.zero, Vector3.one, frame);
             landingAim = Box("PredictedLanding", Vector3.zero, new Vector3(.7f, .035f, .6f), green);
             var aim = new GameObject("LandingHint"); aim.transform.SetParent(viewRoot, false);
-            aimLabel = aim.AddComponent<TextMesh>(); aimLabel.text = "공중 W 유지 시 착지 예상";
+            aimLabel = CurtainCall.Localization.LocalizedDisplays.BindLegacy(aim.AddComponent<TextMesh>()); aimLabel.text = "공중 W 유지 시 착지 예상";
             aimLabel.fontSize = 48; aimLabel.characterSize = .022f; aimLabel.anchor = TextAnchor.MiddleCenter; aimLabel.color = Color.green;
             entry = Box("Grab", new Vector3(laneSide, .09f, EntryDistance), new Vector3(.65f, .035f, 1.4f), cyan);
             exit = Box("Catch", new Vector3(laneSide, .09f, LandingDistance), new Vector3(.65f, .035f, 1.6f), green);
             var label = new GameObject("SwingInstructions"); label.transform.SetParent(viewRoot, false);
             label.transform.localPosition = new Vector3(laneSide + 1.1f, 2f, GapFrom - 2f);
-            sign = label.AddComponent<TextMesh>(); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 도약\n공중 WASD 조절 · 동료 F 받기";
+            sign = CurtainCall.Localization.LocalizedDisplays.BindLegacy(label.AddComponent<TextMesh>()); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 도약\n공중 WASD 조절 · 동료 F 받기";
             sign.gameObject.SetActive(!hasSpot);
             sign.fontSize = 64; sign.characterSize = .035f; sign.anchor = TextAnchor.MiddleCenter; sign.color = Color.cyan;
         }

@@ -1,0 +1,586 @@
+﻿key,source,ko,en
+DEV_TEXT_ROUTE-MARKER,ROUTE MARKER,경로 표지판,ROUTE MARKER
+DEV_TEXT_CURTAIN-CALL-MATERIAL-LAYERS,CURTAIN CALL  /  MATERIAL LAYERS,커튼콜 / 소재 레이어,CURTAIN CALL  /  MATERIAL LAYERS
+DEV_TEXT_SPRITES-PREFABS-NO-LINE-RENDERER,5 SPRITES  3 PREFABS  NO LINE RENDERER,"스프라이트 5개, 프리팹 3개, 라인 렌더러 없음",5 SPRITES  3 PREFABS  NO LINE RENDERER
+DEV_TEXT_BRASS-RING,04  BRASS RING,04 황동 반지,04  BRASS RING
+DEV_TEXT_IVORY-DIRECTION,02  IVORY DIRECTION,02 아이보리 방향,02  IVORY DIRECTION
+DEV_TEXT_AGED-BRASS,01  AGED BRASS,01 에이징 브라스,01  AGED BRASS
+DEV_TEXT_THEATRE-STAR,05  THEATRE STAR,05 극장 스타,05  THEATRE STAR
+DEV_TEXT_BURGUNDY-CLOTH,03  BURGUNDY CLOTH,03 버건디 클로스,03  BURGUNDY CLOTH
+DEV_TEXT_SUCCESS,성공,성공,success
+DEV_PROMPT_FAILURE,실패,실패,failure
+DEV_TEXT_PLEASE-TURN-DEV-MODE,Dev 모드를 켜 주세요.,Dev 모드를 켜 주세요.,Please turn on Dev mode.
+DEV_TEXT_PICK-UP-MONEY-FIRST-ARGUMENT-DEBUG,"돈 줍기 (+{COMMON_VALUE_FIRST-ARGUMENT}, 디버그)","돈 줍기 (+{COMMON_VALUE_FIRST-ARGUMENT}, 디버그)","Pick up money (+ {COMMON_VALUE_FIRST-ARGUMENT} , debug)"
+DEV_TEXT_ARRIVE_1,도착,도착,arrive
+DEV_TEXT_PROGRESS,진행,진행,progress
+DEV_TEXT_LIVING,생존,생존,living
+DEV_TEXT_M-NIGHT-MAINTENANCE,M1 밤 정비,M1 밤 정비,M1 Night Maintenance
+DEV_TEXT_M-GAME-ENDED,M1 게임 종료,M1 게임 종료,M1 game ended
+DEV_TEXT_GENERATION-FIRST-ARGUMENT-SECOND-ARGUMENT-DAY_2,세대 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}일차 · {COMMON_VALUE_THIRD-ARGUMENT},세대 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}일차 · {COMMON_VALUE_THIRD-ARGUMENT},Generation {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} Day · {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_CALL-ARMS-FIRST-ARGUMENT-SECONDS-REMAINING,소집 경보 ({COMMON_VALUE_FIRST-ARGUMENT}초 남음),소집 경보 ({COMMON_VALUE_FIRST-ARGUMENT}초 남음),Call to Arms ( {COMMON_VALUE_FIRST-ARGUMENT} seconds remaining)
+DEV_TEXT_RUN-ENDED-FIRST-ARGUMENT_1,런 종료: {COMMON_VALUE_FIRST-ARGUMENT},런 종료: {COMMON_VALUE_FIRST-ARGUMENT},Run ended: {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_THERE-NO-CAMPAIGNRUN,CampaignRun이 없습니다.,CampaignRun이 없습니다.,There is no CampaignRun.
+DEV_TEXT_RUN-PROGRESS-TEST-BREAK-TIME-TIMER,런 진행 테스트 — 쉬는 시간 타이머는 시작부터 흐름(M2),런 진행 테스트 — 쉬는 시간 타이머는 시작부터 흐름(M2),Run progress test — Break time timer flow from start (M2)
+DEV_TEXT_JUDGMENT-FIRST-ARGUMENT,판정: {COMMON_VALUE_FIRST-ARGUMENT},판정: {COMMON_VALUE_FIRST-ARGUMENT},Judgment: {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_HOST,호스트,호스트,Host
+DEV_TEXT_RECIPIENT,받는 쪽,받는 쪽,The recipient
+DEV_TEXT_GENERATION-FIRST-ARGUMENT-SECOND-ARGUMENT-DAY_1,세대 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}일차 / {COMMON_VALUE_THIRD-ARGUMENT}일 · {COMMON_VALUE_FOURTH-ARGUMENT},세대 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}일차 / {COMMON_VALUE_THIRD-ARGUMENT}일 · {COMMON_VALUE_FOURTH-ARGUMENT},Generation {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} Day / {COMMON_VALUE_THIRD-ARGUMENT} Day · {COMMON_VALUE_FOURTH-ARGUMENT}
+DEV_TEXT_TIMER-FIRST-ARGUMENT-SECOND-ARGUMENT,타이머: {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT},타이머: {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT},Timer: {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_MOBILIZATION-ALERT_0,  ⚠ 소집 경보,  ⚠ 소집 경보,⚠ Mobilization Alert
+DEV_TEXT_READY-FIRST-ARGUMENT-SECOND-ARGUMENT-ME,준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} (나: {COMMON_VALUE_THIRD-ARGUMENT}),준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} (나: {COMMON_VALUE_THIRD-ARGUMENT}),Ready {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} (Me: {COMMON_VALUE_THIRD-ARGUMENT})
+DEV_TEXT_COMPLETE,완료,완료,complete
+DEV_TEXT_YET,아직,아직,yet
+DEV_TEXT_PREVIOUS-RUN-ENDED-FIRST-ARGUMENT,직전 런 종료: {COMMON_VALUE_FIRST-ARGUMENT},직전 런 종료: {COMMON_VALUE_FIRST-ARGUMENT},Previous run ended: {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_START-OFFLINE-RUN-ALONE,오프라인 런 시작(혼자),오프라인 런 시작(혼자),Start of offline run (alone)
+DEV_TEXT_IF-CONNECTED-START-AUTOMATICALLY-WHEN-HOST,접속 중이면 호스트가 게임을 시작할 때 자동으로 시작합니다.,접속 중이면 호스트가 게임을 시작할 때 자동으로 시작합니다.,"If you are connected, it will start automatically when the host starts the game."
+DEV_TEXT_TIME-ZONE-SWITCHING-SIGNAL-SENT-HOST,시간대 전환 신호는 호스트 화면에서 보냅니다.,시간대 전환 신호는 호스트 화면에서 보냅니다.,The time zone switching signal is sent from the host screen.
+DEV_TEXT_ALL-PERSONNEL-ENTER-STAGE-ENTRANCE-PASSAGEWAY,전원 무대 입구 통로 진입,전원 무대 입구 통로 진입,All personnel enter the stage entrance passageway
+DEV_TEXT_SECONDS-REMAINING-CHECK-ALARM,남은 시간 65초로(경보 확인),남은 시간 65초로(경보 확인),With 65 seconds remaining (check alarm)
+DEV_TEXT_TIMER-ENDS,타이머 끝,타이머 끝,Timer ends
+DEV_TEXT_ESCAPE-SUCCESSFUL-LEAST-ONE-PERSON-ARRIVED,탈출 성공(한 명 이상 도착),탈출 성공(한 명 이상 도착),Escape successful (at least one person arrived)
+DEV_TEXT_ALL-RETIRED,전원 리타이어,전원 리타이어,All retired
+DEV_TEXT_PAUSE-FIRST-ARGUMENT-SECONDS,멈춤 {COMMON_VALUE_FIRST-ARGUMENT}초,멈춤 {COMMON_VALUE_FIRST-ARGUMENT}초,Pause {COMMON_VALUE_FIRST-ARGUMENT} seconds
+DEV_TEXT_RETIRE,리타이어,리타이어,Retire
+DEV_PROMPT_PLEASE-SELECT-DATE-START-TIME,일차와 시작 시점을 선택하세요.,일차와 시작 시점을 선택하세요.,Please select the date and start time.
+DEV_TEXT_STEP_0,2단계,2단계,Step 2
+DEV_TEXT_STEP_1,3단계,3단계,Step 3
+DEV_TEXT_MORNING,아침,아침,morning
+DEV_TEXT_BETWEEN-PERFORMANCES,공연 사이,공연 사이,Between performances
+DEV_TEXT_REHEARSAL,리허설,리허설,rehearsal
+DEV_TEXT_ONLY-HOST-CHANGE-STARTING-POINT-WHILE,접속 중에는 호스트만 시작 지점을 변경할 수 있습니다.,접속 중에는 호스트만 시작 지점을 변경할 수 있습니다.,Only the host can change the starting point while connected.
+DEV_TEXT_PLEASE-TRY-AGAIN-AFTER-CURRENT-SCENE,현재 씬 전환이 끝난 뒤 다시 시도하세요.,현재 씬 전환이 끝난 뒤 다시 시도하세요.,Please try again after the current scene transition is finished.
+DEV_TEXT_PLEASE-ADD-SCENE-FIRST-ARGUMENT-SCENE,Build Profiles의 씬 목록에 {COMMON_VALUE_FIRST-ARGUMENT} 씬을 추가해 주세요.,Build Profiles의 씬 목록에 {COMMON_VALUE_FIRST-ARGUMENT} 씬을 추가해 주세요.,Please add scene {COMMON_VALUE_FIRST-ARGUMENT} to the scene list in Build Profiles.
+DEV_TEXT_PREPARING-TEST-SESSION,테스트 세션 준비 중…,테스트 세션 준비 중…,Preparing test session…
+DEV_PROMPT_COULD-NOT-FIND-NETWORK-MANAGER-PREFAB,네트워크 관리자 프리팹을 찾지 못했습니다.,네트워크 관리자 프리팹을 찾지 못했습니다.,Could not find the Network Manager prefab.
+DEV_TEXT_PLEASE-TRY-AGAIN-AFTER-EXISTING-UI,기존 UI 로드를 마친 뒤 다시 시도하세요.,기존 UI 로드를 마친 뒤 다시 시도하세요.,Please try again after the existing UI has finished loading.
+DEV_PROMPT_FAILED-START-LAN-HOST-PLEASE-CHECK,LAN 호스트를 시작하지 못했습니다. 포트/접속 상태를 확인하세요.,LAN 호스트를 시작하지 못했습니다. 포트/접속 상태를 확인하세요.,Failed to start LAN host. Please check the port/connection status.
+DEV_TEXT_PLAYER-PREPARATION-TIME-EXPIRED,플레이어 준비 시간이 초과되었습니다.,플레이어 준비 시간이 초과되었습니다.,Player preparation time has expired.
+DEV_PROMPT_HOST-CONNECTION-REQUIRED,호스트 연결이 필요합니다.,호스트 연결이 필요합니다.,A host connection is required.
+DEV_PROMPT_I-WAS-UNABLE-START-GAME,게임을 시작하지 못했습니다.,게임을 시작하지 못했습니다.,I was unable to start the game.
+DEV_PROMPT_FAILED-APPLY-DEVELOPMENT-START-STATUS,개발 시작 상태를 적용하지 못했습니다.,개발 시작 상태를 적용하지 못했습니다.,Failed to apply the development start status.
+DEV_PROMPT_UNABLE-RESTORE-EXISTING-CREDITS,기존 크레딧을 복원하지 못했습니다.,기존 크레딧을 복원하지 못했습니다.,Unable to restore existing credits.
+DEV_PROMPT_FAILED-LOAD-DEVELOPMENT-START-SCENE,개발 시작 씬을 불러오지 못했습니다.,개발 시작 씬을 불러오지 못했습니다.,Failed to load the development start scene.
+DEV_TEXT_FIRST-ARGUMENT-DAY-SECOND-ARGUMENT-LOADING,{COMMON_VALUE_FIRST-ARGUMENT}일차 · {COMMON_VALUE_SECOND-ARGUMENT} 로딩 중…,{COMMON_VALUE_FIRST-ARGUMENT}일차 · {COMMON_VALUE_SECOND-ARGUMENT} 로딩 중…,{COMMON_VALUE_FIRST-ARGUMENT} Day · {COMMON_VALUE_SECOND-ARGUMENT} Loading…
+DEV_PROMPT_FAILED-COMPLETE-SCENE-TRANSITION-PLEASE-CHECK,씬 전환을 완료하지 못했습니다. Console과 접속 상태를 확인하세요.,씬 전환을 완료하지 못했습니다. Console과 접속 상태를 확인하세요.,Failed to complete scene transition. Please check your connection status with the Console.
+DEV_TEXT_EXCEEDED-COMMON-UI-LOADING-TIME,공통 UI 로딩 시간을 초과했습니다.,공통 UI 로딩 시간을 초과했습니다.,Exceeded the common UI loading time.
+DEV_TEXT_CURTAIN-TRANSITION-TIME-BEEN-EXCEEDED,커튼 전환 시간을 초과했습니다.,커튼 전환 시간을 초과했습니다.,The curtain transition time has been exceeded.
+DEV_TEXT_FIRST-ARGUMENT-DAY-TEST-START-COMPLETE,{COMMON_VALUE_FIRST-ARGUMENT}일차 테스트 시작 완료 · {COMMON_VALUE_SECOND-ARGUMENT}로 다시 선택,{COMMON_VALUE_FIRST-ARGUMENT}일차 테스트 시작 완료 · {COMMON_VALUE_SECOND-ARGUMENT}로 다시 선택,{COMMON_VALUE_FIRST-ARGUMENT} Day 1 test start complete · Select again to {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_DEV-STARTING-POINT,DEV · 시작 지점,DEV · 시작 지점,DEV · Starting Point
+DEV_PROMPT_MOVES-NEW-TEST-RUN-UNSELECTED-ITEMS,새 테스트 런으로 이동합니다. 선택하지 않은 항목과 이전 결과는 초기화되며 접속한 팀원도 함께 이동합니다.,새 테스트 런으로 이동합니다. 선택하지 않은 항목과 이전 결과는 초기화되며 접속한 팀원도 함께 이동합니다.,"Moves to a new test run. Unselected items and previous results are reset, and connected team members are moved along with it."
+DEV_TEXT_FIRST-ARGUMENT-DAY,{COMMON_VALUE_FIRST-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT} Day
+DEV_TEXT_LAST-MORNING, (마지막 아침), (마지막 아침),(The last morning)
+DEV_TEXT_MAINTAIN-CURRENT-ITEMS-CREDITS, 현재 기물 및 크레딧 내용 유지, 현재 기물 및 크레딧 내용 유지,Maintain current items and credits
+DEV_TEXT_MAINTAINING-CURRENT-INJURY, 현재 부상 유지, 현재 부상 유지,Maintaining current injury
+DEV_TEXT_MAINTAIN-PERFORMANCE-CLEAR-HISTORY, 공연 클리어 이력 유지, 공연 클리어 이력 유지,Maintain performance clear history
+DEV_TEXT_WAITING-ROOM-TARGET-FIRST-ARGUMENT,대기실 대상: {COMMON_VALUE_FIRST-ARGUMENT},대기실 대상: {COMMON_VALUE_FIRST-ARGUMENT},Waiting Room Target: {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_BACKSTAGE-UNLOCK-MAINTENANCE, 대기실 해금 유지, 대기실 해금 유지,Backstage unlock maintenance
+DEV_TEXT_STARTS-IMMEDIATELY-ESCAPE-ROUTE-STARTING-POINT,탈출로 출발점에서 바로 시작합니다(대기실 합류·로딩 생략). 사망하면 1초 뒤 출발점에서 다시 시작합니다.,탈출로 출발점에서 바로 시작합니다(대기실 합류·로딩 생략). 사망하면 1초 뒤 출발점에서 다시 시작합니다.,"Starts immediately at the escape route starting point (skips joining the backstage and loading). If you die, restarts from the starting point after 1 second."
+DEV_TEXT_WE-BEGIN-INITIAL-REHEARSAL-DRESSING-ROOM,대기실 연습실의 최초 리허설부터 시작합니다. 끝나면 무대 입구 통로에 모여 1일차 첫 공연으로 갑니다.,대기실 연습실의 최초 리허설부터 시작합니다. 끝나면 무대 입구 통로에 모여 1일차 첫 공연으로 갑니다.,"We begin with the initial rehearsal in the dressing room. Once finished, we will gather at the stage entrance passageway and proceed to the first performance of Day 1."
+DEV_TEXT_PERFORMANCE-ORDER,공연 순번,공연 순번,Performance order
+DEV_TEXT_PERFORMANCE-HELD-AFTER-BREAK,쉬는 시간 이후 진행할 공연,쉬는 시간 이후 진행할 공연,The performance to be held after the break
+DEV_TEXT_FIRST-ARGUMENT-ST-PERFORMANCE,{COMMON_VALUE_FIRST-ARGUMENT}번째 공연,{COMMON_VALUE_FIRST-ARGUMENT}번째 공연,{COMMON_VALUE_FIRST-ARGUMENT}st performance
+DEV_TEXT_PERFORMANCE-DIFFICULTY-APPLIED-TEST-PERFORMANCE,공연 난이도 (이번 테스트 공연에 적용),공연 난이도 (이번 테스트 공연에 적용),Performance Difficulty (Applied to this test performance)
+DEV_TEXT_START-NEW-TEST-SELECTED-POINT,선택 지점에서 새 테스트 시작,선택 지점에서 새 테스트 시작,Start a new test at the selected point
+DEV_TEXT_CLOSE-FIRST-ARGUMENT-F-CHEAT-WINDOW,닫기 [{COMMON_VALUE_FIRST-ARGUMENT} / F8] · 치트 창 [{COMMON_VALUE_SECOND-ARGUMENT}],닫기 [{COMMON_VALUE_FIRST-ARGUMENT} / F8] · 치트 창 [{COMMON_VALUE_SECOND-ARGUMENT}],Close [{COMMON_VALUE_FIRST-ARGUMENT} / F8] · Cheat Window [{COMMON_VALUE_SECOND-ARGUMENT}]
+DEV_TEXT_DEVELOPER-MODE,개발자 모드,개발자 모드,Developer Mode
+DEV_TEXT_STOP-PLAY-TURN-OFF-TOOLS-CURTAINCALL,켜짐 (Play를 멈추고 Tools/CurtainCall 메뉴에서 끔),켜짐 (Play를 멈추고 Tools/CurtainCall 메뉴에서 끔),On (Stop Play and turn off in Tools/CurtainCall menu)
+DEV_TEXT_OFF-STOP-PLAY-TURN-TOOLS-CURTAINCALL,꺼짐 (Play를 멈추고 Tools/CurtainCall 메뉴에서 켬),꺼짐 (Play를 멈추고 Tools/CurtainCall 메뉴에서 켬),Off (Stop Play and turn on from the Tools/CurtainCall menu)
+DEV_TEXT_MINIMUM-STARTING-PLAYERS-FIRST-ARGUMENT-OFFICIAL,시작 최소 인원: {COMMON_VALUE_FIRST-ARGUMENT}명 (정식 {COMMON_VALUE_SECOND-ARGUMENT}명),시작 최소 인원: {COMMON_VALUE_FIRST-ARGUMENT}명 (정식 {COMMON_VALUE_SECOND-ARGUMENT}명),Minimum starting players: {COMMON_VALUE_FIRST-ARGUMENT} (Official {COMMON_VALUE_SECOND-ARGUMENT})
+DEV_TEXT_CURRENTLY-FIRST-ARGUMENT-PEOPLE-AVAILABLE-START,현재 {COMMON_VALUE_FIRST-ARGUMENT}명 · 시작 가능: {COMMON_VALUE_SECOND-ARGUMENT},현재 {COMMON_VALUE_FIRST-ARGUMENT}명 · 시작 가능: {COMMON_VALUE_SECOND-ARGUMENT},Currently {COMMON_VALUE_FIRST-ARGUMENT} people · Available to start: {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_MINIMUM-SURVIVORS-TRICKS-CONTINUE-FIRST-ARGUMENT,묘기 계속 최소 생존자: {COMMON_VALUE_FIRST-ARGUMENT}명 (정식·개발자 모드 공통),묘기 계속 최소 생존자: {COMMON_VALUE_FIRST-ARGUMENT}명 (정식·개발자 모드 공통),Minimum survivors for Tricks Continue: {COMMON_VALUE_FIRST-ARGUMENT} (Official & Developer Mode)
+DEV_TEXT_FIRST-ARGUMENT-SURVIVORS,생존자 {COMMON_VALUE_FIRST-ARGUMENT}명 →,생존자 {COMMON_VALUE_FIRST-ARGUMENT}명 →,{COMMON_VALUE_FIRST-ARGUMENT} survivors →
+DEV_TEXT_CONTINUE,계속 진행,계속 진행,Continue
+DEV_TEXT_STARTING-POINT-FIRST-ARGUMENT,시작 지점 [{COMMON_VALUE_FIRST-ARGUMENT}],시작 지점 [{COMMON_VALUE_FIRST-ARGUMENT}],Starting point [{COMMON_VALUE_FIRST-ARGUMENT}]
+DEV_TEXT_CHEAT-FIRST-ARGUMENT,치트 [{COMMON_VALUE_FIRST-ARGUMENT}],치트 [{COMMON_VALUE_FIRST-ARGUMENT}],Cheat [{COMMON_VALUE_FIRST-ARGUMENT}]
+DEV_TEXT_ALL-DEAD-SETTLEMENT-PENDING-F-REVIVE,"전원 사망 · 정산 보류 중
+F9: 부활 또는 보류 해제","전원 사망 · 정산 보류 중
+F9: 부활 또는 보류 해제","All Dead · Settlement Pending
+F9: Revive or Release Pending"
+DEV_TEXT_CHECKPOINT,체크포인트,체크포인트,Checkpoint
+DEV_TEXT_BODY-RECOVERY-ONLY-PERFORMED-HOST,신체 복구는 호스트만 실행할 수 있습니다.,신체 복구는 호스트만 실행할 수 있습니다.,Body recovery can only be performed by the host.
+DEV_PROMPT_THERE-NO-SELECTED-TARGET-PLAYER,선택한 대상 플레이어가 없습니다.,선택한 대상 플레이어가 없습니다.,There is no selected target player.
+DEV_TEXT_BODY-SITU-RESTORATION-FIRST-ARGUMENT,제자리 신체 복구 · {COMMON_VALUE_FIRST-ARGUMENT},제자리 신체 복구 · {COMMON_VALUE_FIRST-ARGUMENT},Body in situ restoration · {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_ONLY-LIVING-OBJECTS-MOVED-PLEASE-REVIVE,살아 있는 대상만 이동할 수 있습니다. 먼저 되살리세요.,살아 있는 대상만 이동할 수 있습니다. 먼저 되살리세요.,Only living objects can be moved. Please revive them first.
+DEV_PROMPT_THERE-NO-LOCATION-TARGET-PLAYER-GO,대상 플레이어가 갈 수 있는 위치가 없습니다.,대상 플레이어가 갈 수 있는 위치가 없습니다.,There is no location the target player can go.
+DEV_TEXT_EXCLUDING-FIRST-ARGUMENT-DEATHS, · 사망 {COMMON_VALUE_FIRST-ARGUMENT}명 제외, · 사망 {COMMON_VALUE_FIRST-ARGUMENT}명 제외,· Excluding {COMMON_VALUE_FIRST-ARGUMENT} deaths
+DEV_TEXT_EXCLUDE-FIRST-ARGUMENT-PEOPLE-NO-LOCATION, · 위치 없음 {COMMON_VALUE_FIRST-ARGUMENT}명 제외, · 위치 없음 {COMMON_VALUE_FIRST-ARGUMENT}명 제외,· Exclude {COMMON_VALUE_FIRST-ARGUMENT} people with no location
+DEV_TEXT_BALANCE-CENTER-FIRST-ARGUMENT-APPLIES-ONLY,균형 중앙으로 · {COMMON_VALUE_FIRST-ARGUMENT} (줄 위의 생존자만 적용),균형 중앙으로 · {COMMON_VALUE_FIRST-ARGUMENT} (줄 위의 생존자만 적용),Balance Center · {COMMON_VALUE_FIRST-ARGUMENT} (Applies only to survivors on the line)
+DEV_PROMPT_THERE-NO-LIVING-TARGET-PLAYERS,살아 있는 대상 플레이어가 없습니다.,살아 있는 대상 플레이어가 없습니다.,There are no living target players.
+DEV_PROMPT_I-DON-T-CHARACTER,내 캐릭터가 없습니다.,내 캐릭터가 없습니다.,I don't have a character.
+DEV_TEXT_ONLY-MOVE-WHILE-ALIVE-PLEASE-REVIVE,살아 있을 때만 이동할 수 있습니다. 먼저 되살리세요.,살아 있을 때만 이동할 수 있습니다. 먼저 되살리세요.,You can only move while alive. Please revive first.
+DEV_TEXT_ONLY-HOST-CURRENTLY-PLAYING-RESPAWN-LOCATION,체크포인트가 있는 장소를 플레이 중인 호스트만 부활시킬 수 있습니다.,체크포인트가 있는 장소를 플레이 중인 호스트만 부활시킬 수 있습니다.,Only the host currently playing can respawn at a location with a checkpoint.
+DEV_PROMPT_THERE-NO-RECORD-DECEASED-TARGET-PLAYER,사망한 대상 플레이어의 통과 기록이 없습니다.,사망한 대상 플레이어의 통과 기록이 없습니다.,There is no record of the deceased target player passing through.
+DEV_PROMPT_THERE-NO-DECEASED-PLAYERS-REVIVE,부활시킬 사망 대상 플레이어가 없습니다.,부활시킬 사망 대상 플레이어가 없습니다.,There are no deceased players to revive.
+DEV_TEXT_UNIT-FIRST-ARGUMENT-SECOND-ARGUMENT,단원 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT},단원 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT},Unit {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_FIRST-ARGUMENT-DECEASED-RESURRECTED-SECOND-ARGUMENT,사망자 {COMMON_VALUE_FIRST-ARGUMENT}명 부활 · {COMMON_VALUE_SECOND-ARGUMENT},사망자 {COMMON_VALUE_FIRST-ARGUMENT}명 부활 · {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} deceased resurrected · {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_EXCLUDING-FIRST-ARGUMENT-PEOPLE-NO-RECORDS, · 기록 없는 {COMMON_VALUE_FIRST-ARGUMENT}명 제외, · 기록 없는 {COMMON_VALUE_FIRST-ARGUMENT}명 제외,· Excluding {COMMON_VALUE_FIRST-ARGUMENT} people with no records
+DEV_TEXT_WAITING-ROOM-TIMER-CHASE,대기실 · 타이머 / 추격,대기실 · 타이머 / 추격,Waiting Room · Timer / Chase
+DEV_TEXT_BORDERLESS,무제한,무제한,borderless
+DEV_TEXT_PURSUIT-FIRST-ARGUMENT-STEP-SECOND-ARGUMENT,추격 {COMMON_VALUE_FIRST-ARGUMENT}단계 · {COMMON_VALUE_SECOND-ARGUMENT},추격 {COMMON_VALUE_FIRST-ARGUMENT}단계 · {COMMON_VALUE_SECOND-ARGUMENT},Pursuit {COMMON_VALUE_FIRST-ARGUMENT} Step · {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_AUTOMATIC,자동,자동,automatic
+DEV_TEXT_WAITING-PURSUIT,추격 대기,추격 대기,Waiting for pursuit
+DEV_TEXT_WE-PREPARING-PURSUIT-SYSTEM,추격 시스템을 준비 중입니다.,추격 시스템을 준비 중입니다.,We are preparing a pursuit system.
+DEV_TEXT_CHASE-NOT-USED-CURRENT-BACKSTAGE-SETTINGS,현재 대기실 설정에서는 추격을 사용하지 않습니다.,현재 대기실 설정에서는 추격을 사용하지 않습니다.,Chase is not used in the current backstage settings.
+DEV_TEXT_ONLY-HOST-CHANGE-BACKSTAGE-CHEATS,호스트만 대기실 치트를 변경할 수 있습니다.,호스트만 대기실 치트를 변경할 수 있습니다.,Only the host can change the backstage cheats.
+DEV_TEXT_INVINCIBLE-PURSUER-CAPTURE-PREVENTION-FIRST-ARGUMENT, 무적 · 추격자 포획 방지 {COMMON_VALUE_FIRST-ARGUMENT}, 무적 · 추격자 포획 방지 {COMMON_VALUE_FIRST-ARGUMENT},Invincible · Pursuer Capture Prevention {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_POWER-CAPTURE-PREVENTION-PURSUIT-MAINTAIN,전원 포획 방지 ON · 추격은 유지,전원 포획 방지 ON · 추격은 유지,Power Capture Prevention ON · Pursuit Maintain
+DEV_TEXT_POWER-CAPTURE-PREVENTION-OFF,전원 포획 방지 OFF,전원 포획 방지 OFF,Power Capture Prevention OFF
+DEV_TEXT_PURSUER-AWARENESS-FIRST-ARGUMENT-VISION-SOUND, 추격자 인식 {COMMON_VALUE_FIRST-ARGUMENT} · 시야 / 소리, 추격자 인식 {COMMON_VALUE_FIRST-ARGUMENT} · 시야 / 소리,Pursuer Awareness {COMMON_VALUE_FIRST-ARGUMENT} · Vision / Sound
+DEV_TEXT_POWER-RECOGNITION,전원 인식 ON,전원 인식 ON,Power recognition ON
+DEV_TEXT_POWER-DETECT-OFF-STOP-PURSUIT-SOUND,"전원 인식 OFF · 추격/소리 조사 중단, 순찰 유지","전원 인식 OFF · 추격/소리 조사 중단, 순찰 유지","Power Detect OFF · Stop Pursuit/Sound Investigation, Maintain Patrol"
+DEV_TEXT_IF-HOST-MAKES-CHANGE-APPLIES-EVERYONE,"호스트가 변경하면 전원에게 적용됩니다. 무적은 포획만 막고, 인식 OFF는 4단계 상시 추격도 막습니다.","호스트가 변경하면 전원에게 적용됩니다. 무적은 포획만 막고, 인식 OFF는 4단계 상시 추격도 막습니다.","If the host makes a change, it applies to everyone. Invincibility only prevents capture, and Awareness OFF also prevents Level 4 constant pursuit."
+DEV_TEXT_CAPTURES-ALREADY-STARTED-CONTINUE-RELEASE-PLEASE,이미 시작한 포획은 계속됩니다. 해제는 아래 ‘타이머 초기화 및 추격 철회’를 사용하세요. 두 옵션은 대기실을 떠나면 초기화됩니다.,이미 시작한 포획은 계속됩니다. 해제는 아래 ‘타이머 초기화 및 추격 철회’를 사용하세요. 두 옵션은 대기실을 떠나면 초기화됩니다.,"Captures that have already started will continue. To release, please use ‘Reset Timer and Withdraw Chase’ below. Both options reset when you leave the lobby."
+DEV_TEXT_TIMER-RESET-CHASE-WITHDRAWAL,타이머 초기화 및 추격 철회,타이머 초기화 및 추격 철회,Timer reset and chase withdrawal
+DEV_TEXT_RESTORE-DEFAULT-TIME-LIMIT-WITHDRAW-PURSUIT,기본 제한시간 복원 · 추격 철회,기본 제한시간 복원 · 추격 철회,Restore default time limit · Withdraw pursuit
+DEV_TEXT_TIMER-MINUTE_1,타이머 -1분,타이머 -1분,Timer -1 minute
+DEV_TEXT_TIMER-MINUTE_0,타이머 +1분,타이머 +1분,Timer +1 minute
+DEV_TEXT_TIMER-MINUTE-REMAINING,타이머 1분 남음,타이머 1분 남음,Timer 1 minute remaining
+DEV_TEXT_MINUTE-REMAINING-WITHDRAW-PURSUIT,남은 시간 1분 · 추격 철회,남은 시간 1분 · 추격 철회,1 minute remaining · Withdraw pursuit
+DEV_TEXT_TIMER-OVER-CHASE-START,타이머 오버 및 추격 시작,타이머 오버 및 추격 시작,Timer over and chase start
+DEV_TEXT_TIMER-EXPIRES-CHASE-BEGINS,타이머 만료 · 추격 시작,타이머 만료 · 추격 시작,Timer expires · Chase begins
+DEV_TEXT_SET-CHASE-STAGE-START-CHASE-FIX,추격 단계 설정 (선택 시 추격 시작·단계 고정),추격 단계 설정 (선택 시 추격 시작·단계 고정),Set chase stage (Start chase and fix stage when selected)
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-STEP_1,{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT}단계,{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT}단계,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Step
+DEV_TEXT_PURSUIT-FIRST-ARGUMENT-STEP-FIXED,추격 {COMMON_VALUE_FIRST-ARGUMENT}단계 고정,추격 {COMMON_VALUE_FIRST-ARGUMENT}단계 고정,Pursuit {COMMON_VALUE_FIRST-ARGUMENT} Step Fixed
+DEV_TEXT_RETURN-AUTOMATIC-STEP-PROGRESSION,단계 자동 진행으로 복귀,단계 자동 진행으로 복귀,Return to automatic step progression
+DEV_TEXT_RETURN-STAGE-BASED-ACTUAL-PURSUIT-ELAPSED,실제 추격 경과시간에 따른 단계로 복귀,실제 추격 경과시간에 따른 단계로 복귀,Return to the stage based on the actual pursuit elapsed time
+DEV_TEXT_POSITIVE-FLUID-TIME-SETTING-WITHDRAWS-PURSUIT,양수 시간 설정은 추격을 철회합니다. 부상은 유지되며 ‘모두 되살리기’로 회복할 수 있습니다.,양수 시간 설정은 추격을 철회합니다. 부상은 유지되며 ‘모두 되살리기’로 회복할 수 있습니다.,The positive fluid time setting withdraws the pursuit. Injuries persist and can be recovered with ‘Revive All’.
+DEV_TEXT_AVAILABLE-ONLY-BACKSTAGE-HOST-OFFLINE-RUN,대기실의 호스트/오프라인 런에서만 사용할 수 있습니다.,대기실의 호스트/오프라인 런에서만 사용할 수 있습니다.,Available only in the backstage host/offline run.
+DEV_TEXT_CHECK-ENDING-RIGHT-AWAY,엔딩 바로 확인,엔딩 바로 확인,Check the ending right away
+DEV_TEXT_MAINTAINS-CURRENT-RUN-S-DATE-ITEMS,현재 런의 날짜·기물·통계를 유지하고 팀 전체의 런을 종료합니다.,현재 런의 날짜·기물·통계를 유지하고 팀 전체의 런을 종료합니다.,"Maintains the current run's date, items, and statistics, and ends the entire team's run."
+DEV_PROMPT_FAILURE-ENDING-TIME-OUT,실패 엔딩 A · 시간 초과,실패 엔딩 A · 시간 초과,Failure Ending A · Time Out
+DEV_PROMPT_FAILURE-ENDING-ALL-ESCAPEES-DIE,실패 엔딩 A · 탈출로 전원 사망,실패 엔딩 A · 탈출로 전원 사망,Failure Ending A · All Escapees Die
+DEV_PROMPT_SWITCHES-FAILURE-ENDING,실패 엔딩 A로 전환합니다.,실패 엔딩 A로 전환합니다.,Switches to Failure Ending A.
+DEV_TEXT_ONLY-HOST-ONGOING-RUN-EXECUTE,진행 중인 런의 호스트만 실행할 수 있습니다.,진행 중인 런의 호스트만 실행할 수 있습니다.,Only the host of the ongoing run can execute it.
+DEV_TEXT_DEV-TEST-CHEAT-FIRST-ARGUMENT,DEV · 테스트 치트 [{COMMON_VALUE_FIRST-ARGUMENT}],DEV · 테스트 치트 [{COMMON_VALUE_FIRST-ARGUMENT}],DEV · Test Cheat [{COMMON_VALUE_FIRST-ARGUMENT}]
+DEV_PROMPT_MY-CHARACTER-NOT-YET-PRESENT-PLEASE,내 캐릭터가 아직 없습니다. 대기실·공연·탈출로에 들어간 뒤 사용하세요.,내 캐릭터가 아직 없습니다. 대기실·공연·탈출로에 들어간 뒤 사용하세요.,"My character is not yet present. Please use this after entering the Waiting Room, Performance, or Escape Route."
+DEV_TEXT_STATUS-FIRST-ARGUMENT-PLACE-SECOND-ARGUMENT,상태: {COMMON_VALUE_FIRST-ARGUMENT} · 자리 {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT},상태: {COMMON_VALUE_FIRST-ARGUMENT} · 자리 {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT},Status: {COMMON_VALUE_FIRST-ARGUMENT} · Place {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_CLIENT,클라이언트,클라이언트,client
+DEV_TEXT_GO-PERFORMANCE-DIFFICULTY,공연 난이도 바로가기,공연 난이도 바로가기,Go to Performance Difficulty
+DEV_TEXT_NEW-TEST-RUN-CONNECTED-TEAMMATES-ALSO,새 테스트 런 · 접속한 팀원도 함께 이동합니다.,새 테스트 런 · 접속한 팀원도 함께 이동합니다.,New test run · Connected teammates also move together.
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-STEP_0,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}단계,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}단계,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Step
+DEV_TEXT_TIGHTROPE,외줄,외줄,tightrope
+DEV_TEXT_IGNORE-FALL-BALANCE-OFF-ROPE-LANDING, 추락 무시 (균형·줄 밖 착지·대포 추락·목마·매달림 낙하), 추락 무시 (균형·줄 밖 착지·대포 추락·목마·매달림 낙하),"Ignore fall (balance, off-rope landing, cannon, piggyback or hanging)"
+DEV_TEXT_FALLING-IGNORED-DIRECT-DAMAGE-SAWS-FLAMES,추락 무시 켜짐 · 톱·화염 등 직접 피해는 그대로,추락 무시 켜짐 · 톱·화염 등 직접 피해는 그대로,"Falling is ignored · Direct damage from saws, flames, etc. remains unchanged"
+DEV_TEXT_FALL-IGNORE-OFF,추락 무시 꺼짐,추락 무시 꺼짐,Fall Ignore Off
+DEV_TEXT_SINCE-HOST-DETERMINES-DEATH-MUST-ENABLED,※ 사망 판정은 호스트가 하므로 호스트 화면에서 켜야 모두에게 적용됩니다.,※ 사망 판정은 호스트가 하므로 호스트 화면에서 켜야 모두에게 적용됩니다.,"※ Since the host determines the death, it must be enabled on the host screen for it to apply to everyone."
+DEV_TEXT_BALANCE-TOWARDS-CENTER-TARGET,균형 중앙으로 (대상),균형 중앙으로 (대상),Balance towards the center (target)
+DEV_TEXT_BODY-RESTORATION-SPOT-TARGETS-DECEASED-RESURRECTED,제자리에서 신체 복구 (대상 · 사망자는 그 자리에서 부활),제자리에서 신체 복구 (대상 · 사망자는 그 자리에서 부활),Body restoration on the spot (Targets and the deceased are resurrected on the spot)
+DEV_TEXT_RESTART-ALL-STARTING-POINT,모두 재시작 (출발점),모두 재시작 (출발점),Restart All (Starting Point)
+DEV_TEXT_I-REQUESTED-RESTART-HOST-ONLY-DURING,재시작을 요청했습니다(외줄 공연 중에는 호스트만).,재시작을 요청했습니다(외줄 공연 중에는 호스트만).,I requested a restart (host only during the tightrope performance).
+DEV_TEXT_MOVE-LOCATION,위치 이동,위치 이동,Move location
+DEV_TEXT_FIRST-ARGUMENT-M-AHEAD,앞으로 {COMMON_VALUE_FIRST-ARGUMENT}m,앞으로 {COMMON_VALUE_FIRST-ARGUMENT}m,{COMMON_VALUE_FIRST-ARGUMENT} m ahead
+DEV_TEXT_MOVE-FORWARD-FIRST-ARGUMENT-M,앞으로 {COMMON_VALUE_FIRST-ARGUMENT}m 이동,앞으로 {COMMON_VALUE_FIRST-ARGUMENT}m 이동,Move forward {COMMON_VALUE_FIRST-ARGUMENT} m
+DEV_TEXT_UP-FIRST-ARGUMENT-M,위로 {COMMON_VALUE_FIRST-ARGUMENT}m,위로 {COMMON_VALUE_FIRST-ARGUMENT}m,Up {COMMON_VALUE_FIRST-ARGUMENT} m
+DEV_TEXT_MOVE-UP-FIRST-ARGUMENT-M,위로 {COMMON_VALUE_FIRST-ARGUMENT}m 이동,위로 {COMMON_VALUE_FIRST-ARGUMENT}m 이동,Move up {COMMON_VALUE_FIRST-ARGUMENT} m
+DEV_TEXT_CLOSE-FIRST-ARGUMENT-START-POINT-SECOND,닫기 [{COMMON_VALUE_FIRST-ARGUMENT}] · 시작 지점 [{COMMON_VALUE_SECOND-ARGUMENT} / F8],닫기 [{COMMON_VALUE_FIRST-ARGUMENT}] · 시작 지점 [{COMMON_VALUE_SECOND-ARGUMENT} / F8],Close [{COMMON_VALUE_FIRST-ARGUMENT}] · Start point [{COMMON_VALUE_SECOND-ARGUMENT} / F8]
+DEV_TEXT_ESCAPE-ROUTE-CHECKPOINT,탈출로 체크포인트,탈출로 체크포인트,Escape Route Checkpoint
+DEV_TEXT_BACKSTAGE-CHECKPOINT,대기실 체크포인트,대기실 체크포인트,Backstage checkpoint
+DEV_TEXT_PERFORMANCE-CHECKPOINT,공연 체크포인트,공연 체크포인트,Performance Checkpoint
+DEV_TEXT_OPENING-LAST-DOOR-HOST,마지막 문 열기 (호스트),마지막 문 열기 (호스트),Opening the last door (host)
+DEV_TEXT_RESURRECTION-FINAL-CHECKPOINT-PER-PLAYER-CHECKED,부활 · 플레이어별 마지막 통과 지점 (체크한 대상만),부활 · 플레이어별 마지막 통과 지점 (체크한 대상만),Resurrection · Final checkpoint per player (checked targets only)
+DEV_TEXT_FIRST-ARGUMENT-UNIT-SECOND-ARGUMENT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} 단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}: {COMMON_VALUE_FOURTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} 단원 {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT}: {COMMON_VALUE_FOURTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Unit {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT} : {COMMON_VALUE_FOURTH-ARGUMENT}
+DEV_TEXT_TARGET,[대상],[대상],[Target]
+DEV_TEXT_EXCEPTION,[제외],[제외],[exception]
+DEV_TEXT_DEATH_0, (사망), (사망),(Death)
+DEV_TEXT_NO-PASS-RECORD,통과 기록 없음,통과 기록 없음,No pass record
+DEV_TEXT_SETTLEMENT-WITHHELD-UPON-DEATH-ALL-MEMBERS, 전원 사망 시 정산 보류 · F9 부활 대기 (끄면 바로 결과로 넘어감), 전원 사망 시 정산 보류 · F9 부활 대기 (끄면 바로 결과로 넘어감),"Settlement withheld upon death of all members · F9 Resurrection standby (If you turn it off, proceed directly to results)"
+DEV_TEXT_REVIVE-DECEASED-THEIR-RESPECTIVE-LAST-CHECKPOINTS,사망한 대상을 각자의 마지막 체크포인트에서 부활,사망한 대상을 각자의 마지막 체크포인트에서 부활,Revive the deceased at their respective last checkpoints.
+DEV_TEXT_CHECKPOINT-RESURRECTION-ONLY-EXECUTED-HOST,체크포인트 부활은 호스트만 실행할 수 있습니다.,체크포인트 부활은 호스트만 실행할 수 있습니다.,Checkpoint resurrection can only be executed by the host.
+DEV_TEXT_TELEPORTATION-CHECKPOINT-ORDER-PLACE-LIVING-TARGETS,순간이동 · 체크포인트 순서 (살아 있는 대상을 각자 자리에 배치),순간이동 · 체크포인트 순서 (살아 있는 대상을 각자 자리에 배치),Teleportation · Checkpoint Order (Place living targets in their respective positions)
+DEV_PROMPT_THERE-NO-CHECKPOINTS-AVAILABLE,사용할 수 있는 체크포인트가 없습니다.,사용할 수 있는 체크포인트가 없습니다.,There are no checkpoints available.
+DEV_TEXT_MOBILE-ONLY, (이동 전용), (이동 전용),(Mobile only)
+DEV_TEXT_WE-PREPARING-ESCAPE-ROUTE-CHECKPOINT,탈출로 체크포인트를 준비 중입니다.,탈출로 체크포인트를 준비 중입니다.,We are preparing the escape route checkpoint.
+DEV_PROMPT_THERE-NO-REGISTERED-GENERAL-MOVEMENT-POINTS,등록된 일반 이동 지점이 없습니다.,등록된 일반 이동 지점이 없습니다.,There are no registered general movement points.
+DEV_TEXT_APPLICABLE,적용 대상,적용 대상,Applicable to
+DEV_TEXT_TARGET-MY-CHARACTER-ONLY-SELECTING-OTHER,대상: 내 캐릭터만 · 다른 플레이어 선택·신체 복구·부활은 호스트 화면에서 합니다.,대상: 내 캐릭터만 · 다른 플레이어 선택·신체 복구·부활은 호스트 화면에서 합니다.,"Target: My character only · Selecting other players, body repair, and resurrection are done on the host screen."
+DEV_TEXT_APPLY-MOVEMENT-BALANCE-BODY-RESTORATION-CHECKPOINT,체크한 플레이어에게 이동·균형·신체 복구·체크포인트 부활을 적용합니다. 새로 들어온 플레이어는 포함됩니다.,체크한 플레이어에게 이동·균형·신체 복구·체크포인트 부활을 적용합니다. 새로 들어온 플레이어는 포함됩니다.,"Apply Movement, Balance, Body Restoration, and Checkpoint Respawn to the checked player. Newly joined players are included."
+DEV_TEXT_SELECT-ALL,전체 선택,전체 선택,Select All
+DEV_TEXT_ONLY-ME,나만,나만,Only me
+DEV_PROMPT_THERE-NO-PLAYER-CHOOSE,선택할 플레이어가 없습니다.,선택할 플레이어가 없습니다.,There is no player to choose from.
+DEV_TEXT_UNIT-FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD, 단원 {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}, 단원 {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT},Unit {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_GO-FIRST-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}(으)로 이동,{COMMON_VALUE_FIRST-ARGUMENT}(으)로 이동,Go to {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_LAST-DOOR-BEEN-OPENED-PLEASE-PROCEED,마지막 문을 열었습니다. 갈대밭으로 이동하세요.,마지막 문을 열었습니다. 갈대밭으로 이동하세요.,The last door has been opened. Please proceed to the reed field.
+DEV_TEXT_BACKSTAGE,백스테이지,백스테이지,Backstage
+DEV_TEXT_WAITING-RUN-START,런 시작을 기다립니다.,런 시작을 기다립니다.,Waiting for the run to start.
+DEV_PROMPT_THERE-NO-SITUATION-WHERE-BEEN-EXECUTED,아직 실행한 상황이 없습니다.,아직 실행한 상황이 없습니다.,There is no situation where it has been executed yet.
+DEV_TEXT_ACTUAL-COMMON-PROCESSING,실제 공통 처리,실제 공통 처리,Actual common processing
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD-ARGUMENT_2,{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT} Day
+DEV_TEXT_SEARCH-TIMEOUT-EXPIRES,탐색 제한 시간 만료 → ,탐색 제한 시간 만료 → ,Search timeout expires →
+DEV_TEXT_TIME-ZONE-SWITCHING,시간대 전환 → ,시간대 전환 → ,Time zone switching →
+DEV_TEXT_SEARCH-TIMEOUT-STARTS-TIME-ACTUALLY-RUNS,탐색 제한 시간 시작 · 시간이 실제로 흐릅니다.,탐색 제한 시간 시작 · 시간이 실제로 흐릅니다.,Search timeout starts · Time actually runs.
+DEV_TEXT_PERFORMANCE-ROSTER-FIXED-PARTICIPANTS-FIRST-ARGUMENT,공연 명부 고정 · 참가자 {COMMON_VALUE_FIRST-ARGUMENT}명,공연 명부 고정 · 참가자 {COMMON_VALUE_FIRST-ARGUMENT}명,Performance Roster Fixed · Participants {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_POSITION-FIRST-ARGUMENT-INJURY-LOSS-SECOND,자리 {COMMON_VALUE_FIRST-ARGUMENT} 부상: 손실 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT},자리 {COMMON_VALUE_FIRST-ARGUMENT} 부상: 손실 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT},Position {COMMON_VALUE_FIRST-ARGUMENT} Injury: Loss {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT}
+DEV_TEXT_PLACEHOLDER-FIRST-ARGUMENT-SECOND-ARGUMENT,자리 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT},자리 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT},Placeholder {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_CONNECTION,연결,연결,connection
+DEV_TEXT_PLACE-FIRST-ARGUMENT-RESPONSE-SECOND-ARGUMENT,자리 {COMMON_VALUE_FIRST-ARGUMENT} 호응 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT},자리 {COMMON_VALUE_FIRST-ARGUMENT} 호응 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT},Place {COMMON_VALUE_FIRST-ARGUMENT} Response {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_CALL-UP-ALERT-WAITING-RETURN-SIGNAL,소집 경보 → 복귀 신호 대기,소집 경보 → 복귀 신호 대기,Call-up alert → Waiting for return signal
+DEV_TEXT_PLEASE-RETURN-STAGE-ENTRANCE-AFTER-COMPLETING,소집 경보 · 탐색을 마치고 무대 입구로 복귀하세요.,소집 경보 · 탐색을 마치고 무대 입구로 복귀하세요.,Please return to the stage entrance after completing the assembly alarm and search.
+DEV_TEXT_RUN-ENDED-FIRST-ARGUMENT_0,런 종료 · {COMMON_VALUE_FIRST-ARGUMENT},런 종료 · {COMMON_VALUE_FIRST-ARGUMENT},Run ended · {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-INCOME-THIRD,"{COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}, 수입 {COMMON_VALUE_THIRD-ARGUMENT} → 공동 자금 {COMMON_VALUE_FOURTH-ARGUMENT} → 028 {COMMON_VALUE_FIFTH-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}, 수입 {COMMON_VALUE_THIRD-ARGUMENT} → 공동 자금 {COMMON_VALUE_FOURTH-ARGUMENT} → 028 {COMMON_VALUE_FIFTH-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} , Income {COMMON_VALUE_THIRD-ARGUMENT} → Joint Fund {COMMON_VALUE_FOURTH-ARGUMENT} → 028 {COMMON_VALUE_FIFTH-ARGUMENT}"
+DEV_TEXT_PERFORMANCE-FIRST-ARGUMENT-CONFIRMED-SECOND-ARGUMENT,공연 {COMMON_VALUE_FIRST-ARGUMENT} 확정 · {COMMON_VALUE_SECOND-ARGUMENT} · 수입 {COMMON_VALUE_THIRD-ARGUMENT} · 현재 {COMMON_VALUE_FOURTH-ARGUMENT},공연 {COMMON_VALUE_FIRST-ARGUMENT} 확정 · {COMMON_VALUE_SECOND-ARGUMENT} · 수입 {COMMON_VALUE_THIRD-ARGUMENT} · 현재 {COMMON_VALUE_FOURTH-ARGUMENT},Performance {COMMON_VALUE_FIRST-ARGUMENT} Confirmed · {COMMON_VALUE_SECOND-ARGUMENT} · Revenue {COMMON_VALUE_THIRD-ARGUMENT} · Current {COMMON_VALUE_FOURTH-ARGUMENT}
+DEV_TEXT_TIME-LIMIT-EXPIRES,제한 시간 만료,제한 시간 만료,Time limit expires
+DEV_TEXT_GENERATION-FIRST-ARGUMENT-DAY-SECOND-ARGUMENT,"세대{COMMON_VALUE_FIRST-ARGUMENT}/일차{COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT}/공연{COMMON_VALUE_FIFTH-ARGUMENT}, ","세대{COMMON_VALUE_FIRST-ARGUMENT}/일차{COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}/{COMMON_VALUE_FOURTH-ARGUMENT}/공연{COMMON_VALUE_FIFTH-ARGUMENT}, ","Generation {COMMON_VALUE_FIRST-ARGUMENT} / Day {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT} / Performance {COMMON_VALUE_FIFTH-ARGUMENT} ,"
+DEV_TEXT_TIMER-FIRST-ARGUMENT-SECOND-ARGUMENT-SEC,"타이머{COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}초/경보{COMMON_VALUE_THIRD-ARGUMENT}, 준비{COMMON_VALUE_FOURTH-ARGUMENT}/{COMMON_VALUE_FIFTH-ARGUMENT}, 자금{COMMON_VALUE_SIXTH-ARGUMENT}","타이머{COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT}초/경보{COMMON_VALUE_THIRD-ARGUMENT}, 준비{COMMON_VALUE_FOURTH-ARGUMENT}/{COMMON_VALUE_FIFTH-ARGUMENT}, 자금{COMMON_VALUE_SIXTH-ARGUMENT}","Timer {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} sec/alarm {COMMON_VALUE_THIRD-ARGUMENT} , Ready {COMMON_VALUE_FOURTH-ARGUMENT} / {COMMON_VALUE_FIFTH-ARGUMENT} , Funds {COMMON_VALUE_SIXTH-ARGUMENT}"
+DEV_TEXT_FALSE-NO-CHANGE,false/변화 없음,false/변화 없음,false/no change
+DEV_TEXT_OFFLINE-PREPARATION,오프라인 준비,오프라인 준비,Offline preparation
+DEV_TEXT_CONNECTING-OR-ONLINE-RUN-READY-REFUSED,접속 중 또는 온라인 런: 준비 거절,접속 중 또는 온라인 런: 준비 거절,Connecting or online run: Ready refused
+DEV_TEXT_READY-STARTOFFLINERUN,준비 → StartOfflineRun,준비 → StartOfflineRun,Ready → StartOfflineRun
+DEV_TEXT_PREPARATION-ENDINTRO,준비 → EndIntro,준비 → EndIntro,Preparation → EndIntro
+DEV_TEXT_MANUAL-POWER-STAGE-ENTRANCE-SIGNAL-NOTIFYALLATSTAGEENTRANCE,수동 전원 무대 입구 신호 → NotifyAllAtStageEntrance,수동 전원 무대 입구 신호 → NotifyAllAtStageEntrance,Manual Power Stage Entrance Signal → NotifyAllAtStageEntrance
+DEV_PROMPT_NIGHT-READY-ESCAPE-PLEASE-ENTER-END,"밤은 준비 완료, 탈출은 종료 신호를 직접 입력하세요.","밤은 준비 완료, 탈출은 종료 신호를 직접 입력하세요.","Night is ready, and for the escape, please enter the end signal yourself."
+DEV_TEXT_DUMMY-REWARD-LIST-PEOPLE-BEGINOFFLINEPERFORMANCE,더미 보상 명부 2명 → BeginOfflinePerformance,더미 보상 명부 2명 → BeginOfflinePerformance,Dummy Reward List 2 people → BeginOfflinePerformance
+DEV_TEXT_DUMMY-CHEER-ADDCHEER-DUMMY,더미 환호 → AddCheer(Dummy-0),더미 환호 → AddCheer(Dummy-0),Dummy Cheer → AddCheer(Dummy-0)
+DEV_TEXT_MANUAL-PERFORMANCE-SUCCESS-SIGNAL-FINISHPERFORMANCE,수동 공연 성공 신호 → FinishPerformance,수동 공연 성공 신호 → FinishPerformance,Manual Performance Success Signal → FinishPerformance
+DEV_TEXT_UNCONNECTED,미연결,미연결,Unconnected
+DEV_TEXT_SERVER-TARGET-LOCATION-VERIFICATION-NEEDED-CURRENT,"서버 대상/장소 확인 필요: 현재 {COMMON_VALUE_FIRST-ARGUMENT}, 요청 {COMMON_VALUE_SECOND-ARGUMENT}. 장소 설정은 032","서버 대상/장소 확인 필요: 현재 {COMMON_VALUE_FIRST-ARGUMENT}, 요청 {COMMON_VALUE_SECOND-ARGUMENT}. 장소 설정은 032","Server target/location verification needed: Current {COMMON_VALUE_FIRST-ARGUMENT}, Request {COMMON_VALUE_SECOND-ARGUMENT}. Location setting is 032"
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD-ARGUMENT_1,{COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}; 지출 없음,{COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}; 지출 없음,{COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} ; No expenditure
+DEV_TEXT_LOCATION-CHANGE-LOG-FIRST-ARGUMENT-SECOND,"장소 전환 로그
+{COMMON_VALUE_FIRST-ARGUMENT}
+
+{COMMON_VALUE_SECOND-ARGUMENT}","장소 전환 로그
+{COMMON_VALUE_FIRST-ARGUMENT}
+
+{COMMON_VALUE_SECOND-ARGUMENT}","Location Change Log
+{COMMON_VALUE_FIRST-ARGUMENT}
+
+{COMMON_VALUE_SECOND-ARGUMENT}"
+DEV_TEXT_EXPAND-DEVELOPER-LOG,개발자 로그 펼치기,개발자 로그 펼치기,Expand developer log
+DEV_TEXT_COLLAPSE-DEVELOPER-LOG,개발자 로그 접기,개발자 로그 접기,Collapse Developer Log
+DEV_TEXT_MANIPULATION,"▶
+조작","▶
+조작","▶
+Manipulation"
+DEV_TEXT_PROGRESS-ONE-STEP-FLOW,흐름 한 단계 진행,흐름 한 단계 진행,Progress one step in the flow
+DEV_TEXT_PUBLIC-PROGRESS-API-PERFORMANCE-ENDS-VIA,028 공개 진행 API / 공연 종료는 031 경유,028 공개 진행 API / 공연 종료는 031 경유,028 Public Progress API / Performance ends via 031
+DEV_TEXT_NIGHT-PREPARATION-INPUT,밤 준비 입력,밤 준비 입력,Night preparation input
+DEV_TEXT_NIGHT-PREPARATION-SETREADY,밤 준비 → SetReady,밤 준비 → SetReady,Night Preparation → SetReady
+DEV_TEXT_FIXED-PERFORMANCE-ROSTER,공연 명부 고정,공연 명부 고정,Fixed performance roster
+DEV_TEXT_SEAT-FIRST-ARGUMENT-ARRIVAL,자리 {COMMON_VALUE_FIRST-ARGUMENT} 도착,자리 {COMMON_VALUE_FIRST-ARGUMENT} 도착,Seat {COMMON_VALUE_FIRST-ARGUMENT} arrival
+DEV_TEXT_DUMMY-ARRIVAL-INPUT-FINISHPERFORMANCE,더미 도착 입력 → 031 FinishPerformance → 028,더미 도착 입력 → 031 FinishPerformance → 028,Dummy Arrival Input → 031 FinishPerformance → 028
+DEV_TEXT_PLACE-FIRST-ARGUMENT-TRUNCATION,자리 {COMMON_VALUE_FIRST-ARGUMENT} 절단,자리 {COMMON_VALUE_FIRST-ARGUMENT} 절단,Place {COMMON_VALUE_FIRST-ARGUMENT} Truncation
+DEV_TEXT_BODY-RULE-OBSERVEPARTICIPANT,030 신체 규칙 → 031 ObserveParticipant,030 신체 규칙 → 031 ObserveParticipant,030 Body Rule → 031 ObserveParticipant
+DEV_TEXT_SEAT-FIRST-ARGUMENT-DEATH,자리 {COMMON_VALUE_FIRST-ARGUMENT} 사망,자리 {COMMON_VALUE_FIRST-ARGUMENT} 사망,Seat {COMMON_VALUE_FIRST-ARGUMENT} Death
+DEV_TEXT_SURVIVAL-OBSERVATION-RESULT-DETERMINATION,030/031 생존 관찰 → 결과 판정,030/031 생존 관찰 → 결과 판정,030/031 Survival Observation → Result Determination
+DEV_TEXT_SEAT-FIRST-ARGUMENT-CHEERS,자리 {COMMON_VALUE_FIRST-ARGUMENT} 환호,자리 {COMMON_VALUE_FIRST-ARGUMENT} 환호,Seat {COMMON_VALUE_FIRST-ARGUMENT} cheers
+DEV_TEXT_ADDCHEER-ENTER-BEFORE-SETTLEMENT,031 AddCheer (정산 전 입력),031 AddCheer (정산 전 입력),031 AddCheer (Enter before settlement)
+DEV_TEXT_PERFORMANCE-TIME-LIMIT-EXPIRES,공연 제한 시간 종료,공연 제한 시간 종료,Performance time limit expires
+DEV_TEXT_JOINT-FUND-FIRST-ARGUMENT-EXPENDITURE,공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} 지출,공동 자금 {COMMON_VALUE_FIRST-ARGUMENT} 지출,Joint fund {COMMON_VALUE_FIRST-ARGUMENT} expenditure
+DEV_TEXT_TRYSPEND-ITEMS-PAID-TREATMENTS-NOT-CONNECTED,031 TrySpend / 물품·유료 치료 미연결,031 TrySpend / 물품·유료 치료 미연결,031 TrySpend / Items · Paid Treatments Not Connected
+DEV_TEXT_ONLY-EXPENSES-BEEN-REFLECTED-DOES-NOT,지출만 반영했습니다. 상품 지급·치료 완료가 아닙니다.,지출만 반영했습니다. 상품 지급·치료 완료가 아닙니다.,Only expenses have been reflected. This does not indicate product payment or treatment completion.
+DEV_TEXT_PLEASE-CHECK-BALANCE-OR-PERMISSIONS-EXPENSES,잔액 또는 권한을 확인하세요. 지출은 반영되지 않았습니다.,잔액 또는 권한을 확인하세요. 지출은 반영되지 않았습니다.,Please check your balance or permissions. Expenses have not been reflected.
+DEV_TEXT_WAITING-ROOM-EXIT-INPUT,대기실 출구 입력,대기실 출구 입력,Waiting Room Exit Input
+DEV_TEXT_SECTION-DUMMY-INPUT-TIMER-ALREADY-FLOWING,구역은 더미 입력 / 타이머는 이미 흐름,구역은 더미 입력 / 타이머는 이미 흐름,The section is a dummy input / the timer is already flowing
+DEV_TEXT_ESCAPE-INITIATION-ESCAPE-ROUTE,탈출 개시 → 탈출로,탈출 개시 → 탈출로,Escape Initiation → Escape Route
+DEV_TEXT_STARTESCAPE-ASSUMES-FULL-ASSEMBLY-AUTOMATIC-ASSEMBLY,"028 StartEscape / 전원 집결 가정, 자동 집결 감지 아님","028 StartEscape / 전원 집결 가정, 자동 집결 감지 아님","028 StartEscape / Assumes full assembly, automatic assembly not detected"
+DEV_TEXT_START-ESCAPE,탈출 개시 → StartEscape,탈출 개시 → StartEscape,Start Escape
+DEV_TEXT_BACKSTAGE-AREA-INPUT,대기실 구역 입력,대기실 구역 입력,Backstage area input
+DEV_TEXT_DUMMY-ZONE-CHECK-SAFETY-CONDITIONS-WAITING,더미 구역 → 안전 조건 조회(대기실도 안전하지 않음),더미 구역 → 안전 조건 조회(대기실도 안전하지 않음),Dummy Zone → Check Safety Conditions (Waiting Room Is Not Safe)
+DEV_TEXT_STAGE-ENTRANCE-EVERYONE-ASSEMBLED,무대 입구 + 전원 집결 가정,무대 입구 + 전원 집결 가정,Stage entrance + everyone assembled
+DEV_TEXT_DUMMY-SECTION-NOTIFYALLATSTAGEENTRANCE,더미 구역 → 028 NotifyAllAtStageEntrance,더미 구역 → 028 NotifyAllAtStageEntrance,Dummy Section → 028 NotifyAllAtStageEntrance
+DEV_TEXT_SEARCH-TIMER-EXPIRATION-REQUEST,탐색 타이머 만료 요청,탐색 타이머 만료 요청,Search timer expiration request
+DEV_TEXT_DEBUGSETREMAINING-NEXT-TICK,028 DebugSetRemaining(0) → 다음 Tick,028 DebugSetRemaining(0) → 다음 Tick,028 DebugSetRemaining(0) → Next Tick
+DEV_TEXT_CHECK-CURRENT-TRANSITION-NEXT-TICK-AFTER,요청 후 다음 Tick에서 현행 전환을 확인하세요. 추격 정리 대기는 미연결입니다.,요청 후 다음 Tick에서 현행 전환을 확인하세요. 추격 정리 대기는 미연결입니다.,Check the current transition on the next Tick after the request. The chase cleanup pending is unconnected.
+DEV_TEXT_BODY-RECOVERY-INVENTORY-CHECK,신체 복구·소지 칸 조회,신체 복구·소지 칸 조회,Body Recovery · Inventory Check
+DEV_TEXT_LOSS-FIRST-ARGUMENT-RECOVERY-SECOND-ARGUMENT,"손실 {COMMON_VALUE_FIRST-ARGUMENT} → 복구 {COMMON_VALUE_SECOND-ARGUMENT}
+팔 개수 무관 소지 {COMMON_VALUE_THIRD-ARGUMENT}칸
+실제 신체·인벤토리·자금은 바뀌지 않습니다.","손실 {COMMON_VALUE_FIRST-ARGUMENT} → 복구 {COMMON_VALUE_SECOND-ARGUMENT}
+팔 개수 무관 소지 {COMMON_VALUE_THIRD-ARGUMENT}칸
+실제 신체·인벤토리·자금은 바뀌지 않습니다.","Loss {COMMON_VALUE_FIRST-ARGUMENT} → Recovery {COMMON_VALUE_SECOND-ARGUMENT}
+Regardless of arm count Possession {COMMON_VALUE_THIRD-ARGUMENT} Slots
+Actual body, inventory, and funds remain unchanged."
+DEV_TEXT_SEARCH-CATCH-RULE-LOOKUP,탐색 잡힘 규칙 조회,탐색 잡힘 규칙 조회,Search catch rule lookup
+DEV_TEXT_SURVIVALRULES-RESOLVECATCH-NOT-ACTUAL-CHASE,030 SurvivalRules.ResolveCatch / 실제 추격 아님,030 SurvivalRules.ResolveCatch / 실제 추격 아님,030 SurvivalRules.ResolveCatch / Not an actual chase
+DEV_TEXT_VIEW-LOSS-FIRST-ARGUMENT-SECOND-ARGUMENT,"조회 손실 {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}
+실제 신체 변경·끌려가기·무대 이동이 아닙니다.","조회 손실 {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}
+실제 신체 변경·끌려가기·무대 이동이 아닙니다.","View loss {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}
+This is not actual body alteration, being dragged away, or stage movement."
+DEV_TEXT_SERVER-BODY-PART-RECOVERY,서버 신체 1부위 복구,서버 신체 1부위 복구,Server body part recovery
+DEV_TEXT_NETWORKPLAYER-SERVERRESTOREPART-SEPARATION-EXPENSES-SCHEDULES,030 NetworkPlayer.ServerRestorePart / 지출·일정 분리,030 NetworkPlayer.ServerRestorePart / 지출·일정 분리,030 NetworkPlayer.ServerRestorePart / Separation of Expenses and Schedules
+DEV_TEXT_SERVER-CAPTURE-APPLIED,서버 잡힘 적용,서버 잡힘 적용,Server capture applied
+DEV_TEXT_NETWORKPLAYER-SERVERCATCH-CHECK-CURRENT-LOCATION-MATCH,030 NetworkPlayer.ServerCatch / 현재 장소 일치 확인,030 NetworkPlayer.ServerCatch / 현재 장소 일치 확인,030 NetworkPlayer.ServerCatch / Check for current location match
+DEV_TEXT_STARTESCAPE-NOT-AUTOMATICALLY-RALLY-DETECTED,028 StartEscape / 자동 집결 감지 아님,028 StartEscape / 자동 집결 감지 아님,028 StartEscape / Not Automatically Rally Detected
+DEV_TEXT_ROW-FIRST-ARGUMENT-SECOND-ARGUMENT_0,행 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT},행 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT},Row {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_DUMMY-ROW-INPUT-NO-AUTOMATIC-AGGREGATION,더미 행 입력 / 자동 집계·종료 없음,더미 행 입력 / 자동 집계·종료 없음,Dummy row input / No automatic aggregation or termination
+DEV_TEXT_MANUAL-CONCLUSION-ARRIVAL-PRESENT,수동 결론 · 도착 있음,수동 결론 · 도착 있음,Manual conclusion · Arrival present
+DEV_TEXT_MANUAL-CONCLUSION-POWER-RETIREMENT,수동 결론 · 전원 리타이어,수동 결론 · 전원 리타이어,Manual Conclusion · Power Retirement
+DEV_TEXT_ENDESCAPE-BOOL-ENDING-GENERATION-CHANGE,028 EndEscape(bool) → 엔딩 / 세대 교체,028 EndEscape(bool) → 엔딩 / 세대 교체,028 EndEscape(bool) → Ending / Generation Change
+DEV_TEXT_VIEWS-PREVIEW,조회 · 미리보기,조회 · 미리보기,Views · Preview
+DEV_TEXT_REJECTION-NO-CHANGE,거절 · 변화 없음,거절 · 변화 없음,Rejection · No change
+DEV_TEXT_REFLECTING-DUMMY-INPUT,더미 입력 반영,더미 입력 반영,Reflecting dummy input
+DEV_TEXT_REFLECTING-COMMON-API,공통 API 반영,공통 API 반영,Reflecting common API
+DEV_TEXT_INPUT-BEEN-REFLECTED-PLEASE-CHECK-CHANGES,입력이 반영되었습니다. 아래 변경값과 현재 상태를 확인하세요.,입력이 반영되었습니다. 아래 변경값과 현재 상태를 확인하세요.,The input has been reflected. Please check the changes and current status below.
+DEV_TEXT_CONDITIONS-NOT-MET-OR-DUPLICATE-ENTRY,조건 불충족 또는 중복 입력입니다. 현재 단계·권한·대상을 확인하세요.,조건 불충족 또는 중복 입력입니다. 현재 단계·권한·대상을 확인하세요.,"Conditions not met or duplicate entry. Please check the current stage, authority, and target."
+DEV_PROMPT_PERFORMANCE-FIRST-ARGUMENT-SECOND-ARGUMENT-REASON,"공연 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}
+실패 사유 {COMMON_VALUE_THIRD-ARGUMENT} · 이번 수입 {COMMON_VALUE_FOURTH-ARGUMENT}","공연 {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}
+실패 사유 {COMMON_VALUE_THIRD-ARGUMENT} · 이번 수입 {COMMON_VALUE_FOURTH-ARGUMENT}","Performance {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}
+Reason for Failure {COMMON_VALUE_THIRD-ARGUMENT} · This Revenue {COMMON_VALUE_FOURTH-ARGUMENT}"
+DEV_TEXT_PERFORMANCE-SUCCESS-RESULT-CONFIRMED,공연 성공 · 결과 확정,공연 성공 · 결과 확정,Performance Success · Result Confirmed
+DEV_PROMPT_PERFORMANCE-FAILURE-RESULT-CONFIRMED,공연 실패 · 결과 확정,공연 실패 · 결과 확정,Performance Failure · Result Confirmed
+DEV_TEXT_POSITION-FIRST-ARGUMENT-LOSS-SECOND-ARGUMENT,"자리 {COMMON_VALUE_FIRST-ARGUMENT}: 손실 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT}
+공연이 끝나기 전까지 시간과 다른 참가자의 상황은 계속 진행됩니다.","자리 {COMMON_VALUE_FIRST-ARGUMENT}: 손실 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT}
+공연이 끝나기 전까지 시간과 다른 참가자의 상황은 계속 진행됩니다.","Position {COMMON_VALUE_FIRST-ARGUMENT} : Loss {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT} · {COMMON_VALUE_FOURTH-ARGUMENT}
+Time and the situation of other participants continue until the performance ends."
+DEV_TEXT_ENTER-SEAT-FIRST-ARGUMENT-ARRIVAL-WAITING,자리 {COMMON_VALUE_FIRST-ARGUMENT} 도착 입력. 다른 생존 참가자의 도착을 기다립니다.,자리 {COMMON_VALUE_FIRST-ARGUMENT} 도착 입력. 다른 생존 참가자의 도착을 기다립니다.,Enter seat {COMMON_VALUE_FIRST-ARGUMENT} arrival. Waiting for the arrival of other surviving participants.
+DEV_TEXT_SEAT-FIRST-ARGUMENT-RESPONSE-SECOND-ARGUMENT,"자리 {COMMON_VALUE_FIRST-ARGUMENT} 호응 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}
+공연 종료 때 031이 정산합니다.","자리 {COMMON_VALUE_FIRST-ARGUMENT} 호응 {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}
+공연 종료 때 031이 정산합니다.","Seat {COMMON_VALUE_FIRST-ARGUMENT} Response {COMMON_VALUE_SECOND-ARGUMENT} → {COMMON_VALUE_THIRD-ARGUMENT}
+031 settles at the end of the performance."
+DEV_TEXT_VIEW-ONLY-NO-ACTUAL-STATUS-CHANGE," · 조회만, 실제 상태 변화 없음"," · 조회만, 실제 상태 변화 없음","· View only, no actual status change"
+DEV_TEXT_DUMMY-INPUT, · 더미 입력, · 더미 입력,· Dummy input
+DEV_TEXT_WAITING-ROOM-EXIT-CHANGE-LOCATION-LEAVEWAITINGROOM,대기실 출구 → 장소 전환 LeaveWaitingRoom,대기실 출구 → 장소 전환 LeaveWaitingRoom,Waiting Room Exit → Change Location LeaveWaitingRoom
+DEV_TEXT_SECOND-ARGUMENT-THIRD-ARGUMENT,<color=#{COMMON_VALUE_FIRST-ARGUMENT}>{COMMON_VALUE_SECOND-ARGUMENT}</color>   {COMMON_VALUE_THIRD-ARGUMENT},<color=#{COMMON_VALUE_FIRST-ARGUMENT}> {COMMON_VALUE_SECOND-ARGUMENT} </color> {COMMON_VALUE_THIRD-ARGUMENT},<color=#{COMMON_VALUE_FIRST-ARGUMENT}>{COMMON_VALUE_SECOND-ARGUMENT}</color>   {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_SLOT,시간대,시간대,slot
+DEV_TEXT_GENERATION-PRIMARY,세대 / 일차,세대 / 일차,Generation / Primary
+DEV_TEXT_TIMER,타이머,타이머,Timer
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-SECONDS,{COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}초,{COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} seconds
+DEV_TEXT_NIGHT-PREPARATION,밤 준비,밤 준비,Night preparation
+DEV_TEXT_SELECTED-PARTICIPANTS,선택 참가자,선택 참가자,Selected Participants
+DEV_TEXT_PARTICIPATION-STATUS,참가 상태,참가 상태,Participation status
+DEV_TEXT_LOSS-FIRST-ARGUMENT-SECOND-ARGUMENT-RESPONSE,손실 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / 호응 {COMMON_VALUE_THIRD-ARGUMENT},손실 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / 호응 {COMMON_VALUE_THIRD-ARGUMENT},Loss {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / Response {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_DUMMY-AREA,더미 구역,더미 구역,Dummy area
+DEV_TEXT_SAFETY_1,안전,안전,safety
+DEV_TEXT_OUTSIDE-SAFETY_1,안전 밖,안전 밖,Outside of safety
+DEV_TEXT_SELECT-ROW,선택 행,선택 행,Select row
+DEV_TEXT_TARGETING-ACTUAL-SERVERS,실제 서버 대상,실제 서버 대상,Targeting actual servers
+DEV_TEXT_NO-OBSERVED-CHANGE-COMMON-VARIABLES-PLEASE,"관찰한 공통 변수 변화 없음
+조회 결과·세부 입력은 위 결과와 연결 기록을 확인하세요.","관찰한 공통 변수 변화 없음
+조회 결과·세부 입력은 위 결과와 연결 기록을 확인하세요.","No observed change in common variables
+. Please check the connection history with the results above for query results and detailed input."
+DEV_TEXT_INTRODUCTION,도입,도입,Introduction
+DEV_TEXT_BEFORE-RUN-BEGINS,런 시작 전,런 시작 전,Before the run begins
+DEV_TEXT_FIRST-ARGUMENT-DUMMY-SPACE-NOT-ACTUAL,{COMMON_VALUE_FIRST-ARGUMENT}   <size=70%><color=#9FB8BF>더미 공간 · 실제 공간 아님{COMMON_VALUE_SECOND-ARGUMENT}</color></size>,{COMMON_VALUE_FIRST-ARGUMENT}   <size=70%><color=#9FB8BF>더미 공간 · 실제 공간 아님{COMMON_VALUE_SECOND-ARGUMENT}</color></size>,{COMMON_VALUE_FIRST-ARGUMENT} <size=70%> <color=#9FB8BF> Dummy space · Not actual space {COMMON_VALUE_SECOND-ARGUMENT} </color> </size>
+DEV_TEXT_CHANGE-LOCATION-FIRST-ARGUMENT-SECOND-ARGUMENT,   ·   장소 전환 [{COMMON_VALUE_FIRST-ARGUMENT}]{COMMON_VALUE_SECOND-ARGUMENT},   ·   장소 전환 [{COMMON_VALUE_FIRST-ARGUMENT}]{COMMON_VALUE_SECOND-ARGUMENT},· Change of location [{COMMON_VALUE_FIRST-ARGUMENT}] {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_SWITCHING, 전환 중, 전환 중,Switching
+DEV_TEXT_GENERATION-FIRST-ARGUMENT-SECOND-ARGUMENT-DAY_0,세대 {COMMON_VALUE_FIRST-ARGUMENT}   ·   {COMMON_VALUE_SECOND-ARGUMENT}일차   ·   {COMMON_VALUE_THIRD-ARGUMENT},세대 {COMMON_VALUE_FIRST-ARGUMENT}   ·   {COMMON_VALUE_SECOND-ARGUMENT}일차   ·   {COMMON_VALUE_THIRD-ARGUMENT},Generation {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} Day · {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_JOINT-FUNDS-FIRST-ARGUMENT,공동 자금  <b>{COMMON_VALUE_FIRST-ARGUMENT}</b>,공동 자금  <b>{COMMON_VALUE_FIRST-ARGUMENT}</b>,Joint funds <b> {COMMON_VALUE_FIRST-ARGUMENT} </b>
+DEV_PROMPT_THERE-NO-ROSTER-YET-PLEASE-PIN,"아직 명부가 없습니다.
+런 시작 후 공연 명부를 고정하세요.","아직 명부가 없습니다.
+런 시작 후 공연 명부를 고정하세요.","There is no roster yet.
+Please pin the performance roster after the run starts."
+DEV_TEXT_FIRST-ARGUMENT-POSITION-SECOND-ARGUMENT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} 자리 {COMMON_VALUE_SECOND-ARGUMENT}   {COMMON_VALUE_THIRD-ARGUMENT}   손실 {COMMON_VALUE_FOURTH-ARGUMENT}   호응 {COMMON_VALUE_FIFTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} 자리 {COMMON_VALUE_SECOND-ARGUMENT}   {COMMON_VALUE_THIRD-ARGUMENT}   손실 {COMMON_VALUE_FOURTH-ARGUMENT}   호응 {COMMON_VALUE_FIFTH-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Position {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT} Loss {COMMON_VALUE_FOURTH-ARGUMENT} Response {COMMON_VALUE_FIFTH-ARGUMENT}
+DEV_TEXT_RECOVERY-INQUIRY-LOSS-FIRST-ARGUMENT-REGARDLESS,"복구 조회 손실  {COMMON_VALUE_FIRST-ARGUMENT}
+팔 개수 무관 소지 {COMMON_VALUE_SECOND-ARGUMENT}칸
+더미 지출 요청액  {COMMON_VALUE_THIRD-ARGUMENT}","복구 조회 손실  {COMMON_VALUE_FIRST-ARGUMENT}
+팔 개수 무관 소지 {COMMON_VALUE_SECOND-ARGUMENT}칸
+더미 지출 요청액  {COMMON_VALUE_THIRD-ARGUMENT}","Recovery Inquiry Loss {COMMON_VALUE_FIRST-ARGUMENT}
+Regardless of quantity held {COMMON_VALUE_SECOND-ARGUMENT} Slot
+Dummy Expense Request Amount {COMMON_VALUE_THIRD-ARGUMENT}"
+DEV_TEXT_CURRENT-DUMMY-ZONE-FIRST-ARGUMENT-SAFE,"현재 더미 구역  {COMMON_VALUE_FIRST-ARGUMENT}
+안전 조건  {COMMON_VALUE_SECOND-ARGUMENT}
+잡힘 조회 손실  {COMMON_VALUE_THIRD-ARGUMENT}","현재 더미 구역  {COMMON_VALUE_FIRST-ARGUMENT}
+안전 조건  {COMMON_VALUE_SECOND-ARGUMENT}
+잡힘 조회 손실  {COMMON_VALUE_THIRD-ARGUMENT}","Current Dummy Zone {COMMON_VALUE_FIRST-ARGUMENT}
+Safe Condition {COMMON_VALUE_SECOND-ARGUMENT}
+Caught Lookup Loss {COMMON_VALUE_THIRD-ARGUMENT}"
+DEV_TEXT_FIRST-ARGUMENT-ROW-SECOND-ARGUMENT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} 행 {COMMON_VALUE_SECOND-ARGUMENT}   {COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} 행 {COMMON_VALUE_SECOND-ARGUMENT}   {COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} row {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_FIRST-ARGUMENT-ACTUAL-SERVER-TARGET-SECOND,"{COMMON_VALUE_FIRST-ARGUMENT}
+실제 서버 대상: {COMMON_VALUE_SECOND-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT}
+실제 서버 대상: {COMMON_VALUE_SECOND-ARGUMENT}","{COMMON_VALUE_FIRST-ARGUMENT}
+Actual Server Target: {COMMON_VALUE_SECOND-ARGUMENT}"
+DEV_PROMPT_NIGHT-READY-FIRST-ARGUMENT-SECOND-ARGUMENT,밤 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} · 각자 '밤 준비' 버튼,밤 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} · 각자 '밤 준비' 버튼,Night Ready {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} · Each 'Night Ready' button
+DEV_BUTTON_INACTIVE-BUTTON-NOT-AVAILABLE-CURRENT-STAGE,비활성 버튼은 현재 단계에서 사용할 수 없습니다.,비활성 버튼은 현재 단계에서 사용할 수 없습니다.,The inactive button is not available at the current stage.
+DEV_TEXT_NONE-ONLY-RULE-LOOKUP-POSSIBLE,없음 · 규칙 조회만 가능,없음 · 규칙 조회만 가능,None · Only rule lookup possible
+DEV_TEXT_PARTICIPANT-SCREEN-ONLY-HOST-INITIATES-GAME,"
+참가자 화면: 진행·탈출 개시는 방장만, 밤 준비는 각자 누릅니다.","
+참가자 화면: 진행·탈출 개시는 방장만, 밤 준비는 각자 누릅니다.","
+Participant Screen: Only the host initiates the game or escape; each participant presses the button to prepare for the night."
+DEV_TEXT_PURSUIT-CLEARANCE-PENDING-UNCONNECTED-CURRENT-EXPIRATION,"
+추격 정리 대기: 미연결 · 현행 만료는 즉시 공연","
+추격 정리 대기: 미연결 · 현행 만료는 즉시 공연","
+Pursuit Clearance Pending: Unconnected · Current Expiration Play Immediately"
+DEV_TEXT_TEAM-RESPONSE-ROSTER-FIXED-BEFORE,<b>팀 호응</b>   명부 고정 전,<b>팀 호응</b>   명부 고정 전,<b> Team Response </b> Roster Fixed Before
+DEV_TEXT_TEAM-RESPONSE-FIRST-ARGUMENT-SECOND-ARGUMENT,"<b>팀 호응</b>   <color=#52D6BF>{COMMON_VALUE_FIRST-ARGUMENT}</color><color=#5A6B73>{COMMON_VALUE_SECOND-ARGUMENT}</color>   {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT}
+","<b>팀 호응</b>   <color=#52D6BF>{COMMON_VALUE_FIRST-ARGUMENT}</color><color=#5A6B73>{COMMON_VALUE_SECOND-ARGUMENT}</color>   {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT}
+","<b> Team Response </b> <color=#52D6BF> {COMMON_VALUE_FIRST-ARGUMENT} </color> <color=#5A6B73> {COMMON_VALUE_SECOND-ARGUMENT} </color> {COMMON_VALUE_THIRD-ARGUMENT} / {COMMON_VALUE_FOURTH-ARGUMENT}
+"
+DEV_TEXT_SEAT-FIRST-ARGUMENT-SECOND-ARGUMENT-LOSS,자리 {COMMON_VALUE_FIRST-ARGUMENT}  {COMMON_VALUE_SECOND-ARGUMENT} · 손실 {COMMON_VALUE_THIRD-ARGUMENT}     ,자리 {COMMON_VALUE_FIRST-ARGUMENT}  {COMMON_VALUE_SECOND-ARGUMENT} · 손실 {COMMON_VALUE_THIRD-ARGUMENT}     ,Seat {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} · Loss {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_DEATH_1,<color=#E06070>사망</color>,<color=#E06070>사망</color>,<color=#E06070> Death </color>
+DEV_TEXT_ARRIVE_0,<color=#E6BD4D>도착</color>,<color=#E6BD4D>도착</color>,<color=#E6BD4D> Arrival </color>
+DEV_PROMPT_NIGHT-MAINTENANCE-PREPARATION-FIRST-ARGUMENT-SECOND,"<b>밤 정비</b>   준비 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+모두 '밤 준비'를 누르면 다음 날 아침","<b>밤 정비</b>   준비 {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+모두 '밤 준비'를 누르면 다음 날 아침","<b> Night Maintenance </b> Preparation {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+If you press 'Night Preparation' for all, it will be the next morning"
+DEV_TEXT_BREAK-TIME-EXPLORATION-TIME-RUNNING-ESCAPE,"<b>쉬는 시간</b>   탐색 시간 흐르는 중
+탈출 개시·출구는 왼쪽 패널 [조작]","<b>쉬는 시간</b>   탐색 시간 흐르는 중
+탈출 개시·출구는 왼쪽 패널 [조작]","<b> Break time </b> Exploration time is running
+Escape initiated · Exit is on the left panel [Operations]"
+DEV_TEXT_WAITING-ROOM-USED-BREAKS-NIGHT-MAINTENANCE,<b>대기실</b>   쉬는 시간·밤 정비에 사용,<b>대기실</b>   쉬는 시간·밤 정비에 사용,<b> Waiting Room </b> Used for breaks/night maintenance
+DEV_TEXT_CURRENT-ZONE-FIRST-ARGUMENT-SECOND-ARGUMENT,"<b>현재 구역</b>   {COMMON_VALUE_FIRST-ARGUMENT}   ·   {COMMON_VALUE_SECOND-ARGUMENT}
+무대 입구에 모이면 다음 공연","<b>현재 구역</b>   {COMMON_VALUE_FIRST-ARGUMENT}   ·   {COMMON_VALUE_SECOND-ARGUMENT}
+무대 입구에 모이면 다음 공연","<b> Current Zone </b> {COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT}
+Gather at the stage entrance for the next performance"
+DEV_TEXT_SAFETY_0,<color=#52D6BF>안전</color>,<color=#52D6BF>안전</color>,<color=#52D6BF> Safety </color>
+DEV_TEXT_OUTSIDE-SAFETY_0,<color=#E06070>안전 밖</color>,<color=#E06070>안전 밖</color>,<color=#E06070> Outside safety </color>
+DEV_TEXT_ESCAPE-ROUTE,<b>탈출로</b>   ,<b>탈출로</b>   ,<b> Escape Route </b>
+DEV_TEXT_ROW-FIRST-ARGUMENT-SECOND-ARGUMENT_1,행 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}   ,행 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}   ,Row {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_NO-DUMMY-SPACE-DIAGNOSIS,더미 공간 진단 없음,더미 공간 진단 없음,No dummy space diagnosis
+DEV_TEXT_PERMISSIONS-FIRST-ARGUMENT-OFFLINE-SECOND-ARGUMENT,"권한 {COMMON_VALUE_FIRST-ARGUMENT} / 오프라인 {COMMON_VALUE_SECOND-ARGUMENT} / 031 전환 대기 {COMMON_VALUE_THIRD-ARGUMENT}
+{COMMON_VALUE_FOURTH-ARGUMENT}
+
+{COMMON_VALUE_FIFTH-ARGUMENT}
+
+최근 API 기록
+{COMMON_VALUE_SIXTH-ARGUMENT}","권한 {COMMON_VALUE_FIRST-ARGUMENT} / 오프라인 {COMMON_VALUE_SECOND-ARGUMENT} / 031 전환 대기 {COMMON_VALUE_THIRD-ARGUMENT}
+{COMMON_VALUE_FOURTH-ARGUMENT}
+
+{COMMON_VALUE_FIFTH-ARGUMENT}
+
+최근 API 기록
+{COMMON_VALUE_SIXTH-ARGUMENT}","Permissions {COMMON_VALUE_FIRST-ARGUMENT} / Offline {COMMON_VALUE_SECOND-ARGUMENT} / 031 Pending transition {COMMON_VALUE_THIRD-ARGUMENT}
+{COMMON_VALUE_FOURTH-ARGUMENT}
+
+{COMMON_VALUE_FIFTH-ARGUMENT}
+
+Recent API History
+{COMMON_VALUE_SIXTH-ARGUMENT}"
+DEV_TEXT_RAW-API-CONNECTION-HISTORY-FIRST-ARGUMENT,"
+
+원시 API 연결 기록
+{COMMON_VALUE_FIRST-ARGUMENT}","
+
+원시 API 연결 기록
+{COMMON_VALUE_FIRST-ARGUMENT}","
+
+Raw API Connection History
+{COMMON_VALUE_FIRST-ARGUMENT}"
+DEV_TEXT_RECENT-CONFIRMED-RESULTS-FIRST-ARGUMENT-SECOND,"
+
+031 최근 확정 결과: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / 수입 {COMMON_VALUE_FOURTH-ARGUMENT}","
+
+031 최근 확정 결과: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / 수입 {COMMON_VALUE_FOURTH-ARGUMENT}","
+
+031 Recent Confirmed Results: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / Import {COMMON_VALUE_FOURTH-ARGUMENT}"
+DEV_TEXT_DIGIT-FIRST-ARGUMENT-SECOND-ARGUMENT-LOSS,"
+자리 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}, 손실 {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT}, 정산 {COMMON_VALUE_FIFTH-ARGUMENT}","
+자리 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}, 손실 {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT}, 정산 {COMMON_VALUE_FIFTH-ARGUMENT}","
+digit {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT} , loss {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT} , settlement {COMMON_VALUE_FIFTH-ARGUMENT}"
+DEV_TEXT_SEARCH-TIMEOUT-PROGRESS-FIRST-ARGUMENT,탐색 제한 시간 · 진행 중{COMMON_VALUE_FIRST-ARGUMENT},탐색 제한 시간 · 진행 중{COMMON_VALUE_FIRST-ARGUMENT},Search Timeout · In Progress {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_MOBILIZATION-ALERT_1, · 소집 경보, · 소집 경보,· Call-up alert
+DEV_TEXT_SEARCH-TIMEOUT-STOP,탐색 제한 시간 · 정지,탐색 제한 시간 · 정지,Search timeout · Stop
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-FIRST-ARGUMENT-TIGHTROPE,"더미 공연 시계 · {COMMON_VALUE_FIRST-ARGUMENT}
+줄타기 제한 시간 참조 · 오프라인 검증용","더미 공연 시계 · {COMMON_VALUE_FIRST-ARGUMENT}
+줄타기 제한 시간 참조 · 오프라인 검증용","Dummy Performance Clock · {COMMON_VALUE_FIRST-ARGUMENT}
+Tightrope Walking Time Limit Reference · For Offline Verification"
+DEV_TEXT_NO-TIME-LIMIT-NIGHT-PREPARATION-FIRST,제한 시간 없음 · 밤 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},제한 시간 없음 · 밤 준비 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT},No Time Limit · Night Preparation {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_PERFORMANCE-PROGRESS-NO-DUMMY-PERFORMANCE-CLOCK,공연 진행 · 이 공간에는 더미 공연 시계 없음,공연 진행 · 이 공간에는 더미 공연 시계 없음,Performance in progress · No dummy performance clock in this space
+DEV_TEXT_AUTOMATIC-NO-TIME-LIMIT-ARRIVAL-RETIREMENT,자동 제한 시간 없음 · 도착/리타이어와 수동 결론 입력,자동 제한 시간 없음 · 도착/리타이어와 수동 결론 입력,Automatic no time limit · Arrival/Retirement and manual conclusion input
+DEV_TEXT_WAITING-INPUT-IMPLEMENTATION-PROGRESS-IMPLEMENTATION-COMPLETION,도입 진행 · 도입 종료 입력 대기,도입 진행 · 도입 종료 입력 대기,Waiting for input for implementation in progress · implementation completion
+DEV_TEXT_ESCAPE-SUCCESS-ENDING,탈출 성공 · 엔딩,탈출 성공 · 엔딩,Escape Success · Ending
+DEV_TEXT_WAITING-START-RUN-START-LEFT-PANEL,런 시작 대기 · 왼쪽 패널 [조작]에서 시작하세요,런 시작 대기 · 왼쪽 패널 [조작]에서 시작하세요,Waiting to start run · Start from the left panel [Operations]
+DEV_TEXT_EXPENSES-PRODUCT-PAYMENT-PAID-TREATMENT-RECOVERY,"지출 ≠ 상품 지급/유료 치료. 복구와 지출은 별도 입력.
+의료 방문 1·3일차 밤은 설명만 제공하며 가격/일정은 미연결.","지출 ≠ 상품 지급/유료 치료. 복구와 지출은 별도 입력.
+의료 방문 1·3일차 밤은 설명만 제공하며 가격/일정은 미연결.","Expenses ≠ Product Payment/Paid Treatment. Recovery and expenses must be entered separately.
+Medical Visit: Day 1 & 3 Nights provide only a description; price/schedule is unlinked."
+DEV_TEXT_WAITING-CHASE-CLEANUP-AFTER-SEARCH-EXPIRES,"탐색 만료 후 추격 정리 대기: 미연결. 현행 028은 만료 시 즉시 공연 전환.
+구역은 수동 입력, 이동·충돌·전원 감지 없음. 잡힘 조회 ≠ 실제 신체 변경.","탐색 만료 후 추격 정리 대기: 미연결. 현행 028은 만료 시 즉시 공연 전환.
+구역은 수동 입력, 이동·충돌·전원 감지 없음. 잡힘 조회 ≠ 실제 신체 변경.","Waiting for chase cleanup after search expires: Unconnected. Current 028 switches to performance immediately upon expiration. Zone
+is manual input, no movement, collision, or power detected. Caught lookup ≠ Actual body change."
+DEV_TEXT_DUMMY-REWARDS-LIST-NOT-ACTUAL-NETWORKPLAYER,"Dummy-0/1은 보상 명부이며 실제 NetworkPlayer 신체가 아닙니다.
+결과/정산은 031, 시간대 전환은 028 소유입니다.","Dummy-0/1은 보상 명부이며 실제 NetworkPlayer 신체가 아닙니다.
+결과/정산은 031, 시간대 전환은 028 소유입니다.","Dummy-0/1 is a rewards list and not an actual NetworkPlayer body.
+Result/Settlement is owned by 031, Time Zone Switching is owned by 028."
+DEV_TEXT_WAITING-START-PERFORMANCE-ROSTER,공연 명부 시작 대기,공연 명부 시작 대기,Waiting for the start of the performance roster
+DEV_TEXT_DUMMY-AUTOMATIC-CLOCK-OFFLINE-ONLY-ONLINE,더미 자동 시계는 오프라인 전용 · 온라인 만료는 수동 입력,더미 자동 시계는 오프라인 전용 · 온라인 만료는 수동 입력,Dummy automatic clock is offline only · Online expiration is manually entered
+DEV_TEXT_EXISTING-PERFORMANCE-ROSTER-CLOCK-RESTORATION-NOT,기존 공연 명부 · 시계 복원 미지원 · 만료는 수동 입력,기존 공연 명부 · 시계 복원 미지원 · 만료는 수동 입력,Existing performance roster · Clock restoration not supported · Expiration must be entered manually
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-NATURAL-EXPIRATION-TERMINATION,더미 공연 시계 자연 만료 · 종료 요청 완료,더미 공연 시계 자연 만료 · 종료 요청 완료,Dummy performance clock natural expiration · termination request completed
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-NATURAL-EXPIRATION-REQUEST,더미 공연 시계 자연 만료 → 제한 시간 종료 요청,더미 공연 시계 자연 만료 → 제한 시간 종료 요청,Dummy performance clock natural expiration → Request timeout
+DEV_TEXT_CHANGE-PERFORMANCE-ROSTER,공연 명부 변경,공연 명부 변경,Change in performance roster
+DEV_TEXT_END-PERFORMANCE-OR-DEPARTURE-TIME-SLOT,공연 종료 또는 시간대 이탈,공연 종료 또는 시간대 이탈,End of performance or departure from time slot
+DEV_TEXT_WAITING-OFFLINE-JUDGMENT-AUTHORITY,오프라인 판정 권한 대기,오프라인 판정 권한 대기,Waiting for offline judgment authority
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-PROGRESS-REFER-TIGHTROPE,더미 공연 시계 진행 중 · 줄타기 제한 시간 참조,더미 공연 시계 진행 중 · 줄타기 제한 시간 참조,Dummy performance clock in progress · Refer to tightrope walking time limit
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-START-TIME-LIMIT,더미 공연 시계 시작 · 제한 시간 {COMMON_VALUE_FIRST-ARGUMENT}초 (줄타기 설정 참조),더미 공연 시계 시작 · 제한 시간 {COMMON_VALUE_FIRST-ARGUMENT}초 (줄타기 설정 참조),Dummy performance clock start · Time limit {COMMON_VALUE_FIRST-ARGUMENT} seconds (refer to tightrope settings)
+DEV_TEXT_RESUME-DUMMY-PERFORMANCE-CLOCK-USE-STORED,더미 공연 시계 재개 · 보관한 잔여 시간 사용,더미 공연 시계 재개 · 보관한 잔여 시간 사용,Resume dummy performance clock · Use stored remaining time
+DEV_TEXT_DUMMY-PERFORMANCE-CLOCK-STOP-FIRST-ARGUMENT,더미 공연 시계 중지 · {COMMON_VALUE_FIRST-ARGUMENT},더미 공연 시계 중지 · {COMMON_VALUE_FIRST-ARGUMENT},Dummy performance clock stop · {COMMON_VALUE_FIRST-ARGUMENT}
+DEV_TEXT_DRIVER-DEACTIVATION-REMAINING-TIME-RETENTION,드라이버 비활성 · 잔여 시간 보관,드라이버 비활성 · 잔여 시간 보관,Driver Deactivation · Remaining Time Retention
+DEV_TEXT_RETURN-FIRST-ARGUMENT-REGISTER-SECOND-ARGUMENT,"반환 {COMMON_VALUE_FIRST-ARGUMENT}, 명부 {COMMON_VALUE_SECOND-ARGUMENT}; 정산은 031","반환 {COMMON_VALUE_FIRST-ARGUMENT}, 명부 {COMMON_VALUE_SECOND-ARGUMENT}; 정산은 031","Return {COMMON_VALUE_FIRST-ARGUMENT}, Register {COMMON_VALUE_SECOND-ARGUMENT}; Settlement is 031"
+DEV_TEXT_ARRIVAL-FIRST-ARGUMENT-ENTER-EXIT-CONDITION,도착 {COMMON_VALUE_FIRST-ARGUMENT} → 031 종료 조건 입력,도착 {COMMON_VALUE_FIRST-ARGUMENT} → 031 종료 조건 입력,Arrival {COMMON_VALUE_FIRST-ARGUMENT} → 031 Enter exit condition
+DEV_TEXT_ARRIVAL-INPUT,도착 입력,도착 입력,Arrival input
+DEV_TEXT_REQUEST-ARRIVAL-TERMINATION,도착 종료 요청,도착 종료 요청,Request for arrival termination
+DEV_TEXT_ALL-REMAINING-SURVIVORS-ARRIVED-REQUEST-SUCCESSFUL,남은 생존자가 모두 도착 상태 → 공연 성공 종료 요청,남은 생존자가 모두 도착 상태 → 공연 성공 종료 요청,All remaining survivors have arrived → Request successful end of performance
+DEV_TEXT_CUT-FIRST-ARGUMENT,절단 {COMMON_VALUE_FIRST-ARGUMENT} → 030/031,절단 {COMMON_VALUE_FIRST-ARGUMENT} → 030/031,Cut {COMMON_VALUE_FIRST-ARGUMENT} → 030/031
+DEV_TEXT_DEATH-FIRST-ARGUMENT,사망 {COMMON_VALUE_FIRST-ARGUMENT} → 030/031,사망 {COMMON_VALUE_FIRST-ARGUMENT} → 030/031,Death {COMMON_VALUE_FIRST-ARGUMENT} → 030/031
+DEV_TEXT_CHEERS-FIRST-ARGUMENT-ADDCHEER,환호 {COMMON_VALUE_FIRST-ARGUMENT} → 031 AddCheer,환호 {COMMON_VALUE_FIRST-ARGUMENT} → 031 AddCheer,Cheers {COMMON_VALUE_FIRST-ARGUMENT} → 031 AddCheer
+DEV_TEXT_TIME-LIMIT-FINISHPERFORMANCE,제한 시간 → 031 FinishPerformance → 028,제한 시간 → 031 FinishPerformance → 028,Time Limit → 031 FinishPerformance → 028
+DEV_TEXT_REQUEST-EXPIRE-TIMEOUT,제한 시간 종료 요청,제한 시간 종료 요청,Request to expire timeout
+DEV_TEXT_DEATH-INPUT,사망 입력,사망 입력,Death Input
+DEV_TEXT_CUTTING-INPUT,절단 입력,절단 입력,Cutting input
+DEV_TEXT_FINDING-NETWORK-PARTICIPANTS,네트워크 참가자 찾기,네트워크 참가자 찾기,Finding Network Participants
+DEV_TEXT_COMMON-PERFORMANCE-RESULTS-CONFIRMED,공통 공연 결과 확정,공통 공연 결과 확정,Common performance results confirmed
+DEV_TEXT_LEFT,◀ 왼쪽,◀ 왼쪽,◀ Left
+DEV_TEXT_RIGHT,오른쪽 ▶,오른쪽 ▶,Right ▶
+DEV_TEXT_PLAYER-INPUT-FIRST-ARGUMENT-TURN-OFF,<b>Player Input</b>  ({COMMON_VALUE_FIRST-ARGUMENT} 표시 끄기),<b>Player Input</b>  ({COMMON_VALUE_FIRST-ARGUMENT} 표시 끄기),<b> Player Input </b> ( {COMMON_VALUE_FIRST-ARGUMENT} Turn off display)
+DEV_TEXT_NO-PLAYER-PLAYERINPUTREADER,플레이어 없음 (PlayerInputReader),플레이어 없음 (PlayerInputReader),No Player (PlayerInputReader)
+DEV_TEXT_NO-PLAYERCONTROLLER,<b>PlayerController 없음</b>,<b>PlayerController 없음</b>,<b> No PlayerController </b>
+DEV_TEXT_PRESSED,<b>눌림</b>,<b>눌림</b>,<b> Pressed </b>
+DEV_TEXT_AUX-FIRST-ARGUMENT-DIRECTION-SECOND-ARGUMENT,Aux      {COMMON_VALUE_FIRST-ARGUMENT}   방향 지정 {COMMON_VALUE_SECOND-ARGUMENT},Aux      {COMMON_VALUE_FIRST-ARGUMENT}   방향 지정 {COMMON_VALUE_SECOND-ARGUMENT},Aux {COMMON_VALUE_FIRST-ARGUMENT} Direction {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_NO-PLAYERINTERACTION,<b>PlayerInteraction 없음</b>,<b>PlayerInteraction 없음</b>,<b> No PlayerInteraction </b>
+DEV_TEXT_FIRST-ARGUMENT-REQUEST,<b>{COMMON_VALUE_FIRST-ARGUMENT} 요청</b>,<b>{COMMON_VALUE_FIRST-ARGUMENT} 요청</b>,<b> {COMMON_VALUE_FIRST-ARGUMENT} Request </b>
+DEV_TEXT_AIR-BALANCED,<b>공중 (균형 적용)</b>,<b>공중 (균형 적용)</b>,<b> Air (Balanced) </b>
+DEV_TEXT_AIRBORNE-BALANCED-STOP,<b>공중 (균형 정지)</b>,<b>공중 (균형 정지)</b>,<b> Airborne (Balanced Stop) </b>
+DEV_TEXT_EARTH,땅,땅,earth
+DEV_TEXT_STACK-FIRST-ARGUMENT-PEOPLE-SECOND-ARGUMENT,Stack    {COMMON_VALUE_FIRST-ARGUMENT}인  ×{COMMON_VALUE_SECOND-ARGUMENT}   Upper {COMMON_VALUE_THIRD-ARGUMENT}/s,Stack    {COMMON_VALUE_FIRST-ARGUMENT}인  ×{COMMON_VALUE_SECOND-ARGUMENT}   Upper {COMMON_VALUE_THIRD-ARGUMENT}/s,Stack {COMMON_VALUE_FIRST-ARGUMENT} people × {COMMON_VALUE_SECOND-ARGUMENT} Upper {COMMON_VALUE_THIRD-ARGUMENT} /s
+DEV_TEXT_CRASH,  <b>추락</b>,  <b>추락</b>,<b> Crash </b>
+DEV_TEXT_BALANCE-OFF,Balance  꺼짐,Balance  꺼짐,Balance Off
+DEV_TEXT_FIRST-ARGUMENT-BALANCE-OFF-SECOND-ARGUMENT,"({COMMON_VALUE_FIRST-ARGUMENT} 균형 켜기/끄기, {COMMON_VALUE_SECOND-ARGUMENT} 재시작)","({COMMON_VALUE_FIRST-ARGUMENT} 균형 켜기/끄기, {COMMON_VALUE_SECOND-ARGUMENT} 재시작)","( {COMMON_VALUE_FIRST-ARGUMENT} Balance On/Off, {COMMON_VALUE_SECOND-ARGUMENT} Restart)"
+DEV_TEXT_CONTROL-FIRST-ARGUMENT-SECOND-ARGUMENT-HIGHEST,Control  {COMMON_VALUE_FIRST-ARGUMENT}   {COMMON_VALUE_SECOND-ARGUMENT}  최고 Y {COMMON_VALUE_THIRD-ARGUMENT},Control  {COMMON_VALUE_FIRST-ARGUMENT}   {COMMON_VALUE_SECOND-ARGUMENT}  최고 Y {COMMON_VALUE_THIRD-ARGUMENT},Control {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Highest Y {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_POSSIBLE,가능,가능,possible
+DEV_TEXT_LOCKED,<b>잠김</b>,<b>잠김</b>,<b> Locked </b>
+DEV_TEXT_AIR,공중,공중,in the air
+DEV_TEXT_SIDE-ROW-FIRST-ARGUMENT-FIXED,<b>옆줄 {COMMON_VALUE_FIRST-ARGUMENT} (고정)</b>,<b>옆줄 {COMMON_VALUE_FIRST-ARGUMENT} (고정)</b>,<b> Side row {COMMON_VALUE_FIRST-ARGUMENT} (Fixed) </b>
+DEV_TEXT_JUMP-FIRST-ARGUMENT-MOVE-SIDEWAYS-SECOND,Jump     {COMMON_VALUE_FIRST-ARGUMENT}   옆 이동 {COMMON_VALUE_SECOND-ARGUMENT}m,Jump     {COMMON_VALUE_FIRST-ARGUMENT}   옆 이동 {COMMON_VALUE_SECOND-ARGUMENT}m,Jump {COMMON_VALUE_FIRST-ARGUMENT} Move sideways {COMMON_VALUE_SECOND-ARGUMENT} m
+DEV_TEXT_PLAYERMODELSLOT-NONE,<b>PlayerModelSlot 없음</b>,<b>PlayerModelSlot 없음</b>,<b> PlayerModelSlot None </b>
+DEV_TEXT_MODEL-FIRST-ARGUMENT-REPLACE-SECOND-ARGUMENT,Model    {COMMON_VALUE_FIRST-ARGUMENT}  ({COMMON_VALUE_SECOND-ARGUMENT} 바꾸기),Model    {COMMON_VALUE_FIRST-ARGUMENT}  ({COMMON_VALUE_SECOND-ARGUMENT} 바꾸기),Model {COMMON_VALUE_FIRST-ARGUMENT} ( Replace {COMMON_VALUE_SECOND-ARGUMENT})
+DEV_TEXT_TILT-BALANCETILTVIEW-NONE,Tilt     <b>BalanceTiltView 없음</b>,Tilt     <b>BalanceTiltView 없음</b>,Tilt <b> BalanceTiltView None </b>
+DEV_TEXT_FRONT,앞,앞,front
+DEV_TEXT_BACK,뒤,뒤,back
+DEV_TEXT_START-LOBBY-DUMMY-SWITCH-LOCATION-FIRST,시작 로비   <size=70%><color=#9FB8BF>더미 · 장소 전환 [{COMMON_VALUE_FIRST-ARGUMENT}]{COMMON_VALUE_SECOND-ARGUMENT}</color></size>,시작 로비   <size=70%><color=#9FB8BF>더미 · 장소 전환 [{COMMON_VALUE_FIRST-ARGUMENT}]{COMMON_VALUE_SECOND-ARGUMENT}</color></size>,Start Lobby <size=70%> <color=#9FB8BF> Dummy · Switch Location [{COMMON_VALUE_FIRST-ARGUMENT}] {COMMON_VALUE_SECOND-ARGUMENT} </color> </size>
+DEV_TEXT_GAME-ENDED,"게임 종료됨
+","게임 종료됨
+","Game ended
+"
+DEV_TEXT_LAST-TERMINATED-FIRST-ARGUMENT,"
+마지막 종료: {COMMON_VALUE_FIRST-ARGUMENT}","
+마지막 종료: {COMMON_VALUE_FIRST-ARGUMENT}","
+Last terminated: {COMMON_VALUE_FIRST-ARGUMENT}"
+DEV_TEXT_FIRST-ARGUMENT-NOT-CONNECTED-SECOND-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}접속 안 함 · {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}접속 안 함 · {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Not connected · {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_LAN-SAME-PC,LAN(같은 PC는 127.0.0.1:7777),LAN(같은 PC는 127.0.0.1:7777),LAN (same PC is 127.0.0.1:7777)
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD-ARGUMENT_0,"{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+게임 {COMMON_VALUE_FOURTH-ARGUMENT} · 인원 {COMMON_VALUE_FIFTH-ARGUMENT} / {COMMON_VALUE_SIXTH-ARGUMENT} (최소 {COMMON_VALUE_SEVENTH-ARGUMENT})","{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+게임 {COMMON_VALUE_FOURTH-ARGUMENT} · 인원 {COMMON_VALUE_FIFTH-ARGUMENT} / {COMMON_VALUE_SIXTH-ARGUMENT} (최소 {COMMON_VALUE_SEVENTH-ARGUMENT})","{COMMON_VALUE_FIRST-ARGUMENT} · {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+Game {COMMON_VALUE_FOURTH-ARGUMENT} · Players {COMMON_VALUE_FIFTH-ARGUMENT} / {COMMON_VALUE_SIXTH-ARGUMENT} (Minimum {COMMON_VALUE_SEVENTH-ARGUMENT} )"
+DEV_TEXT_ROOM-OWNER-HOST,방장(호스트),방장(호스트),Room owner (host)
+DEV_TEXT_PARTICIPANT,참가자,참가자,participant
+DEV_TEXT_ADDRESS,주소,주소,address
+DEV_TEXT_BEFORE-STARTING-RUN-IF-CONNECTED-CLICK,"런 시작 전. 접속했다면 방장이 [접속] 탭의 '게임 시작', 혼자면 '오프라인 런 시작'.","런 시작 전. 접속했다면 방장이 [접속] 탭의 '게임 시작', 혼자면 '오프라인 런 시작'.","Before starting a run. If you are connected, click 'Start Game' in the [Connect] tab; if you are alone, click 'Start Offline Run'."
+DEV_PROMPT_INTRODUCTION-WHEN-HOST-PRESSES-END-INTRODUCTION,도입. 방장이 '도입 끝 → 공연'을 누르면 공연장으로 이동합니다.,도입. 방장이 '도입 끝 → 공연'을 누르면 공연장으로 이동합니다.,"Introduction. When the host presses 'End Introduction → Performance', they will move to the performance hall."
+DEV_TEXT_ESCAPE-SUCCESS-ENDING-IF-S-OFFLINE,탈출 성공 · 엔딩. 오프라인 런이면 '오프라인 런 끝'으로 처음으로.,탈출 성공 · 엔딩. 오프라인 런이면 '오프라인 런 끝'으로 처음으로.,"Escape Success · Ending. If it's an offline run, start with 'Offline Run End'."
+DEV_TEXT_FIRST-ARGUMENT-PROGRESS-DUMMY-SPACE,{COMMON_VALUE_FIRST-ARGUMENT} · 더미 공간에서 진행 중입니다.,{COMMON_VALUE_FIRST-ARGUMENT} · 더미 공간에서 진행 중입니다.,{COMMON_VALUE_FIRST-ARGUMENT} · In progress in dummy space.
+DEV_PROMPT_LOADING-SCREEN-PREPARATION-FAILED,로딩 화면 준비 실패,로딩 화면 준비 실패,Loading screen preparation failed
+DEV_TEXT_COMMON-UI-CLEANUP-TIMEOUT,공통 UI 정리 시간 초과,공통 UI 정리 시간 초과,Common UI cleanup timeout
+DEV_TEXT_ESCAPE-ROUTE-SCENE-NOT-FOUND,탈출로 씬을 찾을 수 없음,탈출로 씬을 찾을 수 없음,Escape route scene not found
+DEV_PROMPT_PREVIOUS-SPACE-CLEANUP-FAILED,이전 공간 정리 실패,이전 공간 정리 실패,Previous space cleanup failed
+DEV_TEXT_WAITING-ROOM-FULL-JOIN-LOADING-ESCAPE,대기실 전원 합류 → 로딩 → 탈출로 합류실 · 위치/방향 유지,대기실 전원 합류 → 로딩 → 탈출로 합류실 · 위치/방향 유지,Waiting Room Full Join → Loading → Escape Route Join Room · Maintain Location/Direction
+DEV_PROMPT_PREVIOUS-ESCAPE-ROUTE-PARTIAL-LOAD-CLEANUP,이전 탈출로 부분 로드 정리 실패,이전 탈출로 부분 로드 정리 실패,Previous escape route partial load cleanup failed
+DEV_PROMPT_ESCAPE-ROUTE-SCENE-LOAD-FAILURE,탈출로 씬 로드 실패,탈출로 씬 로드 실패,Escape Route Scene Load Failure
+DEV_TEXT_TIMEOUT-ARRIVAL-ESCAPE-ROUTE,탈출로 도착 확인 시간 초과,탈출로 도착 확인 시간 초과,Timeout for arrival at escape route
+DEV_TEXT_BACKSTAGE-DEPARTURE-CONFIRMATION-TIME-EXCEEDED,대기실 출발 확인 시간 초과,대기실 출발 확인 시간 초과,Backstage departure confirmation time exceeded
+DEV_PROMPT_FAILURE-FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD,실패: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT} ({COMMON_VALUE_THIRD-ARGUMENT}),실패: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT} ({COMMON_VALUE_THIRD-ARGUMENT}),Failure: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT} ( {COMMON_VALUE_THIRD-ARGUMENT} )
+DEV_TEXT_DISCARDED-PAST-PERFORMANCE-REQUEST-FIRST-ARGUMENT,폐기: 지난 공연 요청 ({COMMON_VALUE_FIRST-ARGUMENT}),폐기: 지난 공연 요청 ({COMMON_VALUE_FIRST-ARGUMENT}),Discarded: Past Performance Request ( {COMMON_VALUE_FIRST-ARGUMENT} )
+DEV_PROMPT_FIRST-ARGUMENT-SCENE-LOAD-FAILED-SECOND,{COMMON_VALUE_FIRST-ARGUMENT} 씬 로드 실패: {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} 씬 로드 실패: {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Scene Load Failed: {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_PROMPT_FIRST-ARGUMENT-CANNOT-OPEN-SCENE-CHECK,{COMMON_VALUE_FIRST-ARGUMENT} 씬을 열 수 없습니다(빌드 목록 확인).,{COMMON_VALUE_FIRST-ARGUMENT} 씬을 열 수 없습니다(빌드 목록 확인).,{COMMON_VALUE_FIRST-ARGUMENT} Cannot open scene (Check build list).
+DEV_TEXT_FIRST-ARGUMENT-SCENE-LOAD-WAS-NOT,{COMMON_VALUE_FIRST-ARGUMENT} 씬 로드가 완료되지 않았습니다.,{COMMON_VALUE_FIRST-ARGUMENT} 씬 로드가 완료되지 않았습니다.,{COMMON_VALUE_FIRST-ARGUMENT} Scene load was not completed.
+DEV_TEXT_ROAD,로드,로드,Road
+DEV_PROMPT_NGO-FIRST-ARGUMENT-LOAD-FAILED-SECOND,NGO {COMMON_VALUE_FIRST-ARGUMENT} 로드 실패: {COMMON_VALUE_SECOND-ARGUMENT},NGO {COMMON_VALUE_FIRST-ARGUMENT} 로드 실패: {COMMON_VALUE_SECOND-ARGUMENT},NGO {COMMON_VALUE_FIRST-ARGUMENT} Load failed: {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_FIRST-ARGUMENT-CONNECTION-LOST-WHILE-LOADING,{COMMON_VALUE_FIRST-ARGUMENT} 로드 중 접속이 끊겼습니다.,{COMMON_VALUE_FIRST-ARGUMENT} 로드 중 접속이 끊겼습니다.,{COMMON_VALUE_FIRST-ARGUMENT} Connection lost while loading.
+DEV_PROMPT_FIRST-ARGUMENT-FAILED-CLOSE-SCENE-SECOND,{COMMON_VALUE_FIRST-ARGUMENT} 씬 닫기 실패: {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} 씬 닫기 실패: {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Failed to close scene: {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_PROMPT_FIRST-ARGUMENT-CANNOT-CLOSE-SCENE,{COMMON_VALUE_FIRST-ARGUMENT} 씬을 닫을 수 없습니다.,{COMMON_VALUE_FIRST-ARGUMENT} 씬을 닫을 수 없습니다.,{COMMON_VALUE_FIRST-ARGUMENT} Cannot close scene.
+DEV_TEXT_FIRST-ARGUMENT-SCENE-CLOSING-WAS-NOT,{COMMON_VALUE_FIRST-ARGUMENT} 씬 닫기가 완료되지 않았습니다.,{COMMON_VALUE_FIRST-ARGUMENT} 씬 닫기가 완료되지 않았습니다.,{COMMON_VALUE_FIRST-ARGUMENT} Scene closing was not completed.
+DEV_PROMPT_NGO-FIRST-ARGUMENT-CLOSE-FAILED-SECOND,NGO {COMMON_VALUE_FIRST-ARGUMENT} 닫기 실패: {COMMON_VALUE_SECOND-ARGUMENT},NGO {COMMON_VALUE_FIRST-ARGUMENT} 닫기 실패: {COMMON_VALUE_SECOND-ARGUMENT},NGO {COMMON_VALUE_FIRST-ARGUMENT} Close failed: {COMMON_VALUE_SECOND-ARGUMENT}
+DEV_TEXT_FIRST-ARGUMENT-CONNECTION-WAS-LOST-WHILE,{COMMON_VALUE_FIRST-ARGUMENT} 닫기 중 접속이 끊겼습니다.,{COMMON_VALUE_FIRST-ARGUMENT} 닫기 중 접속이 끊겼습니다.,{COMMON_VALUE_FIRST-ARGUMENT} The connection was lost while closing.
+DEV_TEXT_FIRST-ARGUMENT-SECOND-ARGUMENT-TIMEOUT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} 시간 초과: {COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} 시간 초과: {COMMON_VALUE_THIRD-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} Timeout: {COMMON_VALUE_THIRD-ARGUMENT}
+DEV_TEXT_EXPAND-LOCATION-CHANGE-LOG,장소 전환 로그 펼치기,장소 전환 로그 펼치기,Expand location change log
+DEV_TEXT_COLLAPSE-LOCATION-CHANGE-LOG,장소 전환 로그 접기,장소 전환 로그 접기,Collapse location change log
+DEV_TEXT_ROWS-TEST-INPUTS-ARRIVALS-RETIREMENTS-NOT,"행 입력 ≠ 실제 참가자 상태. 도착/전원 리타이어 자동 집계 없음.
+EndEscape(bool)는 행과 독립된 수동 결론. 잡힘 규칙: ","행 입력 ≠ 실제 참가자 상태. 도착/전원 리타이어 자동 집계 없음.
+EndEscape(bool)는 행과 독립된 수동 결론. 잡힘 규칙: ","Rows are test inputs. Arrivals and retirements are not counted automatically.
+EndEscape(bool) sets the result independently of the rows. Capture rule: "

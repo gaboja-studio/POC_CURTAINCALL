@@ -283,8 +283,12 @@ namespace CurtainCall.UI.SceneIntegration
 
         float FarSkip => highlightDistance + 10f;
         public static string FormatControlLabels(string text, string interactKey, string jumpKey, string move = "W/S", string posture = "A/D") =>
-            System.Text.RegularExpressions.Regex.Replace(text ?? "", @"(?<![A-Za-z])(?:F|Space|SPACE|W/S|A/D)(?![A-Za-z])",
-                match => match.Value == "F" ? interactKey : match.Value == "W/S" ? move : match.Value == "A/D" ? posture : jumpKey);
+            WaitingRoomText.Fill(text, new (string, object)[] { ("legacyInteract", interactKey), ("legacyJump", jumpKey),
+                ("legacyMove", move), ("legacyPosture", posture) }, MarkLegacyKeys);
+
+        static string MarkLegacyKeys(string text) =>
+            System.Text.RegularExpressions.Regex.Replace(text, @"(?<![A-Za-z])(?:F|Space|SPACE|W/S|A/D)(?![A-Za-z])",
+                m => m.Value switch { "F" => "{legacyInteract}", "W/S" => "{legacyMove}", "A/D" => "{legacyPosture}", _ => "{legacyJump}" });
         void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)
         {
             candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,

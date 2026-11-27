@@ -23,6 +23,9 @@
 *.raytrace              text linguist-language=hlsl
 *.shader                text
 
+# Quoted localization cells contain literal line breaks used for in-game source lookups.
+Assets/Resources/Localization/*.csv -text
+
 # Unity JSON files
 *.asmdef                unity-json
 *.asmref                unity-json

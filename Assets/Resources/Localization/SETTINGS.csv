@@ -1,0 +1,301 @@
+﻿key,source,ko,en
+SETTINGS_INPUT_SIDE-STEP,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_TURN-AROUND,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_INTERACT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_JUMP,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_ACTION,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_FORWARD-BACK,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_BALANCE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_MOVE-BALANCE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_DROP-ITEM,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_UV-LIGHT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_FIRST-SLOT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_SECOND-SLOT,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_INPUT_CURRENT-KEY,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SETTINGS_TEXT_TURN,켬,켬,Turn on
+SETTINGS_TEXT_FEAR,끔,끔,Fear
+SETTINGS_TEXT_SETTINGS,설정,설정,Settings
+SETTINGS_TEXT_GO-BACK,돌아가기,돌아가기,Go Back
+SETTINGS_TEXT_COMMON-SLIDER,공용 슬라이더,공용 슬라이더,Common slider
+SETTINGS_TEXT_COMMON-TOGGLE,공용 토글,공용 토글,Common toggle
+SETTINGS_TEXT_APPLY,적용,적용,Apply
+SETTINGS_TEXT_PLAY-CONTINUES,플레이는 계속됩니다,플레이는 계속됩니다,The play continues
+SETTINGS_TEXT_OTHER,기타,기타,Other
+SETTINGS_TEXT_CONTROLS,조작,조작,Controls
+SETTINGS_TEXT_GAME,게임,게임,Game
+SETTINGS_TEXT_AUDIO,사운드,사운드,Audio
+SETTINGS_TEXT_ABANDON-RUN,런 포기,런 포기,Abandon Run
+SETTINGS_TEXT_GRAPHICS,그래픽,그래픽,Graphics
+SETTINGS_TEXT_CANCEL-BACK,취소 / 뒤로,취소 / 뒤로,Cancel / Back
+SETTINGS_BUTTON_MOUSE_RIGHT,우클릭,우클릭,Right-click
+SETTINGS_BUTTON_MOUSE_MIDDLE,휠 클릭,휠 클릭,Wheel click
+SETTINGS_TEXT_NO,아니요,아니요,no
+SETTINGS_BUTTON_MOUSE_LEFT,좌클릭,좌클릭,Left click
+SETTINGS_TEXT_FULLSCREEN,전체 화면,전체 화면,Fullscreen
+SETTINGS_TEXT_BORDERLESS-FULLSCREEN,전체 화면 창,전체 화면 창,Borderless Fullscreen
+SETTINGS_TEXT_WINDOWED,창 모드,창 모드,Windowed
+SETTINGS_TEXT_ONLY-USED-DURING-GAMEPLAY-RUN-FORFEIT,"게임 진행 중에만 사용할 수 있습니다.
+런 포기는 대기실의 쉬는 시간·밤에 호스트만 실행할 수 있습니다.","게임 진행 중에만 사용할 수 있습니다.
+런 포기는 대기실의 쉬는 시간·밤에 호스트만 실행할 수 있습니다.","Can only be used during gameplay.
+Run Forfeit can only be executed by the host during the lobby break time or at night."
+SETTINGS_PROMPT_MARK-CURRENT-RUN-FAILED-START-NEW_1,현재 런을 실패 처리하고 새 런 시작,현재 런을 실패 처리하고 새 런 시작,Mark the current run as failed and start a new run
+SETTINGS_TEXT_SURE-WANT-GIVE-UP-CURRENT-RUN,"정말 현재 런을 포기하고 새로 시작하겠습니까?
+모든 단원이 다음 런 1일차부터 다시 시작합니다.","정말 현재 런을 포기하고 새로 시작하겠습니까?
+모든 단원이 다음 런 1일차부터 다시 시작합니다.","Are you sure you want to give up the current run and start over?
+All units will restart from Day 1 of the next run."
+SETTINGS_PROMPT_SHOW-BACKSTAGE-GUIDES,대기실 안내 표시,대기실 안내 표시,Show Backstage Guides
+SETTINGS_PROMPT_WE-DELETE-ALL-BACKSTAGE-GUIDE-DISPLAY,본 대기실 안내를 모두 지우고 처음부터 다시 띄웁니다.,본 대기실 안내를 모두 지우고 처음부터 다시 띄웁니다.,We will delete all of this backstage guide and display it again from the beginning.
+SETTINGS_PROMPT_REPLAY-GUIDES,안내 처음부터,안내 처음부터,Replay Guides
+SETTINGS_PROMPT_VIEW-NOTICE-AGAIN,"본 안내 다시 보기
+
+","본 안내 다시 보기
+
+","View this notice again
+
+"
+SETTINGS_TEXT_DISPLAY-MODE,화면 모드,화면 모드,Display Mode
+SETTINGS_TEXT_RESOLUTION,해상도,해상도,Resolution
+SETTINGS_TEXT_USE-DESKTOP-RESOLUTION,데스크톱 해상도 사용,데스크톱 해상도 사용,Use desktop resolution
+SETTINGS_TEXT_FPS-LIMIT,FPS 제한,FPS 제한,FPS limit
+SETTINGS_TEXT_FPS-DEFAULT,60 FPS (기본),60 FPS (기본),60 FPS (Default)
+SETTINGS_TEXT_HIDE-MY-CHARACTER-WHEN-CAMERA-CLOSE,카메라가 가까울 때 내 캐릭터 숨기기,카메라가 가까울 때 내 캐릭터 숨기기,Hide my character when the camera is close
+SETTINGS_TEXT_BLOODSTAIN-EFFECT-DISPLAY,혈흔 연출 표시,혈흔 연출 표시,Bloodstain effect display
+SETTINGS_PROMPT_FULL-SCREEN-WINDOW-USES-DESKTOP-RESOLUTION,"전체 화면 창은 데스크톱 해상도를 사용합니다.
+변경한 설정은 적용을 누르면 이 PC에 저장됩니다.","전체 화면 창은 데스크톱 해상도를 사용합니다.
+변경한 설정은 적용을 누르면 이 PC에 저장됩니다.","The full-screen window uses the desktop resolution.
+The changed settings are saved to this PC when you click Apply."
+SETTINGS_BUTTON_PRESS-CHANGE-BUTTON-ENTER-NEW-KEY,"변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.
+사용 중인 키는 확인 후 옮깁니다. 모든 키를 설정하고 적용을 눌러야 저장됩니다.
+ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.","변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.
+사용 중인 키는 확인 후 옮깁니다. 모든 키를 설정하고 적용을 눌러야 저장됩니다.
+ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.","Press the Change button and enter a new key. Press ESC to cancel input waiting.
+Move keys currently in use after verification. You must set all keys and press Apply to save.
+ESC Menu · M Microphone · Mouse View · Gamepad are fixed inputs."
+SETTINGS_PROMPT_FAILED-LOAD-INPUT-SETTINGS,입력 설정을 불러오지 못했습니다.,입력 설정을 불러오지 못했습니다.,Failed to load input settings.
+SETTINGS_TEXT_MASTER-VOLUME,게임 전체 음량,게임 전체 음량,Master Volume
+SETTINGS_TEXT_MUSIC-VOLUME,배경음 음량,배경음 음량,Music Volume
+SETTINGS_TEXT_SOUND-EFFECTS-VOLUME,효과음 음량,효과음 음량,Sound Effects Volume
+SETTINGS_TEXT_TOTAL-VOICE-RECEPTION-VOLUME,전체 음성 수신 음량,전체 음성 수신 음량,Total voice reception volume
+SETTINGS_TEXT_MY-MICROPHONE-INPUT-VOLUME,내 마이크 입력 음량,내 마이크 입력 음량,My microphone input volume
+SETTINGS_TEXT_TURN-MICROPHONE,마이크 켜기,마이크 켜기,Turn on microphone
+SETTINGS_TEXT_MUTE-ALL-VOICE-RECEPTION,전체 음성 수신 음소거,전체 음성 수신 음소거,Mute all voice reception
+SETTINGS_TEXT_VOICE-INPUT-DEVICE,음성 입력 기기,음성 입력 기기,Voice input device
+SETTINGS_TEXT_PLEASE-LOAD-DEVICE-LIST,기기 목록을 불러와 주세요,기기 목록을 불러와 주세요,Please load the device list.
+SETTINGS_TEXT_SYSTEM-BASIC-DEVICE,시스템 기본 기기,시스템 기본 기기,System Basic Device
+SETTINGS_TEXT_VOICE-OUTPUT-DEVICE,음성 출력 기기,음성 출력 기기,Voice output device
+SETTINGS_TEXT_REFRESH-DEVICE-LIST-VOICE-SERVICE-CONNECTION,기기 목록 새로고침 (음성 서비스 연결),기기 목록 새로고침 (음성 서비스 연결),Refresh device list (Voice service connection)
+SETTINGS_TEXT_LOAD-DEVICE-LIST,기기 목록 불러오기,기기 목록 불러오기,Load device list
+SETTINGS_TEXT_OUTPUT-DEVICE-SELECTION-APPLIES-VOICE-CHAT,"출력 기기 선택은 음성 채팅에 적용됩니다. 게임 소리 출력은 운영체제에서 변경하세요.
+마이크 접근 권한이 필요하며, 기기를 연결·해제하면 목록이 갱신됩니다.","출력 기기 선택은 음성 채팅에 적용됩니다. 게임 소리 출력은 운영체제에서 변경하세요.
+마이크 접근 권한이 필요하며, 기기를 연결·해제하면 목록이 갱신됩니다.","The output device selection applies to voice chat. Please change game sound output in the operating system.
+Microphone access permission is required, and the list refreshes when the device is connected or disconnected."
+SETTINGS_PROMPT_THERE-CURRENTLY-NO-OTHER-UNITS-AUDIO,현재 음성 채널에 다른 단원이 없습니다.,현재 음성 채널에 다른 단원이 없습니다.,There are currently no other units on the audio channel.
+SETTINGS_TEXT_VOLUME, · 음량, · 음량,· Volume
+SETTINGS_TEXT_MUTE, · 음소거, · 음소거,· Mute
+SETTINGS_TEXT_RESET-SURVEY-WAITING-ROOM-GUIDE-HISTORY,설문·대기실 안내 이력 초기화,설문·대기실 안내 이력 초기화,Reset Survey and Waiting Room Guide History
+SETTINGS_TEXT_CLEAR-CACHE,캐시 초기화,캐시 초기화,Clear cache
+SETTINGS_TEXT_RESETS-PC-S-SURVEY-OPEN-HISTORY,"이 PC의 설문 열림 기록과 대기실 안내 이력을 초기화합니다.
+조작·음량 설정, 플레이 로그, 이미 제출한 설문 응답은 유지됩니다.
+설문 대상 시점이면 다시 열립니다.","이 PC의 설문 열림 기록과 대기실 안내 이력을 초기화합니다.
+조작·음량 설정, 플레이 로그, 이미 제출한 설문 응답은 유지됩니다.
+설문 대상 시점이면 다시 열립니다.","Resets this PC's survey open history and backstage guide history.
+Operation/volume settings, play logs, and previously submitted survey responses are retained.
+Reopens when the survey target time is reached."
+SETTINGS_TEXT_DEVELOPERS-MOHODU-GENERAL-SYSTEM-PLANNING-COORDINATION,"개발자
+MoHoDu · 총괄 시스템 / 기획 조율
+mingyu (gyumin9048-ctrl) · 대기실 / 에셋 관리
+RagSpirin · 공연장 / 탈출로
+lakuase2 · 기존 공연장 개발 기여","개발자
+MoHoDu · 총괄 시스템 / 기획 조율
+mingyu (gyumin9048-ctrl) · 대기실 / 에셋 관리
+RagSpirin · 공연장 / 탈출로
+lakuase2 · 기존 공연장 개발 기여","Developers
+MoHoDu · General System / Planning & Coordination
+mingyu (gyumin9048-ctrl) · Waiting Room / Asset Management
+RagSpirin · Venue / Escape Route
+lakuase2 · Contribution to Existing Venue Development"
+SETTINGS_TEXT_INDIVIDUAL-DISTRIBUTION-CONDITIONS-ADDITIONAL-EXTERNAL-ASSETS,"추가 외부 에셋·BM 폰트 및 패키지의 개별 배포 조건은 확인 중입니다.
+현재 목록은 전체 라이선스 검토 완료나 모든 권리 확보를 뜻하지 않습니다.","추가 외부 에셋·BM 폰트 및 패키지의 개별 배포 조건은 확인 중입니다.
+현재 목록은 전체 라이선스 검토 완료나 모든 권리 확보를 뜻하지 않습니다.","Individual distribution conditions for additional external assets, BM fonts, and packages are currently being reviewed.
+The current list does not imply that a full license review has been completed or that all rights have been secured."
+SETTINGS_PROMPT_FAILED-LOAD-ORIGINAL-PRETENDARD-LICENSE-TEXT,Pretendard 라이선스 원문을 불러오지 못했습니다.,Pretendard 라이선스 원문을 불러오지 못했습니다.,Failed to load the original Pretendard license text.
+SETTINGS_TEXT_REVERTS-SETTINGS-DEFAULT-MUST-PRESS-APPLY," 설정을 기본값으로 되돌립니다.
+적용을 눌러야 저장됩니다."," 설정을 기본값으로 되돌립니다.
+적용을 눌러야 저장됩니다.","Reverts settings to default. You must press Apply
+to save."
+SETTINGS_PROMPT_THERE-NO-SETTINGS-INITIALIZE,초기화할 설정이 없습니다.,초기화할 설정이 없습니다.,There are no settings to initialize.
+SETTINGS_TEXT_USE-PIECE-SLOT_0,기물 사용 · 1번 슬롯,기물 사용 · 1번 슬롯,Use Piece · Slot 1
+SETTINGS_TEXT_USE-PIECE-SLOT_1,기물 사용 · 2번 슬롯,기물 사용 · 2번 슬롯,Use Piece · Slot 2
+SETTINGS_TEXT_USE-CONVEYOR-SINGLE-SHOT-SAW-BLADE,운반 장치 사용 / 톱날 한 발 발사,운반 장치 사용 / 톱날 한 발 발사,Use of conveyor / Single-shot saw blade firing
+SETTINGS_TEXT_MOVE-BACK,뒤로 이동,뒤로 이동,Move back
+SETTINGS_TEXT_MOVE-FORWARD,앞으로 이동,앞으로 이동,Move forward
+SETTINGS_TEXT_LEFT-SHIFT-BALANCE,왼쪽 이동 / 균형,왼쪽 이동 / 균형,Left Shift / Balance
+SETTINGS_TEXT_MOVE-RIGHT-BALANCE,오른쪽 이동 / 균형,오른쪽 이동 / 균형,Move to the right / Balance
+SETTINGS_TEXT_JUMP-ACTION,점프 / 행동,점프 / 행동,Jump / Action
+SETTINGS_TEXT_SINGLE-LINE-LEFT-LINE-MOVEMENT,외줄 · 왼쪽 줄 이동,외줄 · 왼쪽 줄 이동,Single line · Left line movement
+SETTINGS_TEXT_SINGLE-LINE-RIGHT-LINE-MOVEMENT,외줄 · 오른쪽 줄 이동,외줄 · 오른쪽 줄 이동,Single line · Right line movement
+SETTINGS_TEXT_SINGLE-ROPE-POLE-FORWARD-BACKWARD-SWITCHING,외줄·봉 · 앞뒤 전환,외줄·봉 · 앞뒤 전환,"Single rope, pole, forward and backward switching"
+SETTINGS_TEXT_SITTING,앉기,앉기,Sitting
+SETTINGS_TEXT_VOTE-FIRST-CHOICE-ACCEPT,투표 · 첫 번째 선택 (수락),투표 · 첫 번째 선택 (수락),Vote · First Choice (Accept)
+SETTINGS_TEXT_VOTE-SECOND-CHOICE-REJECTION,투표 · 두 번째 선택 (거절),투표 · 두 번째 선택 (거절),Vote · Second choice (Rejection)
+SETTINGS_TEXT_FULL-SCREEN-WINDOW-USES-DESKTOP-RESOLUTION,전체 화면 창은 데스크톱 해상도를 사용합니다.,전체 화면 창은 데스크톱 해상도를 사용합니다.,The full-screen window uses desktop resolution.
+SETTINGS_TEXT_NO-DEVICES-AVAILABLE-DISCONNECTED,사용 가능한 기기 없음 / 연결 해제,사용 가능한 기기 없음 / 연결 해제,No devices available / Disconnected
+SETTINGS_PROMPT_CANNOT-CHANGE-KEY,키를 변경할 수 없습니다.,키를 변경할 수 없습니다.,You cannot change the key.
+SETTINGS_PROMPT_SURVEY-GUIDANCE-HISTORY-BEEN-RESET-OPERATION,설문·안내 이력을 초기화했습니다. 조작·음량 설정과 플레이 로그는 유지했습니다.,설문·안내 이력을 초기화했습니다. 조작·음량 설정과 플레이 로그는 유지했습니다.,"Survey and guidance history has been reset. Operation and volume settings, as well as play logs, have been retained."
+SETTINGS_PROMPT_UNABLE-DELETE-SOME-HISTORY-PLEASE-CHECK,일부 이력을 지우지 못했습니다. 파일 접근 권한을 확인하고 다시 시도하세요.,일부 이력을 지우지 못했습니다. 파일 접근 권한을 확인하고 다시 시도하세요.,Unable to delete some history. Please check file access permissions and try again.
+SETTINGS_PROMPT_RUN-STATUS-CHANGED-SO-CANNOT-GIVE,런 상태가 변경되어 포기할 수 없습니다.,런 상태가 변경되어 포기할 수 없습니다.,"The run status has changed, so you cannot give up."
+SETTINGS_PROMPT_WE-DISPLAY-BACKSTAGE-GUIDE-AGAIN-BEGINNING,대기실 안내를 처음부터 다시 띄웁니다.,대기실 안내를 처음부터 다시 띄웁니다.,We will display the backstage guide again from the beginning.
+SETTINGS_TEXT_UNSUPPORTED-ACTION,지원하지 않는 동작입니다.,지원하지 않는 동작입니다.,This is an unsupported action.
+SETTINGS_TEXT_WE-PREPARING-VOICE-SERVICE,음성 서비스를 준비 중입니다.,음성 서비스를 준비 중입니다.,We are preparing a voice service.
+SETTINGS_TEXT_LOADING-VOICE-DEVICE-LIST,음성 기기 목록을 불러오는 중입니다…,음성 기기 목록을 불러오는 중입니다…,Loading voice device list…
+SETTINGS_TEXT_DEVICE-LIST-BEEN-UPDATED,기기 목록을 갱신했습니다.,기기 목록을 갱신했습니다.,The device list has been updated.
+SETTINGS_PROMPT_FAILED-LOAD-DEVICE-LIST,기기 목록을 불러오지 못했습니다.,기기 목록을 불러오지 못했습니다.,Failed to load the device list.
+SETTINGS_PROMPT_FAILED-LOAD-AUDIO-DEVICE-PLEASE-CHECK,음성 기기를 불러오지 못했습니다. 연결·마이크 권한을 확인하세요.,음성 기기를 불러오지 못했습니다. 연결·마이크 권한을 확인하세요.,Failed to load the audio device. Please check connection and microphone permissions.
+SETTINGS_TEXT_TAB-BEEN-RESET-PLEASE-CLICK-APPLY,이 탭을 초기화했습니다. 적용을 눌러 저장하세요.,이 탭을 초기화했습니다. 적용을 눌러 저장하세요.,This tab has been reset. Please click Apply to save.
+SETTINGS_TEXT_PLEASE-APPLY-AFTER-DEVICE-LOOKUP-COMPLETE,기기 조회가 끝난 뒤 적용해 주세요.,기기 조회가 끝난 뒤 적용해 주세요.,Please apply this after the device lookup is complete.
+SETTINGS_TEXT_SELECTED-INPUT-DEVICE-DISAPPEARED-PLEASE-REFRESH,선택한 입력 기기가 사라졌습니다. 목록을 새로고침하세요.,선택한 입력 기기가 사라졌습니다. 목록을 새로고침하세요.,The selected input device has disappeared. Please refresh the list.
+SETTINGS_TEXT_OUTPUT-DEVICE-DISAPPEARED-INPUT-DEVICE-MAY,출력 기기가 사라졌습니다. 입력 기기는 이미 적용됐을 수 있습니다.,출력 기기가 사라졌습니다. 입력 기기는 이미 적용됐을 수 있습니다.,The output device has disappeared. The input device may already be applied.
+SETTINGS_PROMPT_NOT-ALL-SETTINGS-COULD-APPLIED-PLEASE,설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다.,설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다.,Not all settings could be applied. Please check your connections and devices. Some values ​​may have been applied.
+SETTINGS_TEXT_RUN-ABANDONMENT-ONLY-EXECUTED-HOST,런 포기는 호스트만 실행할 수 있습니다.,런 포기는 호스트만 실행할 수 있습니다.,Run abandonment can only be executed by the host.
+SETTINGS_TEXT_SKIP-RUN-ONLY-DURING-BACKSTAGE-BREAK,대기실의 쉬는 시간·밤에만 런을 포기할 수 있습니다.,대기실의 쉬는 시간·밤에만 런을 포기할 수 있습니다.,You can skip a run only during the backstage break and at night.
+SETTINGS_PROMPT_THERE-NO-AVAILABLE-SETTINGS-TABS,사용할 수 있는 설정 탭이 없습니다.,사용할 수 있는 설정 탭이 없습니다.,There are no available settings tabs.
+SETTINGS_TEXT_CANCELED-KEY-CHANGE,키 변경을 취소했습니다.,키 변경을 취소했습니다.,Canceled the key change.
+SETTINGS_TEXT_PLEASE-SET-ALL-KEYS-UNASSIGNED-OPERATIONS,할당되지 않은 조작의 키를 모두 설정해 주세요.,할당되지 않은 조작의 키를 모두 설정해 주세요.,Please set all keys for unassigned operations.
+SETTINGS_TEXT_DESIGN-VERIFICATION-PURPOSES-ACTUAL-SETTINGS-NOT,디자인 확인용입니다. 실제 설정은 변경하지 않습니다.,디자인 확인용입니다. 실제 설정은 변경하지 않습니다.,This is for design verification purposes. The actual settings will not be changed.
+SETTINGS_TEXT_CONNECTION-APPLY-SETTINGS-NOT-READY,설정 적용 연결이 준비되지 않았습니다.,설정 적용 연결이 준비되지 않았습니다.,The connection to apply settings is not ready.
+SETTINGS_TEXT_APPLYING,적용 중…,적용 중…,Applying…
+SETTINGS_PROMPT_FAILED-APPLY-SETTINGS-PLEASE-TRY-AGAIN,설정을 적용하지 못했습니다. 다시 시도해 주세요.,설정을 적용하지 못했습니다. 다시 시도해 주세요.,Failed to apply settings. Please try again.
+SETTINGS_PROMPT_FAILED-APPLY-SETTINGS,설정을 적용하지 못했습니다.,설정을 적용하지 못했습니다.,Failed to apply settings.
+SETTINGS_TEXT_DESIGN-VERIFICATION-PURPOSES-KEY-INPUT-NOT,디자인 확인용입니다. 키 입력은 변경하지 않습니다.,디자인 확인용입니다. 키 입력은 변경하지 않습니다.,This is for design verification purposes. Key input will not be changed.
+SETTINGS_TEXT_KEY-CHANGE-CONNECTION-NOT-READY,키 변경 연결이 준비되지 않았습니다.,키 변경 연결이 준비되지 않았습니다.,The key change connection is not ready.
+SETTINGS_PROMPT_ENTER-NEW-KEY-PRESS-ESC-CANCEL,새 키를 입력하세요. ESC로 취소합니다.,새 키를 입력하세요. ESC로 취소합니다.,Enter a new key. Press ESC to cancel.
+SETTINGS_PROMPT_FAILED-START-WAITING-KEY-INPUT,키 입력 대기를 시작하지 못했습니다.,키 입력 대기를 시작하지 못했습니다.,Failed to start waiting for key input.
+SETTINGS_TEXT_UNUSABLE-KEY,사용할 수 없는 키입니다.,사용할 수 없는 키입니다.,This is an unusable key.
+SETTINGS_TEXT_KEY-CURRENTLY-USE-FIXED-INPUT,고정 입력에 사용 중인 키입니다.,고정 입력에 사용 중인 키입니다.,This is the key currently in use for fixed input.
+SETTINGS_TEXT_ALREADY,이미 ,이미 ,already 
+SETTINGS_TEXT_KEY-ASSIGNED-WHEN-SETTING-KEY-ASSIGNED,에 할당된 키입니다. 키 설정 시 할당된 조작을 다시 설정해야 합니다.,에 할당된 키입니다. 키 설정 시 할당된 조작을 다시 설정해야 합니다.,"This is the key assigned to. When setting the key, the assigned operation must be reset."
+SETTINGS_TEXT_DESIGN-VERIFICATION-DOES-NOT-TERMINATE-RUN,디자인 확인용입니다. 런을 종료하지 않습니다.,디자인 확인용입니다. 런을 종료하지 않습니다.,This is for design verification. It does not terminate the run.
+SETTINGS_TEXT_GAME-ACTION-CONNECTION-NOT-READY,게임 동작 연결이 준비되지 않았습니다.,게임 동작 연결이 준비되지 않았습니다.,The game action connection is not ready.
+SETTINGS_TEXT_REQUESTING,요청 중…,요청 중…,Requesting...
+SETTINGS_PROMPT_REQUEST-COULD-NOT-PROCESSED,요청을 처리하지 못했습니다.,요청을 처리하지 못했습니다.,The request could not be processed.
+SETTINGS_TEXT_WAITING-INPUT,입력 대기…,입력 대기…,Waiting for input…
+SETTINGS_TEXT_UNASSIGNED-CHANGE,미할당 · 변경,미할당 · 변경,Unassigned · Change
+SETTINGS_TEXT_THERE-CHANGES,변경 사항이 있습니다,변경 사항이 있습니다,There are changes.
+SETTINGS_PROMPT_MARK-CURRENT-RUN-FAILED-START-NEW_0,"현재 런을 실패 처리하고
+새 런 시작","현재 런을 실패 처리하고
+새 런 시작","Mark current run as failed and start new run
+"
+SETTINGS_PROMPT_MARKING-CURRENT-RUN-FAILED-STARTING-NEW,"현재 런을 실패 처리하고 새 런을 시작합니다.
+정말 포기하시겠습니까?","현재 런을 실패 처리하고 새 런을 시작합니다.
+정말 포기하시겠습니까?","Marking the current run as failed and starting a new run.
+Are you sure you want to give up?"
+SETTINGS_PROMPT_PRESS-CHANGE-BUTTON-ENTER-NEW-KEY,"변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.
+중복 키는 사용할 수 없습니다. ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.","변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.
+중복 키는 사용할 수 없습니다. ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.","Press the Change button and enter a new key. Press ESC to cancel input waiting.
+Duplicate keys cannot be used. ESC Menu · M Microphone · Mouse View · Gamepad are fixed inputs."
+SETTINGS_TEXT_DEVELOPER,개발자,개발자,developer
+SETTINGS_TEXT_MOHODU-GENERAL-SYSTEM-PLANNING-COORDINATION-MINGYU,"MoHoDu — 총괄 시스템 / 기획 조율
+mingyu (gyumin9048-ctrl) — 대기실 / 에셋 관리
+RagSpirin — 공연장 / 탈출로
+lakuase2 — 기존 공연장 개발 기여","MoHoDu — 총괄 시스템 / 기획 조율
+mingyu (gyumin9048-ctrl) — 대기실 / 에셋 관리
+RagSpirin — 공연장 / 탈출로
+lakuase2 — 기존 공연장 개발 기여","MoHoDu — General System / Planning Coordination
+mingyu (gyumin9048-ctrl) — Waiting Room / Asset Management
+RagSpirin — Venue / Escape Route
+lakuase2 — Contribution to Existing Venue Development"
+SETTINGS_TEXT_ASSETS-SOFTWARE,에셋 및 소프트웨어,에셋 및 소프트웨어,Assets and software
+SETTINGS_TEXT_ONLY-HOST-RUN-DURING-BACKSTAGE-S,호스트만 대기실의 쉬는 시간·밤에 실행할 수 있습니다.,호스트만 대기실의 쉬는 시간·밤에 실행할 수 있습니다.,Only the host can run this during the backstage's break time or at night.
+SETTINGS_TEXT_DESTROYED,(파괴됨),(파괴됨),(Destroyed)
+SETTINGS_TEXT_REQUESTER-FIRST-ARGUMENT-WAITING-RELEASE-KEY,요청자[{COMMON_VALUE_FIRST-ARGUMENT}] 키놓기대기={COMMON_VALUE_SECOND-ARGUMENT},요청자[{COMMON_VALUE_FIRST-ARGUMENT}] 키놓기대기={COMMON_VALUE_SECOND-ARGUMENT},Requester[{COMMON_VALUE_FIRST-ARGUMENT}] Waiting to release key= {COMMON_VALUE_SECOND-ARGUMENT}
+SETTINGS_TEXT_PLATFORMCONTROLSCHEME-DEFAULT,PlatformControlScheme (기본),PlatformControlScheme (기본),PlatformControlScheme (Default)
+SETTINGS_PROMPT_PLEASE-SELECT-SINGLE-KEY-KEYBOARD-OR,키보드의 단일 키나 마우스 버튼을 선택해 주세요.,키보드의 단일 키나 마우스 버튼을 선택해 주세요.,Please select a single key on the keyboard or a mouse button.
+SETTINGS_TEXT_LEFT-CLICK-ASSIGNED-UI-SINGLE-LINE,"좌클릭은 UI, 외줄 이동과 운반 장치 사용에 배정할 수 있습니다.","좌클릭은 UI, 외줄 이동과 운반 장치 사용에 배정할 수 있습니다.","Left-click can be assigned to UI, single-line movement, and using the transport device."
+SETTINGS_TEXT_ESCAPE-RESERVED-MENU-CANCELLATION,Escape는 메뉴 취소용으로 예약되어 있습니다.,Escape는 메뉴 취소용으로 예약되어 있습니다.,Escape is reserved for menu cancellation.
+SETTINGS_TEXT_M-RESERVED-MICROPHONE-TOGGLE,M은 마이크 토글용으로 예약되어 있습니다.,M은 마이크 토글용으로 예약되어 있습니다.,M is reserved for the microphone toggle.
+SETTINGS_PROMPT_CANNOT-FIND-KEY-BINDING-CHANGE,변경할 키 바인딩을 찾을 수 없습니다.,변경할 키 바인딩을 찾을 수 없습니다.,Cannot find the key binding to change.
+SETTINGS_TEXT_KEY-ALREADY-ASSIGNED-FIRST-ARGUMENT-SECOND,이미 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}에 배정된 키입니다. 다른 키를 선택해 주세요.,이미 {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT}에 배정된 키입니다. 다른 키를 선택해 주세요.,This key is already assigned to {COMMON_VALUE_FIRST-ARGUMENT} and {COMMON_VALUE_SECOND-ARGUMENT}. Please select a different key.
+SETTINGS_PROMPT_DRAFT-COMPATIBLE-BASIC-COMMON-MAP-REQUIRED,기본 Common 맵과 호환되는 draft가 필요합니다.,기본 Common 맵과 호환되는 draft가 필요합니다.,A draft compatible with the basic Common map is required.
+SETTINGS_TEXT_ONLY-CHANGE-KEY-PATH-OVERRIDE-DEFAULT,기본 Common 맵의 키 경로 override만 변경할 수 있습니다.,기본 Common 맵의 키 경로 override만 변경할 수 있습니다.,You can only change the key path override of the default Common map.
+SETTINGS_TEXT_KEY-FIRST-ARGUMENT-ALREADY-ASSIGNED-PLEASE,{COMMON_VALUE_FIRST-ARGUMENT} 키가 중복 배정되어 있습니다. 다른 키를 선택해 주세요.,{COMMON_VALUE_FIRST-ARGUMENT} 키가 중복 배정되어 있습니다. 다른 키를 선택해 주세요.,Key {COMMON_VALUE_FIRST-ARGUMENT} is already assigned. Please select a different key.
+SETTINGS_TEXT_EXPLICITLY-CLICK-OPEN-DEMO-START,명시적으로 데모 열기를 눌러 시작하세요,명시적으로 데모 열기를 눌러 시작하세요,Explicitly click Open Demo to start.
+SETTINGS_PROMPT_PENDING-COMPOSITE-APPLICATION-REQUEST-COMPLETED-SUCCESS,합성 적용 요청 보류 · 성공/거절 응답 버튼으로 완료,합성 적용 요청 보류 · 성공/거절 응답 버튼으로 완료,Pending composite application request · Completed with Success/Rejection response buttons
+SETTINGS_TEXT_NEW-DEMO-SESSION-EXAMPLE-VALUES-NOT,새 데모 세션 · 예시 값은 저장 기본값이 아닙니다,새 데모 세션 · 예시 값은 저장 기본값이 아닙니다,New demo session · Example values ​​are not saved default values
+SETTINGS_TEXT_EDIT-MODEL-DISCARDED-NO-CHANGES-ACTUAL,편집 모델 폐기 · 실제 서비스 변경 없음,편집 모델 폐기 · 실제 서비스 변경 없음,Edit model discarded · No changes to actual service
+SETTINGS_TEXT_REQUEST-ONLY-OPEN-DEMOS-CHANGED-VALUES,변경된 값이 있는 열린 데모에서만 요청합니다,변경된 값이 있는 열린 데모에서만 요청합니다,Request only from open demos with changed values
+SETTINGS_TEXT_SYNTHESIS-SUCCESSFUL-RESPONSE-ACCEPT-CLOSE-NO,합성 성공 응답 수락 · 닫힘 · 실제 저장 없음,합성 성공 응답 수락 · 닫힘 · 실제 저장 없음,Synthesis successful response Accept · Close · No actual save
+SETTINGS_TEXT_SUCCESS-REJECTION-NO-REQUEST-OR-PREVIOUS,성공 응답 거절 · 요청 없음 또는 이전 토큰,성공 응답 거절 · 요청 없음 또는 이전 토큰,Success Rejection · No Request or Previous Token
+SETTINGS_TEXT_REJECT-SYNTHESIS-MAINTAIN-VALUE-MANIPULATE-AGAIN,합성 거절 · 값을 유지하고 다시 조작하세요,합성 거절 · 값을 유지하고 다시 조작하세요,Reject synthesis · Maintain the value and manipulate it again
+SETTINGS_TEXT_SYNTHETIC-REJECTION-RESPONSE-ACCEPTANCE-REMANDABLE,합성 거절 응답 수락 · 재조작 가능,합성 거절 응답 수락 · 재조작 가능,Synthetic rejection response acceptance · Remandable
+SETTINGS_TEXT_IGNORE-REJECTION-RESPONSE-NO-REQUEST-OR,거절 응답 무시 · 요청 없음 또는 이전 토큰,거절 응답 무시 · 요청 없음 또는 이전 토큰,Ignore rejection response · No request or previous token
+SETTINGS_TEXT_RESPONSE-PENDING-CANCEL-CLOSE-AVAILABLE,응답 보류 중 · 취소/닫기는 계속 가능,응답 보류 중 · 취소/닫기는 계속 가능,Response pending · Cancel/Close available
+SETTINGS_TEXT_NO-REQUESTS-HOLD-CHANGE-VALUE-APPLY,보류할 요청 없음 · 값을 바꾸고 적용 요청,보류할 요청 없음 · 값을 바꾸고 적용 요청,No requests to hold · Change value and apply request
+SETTINGS_TEXT_PREVIOUS-RESPONSE-ACCEPTED-CHECK-TOKEN-GUARD,이전 응답이 수락됨 · 토큰 가드를 점검하세요,이전 응답이 수락됨 · 토큰 가드를 점검하세요,Previous response accepted · Check Token Guard
+SETTINGS_TEXT_CONFIRM-PREVIOUS-RESPONSE-REJECTION-PRESERVE-CURRENT,이전 응답 거절 확인 · 현재 세션 보존,이전 응답 거절 확인 · 현재 세션 보존,Confirm previous response rejection · Preserve current session
+SETTINGS_TEXT_PLEASE-EXPLICITLY-REOPEN-PREVIEW-RECOVERY-HIDDEN,미리보기 복구 · Hidden · 데모는 명시적으로 다시 여세요,미리보기 복구 · Hidden · 데모는 명시적으로 다시 여세요,Please explicitly reopen Preview Recovery · Hidden · Demo.
+SETTINGS_TEXT_C-SYNTHESIS-VERIFICATION-NO-ACTUAL-CONFIGURATION,C14 합성 확인 · 실제 설정 서비스 연결 없음 · ,C14 합성 확인 · 실제 설정 서비스 연결 없음 · ,C14 Synthesis Verification · No actual configuration service connection ·
+SETTINGS_TEXT_DISPLAY-TAB,표시 / 탭 ,표시 / 탭 ,Display / Tab
+SETTINGS_TEXT_PLEASE-CONNECT-APPLIED-ACTIONS,적용 동작을 연결해 주세요,적용 동작을 연결해 주세요,Please connect the applied actions.
+SETTINGS_PROMPT_FAILED-APPLY,적용하지 못했습니다,적용하지 못했습니다,Failed to apply
+SETTINGS_TEXT_SOUND,소리,소리,sound
+SETTINGS_TEXT_TOTAL-VOLUME,전체 음량,전체 음량,Total volume
+SETTINGS_TEXT_BACKGROUND-MUSIC,배경 음악,배경 음악,background music
+SETTINGS_TEXT_SOUND-EFFECTS,효과음,효과음,sound effects
+SETTINGS_TEXT_SCREEN,화면,화면,screen
+SETTINGS_TEXT_SCREEN-BRIGHTNESS,화면 밝기,화면 밝기,Screen brightness
+SETTINGS_TEXT_VERTICAL-SYNCHRONIZATION,수직 동기화,수직 동기화,Vertical synchronization
+SETTINGS_TEXT_MOUSE-SENSITIVITY,마우스 감도,마우스 감도,Mouse sensitivity
+SETTINGS_TEXT_Y-AXIS-INVERSION,Y축 반전,Y축 반전,Y-axis inversion
+SETTINGS_TEXT_CAMERA-SHAKE,카메라 흔들림,카메라 흔들림,Camera shake
+SETTINGS_OPTION_LANGUAGE,언어,언어,Language
+SETTINGS_OPTION_SYSTEM-LANGUAGE,기기 언어,기기 언어,System Language
+SETTINGS_TEXT_KOREAN,한국어,한국어,한국어
+SETTINGS_TEXT_ASSETS-SOFTWARE-PRETENDARD-KIL-HYUNG-JIN,"에셋 및 소프트웨어
+Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php
+Stylized Abandoned Factory - Workshop URP — Dzendor
+Stylized Particles: Smoke, Sparks, Steam with Heat Distortion — Solodream
+The Ultimate Dissolve and Burn Shader Toolkit — Deadleaf Games
+Conveyor Works - Low Poly Factory Asset Pack — Nebula Forms
+위 4종: Standard Unity Asset Store EULA · https://unity.com/legal/as-terms
+POLYGON Horror Carnival Pack — Synty Studios · https://syntystore.com/pages/licences-overview","에셋 및 소프트웨어
+Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php
+Stylized Abandoned Factory - Workshop URP — Dzendor
+Stylized Particles: Smoke, Sparks, Steam with Heat Distortion — Solodream
+The Ultimate Dissolve and Burn Shader Toolkit — Deadleaf Games
+Conveyor Works - Low Poly Factory Asset Pack — Nebula Forms
+위 4종: Standard Unity Asset Store EULA · https://unity.com/legal/as-terms
+POLYGON Horror Carnival Pack — Synty Studios · https://syntystore.com/pages/licences-overview","Assets and Software
+Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (full text below)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php
+Stylized Abandoned Factory - Workshop URP — Dzendor
+Stylized Particles: Smoke, Sparks, Steam with Heat Distortion — Solodream
+The Ultimate Dissolve and Burn Shader Toolkit — Deadleaf Games
+Conveyor Works - Low Poly Factory Asset Pack — Nebula Forms
+The four assets above: Standard Unity Asset Store EULA · https://unity.com/legal/as-terms
+POLYGON Horror Carnival Pack — Synty Studios · https://syntystore.com/pages/licences-overview"
+SETTINGS_TEXT_PRETENDARD-KIL-HYUNG-JIN-SIL-OPEN,"Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014–2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php","Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014–2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php","Pretendard — Kil Hyung-jin · SIL Open Font License 1.1 (full text below)
+Quaternius Standard — Quaternius · CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+DOTween / DOTween Pro — Copyright (c) 2014–2026 Daniele Giardini - Demigiant
+https://dotween.demigiant.com/license.php"
+SETTINGS_BUTTON_MOUSE_BACK,마우스 뒤로 버튼,마우스 뒤로 버튼,Mouse Back
+SETTINGS_BUTTON_MOUSE_FORWARD,마우스 앞으로 버튼,마우스 앞으로 버튼,Mouse Forward

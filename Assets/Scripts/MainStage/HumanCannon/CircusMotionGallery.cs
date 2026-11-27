@@ -55,7 +55,7 @@ namespace CurtainCall.HumanCannon
                 anchor.transform.localPosition=new Vector3(stage*3,0,c*3.4f);
                 var actor=Instantiate(CharacterPrefabs[c],anchor.transform);actor.transform.localRotation=Quaternion.Euler(0,180,0);
                 Models[c*4+stage]=actor.GetComponent<HumanoidModel>();
-                var text=new GameObject("Label").AddComponent<TextMesh>();text.transform.SetParent(anchor.transform,false);
+                var text=CurtainCall.Localization.LocalizedDisplays.BindLegacy(new GameObject("Label").AddComponent<TextMesh>());text.transform.SetParent(anchor.transform,false);
                 text.transform.localPosition=new Vector3(0,.025f,-.8f);text.transform.localRotation=Quaternion.Euler(70,0,0);
                 text.text=Characters[c]+"\n"+Stages[stage];text.fontSize=40;text.characterSize=.035f;
                 text.anchor=TextAnchor.MiddleCenter;text.color=new Color(1,.84f,.48f);
@@ -131,7 +131,7 @@ namespace CurtainCall.HumanCannon
         }
         Text Label(Transform parent,string value,int size=15,float height=26)
         {
-            var r=UI(value,parent,height);var t=r.gameObject.AddComponent<Text>();t.font=font;t.text=value;t.fontSize=size;
+            var r=UI(value,parent,height);var t=CurtainCall.Localization.LocalizedDisplays.BindLegacy(r.gameObject.AddComponent<Text>());t.font=font;t.text=value;t.fontSize=size;
             t.color=new Color(.92f,.94f,1);t.alignment=TextAnchor.MiddleLeft;t.raycastTarget=false;return t;
         }
         Text Button(Transform parent,string text,Action action,float height=27)

@@ -1,0 +1,318 @@
+﻿key,source,ko,en
+SCHEDULE_VALUE_DIFFICULTY,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_VALUE_PREVIOUS-TIER,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_VALUE_REWARD,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_VALUE_PERFORMANCE,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_VALUE_DAY,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_VALUE_BONUS,{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT},{COMMON_VALUE_CURRENT}
+SCHEDULE_TEXT_LEDGER_SHOP-PURCHASE,상점 구매: {SHOP_VALUE_ITEM-NAME},상점 구매: {SHOP_VALUE_ITEM-NAME},Store Purchase: {SHOP_VALUE_ITEM-NAME}
+SCHEDULE_TEXT_LEDGER_PERFORMANCE-SUCCESS,공연 성공 정산,공연 성공 정산,Performance success settlement
+SCHEDULE_TEXT_LEDGER_PERFORMANCE-FAILURE,공연 실패 정산,공연 실패 정산,Settlement for failed performances
+SCHEDULE_TEXT_LEDGER_GENERATION-RESET,세대 교체 초기화,세대 교체 초기화,Generational Replacement Reset
+SCHEDULE_TEXT_LEDGER_MEDICAL,의료용 서비스 {COMMON_VALUE_COUNT}개 — {COMMON_VALUE_PLAYER-NAME},의료용 서비스 {COMMON_VALUE_COUNT}개 — {COMMON_VALUE_PLAYER-NAME},Medical services {COMMON_VALUE_COUNT} items — {COMMON_VALUE_PLAYER-NAME}
+SCHEDULE_TEXT_LEDGER_MEDICAL-ADD,의료용 서비스 {COMMON_VALUE_COUNT}개 추가 — {COMMON_VALUE_PLAYER-NAME},의료용 서비스 {COMMON_VALUE_COUNT}개 추가 — {COMMON_VALUE_PLAYER-NAME},Added {COMMON_VALUE_COUNT} medical services — {COMMON_VALUE_PLAYER-NAME}
+SCHEDULE_PROMPT_BOARD-ACTION,스케줄표 보기,스케줄표 보기,View Schedule
+SCHEDULE_TEXT_BOARD-ACTION-NEW,스케줄표 보기 · 새 공연 {SCHEDULE_VALUE_PERFORMANCE} 편성 가능,스케줄표 보기 · 새 공연 {SCHEDULE_VALUE_PERFORMANCE} 편성 가능,View Schedule · New performance {SCHEDULE_VALUE_PERFORMANCE} available for scheduling
+SCHEDULE_TEXT_CONTEXT-NEW-TRICK,새 공연 {SCHEDULE_VALUE_PERFORMANCE} 편성 가능,새 공연 {SCHEDULE_VALUE_PERFORMANCE} 편성 가능,New performance {SCHEDULE_VALUE_PERFORMANCE} available for scheduling
+SCHEDULE_PROMPT_TIER-REWARD,호응 상한 {COMMON_VALUE_LIMIT} · 완주 보너스 {SCHEDULE_VALUE_BONUS},호응 상한 {COMMON_VALUE_LIMIT} · 완주 보너스 {SCHEDULE_VALUE_BONUS},Response Cap {COMMON_VALUE_LIMIT} · Finish Bonus {SCHEDULE_VALUE_BONUS}
+SCHEDULE_PROMPT_CONFIRMED,스케줄표를 확정했습니다.,스케줄표를 확정했습니다.,We have finalized the schedule.
+SCHEDULE_TEXT_REFUSE-NOT-NIGHT,밤 정비 때만 이용할 수 있습니다.,밤 정비 때만 이용할 수 있습니다.,It is available only during night maintenance.
+SCHEDULE_TEXT_REFUSE-NOT-EDITABLE,지금은 수정할 수 없습니다.,지금은 수정할 수 없습니다.,It cannot be edited at this time.
+SCHEDULE_TEXT_REFUSE-ALREADY-CONFIRMED,일정을 확정했습니다.,일정을 확정했습니다.,We have finalized the schedule.
+SCHEDULE_TEXT_REFUSE-UNKNOWN-TRICK,선택할 수 없는 공연입니다.,선택할 수 없는 공연입니다.,This is a performance that cannot be selected.
+SCHEDULE_TEXT_REFUSE-BAD-SLOT,없는 칸입니다.,없는 칸입니다.,This is an empty space.
+SCHEDULE_TEXT_REFUSE-INCOMPLETE,빈 칸을 모두 채워야 일정을 확정할 수 있습니다.,빈 칸을 모두 채워야 일정을 확정할 수 있습니다.,You must fill in all the blanks to finalize the schedule.
+SCHEDULE_TEXT_REFUSE-BAD-TIER,깬 단계의 다음 단계까지만 선택할 수 있습니다.,깬 단계의 다음 단계까지만 선택할 수 있습니다.,You can only select up to the next stage after the broken stage.
+SCHEDULE_TEXT_REFUSE-NOT-NEXT,쉬는 시간에는 바로 다음 공연의 난이도(단계)만 변경할 수 있습니다.,쉬는 시간에는 바로 다음 공연의 난이도(단계)만 변경할 수 있습니다.,"During the break, you can only change the difficulty (level) of the very next performance."
+SCHEDULE_TEXT_REFUSE-LOCKED,아직 이용할 수 없는 공연입니다.,아직 이용할 수 없는 공연입니다.,This performance is not yet available.
+SCHEDULE_TEXT_REFUSE-OTHER,이용할 수 없습니다.,이용할 수 없습니다.,It is not available.
+SCHEDULE_TITLE_TITLE,공연 스케줄,공연 스케줄,Performance Schedule
+SCHEDULE_TITLE_CONTEXT-NIGHT,{SCHEDULE_VALUE_DAY}일차 밤 · 준비 {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL},{SCHEDULE_VALUE_DAY}일차 밤 · 준비 {COMMON_VALUE_READY-COUNT}/{COMMON_VALUE_TOTAL},{SCHEDULE_VALUE_DAY} Day 1 Night · Preparation {COMMON_VALUE_READY-COUNT} / {COMMON_VALUE_TOTAL}
+SCHEDULE_TEXT_CONTEXT-DAWN,{SCHEDULE_VALUE_DAY}일차 밤 · 스케줄표를 닫으면 하루 일정을 마칩니다.,{SCHEDULE_VALUE_DAY}일차 밤 · 스케줄표를 닫으면 하루 일정을 마칩니다.,{SCHEDULE_VALUE_DAY} Day Night · Closing the schedule finishes the day's schedule.
+SCHEDULE_TEXT_CONTEXT-DEMO-ENDING,4일차 아침 · 스케줄표를 닫으면 하루 일정을 마칩니다.,4일차 아침 · 스케줄표를 닫으면 하루 일정을 마칩니다.,Day 4 Morning · Closing the schedule finishes the day's schedule.
+SCHEDULE_TEXT_CONTEXT-DEFAULT,공연 일정 1~3일 · 입장 전 변경 가능,공연 일정 1~3일 · 입장 전 변경 가능,Performance Schedule: 1–3 days · Changes possible before entry
+SCHEDULE_TEXT_DAY-LABEL,{SCHEDULE_VALUE_DAY}일차,{SCHEDULE_VALUE_DAY}일차,{SCHEDULE_VALUE_DAY} Day
+SCHEDULE_TEXT_CARD-TITLE,공연 {COMMON_VALUE_COUNT} · {COMMON_VALUE_TITLE},공연 {COMMON_VALUE_COUNT} · {COMMON_VALUE_TITLE},Performance {COMMON_VALUE_COUNT} · {COMMON_VALUE_TITLE}
+SCHEDULE_TEXT_CARD-EMPTY-TITLE,미편성,미편성,Unorganized
+SCHEDULE_TEXT_CARD-PICK,공연을 선택해 주세요,공연을 선택해 주세요,Please select a performance
+SCHEDULE_TEXT_CARD-FIXED,고정,고정,fix
+SCHEDULE_TEXT_CARD-LOCKED,확정,확정,confirmed
+SCHEDULE_TEXT_CARD-CLICK,클릭하여 변경,클릭하여 변경,Click to change
+SCHEDULE_TEXT_CARD-UNCONFIRMED,미확정,미확정,Unconfirmed
+SCHEDULE_BUTTON_TIER-BUTTON,{SCHEDULE_VALUE_DIFFICULTY}단계,{SCHEDULE_VALUE_DIFFICULTY}단계,Step {SCHEDULE_VALUE_DIFFICULTY}
+SCHEDULE_BUTTON_TIER-REWARD-LINE,{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD},{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD},{SCHEDULE_VALUE_DIFFICULTY} Step · {SCHEDULE_VALUE_REWARD}
+SCHEDULE_TEXT_TIER-HOST-ONLY,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+단계는 호스트가 선택합니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+단계는 호스트가 선택합니다.","Steps {SCHEDULE_VALUE_DIFFICULTY}, {SCHEDULE_VALUE_REWARD}, and
+are selected by the host."
+SCHEDULE_TEXT_TIER-LOCKED,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+{SCHEDULE_VALUE_PERFORMANCE} {SCHEDULE_VALUE_PREVIOUS-TIER}단계를 깨면 열립니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+{SCHEDULE_VALUE_PERFORMANCE} {SCHEDULE_VALUE_PREVIOUS-TIER}단계를 깨면 열립니다.","It opens when you break steps {SCHEDULE_VALUE_DIFFICULTY} · {SCHEDULE_VALUE_REWARD}
+{SCHEDULE_VALUE_PERFORMANCE} {SCHEDULE_VALUE_PREVIOUS-TIER}."
+SCHEDULE_TEXT_TIER-NEXT-PERFORMANCE,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+다음 공연 입장 전까지 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+다음 공연 입장 전까지 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY} Step · {SCHEDULE_VALUE_REWARD}
+You can change it until entry to the next performance."
+SCHEDULE_TEXT_TIER-REST-ONLY,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+공연 입장 전 쉬는 시간이나 정비 시간에 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+공연 입장 전 쉬는 시간이나 정비 시간에 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY} Step · {SCHEDULE_VALUE_REWARD}
+You can change during the break or maintenance time before entering the performance."
+SCHEDULE_BUTTON_UI-WAITING,일정 정보를 기다리는 중입니다.,일정 정보를 기다리는 중입니다.,I am waiting for schedule information.
+SCHEDULE_TEXT_HOVER-CONFIRMED,일정이 확정되었습니다.,일정이 확정되었습니다.,The schedule has been confirmed.
+SCHEDULE_TEXT_HOVER-CONFIRM,호스트가 편성을 확정합니다. 확정한 일정은 다시 변경할 수 없습니다.,호스트가 편성을 확정합니다. 확정한 일정은 다시 변경할 수 없습니다.,The host confirms the schedule. The confirmed schedule cannot be changed again.
+SCHEDULE_TEXT_HOVER-DAY-FIXED,변경할 수 없습니다.,변경할 수 없습니다.,Cannot be changed.
+SCHEDULE_TEXT_HOVER-DAY-SECOND,클릭할 때마다 두 번째 공연이 바뀌며 즉시 적용됩니다.,클릭할 때마다 두 번째 공연이 바뀌며 즉시 적용됩니다.,The second performance changes with each click and is applied immediately.
+SCHEDULE_TEXT_FOOTER-FIRST-DAY-HOST,두 번째 공연은 입장 전까지 변경할 수 있습니다,두 번째 공연은 입장 전까지 변경할 수 있습니다,The second performance can be changed until admission.
+SCHEDULE_TEXT_FOOTER-FIRST-DAY-GUEST,호스트가 두 번째 공연을 고르는 중입니다,호스트가 두 번째 공연을 고르는 중입니다,The host is selecting the second performance.
+SCHEDULE_BUTTON_BUTTON-CONFIRM-FIRST-DAY,두 번째 공연 확정,두 번째 공연 확정,Second performance confirmed
+SCHEDULE_TEXT_CONFIRMED-FIRST-DAY,두 번째 공연을 확정했습니다.,두 번째 공연을 확정했습니다.,We have confirmed the second performance.
+SCHEDULE_TEXT_HOVER-LOCKED,확정된 일정입니다.,확정된 일정입니다.,This is the confirmed schedule.
+SCHEDULE_TEXT_HOVER-EDITABLE,클릭할 때마다 공연이 변경됩니다. 카드 아래에서 난이도를 선택할 수 있습니다.,클릭할 때마다 공연이 변경됩니다. 카드 아래에서 난이도를 선택할 수 있습니다.,The performance changes every time you click. You can select the difficulty level below the card.
+SCHEDULE_TEXT_HOVER-HOST-EDITS,공연 입장 전 쉬는 시간에 호스트가 변경할 수 있습니다,공연 입장 전 쉬는 시간에 호스트가 변경할 수 있습니다,The host may change during the break before entering the performance.
+SCHEDULE_PROMPT_FOOTER-CLOSE-TO-CONTINUE,스케줄표를 닫아주세요.,스케줄표를 닫아주세요.,Please close the schedule.
+SCHEDULE_TEXT_FOOTER-READY-AT-BED,숙소로 이동해 하루 일정을 마무리합니다.,숙소로 이동해 하루 일정을 마무리합니다.,We will head to our accommodation to wrap up the day's schedule.
+SCHEDULE_TEXT_FOOTER-HOST-EDITS,호스트가 일정 변경·확정 가능,호스트가 일정 변경·확정 가능,The host can change or confirm the schedule.
+SCHEDULE_TEXT_FOOTER-CONFIRMED,일정 확정 완료,일정 확정 완료,Schedule confirmed
+SCHEDULE_TEXT_FOOTER-EDIT-HELP,카드를 클릭해 공연 변경 · 단계 버튼으로 난이도 선택,카드를 클릭해 공연 변경 · 단계 버튼으로 난이도 선택,Click the card to change the performance · Select difficulty using the stage button
+SCHEDULE_PROMPT_FOOTER-VIEW,공연 일정 보기,공연 일정 보기,View performance schedule
+SCHEDULE_TEXT_FOOTER-REST-GUEST,다음 공연 {SCHEDULE_VALUE_DIFFICULTY}단계 · 단계는 호스트가 입장 전까지 바꿀 수 있습니다,다음 공연 {SCHEDULE_VALUE_DIFFICULTY}단계 · 단계는 호스트가 입장 전까지 바꿀 수 있습니다,Next performance {SCHEDULE_VALUE_DIFFICULTY} Stage · The stage can be changed by the host until entry.
+SCHEDULE_TEXT_FOOTER-REST-UNLOCKED,{SCHEDULE_VALUE_DIFFICULTY}단계가 개방되었습니다 · 다음 공연 입장 전까지 난이도를 변경할 수 있습니다,{SCHEDULE_VALUE_DIFFICULTY}단계가 개방되었습니다 · 다음 공연 입장 전까지 난이도를 변경할 수 있습니다,Stage {SCHEDULE_VALUE_DIFFICULTY} has been unlocked · You can change the difficulty until entering the next performance.
+SCHEDULE_TEXT_FOOTER-REST-HOST,다음 공연 난이도는 입장 전까지 변경할 수 있습니다,다음 공연 난이도는 입장 전까지 변경할 수 있습니다,The difficulty level for the next performance can be changed until entry.
+SCHEDULE_BUTTON_BUTTON-CONFIRM,일정 확정,일정 확정,Schedule confirmed
+SCHEDULE_BUTTON_BUTTON-CONFIRMED,확정 완료,확정 완료,Confirmed
+SCHEDULE_BUTTON_TIER-CHANGED,다음 공연을 {SCHEDULE_VALUE_DIFFICULTY}단계로 변경했습니다,다음 공연을 {SCHEDULE_VALUE_DIFFICULTY}단계로 변경했습니다,Changed the next performance to step {SCHEDULE_VALUE_DIFFICULTY}.
+SCHEDULE_TEXT_CONFIRMED-MESSAGE,일정이 확정되었습니다,일정이 확정되었습니다,The schedule has been confirmed.
+SCHEDULE_TITLE_ENTRY-BLOCKED,공연 일정 미확정,공연 일정 미확정,Performance schedule unconfirmed
+SCHEDULE_DESCRIPTION_ENTRY-BLOCKED,스케줄표에서 공연을 먼저 확정해야 무대에 입장할 수 있습니다. 호스트가 로비 스케줄표에서 공연을 선택하고 확정하세요.,스케줄표에서 공연을 먼저 확정해야 무대에 입장할 수 있습니다. 호스트가 로비 스케줄표에서 공연을 선택하고 확정하세요.,You must confirm the performance on the schedule first to enter the stage. The host should select and confirm the performance on the lobby schedule.
+SCHEDULE_NAME_MORNING-BREAK,아침 휴식,아침 휴식,Morning break
+SCHEDULE_NAME_MORNING-PERFORMANCE,오전 공연,오전 공연,Morning performance
+SCHEDULE_NAME_DAY-BREAK,낮 휴식,낮 휴식,Day break
+SCHEDULE_NAME_AFTERNOON-PERFORMANCE,오후 공연,오후 공연,afternoon performance
+SCHEDULE_TEXT_SLEEP,수면,수면,sleep
+SCHEDULE_TEXT_DAY_0,1일차,1일차,Day 1
+SCHEDULE_TEXT_MORNING,오전,오전,morning
+SCHEDULE_TEXT_DIFFICULTY,난이도,난이도,Difficulty
+SCHEDULE_TEXT_RESPONSE,호응,호응,response
+SCHEDULE_TEXT_CURRENT-FIRST,현재 일차,현재 일차,Current first
+SCHEDULE_TEXT_STEP,1단계,1단계,Step 1
+SCHEDULE_TEXT_RESPONSE-CAP-COMPLETION-BONUS,호응 상한 100   |   완주 보너스 100,호응 상한 100   |   완주 보너스 100,Response Cap 100 | Completion Bonus 100
+SCHEDULE_TEXT_CLICK-SLOT-CHANGE-PERFORMANCE-LEFT-RIGHT_0,슬롯 클릭: 공연 변경   |   좌우 화살표: 난이도 변경   ·   선택 즉시 적용,슬롯 클릭: 공연 변경   |   좌우 화살표: 난이도 변경   ·   선택 즉시 적용,Click slot: Change performance | Left/Right arrows: Change difficulty · Apply immediately upon selection
+SCHEDULE_TEXT_PERFORMANCE_1,공연 1,공연 1,Performance 1
+SCHEDULE_TEXT_CLOSE-ESC,닫기  ESC,닫기  ESC,Close ESC
+SCHEDULE_TEXT_DAY_2,3일차,3일차,Day 3
+SCHEDULE_TEXT_CHANGE-PERFORMANCE-CLICKING-SLOT,슬롯 클릭으로 공연 변경,슬롯 클릭으로 공연 변경,Change performance by clicking the slot
+SCHEDULE_TEXT_PERFORMANCE_3,공연 2,공연 2,Performance 2
+SCHEDULE_TEXT_TODAY,현재,현재,today
+SCHEDULE_TEXT_FUNAMBULISM,줄타기,줄타기,funambulism
+SCHEDULE_TEXT_DAY_1,2일차,2일차,Day 2
+SCHEDULE_TEXT_DAY-NIGHT-PREPARATION,1일차 밤 · 준비 0/4,1일차 밤 · 준비 0/4,Day 1 Night · Preparation 0/4
+SCHEDULE_TEXT_PAUSE,일시정지,일시정지,Pause
+SCHEDULE_TEXT_FIRST-ARGUMENT-DAY-SECOND-ARGUMENT_1,{COMMON_VALUE_FIRST-ARGUMENT}일차 · {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}일차 · {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Day · {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_NAVIGATION-LOCK-SETTINGS-CURRENT-TIME-ZONE,현재 시간대의 탐색 잠금 설정이 켜져 있습니다,현재 시간대의 탐색 잠금 설정이 켜져 있습니다,Navigation lock settings for the current time zone are turned on.
+SCHEDULE_TEXT_DO-NOT-AUTHORITY-DETERMINE-JOINT-FUNDS,공동 자금 판정 권한이 없습니다.,공동 자금 판정 권한이 없습니다.,You do not have the authority to determine joint funds.
+SCHEDULE_TEXT_F-VIEW-SCHEDULE,[F] 스케줄표 보기,[F] 스케줄표 보기,[F] View Schedule
+SCHEDULE_TEXT_SCHEDULE-DAY-MORNING,스케줄표 — 4일차 아침,스케줄표 — 4일차 아침,Schedule — Day 4 Morning
+SCHEDULE_TEXT_SCHEDULE-FIRST-ARGUMENT-DAY-NIGHT-MAINTENANCE,스케줄표 — {COMMON_VALUE_FIRST-ARGUMENT}일차 밤 정비,스케줄표 — {COMMON_VALUE_FIRST-ARGUMENT}일차 밤 정비,Schedule — {COMMON_VALUE_FIRST-ARGUMENT} Day 1 Night Maintenance
+SCHEDULE_TEXT_SCHEDULE-VIEW-ONLY-FILL-OUT-DURING,스케줄표 (보기만 — 작성은 밤 정비 때),스케줄표 (보기만 — 작성은 밤 정비 때),Schedule (View only — fill out during night maintenance)
+SCHEDULE_TEXT_DAY-MORNING-BREAK-PERFORMANCE-BREAK-PERFORMANCE,하루: 아침 쉬는 시간 → 공연 1 → 쉬는 시간 → 공연 2 → 밤 정비,하루: 아침 쉬는 시간 → 공연 1 → 쉬는 시간 → 공연 2 → 밤 정비,Day: Morning Break → Performance 1 → Break → Performance 2 → Night Maintenance
+SCHEDULE_TEXT_SELECTED-SCHEDULE-APPLIES-IMMEDIATELY-CHANGED-UNTIL,고른 일정은 즉시 적용되며 공연 입장 전까지 바꿀 수 있습니다.,고른 일정은 즉시 적용되며 공연 입장 전까지 바꿀 수 있습니다.,The selected schedule applies immediately and can be changed until entry to the performance.
+SCHEDULE_TEXT_READY-FIRST-ARGUMENT-SECOND-ARGUMENT-LIE,준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} — 숙소 침대에 누워 준비합니다.,준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} — 숙소 침대에 누워 준비합니다.,Ready {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} — Lie down on the bed at the accommodation and get ready.
+SCHEDULE_TEXT_DO-NOT-RUN_1,실행 안 함,실행 안 함,Do not run
+SCHEDULE_TEXT_DO-NOT-RUN_0, · 실행 안 함, · 실행 안 함,· Do not run
+SCHEDULE_TEXT_FIRST-ARGUMENT-DAY-SECOND-ARGUMENT_0,{COMMON_VALUE_FIRST-ARGUMENT}일차   {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT}일차   {COMMON_VALUE_SECOND-ARGUMENT},{COMMON_VALUE_FIRST-ARGUMENT} Day {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_PERFORMANCE-FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD,공연 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT},공연 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}{COMMON_VALUE_THIRD-ARGUMENT},Performance {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}
+SCHEDULE_TEXT_FIRST-ARGUMENT-STEP-SECOND-ARGUMENT,  ({COMMON_VALUE_FIRST-ARGUMENT}단계 · {COMMON_VALUE_SECOND-ARGUMENT}),  ({COMMON_VALUE_FIRST-ARGUMENT}단계 · {COMMON_VALUE_SECOND-ARGUMENT}),( {COMMON_VALUE_FIRST-ARGUMENT} Step · {COMMON_VALUE_SECOND-ARGUMENT} )
+SCHEDULE_TEXT_STEP-FIRST-ARGUMENT,{COMMON_VALUE_FIRST-ARGUMENT}단계,{COMMON_VALUE_FIRST-ARGUMENT}단계,Step {COMMON_VALUE_FIRST-ARGUMENT}
+SCHEDULE_TEXT_ONLY-USED-DURING-NIGHT-MAINTENANCE,밤 정비 때만 쓸 수 있습니다.,밤 정비 때만 쓸 수 있습니다.,It can only be used during night maintenance.
+SCHEDULE_TEXT_PRIMARY-CANNOT-FIXED-TIME,지금은 고칠 수 없는 일차입니다.,지금은 고칠 수 없는 일차입니다.,It is a primary that cannot be fixed at this time.
+SCHEDULE_TEXT_I-ALREADY-CONFIRMED-NIGHT,이번 밤에는 이미 확정했습니다.,이번 밤에는 이미 확정했습니다.,I have already confirmed this night.
+SCHEDULE_TEXT_PERFORMANCE-CANNOT-SELECTED,고를 수 없는 공연입니다.,고를 수 없는 공연입니다.,It is a performance that cannot be selected.
+SCHEDULE_TEXT_MUST-FILL-ALL-BLANKS-CONFIRM,빈 칸을 모두 채워야 확정할 수 있습니다.,빈 칸을 모두 채워야 확정할 수 있습니다.,You must fill in all the blanks to confirm.
+SCHEDULE_TEXT_ONLY-SELECT-UP-NEXT-STAGE-AFTER,깬 단계의 다음 단계까지만 고를 수 있습니다.,깬 단계의 다음 단계까지만 고를 수 있습니다.,You can only select up to the next stage after the broken stage.
+SCHEDULE_TEXT_DURING-BREAK-ONLY-CHANGE-STAGE-VERY,쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다.,쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다.,"During the break, you can only change the stage of the very next performance."
+SCHEDULE_TEXT_PERFORMANCE-HAVEN-T-FOUND-YET-MUST,아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다.,아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다.,This is a performance you haven't found yet. You must find the performance equipment in the backstage to unlock it.
+SCHEDULE_PROMPT_CANNOT-DO,할 수 없습니다.,할 수 없습니다.,You cannot do it.
+SCHEDULE_TEXT_NIGHT-MAINTENANCE-TEST-PANEL-UNFOLDING,밤 정비 테스트 패널 펴기,밤 정비 테스트 패널 펴기,Night maintenance test panel unfolding
+SCHEDULE_TEXT_NIGHT-MAINTENANCE-TEST-PANEL-FOLD,밤 정비 테스트 패널 접기,밤 정비 테스트 패널 접기,Night maintenance test panel fold
+SCHEDULE_PROMPT_RUN-PROGRESS-BUTTON-USED-ONLY-HOST,런 진행 버튼은 호스트만 씁니다.,런 진행 버튼은 호스트만 씁니다.,The run progress button is used only by the host.
+SCHEDULE_TEXT_TODAY-S-SCHEDULE-FIRST-ARGUMENT-SECOND,오늘 스케줄: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT},오늘 스케줄: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT},Today's Schedule: {COMMON_VALUE_FIRST-ARGUMENT} → {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_UNDECIDED,미정,미정,Undecided
+SCHEDULE_TEXT_NIGHT-MAINTENANCE-READY-FIRST-ARGUMENT-SECOND,밤 정비 — 준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} (침대 대신),밤 정비 — 준비 완료 {COMMON_VALUE_FIRST-ARGUMENT}/{COMMON_VALUE_SECOND-ARGUMENT} (침대 대신),Night Maintenance — Ready {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} (Instead of bed)
+SCHEDULE_TEXT_CANCEL-PREPARATION,준비 취소,준비 취소,Cancel preparation
+SCHEDULE_TEXT_PERFORMANCE-SUCCESS-SETTLEMENT-RECEIVING-FUNDS,공연 성공 정산(자금 받기),공연 성공 정산(자금 받기),Performance success settlement (receiving funds)
+SCHEDULE_TEXT_NEXT-PERFORMANCE-ALL-PEOPLE-ENTER-STAGE,다음 공연으로(전원 무대 입구 진입),다음 공연으로(전원 무대 입구 진입),To the next performance (all people enter the stage entrance)
+SCHEDULE_TEXT_SKIP-NIGHT-MAINTENANCE,밤 정비까지 건너뛰기,밤 정비까지 건너뛰기,Skip to night maintenance
+SCHEDULE_TEXT_NIGHT-MAINTENANCE,밤 정비입니다.,밤 정비입니다.,It is night maintenance.
+SCHEDULE_TEXT_I-COULDN-T-MAKE-NIGHT-FIRST,밤까지 가지 못했습니다({COMMON_VALUE_FIRST-ARGUMENT}).,밤까지 가지 못했습니다({COMMON_VALUE_FIRST-ARGUMENT}).,I couldn't make it to night ( {COMMON_VALUE_FIRST-ARGUMENT} ).
+SCHEDULE_TEXT_ONLY-AVAILABLE-DURING-PERFORMANCE-PHASE,공연 단계에서만 됩니다.,공연 단계에서만 됩니다.,It is only available during the performance phase.
+SCHEDULE_TEXT_NIGHT-MAINTENANCE-TEST-FUNDS,밤 정비 테스트 자금,밤 정비 테스트 자금,Night maintenance test funds
+SCHEDULE_TEXT_CLICK-SLOT-CHANGE-PERFORMANCE-LEFT-RIGHT_1,슬롯 클릭으로 공연을 변경합니다. 좌우 화살표는 난이도만 변경합니다.,슬롯 클릭으로 공연을 변경합니다. 좌우 화살표는 난이도만 변경합니다.,Click the slot to change the performance. The left and right arrows only change the difficulty.
+SCHEDULE_TEXT_HOST-MAY-CHANGE-DURING-BREAK-BEFORE,공연이 시작되기 전 쉬는 시간에 호스트가 변경할 수 있습니다.,공연이 시작되기 전 쉬는 시간에 호스트가 변경할 수 있습니다.,The host may change during the break before the performance begins.
+SCHEDULE_TEXT_PERFORMANCE-CHANGE,공연 변경,공연 변경,Performance change
+SCHEDULE_TEXT_STEPS-DIFFICULTY-REWARD-DETERMINED-HOST,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+단계는 호스트가 정합니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+단계는 호스트가 정합니다.","Steps {SCHEDULE_VALUE_DIFFICULTY}, {SCHEDULE_VALUE_REWARD}, and
+are determined by the host."
+SCHEDULE_TEXT_DIFFICULTY-STEP-REWARD-CHANGED-DURING-NIGHT,"{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+밤 정비 또는 그 공연 직전 쉬는 시간에 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY}단계 · {SCHEDULE_VALUE_REWARD}
+밤 정비 또는 그 공연 직전 쉬는 시간에 바꿀 수 있습니다.","{SCHEDULE_VALUE_DIFFICULTY} Step · {SCHEDULE_VALUE_REWARD}
+Can be changed during night maintenance or the break immediately before the performance."
+SCHEDULE_TEXT_CHANGES-MADE-BEFORE-ENTRY,입장 전 변경 가능,입장 전 변경 가능,Changes can be made before entry
+SCHEDULE_TEXT_DAY-DAY-NIGHT-CLOSING-SCHEDULE-MOVES,{SCHEDULE_VALUE_DAY}일차 밤 · 스케줄표를 닫으면 다음 날 아침으로 넘어갑니다,{SCHEDULE_VALUE_DAY}일차 밤 · 스케줄표를 닫으면 다음 날 아침으로 넘어갑니다,{SCHEDULE_VALUE_DAY} Day 1 Night · Closing the schedule moves to the next morning.
+SCHEDULE_TEXT_DAY-MORNING-CLOSING-SCHEDULE-STARTS-DEMO,4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다,4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다,Day 4 Morning · Closing the schedule starts the demo end sequence.
+SCHEDULE_TEXT_CLOSE-SCHEDULE-PROCEED-DIRECTION,스케줄표를 닫아 연출을 진행하세요,스케줄표를 닫아 연출을 진행하세요,Close the schedule and proceed with the direction.
+SCHEDULE_TEXT_SELECTED-APPLIED-IMMEDIATELY-CHANGES-MADE-UNTIL,선택 즉시 적용 · 공연 입장 전까지 변경 가능 · 수면은 숙소 침대에서,선택 즉시 적용 · 공연 입장 전까지 변경 가능 · 수면은 숙소 침대에서,Selected and applied immediately · Changes can be made until entry to the performance · Sleep in your accommodation bed
+SCHEDULE_TEXT_HOST-MAY-CHANGE-SCHEDULE-UP-TIME,호스트가 공연 입장 전까지 일정을 변경할 수 있습니다,호스트가 공연 입장 전까지 일정을 변경할 수 있습니다,The host may change the schedule up to the time of entry to the performance.
+SCHEDULE_TEXT_HOST-CHANGES-PERFORMANCE-DIFFICULTY-SELECTIONS-APPLY,호스트가 공연과 난이도를 변경합니다 · 선택 내용은 모두에게 적용됩니다,호스트가 공연과 난이도를 변경합니다 · 선택 내용은 모두에게 적용됩니다,The host changes the performance and difficulty · Selections apply to everyone
+SCHEDULE_TEXT_PERFORMANCE-CHANGED,공연 변경됨,공연 변경됨,Performance changed
+SCHEDULE_TEXT_STEP-FIRST-ARGUMENT-APPLIED,{COMMON_VALUE_FIRST-ARGUMENT}단계 적용됨,{COMMON_VALUE_FIRST-ARGUMENT}단계 적용됨,Step {COMMON_VALUE_FIRST-ARGUMENT} applied
+SCHEDULE_TEXT_CHANGED-NEXT-PERFORMANCE-STEP-DIFFICULTY,다음 공연을 {SCHEDULE_VALUE_DIFFICULTY}단계로 바꿨습니다,다음 공연을 {SCHEDULE_VALUE_DIFFICULTY}단계로 바꿨습니다,Changed the next performance to step {SCHEDULE_VALUE_DIFFICULTY}.
+SCHEDULE_TEXT_REMAINING,남은 ,남은 ,The remaining
+SCHEDULE_TEXT_PERFORMANCE-FIRST-ARGUMENT_0,공연 {COMMON_VALUE_FIRST-ARGUMENT},공연 {COMMON_VALUE_FIRST-ARGUMENT},Performance {COMMON_VALUE_FIRST-ARGUMENT}
+SCHEDULE_PROMPT_CANNOT-CHANGED,변경 불가,변경 불가,Cannot be changed
+SCHEDULE_TEXT_HOST-CHANGES-PERFORMANCE,호스트가 공연을 변경합니다,호스트가 공연을 변경합니다,The host changes the performance.
+SCHEDULE_TEXT_RESPONSE-CAP-FIRST-ARGUMENT-FINISH-BONUS,호응 상한 {COMMON_VALUE_FIRST-ARGUMENT}   |   완주 보너스 {COMMON_VALUE_SECOND-ARGUMENT},호응 상한 {COMMON_VALUE_FIRST-ARGUMENT}   |   완주 보너스 {COMMON_VALUE_SECOND-ARGUMENT},Response Cap {COMMON_VALUE_FIRST-ARGUMENT} | Finish Bonus {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_HOST-ONLY,호스트 전용,호스트 전용,Host Only
+SCHEDULE_TEXT_FIXED-DIFFICULTY,난이도 고정,난이도 고정,Fixed difficulty
+SCHEDULE_TEXT_STAGE-FIRST-ARGUMENT-UNLOCKED,{COMMON_VALUE_FIRST-ARGUMENT}단계 미해금,{COMMON_VALUE_FIRST-ARGUMENT}단계 미해금,Stage {COMMON_VALUE_FIRST-ARGUMENT} Unlocked
+SCHEDULE_TEXT_PERFORMANCE-END-NOTIFICATION,공연 종료 알림,공연 종료 알림,Performance End Notification
+SCHEDULE_TEXT_PLEASE-CHECK-CONNECTION-STATUS,연결 상태를 확인해 주세요,연결 상태를 확인해 주세요,Please check the connection status.
+SCHEDULE_PROMPT_FAILED-COMPLETE-SCREEN-TRANSITION,화면 전환을 완료하지 못했습니다,화면 전환을 완료하지 못했습니다,Failed to complete screen transition
+SCHEDULE_TEXT_RESPONSE-RATE-UNIT-REDUCED-HALF,해당 단원의 호응도가 절반으로 줄어듭니다,해당 단원의 호응도가 절반으로 줄어듭니다,The response rate of that unit is reduced by half.
+SCHEDULE_TEXT_PERFORMANCE-END-FIRST-ARGUMENT-SECONDS,{COMMON_VALUE_FIRST-ARGUMENT}초 후에 공연이 종료됩니다,{COMMON_VALUE_FIRST-ARGUMENT}초 후에 공연이 종료됩니다,The performance will end in {COMMON_VALUE_FIRST-ARGUMENT} seconds.
+SCHEDULE_TEXT_GIVE-UP-PERFORMANCE,공연 포기,공연 포기,Give up on the performance
+SCHEDULE_TEXT_SHOULD-WE-GIVE-UP-PERFORMANCE-GO,공연을 포기하고 대기실로 돌아갈까요?,공연을 포기하고 대기실로 돌아갈까요?,Should we give up on the performance and go back to the dressing room?
+SCHEDULE_TEXT_GIVING-UP,포기하기,포기하기,Giving up
+SCHEDULE_TEXT_PERFORMANCE-WAS-HUGE-SUCCESS,공연 대성공,공연 대성공,The performance was a huge success.
+SCHEDULE_TEXT_GIVE-UP,포기,포기,give up
+SCHEDULE_TEXT_UNIT-FIRST-ARGUMENT-SECOND-ARGUMENT-THIRD,단원 {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT},단원 {COMMON_VALUE_FIRST-ARGUMENT}{COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT},Unit {COMMON_VALUE_FIRST-ARGUMENT} {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}
+SCHEDULE_TEXT_ME,(나),(나),(me)
+SCHEDULE_TEXT_COMPLETION-TIME-FIRST-ARGUMENT-SECONDS,완료 시간 {COMMON_VALUE_FIRST-ARGUMENT}초,완료 시간 {COMMON_VALUE_FIRST-ARGUMENT}초,Completion time {COMMON_VALUE_FIRST-ARGUMENT} seconds
+SCHEDULE_TEXT_END-BEFORE-FIRE-TIMER-STARTS,불 타이머 시작 전 종료,불 타이머 시작 전 종료,End before the fire timer starts
+SCHEDULE_TEXT_HUMAN-CANNON,인간대포,인간대포,Human Cannon
+SCHEDULE_TEXT_INDIVIDUAL-FINAL-LOCATION,개인 최종 위치,개인 최종 위치,Individual final location
+SCHEDULE_TEXT_DESTINATION-FIRST-ARGUMENT-M,도착 지점 {COMMON_VALUE_FIRST-ARGUMENT}m,도착 지점 {COMMON_VALUE_FIRST-ARGUMENT}m,Destination {COMMON_VALUE_FIRST-ARGUMENT} m
+SCHEDULE_TEXT_NO-COURSE-RECORD,코스 기록 없음,코스 기록 없음,No course record
+SCHEDULE_TEXT_RESPONSE-REWARD,호응 보상,호응 보상,Response reward
+SCHEDULE_TEXT_SURVIVAL-BONUS-FIRST-ARGUMENT-PEOPLE,생존 보너스 ({COMMON_VALUE_FIRST-ARGUMENT}명),생존 보너스 ({COMMON_VALUE_FIRST-ARGUMENT}명),Survival Bonus ( {COMMON_VALUE_FIRST-ARGUMENT} people)
+SCHEDULE_TEXT_PERFORMANCE-FIRST-ARGUMENT_1,이번 공연 +{COMMON_VALUE_FIRST-ARGUMENT},이번 공연 +{COMMON_VALUE_FIRST-ARGUMENT},This performance + {COMMON_VALUE_FIRST-ARGUMENT}
+SCHEDULE_TEXT_RESPONSE-REWARDS-SURVIVAL-X-DEATH-X,호응 보상: 생존 2배 · 사망 1배   |   다음 공간으로 이동 {COMMON_VALUE_FIRST-ARGUMENT}초,호응 보상: 생존 2배 · 사망 1배   |   다음 공간으로 이동 {COMMON_VALUE_FIRST-ARGUMENT}초,Response Rewards: Survival 2x · Death 1x | Move to next area {COMMON_VALUE_FIRST-ARGUMENT} seconds
+SCHEDULE_TEXT_RUN,런 전,런 전,Run
+SCHEDULE_TEXT_PRODUCTION-GENERATIONAL-CHANGE,세대 교체 연출,세대 교체 연출,Production of generational change
+SCHEDULE_TEXT_INTRO-CUTSCENE,도입 컷씬,도입 컷씬,Intro cutscene
+SCHEDULE_TEXT_PERFORMANCE-FIRST-ARGUMENT-SECOND-ARGUMENT,공연 {COMMON_VALUE_FIRST-ARGUMENT}({COMMON_VALUE_SECOND-ARGUMENT}),공연 {COMMON_VALUE_FIRST-ARGUMENT}({COMMON_VALUE_SECOND-ARGUMENT}),Performance {COMMON_VALUE_FIRST-ARGUMENT} ( {COMMON_VALUE_SECOND-ARGUMENT} )
+SCHEDULE_TEXT_LAST-MORNING-BREAK,마지막 아침 쉬는 시간,마지막 아침 쉬는 시간,Last morning break
+SCHEDULE_TEXT_MORNING-BREAK-TIME,아침 쉬는 시간,아침 쉬는 시간,Morning break time
+SCHEDULE_TEXT_GUIDE-BREAK-TIME,가이드 쉬는 시간,가이드 쉬는 시간,Guide break time
+SCHEDULE_TEXT_FIRST-ARGUMENT-PERFORMANCE-SECOND-ARGUMENT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} → 공연 {COMMON_VALUE_SECOND-ARGUMENT}({COMMON_VALUE_THIRD-ARGUMENT}),{COMMON_VALUE_FIRST-ARGUMENT} → 공연 {COMMON_VALUE_SECOND-ARGUMENT}({COMMON_VALUE_THIRD-ARGUMENT}),{COMMON_VALUE_FIRST-ARGUMENT} → Performance {COMMON_VALUE_SECOND-ARGUMENT} ( {COMMON_VALUE_THIRD-ARGUMENT} )
+SCHEDULE_TEXT_DEMO-PLAY-ENDS,데모 플레이 종료,데모 플레이 종료,Demo play ends
+SCHEDULE_TEXT_TRANSITIONING-NEXT-MORNING,다음 날 아침으로 전환 중,다음 날 아침으로 전환 중,Transitioning to the next morning
+SCHEDULE_TEXT_PRACTICE-ROOM-REHEARSAL-PERFORMANCE-FIRST-ARGUMENT,연습실 리허설 → 공연 1({COMMON_VALUE_FIRST-ARGUMENT}),연습실 리허설 → 공연 1({COMMON_VALUE_FIRST-ARGUMENT}),Practice Room Rehearsal → Performance 1( {COMMON_VALUE_FIRST-ARGUMENT} )
+SCHEDULE_TEXT_ESCAPE-BEGINS,탈출 개시,탈출 개시,Escape begins
+SCHEDULE_TEXT_CLICK-OPEN-DEMO-START,데모 열기를 눌러 시작하세요,데모 열기를 눌러 시작하세요,Click Open Demo to start.
+SCHEDULE_TEXT_W-READ-ONLY-SCHEDULE-DISPLAY-EXAMPLE,"W3 읽기 전용 일정 표시 예시 / 실제 일정·보상·경제·저장·네트워크 연결 없음
+Play 시작 Hidden · 현재와 확정은 독립 표시 값입니다","W3 읽기 전용 일정 표시 예시 / 실제 일정·보상·경제·저장·네트워크 연결 없음
+Play 시작 Hidden · 현재와 확정은 독립 표시 값입니다","W3 Read-only schedule display example / Actual schedule·Rewards·Economy·Save·No network connection
+Start Play Hidden · Current and Confirmed are independent display values"
+SCHEDULE_TEXT_FULL-SCREEN-NO-DIMMING-DAILY-SCROLLING,"1920×1080 / 1920×1200 · 전체 화면 딤 없음 · 일차별 스크롤
+표시 갱신은 일차 ID로 스크롤 유지 · 리비전 순서는 호출자 책임","1920×1080 / 1920×1200 · 전체 화면 딤 없음 · 일차별 스크롤
+표시 갱신은 일차 ID로 스크롤 유지 · 리비전 순서는 호출자 책임","1920×1080 / 1920×1200 · Full screen, no dimming · Daily scrolling
+Display updates maintain scrolling by primary ID · Revision order is the caller's responsibility"
+SCHEDULE_TEXT_CLICK-OPEN-DEMO-START-RENEW-SAME,데모 열기를 눌러 시작하세요 같은 세션 갱신 다른 세션 거절 갱신 거절 복구 완료 ,데모 열기를 눌러 시작하세요 같은 세션 갱신 다른 세션 거절 갱신 거절 복구 완료 ,Click Open Demo to start. Renew the same session. Reject another session. Reject renewal. Recovery complete.
+SCHEDULE_TEXT_PERFORMANCE-SCHEDULE-THREE-DAY-SCHEDULE-PLAY,공연 일정표 3일 공연 일정 일정을 보는 동안에도 플레이는 계속됩니다. 현재 일차 공연 일정 없음 ,공연 일정표 3일 공연 일정 일정을 보는 동안에도 플레이는 계속됩니다. 현재 일차 공연 일정 없음 ,Performance Schedule · Three-day schedule · Play continues while the schedule is open. Current day · No performance scheduled.
+SCHEDULE_TEXT_NO-SCHEDULE-RELEASED-TIGHTROPE-WALKING-HUMAN,공개된 일정이 없습니다. 외줄타기 인간대포 공연 종료 현재 예정 확정 미확정 닫기 ,공개된 일정이 없습니다. 외줄타기 인간대포 공연 종료 현재 예정 확정 미확정 닫기 ,No schedule released. Tightrope Walking Human Cannonball Performance Ended Current Schedule Confirmed Unconfirmed Close
+SCHEDULE_TEXT_EXAMPLE-LONG-PHRASE-GA-PRIMARY-HIDDEN,예시 긴 문구 가 일차 Hidden True False timeScale runInBackground 0123456789.-/:·…<>b,예시 긴 문구 가 일차 Hidden True False timeScale runInBackground 0123456789.-/:·…<>b,Example long phrase Ga Primary Hidden True False timeScale runInBackground 0123456789.-/:·… <>b
+SCHEDULE_TEXT_EXAMPLE-PERFORMANCE,예시 공연 ,예시 공연 ,Example performance
+SCHEDULE_TEXT_PERFORMANCE_0,공연 ,공연 ,performance
+SCHEDULE_TEXT_EXPECTED,예정,예정,expected
+SCHEDULE_TEXT_DAY_4,일차,일차,First
+SCHEDULE_TEXT_NO-PERFORMANCE-SCHEDULE,공연 일정 없음,공연 일정 없음,No performance schedule
+SCHEDULE_TEXT_PERFORMANCE-SCHEDULE,공연 일정표,공연 일정표,Performance Schedule
+SCHEDULE_TEXT_DAY-PERFORMANCE-SCHEDULE,3일 공연 일정,3일 공연 일정,3-day performance schedule
+SCHEDULE_TEXT_GAME-CONTINUES-EVEN-WHILE-VIEWING-SCHEDULE,일정을 보는 동안에도 플레이는 계속됩니다.,일정을 보는 동안에도 플레이는 계속됩니다.,The game continues even while you are viewing the schedule.
+SCHEDULE_TEXT_OVERLAP,겹침 ,겹침 ,Overlap
+SCHEDULE_TEXT_STATIC-DISPLAY-SAMPLE-NOT-ACTUAL-GAME,정적 표시 샘플 · 실제 게임 점수가 아닙니다.,정적 표시 샘플 · 실제 게임 점수가 아닙니다.,Static display sample · Not an actual game score
+SCHEDULE_TEXT_CONNECTING-ACTUAL-OFFLINE-REWARD-API,실제 오프라인 보상 API 연결,실제 오프라인 보상 API 연결,Connecting the actual offline reward API
+SCHEDULE_TEXT_PLEASE-PRESS-ONCE-MORE-AFTER-DRIVER,드라이버 준비 후 한 번 더 눌러 주세요. 진행 중인 런은 초기화하지 않습니다.,드라이버 준비 후 한 번 더 눌러 주세요. 진행 중인 런은 초기화하지 않습니다.,Please press once more after the driver is ready. It will not reset any ongoing runs.
+SCHEDULE_TEXT_C-CHECK-RESPONSE-GAUGE-TEST-ONLY,C1 호응 게이지 확인 · 테스트 전용,C1 호응 게이지 확인 · 테스트 전용,C1 Check Response Gauge · Test Only
+SCHEDULE_TEXT_PREVIEW,미리보기 155,미리보기 155,Preview 155
+SCHEDULE_TEXT_UPPER-LIMIT-TOTAL_0,150 상한 · 합계600,150 상한 · 합계600,150 Upper Limit · Total 600
+SCHEDULE_TEXT_UPPER-LIMIT-TOTAL_1,200 상한 · 합계800,200 상한 · 합계800,200 Upper Limit · Total 800
+SCHEDULE_TEXT_BIN-RING,빈 링,빈 링,Bin Ring
+SCHEDULE_TEXT_FALLING-EMPHASIS-SAMPLE,추락 강조 샘플,추락 강조 샘플,Falling emphasis sample
+SCHEDULE_TEXT_ACTUAL-OFFLINE-START,실제 오프라인 시작,실제 오프라인 시작,Actual offline start
+SCHEDULE_TEXT_UNIT-CHEERS_0,단원1 환호,단원1 환호,Unit 1 Cheers
+SCHEDULE_TEXT_UNIT-CHEERS_1,단원2 환호,단원2 환호,Unit 2 Cheers
+SCHEDULE_TEXT_UNIT-BOOING,단원1 야유,단원1 야유,Unit 1 Booing
+SCHEDULE_TEXT_UNIT-DEATH,단원1 사망,단원1 사망,Unit 1 Death
+SCHEDULE_TEXT_WAITING-PUBLIC-ENTRY-POINT-CONNECTION,공개 진입점 연결 대기,공개 진입점 연결 대기,Waiting for public entry point connection
+SCHEDULE_TEXT_PERFORMANCE-RESULTS-REWARDS-CO-FINANCING-TEST,공연 결과·보상·공동 자금 테스트 / Dev Mode: {COMMON_VALUE_FIRST-ARGUMENT},공연 결과·보상·공동 자금 테스트 / Dev Mode: {COMMON_VALUE_FIRST-ARGUMENT},"Performance Results, Rewards, and Co-financing Test / Dev Mode: {COMMON_VALUE_FIRST-ARGUMENT}"
+SCHEDULE_TEXT_FIRST-ARGUMENT-HOUSEHOLD-SECOND-ARGUMENT-THIRD,{COMMON_VALUE_FIRST-ARGUMENT} / 세대 {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT} / 세대 {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT}일차,{COMMON_VALUE_FIRST-ARGUMENT} / Household {COMMON_VALUE_SECOND-ARGUMENT} · {COMMON_VALUE_THIRD-ARGUMENT} Day
+SCHEDULE_TEXT_PERMISSIONS-FIRST-ARGUMENT-BALANCE-SECOND-ARGUMENT,권한: {COMMON_VALUE_FIRST-ARGUMENT} / 잔액 {COMMON_VALUE_SECOND-ARGUMENT},권한: {COMMON_VALUE_FIRST-ARGUMENT} / 잔액 {COMMON_VALUE_SECOND-ARGUMENT},Permissions: {COMMON_VALUE_FIRST-ARGUMENT} / Balance {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_HOST-OFFLINE,호스트/오프라인,호스트/오프라인,Host/Offline
+SCHEDULE_TEXT_READ-ONLY,읽기 전용,읽기 전용,Read-only
+SCHEDULE_TEXT_REWARD-ASSET-FIRST-ARGUMENT-OVERRIDE-SECOND,보상 에셋: {COMMON_VALUE_FIRST-ARGUMENT} / override: {COMMON_VALUE_SECOND-ARGUMENT},보상 에셋: {COMMON_VALUE_FIRST-ARGUMENT} / override: {COMMON_VALUE_SECOND-ARGUMENT},Reward Asset: {COMMON_VALUE_FIRST-ARGUMENT} / override: {COMMON_VALUE_SECOND-ARGUMENT}
+SCHEDULE_TEXT_NONE-TEMPORARY-DEFAULT,없음(임시 기본값),없음(임시 기본값),None (temporary default)
+SCHEDULE_TEXT_RESULT-CONFIRMED-RETRYING-TIME-ZONE-SWITCH,"결과 확정 완료, 상태 송신 후 시간대 전환 재시도 중","결과 확정 완료, 상태 송신 후 시간대 전환 재시도 중","Result confirmed, retrying time zone switch after status transmission"
+SCHEDULE_TEXT_NIGHT-READY,밤 준비 완료,밤 준비 완료,Night ready
+SCHEDULE_TEXT_CHANGE-PREPARATION,준비 변경,준비 변경,Change of preparation
+SCHEDULE_TEXT_END-INTRODUCTION-PERFORMANCE,도입 끝 → 공연,도입 끝 → 공연,End of introduction → Performance
+SCHEDULE_TEXT_ALL-STAGE-ENTRANCES-NEXT-PERFORMANCE,전원 무대 입구 → 다음 공연,전원 무대 입구 → 다음 공연,All stage entrances → Next performance
+SCHEDULE_TEXT_BREAK-TIME-EXPIRES-GENERATIONAL-CHANGE-LAST,쉬는 시간 만료(마지막 아침이면 세대 교체),쉬는 시간 만료(마지막 아침이면 세대 교체),Break time expires (generational change on the last morning)
+SCHEDULE_TEXT_TIMER-EXPIRES,타이머 만료,타이머 만료,Timer expires
+SCHEDULE_TEXT_ALL-RETIRE-NEW-GENERATION,전원 리타이어 → 새 세대,전원 리타이어 → 새 세대,All retire → New generation
+SCHEDULE_TEXT_DIFFICULTY-APPLIED-NEW-PERFORMANCES,난이도(새 공연에 적용),난이도(새 공연에 적용),Difficulty (applied to new performances)
+SCHEDULE_TEXT_NUMBER-DUMMY-PARTICIPANTS-APPLIED-NEW-PERFORMANCES,더미 참가자 수(새 공연에 적용),더미 참가자 수(새 공연에 적용),Number of dummy participants (applied to new performances)
+SCHEDULE_TEXT_PEOPLE_0,2명,2명,2 people
+SCHEDULE_TEXT_PEOPLE_1,3명,3명,3 people
+SCHEDULE_TEXT_PEOPLE_2,4명,4명,4 people
+SCHEDULE_TEXT_FIXED-PERFORMANCE-ROSTER-POSITIVE-RESPONSE-BEGIN,공연 명부 고정·호응 시작,공연 명부 고정·호응 시작,Fixed performance roster and positive response begin
+SCHEDULE_TEXT_START-PERFORMANCE-RE-CALLING-SAME-PERFORMANCE,공연 시작(같은 공연 재호출은 멱등),공연 시작(같은 공연 재호출은 멱등),Start of performance (re-calling the same performance is [unclear])
+SCHEDULE_TEXT_POSITION-FIRST-ARGUMENT-RESPONSE-SECOND-ARGUMENT,"자리 {COMMON_VALUE_FIRST-ARGUMENT}: 호응 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}, 손실 {COMMON_VALUE_FOURTH-ARGUMENT}→{COMMON_VALUE_FIFTH-ARGUMENT}, {COMMON_VALUE_SIXTH-ARGUMENT}","자리 {COMMON_VALUE_FIRST-ARGUMENT}: 호응 {COMMON_VALUE_SECOND-ARGUMENT}/{COMMON_VALUE_THIRD-ARGUMENT}, 손실 {COMMON_VALUE_FOURTH-ARGUMENT}→{COMMON_VALUE_FIFTH-ARGUMENT}, {COMMON_VALUE_SIXTH-ARGUMENT}","Position {COMMON_VALUE_FIRST-ARGUMENT} : Response {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} , Loss {COMMON_VALUE_FOURTH-ARGUMENT} → {COMMON_VALUE_FIFTH-ARGUMENT} , {COMMON_VALUE_SIXTH-ARGUMENT}"
+SCHEDULE_TEXT_CHEERS,환호 +,환호 +,Cheers +
+SCHEDULE_TEXT_BOOING,야유 −,야유 −,Booing
+SCHEDULE_TEXT_CUT,1곳 절단,1곳 절단,1 cut
+SCHEDULE_TEXT_END-SETTLEMENT-UPON-SUCCESSFUL-STUNT,묘기 성공으로 종료·정산,묘기 성공으로 종료·정산,End and settlement upon successful stunt
+SCHEDULE_TEXT_SUCCESSFUL-TERMINATION-REQUEST,성공 종료 요청,성공 종료 요청,Successful termination request
+SCHEDULE_TEXT_TERMINATION-SETTLEMENT-DUE-FAILURE-TIME-LIMIT,제한 시간 실패로 종료·정산,제한 시간 실패로 종료·정산,Termination and settlement due to failure of time limit
+SCHEDULE_TEXT_FAILURE-TERMINATION-REQUEST,실패 종료 요청,실패 종료 요청,Failure termination request
+SCHEDULE_TEXT_OBSERVATION-PARTICIPANT-STATUS,참가자 상태 관찰,참가자 상태 관찰,Observation of participant status
+SCHEDULE_TEXT_VERIFICATION-VALUES-CHEERS-JEERS-REDUCTION-CAP,검증용 수치: 환호 / 야유 감소량 / 상한 / 완주 보너스 / 절단 보너스,검증용 수치: 환호 / 야유 감소량 / 상한 / 완주 보너스 / 절단 보너스,Verification Values: Cheers / Jeers Reduction / Cap / Finish Bonus / Cut Bonus
+SCHEDULE_TEXT_APPLY-RUNTIME-OVERRIDE-DO-NOT-SAVE,런타임 override 적용(에셋 저장 안 함),런타임 override 적용(에셋 저장 안 함),Apply runtime override (do not save assets)
+SCHEDULE_TEXT_APPLY-NUMERICAL-VALUES,수치 적용,수치 적용,Apply numerical values
+SCHEDULE_TEXT_VALUE-MUST-INTEGER-GREATER-THAN-OR,수치는 0 이상 정수여야 합니다.,수치는 0 이상 정수여야 합니다.,The value must be an integer greater than or equal to 0.
+SCHEDULE_TEXT_RETURN-ASSET-VALUE,에셋 값으로 복귀,에셋 값으로 복귀,Return to asset value
+SCHEDULE_TEXT_UNCHECK-OVERRIDE,override 해제,override 해제,Uncheck override
+SCHEDULE_TEXT_TEST-SPENDING,테스트 지출,테스트 지출,Test spending
+SCHEDULE_TEXT_JOINT-FUND-EXPENDITURE,공동 자금 지출,공동 자금 지출,Joint fund expenditure
+SCHEDULE_TEXT_RECENT-RESULTS-FIRST-ARGUMENT-SECOND-ARGUMENT,최근 결과: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / 수입 {COMMON_VALUE_FOURTH-ARGUMENT} (호응 {COMMON_VALUE_FIFTH-ARGUMENT} + 완주 {COMMON_VALUE_SIXTH-ARGUMENT}),최근 결과: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / 수입 {COMMON_VALUE_FOURTH-ARGUMENT} (호응 {COMMON_VALUE_FIFTH-ARGUMENT} + 완주 {COMMON_VALUE_SIXTH-ARGUMENT}),Recent Results: {COMMON_VALUE_FIRST-ARGUMENT} / {COMMON_VALUE_SECOND-ARGUMENT} / {COMMON_VALUE_THIRD-ARGUMENT} / Revenue {COMMON_VALUE_FOURTH-ARGUMENT} (Response {COMMON_VALUE_FIFTH-ARGUMENT} + Finish {COMMON_VALUE_SIXTH-ARGUMENT})
+SCHEDULE_TEXT_POSITION-FIRST-ARGUMENT-SECOND-ARGUMENT-LOSS,"자리 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}, 손실 {COMMON_VALUE_THIRD-ARGUMENT}→{COMMON_VALUE_FOURTH-ARGUMENT}, 정산 {COMMON_VALUE_FIFTH-ARGUMENT}","자리 {COMMON_VALUE_FIRST-ARGUMENT}: {COMMON_VALUE_SECOND-ARGUMENT}, 손실 {COMMON_VALUE_THIRD-ARGUMENT}→{COMMON_VALUE_FOURTH-ARGUMENT}, 정산 {COMMON_VALUE_FIFTH-ARGUMENT}","Position {COMMON_VALUE_FIRST-ARGUMENT} : {COMMON_VALUE_SECOND-ARGUMENT} , Loss {COMMON_VALUE_THIRD-ARGUMENT} → {COMMON_VALUE_FOURTH-ARGUMENT} , Settlement {COMMON_VALUE_FIFTH-ARGUMENT}"
+SCHEDULE_TEXT_LEDGERS-FIRST-ARGUMENT-SECOND-ARGUMENT-TOTAL,"장부 {COMMON_VALUE_FIRST-ARGUMENT}~{COMMON_VALUE_SECOND-ARGUMENT} / 총 {COMMON_VALUE_THIRD-ARGUMENT}건, revision {COMMON_VALUE_FOURTH-ARGUMENT}","장부 {COMMON_VALUE_FIRST-ARGUMENT}~{COMMON_VALUE_SECOND-ARGUMENT} / 총 {COMMON_VALUE_THIRD-ARGUMENT}건, revision {COMMON_VALUE_FOURTH-ARGUMENT}","Ledgers {COMMON_VALUE_FIRST-ARGUMENT} ~ {COMMON_VALUE_SECOND-ARGUMENT} / Total {COMMON_VALUE_THIRD-ARGUMENT} records, revision {COMMON_VALUE_FOURTH-ARGUMENT}"
+SCHEDULE_TEXT_PREVIOUS-LEDGER,이전 장부,이전 장부,Previous ledger
+SCHEDULE_TEXT_LATEST-LEDGER,최신 장부,최신 장부,Latest ledger
+SCHEDULE_TEXT_FIRST-ARGUMENT-GENERATION-SECOND-ARGUMENT-THIRD,#{COMMON_VALUE_FIRST-ARGUMENT} 세대 {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}일차 {COMMON_VALUE_FOURTH-ARGUMENT}: {COMMON_VALUE_FIFTH-ARGUMENT} → {COMMON_VALUE_SIXTH-ARGUMENT},#{COMMON_VALUE_FIRST-ARGUMENT} 세대 {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT}일차 {COMMON_VALUE_FOURTH-ARGUMENT}: {COMMON_VALUE_FIFTH-ARGUMENT} → {COMMON_VALUE_SIXTH-ARGUMENT},#{COMMON_VALUE_FIRST-ARGUMENT} Generation {COMMON_VALUE_SECOND-ARGUMENT} {COMMON_VALUE_THIRD-ARGUMENT} Day {COMMON_VALUE_FOURTH-ARGUMENT} : {COMMON_VALUE_FIFTH-ARGUMENT} → {COMMON_VALUE_SIXTH-ARGUMENT}
+SCHEDULE_TEXT_FUNDS-FOUND-OLD-BOX,낡은 상자 발견 자금,낡은 상자 발견 자금,Funds found in an old box
+SCHEDULE_TEXT_DEBUG-PAYMENT,디버그 지급,디버그 지급,Debug payment
+SCHEDULE_TEXT_DAY_3,—일차,—일차,—First
+SCHEDULE_TEXT_AFTERNOON,오후,오후,afternoon
+SCHEDULE_TEXT_CHECKING,확인 중,확인 중,Checking
+SCHEDULE_TEXT_MINUTES,999분+,999분+,999 minutes+
+SCHEDULE_PROMPT_THERE-NO-SCHEDULE-PROFILE,일정 Profile이 없습니다.,일정 Profile이 없습니다.,There is no schedule profile.
+SCHEDULE_TEXT_LIST-SCHEDULE-ENTRIES-NULL-EMPTY-LIST,일정 entries 목록이 null입니다. 빈 목록은 허용합니다.,일정 entries 목록이 null입니다. 빈 목록은 허용합니다.,The list of schedule entries is null. An empty list is allowed.
+SCHEDULE_TEXT_WARNING-THRESHOLD-MUST-FINITE-CRITICALSECONDS-WARNINGSECONDS,경고 임계값은 유한한 0 ≤ criticalSeconds ≤ warningSeconds여야 합니다.,경고 임계값은 유한한 0 ≤ criticalSeconds ≤ warningSeconds여야 합니다.,"The warning threshold must be finite, 0 ≤ criticalSeconds ≤ warningSeconds."
+SCHEDULE_TEXT_PULSEPERIODSECONDS-MUST-FINITE-VALUE-SECONDS-OR,pulsePeriodSeconds는 0.1초 이상의 유한한 값이어야 합니다.,pulsePeriodSeconds는 0.1초 이상의 유한한 값이어야 합니다.,pulsePeriodSeconds must be a finite value of 0.1 seconds or more.
+SCHEDULE_TEXT_THERE-ABNORMAL-VALUE-WATER-COLOR,수면 색에 비정상 값이 있습니다.,수면 색에 비정상 값이 있습니다.,There is an abnormal value in the water color.
+SCHEDULE_TEXT_THERE-NULL-SCHEDULE-ITEM,null 일정 항목이 있습니다.,null 일정 항목이 있습니다.,There is a null schedule item.
+SCHEDULE_TEXT_ONLY-REST-PERFORMANCE-MAINTENANCE-PHASES-USED,명시 일정에는 휴식·공연·정비 phase만 사용할 수 있습니다. 수면은 자동 계산합니다.,명시 일정에는 휴식·공연·정비 phase만 사용할 수 있습니다. 수면은 자동 계산합니다.,"Only Rest, Performance, and Maintenance phases can be used in the specified schedule. Sleep is calculated automatically."
+SCHEDULE_TEXT_START-END-MUST-RANGE,: 시작·끝은 00:00~23:59 범위여야 합니다.,: 시작·끝은 00:00~23:59 범위여야 합니다.,: Start and end must be in the range of 00:00 to 23:59.
+SCHEDULE_TEXT_START-END-SAME-TURN-OFF-ENABLED,: 시작과 끝이 같습니다. 사용하지 않으려면 enabled를 끄세요.,: 시작과 끝이 같습니다. 사용하지 않으려면 enabled를 끄세요.,: The start and end are the same. Turn off enabled if you do not want to use it.
+SCHEDULE_TEXT_THERE-ABNORMAL-VALUE-COLOR,: 색에 비정상 값이 있습니다.,: 색에 비정상 값이 있습니다.,: There is an abnormal value in the color.
+SCHEDULE_TEXT_REST,휴식,휴식,rest
+SCHEDULE_TEXT_PERFORMANCE_2,공연 01,공연 01,Performance 01
+SCHEDULE_TEXT_PERFORMANCE_4,공연 02,공연 02,Performance 02
+SCHEDULE_TEXT_THERE-NO-PUBLIC-SCHEDULES,"공개된 일정이
+없습니다.","공개된 일정이
+없습니다.","There are no
+public schedules."
+SCHEDULE_TEXT_DUPLICATE-PHASE-ID,중복 phase ID: ,중복 phase ID: ,Duplicate phase ID: 
+SCHEDULE_TEXT_OVERLAPPING-SCHEDULE-INTERVALS,일정 구간이 겹칩니다: ,일정 구간이 겹칩니다: ,Overlapping schedule intervals: 

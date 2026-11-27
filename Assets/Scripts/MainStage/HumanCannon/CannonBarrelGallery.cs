@@ -65,7 +65,7 @@ namespace CurtainCall.HumanCannon
         }
         UnityEngine.UI.Text Label(Transform parent, string value, float height = 35)
         {
-            var text = Row(parent, value, height).gameObject.AddComponent<UnityEngine.UI.Text>();
+            var text = CurtainCall.Localization.LocalizedDisplays.BindLegacy(Row(parent, value, height).gameObject.AddComponent<UnityEngine.UI.Text>());
             text.font = font; text.fontSize = 17; text.color = Color.white; text.text = value;
             text.alignment = TextAnchor.MiddleCenter; text.raycastTarget = false; return text;
         }

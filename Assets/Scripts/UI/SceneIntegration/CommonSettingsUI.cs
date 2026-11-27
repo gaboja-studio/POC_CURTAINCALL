@@ -163,6 +163,8 @@ namespace CurtainCall.UI.SceneIntegration
                 sound.rows.Add(Toggle("peerMuted_" + id, name + " · 음소거", peers[id].muted));
             }
             var credits = catalog.pages[4];
+            credits.rows.Add(Choice("Language", "@loc:SETTINGS_OPTION_LANGUAGE", CurtainCall.Localization.GameLanguage.Preference, new[] {
+                new SettingsChoice("auto", "@loc:SETTINGS_OPTION_SYSTEM-LANGUAGE"), new SettingsChoice("ko", "한국어"), new SettingsChoice("en", "English") }));
             var clearHistory = ActionRow("ClearLocalHistory", "설문·대기실 안내 이력 초기화", "캐시 초기화");
             clearHistory.confirmationBody = "이 PC의 설문 열림 기록과 대기실 안내 이력을 초기화합니다.\n조작·음량 설정, 플레이 로그, 이미 제출한 설문 응답은 유지됩니다.\n설문 대상 시점이면 다시 열립니다.";
             credits.rows.Add(clearHistory);
@@ -408,6 +410,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var voice = VoiceChat.Instance;
                 voice?.ApplyAudioPreferences(values["micVolume"].number, !values["micEnabled"].toggle, values["teamVolume"].number, values["teamMuted"].toggle);
                 foreach (var id in peers.Keys) voice?.SetParticipantPreference(id, values["peerVolume_" + id].number, values["peerMuted_" + id].toggle);
+                if (values.TryGetValue("Language", out var language)) CurtainCall.Localization.GameLanguage.SetPreference(language.choiceId);
                 view.CompleteApply(request.token, true);
             }
             catch (Exception) { if (Current()) view.CompleteApply(request.token, false, "설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다."); }

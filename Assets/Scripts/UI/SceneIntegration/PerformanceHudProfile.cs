@@ -1,5 +1,6 @@
 using System;
 using CurtainCall.Player;
+using CurtainCall.WaitingRoom;
 using UnityEngine;
 
 namespace CurtainCall.UI.SceneIntegration
@@ -46,22 +47,30 @@ namespace CurtainCall.UI.SceneIntegration
         {
             string text = FormatKeys(template, input);
             return text.Contains("{seconds}")
-                ? text.Replace("{seconds}", CurtainCall.Settings.GameSettings.Poles.HoldSeconds.ToString("0.#"))
+                ? WaitingRoomText.Fill(text, new (string, object)[] { ("seconds", CurtainCall.Settings.GameSettings.Poles.HoldSeconds.ToString("0.#")) })
                 : text;
         }
 
         public static string FormatKeys(string template, PlayerInputReader input, string interact = "F", string jump = "Space")
         {
-            if (string.IsNullOrEmpty(template) || !template.Contains("{")) return template ?? "";
             string Action(string name,string fallback) => input ? input.BindingLabel(name,fallback) : fallback;
             string Part(string name,string part,string fallback) => input ? input.BindingPartLabel(name,part,fallback) : fallback;
+            return FormatLabels(template, Action, Part, interact, jump);
+        }
+
+        internal static string FormatLabels(string template, Func<string,string,string> Action,
+            Func<string,string,string,string> Part, string interact = "F", string jump = "Space")
+        {
+            if (string.IsNullOrEmpty(template) || !template.Contains("{")) return template ?? "";
             string ws = Part("Move","positive","W")+"/"+Part("Move","negative","S");
             string ad = Part("Posture","negative","A")+"/"+Part("Posture","positive","D");
             string action = Action("Action",jump);
-            return template.Replace("{interact}",Action("Interact",interact)).Replace("{jump}",action).Replace("{action}",action)
-                .Replace("{forward}",ws).Replace("{balance}",ad).Replace("{move}",ws+" · "+ad)
-                .Replace("{side}",Action("DirectionLeft","좌클릭")+"/"+Action("DirectionRight","우클릭"))
-                .Replace("{turn}",Action("TurnAround","휠 클릭"));
+            return WaitingRoomText.Fill(template, new (string, object)[] {
+                ("interact", Action("Interact", interact)), ("jump", action), ("action", action),
+                ("forward", ws), ("balance", ad), ("move", ws + " · " + ad),
+                ("side", Action("DirectionLeft", "좌클릭") + "/" + Action("DirectionRight", "우클릭")),
+                ("turn", Action("TurnAround", "휠 클릭")), ("slot1", Action("UseSlotOne", "Q")),
+                ("slot2", Action("UseSlotTwo", "E")), ("uv", Action("UvLight", "우클릭")) });
         }
     }
 }
