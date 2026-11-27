@@ -57,3 +57,6 @@
 - 수집 목록 6,222곳 중 5,924곳이 현재 키에 연결된다. 영문 @loc:로 지정한 언어 설정 두 곳도 다시 수집했다. 초기 doctor가 표시한 기존 Task 번호 중복과 샌드박스의 Unity·서브모듈 조회 제한은 이 변경과 독립적이다.
 
 - 2026-11-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-27 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/491 (feat/csv-localization → dev)
+- Windows 체크아웃을 재현했을 때 리허설 원문 46행의 셀 내부 줄바꿈이 달라졌다. 번역 CSV에 Git 줄바꿈 보존 규칙을 적용하고, 13개 파일의 커밋 데이터가 Unity에서 검사한 원본과 바이트 단위로 일치함을 확인했다.
